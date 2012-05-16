@@ -3,7 +3,11 @@ import numpy
 import sys
 import os
 import os.path
-from numpy.compat import asbytes
+try:
+    from numpy.compat import asbytes
+except ImportError:
+    asbytes = lambda x: x
+
 
 def _load_library(libname, libdir):
     """Try to load a libray with the base name 'libname' from the
@@ -20,7 +24,7 @@ def _load_library(libname, libdir):
         # Try to load library with platform-specific name, otherwise
         # default to libname.[so|pyd].  Sometimes, these files are built
         # erroneously on non-linux platforms.
-        libname_ext = ['%s.so' % libname, '%s.pyd' % libname]
+        libname_ext = ['%s.so' % libname, '%s.so.3' % libname, '%s.pyd' % libname]
         if sys.platform == 'win32': # 'win32' is returned even on 64-bit win
             libname_ext.insert(0, '%s.dll' % libname)
         elif sys.platform == 'darwin':
