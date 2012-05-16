@@ -1,9 +1,13 @@
-import urllib2
 import os
 import sys
 import shutil
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen # Py3k
 
 # update base_address to tagged, scikits-image-hosted fork as needed
+# todo: chose an address that is http (not https), some might not have SSL
 BASE_ADDRESS = 'https://raw.github.com/zachrahan/freeimage-sharedlib/master/'
 
 FILES = {
@@ -19,9 +23,9 @@ LIBRARIES = {
 }
 
 def _download(url, dest, timeout=20):
-    print 'Downloading: %s' % url
+    print('Downloading: %s' % url)
     dest_f = open(dest, 'wb')
-    remote = urllib2.urlopen(url, timeout=timeout)
+    remote = urlopen(url, timeout=timeout)
     try:
         shutil.copyfileobj(remote, dest_f)
     except:
@@ -40,8 +44,8 @@ def retrieve_files():
         raise RuntimeError('No precompiled FreeImage libraries are available '
                            'for %d-bit %s systems.'%(bits, sys.platform))
     library = LIBRARIES[key]
-    print 'Found: %s for %d-bit %s systems at %s' % (library, bits, 
-            sys.platform, BASE_ADDRESS)
+    print('Found: %s for %d-bit %s systems at %s' % (library, bits, 
+            sys.platform, BASE_ADDRESS))
     files = dict(FILES)
     files[library] = library
     for src, dst in files.items():
