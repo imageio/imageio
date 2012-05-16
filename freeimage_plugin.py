@@ -43,8 +43,12 @@ def _load_library(libname, libdir):
     for lp in lib_paths:
         try:
             library = loader[lp]
-        except Exception, e:
-            errors[lp] = e
+        except Exception:
+            # Get exception instance in Python 2.x/3.x compatible manner
+            e_type, e_value, e_tb = sys.exc_info()
+            del e_tb
+            errors[lp] = e_value
+           
     return library, errors
 
 def load_freeimage():
@@ -88,7 +92,7 @@ def load_freeimage():
 
     elif errors:
         # No freeimage library found, but load-errors reported
-        err_txt = ['%s:\n%s'%(pl, err.message) for pl, err in errors.items()]
+        err_txt = ['%s:\n%s'%(pl, str(err)) for pl, err in errors.items()]
         raise OSError('One or more FreeImage libraries were found, but could '
                       'not be loaded due to the following errors:\n'+
                       '\n\n'.join(err_txt))
