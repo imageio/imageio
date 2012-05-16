@@ -3,7 +3,9 @@ import numpy
 import sys
 import os
 import os.path
-from numpy.compat import asbytes, asstr
+
+# Define function to encode a filename to bytes (for the current system)
+efn = lambda x : x.encode(sys.getfilesystemencoding())
 
 
 def _generate_candidate_libs():
@@ -365,11 +367,10 @@ class METADATA_DATATYPE(object):
 
 
 def _process_bitmap(filename, flags, process_func):
-    filename = asbytes(filename)
-    ftype = _FI.FreeImage_GetFileType(filename, 0)
+    ftype = _FI.FreeImage_GetFileType(efn(filename), 0)
     if ftype == -1:
         raise ValueError('Cannot determine type of file %s' % filename)
-    bitmap = _FI.FreeImage_Load(ftype, filename, flags)
+    bitmap = _FI.FreeImage_Load(ftype, efn(filename), flags)
     bitmap = ctypes.c_void_p(bitmap)
     if not bitmap:
         raise ValueError('Could not load file %s' % filename)
@@ -399,14 +400,13 @@ def read_metadata(filename):
     return _process_bitmap(filename, flags, _read_metadata)
 
 def _process_multipage(filename, flags, process_func):
-    filename = asbytes(filename)
-    ftype = _FI.FreeImage_GetFileType(filename, 0)
+    ftype = _FI.FreeImage_GetFileType(efn(filename), 0)
     if ftype == -1:
         raise ValueError('Cannot determine type of file %s' % filename)
     create_new = False
     read_only = True
     keep_cache_in_memory = True
-    multibitmap = _FI.FreeImage_OpenMultiBitmap(ftype, filename, create_new,
+    multibitmap = _FI.FreeImage_OpenMultiBitmap(ftype, efn(filename), create_new,
                                                 read_only, keep_cache_in_memory,
                                                 flags)
     multibitmap = ctypes.c_void_p(multibitmap)
@@ -508,13 +508,13 @@ def _read_metadata(bitmap):
         if mdhandle:
             more = True
             while more:
-                tag_name = asstr(_FI.FreeImage_GetTagKey(tag))
+                tag_name = _FI.FreeImage_GetTagKey(tag).decode('utf-8')
                 tag_type = _FI.FreeImage_GetTagType(tag)
                 byte_size = _FI.FreeImage_GetTagLength(tag)
                 char_ptr = ctypes.c_char * byte_size
                 tag_str = char_ptr.from_address(_FI.FreeImage_GetTagValue(tag))
                 if tag_type == METADATA_DATATYPE.FIDT_ASCII:
-                    tag_val = asstr(tag_str.value)
+                    tag_val = tag_str.value.decode('utf-8')
                 else:
                     tag_val = numpy.fromstring(tag_str,
                             dtype=METADATA_DATATYPE.dtypes[tag_type])
@@ -534,8 +534,7 @@ def write(array, filename, flags=0):
     (See the source-code comments for more details.)
     """
     array = numpy.asarray(array)
-    filename = asbytes(filename)
-    ftype = _FI.FreeImage_GetFIFFromFilename(filename)
+    ftype = _FI.FreeImage_GetFIFFromFilename(efn(filename))
     if ftype == -1:
         raise ValueError('Cannot determine type for %s' % filename)
     bitmap, fi_type = _array_to_bitmap(array)
@@ -548,7 +547,7 @@ def write(array, filename, flags=0):
         if not can_write:
             raise TypeError('Cannot save image of this format '
                             'to this file type')
-        res = _FI.FreeImage_Save(ftype, bitmap, filename, flags)
+        res = _FI.FreeImage_Save(ftype, bitmap, efn(filename), flags)
         if not res:
             raise RuntimeError('Could not save image properly.')
     finally:
@@ -562,14 +561,13 @@ def write_multipage(arrays, filename, flags=0):
     class defined in this module, or-ed together with | as appropriate.
     (See the source-code comments for more details.)
     """
-    filename = asbytes(filename)
-    ftype = _FI.FreeImage_GetFIFFromFilename(filename)
+    ftype = _FI.FreeImage_GetFIFFromFilename(efn(filename))
     if ftype == -1:
         raise ValueError('Cannot determine type of file %s' % filename)
     create_new = True
     read_only = False
     keep_cache_in_memory = True
-    multibitmap = _FI.FreeImage_OpenMultiBitmap(ftype, filename,
+    multibitmap = _FI.FreeImage_OpenMultiBitmap(ftype, efn(filename),
                                                 create_new, read_only,
                                                 keep_cache_in_memory, 0)
     if not multibitmap:
