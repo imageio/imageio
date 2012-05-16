@@ -664,7 +664,12 @@ def imread(filename):
     -------
       img : ndarray
     """
-    img = read(filename)
+    # Convenience
+    flags = 0 
+    if os.path.splitext(filename)[1].lower() in ['.jpg', '.jpeg']:
+        flags = IO_FLAGS.JPEG_EXIFROTATE
+    
+    img = read(filename, flags)
     return img
 
 def imsave(filename, img):
