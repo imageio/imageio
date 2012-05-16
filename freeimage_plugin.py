@@ -8,6 +8,7 @@ try:
 except ImportError:
     asbytes = lambda x: x
 
+# Notice: This module is written to run on both Python 2.x and 3.x
 
 def _load_library(libname, libdir):
     """Try to load a libray with the base name 'libname' from the
