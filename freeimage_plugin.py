@@ -664,11 +664,16 @@ def imread(filename):
     -------
       img : ndarray
     """
-    # Convenience
+    # Set default flags for convenience
     flags = 0 
-    if os.path.splitext(filename)[1].lower() in ['.jpg', '.jpeg']:
-        flags = IO_FLAGS.JPEG_EXIFROTATE
-    
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in ['.jpg', '.jpeg']:
+        flags = IO_FLAGS.JPEG_EXIFROTATE # Rotate photos by EXIF tag
+    elif ext == '.gif':
+        flags = IO_FLAGS.GIF_PLAYBACK # Return RGBA (apply color table and frames)
+    elif ext == '.ico':
+        flags = IO_FLAGS.ICO_MAKEALPHA # Apply AND mask
+        
     img = read(filename, flags)
     return img
 
@@ -685,4 +690,12 @@ def imsave(filename, img):
       filename : file name
       img : image to be saved as nd array
     '''
+    # Set default flags for convenience
+    flags = 0 
+    ext = os.path.splitext(filename)[1].lower()
+    if ext == '.bmp':
+        flags = IO_FLAGS.BMP_SAVE_RLE # Use compression by default
+    elif ext == '.png':
+        flags = PNG_Z_BEST_COMPRESSION # Use best compression by default
+    
     write(img, filename)
