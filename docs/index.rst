@@ -26,6 +26,7 @@ Further, via the module imageio.freeimage part of the FreeImage library
 is exposed.
 
 Well this is the idea anyway. We're still developing :)
+
 .. insertdocs end::
 
 
@@ -63,6 +64,7 @@ API
   
   
     img : ndarray
+  
 .. insertdocs end::
 
 .. insertdocs start:: imageio.imwrite
@@ -84,6 +86,7 @@ API
   
     filename : file name
     img : image to be saved as nd array
+  
 .. insertdocs end::
 
 
