@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2012, imageio contributers
+# imageio is distributed under the terms of the (new) BSD License.
 
 """ 
 The imageio library aims to support reading and writing a wide 
@@ -21,5 +22,6 @@ Well this is the idea anyway. We're still developing :)
 
 """
 
+__version__ = 0.1
 
 from imageio.freeimage_plugin import imread, imwrite
