@@ -653,9 +653,9 @@ def imread(filename):
     img = read(filename)
     return img
 
-def imsave(filename, img):
+def imwrite(filename, img):
     '''
-    imsave(filename, img)
+    imwrite(filename, img)
 
     Save image to disk
 
