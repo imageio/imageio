@@ -10,7 +10,7 @@ efn = lambda x : x.encode(sys.getfilesystemencoding())
 
 def _generate_candidate_libs():
     # look for likely library files in the following dirs:
-    lib_dirs = [os.path.dirname(__file__),
+    lib_dirs = [os.path.join(os.path.dirname(__file__), 'lib'),
                 '/lib',
                 '/usr/lib',
                 '/usr/local/lib',
@@ -31,9 +31,9 @@ def _generate_candidate_libs():
             files = os.listdir(lib_dir)
             lib_paths += [os.path.join(lib_dir, lib) for lib in files
                            if lib.lower().startswith(lib_name) and not
-                           os.path.splitext(lib)[1] in ('.py', '.pyc', '.ini')]
+                           os.path.splitext(lib)[1] in ('.py', '.pyc', '.ini', '.txt')]
     lib_paths = [lp for lp in lib_paths if os.path.exists(lp)]
-
+    
     return lib_dirs, lib_paths
 
 def load_freeimage():

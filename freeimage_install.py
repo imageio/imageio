@@ -37,22 +37,33 @@ def _download(url, dest, timeout=20):
     dest_f.close()
 
 
-def retrieve_files():
-    bits = 64 if sys.maxsize > 2**32 else 32
-    key = (sys.platform, bits)
-    if key not in LIBRARIES:
-        raise RuntimeError('No precompiled FreeImage libraries are available '
-                           'for %d-bit %s systems.'%(bits, sys.platform))
-    library = LIBRARIES[key]
-    print('Found: %s for %d-bit %s systems at %s' % (library, bits, 
-            sys.platform, BASE_ADDRESS))
-    files = dict(FILES)
-    files[library] = library
+def retrieve_files(retrieve_all=False):
+    
+    if retrieve_all:
+        # We want to download all files
+        files = dict(FILES)
+        for key, library in LIBRARIES.items():
+            files[library] = library
+    else:
+        # We only want to download the one for this system
+        bits = 64 if sys.maxsize > 2**32 else 32
+        key = (sys.platform, bits)
+        if key not in LIBRARIES:
+            raise RuntimeError('No precompiled FreeImage libraries are available '
+                            'for %d-bit %s systems.'%(bits, sys.platform))
+        library = LIBRARIES[key]
+        print('Found: %s for %d-bit %s systems at %s' % (library, bits, 
+                sys.platform, BASE_ADDRESS))
+        # Select files to download
+        files = dict(FILES)
+        files[library] = library
+    
+    # Download all files and put them in the lib dir
     for src, dst in files.items():
-        dest = os.path.join(os.path.dirname(__file__), dst)
+        dest = os.path.join(os.path.dirname(__file__), 'lib', dst)
         if not os.path.exists(dest):
             _download(BASE_ADDRESS+src, dest)
 
+
 if __name__ == '__main__':
     retrieve_files()
-
