@@ -22,6 +22,6 @@ Well this is the idea anyway. We're still developing :)
 
 """
 
-__version__ = 0.1
+__version__ = '0.1'
 
 from imageio.freeimage_plugin import imread, imwrite
