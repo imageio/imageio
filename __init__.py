@@ -24,4 +24,10 @@ Well this is the idea anyway. We're still developing :)
 
 __version__ = '0.1'
 
-from imageio.freeimage_plugin import imread, imwrite
+#from imageio.freeimage_plugin import imread, imwrite
+from imageio.freeimage import read, write, read_metadata
+
+imread = read
+imwrite = write
+
+imsave = imwrite # provide alias for interoperability with e.g. the imread package
