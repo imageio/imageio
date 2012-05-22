@@ -1,95 +1,56 @@
+
+""" Module imageio/freeimage.py
+
+This module contains the wrapper code for the freeimage library.
+The functions defined in this module are relatively thin; just thin
+enough so that arguments and results are native Python/numpy data
+types.
+
+"""
+
+import sys
 import ctypes
 import numpy
-import sys
-import os
-import os.path
+from imageio import findlib
 
 # Define function to encode a filename to bytes (for the current system)
 efn = lambda x : x.encode(sys.getfilesystemencoding())
 
+# todo: rename _FI, FI?
+# todo: the caller should check if a file exists
+# todo: make API class more complete
+# todo: write with meta data
+# todo: write with palette?
+# todo: Check if jpeg has alpha channel. if so, deal with it and maybe warn.
 
-def _generate_candidate_libs():
-    # look for likely library files in the following dirs:
-    lib_dirs = [os.path.join(os.path.dirname(__file__), 'lib'),
-                '/lib',
-                '/usr/lib',
-                '/usr/local/lib',
-                '/opt/local/lib',
-                os.path.join(sys.prefix, 'lib'),
-                os.path.join(sys.prefix, 'DLLs')
-                ]
-    if 'HOME' in os.environ:
-        lib_dirs.append(os.path.join(os.environ['HOME'], 'lib'))
-    lib_dirs = [ld for ld in lib_dirs if os.path.exists(ld)]
 
-    lib_names = ['libfreeimage', 'freeimage'] # should be lower-case!
-    # Now attempt to find libraries of that name in the given directory
-    # (case-insensitive and without regard for extension)
-    lib_paths = []
-    for lib_dir in lib_dirs:
-        for lib_name in lib_names:
-            files = os.listdir(lib_dir)
-            lib_paths += [os.path.join(lib_dir, lib) for lib in files
-                           if lib.lower().startswith(lib_name) and not
-                           os.path.splitext(lib)[1] in ('.py', '.pyc', '.ini', '.txt')]
-    lib_paths = [lp for lp in lib_paths if os.path.exists(lp)]
+def _load_freeimage():
     
-    return lib_dirs, lib_paths
-
-def load_freeimage():
-    if sys.platform == 'win32':
-        loader = ctypes.windll
+    # Load library
+    lib_names = ['freeimage', 'libfreeimage']
+    exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
+                        'libfreeimage.so', 'libfreeimage.so.3']
+    lib, fname = findlib.load_lib(exact_lib_names, lib_names)
+    
+    # Select functype
+    if sys.platform.startswith('win'):
         functype = ctypes.WINFUNCTYPE
     else:
-        loader = ctypes.cdll
         functype = ctypes.CFUNCTYPE
-
-    freeimage = None
-    errors = []
-    # First try a few bare library names that ctypes might be able to find
-    # in the default locations for each platform. Win DLL names don't need the
-    # extension, but other platforms do.
-    bare_libs = ['FreeImage', 'libfreeimage.dylib', 'libfreeimage.so',
-                'libfreeimage.so.3']
-    lib_dirs, lib_paths = _generate_candidate_libs()
-    lib_paths = bare_libs + lib_paths
-    for lib in lib_paths:
-        try:
-            freeimage = loader.LoadLibrary(lib)
-            break
-        except Exception:
-            if lib not in bare_libs:
-                # Don't record errors when it couldn't load the library from
-                # a bare name -- this fails often, and doesn't provide any
-                # useful debugging information anyway, beyond "couldn't find
-                # library..."
-                # Get exception instance in Python 2.x/3.x compatible manner
-                e_type, e_value, e_tb = sys.exc_info()
-                del e_tb
-                errors.append((lib, e_value))
-
-    if freeimage is None:
-        if errors:
-            # No freeimage library loaded, and load-errors reported for some
-            # candidate libs
-            err_txt = ['%s:\n%s'%(l, str(e.message)) for l, e in errors]
-            raise OSError('One or more FreeImage libraries were found, but '
-                          'could not be loaded due to the following errors:\n'+
-                          '\n\n'.join(err_txt))
-        else:
-            # No errors, because no potential libraries found at all!
-            raise OSError('Could not find a FreeImage library in any of:\n'+
-                          '\n'.join(lib_dirs))
-
+    
     # FreeImage found
+    # todo: use fif to produce a better error message
     @functype(None, ctypes.c_int, ctypes.c_char_p)
     def error_handler(fif, message):
-        raise RuntimeError('FreeImage error: %s' % message)
+        raise RuntimeError('FreeImage error: %s' % message.decode('utf-8'))
+    lib.FreeImage_SetOutputMessage(error_handler)
+    
+    return lib, fname
 
-    freeimage.FreeImage_SetOutputMessage(error_handler)
-    return freeimage
 
-_FI = load_freeimage()
+# Load the lib!    
+_FI, _lib_filename = _load_freeimage()
+
 
 API = {
     # All we're doing here is telling ctypes that some of the FreeImage
@@ -113,20 +74,23 @@ API = {
     'FreeImage_LockPage': (ctypes.c_void_p, None),
     'FreeImage_OpenMultiBitmap': (ctypes.c_void_p, None),
     
-    'FreeImage_GetVersion': (c_char_p, None),
-    'FreeImage_GetFIFExtensionList': (c_char_p, None),
-    'FreeImage_GetFormatFromFIF': (c_char_p, None),
+    'FreeImage_GetVersion': (ctypes.c_char_p, None),
+    'FreeImage_GetFIFExtensionList': (ctypes.c_char_p, None),
+    'FreeImage_GetFormatFromFIF': (ctypes.c_char_p, None),
     
     }
 
 # Albert's ctypes pattern
-def register_api(lib,api):
+def _register_api(lib,api):
     for f, (restype, argtypes) in api.items():
         func = getattr(lib, f)
         func.restype = restype
         func.argtypes = argtypes
 
-register_api(_FI, API)
+_register_api(_FI, API)
+
+# Store version of freeimage
+_lib_version = _FI.FreeImage_GetVersion().decode('utf-8')
 
 
 class FI_TYPES(object):
@@ -211,7 +175,6 @@ class FI_TYPES(object):
         else:
             extra_dims = cls.extra_dims[fi_type]
         return numpy.dtype(dtype), extra_dims + [w, h]
-
 
 class IO_FLAGS(object):
     FIF_LOAD_NOPIXELS = 0x8000 # loading: load the image header only
@@ -372,19 +335,8 @@ class METADATA_DATATYPE(object):
         }
 
 
-def _process_bitmap(filename, flags, process_func):
-    ftype = _FI.FreeImage_GetFileType(efn(filename), 0)
-    if ftype == -1:
-        # todo: also try FreeImage_GetFIFFromFilename, file might not have a header
-        raise ValueError('Cannot determine type of file %s' % filename)
-    bitmap = _FI.FreeImage_Load(ftype, efn(filename), flags)
-    bitmap = ctypes.c_void_p(bitmap)
-    if not bitmap:
-        raise ValueError('Could not load file %s' % filename)
-    try:
-        return process_func(bitmap)
-    finally:
-        _FI.FreeImage_Unload(bitmap)
+## Wrapper functions for reading
+
 
 def read(filename, flags=0):
     """Read an image to a numpy array of shape (height, width) for
@@ -396,6 +348,7 @@ def read(filename, flags=0):
     """
     return _process_bitmap(filename, flags, _array_from_bitmap)
 
+
 def read_metadata(filename):
     """Return a dict containing all image metadata.
 
@@ -406,10 +359,77 @@ def read_metadata(filename):
     flags = IO_FLAGS.FIF_LOAD_NOPIXELS
     return _process_bitmap(filename, flags, _read_metadata)
 
-def _process_multipage(filename, flags, process_func):
-    ftype = _FI.FreeImage_GetFileType(efn(filename), 0)
+
+def read_multipage(filename, flags=0):
+    """Read a multipage image to a list of numpy arrays, where each
+    array is of shape (height, width) for greyscale images, or shape
+    (height, width, nchannels) for RGB or RGBA images.
+    The `flags` parameter should be one or more values from the IO_FLAGS
+    class defined in this module, or-ed together with | as appropriate.
+    (See the source-code comments for more details.)
+    """
+    return _process_multipage(filename, flags, _array_from_bitmap)
+
+
+def read_multipage_metadata(filename):
+    """Read a multipage image to a list of metadata dicts, one dict for each
+    page. The dict format is as in read_metadata().
+    """
+    flags = IO_FLAGS.FIF_LOAD_NOPIXELS
+    return _process_multipage(filename, flags, _read_metadata)
+
+
+def getFIF(filename, mode):
+    """ Get the freeimage Format (FIF) from a given filename.
+    If mode is 'r', will try to determine the format by reading
+    the file, otherwise only the filename is used.
+    
+    This function also tests whether the format supports reading/writing.
+    """
+    
+    # Init
+    ftype = -1
+    if mode not in 'rw':
+        raise ValueError('Invalid mode (must be "r" or "w").')
+    
+    # Try getting format from file. Note that some files do not have a 
+    # header that allows reading the format from the file.
+    if mode == 'r':
+        ftype = _FI.FreeImage_GetFileType(efn(filename), 0)
+    # Try getting the format from the extension
     if ftype == -1:
-        raise ValueError('Cannot determine type of file %s' % filename)
+        ftype = _FI.FreeImage_GetFIFFromFilename(efn(filename))
+    
+    # Test if ok
+    if ftype == -1:
+        raise ValueError('Cannot determine format of file %s' % filename)
+    elif mode == 'w' and not _FI.FreeImage_FIFSupportsWriting(ftype):
+        raise ValueError('Cannot write the format of file %s' % filename)
+    elif mode == 'r' and not _FI.FreeImage_FIFSupportsReading(ftype):
+        raise ValueError('Cannot read the format of file %s' % filename)
+    else:
+        return ftype
+
+
+def _process_bitmap(filename, flags, process_func):
+    """ Load a bitmap and process it with the given function.
+    """
+    ftype = getFIF(filename, 'r')
+    bitmap = _FI.FreeImage_Load(ftype, efn(filename), flags)
+    bitmap = ctypes.c_void_p(bitmap)
+    if not bitmap:
+        raise ValueError('Could not load file %s' % filename)
+    try:
+        return process_func(bitmap)
+    finally:
+        _FI.FreeImage_Unload(bitmap)
+
+
+def _process_multipage(filename, flags, process_func):
+    """ Load a multipage bitmap and process each bitmat with the given function.
+    """
+    
+    ftype = getFIF(filename, 'r')
     create_new = False
     read_only = True
     keep_cache_in_memory = True
@@ -436,47 +456,9 @@ def _process_multipage(filename, flags, process_func):
     finally:
         _FI.FreeImage_CloseMultiBitmap(multibitmap, 0)
 
-def read_multipage(filename, flags=0):
-    """Read a multipage image to a list of numpy arrays, where each
-    array is of shape (height, width) for greyscale images, or shape
-    (height, width, nchannels) for RGB or RGBA images.
-    The `flags` parameter should be one or more values from the IO_FLAGS
-    class defined in this module, or-ed together with | as appropriate.
-    (See the source-code comments for more details.)
-    """
-    return _process_multipage(filename, flags, _array_from_bitmap)
-
-def read_multipage_metadata(filename):
-    """Read a multipage image to a list of metadata dicts, one dict for each
-    page. The dict format is as in read_metadata().
-    """
-    flags = IO_FLAGS.FIF_LOAD_NOPIXELS
-    return _process_multipage(filename, flags, _read_metadata)
-
-def _wrap_bitmap_bits_in_array(bitmap, shape, dtype):
-  """Return an ndarray view on the data in a FreeImage bitmap. Only
-  valid for as long as the bitmap is loaded (if single page) / locked
-  in memory (if multipage).
-
-  """
-  pitch = _FI.FreeImage_GetPitch(bitmap)
-  height = shape[-1]
-  byte_size = height * pitch
-  itemsize = dtype.itemsize
-
-  if len(shape) == 3:
-    strides = (itemsize, shape[0]*itemsize, pitch)
-  else:
-    strides = (itemsize, pitch)
-  bits = _FI.FreeImage_GetBits(bitmap)
-  array = numpy.ndarray(shape, dtype=dtype,
-                        buffer=(ctypes.c_char*byte_size).from_address(bits),
-                        strides=strides)
-  return array
 
 def _array_from_bitmap(bitmap):
-    """Convert a FreeImage bitmap pointer to a numpy array.
-
+    """ Convert a FreeImage bitmap pointer to a numpy array.
     """
     dtype, shape = FI_TYPES.get_type_and_shape(bitmap)
     array = _wrap_bitmap_bits_in_array(bitmap, shape, dtype)
@@ -502,7 +484,10 @@ def _array_from_bitmap(bitmap):
     # after bitmap is freed.
     return n(array).copy()
 
+
 def _read_metadata(bitmap):
+    """ or _dict_from_bitmap
+    """ 
     metadata = {}
     models = [(name[5:], number) for name, number in
         METADATA_MODELS.__dict__.items() if name.startswith('FIMD_')]
@@ -532,6 +517,10 @@ def _read_metadata(bitmap):
             _FI.FreeImage_FindCloseMetadata(mdhandle)
     return metadata
 
+
+## Wrapper functions for writing
+
+# todo: filename, array seems a better signature ...
 def write(array, filename, flags=0):
     """Write a (height, width) or (height, width, nchannels) array to
     a greyscale, RGB, or RGBA image, with file type deduced from the
@@ -541,9 +530,7 @@ def write(array, filename, flags=0):
     (See the source-code comments for more details.)
     """
     array = numpy.asarray(array)
-    ftype = _FI.FreeImage_GetFIFFromFilename(efn(filename))
-    if ftype == -1:
-        raise ValueError('Cannot determine type for %s' % filename)
+    ftype =getFIF(filename, 'w')
     bitmap, fi_type = _array_to_bitmap(array)
     try:
         if fi_type == FI_TYPES.FIT_BITMAP:
@@ -558,7 +545,8 @@ def write(array, filename, flags=0):
         if not res:
             raise RuntimeError('Could not save image properly.')
     finally:
-      _FI.FreeImage_Unload(bitmap)
+        _FI.FreeImage_Unload(bitmap)
+
 
 def write_multipage(arrays, filename, flags=0):
     """Write a list of (height, width) or (height, width, nchannels)
@@ -568,15 +556,14 @@ def write_multipage(arrays, filename, flags=0):
     class defined in this module, or-ed together with | as appropriate.
     (See the source-code comments for more details.)
     """
-    ftype = _FI.FreeImage_GetFIFFromFilename(efn(filename))
-    if ftype == -1:
-        raise ValueError('Cannot determine type of file %s' % filename)
+    ftype = getFIF(filename, 'w')
     create_new = True
     read_only = False
     keep_cache_in_memory = True
     multibitmap = _FI.FreeImage_OpenMultiBitmap(ftype, efn(filename),
                                                 create_new, read_only,
-                                                keep_cache_in_memory, 0)
+                                                keep_cache_in_memory,
+                                                0) # Set flags at close func
     if not multibitmap:
         raise ValueError('Could not open %s for writing multi-page image.' %
                          filename)
@@ -586,10 +573,13 @@ def write_multipage(arrays, filename, flags=0):
             bitmap, fi_type = _array_to_bitmap(array)
             _FI.FreeImage_AppendPage(multibitmap, bitmap)
     finally:
+        # Write the image (i.e. flush), set flags here
         _FI.FreeImage_CloseMultiBitmap(multibitmap, flags)
+
 
 # 4-byte quads of 0,v,v,v from 0,0,0,0 to 0,255,255,255
 _GREY_PALETTE = numpy.arange(0, 0x01000000, 0x00010101, dtype=numpy.uint32)
+
 
 def _array_to_bitmap(array):
     """Allocate a FreeImage bitmap and copy a numpy array into it.
@@ -644,33 +634,25 @@ def _array_to_bitmap(array):
       raise
 
 
-def imread(filename):
-    """
-    img = imread(filename)
+## Generic wrapper functions
 
-    Reads an image from file `filename`
+def _wrap_bitmap_bits_in_array(bitmap, shape, dtype):
+  """Return an ndarray view on the data in a FreeImage bitmap. Only
+  valid for as long as the bitmap is loaded (if single page) / locked
+  in memory (if multipage).
 
-    Parameters
-    ----------
-      filename : file name
-    Returns
-    -------
-      img : ndarray
-    """
-    img = read(filename)
-    return img
+  """
+  pitch = _FI.FreeImage_GetPitch(bitmap)
+  height = shape[-1]
+  byte_size = height * pitch
+  itemsize = dtype.itemsize
 
-def imwrite(filename, img):
-    '''
-    imwrite(filename, img)
-
-    Save image to disk
-
-    Image type is inferred from filename
-
-    Parameters
-    ----------
-      filename : file name
-      img : image to be saved as nd array
-    '''
-    write(img, filename)
+  if len(shape) == 3:
+    strides = (itemsize, shape[0]*itemsize, pitch)
+  else:
+    strides = (itemsize, pitch)
+  bits = _FI.FreeImage_GetBits(bitmap)
+  array = numpy.ndarray(shape, dtype=dtype,
+                        buffer=(ctypes.c_char*byte_size).from_address(bits),
+                        strides=strides)
+  return array
