@@ -23,11 +23,30 @@ Well this is the idea anyway. We're still developing :)
 """
 
 __version__ = '0.1'
+import sys
 
-#from imageio.freeimage_plugin import imread, imwrite
-from imageio.freeimage import read, write, read_metadata
+# Try to load freeimage wrapper
+import imageio.freeimage
+try:
+    fi = imageio.freeimage.Freeimage()
+except OSError:
+    print('Warning: the freeimage wrapper of imageio could not be loaded:')
+    e_type, e_value, e_tb = sys.exc_info(); del e_tb
+    print(str(e_value))
+    fi = None
 
-imread = read
-imwrite = write
+# todo: temporary solution until we have implemented plugins
+def imread(*args, **kwargs):
+    if fi is None:
+        raise ValueError('Freeimage not available')
+    return fi.read(*args, **kwargs)
 
-imsave = imwrite # provide alias for interoperability with e.g. the imread package
+def imsave(*args, **kwargs):
+    if fi is None:
+        raise ValueError('Freeimage not available')
+    return fi.write(*args, **kwargs)
+
+imwrite =imsave # provide alias for interoperability with e.g. the imread package
+
+# Clean up some names
+del sys
