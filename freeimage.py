@@ -72,14 +72,38 @@ class OutputMessageLogger:
 
 outputMessageLogger = OutputMessageLogger()
 
+MSG_NOLIB_DOWNLOAD = 'Attempting to download the FreeImage library.'
+MSG_NOLIB_LINUX = 'Install FreeImage via your package manager or build from source.'
+MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
 
+# todo: we probably dont want import to fail even if freeimage is not 
+# avaialble, we may still have plugins that may support some formats!
 def _load_freeimage():
     
     # Load library
     lib_names = ['freeimage', 'libfreeimage']
     exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                         'libfreeimage.so', 'libfreeimage.so.3']
-    lib, fname = findlib.load_lib(exact_lib_names, lib_names)
+    
+    try:
+        lib, fname = findlib.load_lib(exact_lib_names, lib_names)
+    except OSError:
+        # Could not load. Get why
+        e_type, e_value, e_tb = sys.exc_info(); del e_tb
+        load_error = str(e_value)
+        # Can we download? If not, raise error.
+        from imageio import freeimage_install
+        if freeimage_install.get_key_for_available_lib() is None:
+            if sys.platform.startswith('linux'):
+                raise OSError(load_error + '\n' + MSG_NOLIB_LINUX)
+            else:
+                raise OSError(load_error + '\n' + MSG_NOLIB_OTHER)
+        # Yes, it seems so! Try it and then try loading again
+        print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
+        freeimage_install.retrieve_files()
+        lib, fname = findlib.load_lib(exact_lib_names, lib_names)
+        # If we get here, we did a good job!
+        print('FreeImage library deployed succesfully.')
     
     # Register output message logger
     lib.FreeImage_SetOutputMessage(outputMessageLogger._error_handler)

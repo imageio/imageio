@@ -3,7 +3,7 @@ import os
 import sys
 import ctypes
 
-LOCALDIR = os.path.dirname(__file__)
+LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
 # todo: functionality to download on the fly (at runtime)
 
@@ -110,7 +110,7 @@ def load_lib(exact_lib_names, lib_names):
                 del e_tb
                 errors.append((fname, e_value))
     
-    # If no success, provide usefull error message
+    # No success ...
     if the_lib is None:
         if errors:
             # No library loaded, and load-errors reported for some
@@ -126,19 +126,3 @@ def load_lib(exact_lib_names, lib_names):
     
     # Done
     return the_lib, fname
-
-if __name__ == '__main__':
-#     a,b = generate_candidate_libs(['libfreeimage', 'freeimage'])
-#     for lib in b:
-#         print(lib)
-    # Win DLL names don't need the extension, but other platforms do.
-    exact_names = ['FreeImage', 'libfreeimage.dylib', 'libfreeimage.so', 'libfreeimage.so.3']
-    fi, fname = load_lib(exact_names, ['freeimage', 'libfreeimage'])
-    print('loaded', fname)
-#     
-#     # FreeImage found
-#     @functype(None, ctypes.c_int, ctypes.c_char_p)
-#     def error_handler(fif, message):
-#         raise RuntimeError('FreeImage error: %s' % message)
-# 
-#     freeimage.FreeImage_SetOutputMessage(error_handler)
