@@ -35,18 +35,29 @@ except OSError:
     print(str(e_value))
     fi = None
 
-# todo: temporary solution until we have implemented plugins
-def imread(*args, **kwargs):
-    if fi is None:
-        raise ValueError('Freeimage not available')
-    return fi.read(*args, **kwargs)
+# Load root plugin and insert some of its functions in this namesplace
+from base import Plugin, FormatCollection, Format
+import imageio.root
+root_plugin = imageio.root.RootPlugin()
+imread = root_plugin.imread
+imsave = root_plugin.imsave
 
-def imsave(*args, **kwargs):
-    if fi is None:
-        raise ValueError('Freeimage not available')
-    return fi.write(*args, **kwargs)
+# Load all the plugins
+import plugins
 
-imwrite =imsave # provide alias for interoperability with e.g. the imread package
+# 
+# # todo: temporary solution until we have implemented plugins
+# def imread(*args, **kwargs):
+#     if fi is None:
+#         raise ValueError('Freeimage not available')
+#     return fi.read(*args, **kwargs)
+# 
+# def imsave(*args, **kwargs):
+#     if fi is None:
+#         raise ValueError('Freeimage not available')
+#     return fi.write(*args, **kwargs)
+# 
+# imwrite =imsave # provide alias for interoperability with e.g. the imread package
 
 # Clean up some names
 del sys
