@@ -285,7 +285,7 @@ class Freeimage(object):
         'FreeImage_GetVersion': (ctypes.c_char_p, None),
         'FreeImage_GetFIFExtensionList': (ctypes.c_char_p, None),
         'FreeImage_GetFormatFromFIF': (ctypes.c_char_p, None),
-        
+        'FreeImage_GetFIFDescription': (ctypes.c_char_p, None),
         }
     
     
@@ -565,7 +565,7 @@ class Freeimage(object):
     
     ## Wrapper functions for writing
     
-    # todo: filename, array seems a better signature ...
+    # todo: filename, array seems a better signature ... and change to save?
     def write(self, array, filename, flags=0):
         """Write a (height, width) or (height, width, nchannels) array to
         a greyscale, RGB, or RGBA image, with file type deduced from the
@@ -574,7 +574,7 @@ class Freeimage(object):
         class defined in this module, or-ed together with | as appropriate.
         (See the source-code comments for more details.)
         """
-        self._lib
+        lib = self._lib
         
         array = numpy.asarray(array)
         ftype = self.getFIF(filename, 'w')
@@ -582,7 +582,7 @@ class Freeimage(object):
         try:
             if fi_type == FI_TYPES.FIT_BITMAP:
                 can_write = lib.FreeImage_FIFSupportsExportBPP(ftype,
-                                        _FI.FreeImage_GetBPP(bitmap))
+                                        lib.FreeImage_GetBPP(bitmap))
             else:
                 can_write = lib.FreeImage_FIFSupportsExportType(ftype, fi_type)
             if not can_write:
