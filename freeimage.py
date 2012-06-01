@@ -290,8 +290,9 @@ class Freeimage(object):
         # Initialize freeimage lib as None
         self._lib = None
         
-        # Init log messages list
-        self._reset_log()
+        # Init log messages lists
+        self._messages = []
+        self._messages2 = []
         
         # Select functype for error handler
         if sys.platform.startswith('win'): 
@@ -302,7 +303,12 @@ class Freeimage(object):
         @functype(None, ctypes.c_int, ctypes.c_char_p)
         def error_handler(fif, message):
             # todo: use fif to produce a better error message
-            self._messages.append(message.decode('utf-8'))
+            message = message.decode('utf-8')
+            self._messages.append(message)
+            self._messages2.append(message)
+            while (len(self._messages2)) > 256:
+                self._messages2.pop(0)
+        
         # Make sure to keep a ref to function
         self._error_handler = error_handler
         
@@ -364,7 +370,14 @@ class Freeimage(object):
         if self._messages:
             print('imageio.freeimage warning: ' + self._get_error_message())
             self._reset_log()
-
+    
+    
+    def get_output_log(self):
+        """ Return a list of the last 256 output messages 
+        (warnings and errors) produced by the FreeImage library.
+        """ 
+        return [m for m in self._messages2]
+    
     ## Wrapper functions for reading
     
     
