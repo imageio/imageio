@@ -32,13 +32,14 @@ for line in open(initFile).readlines():
 # todo: Windows generates a warning popup when trying to load the MAC dll.
 # todo: make libs work when frozen
 
-# Download libs and put in the lib dir
-from freeimage_install import retrieve_files
-if 'sdist' in sys.argv:
-    retrieve_files(True) # Retieve *all* binaries
-else:
-    retrieve_files() # Retieve only the one for this OS
-
+# Download libs at install-time (not needed if user has them installed)
+# If the lib cannot be found and is also not downloadable (e.g. Linux),
+# only a warning is given. If not found but should be downloadable, will 
+# raise error if this fails.
+import freeimage_install
+import findlib
+if ('build' in sys.argv) or ('install' in sys.argv):
+    findlib.load_freeimage(freeimage_install, False) 
 
 setup(
     name = name,
@@ -57,8 +58,8 @@ setup(
     provides = ['imageio'],
     requires = ['numpy'],
     
-    packages = ['imageio'],
+    packages = ['imageio', 'imageio.plugins'],
     package_dir = {'imageio': '.'}, # must be a dot, not an empty string
     package_data = {'imageio': ['lib/*',]},
-    zip_safe = False, # I want examples to work
+    zip_safe = False,
     )

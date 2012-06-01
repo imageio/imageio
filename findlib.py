@@ -126,3 +126,51 @@ def load_lib(exact_lib_names, lib_names):
     
     # Done
     return the_lib, fname
+
+
+## Freeimage stuff
+# The above is all generic. Below is code specific for freeimage. By 
+# including it in this module, it becomes easy to use it both from
+# freeimage.py and setup.py. Note, however, that the freeimage_install
+# is required, but which should be inported in different ways; therefore
+# it is passed as an argument. Not very beautiful, but practicallity beats
+# purity.
+
+# Store some messages as constants
+MSG_NOLIB_DOWNLOAD = 'Attempting to download the FreeImage library.'
+MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or build from source.'
+MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
+
+
+def load_freeimage(freeimage_install, raise_if_not_available=True):
+    # Load library
+    lib_names = ['freeimage', 'libfreeimage']
+    exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
+                        'libfreeimage.so', 'libfreeimage.so.3']
+    
+    try:
+        lib, fname = load_lib(exact_lib_names, lib_names)
+    except OSError:
+        # Could not load. Get why
+        e_type, e_value, e_tb = sys.exc_info(); del e_tb
+        load_error = str(e_value)
+        # Can we download? If not, raise error.
+        if freeimage_install.get_key_for_available_lib() is None:
+            if sys.platform.startswith('linux'):
+                err_msg = load_error + '\n' + MSG_NOLIB_LINUX
+            else:
+                err_msg = load_error + '\n' + MSG_NOLIB_OTHER
+            if raise_if_not_available:
+                raise OSError(err_msg)
+            else:
+                print('Warning:' + err_msg)
+                return
+        # Yes, it seems so! Try it and then try loading again
+        print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
+        freeimage_install.retrieve_files()
+        lib, fname = load_lib(exact_lib_names, lib_names)
+        # If we get here, we did a good job!
+        print('FreeImage library deployed succesfully.')
+    
+    # Return library and the filename where it's loaded
+    return lib, fname

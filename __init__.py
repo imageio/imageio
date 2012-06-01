@@ -36,14 +36,14 @@ except OSError:
     fi = None
 
 # Load root plugin and insert some of its functions in this namesplace
-from base import Plugin, FormatCollection, Format
+from imageio.base import Plugin, FormatCollection, Format
 import imageio.root
 root_plugin = imageio.root.RootPlugin()
 imread = root_plugin.imread
 imsave = root_plugin.imsave
 
 # Load all the plugins
-import plugins
+import imageio.plugins
 
 # 
 # # todo: temporary solution until we have implemented plugins
