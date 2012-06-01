@@ -11,6 +11,7 @@ from distutils.core import setup
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
 
+
 # Get version and docstring
 __version__ = None
 __doc__ = ''
@@ -28,9 +29,6 @@ for line in open(initFile).readlines():
     if docStatus == 1:
         __doc__ += line
 
-# todo: Allow downloading during runtime as well (but not when frozen)
-# todo: Windows generates a warning popup when trying to load the MAC dll.
-# todo: make libs work when frozen
 
 # Download libs at install-time (not needed if user has them installed)
 # If the lib cannot be found and is also not downloadable (e.g. Linux),

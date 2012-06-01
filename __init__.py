@@ -22,6 +22,10 @@ Well this is the idea anyway. We're still developing :)
 
 """
 
+# todo: test images at: http://sourceforge.net/projects/freeimage/files/
+# todo: make libs work when frozen - dont try to download when frozen!
+
+
 __version__ = '0.1'
 import sys
 
@@ -44,20 +48,6 @@ imsave = root_plugin.imsave
 
 # Load all the plugins
 import imageio.plugins
-
-# 
-# # todo: temporary solution until we have implemented plugins
-# def imread(*args, **kwargs):
-#     if fi is None:
-#         raise ValueError('Freeimage not available')
-#     return fi.read(*args, **kwargs)
-# 
-# def imsave(*args, **kwargs):
-#     if fi is None:
-#         raise ValueError('Freeimage not available')
-#     return fi.write(*args, **kwargs)
-# 
-# imwrite =imsave # provide alias for interoperability with e.g. the imread package
 
 # Clean up some names
 del sys
