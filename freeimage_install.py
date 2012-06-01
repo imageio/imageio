@@ -72,7 +72,7 @@ def retrieve_files(retrieve_all=False):
         key = get_key_for_available_lib()
         if key is None:
             raise RuntimeError('No precompiled FreeImage libraries are available '
-                            'for %d-bit %s systems.'%(key[1], key[0]))
+                            'for this system.')
         library = LIBRARIES[key]
         print('Found: %s for %d-bit %s systems at %s' % (library, key[1], 
                 key[0], BASE_ADDRESS))
