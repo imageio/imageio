@@ -5,7 +5,6 @@ import ctypes
 
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
-# todo: functionality to download on the fly (at runtime)
 
 def looks_lib(fname):
     """ Returns True of the given filename looks like a dynamic library.
