@@ -4,29 +4,37 @@
 
 """ 
 The imageio library aims to support reading and writing a wide 
-range of image data, including animated images. It is written 
-in pure Python (2.x and 3.x) and most functionality is obtained
-by wrapping the FreeImage library using ctypes. The imageio 
-projected is intended as a replacement for PIL.
+range of image data, including animated images, volumetric data, and
+scientific formats. It is written in pure Python (2.x and 3.x) and
+is designed to be powerful, yet simple in usage and installation.
 
-Four functions are exposed:
+For images, four convenience functions are exposed:
   * imread() - to read an image file and return a numpy array
-  * imwrite() - to write a numpy array to an image file
-  * movieread() - (name may change) to read animated image data as a list of numpy arrays
-  * moviewrite() - (name may change) to write a list of numpy array to an animated image
+  * imsave() - to write a numpy array to an image file
+  * mimread() - to read animated image data as a list of numpy arrays
+  * mimsave() - to write a list of numpy array to an animated image
 
-Further, via the module imageio.freeimage part of the FreeImage library 
-is exposed.
+Similarly, for volumes imageio provides volread, volsave, mvolread and mvolsave.
 
-Well this is the idea anyway. We're still developing :)
+For a larger degree of control, imageio provides the functions 
+imageio.read and imageio.save. They respectively return a Reader and a
+Writer object, which can be used to read/save data and meta data in a
+more controlled manner. This also allows specific scientific formats to
+be exposed in a way that best suits that file-format.
+
+To get a list of supported formats and to get access to the documentation
+specific for a certain format, use the imageio.formats object.
+
+The imageio library is intended as a replacement for PIL. Currently, most
+functionality is obtained by wrapping the FreeImage library using ctypes. 
 
 """
 
 # todo: test images at: http://sourceforge.net/projects/freeimage/files/
 # todo: make libs work when frozen - dont try to download when frozen!
 
+__version__ = '0.2'
 
-__version__ = '0.1'
 import sys
 
 # Try to load freeimage wrapper
@@ -40,14 +48,19 @@ except OSError:
     fi = None
 
 # Load root plugin and insert some of its functions in this namesplace
-from imageio.base import Plugin, FormatCollection, Format
-import imageio.root
-root_plugin = imageio.root.RootPlugin()
-imread = root_plugin.imread
-imsave = root_plugin.imsave
+from imageio.base import Request, Format, Reader, Writer, FormatManager
+from imageio.base import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL
+
+# Instantiate format manager
+formats = FormatManager()
 
 # Load all the plugins
 import imageio.plugins
 
+# Load the functions
+from imageio.functions import read, imread, mimread, volread, mvolread
+from imageio.functions import save, imsave, mimsave, volsave, mvolsave
+
 # Clean up some names
 del sys
+
