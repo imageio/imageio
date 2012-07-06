@@ -2,9 +2,26 @@
 # Copyright (c) 2012, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" imageio.functions
+""" 
+These are the main functions exposed to the user.
 
-This module defines the functions that are exposed to the user.
+For images:
+
+  * imageio.imread - reads an image from the specified file and return as a 
+    numpy array.
+  * imageio.imsave - save an image to the specified file.
+  * imageio.mimread - read a series of images from the specified file.
+  * imageio.mimsave - save a series of images to the specified file.
+
+For volumes: todo
+
+For somewhat lower level and more control:
+
+  * imageio.read: returns a reader object which can be used to read data 
+    and info from the specified file. 
+  * imageio.save: returns a writer object which can be used to write data
+    and info to the specified file.
+
 
 """
 
@@ -117,7 +134,7 @@ def save(filename, format=None, expect=None, **kwargs):
 def imread(filename, format=None, **kwargs):
     """ imread(filename, format=None, **kwargs)
     
-    Reads an image from a specified file. Returns a numpy array.
+    Reads an image from the specified file. Returns a numpy array.
     
     Parameters
     ----------
@@ -141,7 +158,7 @@ def imread(filename, format=None, **kwargs):
 def imsave(filename, im, format=None, **kwargs):
     """ imsave(filename, im, format=None, **kwargs)
     
-    Write an image to a specified file.
+    Save an image to the specified file.
     
     Parameters
     ----------
