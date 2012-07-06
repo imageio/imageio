@@ -7,10 +7,10 @@
 This module defines the main classes of imageio. A brief overview:
   
   * Request - used to store the filename and other info.
-  * Reader - Object used during the reading of a file.
-  * Writer - Object used during saving a file.
   * Format - The thing that says it can read/save a certain file.
     Has a reader and writer class asociated with it.
+  * Reader - Object used during the reading of a file.
+  * Writer - Object used during saving a file.
   * FormatManager - For keeping track of registered formats.
 
 Plugins need to implement a Reader, Writer and Format class and register
@@ -138,6 +138,123 @@ class Request(object):
 
 
 
+class Format:
+    """ 
+    A format represents an implementation to read/save a particular 
+    file format.
+    
+    A format instance is responsible for 1) providing information
+    about a format; 2) instantiating a reader/writer class; 3) determining
+    whether a certain file can be read/saved with this format.
+    
+    Generally, imageio will select the right format and use that to
+    read/save an image. A format can also be used directly by calling 
+    its read() and save() methods.
+    
+    Use print(format) to see its documentation.
+    
+    To implement a specific format, see the docs for the plugins.
+    
+    """
+    
+    # todo: maybe it is sometimes enough to only specify the extensions.
+    
+    def __init__(self, name, description, extensions=None):
+        
+        # Store name and description
+        self._name = name.upper()
+        self._description = description
+        
+        # Store extensions, do some effort to normalize them.
+        # They are stores as a list of lowercas strings without leading dots.
+        if extensions is None:
+            extensions = []
+        elif isinstance(extensions, string_types):
+            extensions = extensions.replace(',', ' ').split(' ')
+        #
+        if isinstance(extensions, (tuple, list)):
+            self._extensions = [e.strip('.').lower() for e in extensions if e]
+        else:
+            raise ValueError('Invalid value for extensions given.')
+        
+    def __repr__(self):
+        # Short description
+        return '<Format %s - %s>' % (self.name, self.description)
+    
+    def __str__(self):
+        return self.doc
+    
+    @property
+    def doc(self):
+        """ Get documentation for this format (name + description + docstring.
+        """
+        return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
+    
+    @property
+    def name(self):
+        """ Get the name of this format.
+        """
+        return self._name
+    
+    @property
+    def description(self):
+        """ Get a short description of this format.
+        """ 
+        return self._description
+    
+    @property
+    def extensions(self):
+        """ Get a list of file extensions supported by this plugin.
+        """
+        return self._extensions
+    
+    def read(self, request):
+        """ read(request)
+        
+        Return a reader object that can be used to read data and info
+        from the given file. Used internally. Users are encouraged to
+        use imageio.read() instead.
+        """
+        return self._get_reader_class()(request)
+    
+    def save(self, request):
+        """ save(request)
+        
+        Return a writer object that can be used to save data and info
+        to the given file. Used internally. Users are encouraged to
+        use imageio.save() instead.
+        """
+        return self._get_writer_class()(request)
+    
+    def can_read(self, request):
+        """ can_read(request)
+        
+        Get whether this format can read data from the specified file.
+        """
+        return self._can_read(request)
+    
+    def can_save(self, request):
+        """ can_save(request)
+        
+        Get whether this format can save data to the speciefed file.
+        """
+        return self._can_save(request)
+    
+    
+    def _get_reader_class(self):
+        return Reader # Plugins should implement this
+    
+    def _get_writer_class(self):
+        return Writer # Plugins should implement this
+    
+    def _can_read(self, request):
+        return None # Plugins should implement this
+    
+    def _can_save(self, request):
+        return None # Plugins should implement this
+
+
+
 class BaseReaderWriter(object):
     """ Base class for the Reader and Writer class to implement common 
     functionality.
@@ -153,21 +270,27 @@ class BaseReaderWriter(object):
         """
         return self._request
     
+    def init(self):
+        """ Initialize the reader/writer. Note that the recommended usage
+        of reader/writer objects is to use them in a "with-statement".
+        """
+        self._init()
+    
     def close(self):
-        """ Close this reader/writer.
+        """ Close this reader/writer. Note that the recommended usage
+        of reader/writer objects is to use them in a "with-statement".
         """
         self._close()
     
     def __del__(self):
-        self.close()
+        self._close()
     
     def __enter__(self):
+        self._init()
         return self
     
     def __exit__(self, *args):
-        self.close()
-    
-    # todo: when best to call _init()? On __enter__ or on __init__?
+        self._close()
     
     def _init(self):
         pass # Plugins can implement this
@@ -289,123 +412,6 @@ class Writer(BaseReaderWriter):
     
     def _save_info(self, info, *indices, **kwargs):
         raise NotImplemented() # Plugins should implement this
-
-
-
-class Format:
-    """ 
-    A format represents an implementation to read/save a particular 
-    file format.
-    
-    A format instance is responsible for 1) providing information
-    about a format; 2) instantiating a reader/writer class; 3) determining
-    whether a certain file can be read/saved with this format.
-    
-    Generally, imageio will select the right format and use that to
-    read/save an image. A format can also be used directly by calling 
-    its read() and save() methods.
-    
-    Use print(format) to see its documentation.
-    
-    To implement a specific format, see the docs for the plugins.
-    
-    """
-    
-    # todo: maybe it is sometimes enough to only specify the extensions.
-    
-    def __init__(self, name, description, extensions=None):
-        
-        # Store name and description
-        self._name = name.upper()
-        self._description = description
-        
-        # Store extensions, do some effort to normalize them.
-        # They are stores as a list of lowercas strings without leading dots.
-        if extensions is None:
-            extentions = []
-        elif isinstance(extensions, string_types):
-            extensions = extensions.replace(',', ' ').split(' ')
-        #
-        if isinstance(extensions, (tuple, list)):
-            self._extensions = [e.strip('.').lower() for e in extensions if e]
-        else:
-            raise ValueError('Invalid value for extensions given.')
-        
-    def __repr__(self):
-        # Short description
-        return '<Format %s - %s>' % (self.name, self.description)
-    
-    def __str__(self):
-        return self.doc
-    
-    @property
-    def doc(self):
-        """ Get documentation for this format (name + description + docstring.
-        """
-        return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
-    
-    @property
-    def name(self):
-        """ Get the name of this format.
-        """
-        return self._name
-    
-    @property
-    def description(self):
-        """ Get a short description of this format.
-        """ 
-        return self._description
-    
-    @property
-    def extensions(self):
-        """ Get a list of file extensions supported by this plugin.
-        """
-        return self._extensions
-    
-    def read(self, request):
-        """ read(request)
-        
-        Return a reader object that can be used to read data and info
-        from the given file. Used internally. Users are encouraged to
-        use imageio.read() instead.
-        """
-        return self._get_reader_class()(request)
-    
-    def save(self, request):
-        """ save(request)
-        
-        Return a writer object that can be used to save data and info
-        to the given file. Used internally. Users are encouraged to
-        use imageio.save() instead.
-        """
-        return self._get_writer_class()(request)
-    
-    def can_read(self, request):
-        """ can_read(request)
-        
-        Get whether this format can read data from the specified file.
-        """
-        return self._can_read(request)
-    
-    def can_save(self, request):
-        """ can_save(request)
-        
-        Get whether this format can save data to the speciefed file.
-        """
-        return self._can_save(request)
-    
-    
-    def _get_reader_class(self):
-        return Reader # Plugins should implement this
-    
-    def _get_writer_class(self):
-        return Writer # Plugins should implement this
-    
-    def _can_read(self, request):
-        return None # Plugins should implement this
-    
-    def _can_save(self, request):
-        return None # Plugins should implement this
 
 
 

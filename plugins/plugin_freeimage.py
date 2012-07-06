@@ -13,30 +13,6 @@ from imageio import fi
 import ctypes
 
 
-
-class Reader(base.Reader):
-    
-    def _mshape(self):
-        return 1
-    
-    def _read_data(self, *indices, flags=0, **kwargs):
-        # todo: Allow special cases with kwrags
-        return fi.read(self.request.filename, flags)
-    
-    def _read_info(self, *indices, **kwargs):
-        raise NotImplemented()
-    
-  
-class Writer(base.Writer):
-
-    def _save_data(self, im, *indices, flags=0, **kwargs):
-        return fi.write(im, self.request.filename, flags)
-    
-    def _save_info(self, *indices, **kwargs):
-        raise NotImplemented()
-
-# todo: implement separate Formats for some FreeImage file formats
-
 class FreeimageFormat(Format):
     """ This is the default format used for FreeImage.
     """
@@ -71,6 +47,31 @@ class FreeimageFormat(Format):
                 request._fif = fi.getFIF(request.filename, 'w')
             if request._fif is self.fif:
                 return True
+
+
+class Reader(base.Reader):
+    
+    def _mshape(self):
+        return 1
+    
+    def _read_data(self, *indices, flags=0, **kwargs):
+        # todo: Allow special cases with kwrags
+        return fi.read(self.request.filename, flags)
+    
+    def _read_info(self, *indices, **kwargs):
+        raise NotImplemented()
+    
+  
+class Writer(base.Writer):
+
+    def _save_data(self, im, *indices, flags=0, **kwargs):
+        return fi.write(im, self.request.filename, flags)
+    
+    def _save_info(self, *indices, **kwargs):
+        raise NotImplemented()
+
+# todo: implement separate Formats for some FreeImage file formats
+
 
 
 def create_freeimage_formats():
