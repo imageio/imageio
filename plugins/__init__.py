@@ -52,14 +52,17 @@ For the Reader class:
     image, 5 for 5 images (4,5) for a series of 4 images of 5 stacks, etc.
     Under construction... we might also want to specify that we dont know
     the number if images.
-  * _close() - close files, release resources.
+  * Implement _init() and _close() to open and close files and resources. 
 
 For the Writer class:
     
   * Implement _save_data(data, *indices, **kwargs)
   * Implement _save_info(info, *indices, **kwargs), empty indices means global info.
-  * _close() - close files, release resources.
+  * Implement _init() and _close() to open and close files and resources. 
+
+See imageio/plugins/examples.py for an example.
 
 """
 
 import imageio.plugins.plugin_freeimage
+import imageio.plugins.example
