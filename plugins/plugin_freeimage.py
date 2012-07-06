@@ -35,13 +35,11 @@ class Writer(base.Writer):
     def _save_info(self, *indices, **kwargs):
         raise NotImplemented()
 
+# todo: implement separate Formats for some FreeImage file formats
 
 class FreeimageFormat(Format):
     """ This is the default format used for FreeImage.
     """
-    
-    _readerClass = Reader
-    _writerClass = Writer
     
     def __init__(self, name, description, extensions, fif):
         Format.__init__(self, name, 'FI: '+description, extensions)
@@ -50,6 +48,12 @@ class FreeimageFormat(Format):
     @property
     def fif(self):
         return self._fif
+    
+    def _get_reader_class(self):
+        return Reader
+    
+    def _get_writer_class(self):
+        return Writer 
     
     def _can_read(self, request):
         if fi and request.expect in [None, base.EXPECT_IM, base.EXPECT_MIM]:
