@@ -7,11 +7,12 @@
 What is a plugin
 ----------------
 
-In imageio, a plugin provides one or more Format objects, and corresponding
-Reader and Writer classes.
+In imageio, a plugin provides one or more imageio.Format objects, and 
+corresponding imageio.Reader and imageio.Writer classes.
 
-Each Format object represents an implementation to read/save a particular 
-file format. The Reader and Writer classes do the actual reading/saving.
+Each imageio.Format object represents an implementation to read/save a 
+particular file format. The imageio.Reader and imageio.Writer classes 
+do the actual reading/saving.
 
 
 Registering
@@ -34,7 +35,7 @@ private methods. These private methods are called from public methods.
 In effect, the public methods can be given a descent docstring which
 does not have to be repeated at the plugins.
 
-For the Format class, the following needs to be implemented/specified:
+For the imageio.Format class, the following needs to be implemented/specified:
 
   * The format needs a short name, a description and a list of file extensions
     that are common for the file-format in question.
@@ -44,7 +45,7 @@ For the Format class, the following needs to be implemented/specified:
   * Implement _can_read(request), return a bool. See also the Request class.
   * Implement _can_save(request), dito.
 
-For the Reader class:
+For the imageio.Reader class:
     
   * Implement _read_data(*indices, **kwargs)
   * Implement _read_info(*indices, **kwargs), empty indices means global info.
@@ -54,13 +55,11 @@ For the Reader class:
     the number if images.
   * Implement _init() and _close() to open and close files and resources. 
 
-For the Writer class:
+For the imageio.Writer class:
     
   * Implement _save_data(data, *indices, **kwargs)
   * Implement _save_info(info, *indices, **kwargs), empty indices means global info.
   * Implement _init() and _close() to open and close files and resources. 
-
-See imageio/plugins/examples.py for an example.
 
 """
 

@@ -2,19 +2,18 @@
 # Copyright (c) 2012, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" imageio.base
-
+""" 
 This module defines the main classes of imageio. A brief overview:
   
-  * Request - used to store the filename and other info.
-  * Format - The thing that says it can read/save a certain file.
+  * imageio.FormatManager - for keeping track of registered formats.
+  * imageio.Format - the thing that says it can read/save a certain file.
     Has a reader and writer class asociated with it.
-  * Reader - Object used during the reading of a file.
-  * Writer - Object used during saving a file.
-  * FormatManager - For keeping track of registered formats.
+  * imageio.Reader - object used during the reading of a file.
+  * imageio.Writer - object used during saving a file.
+  * imageio.Request - used to store the filename and other info.
 
 Plugins need to implement a Reader, Writer and Format class and register
-the format using imageio.formats.add_format().
+the format using ``imageio.formats.add_format()``.
     
 """
 
