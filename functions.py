@@ -72,8 +72,8 @@ def read(filename, format=None, expect=None, **kwargs):
     return format.read(request)
 
 
-def save(filename, format=None, **kwargs):
-    """ save(filename, format=None, **kwargs)
+def save(filename, format=None, expect=None, **kwargs):
+    """ save(filename, format=None, expect=None, **kwargs)
     
     Returns a writer object which can be used to write data and info 
     to the specified file.
@@ -85,6 +85,8 @@ def save(filename, format=None, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
+    expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
+        Used to give the writer a hint on what kind of data to expect. Optional.
     
     Further keyword arguments are passed to the writer. See the docstring
     of the corresponding format to see what arguments are available.
@@ -95,8 +97,8 @@ def save(filename, format=None, **kwargs):
     if not isinstance(filename, string_types):
         raise TypeError('Filename must be a string.')
     
-    # Create request object (expect is None)
-    request = base.Request(filename, None, **kwargs)
+    # Create request object
+    request = base.Request(filename, expect, **kwargs)
     
     # Get format
     if format is not None:

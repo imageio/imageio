@@ -39,7 +39,8 @@ For the Format class, the following needs to be implemented/specified:
   * The format needs a short name, a description and a list of file extensions
     that are common for the file-format in question.
   * Use a docstring to provide more detailed information about the format/plugin.
-  * Set the _readerClass and _writerClass attributes. 
+  * Implement _get_reader_class() and _get_writer_class() to return the
+    Reader and Writer corresponding the format.
   * Implement _can_read(request), return a bool. See also the Request class.
   * Implement _can_save(request), dito.
 

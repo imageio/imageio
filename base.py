@@ -18,6 +18,15 @@ the format using imageio.formats.add_format().
     
 """
 
+# Some notes:
+#
+# The classes in this module use the Request object to pass filename and
+# related info around. This request object is instantiated in imageio.read
+# and imageio.save.
+#
+# The classes in this module do not do any input checking. This is done by
+# imageio.read and imageio.save
+
 from __future__ import with_statement
 
 import sys
@@ -42,7 +51,7 @@ else:
 
 
 
-class Request:
+class Request(object):
     """ Request(filename, expect, **kwargs)
     
     Represents a request for reading or saving a file. This object wraps
@@ -55,6 +64,7 @@ class Request:
     reader/writer.
     
     """
+    
     def __init__(self, filename, expect, **kwargs):
         self._filename = filename
         self._expect = expect
@@ -65,18 +75,28 @@ class Request:
     
     @property
     def filename(self):
+        """ Get the filename for which reading/saving was requested.
+        """
         return self._filename
     
     @property
     def expect(self):
+        """ Get what kind of data was expected for reading. 
+        See the imageio.EXPECT_* constants.
+        """
         return self._expect
     
     @property
     def kwargs(self):
+        """ Get the dict of keyword arguments supplied by the user.
+        """
         return self._kwargs
     
     @property
     def firstbytes(self):
+        """ Get the first 256 bytes of the file. This can be used to 
+        parse the header to determine the file-format.
+        """
         if self._firstbytes is None:
             self._firstbytes = self._read_first_bytes()
         return self._firstbytes
@@ -92,17 +112,33 @@ class Request:
         f.close()
         return first_bytes
     
+    # This is a bit experimental. Not sure how useful it will be in practice.
+    # One use case I though of is that if there is a bug in FreeImage, we might
+    # be able to circumvent it by providing an alternative Format for that
+    # file-format.
     def add_potential_format(self, format):
+        """ add_potential_format(format)
+        
+        Allows a format to add itself as a potential format in cases
+        where it seems capable of reading-saving the file, but 
+        priority should be given to another Format.
+        """
         self._potential_formats.append(format)
     
     def get_potential_format(self):
+        """ get_potential_format()
+        
+        Get the first known potential format. Calling this method 
+        repeatedly will yield different formats until the list of 
+        potential formats is exhausted.
+        """
         if self._potential_formats:
             format = self._potential_formats.pop(0)
         return format
 
 
 
-class BaseReaderWriter:
+class BaseReaderWriter(object):
     """ Base class for the Reader and Writer class to implement common 
     functionality.
     """
@@ -112,9 +148,14 @@ class BaseReaderWriter:
     
     @property
     def request(self):
+        """ Get the request object corresponding to the current read/save 
+        operation.
+        """
         return self._request
     
     def close(self):
+        """ Close this reader/writer.
+        """
         self._close()
     
     def __del__(self):
@@ -126,8 +167,13 @@ class BaseReaderWriter:
     def __exit__(self, *args):
         self.close()
     
+    # todo: when best to call _init()? On __enter__ or on __init__?
+    
+    def _init(self):
+        pass # Plugins can implement this
+    
     def _close(self):
-        pass # Implement this
+        pass # Plugins can implement this
 
 
 class Reader(BaseReaderWriter):
@@ -145,17 +191,30 @@ class Reader(BaseReaderWriter):
     by calling the read() method on a format object.
     
     """
-        
+    
     def read_data(self, *indices, **kwargs):
+        """ read_data(*indices, **kwargs)
+        
+        Read data from the file. If appropriate, indices can be given.
+        The keyword arguments are merged with the keyword arguments
+        specified in the read() function.
+        
+        """
         D = self.request.kwargs.copy()
         D.update(kwargs)
         return self._read_data(*indices, **D)
     
     def read_info(self, *indices, **kwargs):
+        """ read_info(*indices, **kwargs)
+        
+        Read info (i.e. meta data) from the file. If appropriate, indices 
+        can be given. The keyword arguments are merged with the keyword 
+        arguments specified in the read() function.
+        
+        """
         D = self.request.kwargs.copy()
         D.update(kwargs)
         return self._read_info(*indices, **D)
-    
     
     def __len__(self):
         p = 1
@@ -165,7 +224,7 @@ class Reader(BaseReaderWriter):
     
     # todo: allow a format to specify that the length is unknown?
     # e.g. video
-     
+    # in that case: iterate not over length, but until we can
     def __iter__(self):
         i = 0
         while i < len(self):
@@ -173,13 +232,13 @@ class Reader(BaseReaderWriter):
             i += 1
     
     def _mshape(self):
-        raise NotImplemented()
+        raise NotImplemented() # Plugins should implement this
     
     def _read_data(self, *indices, **kwargs):
-        raise NotImplemented()
+        raise NotImplemented() # Plugins should implement this
     
     def _read_info(self, *indices, **kwargs):
-        raise NotImplemented()
+        raise NotImplemented() # Plugins should implement this
 
 
 
@@ -198,28 +257,39 @@ class Writer(BaseReaderWriter):
     
     """
     
+    # todo: I can imagine that plugins often want to directly overload this
+    # method to be able to give it a proper docstring.
     def save_data(self, data, *indices, **kwargs):
+        """ save_data(*indices, **kwargs)
+        
+        Save image data to the file. If appropriate, indices can be given.
+        The keyword arguments are merged with the keyword arguments
+        specified in the save() function.
+        
+        """
         D = self.request.kwargs.copy()
         D.update(kwargs)
         return self._save_data(data, *indices, **D)
     
     def save_info(self, info, *indices, **kwargs):
+        """ save_info(*indices, **kwargs)
+        
+        Save info (i.e. meta data) to the file. If appropriate, indices can 
+        be given. The keyword arguments are merged with the keyword arguments
+        specified in the save() function.
+        
+        """
         D = self.request.kwargs.copy()
         D.update(kwargs)
         return self._save_info(info, *indices, **D)
     
-    def __len__(self):
-        p = 1
-        for s in self._mshape():
-            p *= s
-        return s
-    
     
     def _save_data(self, data, *indices, **kwargs):
-        raise NotImplemented()
+        raise NotImplemented() # Plugins should implement this
     
     def _save_info(self, info, *indices, **kwargs):
-        raise NotImplemented()
+        raise NotImplemented() # Plugins should implement this
+
 
 
 class Format:
@@ -235,14 +305,12 @@ class Format:
     read/save an image. A format can also be used directly by calling 
     its read() and save() methods.
     
+    Use print(format) to see its documentation.
+    
     To implement a specific format, see the docs for the plugins.
     
     """
     
-    # Refs to standard docs
-    _readerClass = Reader
-    _writerClass = Writer
-     
     # todo: maybe it is sometimes enough to only specify the extensions.
     
     def __init__(self, name, description, extensions=None):
@@ -263,64 +331,97 @@ class Format:
         else:
             raise ValueError('Invalid value for extensions given.')
         
-    
     def __repr__(self):
+        # Short description
         return '<Format %s - %s>' % (self.name, self.description)
+    
+    def __str__(self):
+        return self.doc
+    
+    @property
+    def doc(self):
+        """ Get documentation for this format (name + description + docstring.
+        """
+        return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
     
     @property
     def name(self):
+        """ Get the name of this format.
+        """
         return self._name
     
     @property
     def description(self):
+        """ Get a short description of this format.
+        """ 
         return self._description
     
     @property
-    def long_description(self):
-        return self.__doc__
-    
-    @property
     def extensions(self):
-        """ Return a list of file extensions supported by this plugin.
+        """ Get a list of file extensions supported by this plugin.
         """
         return self._extensions
     
+    def read(self, request):
+        """ read(request)
+        
+        Return a reader object that can be used to read data and info
+        from the given file. Used internally. Users are encouraged to
+        use imageio.read() instead.
+        """
+        return self._get_reader_class()(request)
     
-    def read(self, filename, expect=None, **kwargs):
-        if isinstance(filename, Request):
-            request = filename
-        else:
-            request = Request(filename, expect, **kwargs)
-        return self._readerClass(request)
-    
-    def save(self, filename, expect=None, **kwargs):
-        if isinstance(filename, Request):
-            request = filename
-        else:
-            request = Request(filename, expect, **kwargs)
-        return self._writerClass(request)
+    def save(self, request):
+        """ save(request)
+        
+        Return a writer object that can be used to save data and info
+        to the given file. Used internally. Users are encouraged to
+        use imageio.save() instead.
+        """
+        return self._get_writer_class()(request)
     
     def can_read(self, request):
+        """ can_read(request)
+        
+        Get whether this format can read data from the specified file.
+        """
         return self._can_read(request)
     
     def can_save(self, request):
+        """ can_save(request)
+        
+        Get whether this format can save data to the speciefed file.
+        """
         return self._can_save(request)
     
+    
+    def _get_reader_class(self):
+        return Reader # Plugins should implement this
+    
+    def _get_writer_class(self):
+        return Writer # Plugins should implement this
+    
     def _can_read(self, request):
-        return None
+        return None # Plugins should implement this
     
     def _can_save(self, request):
-        return None
+        return None # Plugins should implement this
 
 
 
 class FormatManager:
     """ 
-    The format manager keeps track of the registered formats and can be used
-    to list all formats, to select a certain format based on its name, 
-    or to search for a format using a request object.
+    The format manager keeps track of the registered formats and can 
+    be used to list all formats and to get the documentation of all 
+    supported formats. For most users, the most usefull method of
+    this objec is probably its help() method.
+    
+    This object supports getting a format object using indexing (by 
+    format name or extension). When used as an iterator, this object 
+    yields all format objects.
     
     There is exactly one FormatManager object in imageio: imageio.formats.
+    
     """
     
     def __init__(self):
@@ -329,32 +430,23 @@ class FormatManager:
     def __repr__(self):
         return '<imageio.FormatManager with %i registered formats>' % len(self._formats)
     
-    def add_format(self, format):
-        if isinstance(format, Format):
-            self._formats.append(format)
-        else:
-            raise ValueError('add_format needs argument to be a Format instance.')
+    def __iter__(self):
+        return iter(self._formats)
     
-    def formats(self):
-        return [f for f in self._formats]
+    def __str__(self):
+        return self._str()
     
-    def print_formats(self):
+    def _str(self, bullets=False):
+        # Convenience function to be able to update docs in an easy way
+        bullet = '  * ' if bullets else ''
+        ss =  []
         for format in self._formats: 
             ext = ', '.join(format.extensions)
-            s = '%s - %s [%s]' % (format.name, format.description, ext)
-            print(s)
-    
-    def docs(self, name):
-        format = self[name]
-        doc = '%s - %s\n' % (format.name, format.description)
-        return doc + format.__doc__
-    
-    def print_docs(self, name):
-        print(self.docs(name))
+            s = '%s%s - %s [%s]' % (bullet, format.name, format.description, ext)
+            ss.append(s)
+        return '\n'.join(ss)
     
     def __getitem__(self, name):
-        
-        # Check and correct name
         if not isinstance(name, string_types):
             raise ValueError('Looking up a format should be done by name or extension.')
         elif name.startswith('.'):
@@ -369,11 +461,39 @@ class FormatManager:
             for format in self._formats:
                 if name == format.name:
                     return format
-        
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)
     
+    def help(self, name=None):
+        """ help(name)
+        
+        Given a the name of a format, or one of its extensions, this method
+        prints the documentation for that format. If name is omitted, prints
+        a list of all supported formats.
+        """
+        if name is None:
+            print(self)
+        else:
+            print(self[name])
+    
+    def add_format(self, format):
+        """ add_formar(format)
+        
+        Register a format, so that imageio can use it.
+        """
+        if not isinstance(format, Format):
+            raise ValueError('add_format needs argument to be a Format instance.')
+        elif format in self._formats:
+            raise ValueError('Given Format instance is already registered.')
+        else:
+            self._formats.append(format)
+    
     def search_read_format(self, request):
+        """ search_read_format(request)
+        
+        Search a format that can read a file according to the given request.
+        Returns None if no appropriate format was found. (used internally)
+        """
         for format in self._formats:
             if format.can_read(request):
                 return format
@@ -381,9 +501,13 @@ class FormatManager:
             return request.get_potential_format()
     
     def search_save_format(self, request):
+        """ search_save_format(request)
+        
+        Search a format that can save a file according to the given request. 
+        Returns None if no appropriate format was found. (used internally)
+        """
         for format in self._formats:
             if format.can_save(request):
                 return format
         else:
             return request.get_potential_format()
-    
