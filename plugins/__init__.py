@@ -4,6 +4,13 @@
 
 """ 
 
+.. note::
+    imageio is under construction, some details with regard to the 
+    Reader and Writer classes and how they should be implemented
+    may still change. If you want to implement a plugin, maybe you
+    can also help work out the details of the API for the Reader
+    and Writer classes.
+
 What is a plugin
 ----------------
 

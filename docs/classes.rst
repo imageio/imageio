@@ -6,7 +6,14 @@ The classes in imageio
 
 
 
-This module defines the main classes of imageio. A brief overview:
+
+.. note::
+    imageio is under construction, some details with regard to the 
+    Reader and Writer classes will probably change. We'll have to
+    implement a few more plugins to see what works well and what not.
+
+These are the main classes of imageio. They expose an interface for
+advanced users and plugin developers. A brief overview:
   
   * :ref:`imageio.FormatManager<insertdocs-imageio-FormatManager>` - for keeping track of registered formats.
   * :ref:`imageio.Format<insertdocs-imageio-Format>` - the thing that says it can read/save a certain file.
@@ -16,8 +23,8 @@ This module defines the main classes of imageio. A brief overview:
   * :ref:`imageio.Request<insertdocs-imageio-Request>` - used to store the filename and other info.
 
 Plugins need to implement a Reader, Writer and Format class and register
-the format using ``imageio.formats.add_format()``.
-    
+a format object using ``imageio.formats.add_format()``.
+
 .. insertdocs end::
 
 ----
@@ -33,17 +40,15 @@ the format using ``imageio.formats.add_format()``.
   *Inherits from object*
 
   
-  The format manager keeps track of the registered formats and can 
-  be used to list all formats and to get the documentation of all 
-  supported formats. For most users, the most usefull method of
-  this objec is probably its help() method.
+  The format manager keeps track of the registered formats.
   
   This object supports getting a format object using indexing (by 
   format name or extension). When used as an iterator, this object 
   yields all format objects.
   
-  There is exactly one FormatManager object in imageio: imageio.formats.
+  There is exactly one FormatManager object in imageio: ``imageio.formats``.
   
+  See also :ref:`imageio.help<insertdocs-imageio-help>`.
   
 
   *METHODS*
@@ -57,13 +62,11 @@ the format using ``imageio.formats.add_format()``.
     Register a format, so that imageio can use it.
     
 
-  .. _insertdocs-imageio-FormatManager-help:
+  .. _insertdocs-imageio-FormatManager-create_docs_for_all_formats:
   
-  .. py:method:: imageio.FormatManager.help(name)
+  .. py:method:: imageio.FormatManager.create_docs_for_all_formats()
   
-    Given a the name of a format, or one of its extensions, this method
-    prints the documentation for that format. If name is omitted, prints
-    a list of all supported formats.
+    Function to auto-generate documentation for all the formats.
     
 
   .. _insertdocs-imageio-FormatManager-search_read_format:
@@ -130,7 +133,7 @@ the format using ``imageio.formats.add_format()``.
   
   .. py:attribute:: imageio.Format.doc
   
-    Get documentation for this format (name + description + docstring.
+    Get documentation for this format (name + description + docstring).
     
 
   .. _insertdocs-imageio-Format-extensions:

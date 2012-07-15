@@ -3,9 +3,20 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ 
-These are the main functions exposed to the user.
 
-For images:
+.. note::
+    imageio is under construction, only a limited set of functions have yet
+    been implemented. However, the imread and imsave functions work
+    and their signature is very likely to stay the same.
+
+These functions are the main interface for the imageio user. They
+provide a common interface to read and save image data 
+for a large variety of formats. All read and save functions accept keyword 
+arguments, which are passed on to the format that does the actual work. 
+To see what keyword arguments are supported by a specific format, use
+the imageio.help function.
+
+Functions for reading/saving of images:
 
   * imageio.imread - reads an image from the specified file and return as a 
     numpy array.
@@ -13,15 +24,13 @@ For images:
   * imageio.mimread - read a series of images from the specified file.
   * imageio.mimsave - save a series of images to the specified file.
 
-For volumes: todo
+Functions for reading/saving of volumes: todo
 
-For somewhat lower level and more control:
-
-  * imageio.read: returns a reader object which can be used to read data 
-    and info from the specified file. 
-  * imageio.save: returns a writer object which can be used to write data
-    and info to the specified file.
-
+For a larger degree of control, imageio provides the functions 
+imageio.read and imageio.save. They respectively return an imageio.Reader
+and an imageio.Writer object, which can be used to read/save data and meta
+data in a more controlled manner. This also allows specific scientific 
+formats to be exposed in a way that best suits that file-format.
 
 """
 
@@ -44,6 +53,25 @@ else:
     text_type = unicode
     binary_type = str
 
+
+def help(name=None):
+    """ help(name=None)
+    
+    Print the documentation of the format specified by name, or a list
+    of supported formats if name is omitted.
+    
+    The specified name can be the name of a format, a filename extension, 
+    or a full filename.
+    
+    See also the :doc:`formats page <formats>`.
+    
+    """
+    if not name:
+        print(formats)
+    else:
+        print(formats[name])
+
+# todo: implement inforead function?
 
 ## Base functions that return a reader/writer
 
@@ -92,7 +120,7 @@ def read(filename, format=None, expect=None, **kwargs):
 def save(filename, format=None, expect=None, **kwargs):
     """ save(filename, format=None, expect=None, **kwargs)
     
-    Returns a writer object which can be used to write data and info 
+    Returns a writer object which can be used to save data and info 
     to the specified file.
     
     Parameters
@@ -186,7 +214,7 @@ def imsave(filename, im, format=None, **kwargs):
     else:
         raise ValueError('Image must be a numpy array.')
     
-    # Get writer der and write first
+    # Get writer and write first
     writer = save(filename, format, base.EXPECT_IM, **kwargs)
     with writer:
         writer.save_data(im, 0)

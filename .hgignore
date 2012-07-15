@@ -1,8 +1,8 @@
 syntax: glob
 *.pyc
 *.pyo
-docs\_build\*
-build\*
-dist\*
+docs/_build/*
+build/*
+dist/*
 *.dll
 *.dylib
