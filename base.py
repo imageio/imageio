@@ -3,7 +3,14 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ 
-This module defines the main classes of imageio. A brief overview:
+
+.. note::
+    imageio is under construction, some details with regard to the 
+    Reader and Writer classes will probably change. We'll have to
+    implement a few more plugins to see what works well and what not.
+
+These are the main classes of imageio. They expose an interface for
+advanced users and plugin developers. A brief overview:
   
   * imageio.FormatManager - for keeping track of registered formats.
   * imageio.Format - the thing that says it can read/save a certain file.
@@ -13,8 +20,8 @@ This module defines the main classes of imageio. A brief overview:
   * imageio.Request - used to store the filename and other info.
 
 Plugins need to implement a Reader, Writer and Format class and register
-the format using ``imageio.formats.add_format()``.
-    
+a format object using ``imageio.formats.add_format()``.
+
 """
 
 # Some notes:
@@ -25,10 +32,15 @@ the format using ``imageio.formats.add_format()``.
 #
 # The classes in this module do not do any input checking. This is done by
 # imageio.read and imageio.save
+#
+# We use the verbs read and save throughout imageio. However, for the 
+# associated classes we use the nouns "reader" and "writer", since 
+# "saver" feels so awkward. 
 
 from __future__ import with_statement
 
 import sys
+import os
 
 # Define expects
 EXPECT_IM = 0
@@ -185,7 +197,7 @@ class Format:
     
     @property
     def doc(self):
-        """ Get documentation for this format (name + description + docstring.
+        """ Get documentation for this format (name + description + docstring).
         """
         return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
     
@@ -416,17 +428,15 @@ class Writer(BaseReaderWriter):
 
 class FormatManager:
     """ 
-    The format manager keeps track of the registered formats and can 
-    be used to list all formats and to get the documentation of all 
-    supported formats. For most users, the most usefull method of
-    this objec is probably its help() method.
+    The format manager keeps track of the registered formats.
     
     This object supports getting a format object using indexing (by 
     format name or extension). When used as an iterator, this object 
     yields all format objects.
     
-    There is exactly one FormatManager object in imageio: imageio.formats.
+    There is exactly one FormatManager object in imageio: ``imageio.formats``.
     
+    See also imageio.help.
     """
     
     def __init__(self):
@@ -438,24 +448,33 @@ class FormatManager:
     def __iter__(self):
         return iter(self._formats)
     
-    def __str__(self):
-        return self._str()
+    def __len__(self):
+        return len(self._formats)
     
-    def _str(self, bullets=False):
-        # Convenience function to be able to update docs in an easy way
-        bullet = '  * ' if bullets else ''
+    def __str__(self):
         ss =  []
         for format in self._formats: 
             ext = ', '.join(format.extensions)
-            s = '%s%s - %s [%s]' % (bullet, format.name, format.description, ext)
+            s = '%s - %s [%s]' % (format.name, format.description, ext)
             ss.append(s)
         return '\n'.join(ss)
     
     def __getitem__(self, name):
+        # Check
         if not isinstance(name, string_types):
             raise ValueError('Looking up a format should be done by name or extension.')
-        elif name.startswith('.'):
+        
+        # Test if name is existing file
+        if os.path.isfile(name):
+            format = self.search_read_format(name)
+            if format is not None:
+                return format
+        
+        if '.' in name:
             # Look for extension
+            e1, e2 =os.path.splitext(name)
+            name = e2 or e1
+            # Search for format that supports this extension
             name = name.lower()[1:]
             for format in self._formats:
                 if name in format.extensions:
@@ -466,20 +485,12 @@ class FormatManager:
             for format in self._formats:
                 if name == format.name:
                     return format
+            else:
+                # Maybe the user ment to specify an extension
+                return self['.'+name.lower()]
+        
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)
-    
-    def help(self, name=None):
-        """ help(name)
-        
-        Given a the name of a format, or one of its extensions, this method
-        prints the documentation for that format. If name is omitted, prints
-        a list of all supported formats.
-        """
-        if name is None:
-            print(self)
-        else:
-            print(self[name])
     
     def add_format(self, format):
         """ add_formar(format)
@@ -516,3 +527,30 @@ class FormatManager:
                 return format
         else:
             return request.get_potential_format()
+    
+    def create_docs_for_all_formats(self):
+        """ Function to auto-generate documentation for all the formats.
+        """
+        
+        txt = 'List of currently supported formats:'
+        
+        # Get bullet list of all formats
+        ss =  ['']
+        for format in self._formats: 
+            s = '  * :ref:`%s <%s>` - %s' % (format.name, format.name, format.description)
+            ss.append(s)
+        txt += '\n'.join(ss) + '\n\n'
+        
+        # Get more docs for each format
+        for format in self._formats:
+            title = '%s %s' % (format.name, format.description)
+            ext = ', '.join(['``%s``'%e for e in format.extensions])
+            ext = ext or 'None'
+            #
+            txt += '.. _%s:\n\n' % format.name
+            txt += '%s\n%s\n\n' % (title, '^'*len(title))
+            txt += 'Extensions: %s\n\n' % ext
+            txt += format.__doc__  + '\n\n'
+        
+        # Done
+        return txt

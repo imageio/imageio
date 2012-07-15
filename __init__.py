@@ -8,34 +8,21 @@ range of image data, including animated images, volumetric data, and
 scientific formats. It is written in pure Python (2.x and 3.x) and
 is designed to be powerful, yet simple in usage and installation.
 
-For images, four convenience functions are exposed:
-  * imageio.imread - to read an image file and return a numpy array
-  * imageio.imsave - to write a numpy array to an image file
-  * imageio.mimread - to read animated image data as a list of numpy arrays
-  * imageio.mimsave - to write a list of numpy array to an animated image
-
-Similarly, for volumes imageio provides volread, volsave, mvolread and mvolsave.
-
-For a larger degree of control, imageio provides the functions 
-imageio.read and imageio.save. They respectively return a imageio.Reader and a
-imageio.Writer object, which can be used to read/save data and meta data in a
-more controlled manner. This also allows specific scientific formats to
-be exposed in a way that best suits that file-format.
-
-To get a list of supported formats and documentation for a certain format, 
-use the ``help`` method of the ``imageio.formats`` object (see the 
-imageio.FormatManager
-class).
-
 The imageio library is intended as a replacement for PIL. Currently, most
 functionality is obtained by wrapping the FreeImage library using ctypes. 
+
+Quickstart:
+
+  * Use imageio.imread to read an image
+  * Use imageio.imsave to save an image
+  * See the :doc:`functions page <functions>` for more information.
 
 """
 
 # todo: test images at: http://sourceforge.net/projects/freeimage/files/
 # todo: make libs work when frozen - dont try to download when frozen!
 
-__version__ = '0.2'
+__version__ = '0.2.1'
 
 import sys
 
@@ -60,6 +47,7 @@ formats = FormatManager()
 import imageio.plugins
 
 # Load the functions
+from imageio.functions import help
 from imageio.functions import read, imread, mimread, volread, mvolread
 from imageio.functions import save, imsave, mimsave, volsave, mvolsave
 

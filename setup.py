@@ -48,7 +48,7 @@ setup(
     
     url = 'http://imageio.readthedocs.org',
     download_url = 'http://bitbucket.org/almarklein/imageio/downloads',    
-    keywords = "FreeImage image imread imwrite io",
+    keywords = "FreeImage image imread imsave io",
     description = description,
     long_description = __doc__,
     
