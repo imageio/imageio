@@ -18,13 +18,14 @@ is designed to be powerful, yet simple in usage and installation.
 The imageio library is intended as a replacement for PIL. Currently, most
 functionality is obtained by wrapping the FreeImage library using ctypes. 
 
+.. insertdocs end::
+
+
 Quickstart:
 
-  * Use :ref:`imageio.imread<insertdocs-imageio-imread>` to read an image
-  * Use :ref:`imageio.imsave<insertdocs-imageio-imsave>` to save an image
+  * Use imageio.imread to read an image
+  * Use imageio.imsave to save an image
   * See the :doc:`functions page <functions>` for more information.
-
-.. insertdocs end::
 
 
 Features

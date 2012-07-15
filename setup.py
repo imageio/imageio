@@ -4,6 +4,11 @@
 # imageio is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
+# To Update new version:
+# python setyp.py register
+# python setup.py sdist --formats=zip upload
+# add "-r testpypi" to test it
+
 import os
 import sys
 from distutils.core import setup
@@ -25,7 +30,7 @@ for line in open(initFile).readlines():
             docStatus = 1
             line = line.lstrip('"')
         elif docStatus == 1:
-            docStatus == 2
+            docStatus = 2
     if docStatus == 1:
         __doc__ += line
 
