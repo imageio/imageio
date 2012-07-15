@@ -54,7 +54,11 @@ class Reader(base.Reader):
     def _mshape(self):
         return 1
     
-    def _read_data(self, *indices, flags=0, **kwargs):
+    def _get_kwargs(self, flags=0):
+        return flags
+    
+    def _read_data(self, *indices, **kwargs):
+        flags = self._get_kwargs(**kwargs)
         # todo: Allow special cases with kwrags
         return fi.read(self.request.filename, flags)
     
@@ -63,8 +67,12 @@ class Reader(base.Reader):
     
   
 class Writer(base.Writer):
-
-    def _save_data(self, im, *indices, flags=0, **kwargs):
+    
+    def _get_kwargs(self, flags=0):
+        return flags
+    
+    def _save_data(self, im, *indices, **kwargs):
+        flags = self._get_kwargs(**kwargs)
         return fi.write(im, self.request.filename, flags)
     
     def _save_info(self, *indices, **kwargs):
