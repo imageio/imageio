@@ -48,7 +48,6 @@ copyright = u'2012, imageio contributers'
 # built documents.
 #
 # The short X.Y version.
-import imageio
 version  = '0.2'
 # The full version, including alpha/beta/rc tags.
 release = '0.2.1'
