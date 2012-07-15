@@ -131,7 +131,7 @@ def load_lib(exact_lib_names, lib_names):
 # The above is all generic. Below is code specific for freeimage. By 
 # including it in this module, it becomes easy to use it both from
 # freeimage.py and setup.py. Note, however, that the freeimage_install
-# is required, but which should be inported in different ways; therefore
+# is required, but which should be imported in different ways; therefore
 # it is passed as an argument. Not very beautiful, but practicallity beats
 # purity.
 
