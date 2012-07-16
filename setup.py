@@ -4,10 +4,18 @@
 # imageio is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
-# To Update new version:
-# python setyp.py register
-# python setup.py sdist --formats=zip upload
-# add "-r testpypi" to test it
+""" To Update to new version:
+
+  * Increase __version__
+  * Write release notes
+  * Update docs (pushing the repo will trigger RTD to rebuild)
+  * python setup.py register
+  * python setup.py sdist upload
+  * python setup.py bdist_wininst upload
+
+Add "-r testpypi" to use the test repo. 
+
+"""
 
 import os
 import sys
@@ -39,10 +47,24 @@ for line in open(initFile).readlines():
 # If the lib cannot be found and is also not downloadable (e.g. Linux),
 # only a warning is given. If not found but should be downloadable, will 
 # raise error if this fails.
+# 
+# For bdist distributions (Windows only) will download both 32bit and 64bit
+# libs when building the package. 
+
 import freeimage_install
-import findlib
 if ('build' in sys.argv) or ('install' in sys.argv):
-    findlib.load_freeimage(freeimage_install, False) 
+    # Download what *this* system needs
+    freeimage_install.load_freeimage(False) 
+    libFilter = 'lib/*'
+elif 'sdist' in sys.argv:
+    # Pack only the txt file
+    libFilter = 'lib/*.txt' 
+elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
+    # Download and pack 32 bit and 64 bit binaries 
+    freeimage_install.retrieve_files(32) 
+    freeimage_install.retrieve_files(64)
+    libFilter = 'lib/*'
+
 
 setup(
     name = name,
@@ -63,6 +85,6 @@ setup(
     
     packages = ['imageio', 'imageio.plugins'],
     package_dir = {'imageio': '.'}, # must be a dot, not an empty string
-    package_data = {'imageio': ['lib/*',]},
+    package_data = {'imageio': [libFilter,]},
     zip_safe = False,
     )

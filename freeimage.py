@@ -10,7 +10,6 @@ types.
 import sys
 import ctypes
 import numpy
-from imageio import findlib
 from imageio import freeimage_install
 
 # todo: the caller should check if a file exists
@@ -328,7 +327,7 @@ class Freeimage(object):
     def _load_freeimage(self):
         
         # Load
-        lib, fname = findlib.load_freeimage(freeimage_install, True)
+        lib, fname = freeimage_install.load_freeimage(True)
         
         # Store
         self._lib = lib

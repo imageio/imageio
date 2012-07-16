@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+
+""" This module contains the code for loading the freeimage library,
+and downloading it when necessary.
+
+"""
+
 import os
 import sys
 import shutil
@@ -5,6 +12,15 @@ try:
     from urllib2 import urlopen
 except ImportError:
     from urllib.request import urlopen # Py3k
+
+# Import generic load_lib function.
+# This module must work when imported from setup.py (not in a package)
+# as well as part of imageio
+try:
+    from .findlib import load_lib
+except ValueError: # not ImportError
+    from findlib import load_lib
+
 
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -48,11 +64,12 @@ def _download(url, dest, timeout=20):
     dest_f.close()
 
 
-def get_key_for_available_lib():
+def get_key_for_available_lib(bits=None):
     """ Get key (platform, bits) for the current system.
     Returns None if there is no downloadable lib for this key.
     """
-    bits = 64 if sys.maxsize > 2**32 else 32
+    if bits is None:
+        bits = 64 if sys.maxsize > 2**32 else 32
     key = (sys.platform, bits)
     if key in LIBRARIES:
         return key
@@ -60,16 +77,25 @@ def get_key_for_available_lib():
         return None
 
 
-def retrieve_files(retrieve_all=False):
+def retrieve_files(selection=None):
+    """ Make sure the freeimage lib is present. It is downloaded
+    if necessary. If selection is None, will retreieve only what is needed
+    for this system. If selection is 32 or 64, will download that version
+    of the library, for this system. If selection is 'all', will download
+    *all* available binaries.
     
-    if retrieve_all:
+    """
+    if selection not in [None, 'all', 32, 64]:
+        raise ValueError("Invalid value for selection: must be 32, 64 or 'all'.")
+    
+    if selection == 'all':
         # We want to download all files
         files = list(FILES)
         for key, library in LIBRARIES.items():
             files.append(library)
     else:
         # We only want to download the one for this system
-        key = get_key_for_available_lib()
+        key = get_key_for_available_lib(selection)
         if key is None:
             raise RuntimeError('No precompiled FreeImage libraries are available '
                             'for this system.')
@@ -88,5 +114,45 @@ def retrieve_files(retrieve_all=False):
             _download(src, dest)
 
 
+# Store some messages as constants
+MSG_NOLIB_DOWNLOAD = 'Attempting to download the FreeImage library.'
+MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or build from source.'
+MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
+
+def load_freeimage(raise_if_not_available=True):
+    # Load library
+    lib_names = ['freeimage', 'libfreeimage']
+    exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
+                        'libfreeimage.so', 'libfreeimage.so.3']
+    
+    try:
+        lib, fname = load_lib(exact_lib_names, lib_names)
+    except OSError:
+        # Could not load. Get why
+        e_type, e_value, e_tb = sys.exc_info(); del e_tb
+        load_error = str(e_value)
+        # Can we download? If not, raise error.
+        if get_key_for_available_lib() is None:
+            if sys.platform.startswith('linux'):
+                err_msg = load_error + '\n' + MSG_NOLIB_LINUX
+            else:
+                err_msg = load_error + '\n' + MSG_NOLIB_OTHER
+            if raise_if_not_available:
+                raise OSError(err_msg)
+            else:
+                print('Warning:' + err_msg)
+                return
+        # Yes, it seems so! Try it and then try loading again
+        print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
+        retrieve_files()
+        lib, fname = load_lib(exact_lib_names, lib_names)
+        # If we get here, we did a good job!
+        print('FreeImage library deployed succesfully.')
+    
+    # Return library and the filename where it's loaded
+    return lib, fname
+
+
 if __name__ == '__main__':
+    # Retieve *all* downloadable libraries
     retrieve_files(True)
