@@ -76,7 +76,7 @@ setup(
     license = '(new) BSD',
     
     url = 'http://imageio.readthedocs.org',
-    download_url = 'http://bitbucket.org/almarklein/imageio/downloads',    
+    download_url = 'http://pypi.python.org/pypi/imageio',    
     keywords = "FreeImage image imread imsave io",
     description = description,
     long_description = __doc__,
