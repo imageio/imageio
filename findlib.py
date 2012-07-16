@@ -41,16 +41,15 @@ def looks_lib(fname):
         return '.so' in fname
 
 
-def generate_candidate_libs(lib_names):
+def generate_candidate_libs(lib_names, lib_dirs=None):
     """ Generate a list of candidate filenames of what might be the dynamic
     library corresponding with the given list of names.
     Returns (lib_dirs, lib_paths)
     """
     
     # look for likely library files in the following dirs:
-    potential_lib_dirs = [
-                LOCALDIR,
-                os.path.join(LOCALDIR, 'lib'),
+    lib_dirs = lib_dirs or []
+    potential_lib_dirs = lib_dirs + [
                 '/lib',
                 '/usr/lib',
                 '/usr/local/lib',
@@ -83,13 +82,17 @@ def generate_candidate_libs(lib_names):
     return lib_dirs, lib_paths
 
 
-def load_lib(exact_lib_names, lib_names):
-    """ Load a dynamic library. 
+def load_lib(exact_lib_names, lib_names, lib_dirs=None):
+    """ load_lib(exact_lib_names, lib_names, lib_dirs=None)
+    
+    Load a dynamic library. 
     
     This function first tries to just load
     the library from the given exact names. When that fails, it tries to
     find the library in common locations. It searches for files that 
     start with one of the names given in lib_names (case insensitive).
+    The search is performed in the given lib_dirs and a set of common
+    library dirs.
     
     Returns (ctypes_library, library_path)
     """
@@ -105,7 +108,7 @@ def load_lib(exact_lib_names, lib_names):
     # Collect filenames of potential libraries
     # First try a few bare library names that ctypes might be able to find
     # in the default locations for each platform. 
-    lib_dirs, lib_paths = generate_candidate_libs(lib_names)
+    lib_dirs, lib_paths = generate_candidate_libs(lib_names, lib_dirs)
     lib_paths = exact_lib_names + lib_paths
     
     # Select loader 

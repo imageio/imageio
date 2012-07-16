@@ -11,15 +11,22 @@ import shutil
 try:
     from urllib2 import urlopen
 except ImportError:
-    from urllib.request import urlopen # Py3k
+    try:
+        from urllib.request import urlopen # Py3k
+    except ImportError:
+        # If we cannot import this, there is still a chance things work
+        # Sometimes this happens when frozen because cannot import email
+        urlopen = None 
 
 # Import generic load_lib function.
 # This module must work when imported from setup.py (not in a package)
 # as well as part of imageio
 try:
     from .findlib import load_lib
+    from .freeze import resource_dir
 except ValueError: # not ImportError
     from findlib import load_lib
+    from freeze import resource_dir
 
 
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
@@ -46,6 +53,8 @@ def _download(url, dest, timeout=20):
     # Open connection
     try:
         remote = urlopen(url, timeout=timeout)
+    except TypeError:
+        raise RuntimeError('urlopen not available.')
     except IOError:
         dest_f.close()
         os.remove(dest)
@@ -109,7 +118,7 @@ def retrieve_files(selection=None):
     # Download all files and put them in the lib dir
     for fname in files:
         src = BASE_ADDRESS+fname
-        dest = os.path.join(LOCALDIR, 'lib', fname)
+        dest = os.path.join(resource_dir('imageio', 'lib'), fname)
         if not os.path.exists(dest):
             _download(src, dest)
 
@@ -119,14 +128,19 @@ MSG_NOLIB_DOWNLOAD = 'Attempting to download the FreeImage library.'
 MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or build from source.'
 MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
 
+
 def load_freeimage(raise_if_not_available=True):
+    
+    # Get possible library paths
+    lib_dirs = [resource_dir('imageio', ''), resource_dir('imageio', 'lib')]
+    
     # Load library
     lib_names = ['freeimage', 'libfreeimage']
     exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                         'libfreeimage.so', 'libfreeimage.so.3']
     
     try:
-        lib, fname = load_lib(exact_lib_names, lib_names)
+        lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
     except OSError:
         # Could not load. Get why
         e_type, e_value, e_tb = sys.exc_info(); del e_tb
@@ -145,7 +159,7 @@ def load_freeimage(raise_if_not_available=True):
         # Yes, it seems so! Try it and then try loading again
         print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
         retrieve_files()
-        lib, fname = load_lib(exact_lib_names, lib_names)
+        lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
         # If we get here, we did a good job!
         print('FreeImage library deployed succesfully.')
     
