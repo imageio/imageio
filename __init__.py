@@ -11,12 +11,17 @@ is designed to be powerful, yet simple in usage and installation.
 The imageio library is intended as a replacement for PIL. Currently, most
 functionality is obtained by wrapping the FreeImage library using ctypes. 
 
+Quickstart:
+
+  * Use imageio.imread to read an image
+  * Use imageio.imsave to save an image
+  * See the `functions page <http://imageio.readthedocs.org/en/latest/functions.html>`_ for more information.
+ 
 """
 
 # todo: test images at: http://sourceforge.net/projects/freeimage/files/
-# todo: make libs work when frozen - dont try to download when frozen!
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 import sys
 

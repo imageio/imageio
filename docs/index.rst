@@ -18,14 +18,13 @@ is designed to be powerful, yet simple in usage and installation.
 The imageio library is intended as a replacement for PIL. Currently, most
 functionality is obtained by wrapping the FreeImage library using ctypes. 
 
-.. insertdocs end::
-
-
 Quickstart:
 
-  * Use imageio.imread to read an image
-  * Use imageio.imsave to save an image
-  * See the :doc:`functions page <functions>` for more information.
+  * Use :ref:`imageio.imread<insertdocs-imageio-imread>` to read an image
+  * Use :ref:`imageio.imsave<insertdocs-imageio-imsave>` to save an image
+  * See the `functions page <http://imageio.readthedocs.org/en/latest/functions.html>`_ for more information.
+ 
+.. insertdocs end::
 
 
 Features
@@ -43,7 +42,7 @@ Installation
 ============
 You can install imageio using one of these options:
   
-  * imageio will be pip installable soon. (and easy_install too)
+  * ``pip install imageio`` or ``easy_install imageio``.
   * Get the zip file with the source code, extract and call 
     ``python setup.py install``.
   * Clone the repository to a directory called "imageio" and place that 
@@ -62,8 +61,9 @@ Contents
 .. toctree::
   :maxdepth: 1
   
-  imageio's functions <functions>
-  imageio's classes <classes>
+  imageio's functions (user API) <functions>
+  imageio's classes (developer API) <classes>
   supported formats <formats>
   writing plugins <plugins>
+  release notes <releasenotes>
     

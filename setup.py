@@ -64,6 +64,8 @@ elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
     freeimage_install.retrieve_files(32) 
     freeimage_install.retrieve_files(64)
     libFilter = 'lib/*'
+else:
+    libFilter = 'lib/*'
 
 
 setup(
