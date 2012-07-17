@@ -127,22 +127,31 @@ def _find_module(fullname, path=None):
 def resource_dir(package_name=None, subdir=None):
     """ resource_dir(package_name=None, subdir=None)
     
-    Get the directory containing the resources for the given package.
-    This function deals with frozen and non-frozen applications.
+    Get the directory containing the resources for the given package, also 
+    for frozen applications. If package_name is not given or None, will 
+    return subdir relative to the current application/scriptfile/directory. 
+    
+    Note: from a setup.py script, always omit package_name.
     
     Example: resource_dir('imageio', 'lib')
     """
-    
     # Init
     package_name = package_name or ''
     subdir = subdir or ''
     
-    # Build directory based on whether we're in a frozen app or not
-    if is_frozen() or not package_name:
+    if is_frozen():
+        # In frozen app we always look in resources dir
         package_parts = os.path.join(*package_name.split('.'))
         return os.path.join(application_dir(), 'resources', package_parts, subdir)
+    elif not package_name:
+        # Return subdir relative to executed script, or to current directory
+        try:
+            return os.path.join(application_dir(), subdir)
+        except Exception:
+            return os.path.abspath(subdir)
     else:
-        # Get dir and append subdir
+        # Find location of given module. The module does not have to be
+        # imported (making life easier for freezers), but must be "importable".
         package_dir = _find_module(package_name)
         return os.path.join(package_dir, subdir)
 
@@ -160,7 +169,7 @@ def get_resources():
     from imageio.freeimage_install import load_freeimage
     return  [
             ('lib', load_freeimage()[1]), # If not in resource dir, put it there now
-            ('lib', resource_dir('imageio', 'lib')), # This overwrites the previous
+            ('lib', resource_dir('imageio','lib')), # This overwrites the previous
             ]
 
 

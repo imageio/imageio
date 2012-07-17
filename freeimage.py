@@ -327,7 +327,7 @@ class Freeimage(object):
     def _load_freeimage(self):
         
         # Load
-        lib, fname = freeimage_install.load_freeimage(True)
+        lib, fname = freeimage_install.load_freeimage()
         
         # Store
         self._lib = lib

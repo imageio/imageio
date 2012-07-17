@@ -18,17 +18,6 @@ except ImportError:
         # Sometimes this happens when frozen because cannot import email
         urlopen = None 
 
-# Import generic load_lib function.
-# This module must work when imported from setup.py (not in a package)
-# as well as part of imageio
-try:
-    from .findlib import load_lib
-    from .freeze import resource_dir
-except ValueError: # not ImportError
-    from findlib import load_lib
-    from freeze import resource_dir
-
-
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Where to get the downloadable files
@@ -86,7 +75,7 @@ def get_key_for_available_lib(bits=None):
         return None
 
 
-def retrieve_files(selection=None):
+def retrieve_files(lib_dir, selection=None):
     """ Make sure the freeimage lib is present. It is downloaded
     if necessary. If selection is None, will retreieve only what is needed
     for this system. If selection is 32 or 64, will download that version
@@ -94,8 +83,14 @@ def retrieve_files(selection=None):
     *all* available binaries.
     
     """
-    if selection not in [None, 'all', 32, 64]:
-        raise ValueError("Invalid value for selection: must be 32, 64 or 'all'.")
+    # Check
+    bits = None
+    if selection in [32,64]:
+        bits = selection
+    elif selection in [None, 'all']:
+        pass
+    else:
+        raise ValueError("Invalid value for selection: must be None, 32, 64 or 'all'.")
     
     if selection == 'all':
         # We want to download all files
@@ -104,10 +99,10 @@ def retrieve_files(selection=None):
             files.append(library)
     else:
         # We only want to download the one for this system
-        key = get_key_for_available_lib(selection)
+        key = get_key_for_available_lib(bits)
         if key is None:
-            raise RuntimeError('No precompiled FreeImage libraries are available '
-                            'for this system.')
+            # Silent return. It is up to the caller to check and raise if necessary
+            return
         library = LIBRARIES[key]
         print('Found: %s for %d-bit %s systems at %s' % (library, key[1], 
                 key[0], BASE_ADDRESS))
@@ -118,7 +113,7 @@ def retrieve_files(selection=None):
     # Download all files and put them in the lib dir
     for fname in files:
         src = BASE_ADDRESS+fname
-        dest = os.path.join(resource_dir('imageio', 'lib'), fname)
+        dest = os.path.join(lib_dir, fname)
         if not os.path.exists(dest):
             _download(src, dest)
 
@@ -129,10 +124,18 @@ MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or
 MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
 
 
-def load_freeimage(raise_if_not_available=True):
+def load_freeimage():
+    """ Load the freeimage libraray. If it cannot be found, will attempt
+    to download it and then try again.
+    """
+    # Lazy imports, so that this module can be imported as a loose module
+    # (by setup.py) as long as this function is not called.
+    from imageio.findlib import load_lib
+    from imageio.freeze import resource_dir
     
-    # Get possible library paths
-    lib_dirs = [resource_dir('imageio', ''), resource_dir('imageio', 'lib')]
+    # Get lib dirs
+    lib_dir = resource_dir('imageio', 'lib')
+    lib_dirs = [lib_dir, resource_dir('imageio', '')]
     
     # Load library
     lib_names = ['freeimage', 'libfreeimage']
@@ -151,14 +154,10 @@ def load_freeimage(raise_if_not_available=True):
                 err_msg = load_error + '\n' + MSG_NOLIB_LINUX
             else:
                 err_msg = load_error + '\n' + MSG_NOLIB_OTHER
-            if raise_if_not_available:
-                raise OSError(err_msg)
-            else:
-                print('Warning:' + err_msg)
-                return
+            raise OSError(err_msg)
         # Yes, it seems so! Try it and then try loading again
         print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
-        retrieve_files()
+        retrieve_files(lib_dir)
         lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
         # If we get here, we did a good job!
         print('FreeImage library deployed succesfully.')
@@ -169,4 +168,5 @@ def load_freeimage(raise_if_not_available=True):
 
 if __name__ == '__main__':
     # Retieve *all* downloadable libraries
-    retrieve_files(True)
+    from imageio.freeze import resource_dir
+    retrieve_files(resource_dir('imageio', 'lib'), 'all')

@@ -21,6 +21,9 @@ import os
 import sys
 from distutils.core import setup
 
+import freeimage_install
+from freeze import resource_dir
+
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
 
@@ -51,18 +54,19 @@ for line in open(initFile).readlines():
 # For bdist distributions (Windows only) will download both 32bit and 64bit
 # libs when building the package. 
 
-import freeimage_install
+
+RD = resource_dir(None,'lib')
 if ('build' in sys.argv) or ('install' in sys.argv):
     # Download what *this* system needs
-    freeimage_install.load_freeimage(False) 
+    freeimage_install.retrieve_files(RD) 
     libFilter = 'lib/*'
 elif 'sdist' in sys.argv:
     # Pack only the txt file
     libFilter = 'lib/*.txt' 
 elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
     # Download and pack 32 bit and 64 bit binaries 
-    freeimage_install.retrieve_files(32) 
-    freeimage_install.retrieve_files(64)
+    freeimage_install.retrieve_files(RD, 32) 
+    freeimage_install.retrieve_files(RD, 64)
     libFilter = 'lib/*'
 else:
     libFilter = 'lib/*'
