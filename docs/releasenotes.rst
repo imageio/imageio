@@ -1,6 +1,10 @@
 Release notes
 -------------
 
+Version 0.2.3:
+    
+    * Fixed issue 2 (fail at instal, introduced when implementing freezing)
+
 Version 0.2.2:
     
     * Improved documentation.
