@@ -20,8 +20,8 @@ functionality is obtained by wrapping the FreeImage library using ctypes.
 
 Quickstart:
 
-  * Use :ref:`imageio.imread<insertdocs-imageio-imread>` to read an image
-  * Use :ref:`imageio.imsave<insertdocs-imageio-imsave>` to save an image
+  * Use :ref:`imageio.imread<insertdocs-imageio-imread>` to read an image.
+  * Use :ref:`imageio.imsave<insertdocs-imageio-imsave>` to save an image.
   * See the `functions page <http://imageio.readthedocs.org/en/latest/functions.html>`_ for more information.
  
 .. insertdocs end::
