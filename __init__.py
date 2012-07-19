@@ -20,7 +20,7 @@ Quickstart:
 """
 
 # todo: test images at: http://sourceforge.net/projects/freeimage/files/
-
+# todo: write a README file
 __version__ = '0.2.3'
 
 import sys
