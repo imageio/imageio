@@ -575,7 +575,7 @@ class Freeimage(object):
             res = lib.FreeImage_Save(ftype, bitmap, efn(filename), flags)
             if not res:
                 raise RuntimeError('Could not save file "%s": %s' 
-                        % (filename. self._get_error_message()))
+                        % (filename, self._get_error_message()))
             else:
                 self._show_any_warnings()
         finally:
