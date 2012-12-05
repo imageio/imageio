@@ -274,6 +274,8 @@ class Freeimage(object):
         'FreeImage_GetTagKey': (ctypes.c_char_p, None),
         'FreeImage_GetTagValue': (ctypes.c_void_p, None),
         'FreeImage_Load': (ctypes.c_void_p, None),
+        'FreeImage_LoadFromMemory': (ctypes.c_void_p, None),
+        'FreeImage_OpenMemory': (ctypes.c_void_p, None),
         'FreeImage_LockPage': (ctypes.c_void_p, None),
         'FreeImage_OpenMultiBitmap': (ctypes.c_void_p, None),
         
@@ -428,6 +430,29 @@ class Freeimage(object):
         ftype = self.getFIF(filename, 'r')
         # Try loading and check if all went well
         bitmap = self._lib.FreeImage_Load(ftype, efn(filename), flags)
+        bitmap = ctypes.c_void_p(bitmap)
+        if not bitmap:
+            raise ValueError('Could not load file "%s": %s' 
+                        % (filename, self._get_error_message()))
+        else:
+            self._show_any_warnings()
+        # Process
+        try:
+            return process_func(bitmap)
+        finally:
+            self._lib.FreeImage_Unload(bitmap)
+    
+    # todo: check this out!
+    def _process_bitmap_from_bytes(self, filename, data, flags, process_func):
+        """ Load a bitmap and process it with the given function.
+        """
+        # Get file format
+        # todo: the 'w' fails if that format is not writable!
+        ftype = self.getFIF(filename, 'w') # Dont try to read the file
+        # Get file-like object specific for FreeImage
+        fimemory = self._lib.FreeImage_OpenMemory(ctypes.c_char_p(data), len(data)) 
+        # Try loading and check if all went well
+        bitmap = self._lib.FreeImage_LoadFromMemory(ftype, ctypes.c_void_p(fimemory))
         bitmap = ctypes.c_void_p(bitmap)
         if not bitmap:
             raise ValueError('Could not load file "%s": %s' 
