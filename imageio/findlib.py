@@ -35,10 +35,10 @@ def looks_lib(fname):
     fname = fname.lower()
     if sys.platform.startswith('win'):
         return fname.endswith('.dll')
-    elif sys.platform == 'darwin':
+    elif sys.platform.startswith('darwin'):
         return fname.endswith('.dylib')
     else:
-        return '.so' in fname
+        return fname.endswith('.so') or '.so.' in fname
 
 
 def generate_candidate_libs(lib_names, lib_dirs=None):
@@ -46,21 +46,27 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     library corresponding with the given list of names.
     Returns (lib_dirs, lib_paths)
     """
-    
-    # look for likely library files in the following dirs:
     lib_dirs = lib_dirs or []
-    potential_lib_dirs = lib_dirs + [
-                '/lib',
-                '/usr/lib',
-                '/usr/local/lib',
-                '/opt/local/lib',
-                os.path.join(sys.prefix, 'lib'),
-                os.path.join(sys.prefix, 'DLLs')
-                ]
-    if 'HOME' in os.environ:
-        potential_lib_dirs.append(os.path.join(os.environ['HOME'], 'lib'))
+    
+    # Get system dirs to search
+    sys_lib_dirs = [    '/lib', 
+                        '/usr/lib', 
+                        '/usr/local/lib', 
+                        '/opt/local/lib'    ]
+    
+    # Get Python dirs to search (shared if for Pyzo)
+    py_sub_dirs = ['lib', 'DLLs', 'shared']    
+    py_lib_dirs = [os.path.join(sys.prefix, d) for d in py_sub_dirs]
+    if hasattr(sys, 'base_prefix'):
+        py_lib_dirs += [os.path.join(sys.base_prefix, d) for d in py_sub_dirs]
+    
+    # Get user dirs to search (i.e. HOME)
+    home_dir = os.path.expanduser('~')
+    user_lib_dirs = [os.path.join(home_dir, d) for d in ['lib']]
+    
     
     # Select only the dirs for which a directory exists, and remove duplicates
+    potential_lib_dirs = lib_dirs + sys_lib_dirs + py_lib_dirs + user_lib_dirs
     lib_dirs = []
     for ld in potential_lib_dirs:
         if os.path.isdir(ld) and ld not in lib_dirs:
@@ -87,12 +93,11 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     
     Load a dynamic library. 
     
-    This function first tries to just load
-    the library from the given exact names. When that fails, it tries to
-    find the library in common locations. It searches for files that 
-    start with one of the names given in lib_names (case insensitive).
-    The search is performed in the given lib_dirs and a set of common
-    library dirs.
+    This function first tries to just load the library from the given
+    exact names. When that fails, it tries to find the library in common
+    locations. It searches for files that start with one of the names
+    given in lib_names (case insensitive). The search is performed in
+    the given lib_dirs and a set of common library dirs.
     
     Returns (ctypes_library, library_path)
     """
