@@ -42,11 +42,11 @@ formats.add_format(format)
 
 class Reader(base.Reader):
     
-    def _init(self):
-        self._fp = open(self.request.filename, 'rb')
+    def _on_enter(self):
+        self._fp = self.request.get_file()
     
-    def _close(self):
-        self._fp.close()
+    def _on_exit(self):
+        pass 
     
     def _read_data(self, *indices, **kwargs):
         if indices and indices != (0,):

@@ -49,6 +49,9 @@ class FreeimageFormat(Format):
                 return True
 
 
+# todo: reader and writer use filenames directly if possible, so that
+# when only reading meta data, or not all files from a multi-page file,
+# the performance is increased.
 class Reader(base.Reader):
     
     def _mshape(self):
@@ -58,9 +61,11 @@ class Reader(base.Reader):
         return flags
     
     def _read_data(self, *indices, **kwargs):
+        bb = self.request.get_bytes()
         flags = self._get_kwargs(**kwargs)
         # todo: Allow special cases with kwrags
-        return fi.read(self.request.filename, flags)
+        return fi.read(self.request.filename, flags, bytes=bb,
+                                                    ftype=self.format.fif)
     
     def _read_info(self, *indices, **kwargs):
         raise NotImplemented()
@@ -73,7 +78,10 @@ class Writer(base.Writer):
     
     def _save_data(self, im, *indices, **kwargs):
         flags = self._get_kwargs(**kwargs)
-        return fi.write(im, self.request.filename, flags)
+        
+        bb = fi.write(self.request.filename, im, flags, bytes=True,
+                                                    ftype=self.format.fif)
+        self.request.set_bytes(bb)
     
     def _save_info(self, *indices, **kwargs):
         raise NotImplemented()

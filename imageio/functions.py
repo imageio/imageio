@@ -10,9 +10,9 @@
     and their signature is very likely to stay the same.
 
 These functions are the main interface for the imageio user. They
-provide a common interface to read and save image data 
-for a large variety of formats. All read and save functions accept keyword 
-arguments, which are passed on to the format that does the actual work. 
+provide a common interface to read and save image data for a large
+variety of formats. All read and save functions accept keyword
+arguments, which are passed on to the format that does the actual work.
 To see what keyword arguments are supported by a specific format, use
 the imageio.help function.
 
@@ -26,11 +26,12 @@ Functions for reading/saving of images:
 
 Functions for reading/saving of volumes: todo
 
-For a larger degree of control, imageio provides the functions 
-imageio.read and imageio.save. They respectively return an imageio.Reader
-and an imageio.Writer object, which can be used to read/save data and meta
-data in a more controlled manner. This also allows specific scientific 
-formats to be exposed in a way that best suits that file-format.
+For a larger degree of control, imageio provides the functions
+imageio.read and imageio.save. They respectively return an
+imageio.Reader and an imageio.Writer object, which can be used to
+read/save data and meta data in a more controlled manner. This also
+allows specific scientific formats to be exposed in a way that best
+suits that file-format.
 
 """
 
@@ -39,6 +40,7 @@ import sys
 import os 
 import numpy as np
 
+import imageio
 from imageio import formats
 from imageio import base
 
@@ -95,15 +97,9 @@ def read(filename, format=None, expect=None, **kwargs):
     of the corresponding format to see what arguments are available.
     
     """ 
-    
-    # Test filename
-    if not isinstance(filename, string_types):
-        raise TypeError('Filename must be a string.')
-    if not os.path.isfile(filename):
-        raise IOError("No such file: '%s'" % filename)
-    
+        
     # Create request object
-    request = base.Request(filename, expect, **kwargs)
+    request = imageio.request.ReadRequest(filename, expect, **kwargs)
     
     # Get format
     if format is not None:
@@ -138,12 +134,8 @@ def save(filename, format=None, expect=None, **kwargs):
     
     """ 
     
-    # Test filename
-    if not isinstance(filename, string_types):
-        raise TypeError('Filename must be a string.')
-    
     # Create request object
-    request = base.Request(filename, expect, **kwargs)
+    request = imageio.request.WriteRequest(filename, expect, **kwargs)
     
     # Get format
     if format is not None:
@@ -178,7 +170,7 @@ def imread(filename, format=None, **kwargs):
     """ 
     
     # Get reader and read first
-    reader = read(filename, format, base.EXPECT_IM, **kwargs)
+    reader = read(filename, format, imageio.EXPECT_IM, **kwargs)
     with reader:
         return reader.read_data(0)
 
@@ -215,9 +207,12 @@ def imsave(filename, im, format=None, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(filename, format, base.EXPECT_IM, **kwargs)
+    writer = save(filename, format, imageio.EXPECT_IM, **kwargs)
     with writer:
         writer.save_data(im, 0)
+    
+    # Return a result if there is any
+    return writer.request.get_result()
 
 
 ## Multiple images
