@@ -31,7 +31,7 @@ description = 'Library for reading and writing a wide range of image formats.'
 __version__ = None
 __doc__ = ''
 docStatus = 0 # Not started, in progress, done
-initFile = os.path.join(os.path.dirname(__file__), '__init__.py')
+initFile = os.path.join(os.path.dirname(__file__), 'imageio',  '__init__.py')
 for line in open(initFile).readlines():
     if (line.startswith('__version__')):
         exec(line.strip())
@@ -52,17 +52,17 @@ RD = os.path.abspath('imageio/lib')
 if ('build' in sys.argv) or ('install' in sys.argv):
     # Download what *this* system needs
     retrieve_files(RD) 
-    libFilter = 'imageio/lib/*'
+    libFilter = 'lib/*'
 elif 'sdist' in sys.argv:
     # Pack only the txt file
-    libFilter = 'imageio/lib/*.txt' 
+    libFilter = 'lib/*.txt' 
 elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
     # Download and pack 32 bit and 64 bit binaries 
     retrieve_files(RD, 32) 
     retrieve_files(RD, 64)
-    libFilter = 'imageio/lib/*'
+    libFilter = 'lib/*'
 else:
-    libFilter = 'imageio/lib/*'
+    libFilter = 'lib/*'
 
 
 setup(

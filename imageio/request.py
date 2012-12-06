@@ -184,7 +184,6 @@ class Request(object):
         """ set_bytes(value)
         Set the bytes for this request. Only works for writing requests.
         """
-        print('hello>')
         self.get_file().write(value)
     
     
