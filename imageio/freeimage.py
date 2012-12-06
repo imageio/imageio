@@ -10,7 +10,9 @@ types.
 import sys
 import ctypes
 import numpy
-from imageio import freeimage_install
+
+from imageio.findlib import load_lib
+from imageio.freeze import resource_dir
 
 # todo: the caller should check if a file exists
 # todo: make API class more complete
@@ -324,12 +326,32 @@ class Freeimage(object):
         self._lib_version = self._lib.FreeImage_GetVersion().decode('utf-8')
     
     
-    ## Getting started
-    
     def _load_freeimage(self):
         
-        # Load
-        lib, fname = freeimage_install.load_freeimage()
+        # Store some messages as constants
+        MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or build from source.'
+        MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
+        
+        # Get lib dirs
+        lib_dir = resource_dir('imageio', 'lib')
+        lib_dirs = [lib_dir, resource_dir('imageio', '')]
+        
+        # Load library
+        lib_names = ['freeimage', 'libfreeimage']
+        exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
+                            'libfreeimage.so', 'libfreeimage.so.3']
+        try:
+            lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
+        except OSError:
+            # Could not load. Get why
+            e_type, e_value, e_tb = sys.exc_info(); del e_tb
+            load_error = str(e_value)
+            # Depending on system, give error message
+            if sys.platform.startswith('linux'):
+                err_msg = load_error + '\n' + MSG_NOLIB_LINUX
+            else:
+                err_msg = load_error + '\n' + MSG_NOLIB_OTHER
+            raise OSError(err_msg)
         
         # Store
         self._lib = lib

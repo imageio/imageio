@@ -21,8 +21,7 @@ import os
 import sys
 from distutils.core import setup
 
-import freeimage_install
-from freeze import resource_dir
+from freeimage_install import retrieve_files
 
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
@@ -46,30 +45,24 @@ for line in open(initFile).readlines():
         __doc__ += line
 
 
-# Download libs at install-time (not needed if user has them installed)
-# If the lib cannot be found and is also not downloadable (e.g. Linux),
-# only a warning is given. If not found but should be downloadable, will 
-# raise error if this fails.
-# 
-# For bdist distributions (Windows only) will download both 32bit and 64bit
-# libs when building the package. 
+# Get Resource dir
+RD = os.path.abspath('imageio/lib') 
 
-
-RD = resource_dir(None,'lib')
+# Download libs at install-time. Determine which libs to include
 if ('build' in sys.argv) or ('install' in sys.argv):
     # Download what *this* system needs
-    freeimage_install.retrieve_files(RD) 
-    libFilter = 'lib/*'
+    retrieve_files(RD) 
+    libFilter = 'imageio/lib/*'
 elif 'sdist' in sys.argv:
     # Pack only the txt file
-    libFilter = 'lib/*.txt' 
+    libFilter = 'imageio/lib/*.txt' 
 elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
     # Download and pack 32 bit and 64 bit binaries 
-    freeimage_install.retrieve_files(RD, 32) 
-    freeimage_install.retrieve_files(RD, 64)
-    libFilter = 'lib/*'
+    retrieve_files(RD, 32) 
+    retrieve_files(RD, 64)
+    libFilter = 'imageio/lib/*'
 else:
-    libFilter = 'lib/*'
+    libFilter = 'imageio/lib/*'
 
 
 setup(
@@ -90,7 +83,7 @@ setup(
     requires = ['numpy'],
     
     packages = ['imageio', 'imageio.plugins'],
-    package_dir = {'imageio': '.'}, # must be a dot, not an empty string
+    package_dir = {'imageio': 'imageio'}, # must be a dot, not an empty string
     package_data = {'imageio': [libFilter,]},
     zip_safe = False,
     )

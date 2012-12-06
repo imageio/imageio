@@ -1,6 +1,10 @@
 Release notes
 -------------
 
+Version 0.2.4:
+    
+    * Refactored for more conventional package layout (but importing without installing still supported)
+
 Version 0.2.3:
     
     * Fixed issue 2 (fail at instal, introduced when implementing freezing)

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" This module contains the code for loading the freeimage library,
-and downloading it when necessary.
+""" This module contains the code for downloading the freeimage library.
 
 """
 
@@ -116,54 +115,6 @@ def retrieve_files(lib_dir, selection=None):
         dest = os.path.join(lib_dir, fname)
         if not os.path.exists(dest):
             _download(src, dest)
-
-
-# Store some messages as constants
-MSG_NOLIB_DOWNLOAD = 'Attempting to download the FreeImage library.'
-MSG_NOLIB_LINUX = 'Install FreeImage (libfreeimage3) via your package manager or build from source.'
-MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
-
-
-def load_freeimage():
-    """ Load the freeimage libraray. If it cannot be found, will attempt
-    to download it and then try again.
-    """
-    # Lazy imports, so that this module can be imported as a loose module
-    # (by setup.py) as long as this function is not called.
-    from imageio.findlib import load_lib
-    from imageio.freeze import resource_dir
-    
-    # Get lib dirs
-    lib_dir = resource_dir('imageio', 'lib')
-    lib_dirs = [lib_dir, resource_dir('imageio', '')]
-    
-    # Load library
-    lib_names = ['freeimage', 'libfreeimage']
-    exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
-                        'libfreeimage.so', 'libfreeimage.so.3']
-    
-    try:
-        lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
-    except OSError:
-        # Could not load. Get why
-        e_type, e_value, e_tb = sys.exc_info(); del e_tb
-        load_error = str(e_value)
-        # Can we download? If not, raise error.
-        if get_key_for_available_lib() is None:
-            if sys.platform.startswith('linux'):
-                err_msg = load_error + '\n' + MSG_NOLIB_LINUX
-            else:
-                err_msg = load_error + '\n' + MSG_NOLIB_OTHER
-            raise OSError(err_msg)
-        # Yes, it seems so! Try it and then try loading again
-        print(load_error + '\n' + MSG_NOLIB_DOWNLOAD)
-        retrieve_files(lib_dir)
-        lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
-        # If we get here, we did a good job!
-        print('FreeImage library deployed succesfully.')
-    
-    # Return library and the filename where it's loaded
-    return lib, fname
 
 
 if __name__ == '__main__':
