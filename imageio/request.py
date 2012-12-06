@@ -136,10 +136,11 @@ class Request(object):
             raise RuntimeError('imageio does not support writing to http/ftp.')
         
         # Check if file exists
-        if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
-            fn = self._filename_zip[0] if self._filename_zip else self._filename
-            if not os.path.isfile(fn):
-                raise IOError("No such file: '%s'" % fn)
+        if isinstance(self, ReadRequest):
+            if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
+                fn = self._filename_zip[0] if self._filename_zip else self._filename
+                if not os.path.isfile(fn):
+                    raise IOError("No such file: '%s'" % fn)
     
     
     @property

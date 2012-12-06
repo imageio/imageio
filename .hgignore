@@ -4,5 +4,6 @@ syntax: glob
 docs/_build/*
 build/*
 dist/*
+tests/freezing/frozen/*
 *.dll
 *.dylib
