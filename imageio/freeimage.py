@@ -7,6 +7,7 @@ types.
 
 """
 
+import os
 import sys
 import ctypes
 import numpy
@@ -278,6 +279,8 @@ class Freeimage(object):
         'FreeImage_Load': (ctypes.c_void_p, None),
         'FreeImage_LoadFromMemory': (ctypes.c_void_p, None),
         'FreeImage_OpenMemory': (ctypes.c_void_p, None),
+        #'FreeImage_ReadMemory': (ctypes.c_void_p, None),
+        
         'FreeImage_LockPage': (ctypes.c_void_p, None),
         'FreeImage_OpenMultiBitmap': (ctypes.c_void_p, None),
         
@@ -404,7 +407,7 @@ class Freeimage(object):
     ## Wrapper functions for reading
     
     
-    def read(self, filename, flags=0):
+    def read(self, filename, flags=0, bytes=None, ftype=None):
         """Read an image to a numpy array of shape (height, width) for
         greyscale images, or shape (height, width, nchannels) for RGB or
         RGBA images.
@@ -412,10 +415,10 @@ class Freeimage(object):
         class defined in this module, or-ed together with | as appropriate.
         (See the source-code comments for more details.)
         """
-        return self._process_bitmap(filename, flags, self._array_from_bitmap)
+        return self._process_bitmap(filename, flags, bytes, ftype, self._array_from_bitmap)
     
     
-    def read_metadata(self, filename):
+    def read_metadata(self, filename, bytes=None, ftype=None):
         """Return a dict containing all image metadata.
     
         Returned dict maps (metadata_model, tag_name) keys to tag values, where
@@ -423,10 +426,10 @@ class Freeimage(object):
         defined in the class METADATA_MODELS.
         """
         flags = IO_FLAGS.FIF_LOAD_NOPIXELS
-        return self._process_bitmap(filename, flags, self._read_metadata)
+        return self._process_bitmap(filename, flags, bytes, ftype, self._read_metadata)
     
     
-    def read_multipage(self, filename, flags=0):
+    def read_multipage(self, filename, flags=0, bytes=None, ftype=None):
         """Read a multipage image to a list of numpy arrays, where each
         array is of shape (height, width) for greyscale images, or shape
         (height, width, nchannels) for RGB or RGBA images.
@@ -434,47 +437,32 @@ class Freeimage(object):
         class defined in this module, or-ed together with | as appropriate.
         (See the source-code comments for more details.)
         """
-        return self._process_multipage(filename, flags, self._array_from_bitmap)
+        return self._process_multipage(filename, flags, bytes, ftype, self._array_from_bitmap)
     
     
-    def read_multipage_metadata(self, filename):
+    def read_multipage_metadata(self, filename, bytes=None, ftype=None):
         """Read a multipage image to a list of metadata dicts, one dict for each
         page. The dict format is as in read_metadata().
         """
         flags = IO_FLAGS.FIF_LOAD_NOPIXELS
-        return self._process_multipage(filename, flags, self._read_metadata)
+        return self._process_multipage(filename, flags, bytes, ftype,self._read_metadata)
     
     
-    def _process_bitmap(self, filename, flags, process_func):
+    def _process_bitmap(self, filename, flags, bytes, ftype, process_func):
         """ Load a bitmap and process it with the given function.
         """
         # Get file format
-        ftype = self.getFIF(filename, 'r')
-        # Try loading and check if all went well
-        bitmap = self._lib.FreeImage_Load(ftype, efn(filename), flags)
-        bitmap = ctypes.c_void_p(bitmap)
-        if not bitmap:
-            raise ValueError('Could not load file "%s": %s' 
-                        % (filename, self._get_error_message()))
+        if ftype is None:
+            ftype = self.getFIF(filename, 'r') 
+        # Load bitmap
+        if bytes:
+            # ... from memory via file-like object specific for FreeImage
+            fimemory = self._lib.FreeImage_OpenMemory(ctypes.c_char_p(bytes), len(bytes))
+            bitmap = self._lib.FreeImage_LoadFromMemory(ftype, ctypes.c_void_p(fimemory), flags)
         else:
-            self._show_any_warnings()
-        # Process
-        try:
-            return process_func(bitmap)
-        finally:
-            self._lib.FreeImage_Unload(bitmap)
-    
-    # todo: check this out!
-    def _process_bitmap_from_bytes(self, filename, data, flags, process_func):
-        """ Load a bitmap and process it with the given function.
-        """
-        # Get file format
-        # todo: the 'w' fails if that format is not writable!
-        ftype = self.getFIF(filename, 'w') # Dont try to read the file
-        # Get file-like object specific for FreeImage
-        fimemory = self._lib.FreeImage_OpenMemory(ctypes.c_char_p(data), len(data)) 
-        # Try loading and check if all went well
-        bitmap = self._lib.FreeImage_LoadFromMemory(ftype, ctypes.c_void_p(fimemory))
+            # ... from file
+            bitmap = self._lib.FreeImage_Load(ftype, efn(filename), flags)
+        # Check bitmap
         bitmap = ctypes.c_void_p(bitmap)
         if not bitmap:
             raise ValueError('Could not load file "%s": %s' 
@@ -488,12 +476,15 @@ class Freeimage(object):
             self._lib.FreeImage_Unload(bitmap)
     
     
-    def _process_multipage(self, filename, flags, process_func):
+    def _process_multipage(self, filename, flags, bytes, ftype, process_func):
         """ Load a multipage bitmap and process each bitmat with the given function.
         """
         lib = self._lib
+        # todo: malke thos one work with bytes
+        # Get file format
+        if ftype is None:
+            ftype = self.getFIF(filename, 'r') 
         
-        ftype = self.getFIF(filename, 'r')
         create_new = False
         read_only = True
         keep_cache_in_memory = True
@@ -596,8 +587,8 @@ class Freeimage(object):
     
     ## Wrapper functions for writing
     
-    # todo: filename, array seems a better signature ... and change to save?
-    def write(self, array, filename, flags=0):
+    
+    def write(self, filename, array, flags=0, bytes=False, ftype=None):
         """Write a (height, width) or (height, width, nchannels) array to
         a greyscale, RGB, or RGBA image, with file type deduced from the
         filename.
@@ -606,9 +597,14 @@ class Freeimage(object):
         (See the source-code comments for more details.)
         """
         lib = self._lib
+        result = None
         
+        # Get fif type
+        if ftype is None:
+            ftype = self.getFIF(filename, 'r') 
+        # Prepare array
         array = numpy.asarray(array)
-        ftype = self.getFIF(filename, 'w')
+        
         bitmap, fi_type = self._array_to_bitmap(array)
         try:
             if fi_type == FI_TYPES.FIT_BITMAP:
@@ -619,7 +615,18 @@ class Freeimage(object):
             if not can_write:
                 raise TypeError('Cannot save image of this format '
                                 'to this file type')
-            res = lib.FreeImage_Save(ftype, bitmap, efn(filename), flags)
+            if bytes:
+                fimemory = lib.FreeImage_OpenMemory(0, 0)
+                res = lib.FreeImage_SaveToMemory(ftype, bitmap, ctypes.c_void_p(fimemory), flags)
+                if res:
+                    N = lib.FreeImage_TellMemory(ctypes.c_void_p(fimemory))
+                    result = ctypes.create_string_buffer(N)
+                    lib.FreeImage_SeekMemory(ctypes.c_void_p(fimemory), 0)
+                    lib.FreeImage_ReadMemory(result, 1, N, ctypes.c_void_p(fimemory))
+                    result = result.raw
+                lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
+            else:
+                res = lib.FreeImage_Save(ftype, bitmap, efn(filename), flags)
             if not res:
                 raise RuntimeError('Could not save file "%s": %s' 
                         % (filename, self._get_error_message()))
@@ -627,6 +634,7 @@ class Freeimage(object):
                 self._show_any_warnings()
         finally:
             lib.FreeImage_Unload(bitmap)
+        return result
     
     
     def write_multipage(self, arrays, filename, flags=0):
@@ -637,6 +645,7 @@ class Freeimage(object):
         class defined in this module, or-ed together with | as appropriate.
         (See the source-code comments for more details.)
         """
+        # todo: enable writing bytes
         ftype = self.getFIF(filename, 'w')
         create_new = True
         read_only = False
@@ -739,7 +748,7 @@ class Freeimage(object):
         
         # Try getting format from file. Note that some files do not have a 
         # header that allows reading the format from the file.
-        if mode == 'r':
+        if mode == 'r' and os.path.isfile(filename):
             ftype = lib.FreeImage_GetFileType(efn(filename), 0)
         # Try getting the format from the extension
         if ftype == -1:

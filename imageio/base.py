@@ -42,12 +42,6 @@ from __future__ import with_statement
 import sys
 import os
 
-# Define expects
-EXPECT_IM = 0
-EXPECT_MIM = 1
-EXPECT_VOL = 2
-EXPECT_MVOL = 3
-
 
 # Taken from six.py
 PY3 = sys.version_info[0] == 3
@@ -61,92 +55,11 @@ else:
     binary_type = str
 
 
-
-class Request(object):
-    """ Request(filename, expect, **kwargs)
-    
-    Represents a request for reading or saving a file. This object wraps
-    information to that request.
-    
-    Per read/save operation a single Request instance is used and passed
-    to the can_read/can_save method of a format, and subsequently to the
-    Reader/Writer class. This allows some rudimentary passing of 
-    information between different formats and between a format and its 
-    reader/writer.
-    
-    """
-    
-    def __init__(self, filename, expect, **kwargs):
-        self._filename = filename
-        self._expect = expect
-        self._kwargs = kwargs
-        self._firstbytes = None
-        
-        self._potential_formats = []
-    
-    @property
-    def filename(self):
-        """ Get the filename for which reading/saving was requested.
-        """
-        return self._filename
-    
-    @property
-    def expect(self):
-        """ Get what kind of data was expected for reading. 
-        See the imageio.EXPECT_* constants.
-        """
-        return self._expect
-    
-    @property
-    def kwargs(self):
-        """ Get the dict of keyword arguments supplied by the user.
-        """
-        return self._kwargs
-    
-    @property
-    def firstbytes(self):
-        """ Get the first 256 bytes of the file. This can be used to 
-        parse the header to determine the file-format.
-        """
-        if self._firstbytes is None:
-            self._firstbytes = self._read_first_bytes()
-        return self._firstbytes
-    
-    def _read_first_bytes(self, N=256):
-        f = open(self.filename, 'rb')
-        first_bytes = binary_type()
-        while len(first_bytes) < N:
-            extra_bytes = f.read(N-len(first_bytes))
-            if not extra_bytes:
-                break
-            first_bytes += extra_bytes
-        f.close()
-        return first_bytes
-    
-    # This is a bit experimental. Not sure how useful it will be in practice.
-    # One use case I though of is that if there is a bug in FreeImage, we might
-    # be able to circumvent it by providing an alternative Format for that
-    # file-format.
-    def add_potential_format(self, format):
-        """ add_potential_format(format)
-        
-        Allows a format to add itself as a potential format in cases
-        where it seems capable of reading-saving the file, but 
-        priority should be given to another Format.
-        """
-        self._potential_formats.append(format)
-    
-    def get_potential_format(self):
-        """ get_potential_format()
-        
-        Get the first known potential format. Calling this method 
-        repeatedly will yield different formats until the list of 
-        potential formats is exhausted.
-        """
-        if self._potential_formats:
-            format = self._potential_formats.pop(0)
-        return format
-
+# Define expects
+EXPECT_IM = 0
+EXPECT_MIM = 1
+EXPECT_VOL = 2
+EXPECT_MVOL = 3
 
 
 class Format:
@@ -226,7 +139,7 @@ class Format:
         from the given file. Used internally. Users are encouraged to
         use imageio.read() instead.
         """
-        return self._get_reader_class()(request)
+        return self._get_reader_class()(self, request)
     
     def save(self, request):
         """ save(request)
@@ -235,7 +148,7 @@ class Format:
         to the given file. Used internally. Users are encouraged to
         use imageio.save() instead.
         """
-        return self._get_writer_class()(request)
+        return self._get_writer_class()(self, request)
     
     def can_read(self, request):
         """ can_read(request)
@@ -271,8 +184,16 @@ class BaseReaderWriter(object):
     functionality.
     """
     
-    def __init__(self, request):
+    def __init__(self, format, request):
+        self._format = format
         self._request = request
+        self._exited = False
+    
+    @property
+    def format(self):
+        """ Get the format corresponding to the current read/save operation.
+        """
+        return self._format
     
     @property
     def request(self):
@@ -281,33 +202,37 @@ class BaseReaderWriter(object):
         """
         return self._request
     
-    def init(self):
+    def __enter__(self):
+        return self.enter()
+    
+    def __exit__(self, *args):
+        return self.exit()
+    
+    def __del__(self):
+        self.exit()
+    
+    def enter(self):
         """ Initialize the reader/writer. Note that the recommended usage
         of reader/writer objects is to use them in a "with-statement".
         """
-        self._init()
+        self._on_enter()
+        return self
     
-    def close(self):
+    def exit(self):
         """ Close this reader/writer. Note that the recommended usage
         of reader/writer objects is to use them in a "with-statement".
         """
-        self._close()
+        if not self._exited:
+            self.request.finish()
+            self._on_exit()
+        self._exited = True
     
-    def __del__(self):
-        self._close()
-    
-    def __enter__(self):
-        self._init()
-        return self
-    
-    def __exit__(self, *args):
-        self._close()
-    
-    def _init(self):
+    def _on_enter(self):
         pass # Plugins can implement this
     
-    def _close(self):
+    def _on_exit(self):
         pass # Plugins can implement this
+
 
 
 class Reader(BaseReaderWriter):
