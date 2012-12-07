@@ -1,11 +1,17 @@
+import os
 import imageio
-from urllib.request import urlopen # Py3k
-print('Getting image ...')
-im = imageio.imread('http://imgs.xkcd.com/comics/python.png')
-print('Image retrieved!')
-print('Saving image ...')
-imageio.imsave('xkcd_python.jpg', im)
-print('Saved image!')
 
-im = imageio.imread('/home/almar/projects/pylib/imageio/_meuk/imzip.zip/lena.png')
+print('Getting image from web ...')
+im = imageio.imread('http://imgs.xkcd.com/comics/python.png')
+imageio.imsave('xkcd_python.jpg', im)
+print('Saved image xkcd_python.jpg!')
+
+fname = 'C:\\almar\\Dropbox\\lena.zip'
+if not os.path.isfile(fname):
+    fname = '/home/almar/dropbox/lena.zip'
+fname += '/lena.png'
+
+print('Getting image from zipfile ...')
+im = imageio.imread(fname)
 imageio.imsave('lena.jpg', im[:,:,:3])
+print('Saved image lena.jpg!')

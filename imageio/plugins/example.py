@@ -17,7 +17,7 @@ class DummyFormat(base.Format):
     explicitly asked to save, it will raise an error.
     """
     
-    def _can_read(request):
+    def _can_read(self, request):
         # The request object has:
         # request.filename: the filename
         # request.firstbytes: the first 256 bytes of the file.
@@ -25,7 +25,7 @@ class DummyFormat(base.Format):
         # request.kwargs: the keyword arguments specified by the user
         return False
     
-    def _can_save(request):
+    def _can_save(self, request):
         return False
 
     def _get_reader_class(self):
