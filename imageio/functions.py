@@ -77,16 +77,18 @@ def help(name=None):
 
 ## Base functions that return a reader/writer
 
-def read(filename, format=None, expect=None, **kwargs):
-    """ read(filename, format=None, expect=None, **kwargs)
+def read(uri, format=None, expect=None, **kwargs):
+    """ read(uri, format=None, expect=None, **kwargs)
     
     Returns a reader object which can be used to read data and info 
     from the specified file.
     
     Parameters
     ----------
-    filename : str
-        The location of the file on the file system.
+    uri : {str, bytes}
+        The resource to load the image from. This can be a normal
+        filename, a file in a zipfile, an http/ftp address, a file
+        object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -99,7 +101,7 @@ def read(filename, format=None, expect=None, **kwargs):
     """ 
         
     # Create request object
-    request = imageio.request.ReadRequest(filename, expect, **kwargs)
+    request = imageio.request.ReadRequest(uri, expect, **kwargs)
     
     # Get format
     if format is not None:
@@ -113,16 +115,18 @@ def read(filename, format=None, expect=None, **kwargs):
     return format.read(request)
 
 
-def save(filename, format=None, expect=None, **kwargs):
-    """ save(filename, format=None, expect=None, **kwargs)
+def save(uri, format=None, expect=None, **kwargs):
+    """ save(uri, format=None, expect=None, **kwargs)
     
     Returns a writer object which can be used to save data and info 
     to the specified file.
     
     Parameters
     ----------
-    filename : str
-        The location of the file to save to.
+    uri : str
+        The resource to save the image to. This can be a normal
+        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
+        case the raw bytes are returned.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
@@ -135,7 +139,7 @@ def save(filename, format=None, expect=None, **kwargs):
     """ 
     
     # Create request object
-    request = imageio.request.WriteRequest(filename, expect, **kwargs)
+    request = imageio.request.WriteRequest(uri, expect, **kwargs)
     
     # Get format
     if format is not None:
@@ -151,15 +155,17 @@ def save(filename, format=None, expect=None, **kwargs):
 
 ## Images
 
-def imread(filename, format=None, **kwargs):
-    """ imread(filename, format=None, **kwargs)
+def imread(uri, format=None, **kwargs):
+    """ imread(uri, format=None, **kwargs)
     
     Reads an image from the specified file. Returns a numpy array.
     
     Parameters
     ----------
-    filename : str
-        The location of the file on the file system.
+    uri : {str, bytes}
+        The resource to load the image from. This can be a normal
+        filename, a file in a zipfile, an http/ftp address, a file
+        object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -170,20 +176,22 @@ def imread(filename, format=None, **kwargs):
     """ 
     
     # Get reader and read first
-    reader = read(filename, format, imageio.EXPECT_IM, **kwargs)
+    reader = read(uri, format, imageio.EXPECT_IM, **kwargs)
     with reader:
         return reader.read_data(0)
 
 
-def imsave(filename, im, format=None, **kwargs):
-    """ imsave(filename, im, format=None, **kwargs)
+def imsave(uri, im, format=None, **kwargs):
+    """ imsave(uri, im, format=None, **kwargs)
     
     Save an image to the specified file.
     
     Parameters
     ----------
-    filename : str
-        The location of the file to save to.
+    uri : str
+        The resource to save the image to. This can be a normal
+        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
+        case the raw bytes are returned.
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
     format : str
