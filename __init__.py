@@ -30,7 +30,7 @@ THISPACKAGENAME = os.path.basename(THISDIR)
 
 # Insert in sys.path, so we can import the *real* package
 if not THISDIR in sys.path:
-    sys.path.insert(0, THISDIR)
+    sys.path.insert(1, THISDIR)
 
 # Remove *this* module from sys.modules, so we can import that name again
 # (keep reference to avoid premature cleanup)
