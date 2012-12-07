@@ -326,8 +326,9 @@ class Request(object):
         potential formats is exhausted.
         """
         if self._potential_formats:
-            format = self._potential_formats.pop(0)
-        return format
+            return self._potential_formats.pop(0)
+        else:
+            return None
     
 
 

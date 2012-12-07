@@ -336,8 +336,7 @@ class Freeimage(object):
         MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
         
         # Get lib dirs
-        lib_dir = resource_dir('imageio', 'lib')
-        lib_dirs = [lib_dir, resource_dir('imageio', '')]
+        lib_dirs = [resource_dir('imageio', ''), resource_dir('imageio', 'lib')]
         
         # Load library
         lib_names = ['freeimage', 'libfreeimage']

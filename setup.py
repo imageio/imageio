@@ -51,7 +51,11 @@ RD = os.path.abspath('imageio/lib')
 # Download libs at install-time. Determine which libs to include
 if ('build' in sys.argv) or ('install' in sys.argv):
     # Download what *this* system needs
-    retrieve_files(RD) 
+    if sys.platform.startswith('win'):
+        retrieve_files(RD, 32) 
+        retrieve_files(RD, 64)
+    else:
+        retrieve_files(RD)
     libFilter = 'lib/*'
 elif 'sdist' in sys.argv:
     # Pack only the txt file
