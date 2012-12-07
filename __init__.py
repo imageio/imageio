@@ -30,7 +30,7 @@ THISPACKAGENAME = os.path.basename(THISDIR)
 
 # Insert in sys.path, so we can import the *real* package
 if not THISDIR in sys.path:
-    sys.path.insert(1, THISDIR)
+    sys.path.insert(0, THISDIR)
 
 # Remove *this* module from sys.modules, so we can import that name again
 # (keep reference to avoid premature cleanup)
@@ -40,3 +40,7 @@ _old = sys.modules.pop(THISPACKAGENAME, None)
 # sys.modules. Note that the new package is injected in the namespace
 # from which "import package" is called; we do not need to import *.
 __import__(THISPACKAGENAME, level=0)
+
+# Clean up after ourselves
+if THISDIR in sys.path:
+    sys.path.remove(THISDIR)
