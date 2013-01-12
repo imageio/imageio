@@ -215,7 +215,7 @@ def imsave(uri, im, format=None, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(filename, format, imageio.EXPECT_IM, **kwargs)
+    writer = save(uri, format, imageio.EXPECT_IM, **kwargs)
     with writer:
         writer.save_data(im, 0)
     
