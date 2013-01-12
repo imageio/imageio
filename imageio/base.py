@@ -14,7 +14,7 @@ advanced users and plugin developers. A brief overview:
   
   * imageio.FormatManager - for keeping track of registered formats.
   * imageio.Format - the thing that says it can read/save a certain file.
-    Has a reader and writer class asociated with it.
+    Has a reader and writer class associated with it.
   * imageio.Reader - object used during the reading of a file.
   * imageio.Writer - object used during saving a file.
   * imageio.Request - used to store the filename and other info.
@@ -41,6 +41,8 @@ from __future__ import with_statement
 
 import sys
 import os
+
+from imageio.util import Image, ImageList
 
 
 # Taken from six.py
@@ -261,8 +263,11 @@ class Reader(BaseReaderWriter):
         """
         D = self.request.kwargs.copy()
         D.update(kwargs)
-        return self._read_data(*indices, **D)
+        im = self._read_data(*indices, **D)
+        meta = self._read_info()
+        return Image(im, meta)
     
+    # todo: rename to read_meta_data
     def read_info(self, *indices, **kwargs):
         """ read_info(*indices, **kwargs)
         
