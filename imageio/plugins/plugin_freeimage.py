@@ -102,6 +102,9 @@ class Writer(base.Writer):
         bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
         bm.allocate(im)
         bm.write_image_data(im)
+        if hasattr(im, 'meta'):
+            bm.write_meta_data(im.meta)
+        # todo: adding of meta data is task of base Write class, not plugins.
         bb = bm.save_to_bytes()
         bm.close()
         

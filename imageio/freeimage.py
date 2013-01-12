@@ -20,10 +20,15 @@ from imageio.freeze import resource_dir
 
 # todo: the caller should check if a file exists
 # todo: make API class more complete
-# todo: write with meta data
 # todo: write with palette?
 # todo: Check if jpeg has alpha channel. if so, deal with it and maybe warn.
 
+# Taken from six.py
+PY3 = sys.version_info[0] == 3
+if PY3:
+    string_types = str,
+else:
+    string_types = basestring,
 
 # Define function to encode a filename to bytes (for the current system)
 efn = lambda x : x.encode(sys.getfilesystemencoding())
@@ -237,8 +242,8 @@ class METADATA_DATATYPE(object):
         FIDT_BYTE: numpy.uint8,
         FIDT_SHORT: numpy.uint16,
         FIDT_LONG: numpy.uint32,
-        FIDT_RATIONAL: [('numerator', numpy.uint32),
-                        ('denominator', numpy.uint32)],
+        FIDT_RATIONAL:  [('numerator', numpy.uint32),
+                         ('denominator', numpy.uint32)],
         FIDT_SBYTE: numpy.int8,
         FIDT_UNDEFINED: numpy.uint8,
         FIDT_SSHORT: numpy.int16,
@@ -248,8 +253,8 @@ class METADATA_DATATYPE(object):
         FIDT_FLOAT: numpy.float32,
         FIDT_DOUBLE: numpy.float64,
         FIDT_IFD: numpy.uint32,
-        FIDT_PALETTE: [('R', numpy.uint8), ('G', numpy.uint8),
-                       ('B', numpy.uint8), ('A', numpy.uint8)]
+        FIDT_PALETTE:   [('R', numpy.uint8), ('G', numpy.uint8),
+                         ('B', numpy.uint8), ('A', numpy.uint8)],
         }
 
 
@@ -1026,25 +1031,38 @@ class FIBitmap(FIBaseBitmap):
     
     def read_meta_data(self):
         
-        metadata = {}
+        # todo: there is also FreeImage_TagToString, is that useful?
+        # and would that work well when reading and then saving?
+        
+        # Create a list of (model_name, number) tuples
         models = [(name[5:], number) for name, number in
             METADATA_MODELS.__dict__.items() if name.startswith('FIMD_')]
         
-        with self._fi as lib:
+        # Prepare
+        metadata = {}
+        tag = ctypes.c_void_p()
         
-            tag = ctypes.c_void_p()
+        with self._fi as lib:
+            
+            # Iterate over all FreeImage meta models
             for model_name, number in models:
+                
+                # Find beginning, get search handle
                 mdhandle = lib.FreeImage_FindFirstMetadata(number, self._bitmap,
                                                         ctypes.byref(tag))
                 mdhandle = ctypes.c_void_p(mdhandle)
                 if mdhandle:
+                    
+                    # Iterate over all tags in this model
                     more = True
                     while more:
+                        # Get info about tag
                         tag_name = lib.FreeImage_GetTagKey(tag).decode('utf-8')
                         tag_type = lib.FreeImage_GetTagType(tag)
                         byte_size = lib.FreeImage_GetTagLength(tag)
                         char_ptr = ctypes.c_char * byte_size
                         tag_str = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
+                        # Convert to a Python value in the metadata dict
                         if tag_type == METADATA_DATATYPE.FIDT_ASCII:
                             tag_val = tag_str.value.decode('utf-8')
                         else:
@@ -1053,13 +1071,84 @@ class FIBitmap(FIBaseBitmap):
                             if len(tag_val) == 1:
                                 tag_val = tag_val[0]
                         metadata[(model_name, tag_name)] = tag_val
+                        # Next
                         more = lib.FreeImage_FindNextMetadata(mdhandle, ctypes.byref(tag))
+                    
+                    # Close search handle for current meta model
                     lib.FreeImage_FindCloseMetadata(mdhandle)
+            
+            # Done
             return metadata
     
     
-    def write_meta_data(self, meta):
-        pass
+    def write_meta_data(self, metadata):
+        
+        # Create a dict mapping model_name to number
+        models = {}
+        for name, number in METADATA_MODELS.__dict__.items():
+            if name.startswith('FIMD_'):
+                models[name[5:]] = number
+        
+        # Create a mapping from numpy.dtype to METADATA_DATATYPE
+        def get_tag_type_number(dtype):
+            for number, numpy_dtype in METADATA_DATATYPE.dtypes.items():
+                if dtype == numpy_dtype:
+                    return number
+            else:
+                return None
+        
+        
+        with self._fi as lib:
+        
+            for key, tag_val in metadata.items():
+                
+                # Get model and tag name
+                if not isinstance(key, tuple) or len(key) != 2:
+                    continue # Silently ignore, we should document what tags are valid
+                model_name, tag_name = key
+                # Get model number
+                number = models.get(model_name, None)
+                if number is None:
+                    continue # Unknown model, silent ignore
+                
+                # Create new tag
+                tag = lib.FreeImage_CreateTag()
+                tag = ctypes.c_void_p(tag)
+                
+                try:
+                    # Convert Python value to FI type, val
+                    if isinstance(tag_val, string_types):
+                        tag_type = METADATA_DATATYPE.FIDT_ASCII
+                        tag_str = tag_val.encode('utf-8') #+ chr(0).encode('utf-8')
+                        tag_count = len(tag_str)
+                    else:
+                        if not hasattr(tag_val, 'dtype'):
+                            tag_val = numpy.array([tag_val])
+                        tag_type = get_tag_type_number(tag_val.dtype)
+                        if tag_type is None:
+                            print('imageio.freeimage warning: Could not determine tag type of %r.' % key)
+                            continue
+                        tag_str = tag_val.tostring()
+                        tag_count = tag_val.size
+                    
+                    # Set properties
+                    lib.FreeImage_SetTagKey(tag, tag_name.encode('utf-8'))
+                    lib.FreeImage_SetTagType(tag, tag_type)
+                    lib.FreeImage_SetTagLength(tag, len(tag_str))
+                    lib.FreeImage_SetTagCount(tag, tag_count)
+                    lib.FreeImage_SetTagValue(tag, tag_str)
+                    # Store tag
+                    tag_key = lib.FreeImage_GetTagKey(tag)
+                    lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
+                
+                except Exception:
+                    # Could not load. Get why
+                    e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                    load_error = str(e_value)
+                    print('imagio.freeimage warning: Could not set tag %r: %s, %s' % (
+                        key, self._fi._get_error_message(), load_error))
+                finally:
+                    lib.FreeImage_DeleteTag(tag)
     
     
     def _wrap_bitmap_bits_in_array(self, shape, dtype):
@@ -1120,6 +1209,7 @@ class FIBitmap(FIBaseBitmap):
         
         # Return dtype and shape
         return numpy.dtype(dtype), extra_dims + [w, h]
+
 
 
 class FIMultipageBitmap(FIBaseBitmap):
