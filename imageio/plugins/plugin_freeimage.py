@@ -63,12 +63,30 @@ class Reader(base.Reader):
     def _read_data(self, *indices, **kwargs):
         bb = self.request.get_bytes()
         flags = self._get_kwargs(**kwargs)
+        
         # todo: Allow special cases with kwrags
-        return fi.read(self.request.filename, flags, bytes=bb,
-                                                    ftype=self.format.fif)
+#         return fi.read(self.request.filename, flags, bytes=bb,
+#                                                     ftype=self.format.fif)
+        
+        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+        bm.load_from_bytes(bb)
+        im = bm.read_image_data()
+        bm.close()
+        return im
     
+        
     def _read_info(self, *indices, **kwargs):
-        raise NotImplemented()
+        bb = self.request.get_bytes()
+        flags = self._get_kwargs(**kwargs)
+        
+#         return fi.read_metadata(self.request.filename, bytes=bb, 
+#                                                     ftype=self.format.fif)
+       
+        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+        bm.load_from_bytes(bb)
+        meta = bm.read_meta_data()
+        bm.close()
+        return meta
     
   
 class Writer(base.Writer):
@@ -79,8 +97,14 @@ class Writer(base.Writer):
     def _save_data(self, im, *indices, **kwargs):
         flags = self._get_kwargs(**kwargs)
         
-        bb = fi.write(self.request.filename, im, flags, bytes=True,
-                                                    ftype=self.format.fif)
+#         bb = fi.write(self.request.filename, im, flags, bytes=True,
+#                                                     ftype=self.format.fif)
+        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+        bm.allocate(im)
+        bm.write_image_data(im)
+        bb = bm.save_to_bytes()
+        bm.close()
+        
         self.request.set_bytes(bb)
     
     def _save_info(self, *indices, **kwargs):
