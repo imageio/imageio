@@ -3,8 +3,19 @@ import numpy as np
 
 
 class ImageList(list):
-    def __repr__(self):
-        return '<List of %i images>' % len(self)
+    def __init__(self, meta=None):
+        list.__init__(self)
+        # Check
+        if not (meta is None or isinstance(meta, dict)):
+            raise ValueError('ImageList expects meta data to be a dict.')
+        # Convert and return
+        self._meta = meta if meta is not None else {}
+    
+    @property
+    def meta(self):
+        """ The dict with the meta data of this image.
+        """ 
+        return self._meta
 
 
 class Image(np.ndarray):
@@ -27,6 +38,9 @@ class Image(np.ndarray):
         n = 'x'.join([str(i) for i in self.shape])
         return '<Image of %s elements>' % n
     
+    def __str__(self):
+        return np.ndarrayprin.__str__(self) # print() shows elements as normal
+    
     @property
     def meta(self):
         """ The dict with the meta data of this image.
@@ -48,5 +62,9 @@ if __name__ == '__main__':
     im1 = Image(a)
     im1.meta['foo'] = 'bar'
     im2 = im1*2
+    
+    L = ImageList()
+    L.append(im1)
+    L.append(im2)
     
     
