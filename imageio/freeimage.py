@@ -890,6 +890,22 @@ class FIBitmap(FIBaseBitmap):
             self._bitmap = bitmap
     
     
+    def load_from_filename(self):
+        with self._fi as lib: 
+            # Create bitmap
+            bitmap = self._lib.FreeImage_Load(
+                                self._ftype, efn(self._filename), self._flags)
+            bitmap = ctypes.c_void_p(bitmap)
+            
+            # Check
+            if not bitmap:
+                raise ValueError('Could not load bitmap "%s": %s' 
+                            % (self._filename, self._fi._get_error_message()))
+        
+        # Done
+        self._bitmap = bitmap
+    
+    
     def load_from_bytes(self, bytes):
         with self._fi as lib: 
             # Create bitmap
@@ -943,6 +959,34 @@ class FIBitmap(FIBaseBitmap):
         # Done
         return result
     
+
+    def save_to_filename(self):
+        ftype = self._ftype
+        bitmap = self._bitmap
+        fi_type = self._fi_type # element type
+        
+        with self._fi as lib:
+            # Check if can write
+            if fi_type == FI_TYPES.FIT_BITMAP:
+                can_write = lib.FreeImage_FIFSupportsExportBPP(ftype,
+                                        lib.FreeImage_GetBPP(bitmap))
+            else:
+                can_write = lib.FreeImage_FIFSupportsExportType(ftype, fi_type)
+            if not can_write:
+                raise TypeError('Cannot save image of this format '
+                                'to this file type')
+            
+            # Save to file
+            res = lib.FreeImage_Save(ftype, bitmap, efn(self._filename), self._flags)
+            
+            # Check
+            if not res:
+                raise RuntimeError('Could not save file "%s": %s' 
+                        % (self._filename, self._fi._get_error_message()))
+        
+        # Done
+        return result
+    
     
     def close(self):
         if self._bitmap is not None:
@@ -958,7 +1002,7 @@ class FIBitmap(FIBaseBitmap):
         self.close()
     
     
-    def read_image_data(self):
+    def get_image_data(self):
         
         dtype, shape = self._get_type_and_shape()
         array = self._wrap_bitmap_bits_in_array(shape, dtype)
@@ -987,7 +1031,7 @@ class FIBitmap(FIBaseBitmap):
         return n(array).copy()
     
     
-    def write_image_data(self, array):
+    def set_image_data(self, array):
         
         # Prepare array
         array = numpy.asarray(array)
@@ -1029,7 +1073,7 @@ class FIBitmap(FIBaseBitmap):
             ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
     
     
-    def read_meta_data(self):
+    def get_meta_data(self):
         
         # todo: there is also FreeImage_TagToString, is that useful?
         # and would that work well when reading and then saving?
@@ -1081,7 +1125,7 @@ class FIBitmap(FIBaseBitmap):
             return metadata
     
     
-    def write_meta_data(self, metadata):
+    def set_meta_data(self, metadata):
         
         # Create a dict mapping model_name to number
         models = {}

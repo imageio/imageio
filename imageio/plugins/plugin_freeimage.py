@@ -70,7 +70,7 @@ class Reader(base.Reader):
         
         bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
         bm.load_from_bytes(bb)
-        im = bm.read_image_data()
+        im = bm.get_image_data()
         bm.close()
         return im
     
@@ -84,7 +84,7 @@ class Reader(base.Reader):
        
         bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
         bm.load_from_bytes(bb)
-        meta = bm.read_meta_data()
+        meta = bm.get_meta_data()
         bm.close()
         return meta
     
@@ -101,9 +101,9 @@ class Writer(base.Writer):
 #                                                     ftype=self.format.fif)
         bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
         bm.allocate(im)
-        bm.write_image_data(im)
+        bm.set_image_data(im)
         if hasattr(im, 'meta'):
-            bm.write_meta_data(im.meta)
+            bm.set_meta_data(im.meta)
         # todo: adding of meta data is task of base Write class, not plugins.
         bb = bm.save_to_bytes()
         bm.close()
