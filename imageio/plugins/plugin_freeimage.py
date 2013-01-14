@@ -12,6 +12,8 @@ from imageio import base
 from imageio import fi
 import ctypes
 
+# todo: support files with only meta data
+# todo: multi-page files
 
 class FreeimageFormat(Format):
     """ This is the default format used for FreeImage.
@@ -54,64 +56,84 @@ class FreeimageFormat(Format):
 # the performance is increased.
 class Reader(base.Reader):
     
-    def _mshape(self):
+    def _get_length(self):
         return 1
     
-    def _get_kwargs(self, flags=0):
-        return flags
     
-    def _read_data(self, *indices, **kwargs):
-        bb = self.request.get_bytes()
-        flags = self._get_kwargs(**kwargs)
+    def _enter(self, flags=0):
         
+        # Create bitmap
+        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+        bb = self.request.get_bytes()
+        bm.load_from_bytes(bb)
+        self._bm = bm
+    
+    
+    def _exit(self):
+        self._bm.close()
+    
+    
+    def _get_data(self, index, flags=0):
         # todo: Allow special cases with kwrags
-#         return fi.read(self.request.filename, flags, bytes=bb,
-#                                                     ftype=self.format.fif)
         
-        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
-        bm.load_from_bytes(bb)
-        im = bm.get_image_data()
-        bm.close()
-        return im
+        if index != 0:
+            raise IndexError()
+        
+        return self._bm.get_image_data(), self._bm.get_meta_data()
     
-        
-    def _read_info(self, *indices, **kwargs):
-        bb = self.request.get_bytes()
-        flags = self._get_kwargs(**kwargs)
-        
-#         return fi.read_metadata(self.request.filename, bytes=bb, 
-#                                                     ftype=self.format.fif)
-       
-        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
-        bm.load_from_bytes(bb)
-        meta = bm.get_meta_data()
-        bm.close()
-        return meta
     
-  
+    def _get_meta_data(self, index):
+        
+        if index is None or index==0:
+            pass
+        else:
+            raise IndexError()
+        
+        return self._bm.get_meta_data()
+
+
+    def _get_next_data(self, **kwargs):
+        raise NotImplemented() 
+
+
+
 class Writer(base.Writer):
     
-    def _get_kwargs(self, flags=0):
-        return flags
+    def _enter(self, flags=0):        
+        self._bm = None
+        self._set = False
+        self._meta = {}
     
-    def _save_data(self, im, *indices, **kwargs):
-        flags = self._get_kwargs(**kwargs)
-        
-#         bb = fi.write(self.request.filename, im, flags, bytes=True,
-#                                                     ftype=self.format.fif)
-        bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
-        bm.allocate(im)
-        bm.set_image_data(im)
-        if hasattr(im, 'meta'):
-            bm.set_meta_data(im.meta)
-        # todo: adding of meta data is task of base Write class, not plugins.
-        bb = bm.save_to_bytes()
-        bm.close()
-        
+    
+    def _exit(self):
+        # Set global meta now
+        self._bm.set_meta_data(self._meta)
+        # Save
+        bb = self._bm.save_to_bytes()
         self.request.set_bytes(bb)
+        # Close bitmap
+        self._bm.close()
     
-    def _save_info(self, *indices, **kwargs):
-        raise NotImplemented()
+    
+    def _append_data(self, im, meta, flags=0):        
+        if not self._set:
+            self._set = True
+        else:
+            raise RuntimeError('Singleton image; can only append image data ones.')
+        
+        # Lazy instantaion of the bitmap, we need image data
+        if self._bm is None:
+            self._bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+            self._bm.allocate(im)
+        
+        # Set
+        self._bm.set_image_data(im)
+        self._bm.set_meta_data(meta)
+    
+    
+    def set_meta_data(self, meta):
+        self._meta = meta
+
 
 # todo: implement separate Formats for some FreeImage file formats
 

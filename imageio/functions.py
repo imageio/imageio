@@ -178,7 +178,7 @@ def imread(uri, format=None, **kwargs):
     # Get reader and read first
     reader = read(uri, format, imageio.EXPECT_IM, **kwargs)
     with reader:
-        return reader.read_data(0)
+        return reader.get_data(0)
 
 
 def imsave(uri, im, format=None, **kwargs):
@@ -217,7 +217,7 @@ def imsave(uri, im, format=None, **kwargs):
     # Get writer and write first
     writer = save(uri, format, imageio.EXPECT_IM, **kwargs)
     with writer:
-        writer.save_data(im, 0)
+        writer.append_data(im)
     
     # Return a result if there is any
     return writer.request.get_result()
