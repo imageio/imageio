@@ -42,6 +42,8 @@ from __future__ import with_statement
 import sys
 import os
 
+import numpy as np
+
 from imageio.util import Image, ImageList
 
 
@@ -58,6 +60,9 @@ else:
 
 
 # Define expects
+# todo: should this not be what the user expects per-image, so we only need IM and VOL?
+# todo: what code is going to 'listen' to what is expected: plugins
+# todo: what code is going to verify: base Reader class?
 EXPECT_IM = 0
 EXPECT_MIM = 1
 EXPECT_VOL = 2
@@ -168,16 +173,16 @@ class Format:
     
     
     def _get_reader_class(self):
-        return Reader # Plugins should implement this
+        return Reader # Plugins must implement this
     
     def _get_writer_class(self):
-        return Writer # Plugins should implement this
+        return Writer # Plugins must implement this
     
     def _can_read(self, request):
-        return None # Plugins should implement this
+        return None # Plugins must implement this
     
     def _can_save(self, request):
-        return None # Plugins should implement this
+        return None # Plugins must implement this
 
 
 
@@ -189,7 +194,6 @@ class BaseReaderWriter(object):
     def __init__(self, format, request):
         self._format = format
         self._request = request
-        self._exited = False
     
     @property
     def format(self):
@@ -205,35 +209,28 @@ class BaseReaderWriter(object):
         return self._request
     
     def __enter__(self):
-        return self.enter()
-    
-    def __exit__(self, *args):
-        return self.exit()
-    
-    def __del__(self):
-        self.exit()
-    
-    def enter(self):
-        """ Initialize the reader/writer. Note that the recommended usage
-        of reader/writer objects is to use them in a "with-statement".
-        """
-        self._on_enter()
+        self._enter(**self.request.kwargs.copy())
         return self
     
-    def exit(self):
-        """ Close this reader/writer. Note that the recommended usage
-        of reader/writer objects is to use them in a "with-statement".
-        """
-        if not self._exited:
-            self.request.finish()
-            self._on_exit()
-        self._exited = True
+    def __exit__(self, type, value, traceback):
+        try:
+            self._exit()
+        except Exception:
+            if value:
+                # Let other error fall through, give warning
+                e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                print('imagio.freeimage.%s: Error in cleanup: %s' % 
+                        (self.format.name, str(e_value)) )
+            else:
+                # Re-raise error in _exit()
+                raise 
     
-    def _on_enter(self):
-        pass # Plugins can implement this
     
-    def _on_exit(self):
-        pass # Plugins can implement this
+    def _enter(self, **kwargs):
+        pass # Plugins should probably implement this
+    
+    def _exit(self):
+        pass # Plugins should probably implement this
 
 
 
@@ -253,56 +250,107 @@ class Reader(BaseReaderWriter):
     
     """
     
-    def read_data(self, *indices, **kwargs):
-        """ read_data(*indices, **kwargs)
+    def get_length(self):
+        """ get_length()
         
-        Read data from the file. If appropriate, indices can be given.
-        The keyword arguments are merged with the keyword arguments
-        specified in the read() function.
+        Get the number of images in the file. (Note: you can also
+        use len(reader_object).)
         
-        """
-        D = self.request.kwargs.copy()
-        D.update(kwargs)
-        im = self._read_data(*indices, **D)
-        meta = self._read_info()
-        return Image(im, meta)
+        The result can be:
+          * 0 for files that only have meta data
+          * 1 for singleton images (e.g. in PNG, JPEG, etc.)
+          * N for image series
+          * np.inf for streams (series of unknown length)
+        
+        """ 
+        return self._get_length()
     
-    # todo: rename to read_meta_data
-    def read_info(self, *indices, **kwargs):
-        """ read_info(*indices, **kwargs)
+    
+    def get_data(self, index, **kwargs):
+        """ get_data(index, **kwargs)
         
-        Read info (i.e. meta data) from the file. If appropriate, indices 
-        can be given. The keyword arguments are merged with the keyword 
+        Read image data from the file, using the image index. The
+        returned image has a 'meta' attribute with the meta data.
+        
+        The given keyword arguments are merged with the keyword
         arguments specified in the read() function.
         
         """
         D = self.request.kwargs.copy()
         D.update(kwargs)
-        return self._read_info(*indices, **D)
+        im, meta = self._get_data(index, **D)
+        return Image(im, meta)
     
-    def __len__(self):
-        p = 1
-        for s in self._mshape():
-            p *= s
-        return s
     
-    # todo: allow a format to specify that the length is unknown?
-    # e.g. video
-    # in that case: iterate not over length, but until we can
+    def get_meta_data(self, index=None):
+        """ get_meta_data(index=None)
+        
+        Read meta data from the file. using the image index. If the
+        index is omitted, return the file's (global) meta data.
+        
+        Note that get_data also provides the meta data for the returned
+        image as an atrribute of that image.
+        
+        """
+        return self._get_meta_data(index)
+    
+    
+    def iter_data(self, **kwargs):
+        """ iter_data(**kwargs):
+        
+        Iterate over all images in the series. (Note: you can also
+        iterate over the reader object.)
+        
+        The given keyword arguments are merged with the keyword
+        arguments specified in the read() function.
+        
+        """ 
+        D = self.request.kwargs.copy()
+        D.update(kwargs)
+                
+        try:
+            # Test one
+            im, meta = self._get_next_data(**D)
+            yield Image(im, meta)
+        
+        except NotImplemented:
+            # No luck, but we can still iterate (in a way that allows len==inf)
+            i, n = 0, self.get_length()
+            while i < n:
+                m, meta = self.get_data(i)
+                yield Image(im, meta)
+                i += 1
+        else:
+            # Iterate further (untill StopIteration is raised)
+            while True:
+                im, meta = self._get_next_data(**D)
+                yield Image(im, meta)
+    
+    
+    # Compatibility
     def __iter__(self):
-        i = 0
-        while i < len(self):
-            yield self.read_data(i)
-            i += 1
+        return self.iter_data()
+    def __len__(self):
+        return self.get_length()
     
-    def _mshape(self):
-        raise NotImplemented() # Plugins should implement this
     
-    def _read_data(self, *indices, **kwargs):
-        raise NotImplemented() # Plugins should implement this
+    # The plugin part
     
-    def _read_info(self, *indices, **kwargs):
-        raise NotImplemented() # Plugins should implement this
+    def _get_length(self): # -> int
+        # Plugins must implement this
+        raise NotImplemented() 
+    
+    def _get_data(self, index, **kwargs): # -> (ndarray, dict)
+        # Plugins must implement this, although random access may be disabled
+        raise NotImplemented() 
+    
+    def _get_meta_data(self, index): # -> dict
+        # Plugins must implement this 
+        raise NotImplemented() 
+    
+    def _get_next_data(self, **kwargs): # -> (ndarray, dict)
+        # Plugins can implement this
+        raise NotImplemented() 
 
 
 
@@ -321,38 +369,63 @@ class Writer(BaseReaderWriter):
     
     """
     
-    # todo: I can imagine that plugins often want to directly overload this
-    # method to be able to give it a proper docstring.
-    def save_data(self, data, *indices, **kwargs):
-        """ save_data(*indices, **kwargs)
+    
+    def append_data(self, im, meta=None, **kwargs):
+        """ append_data(im, meta={})
         
-        Save image data to the file. If appropriate, indices can be given.
+        Append an image to the file. 
+        
+        The appended meta data consists of the meta data on the given
+        image (if applicable), updated with the given meta data.
+        
         The keyword arguments are merged with the keyword arguments
         specified in the save() function.
         
-        """
+        """ 
+        
+        # Check image data
+        if not isinstance(im, np.ndarray):
+            raise ValueError('append_data accepts a numpy array as first argument.')
+        # Get total meta dict
+        total_meta = {}
+        if hasattr(im, 'meta') and isinstance(im.meta, dict):
+            total_meta.update(im.meta)
+        if meta is None:
+            pass
+        elif not isinstance(meta, dict):
+            raise ValueError('Meta must be a dict.')
+        else:
+            total_meta.update(meta)        
+        # Get total kwargs
         D = self.request.kwargs.copy()
         D.update(kwargs)
-        return self._save_data(data, *indices, **D)
-    
-    def save_info(self, info, *indices, **kwargs):
-        """ save_info(*indices, **kwargs)
         
-        Save info (i.e. meta data) to the file. If appropriate, indices can 
-        be given. The keyword arguments are merged with the keyword arguments
-        specified in the save() function.
+        # Call
+        im = np.asarray(im) # Decouple meta info
+        return self._append_data(im, total_meta, **kwargs)
+    
+    
+    def set_meta_data(self, meta):
+        """ set_meta_data(meta)
         
-        """
-        D = self.request.kwargs.copy()
-        D.update(kwargs)
-        return self._save_info(info, *indices, **D)
+        Sets the file's (global) meta data.
+        
+        """ 
+        if not isinstance(meta, dict):
+            raise ValueError('Meta must be a dict.')
+        else:
+            return self._set_meta_data(meta)
     
     
-    def _save_data(self, data, *indices, **kwargs):
-        raise NotImplemented() # Plugins should implement this
+    # The plugin part
     
-    def _save_info(self, info, *indices, **kwargs):
-        raise NotImplemented() # Plugins should implement this
+    def _append_data(self, im, meta, **kwargs):
+        # Plugins must implement this
+        raise NotImplemented() 
+    
+    def set_meta_data(self, meta):
+        # Plugins must implement this
+        raise NotImplemented() 
 
 
 
