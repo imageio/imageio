@@ -30,9 +30,6 @@ a format object using ``imageio.formats.add_format()``.
 # related info around. This request object is instantiated in imageio.read
 # and imageio.save.
 #
-# The classes in this module do not do any input checking. This is done by
-# imageio.read and imageio.save
-#
 # We use the verbs read and save throughout imageio. However, for the 
 # associated classes we use the nouns "reader" and "writer", since 
 # "saver" feels so awkward. 
@@ -88,8 +85,6 @@ class Format:
     
     """
     
-    # todo: maybe it is sometimes enough to only specify the extensions.
-    
     def __init__(self, name, description, extensions=None):
         
         # Store name and description
@@ -97,7 +92,7 @@ class Format:
         self._description = description
         
         # Store extensions, do some effort to normalize them.
-        # They are stores as a list of lowercas strings without leading dots.
+        # They are stored as a list of lowercase strings without leading dots.
         if extensions is None:
             extensions = []
         elif isinstance(extensions, string_types):
@@ -136,6 +131,7 @@ class Format:
     @property
     def extensions(self):
         """ Get a list of file extensions supported by this plugin.
+        These are all lowercase without a leading dot.
         """
         return self._extensions
     
@@ -143,8 +139,7 @@ class Format:
         """ read(request)
         
         Return a reader object that can be used to read data and info
-        from the given file. Used internally. Users are encouraged to
-        use imageio.read() instead.
+        from the given file. Users are encouraged to use imageio.read() instead.
         """
         return self._get_reader_class()(self, request)
     
@@ -152,22 +147,21 @@ class Format:
         """ save(request)
         
         Return a writer object that can be used to save data and info
-        to the given file. Used internally. Users are encouraged to
-        use imageio.save() instead.
+        to the given file. Users are encouraged to use imageio.save() instead.
         """
         return self._get_writer_class()(self, request)
     
     def can_read(self, request):
         """ can_read(request)
         
-        Get whether this format can read data from the specified file.
+        Get whether this format can read data from the specified uri.
         """
         return self._can_read(request)
     
     def can_save(self, request):
         """ can_save(request)
         
-        Get whether this format can save data to the speciefed file.
+        Get whether this format can save data to the speciefed uri.
         """
         return self._can_save(request)
     
@@ -227,10 +221,29 @@ class BaseReaderWriter(object):
     
     
     def _enter(self, **kwargs):
-        pass # Plugins should probably implement this
+        """ _enter(**kwargs)
+        
+        Plugins should probably implement this.
+        
+        It is called when the context manager is 'entered'. Here the
+        plugin can do its initialization. The given keyword arguments
+        are those that were given by the user at imageio.read() or
+        imageio.write().
+        
+        """ 
+        pass
+    
     
     def _exit(self):
-        pass # Plugins should probably implement this
+        """ _exit()
+        
+        Plugins should probably implement this.
+        
+        It is called when the context manager 'exits'. Here the plugin
+        can do a cleanup, flush, etc.
+        
+        """ 
+        pass
 
 
 
@@ -336,20 +349,58 @@ class Reader(BaseReaderWriter):
     
     # The plugin part
     
-    def _get_length(self): # -> int
-        # Plugins must implement this
+    def _get_length(self):
+        """ _get_length()
+        
+        Plugins must implement this.
+        
+        The retured scalar specifies the number of images in the series.
+        See Reader.get_length for more information.
+        
+        """ 
         raise NotImplemented() 
     
-    def _get_data(self, index, **kwargs): # -> (ndarray, dict)
-        # Plugins must implement this, although random access may be disabled
+    
+    def _get_data(self, index, **kwargs):
+        """ _get_data()
+        
+        Plugins must implement this, but may raise an IndexError in
+        case the plugin does not support random access.
+        
+        It should return the image and meta data: (ndarray, dict).
+        
+        The given keyword arguments are user-specified options. It is
+        a combination of the keyword arguments passed to imageio.read / 
+        imageio.write and the keyword arguments passed to get_data().
+        The plugin should handle these options, and document the
+        available options in the docstring of the Format class.
+        
+        """ 
         raise NotImplemented() 
     
-    def _get_meta_data(self, index): # -> dict
-        # Plugins must implement this 
+    
+    def _get_meta_data(self, index):
+        """ _get_meta_data()
+        
+        Plugins must implement this. 
+        
+        It should return the meta data as a dict, corresponding to the
+        given index, or to the file's (global) meta data if index is
+        None.
+        
+        """ 
         raise NotImplemented() 
     
-    def _get_next_data(self, **kwargs): # -> (ndarray, dict)
-        # Plugins can implement this
+    
+    def _get_next_data(self, **kwargs):
+        """ _get_next_data(**kwargs)
+        
+        Plugins can implement this to provide a more efficient way to
+        stream images.
+        
+        It should return the next image and meta data: (ndarray, dict).
+        
+        """
         raise NotImplemented() 
 
 
