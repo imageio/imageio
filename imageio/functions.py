@@ -158,7 +158,8 @@ def save(uri, format=None, expect=None, **kwargs):
 def imread(uri, format=None, **kwargs):
     """ imread(uri, format=None, **kwargs)
     
-    Reads an image from the specified file. Returns a numpy array.
+    Reads an image from the specified file. Returns a numpy array, which
+    comes with a dict of meta data at its 'meta' attribute.
     
     Parameters
     ----------

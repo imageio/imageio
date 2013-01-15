@@ -304,6 +304,10 @@ class Reader(BaseReaderWriter):
         Note that get_data also provides the meta data for the returned
         image as an atrribute of that image.
         
+        The meta data is a dict that maps group names to subdicts. Each
+        group is a dict with name-value pairs. The groups represent the
+        different metadata formats (EXIF, XMP, etc.).
+        
         """
         return self._get_meta_data(index)
     
@@ -460,6 +464,12 @@ class Writer(BaseReaderWriter):
         """ set_meta_data(meta)
         
         Sets the file's (global) meta data.
+        
+        The meta data is a dict that maps group names to subdicts. Each
+        group is a dict with name-value pairs. The groups represents
+        the different metadata formats (EXIF, XMP, etc.). Note that
+        some meta formats may not be supported for writing, and even
+        individual fields may be ignored if they are invalid.
         
         """ 
         if not isinstance(meta, dict):

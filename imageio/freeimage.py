@@ -538,7 +538,7 @@ class FIBaseBitmap(object):
             
             # Iterate over all FreeImage meta models
             for model_name, number in models:
-                
+                                
                 # Find beginning, get search handle
                 mdhandle = lib.FreeImage_FindFirstMetadata(number, self._bitmap,
                                                         ctypes.byref(tag))
@@ -562,7 +562,8 @@ class FIBaseBitmap(object):
                                     dtype=METADATA_DATATYPE.dtypes[tag_type])
                             if len(tag_val) == 1:
                                 tag_val = tag_val[0]
-                        metadata[(model_name, tag_name)] = tag_val
+                        subdict = metadata.setdefault(model_name, {})
+                        subdict[tag_name] = tag_val
                         # Next
                         more = lib.FreeImage_FindNextMetadata(mdhandle, ctypes.byref(tag))
                     
@@ -591,56 +592,54 @@ class FIBaseBitmap(object):
         
         
         with self._fi as lib:
-        
-            for key, tag_val in metadata.items():
+            
+            for model_name, subdict in metadata.items():
                 
-                # Get model and tag name
-                if not isinstance(key, tuple) or len(key) != 2:
-                    continue # Silently ignore, we should document what tags are valid
-                model_name, tag_name = key
                 # Get model number
                 number = models.get(model_name, None)
                 if number is None:
-                    continue # Unknown model, silent ignore
+                     continue # Unknown model, silent ignore
                 
-                # Create new tag
-                tag = lib.FreeImage_CreateTag()
-                tag = ctypes.c_void_p(tag)
-                
-                try:
-                    # Convert Python value to FI type, val
-                    if isinstance(tag_val, string_types):
-                        tag_type = METADATA_DATATYPE.FIDT_ASCII
-                        tag_str = tag_val.encode('utf-8') #+ chr(0).encode('utf-8')
-                        tag_count = len(tag_str)
-                    else:
-                        if not hasattr(tag_val, 'dtype'):
-                            tag_val = numpy.array([tag_val])
-                        tag_type = get_tag_type_number(tag_val.dtype)
-                        if tag_type is None:
-                            print('imageio.freeimage warning: Could not determine tag type of %r.' % key)
-                            continue
-                        tag_str = tag_val.tostring()
-                        tag_count = tag_val.size
+                for tag_name, tag_val in subdict.items():
                     
-                    # Set properties
-                    lib.FreeImage_SetTagKey(tag, tag_name.encode('utf-8'))
-                    lib.FreeImage_SetTagType(tag, tag_type)
-                    lib.FreeImage_SetTagLength(tag, len(tag_str))
-                    lib.FreeImage_SetTagCount(tag, tag_count)
-                    lib.FreeImage_SetTagValue(tag, tag_str)
-                    # Store tag
-                    tag_key = lib.FreeImage_GetTagKey(tag)
-                    lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
-                
-                except Exception:
-                    # Could not load. Get why
-                    e_type, e_value, e_tb = sys.exc_info(); del e_tb
-                    load_error = str(e_value)
-                    print('imagio.freeimage warning: Could not set tag %r: %s, %s' % (
-                        key, self._fi._get_error_message(), load_error))
-                finally:
-                    lib.FreeImage_DeleteTag(tag)
+                    # Create new tag
+                    tag = lib.FreeImage_CreateTag()
+                    tag = ctypes.c_void_p(tag)
+                    
+                    try:
+                        # Convert Python value to FI type, val
+                        if isinstance(tag_val, string_types):
+                            tag_type = METADATA_DATATYPE.FIDT_ASCII
+                            tag_str = tag_val.encode('utf-8') #+ chr(0).encode('utf-8')
+                            tag_count = len(tag_str)
+                        else:
+                            if not hasattr(tag_val, 'dtype'):
+                                tag_val = numpy.array([tag_val])
+                            tag_type = get_tag_type_number(tag_val.dtype)
+                            if tag_type is None:
+                                print('imageio.freeimage warning: Could not determine tag type of %r.' % tag_name)
+                                continue
+                            tag_str = tag_val.tostring()
+                            tag_count = tag_val.size
+                        
+                        # Set properties
+                        lib.FreeImage_SetTagKey(tag, tag_name.encode('utf-8'))
+                        lib.FreeImage_SetTagType(tag, tag_type)
+                        lib.FreeImage_SetTagLength(tag, len(tag_str))
+                        lib.FreeImage_SetTagCount(tag, tag_count)
+                        lib.FreeImage_SetTagValue(tag, tag_str)
+                        # Store tag
+                        tag_key = lib.FreeImage_GetTagKey(tag)
+                        lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
+                    
+                    except Exception:
+                        # Could not load. Get why
+                        e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                        load_error = str(e_value)
+                        print('imagio.freeimage warning: Could not set tag %r: %s, %s' % (
+                            tag_name, self._fi._get_error_message(), load_error))
+                    finally:
+                        lib.FreeImage_DeleteTag(tag)
 
 
 
