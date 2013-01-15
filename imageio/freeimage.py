@@ -15,8 +15,10 @@ import ctypes
 import threading
 import numpy
 
+
 from imageio.findlib import load_lib
 from imageio.freeze import resource_dir
+from imageio.util import DictWitNames
 
 # todo: make API class more complete
 # todo: write with palette?
@@ -531,7 +533,7 @@ class FIBaseBitmap(object):
             METADATA_MODELS.__dict__.items() if name.startswith('FIMD_')]
         
         # Prepare
-        metadata = {}
+        metadata = DictWitNames()
         tag = ctypes.c_void_p()
         
         with self._fi as lib:
@@ -562,7 +564,7 @@ class FIBaseBitmap(object):
                                     dtype=METADATA_DATATYPE.dtypes[tag_type])
                             if len(tag_val) == 1:
                                 tag_val = tag_val[0]
-                        subdict = metadata.setdefault(model_name, {})
+                        subdict = metadata.setdefault(model_name, DictWitNames())
                         subdict[tag_name] = tag_val
                         # Next
                         more = lib.FreeImage_FindNextMetadata(mdhandle, ctypes.byref(tag))
