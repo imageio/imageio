@@ -57,6 +57,37 @@ class Image(np.ndarray):
             self._meta = {}
 
 
+class DictWitNames(dict):
+    """ DictWitNames()
+    A dict in which the keys can be get and set as if they were
+    attributes. Very convenient in combination with autocompletion.
+    
+    This dict only makes sense if the keys are valid attribute names.
+    
+    """
+    
+    def __getattribute__(self, key):
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            if key in self:
+                return self[key]
+            else:
+                raise
+    
+    def __setattr__(self, key, val):
+        if key in self.__dict__:
+            raise RuntimeError('The name %r is reserved.' % key)
+        else:
+            self[key] = val
+    
+    def __dir__(self):
+       a = list(self.__dict__.keys())
+       b = list(self.keys())
+       return a+b
+
+
+
 if __name__ == '__main__':
     a = np.ones((5,5))
     im1 = Image(a)
