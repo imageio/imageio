@@ -21,6 +21,9 @@ class ImageList(list):
 class Image(np.ndarray):
     """ Image(array)
     
+    For ND images. Objects of this class have a 'meta' attribute that
+    keeps the meta information as a dict.
+    
     """
     
     def __new__(cls, array, meta=None):
@@ -35,11 +38,15 @@ class Image(np.ndarray):
         return ob
     
     def __repr__(self):
+        # Scalars should act normal        
+        if not self.shape:
+            native = self.dtype.type(self)
+            return native.__repr__()
         n = 'x'.join([str(i) for i in self.shape])
-        return '<Image of %s elements>' % n
+        return '<%iD image of %s elements>' % (self.ndim, n)
     
     def __str__(self):
-        return np.ndarrayprin.__str__(self) # print() shows elements as normal
+        return np.ndarray.__str__(self) # print() shows elements as normal
     
     @property
     def meta(self):
