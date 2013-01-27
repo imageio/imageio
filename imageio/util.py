@@ -33,15 +33,21 @@ class Image(np.ndarray):
         if not (meta is None or isinstance(meta, dict)):
             raise ValueError('Image expects meta data to be a dict.')
         # Convert and return
+        meta = meta if meta is not None else {}
         ob = array.view(cls)
-        ob._meta = meta if meta is not None else {}
+        ob._copy_meta(meta)
         return ob
     
+    def _copy_meta(self, meta):
+        """ Make a 2-level deep copy of the meta dictionary.
+        """
+        self._meta = DictWitNames()
+        for key, val in meta.items():
+            if isinstance(val, dict):
+                val = DictWitNames(val)  # Copy this level
+            self._meta[key] = val
+    
     def __repr__(self):
-        # Scalars should act normal        
-        if not self.shape:
-            native = self.dtype.type(self)
-            return native.__repr__()
         n = 'x'.join([str(i) for i in self.shape])
         return '<%iD image of %s elements>' % (self.ndim, n)
     
@@ -59,9 +65,20 @@ class Image(np.ndarray):
         the array. 
         """
         if isinstance(ob, Image):
-            self._meta = ob._meta.copy()
+            self._copy_meta(ob.meta)
         else:
-            self._meta = {}
+            self._copy_meta({})
+    
+    def __array_wrap__(self, out, context=None):
+        """ So that we return a native numpy array (or scalar) when a
+        reducting ufunc is applied (such as sum(), std(), etc.)
+        """
+        if not out.shape:
+            return out.dtype.type(out)  # Scalar
+        elif out.shape != self.shape:
+            return np.asarray(out)
+        else:
+            return out  # Type Image
 
 
 class DictWitNames(dict):
@@ -86,6 +103,10 @@ class DictWitNames(dict):
         if key in self.__dict__:
             raise RuntimeError('The name %r is reserved.' % key)
         else:
+            # This would have been nice, but it would mean that changes
+            # to the given val would not have effect.
+            #if isinstance(val, dict):
+            #    val = DictWitNames(val)
             self[key] = val
     
     def __dir__(self):
