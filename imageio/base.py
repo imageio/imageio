@@ -114,7 +114,9 @@ class Format:
     def doc(self):
         """ Get documentation for this format (name + description + docstring).
         """
-        return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
+        # Our docsring is assumed to be indented by four spaces. The
+        # first line needs special attention.
+        return '%s - %s\n\n   %s' % (self.name, self.description, self.__doc__.lstrip())
     
     @property
     def name(self):
@@ -373,11 +375,11 @@ class Reader(BaseReaderWriter):
         
         It should return the image and meta data: (ndarray, dict).
         
-        The given keyword arguments are user-specified options. It is
-        a combination of the keyword arguments passed to imageio.read / 
-        imageio.write and the keyword arguments passed to get_data().
-        The plugin should handle these options, and document the
-        available options in the docstring of the Format class.
+        The given keyword arguments are user-specified options. These
+        are the keyword arguments passed to imageio.read / imageio.write, 
+        updated with the keyword arguments passed to get_data(). The
+        plugin should handle these options, and document the available
+        options in the docstring of the Format class.
         
         """ 
         raise NotImplemented() 
@@ -457,7 +459,7 @@ class Writer(BaseReaderWriter):
         
         # Call
         im = np.asarray(im) # Decouple meta info
-        return self._append_data(im, total_meta, **kwargs)
+        return self._append_data(im, total_meta, **D)
     
     
     def set_meta_data(self, meta):

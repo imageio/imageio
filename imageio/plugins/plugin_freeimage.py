@@ -12,6 +12,9 @@ from imageio import base
 from imageio import fi
 import ctypes
 
+from imageio.freeimage import IO_FLAGS
+
+
 # todo: support files with only meta data
 # todo: multi-page files
 
@@ -74,7 +77,6 @@ class Reader(base.Reader):
     
     
     def _get_data(self, index, flags=0):
-        # todo: Allow special cases with kwrags
         
         if index != 0:
             raise IndexError()
@@ -119,7 +121,7 @@ class Writer(base.Writer):
         if not self._set:
             self._set = True
         else:
-            raise RuntimeError('Singleton image; can only append image data ones.')
+            raise RuntimeError('Singleton image; can only append image data once.')
         
         # Lazy instantaion of the bitmap, we need image data
         if self._bm is None:
@@ -138,6 +140,161 @@ class Writer(base.Writer):
 # todo: implement separate Formats for some FreeImage file formats
 
 
+## Special plugins
+
+
+class FreeimagePngFormat(FreeimageFormat):
+    """ A PNG format based on the Freeimage library.
+    
+    Keyword arguments for reading
+    -----------------------------
+    ignoregamma : bool
+        Avoid gamma correction. Default False.
+    
+    Keyword arguments for writing
+    -----------------------------
+    compression : {0, 1, 6, 9}
+        The compression factor. Higher factors result in more
+        compression at the cost of speed. Note that PNG compression is
+        always lossless. Default 6.
+    interlaced : bool
+        Save using Adam7 interlacing. Default False.
+    
+    """
+    
+    def _get_reader_class(self):
+        return PngReader
+    
+    def _get_writer_class(self):
+        return PngWriter 
+
+
+class PngReader(Reader):
+    
+    def _enter(self, flags=0, ignoregamma=False):
+        # Build flags from kwargs
+        flags = int(flags)        
+        if ignoregamma:
+            flags |= IO_FLAGS.PNG_IGNOREGAMMA
+        # Enter as usual, with modified flags
+        return Reader._enter(self, flags)
+    
+    
+    def _get_data(self, index, **kwargs):
+        # Flags can only be set on enter
+        return Reader._get_data(self, index, 0)
+
+
+class PngWriter(Writer):
+    
+    def _enter(self, **kwargs):       
+        return Writer._enter(self, 0)
+    
+    def _append_data(self, im, meta, flags=0, compression=6, interlaced=False):
+        
+        # Build flags from kwargs
+        flags = int(flags)
+        if compression == 0:
+            flags |= IO_FLAGS.PNG_Z_NO_COMPRESSION
+        elif compression == 1:
+            flags |= IO_FLAGS.PNG_Z_BEST_SPEED
+        elif compression == 6:
+            flags |= IO_FLAGS.PNG_Z_DEFAULT_COMPRESSION
+        elif compression == 9:
+            flags |= IO_FLAGS.PNG_Z_BEST_COMPRESSION
+        else:
+            raise ValueError('Png compression must be 0, 1, 6, or 9.')
+        #
+        if interlaced:
+            flags |= IO_FLAGS.PNG_INTERLACED
+        
+        # Act as usual, but with modified flags
+        return Writer._append_data(self, im, meta, flags)
+
+
+
+class FreeimageJpegFormat(FreeimageFormat):
+    """ A JPEG format based on the Freeimage library.
+    
+    Keyword arguments for reading
+    -----------------------------
+    exifrotate : bool
+        Automatically rotate the image according to the exif flag. Default True.
+    quickread : bool
+        Read the image more quickly, at the expense of quality. Default False.
+    
+    Keyword arguments for writing
+    -----------------------------
+    quality : scalar
+        The compression factor of the saved image (0..100), higher
+        numbers result in higher quality but larger file size. Default 75.
+    progressive : bool
+        Save as a progressive JPEG file (e.g. for images on the web).
+        Default False.
+    optimize : bool
+        On saving, compute optimal Huffman coding tables (can reduce a
+        few percent of file size). Default False.
+    baseline : bool
+        Save basic JPEG, without metadata or any markers. Default False.
+    
+    """
+    
+    def _get_reader_class(self):
+        return JpegReader
+    
+    def _get_writer_class(self):
+        return JpegWriter 
+
+
+class JpegReader(Reader):
+    
+    def _enter(self, flags=0, exifrotate=True, quickread=False):
+        
+        # Build flags from kwargs
+        flags = int(flags)        
+        if exifrotate:
+            flags |= IO_FLAGS.JPEG_EXIFROTATE
+        if not quickread:
+            flags |= IO_FLAGS.JPEG_ACCURATE
+        
+        # Enter as usual, with modified flags
+        return Reader._enter(self, flags)
+    
+    
+    def _get_data(self, index, **kwargs):
+        # Flags can only be set on enter
+        return Reader._get_data(self, index, 0)
+
+
+class JpegWriter(Writer):
+    
+    def _enter(self, **kwargs):       
+        return Writer._enter(self, 0)
+    
+    def _append_data(self, im, meta, flags=0, 
+            quality=75, progressive=False, optimize=False, baseline=False):
+        
+        # Build flags from kwargs
+        flags = int(flags)
+        flags |= quality
+        if progressive:
+            flags |= IO_FLAGS.JPEG_PROGRESSIVE
+        if optimize:
+            flags |= IO_FLAGS.JPEG_OPTIMIZE
+        if baseline:
+            flags |= IO_FLAGS.JPEG_BASELINE
+        
+        # Act as usual, but with modified flags
+        return Writer._append_data(self, im, meta, flags)
+
+
+
+## Create the formats
+
+SPECIAL_CLASSES = { 'jpeg': FreeimageJpegFormat,
+                    'png': FreeimagePngFormat,
+                }
+
 
 def create_freeimage_formats():
     
@@ -155,8 +312,10 @@ def create_freeimage_formats():
             name = lib.FreeImage_GetFormatFromFIF(i).decode('ascii')
             des = lib.FreeImage_GetFIFDescription(i).decode('ascii')
             ext = lib.FreeImage_GetFIFExtensionList(i).decode('ascii')
-            # Create Format and add (in two ways)
-            format = FreeimageFormat(name, des, ext, i)
+            # Get class for format
+            FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
+            # Create Format and add
+            format = FormatClass(name, des, ext, i)
             formats.add_format(format)
 
 create_freeimage_formats()
