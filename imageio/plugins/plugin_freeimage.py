@@ -102,6 +102,7 @@ class Reader(base.Reader):
 class Writer(base.Writer):
     
     def _enter(self, flags=0):        
+        self._flags = flags  # Store flags for later use
         self._bm = None
         self._set = False
         self._meta = {}
@@ -117,7 +118,7 @@ class Writer(base.Writer):
         self._bm.close()
     
     
-    def _append_data(self, im, meta, flags=0):        
+    def _append_data(self, im, meta):        
         if not self._set:
             self._set = True
         else:
@@ -125,7 +126,7 @@ class Writer(base.Writer):
         
         # Lazy instantaion of the bitmap, we need image data
         if self._bm is None:
-            self._bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+            self._bm = fi.create_bitmap(self.request.filename, self.format.fif, self._flags)
             self._bm.allocate(im)
         
         # Set
@@ -170,7 +171,6 @@ class FreeimagePngFormat(FreeimageFormat):
 
 
 class PngReader(Reader):
-    
     def _enter(self, flags=0, ignoregamma=False):
         # Build flags from kwargs
         flags = int(flags)        
@@ -178,20 +178,10 @@ class PngReader(Reader):
             flags |= IO_FLAGS.PNG_IGNOREGAMMA
         # Enter as usual, with modified flags
         return Reader._enter(self, flags)
-    
-    
-    def _get_data(self, index, **kwargs):
-        # Flags can only be set on enter
-        return Reader._get_data(self, index, 0)
 
 
 class PngWriter(Writer):
-    
-    def _enter(self, **kwargs):       
-        return Writer._enter(self, 0)
-    
-    def _append_data(self, im, meta, flags=0, compression=6, interlaced=False):
-        
+    def _enter(self, flags=0, compression=6, interlaced=False):
         # Build flags from kwargs
         flags = int(flags)
         if compression == 0:
@@ -209,7 +199,7 @@ class PngWriter(Writer):
             flags |= IO_FLAGS.PNG_INTERLACED
         
         # Act as usual, but with modified flags
-        return Writer._append_data(self, im, meta, flags)
+        return Writer._enter(self, flags)
 
 
 
@@ -247,33 +237,20 @@ class FreeimageJpegFormat(FreeimageFormat):
 
 
 class JpegReader(Reader):
-    
     def _enter(self, flags=0, exifrotate=True, quickread=False):
-        
         # Build flags from kwargs
         flags = int(flags)        
         if exifrotate:
             flags |= IO_FLAGS.JPEG_EXIFROTATE
         if not quickread:
             flags |= IO_FLAGS.JPEG_ACCURATE
-        
         # Enter as usual, with modified flags
         return Reader._enter(self, flags)
-    
-    
-    def _get_data(self, index, **kwargs):
-        # Flags can only be set on enter
-        return Reader._get_data(self, index, 0)
 
 
 class JpegWriter(Writer):
-    
-    def _enter(self, **kwargs):       
-        return Writer._enter(self, 0)
-    
-    def _append_data(self, im, meta, flags=0, 
+    def _enter(self, flags=0, 
             quality=75, progressive=False, optimize=False, baseline=False):
-        
         # Build flags from kwargs
         flags = int(flags)
         flags |= quality
@@ -283,9 +260,8 @@ class JpegWriter(Writer):
             flags |= IO_FLAGS.JPEG_OPTIMIZE
         if baseline:
             flags |= IO_FLAGS.JPEG_BASELINE
-        
         # Act as usual, but with modified flags
-        return Writer._append_data(self, im, meta, flags)
+        return Writer._enter(self, flags)
 
 
 
