@@ -114,7 +114,9 @@ class Format:
     def doc(self):
         """ Get documentation for this format (name + description + docstring).
         """
-        return '%s - %s\n\n%s' % (self.name, self.description, self.__doc__)
+        # Our docsring is assumed to be indented by four spaces. The
+        # first line needs special attention.
+        return '%s - %s\n\n   %s' % (self.name, self.description, self.__doc__.lstrip())
     
     @property
     def name(self):
@@ -279,19 +281,14 @@ class Reader(BaseReaderWriter):
         return self._get_length()
     
     
-    def get_data(self, index, **kwargs):
-        """ get_data(index, **kwargs)
+    def get_data(self, index):
+        """ get_data(index)
         
         Read image data from the file, using the image index. The
         returned image has a 'meta' attribute with the meta data.
         
-        The given keyword arguments are merged with the keyword
-        arguments specified in the read() function.
-        
         """
-        D = self.request.kwargs.copy()
-        D.update(kwargs)
-        im, meta = self._get_data(index, **D)
+        im, meta = self._get_data(index)
         return Image(im, meta)
     
     
@@ -312,22 +309,17 @@ class Reader(BaseReaderWriter):
         return self._get_meta_data(index)
     
     
-    def iter_data(self, **kwargs):
-        """ iter_data(**kwargs):
+    def iter_data(self):
+        """ iter_data():
         
         Iterate over all images in the series. (Note: you can also
         iterate over the reader object.)
         
-        The given keyword arguments are merged with the keyword
-        arguments specified in the read() function.
-        
         """ 
-        D = self.request.kwargs.copy()
-        D.update(kwargs)
-                
+        
         try:
             # Test one
-            im, meta = self._get_next_data(**D)
+            im, meta = self._get_next_data()
             yield Image(im, meta)
         
         except NotImplemented:
@@ -340,7 +332,7 @@ class Reader(BaseReaderWriter):
         else:
             # Iterate further (untill StopIteration is raised)
             while True:
-                im, meta = self._get_next_data(**D)
+                im, meta = self._get_next_data()
                 yield Image(im, meta)
     
     
@@ -365,7 +357,7 @@ class Reader(BaseReaderWriter):
         raise NotImplemented() 
     
     
-    def _get_data(self, index, **kwargs):
+    def _get_data(self, index):
         """ _get_data()
         
         Plugins must implement this, but may raise an IndexError in
@@ -373,18 +365,12 @@ class Reader(BaseReaderWriter):
         
         It should return the image and meta data: (ndarray, dict).
         
-        The given keyword arguments are user-specified options. It is
-        a combination of the keyword arguments passed to imageio.read / 
-        imageio.write and the keyword arguments passed to get_data().
-        The plugin should handle these options, and document the
-        available options in the docstring of the Format class.
-        
         """ 
         raise NotImplemented() 
     
     
     def _get_meta_data(self, index):
-        """ _get_meta_data()
+        """ _get_meta_data(index)
         
         Plugins must implement this. 
         
@@ -396,8 +382,8 @@ class Reader(BaseReaderWriter):
         raise NotImplemented() 
     
     
-    def _get_next_data(self, **kwargs):
-        """ _get_next_data(**kwargs)
+    def _get_next_data(self):
+        """ _get_next_data()
         
         Plugins can implement this to provide a more efficient way to
         stream images.
@@ -425,16 +411,13 @@ class Writer(BaseReaderWriter):
     """
     
     
-    def append_data(self, im, meta=None, **kwargs):
+    def append_data(self, im, meta=None):
         """ append_data(im, meta={})
         
         Append an image to the file. 
         
         The appended meta data consists of the meta data on the given
         image (if applicable), updated with the given meta data.
-        
-        The keyword arguments are merged with the keyword arguments
-        specified in the save() function.
         
         """ 
         
@@ -451,13 +434,10 @@ class Writer(BaseReaderWriter):
             raise ValueError('Meta must be a dict.')
         else:
             total_meta.update(meta)        
-        # Get total kwargs
-        D = self.request.kwargs.copy()
-        D.update(kwargs)
         
         # Call
         im = np.asarray(im) # Decouple meta info
-        return self._append_data(im, total_meta, **kwargs)
+        return self._append_data(im, total_meta)
     
     
     def set_meta_data(self, meta):
@@ -480,7 +460,7 @@ class Writer(BaseReaderWriter):
     
     # The plugin part
     
-    def _append_data(self, im, meta, **kwargs):
+    def _append_data(self, im, meta):
         # Plugins must implement this
         raise NotImplemented() 
     
