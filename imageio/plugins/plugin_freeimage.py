@@ -78,7 +78,7 @@ class Reader(base.Reader):
         self._bm.close()
     
     
-    def _get_data(self, index, flags=0):
+    def _get_data(self, index):
         
         if index != 0:
             raise IndexError()
@@ -96,8 +96,8 @@ class Reader(base.Reader):
         return self._bm.get_meta_data()
 
 
-    def _get_next_data(self, **kwargs):
-        raise NotImplemented() 
+    def _get_next_data(self):
+        raise NotImplementedError() 
 
 
 
@@ -184,7 +184,7 @@ class FreeimageGifFormat(FreeimageFormat):
     -----------------------------
     playback : bool
         'Play' the GIF to generate each frame (as 32bpp) instead of
-        returning raw frame data when loading
+        returning raw frame data when loading. Default True.
 
     """
     
