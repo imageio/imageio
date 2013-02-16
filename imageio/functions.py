@@ -99,7 +99,7 @@ def read(uri, format=None, expect=None, **kwargs):
     of the corresponding format to see what arguments are available.
     
     """ 
-        
+    
     # Create request object
     request = imageio.request.ReadRequest(uri, expect, **kwargs)
     
@@ -226,10 +226,14 @@ def imsave(uri, im, format=None, **kwargs):
 
 ## Multiple images
 
-def mimread(self, filename, ims, format, **kwargs):
-    raise NotImplemented()
+def mimread(uri, format=None, **kwargs):
+    # Get reader and read all
+    reader = read(uri, format, imageio.EXPECT_MIM, **kwargs)
+    with reader:
+        return [im for im in reader]
 
-def mimsave(self, filename, ims, format, **kwargs):
+
+def mimsave(uri, ims, format=None, **kwargs):
     raise NotImplemented()
 
 

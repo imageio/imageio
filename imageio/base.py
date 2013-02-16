@@ -322,11 +322,11 @@ class Reader(BaseReaderWriter):
             im, meta = self._get_next_data()
             yield Image(im, meta)
         
-        except NotImplemented:
+        except NotImplementedError:
             # No luck, but we can still iterate (in a way that allows len==inf)
             i, n = 0, self.get_length()
             while i < n:
-                m, meta = self.get_data(i)
+                im, meta = self._get_data(i)
                 yield Image(im, meta)
                 i += 1
         else:
@@ -354,7 +354,7 @@ class Reader(BaseReaderWriter):
         See Reader.get_length for more information.
         
         """ 
-        raise NotImplemented() 
+        raise NotImplementedError() 
     
     
     def _get_data(self, index):
@@ -366,7 +366,7 @@ class Reader(BaseReaderWriter):
         It should return the image and meta data: (ndarray, dict).
         
         """ 
-        raise NotImplemented() 
+        raise NotImplementedError() 
     
     
     def _get_meta_data(self, index):
@@ -379,7 +379,7 @@ class Reader(BaseReaderWriter):
         None.
         
         """ 
-        raise NotImplemented() 
+        raise NotImplementedError() 
     
     
     def _get_next_data(self):
@@ -391,7 +391,7 @@ class Reader(BaseReaderWriter):
         It should return the next image and meta data: (ndarray, dict).
         
         """
-        raise NotImplemented() 
+        raise NotImplementedError() 
 
 
 
@@ -462,11 +462,11 @@ class Writer(BaseReaderWriter):
     
     def _append_data(self, im, meta):
         # Plugins must implement this
-        raise NotImplemented() 
+        raise NotImplementedError() 
     
     def set_meta_data(self, meta):
         # Plugins must implement this
-        raise NotImplemented() 
+        raise NotImplementedError() 
 
 
 

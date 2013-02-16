@@ -293,13 +293,17 @@ class Freeimage(object):
         'FreeImage_GetPalette': (ctypes.c_void_p, None),
         'FreeImage_GetTagKey': (ctypes.c_char_p, None),
         'FreeImage_GetTagValue': (ctypes.c_void_p, None),
+        
         'FreeImage_Load': (ctypes.c_void_p, None),
         'FreeImage_LoadFromMemory': (ctypes.c_void_p, None),
+        
+        'FreeImage_OpenMultiBitmap': (ctypes.c_void_p, None),
+        'FreeImage_LoadMultiBitmapFromMemory': (ctypes.c_void_p, None),
+        'FreeImage_LockPage': (ctypes.c_void_p, None),
+        
         'FreeImage_OpenMemory': (ctypes.c_void_p, None),
         #'FreeImage_ReadMemory': (ctypes.c_void_p, None),
-        
-        'FreeImage_LockPage': (ctypes.c_void_p, None),
-        'FreeImage_OpenMultiBitmap': (ctypes.c_void_p, None),
+        #'FreeImage_CloseMemory': (ctypes.c_void_p, None),
         
         'FreeImage_GetVersion': (ctypes.c_char_p, None),
         'FreeImage_GetFIFExtensionList': (ctypes.c_char_p, None),
@@ -505,7 +509,8 @@ class FIBaseBitmap(object):
         if self._bitmap is not None and self._close_func is not None:
             try:
                 with self._fi as lib:
-                    lib.FreeImage_Unload(self._bitmap)
+                    fun = self._close_func[0]
+                    fun(*self._close_func[1:])
             except Exception:
                 pass
             finally:
@@ -518,6 +523,8 @@ class FIBaseBitmap(object):
             raise RuntimeError('Bitmap is already set.')
         if close_func is None:
             close_func = self._fi._lib.FreeImage_Unload
+        if not close_func:
+            close_func = None
         
         self._bitmap = bitmap
         self._close_func = close_func
@@ -682,7 +689,7 @@ class FIBitmap(FIBaseBitmap):
                 raise RuntimeError('Could not allocate bitmap for storage: %s'
                                     % self._fi._get_error_message() )
             else:
-                self._set_bitmap(bitmap)
+                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
     def load_from_filename(self):
@@ -697,7 +704,7 @@ class FIBitmap(FIBaseBitmap):
                 raise ValueError('Could not load bitmap "%s": %s' 
                             % (self._filename, self._fi._get_error_message()))
             else:
-                self._set_bitmap(bitmap)
+                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
     def load_from_bytes(self, bytes):
@@ -715,7 +722,7 @@ class FIBitmap(FIBaseBitmap):
                 raise ValueError('Could not load bitmap "%s": %s' 
                             % (self._filename, self._fi._get_error_message()))
             else:
-                self._set_bitmap(bitmap)
+                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
     def save_to_filename(self):
@@ -783,7 +790,6 @@ class FIBitmap(FIBaseBitmap):
     
     
     def get_image_data(self):
-        
         dtype, shape = self._get_type_and_shape()
         array = self._wrap_bitmap_bits_in_array(shape, dtype)
         with self._fi as lib:
@@ -805,10 +811,11 @@ class FIBitmap(FIBaseBitmap):
                 return numpy.dstack( (r, g, b, a) )
             else:
                 raise ValueError('Cannot handle images of shape %s' % shape)
-    
+        
         # We need to copy because array does *not* own its memory
         # after bitmap is freed.
-        return n(array).copy()
+        a = n(array).copy()
+        return a
     
     
     def set_image_data(self, array):
@@ -928,6 +935,7 @@ class FIMultipageBitmap(FIBaseBitmap):
         # Try opening
         with self._fi as lib:
             
+            # Create bitmap
             multibitmap = lib.FreeImage_OpenMultiBitmap(
                     self._ftype, efn(self._filename), 
                     create_new, read_only, keep_cache_in_memory, self._flags)
@@ -938,9 +946,27 @@ class FIMultipageBitmap(FIBaseBitmap):
                 raise ValueError('Could not open file "%s" as multi-page image: %s' 
                                 % (self._filename, self._fi._get_error_message()))
             else:
-                self._set_bitmap(multibitmap, lib.FreeImage_CloseMultiBitmap)
+                self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
     
-    
+    # todo: request support getting a real filename. The code below does not work
+#     def load_from_bytes(self, bytes):
+#         with self._fi as lib:
+#             # Create bitmap
+#             fimemory = lib.FreeImage_OpenMemory(
+#                                             ctypes.c_char_p(bytes), len(bytes))
+#             multibitmap = lib.FreeImage_LoadMultiBitmapFromMemory(
+#                 self._ftype, ctypes.c_void_p(fimemory), self._flags)
+#             multibitmap = ctypes.c_void_p(multibitmap)
+#             #lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
+#             self._mem = fimemory
+#             self._bytes = bytes
+#             # Check
+#             if not multibitmap:
+#                 raise ValueError('Could not load multibitmap "%s": %s' 
+#                             % (self._filename, self._fi._get_error_message()))
+#             else:
+#                 self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
+        
     def save_to_filename(self):
         
         # Prepare
@@ -961,7 +987,7 @@ class FIMultipageBitmap(FIBaseBitmap):
                 raise ValueError('Could not open file "%s" for writing multi-page image: %s' 
                             % (self._filename, self._fi._get_error_message()))
             else:
-                self._set_bitmap(multibitmap, lib.FreeImage_CloseMultiBitmap)
+                self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
     
     
     def __len__(self):
@@ -980,11 +1006,11 @@ class FIMultipageBitmap(FIBaseBitmap):
             bitmap = ctypes.c_void_p(bitmap)
             if not bitmap:
                 raise ValueError('Could not open sub-image %i in %r: %s'
-                        % (index, self._filename, self._fi.get_error_message()))
+                        % (index, self._filename, self._fi._get_error_message()))
             
             # Get bitmap object to wrap this bitmap
             bm = FIBitmap(self._fi, self._filename, self._ftype, self._flags)
-            bm._set_bitmap(bitmap, lib.FreeImage_UnlockPage)
+            bm._set_bitmap(bitmap, (lib.FreeImage_UnlockPage, self._bitmap, bitmap, False))
             
             return bm
     
