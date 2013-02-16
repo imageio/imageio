@@ -49,7 +49,10 @@ class Image(np.ndarray):
     
     def __repr__(self):
         n = 'x'.join([str(i) for i in self.shape])
-        return '<%iD image of %s elements>' % (self.ndim, n)
+        ndim = self.ndim
+        if self.shape[-1] in (1,3,4):
+            ndim -= 1
+        return '<%iD image of %s elements>' % (ndim, n)
     
     def __str__(self):
         return np.ndarray.__str__(self) # print() shows elements as normal
