@@ -116,7 +116,7 @@ class Format:
         """
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
-        return '%s - %s\n\n   %s' % (self.name, self.description, self.__doc__.lstrip())
+        return '%s - %s\n\n   %s\n' % (self.name, self.description, self.__doc__.strip())
     
     @property
     def name(self):
@@ -253,15 +253,15 @@ class Reader(BaseReaderWriter):
     """
     A reader is an object that is instantiated for reading data from
     an image file. A reader can be used as an iterator, and only reads
-    data from the file when new data is requested. The reading should
-    finish by calling close().
+    data from the file when new data is requested. 
     
     Plugins should overload a couple of methods to implement a reader. 
     A plugin may also specify extra methods to expose an interface
     specific for the file-format it exposes.
     
     A reader object should be obtained by calling imageio.read() or
-    by calling the read() method on a format object.
+    by calling the read() method on a format object. A reader should
+    be used as a context manager, i.e. "with reader: ...".
     
     """
     
@@ -398,15 +398,15 @@ class Reader(BaseReaderWriter):
 class Writer(BaseReaderWriter):
     """ 
     A writer is an object that is instantiated for saving data to
-    an image file. A writer enables writing different parts separately.
-    The writing should be flushed by using close().
+    an image file. 
     
     Plugins should overload a couple of methods to implement a writer. 
     A plugin may also specify extra methods to expose an interface
     specific for the file-format it exposes.
     
     A writer object should be obtained by calling imageio.save() or
-    by calling the save() method on a format object.
+    by calling the save() method on a format object. A writer should
+    be used as a context manager, i.e. "with writer: ...".
     
     """
     

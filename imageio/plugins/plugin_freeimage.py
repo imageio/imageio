@@ -19,7 +19,9 @@ from imageio.freeimage import IO_FLAGS
 # todo: multi-page files
 
 class FreeimageFormat(Format):
-    """ This is the default format used for FreeImage.
+    """ This is the default format used for FreeImage. Each Freeimage
+    format has the 'flags' keyword argument. See the Freeimage
+    documentation for more information.
     """
     
     def __init__(self, name, description, extensions, fif):
@@ -143,6 +145,93 @@ class Writer(base.Writer):
 
 ## Special plugins
 
+# todo: there is also FIF_LOAD_NOPIXELS, but perhaps that should be used with get_meta_data.
+
+
+class FreeimageBmpFormat(FreeimageFormat):
+    """ A BMP format based on the Freeimage library.
+        
+    Keyword arguments for writing
+    -----------------------------
+    compression : bool
+        Whether to compress the bitmap using RLE when saving. Default False.
+    
+    """
+    
+    def _get_reader_class(self):
+        return Reader
+    
+    def _get_writer_class(self):
+        return BmpWriter 
+
+class BmpWriter(Writer):
+    def _enter(self, flags=0, compression=False):
+        # Build flags from kwargs
+        flags = int(flags)
+        if compression:
+            flags |= IO_FLAGS.BMP_SAVE_RLE
+        else:
+            flags |= IO_FLAGS.BMP_DEFAULT
+        # Act as usual, but with modified flags
+        return Writer._enter(self, flags)
+
+
+
+class FreeimageGifFormat(FreeimageFormat):
+    """ A GIF format based on the Freeimage library.
+    
+    Keyword arguments for reading
+    -----------------------------
+    playback : bool
+        'Play' the GIF to generate each frame (as 32bpp) instead of
+        returning raw frame data when loading
+
+    """
+    
+    def _get_reader_class(self):
+        return GifReader
+    
+    def _get_writer_class(self):
+        return Writer 
+
+class GifReader(Reader):
+    def _enter(self, flags=0, playback=True):
+        # Build flags from kwargs
+        flags = int(flags)
+        if playback:
+            flags |= IO_FLAGS.GIF_PLAYBACK 
+        # Act as usual, but with modified flags
+        return Reader._enter(self, flags)
+
+
+
+class FreeimageIcoFormat(FreeimageFormat):
+    """ An ICO format based on the Freeimage library.
+        
+    Keyword arguments for reading
+    -----------------------------
+    makealpha : bool
+        Convert to 32-bit and create an alpha channel from the AND-
+        mask when loading. Default True.
+    
+    """
+    
+    def _get_reader_class(self):
+        return IcoReader
+    
+    def _get_writer_class(self):
+        return Writer 
+
+class IcoReader(Reader):
+    def _enter(self, flags=0, makealpha=True):
+        # Build flags from kwargs
+        flags = int(flags)
+        if makealpha:
+            flags |= IO_FLAGS.ICO_MAKEALPHA
+        # Act as usual, but with modified flags
+        return Reader._enter(self, flags)
+
+
 
 class FreeimagePngFormat(FreeimageFormat):
     """ A PNG format based on the Freeimage library.
@@ -169,7 +258,6 @@ class FreeimagePngFormat(FreeimageFormat):
     def _get_writer_class(self):
         return PngWriter 
 
-
 class PngReader(Reader):
     def _enter(self, flags=0, ignoregamma=False):
         # Build flags from kwargs
@@ -178,7 +266,6 @@ class PngReader(Reader):
             flags |= IO_FLAGS.PNG_IGNOREGAMMA
         # Enter as usual, with modified flags
         return Reader._enter(self, flags)
-
 
 class PngWriter(Writer):
     def _enter(self, flags=0, compression=6, interlaced=False):
@@ -235,7 +322,6 @@ class FreeimageJpegFormat(FreeimageFormat):
     def _get_writer_class(self):
         return JpegWriter 
 
-
 class JpegReader(Reader):
     def _enter(self, flags=0, exifrotate=True, quickread=False):
         # Build flags from kwargs
@@ -246,7 +332,6 @@ class JpegReader(Reader):
             flags |= IO_FLAGS.JPEG_ACCURATE
         # Enter as usual, with modified flags
         return Reader._enter(self, flags)
-
 
 class JpegWriter(Writer):
     def _enter(self, flags=0, 
@@ -269,6 +354,9 @@ class JpegWriter(Writer):
 
 SPECIAL_CLASSES = { 'jpeg': FreeimageJpegFormat,
                     'png': FreeimagePngFormat,
+                    'bmp': FreeimageBmpFormat,
+                    'gif': FreeimageGifFormat,
+                    'ico': FreeimageIcoFormat,
                 }
 
 
