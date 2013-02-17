@@ -215,11 +215,19 @@ class BaseReaderWriter(object):
             if value:
                 # Let other error fall through, give warning
                 e_type, e_value, e_tb = sys.exc_info(); del e_tb
-                print('imagio.freeimage.%s: Error in cleanup: %s' % 
+                print('imagio.%s: Error in cleanup: %s' % 
                         (self.format.name, str(e_value)) )
             else:
                 # Re-raise error in _exit()
-                raise 
+                raise
+        
+        # Process results and clean request object
+        self.request.finish()
+#         try:
+#            
+#         except Exception:
+#             #e_type, e_value, e_tb = sys.exc_info(); del e_tb
+#             #print('Error in request.finish: %s' % str(e_value) )
     
     
     def _enter(self, **kwargs):
