@@ -47,12 +47,13 @@ For the imageio.Format class, the following needs to be implemented/specified:
   * The format needs a short name, a description and a list of file extensions
     that are common for the file-format in question.
   * Use a docstring to provide more detailed information about the format/plugin.
-  * Implement _get_reader_class() and _get_writer_class() to return the
-    Reader and Writer corresponding the format.
+  * Implement Reader and Writer classes.
   * Implement _can_read(request), return a bool. See also the Request class.
   * Implement _can_save(request), dito.
 
-For the imageio.Reader class:
+arg update me!
+
+For the imageio.Format.Reader class:
     
   * Implement _read_data(*indices, **kwargs)
   * Implement _read_info(*indices, **kwargs), empty indices means global info.
@@ -62,7 +63,7 @@ For the imageio.Reader class:
     the number if images.
   * Implement _init() and _close() to open and close files and resources. 
 
-For the imageio.Writer class:
+For the imageio.format.Writer class:
     
   * Implement _save_data(data, *indices, **kwargs)
   * Implement _save_info(info, *indices, **kwargs), empty indices means global info.

@@ -143,7 +143,7 @@ class Format:
         Return a reader object that can be used to read data and info
         from the given file. Users are encouraged to use imageio.read() instead.
         """
-        return self._get_reader_class()(self, request)
+        return self.Reader(self, request)
     
     def save(self, request):
         """ save(request)
@@ -151,7 +151,7 @@ class Format:
         Return a writer object that can be used to save data and info
         to the given file. Users are encouraged to use imageio.save() instead.
         """
-        return self._get_writer_class()(self, request)
+        return self.Writer(self, request)
     
     def can_read(self, request):
         """ can_read(request)
@@ -168,12 +168,6 @@ class Format:
         return self._can_save(request)
     
     
-    def _get_reader_class(self):
-        return Reader # Plugins must implement this
-    
-    def _get_writer_class(self):
-        return Writer # Plugins must implement this
-    
     def _can_read(self, request):
         return None # Plugins must implement this
     
@@ -182,299 +176,294 @@ class Format:
 
 
 
-class BaseReaderWriter(object):
-    """ Base class for the Reader and Writer class to implement common 
-    functionality.
-    """
-    
-    def __init__(self, format, request):
-        self._format = format
-        self._request = request
-    
-    @property
-    def format(self):
-        """ Get the format corresponding to the current read/save operation.
+    class _BaseReaderWriter(object):
+        """ Base class for the Reader and Writer class to implement common 
+        functionality.
         """
-        return self._format
+        
+        def __init__(self, format, request):
+            self._format = format
+            self._request = request
+        
+        @property
+        def format(self):
+            """ Get the format corresponding to the current read/save operation.
+            """
+            return self._format
+        
+        @property
+        def request(self):
+            """ Get the request object corresponding to the current read/save 
+            operation.
+            """
+            return self._request
+        
+        def __enter__(self):
+            self._enter(**self.request.kwargs.copy())
+            return self
+        
+        def __exit__(self, type, value, traceback):
+            try:
+                self._exit()
+            except Exception:
+                if value:
+                    # Let other error fall through, give warning
+                    e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                    print('imagio.%s: Error in cleanup: %s' % 
+                            (self.format.name, str(e_value)) )
+                else:
+                    # Re-raise error in _exit()
+                    raise
+            
+            # Process results and clean request object
+            self.request.finish()
+        
+        
+        def _enter(self, **kwargs):
+            """ _enter(**kwargs)
+            
+            Plugins should probably implement this.
+            
+            It is called when the context manager is 'entered'. Here the
+            plugin can do its initialization. The given keyword arguments
+            are those that were given by the user at imageio.read() or
+            imageio.write().
+            
+            """ 
+            pass
+        
+        
+        def _exit(self):
+            """ _exit()
+            
+            Plugins should probably implement this.
+            
+            It is called when the context manager 'exits'. Here the plugin
+            can do a cleanup, flush, etc.
+            
+            """ 
+            pass
     
-    @property
-    def request(self):
-        """ Get the request object corresponding to the current read/save 
-        operation.
+    
+    
+    class Reader(_BaseReaderWriter):
         """
-        return self._request
-    
-    def __enter__(self):
-        self._enter(**self.request.kwargs.copy())
-        return self
-    
-    def __exit__(self, type, value, traceback):
-        try:
-            self._exit()
-        except Exception:
-            if value:
-                # Let other error fall through, give warning
-                e_type, e_value, e_tb = sys.exc_info(); del e_tb
-                print('imagio.%s: Error in cleanup: %s' % 
-                        (self.format.name, str(e_value)) )
-            else:
-                # Re-raise error in _exit()
-                raise
+        A reader is an object that is instantiated for reading data from
+        an image file. A reader can be used as an iterator, and only reads
+        data from the file when new data is requested. 
         
-        # Process results and clean request object
-        self.request.finish()
-#         try:
-#            
-#         except Exception:
-#             #e_type, e_value, e_tb = sys.exc_info(); del e_tb
-#             #print('Error in request.finish: %s' % str(e_value) )
-    
-    
-    def _enter(self, **kwargs):
-        """ _enter(**kwargs)
+        Plugins should overload a couple of methods to implement a reader. 
+        A plugin may also specify extra methods to expose an interface
+        specific for the file-format it exposes.
         
-        Plugins should probably implement this.
-        
-        It is called when the context manager is 'entered'. Here the
-        plugin can do its initialization. The given keyword arguments
-        are those that were given by the user at imageio.read() or
-        imageio.write().
-        
-        """ 
-        pass
-    
-    
-    def _exit(self):
-        """ _exit()
-        
-        Plugins should probably implement this.
-        
-        It is called when the context manager 'exits'. Here the plugin
-        can do a cleanup, flush, etc.
-        
-        """ 
-        pass
-
-
-
-class Reader(BaseReaderWriter):
-    """
-    A reader is an object that is instantiated for reading data from
-    an image file. A reader can be used as an iterator, and only reads
-    data from the file when new data is requested. 
-    
-    Plugins should overload a couple of methods to implement a reader. 
-    A plugin may also specify extra methods to expose an interface
-    specific for the file-format it exposes.
-    
-    A reader object should be obtained by calling imageio.read() or
-    by calling the read() method on a format object. A reader should
-    be used as a context manager, i.e. "with reader: ...".
-    
-    """
-    
-    def get_length(self):
-        """ get_length()
-        
-        Get the number of images in the file. (Note: you can also
-        use len(reader_object).)
-        
-        The result can be:
-          * 0 for files that only have meta data
-          * 1 for singleton images (e.g. in PNG, JPEG, etc.)
-          * N for image series
-          * np.inf for streams (series of unknown length)
-        
-        """ 
-        return self._get_length()
-    
-    
-    def get_data(self, index):
-        """ get_data(index)
-        
-        Read image data from the file, using the image index. The
-        returned image has a 'meta' attribute with the meta data.
+        A reader object should be obtained by calling imageio.read() or
+        by calling the read() method on a format object. A reader should
+        be used as a context manager, i.e. "with reader: ...".
         
         """
-        im, meta = self._get_data(index)
-        return Image(im, meta)
-    
-    
-    def get_meta_data(self, index=None):
-        """ get_meta_data(index=None)
         
-        Read meta data from the file. using the image index. If the
-        index is omitted, return the file's (global) meta data.
+        def get_length(self):
+            """ get_length()
+            
+            Get the number of images in the file. (Note: you can also
+            use len(reader_object).)
+            
+            The result can be:
+            * 0 for files that only have meta data
+            * 1 for singleton images (e.g. in PNG, JPEG, etc.)
+            * N for image series
+            * np.inf for streams (series of unknown length)
+            
+            """ 
+            return self._get_length()
         
-        Note that get_data also provides the meta data for the returned
-        image as an atrribute of that image.
         
-        The meta data is a dict that maps group names to subdicts. Each
-        group is a dict with name-value pairs. The groups represent the
-        different metadata formats (EXIF, XMP, etc.).
+        def get_data(self, index):
+            """ get_data(index)
+            
+            Read image data from the file, using the image index. The
+            returned image has a 'meta' attribute with the meta data.
+            
+            """
+            im, meta = self._get_data(index)
+            return Image(im, meta)
         
-        """
-        return self._get_meta_data(index)
-    
-    
-    def iter_data(self):
-        """ iter_data():
         
-        Iterate over all images in the series. (Note: you can also
-        iterate over the reader object.)
+        def get_meta_data(self, index=None):
+            """ get_meta_data(index=None)
+            
+            Read meta data from the file. using the image index. If the
+            index is omitted, return the file's (global) meta data.
+            
+            Note that get_data also provides the meta data for the returned
+            image as an atrribute of that image.
+            
+            The meta data is a dict that maps group names to subdicts. Each
+            group is a dict with name-value pairs. The groups represent the
+            different metadata formats (EXIF, XMP, etc.).
+            
+            """
+            return self._get_meta_data(index)
         
-        """ 
         
-        try:
-            # Test one
-            im, meta = self._get_next_data()
-            yield Image(im, meta)
-        
-        except NotImplementedError:
-            # No luck, but we can still iterate (in a way that allows len==inf)
-            i, n = 0, self.get_length()
-            while i < n:
-                im, meta = self._get_data(i)
-                yield Image(im, meta)
-                i += 1
-        else:
-            # Iterate further (untill StopIteration is raised)
-            while True:
+        def iter_data(self):
+            """ iter_data():
+            
+            Iterate over all images in the series. (Note: you can also
+            iterate over the reader object.)
+            
+            """ 
+            
+            try:
+                # Test one
                 im, meta = self._get_next_data()
                 yield Image(im, meta)
-    
-    
-    # Compatibility
-    def __iter__(self):
-        return self.iter_data()
-    def __len__(self):
-        return self.get_length()
-    
-    
-    # The plugin part
-    
-    def _get_length(self):
-        """ _get_length()
+            
+            except NotImplementedError:
+                # No luck, but we can still iterate (in a way that allows len==inf)
+                i, n = 0, self.get_length()
+                while i < n:
+                    im, meta = self._get_data(i)
+                    yield Image(im, meta)
+                    i += 1
+            else:
+                # Iterate further (untill StopIteration is raised)
+                while True:
+                    im, meta = self._get_next_data()
+                    yield Image(im, meta)
         
-        Plugins must implement this.
         
-        The retured scalar specifies the number of images in the series.
-        See Reader.get_length for more information.
+        # Compatibility
+        def __iter__(self):
+            return self.iter_data()
+        def __len__(self):
+            return self.get_length()
         
+        
+        # The plugin part
+        
+        def _get_length(self):
+            """ _get_length()
+            
+            Plugins must implement this.
+            
+            The retured scalar specifies the number of images in the series.
+            See Reader.get_length for more information.
+            
+            """ 
+            raise NotImplementedError() 
+        
+        
+        def _get_data(self, index):
+            """ _get_data()
+            
+            Plugins must implement this, but may raise an IndexError in
+            case the plugin does not support random access.
+            
+            It should return the image and meta data: (ndarray, dict).
+            
+            """ 
+            raise NotImplementedError() 
+        
+        
+        def _get_meta_data(self, index):
+            """ _get_meta_data(index)
+            
+            Plugins must implement this. 
+            
+            It should return the meta data as a dict, corresponding to the
+            given index, or to the file's (global) meta data if index is
+            None.
+            
+            """ 
+            raise NotImplementedError() 
+        
+        
+        def _get_next_data(self):
+            """ _get_next_data()
+            
+            Plugins can implement this to provide a more efficient way to
+            stream images.
+            
+            It should return the next image and meta data: (ndarray, dict).
+            
+            """
+            raise NotImplementedError() 
+    
+    
+    
+    class Writer(_BaseReaderWriter):
         """ 
-        raise NotImplementedError() 
-    
-    
-    def _get_data(self, index):
-        """ _get_data()
+        A writer is an object that is instantiated for saving data to
+        an image file. 
         
-        Plugins must implement this, but may raise an IndexError in
-        case the plugin does not support random access.
+        Plugins should overload a couple of methods to implement a writer. 
+        A plugin may also specify extra methods to expose an interface
+        specific for the file-format it exposes.
         
-        It should return the image and meta data: (ndarray, dict).
-        
-        """ 
-        raise NotImplementedError() 
-    
-    
-    def _get_meta_data(self, index):
-        """ _get_meta_data(index)
-        
-        Plugins must implement this. 
-        
-        It should return the meta data as a dict, corresponding to the
-        given index, or to the file's (global) meta data if index is
-        None.
-        
-        """ 
-        raise NotImplementedError() 
-    
-    
-    def _get_next_data(self):
-        """ _get_next_data()
-        
-        Plugins can implement this to provide a more efficient way to
-        stream images.
-        
-        It should return the next image and meta data: (ndarray, dict).
+        A writer object should be obtained by calling imageio.save() or
+        by calling the save() method on a format object. A writer should
+        be used as a context manager, i.e. "with writer: ...".
         
         """
-        raise NotImplementedError() 
-
-
-
-class Writer(BaseReaderWriter):
-    """ 
-    A writer is an object that is instantiated for saving data to
-    an image file. 
-    
-    Plugins should overload a couple of methods to implement a writer. 
-    A plugin may also specify extra methods to expose an interface
-    specific for the file-format it exposes.
-    
-    A writer object should be obtained by calling imageio.save() or
-    by calling the save() method on a format object. A writer should
-    be used as a context manager, i.e. "with writer: ...".
-    
-    """
-    
-    
-    def append_data(self, im, meta=None):
-        """ append_data(im, meta={})
         
-        Append an image to the file. 
         
-        The appended meta data consists of the meta data on the given
-        image (if applicable), updated with the given meta data.
+        def append_data(self, im, meta=None):
+            """ append_data(im, meta={})
+            
+            Append an image to the file. 
+            
+            The appended meta data consists of the meta data on the given
+            image (if applicable), updated with the given meta data.
+            
+            """ 
+            
+            # Check image data
+            if not isinstance(im, np.ndarray):
+                raise ValueError('append_data accepts a numpy array as first argument.')
+            # Get total meta dict
+            total_meta = {}
+            if hasattr(im, 'meta') and isinstance(im.meta, dict):
+                total_meta.update(im.meta)
+            if meta is None:
+                pass
+            elif not isinstance(meta, dict):
+                raise ValueError('Meta must be a dict.')
+            else:
+                total_meta.update(meta)        
+            
+            # Call
+            im = np.asarray(im) # Decouple meta info
+            return self._append_data(im, total_meta)
         
-        """ 
         
-        # Check image data
-        if not isinstance(im, np.ndarray):
-            raise ValueError('append_data accepts a numpy array as first argument.')
-        # Get total meta dict
-        total_meta = {}
-        if hasattr(im, 'meta') and isinstance(im.meta, dict):
-            total_meta.update(im.meta)
-        if meta is None:
-            pass
-        elif not isinstance(meta, dict):
-            raise ValueError('Meta must be a dict.')
-        else:
-            total_meta.update(meta)        
+        def set_meta_data(self, meta):
+            """ set_meta_data(meta)
+            
+            Sets the file's (global) meta data.
+            
+            The meta data is a dict that maps group names to subdicts. Each
+            group is a dict with name-value pairs. The groups represents
+            the different metadata formats (EXIF, XMP, etc.). Note that
+            some meta formats may not be supported for writing, and even
+            individual fields may be ignored if they are invalid.
+            
+            """ 
+            if not isinstance(meta, dict):
+                raise ValueError('Meta must be a dict.')
+            else:
+                return self._set_meta_data(meta)
         
-        # Call
-        im = np.asarray(im) # Decouple meta info
-        return self._append_data(im, total_meta)
-    
-    
-    def set_meta_data(self, meta):
-        """ set_meta_data(meta)
         
-        Sets the file's (global) meta data.
+        # The plugin part
         
-        The meta data is a dict that maps group names to subdicts. Each
-        group is a dict with name-value pairs. The groups represents
-        the different metadata formats (EXIF, XMP, etc.). Note that
-        some meta formats may not be supported for writing, and even
-        individual fields may be ignored if they are invalid.
+        def _append_data(self, im, meta):
+            # Plugins must implement this
+            raise NotImplementedError() 
         
-        """ 
-        if not isinstance(meta, dict):
-            raise ValueError('Meta must be a dict.')
-        else:
-            return self._set_meta_data(meta)
-    
-    
-    # The plugin part
-    
-    def _append_data(self, im, meta):
-        # Plugins must implement this
-        raise NotImplementedError() 
-    
-    def set_meta_data(self, meta):
-        # Plugins must implement this
-        raise NotImplementedError() 
+        def _set_meta_data(self, meta):
+            # Plugins must implement this
+            raise NotImplementedError() 
 
 
 
