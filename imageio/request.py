@@ -27,8 +27,8 @@ class Request(object):
     Represents a request for reading or saving a file. This object wraps
     information to that request and acts as an interface for the plugins
     to several resources; it allows the user to read from http, zipfiles,
-    raw bytes, etc., but offer a simple interface to the plugins 
-    (get_file(), get_bytes(), set_bytes(), and get_local_filename()).
+    raw bytes, etc., but offer a simple interface to the plugins:
+    get_file() and get_local_filename().
     
     Per read/save operation a single Request instance is used and passed
     to the can_read/can_save method of a format, and subsequently to the
@@ -39,20 +39,22 @@ class Request(object):
     
     def __init__(self, uri, expect, **kwargs):
         
-        # Init        
+        # General        
         self._uri_type = None
         self._filename = None
-        self._filename_zip = None  # not None if a zipfile is used
-        self._filename_local = None  # not None if we are using a temp file on the local FS
         self._expect = expect
         self._kwargs = kwargs
+        self._result = None         # Some write actions may have a result
         
-        # To store data
-        self._bytes = None      # Incoming bytes
-        self._file = None       # To store the file instance
-        self._zipfile = None    # To store a zipfile instance (if applicable)
-        self._firstbytes = None # For easy header parsing
-        self._result = None     # Some write actions may have a result
+        # To handle the user-side
+        self._filename_zip = None   # not None if a zipfile is used
+        self._bytes = None          # Incoming bytes
+        self._zipfile = None        # To store a zipfile instance (if applicable)
+        
+        # To handle the plugin side
+        self._file = None               # To store the file instance
+        self._filename_local = None     # not None if we are using a temp file on the local FS
+        self._firstbytes = None         # For easy header parsing
         
         # To store formats that may be able to fulfil this request
         self._potential_formats = []
@@ -151,8 +153,7 @@ class Request(object):
         """ Get the uri for which reading/saving was requested. This
         can be a filename, an http address, or other resource
         identifier. Do not rely on the filename to obtain the data,
-        but use the get_file(), get_bytes() or set_bytes() properties
-        instead.
+        but use the get_file() or get_local_filename() instead.
         """
         return self._filename
     
@@ -173,30 +174,15 @@ class Request(object):
     ## For obtaining data
     
     
-    def get_bytes(self):
-        """ get_bytes()
-        Get all the bytes for the resource associated with this request.
-        Only works for reading requests.
-        """
-        #if self._uri_type == URI_BYTES:
-        if self._bytes is not None:
-            return self._bytes
-        else:
-            return self.get_file().read()
-    
-    def set_bytes(self, value):
-        """ set_bytes(value)
-        Set the bytes for this request. Only works for writing requests.
-        """
-        self.get_file().write(value)
-    
-    
     def get_file(self):
         """ get_file()
         Get a file object for the resource associated with this request.
-        If this is a reading request, the file is in read mode, otherwise
-        in write mode. This method is not thread safe.
-        Plugins do not need to close the file when done.
+        If this is a reading request, the file is in read mode,
+        otherwise in write mode. This method is not thread safe. Plugins
+        do not need to close the file when done.
+        
+        This is the preferred way to read/write the data. If a format
+        cannot handle file-like objects, they should use get_local_filename().
         """
         want_to_write = isinstance(self, WriteRequest)
         
@@ -239,9 +225,9 @@ class Request(object):
     
     def get_local_filename(self):
         """ get_local_filename()
-        If the uri is an existing file on this filesystem, return that.
-        Otherwise a temporary file is created on the local file system
-        that can be used by the format to read from or write to.
+        If the filename is an existing file on this filesystem, return
+        that. Otherwise a temporary file is created on the local file
+        system which can be used by the format to read from or write to.
         """
         
         if self._uri_type == URI_FILENAME:
@@ -249,7 +235,7 @@ class Request(object):
         else:
             # Get filename
             ext = os.path.splitext(self._filename)[1]
-            self._filename_local = tempfile.mktemp(ext, 'imageio')
+            self._filename_local = tempfile.mktemp(ext, 'imageio_')
             # Write stuff to it?
             if isinstance(self, ReadRequest):
                 with open(self._filename_local, 'wb') as file:
@@ -268,7 +254,7 @@ class Request(object):
         bytes = None
         
         # Collect bytes from temp file
-        if self._filename_local and isinstance(self, WriteRequest):
+        if isinstance(self, WriteRequest) and self._filename_local:
             bytes = open(self._filename_local, 'rb').read()
         
         # Collect bytes from BytesIO file object.
@@ -372,13 +358,10 @@ class Request(object):
 
 
 class ReadRequest(Request):
-    def set_bytes(self, value):        
-        raise RuntimeError('Cannot set bytes on a read request.')
-
+    pass
 
 class WriteRequest(Request):
-    def get_bytes(self, value):        
-        raise RuntimeError('Cannot get bytes on a write request.')
+    pass
 
 
 
