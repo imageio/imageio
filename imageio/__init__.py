@@ -40,7 +40,7 @@ except OSError:
     fi = None
 
 # Load root plugin and insert some of its functions in this namesplace
-from imageio.base import Format, Reader, Writer, FormatManager
+from imageio.base import Format, FormatManager
 from imageio.request import Request, RETURN_BYTES
 from imageio.base import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL
 
