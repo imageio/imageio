@@ -469,11 +469,11 @@ class Freeimage(object):
             
             # Test if ok
             if ftype == -1:
-                raise ValueError('Cannot determine format of file %s' % filename)
+                raise ValueError('Cannot determine format of file "%s"' % filename)
             elif mode == 'w' and not lib.FreeImage_FIFSupportsWriting(ftype):
-                raise ValueError('Cannot write the format of file %s' % filename)
+                raise ValueError('Cannot write the format of file "%s"' % filename)
             elif mode == 'r' and not lib.FreeImage_FIFSupportsReading(ftype):
-                raise ValueError('Cannot read the format of file %s' % filename)
+                raise ValueError('Cannot read the format of file "%s"' % filename)
             else:
                 return ftype
     
@@ -692,11 +692,14 @@ class FIBitmap(FIBaseBitmap):
                 self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
-    def load_from_filename(self):
+    def load_from_filename(self, filename=None):
+        if filename is None:
+            filename = self._filename
+        
         with self._fi as lib: 
             # Create bitmap
-            bitmap = self._lib.FreeImage_Load(
-                                self._ftype, efn(self._filename), self._flags)
+            bitmap = lib.FreeImage_Load(
+                                self._ftype, efn(filename), self._flags)
             bitmap = ctypes.c_void_p(bitmap)
             
             # Check and store
@@ -707,25 +710,28 @@ class FIBitmap(FIBaseBitmap):
                 self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
-    def load_from_bytes(self, bytes):
-        with self._fi as lib: 
-            # Create bitmap
-            fimemory = lib.FreeImage_OpenMemory(
-                                            ctypes.c_char_p(bytes), len(bytes))
-            bitmap = lib.FreeImage_LoadFromMemory(
-                            self._ftype, ctypes.c_void_p(fimemory), self._flags)
-            bitmap = ctypes.c_void_p(bitmap)
-            lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
-            
-            # Check
-            if not bitmap:
-                raise ValueError('Could not load bitmap "%s": %s' 
-                            % (self._filename, self._fi._get_error_message()))
-            else:
-                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+#     def load_from_bytes(self, bytes):
+#         with self._fi as lib: 
+#             # Create bitmap
+#             fimemory = lib.FreeImage_OpenMemory(
+#                                             ctypes.c_char_p(bytes), len(bytes))
+#             bitmap = lib.FreeImage_LoadFromMemory(
+#                             self._ftype, ctypes.c_void_p(fimemory), self._flags)
+#             bitmap = ctypes.c_void_p(bitmap)
+#             lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
+#             
+#             # Check
+#             if not bitmap:
+#                 raise ValueError('Could not load bitmap "%s": %s' 
+#                             % (self._filename, self._fi._get_error_message()))
+#             else:
+#                 self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     
-    def save_to_filename(self):
+    def save_to_filename(self, filename=None):
+        if filename is None:
+            filename = self._filename
+        
         ftype = self._ftype
         bitmap = self._bitmap
         fi_type = self._fi_type # element type
@@ -742,51 +748,48 @@ class FIBitmap(FIBaseBitmap):
                                 'to this file type')
             
             # Save to file
-            res = lib.FreeImage_Save(ftype, bitmap, efn(self._filename), self._flags)
+            res = lib.FreeImage_Save(ftype, bitmap, efn(filename), self._flags)
             
             # Check
             if not res:
                 raise RuntimeError('Could not save file "%s": %s' 
                         % (self._filename, self._fi._get_error_message()))
-        
-        # Done
-        return result
     
     
-    def save_to_bytes(self):
-        ftype = self._ftype
-        bitmap = self._bitmap
-        fi_type = self._fi_type # element type
-        
-        with self._fi as lib:
-            # Check if can write
-            if fi_type == FI_TYPES.FIT_BITMAP:
-                can_write = lib.FreeImage_FIFSupportsExportBPP(ftype,
-                                        lib.FreeImage_GetBPP(bitmap))
-            else:
-                can_write = lib.FreeImage_FIFSupportsExportType(ftype, fi_type)
-            if not can_write:
-                raise TypeError('Cannot save image of this format '
-                                'to this file type')
-            
-            # Extract the bytes
-            fimemory = lib.FreeImage_OpenMemory(0, 0)
-            res = lib.FreeImage_SaveToMemory(ftype, bitmap, ctypes.c_void_p(fimemory), self._flags)
-            if res:
-                N = lib.FreeImage_TellMemory(ctypes.c_void_p(fimemory))
-                result = ctypes.create_string_buffer(N)
-                lib.FreeImage_SeekMemory(ctypes.c_void_p(fimemory), 0)
-                lib.FreeImage_ReadMemory(result, 1, N, ctypes.c_void_p(fimemory))
-                result = result.raw
-            lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
-            
-            # Check
-            if not res:
-                raise RuntimeError('Could not save file "%s": %s' 
-                        % (self._filename, self._fi._get_error_message()))
-        
-        # Done
-        return result
+#     def save_to_bytes(self):
+#         ftype = self._ftype
+#         bitmap = self._bitmap
+#         fi_type = self._fi_type # element type
+#         
+#         with self._fi as lib:
+#             # Check if can write
+#             if fi_type == FI_TYPES.FIT_BITMAP:
+#                 can_write = lib.FreeImage_FIFSupportsExportBPP(ftype,
+#                                         lib.FreeImage_GetBPP(bitmap))
+#             else:
+#                 can_write = lib.FreeImage_FIFSupportsExportType(ftype, fi_type)
+#             if not can_write:
+#                 raise TypeError('Cannot save image of this format '
+#                                 'to this file type')
+#             
+#             # Extract the bytes
+#             fimemory = lib.FreeImage_OpenMemory(0, 0)
+#             res = lib.FreeImage_SaveToMemory(ftype, bitmap, ctypes.c_void_p(fimemory), self._flags)
+#             if res:
+#                 N = lib.FreeImage_TellMemory(ctypes.c_void_p(fimemory))
+#                 result = ctypes.create_string_buffer(N)
+#                 lib.FreeImage_SeekMemory(ctypes.c_void_p(fimemory), 0)
+#                 lib.FreeImage_ReadMemory(result, 1, N, ctypes.c_void_p(fimemory))
+#                 result = result.raw
+#             lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
+#             
+#             # Check
+#             if not res:
+#                 raise RuntimeError('Could not save file "%s": %s' 
+#                         % (self._filename, self._fi._get_error_message()))
+#         
+#         # Done
+#         return result
     
     
     def get_image_data(self):
@@ -925,7 +928,9 @@ class FIMultipageBitmap(FIBaseBitmap):
     """ Wrapper for the multipage FI bitmap object.
     """ 
     
-    def load_from_filename(self):
+    def load_from_filename(self, filename=None):
+        if filename is None:
+            filename = self._filename
         
         # Prepare
         create_new = False
@@ -937,7 +942,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             
             # Create bitmap
             multibitmap = lib.FreeImage_OpenMultiBitmap(
-                    self._ftype, efn(self._filename), 
+                    self._ftype, efn(filename), 
                     create_new, read_only, keep_cache_in_memory, self._flags)
             multibitmap = ctypes.c_void_p(multibitmap)
             
@@ -947,8 +952,8 @@ class FIMultipageBitmap(FIBaseBitmap):
                                 % (self._filename, self._fi._get_error_message()))
             else:
                 self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
-    
-    # todo: request support getting a real filename. The code below does not work
+
+
 #     def load_from_bytes(self, bytes):
 #         with self._fi as lib:
 #             # Create bitmap
@@ -967,7 +972,9 @@ class FIMultipageBitmap(FIBaseBitmap):
 #             else:
 #                 self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
         
-    def save_to_filename(self):
+    def save_to_filename(self, filename=None):
+        if filename is None:
+            filename = self._filename
         
         # Prepare
         create_new = True
@@ -978,7 +985,7 @@ class FIMultipageBitmap(FIBaseBitmap):
         # todo: Set flags at close func
         with self._fi as lib:
             multibitmap = lib.FreeImage_OpenMultiBitmap(
-                    self._ftype, efn(self._filename),
+                    self._ftype, efn(filename),
                     create_new, read_only, keep_cache_in_memory, 0)
             multibitmap = ctypes.c_void_p(multibitmap)
         

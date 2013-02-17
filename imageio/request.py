@@ -3,6 +3,8 @@ import sys
 import os
 from io import BytesIO
 import zipfile
+import tempfile
+import shutil
 
 from imageio.base import string_types, text_type, binary_type
 
@@ -26,7 +28,7 @@ class Request(object):
     information to that request and acts as an interface for the plugins
     to several resources; it allows the user to read from http, zipfiles,
     raw bytes, etc., but offer a simple interface to the plugins 
-    (get_file(), get_bytes() and set_bytes).
+    (get_file(), get_bytes(), set_bytes(), and get_local_filename()).
     
     Per read/save operation a single Request instance is used and passed
     to the can_read/can_save method of a format, and subsequently to the
@@ -40,14 +42,15 @@ class Request(object):
         # Init        
         self._uri_type = None
         self._filename = None
-        self._filename_zip = None # not None if a zipfile is used
+        self._filename_zip = None  # not None if a zipfile is used
+        self._filename_local = None  # not None if we are using a temp file on the local FS
         self._expect = expect
         self._kwargs = kwargs
         
         # To store data
         self._bytes = None      # Incoming bytes
         self._file = None       # To store the file instance
-        self._zipfile = None    # To store the zipfile instance (if applicable)
+        self._zipfile = None    # To store a zipfile instance (if applicable)
         self._firstbytes = None # For easy header parsing
         self._result = None     # Some write actions may have a result
         
@@ -89,14 +92,14 @@ class Request(object):
                     self._uri_type = URI_FILENAME
                     self._filename = uri
                 elif isinstance(uri, binary_type) and isinstance(self, ReadRequest):
-                    self._uri_type = 'bytes'
+                    self._uri_type = URI_BYTES
                     self._filename = '<bytes>'
                     self._bytes = uri
                 else:
                     self._uri_type = URI_FILENAME
                     self._filename = uri
         elif py3k and isinstance(uri, binary_type) and isinstance(self, ReadRequest):
-            self._uri_type = 'bytes'
+            self._uri_type = URI_BYTES
             self._filename = '<bytes>'
             self._bytes = uri
         # Files
@@ -218,9 +221,7 @@ class Request(object):
             # Get the correct filename
             filename, name = self._filename_zip
             if want_to_write:
-                # Open zipfile and create new file object,
-                # we catch the bytes in finish()
-                self._zipfile = zipfile.ZipFile(filename, 'a')
+                # Create new file object, we catch the bytes in finish()
                 self._file = BytesIO()
             else:
                 # Open zipfile and open new file object for specific file
@@ -236,22 +237,44 @@ class Request(object):
         return self._file
     
     
+    def get_local_filename(self):
+        """ get_local_filename()
+        If the uri is an existing file on this filesystem, return that.
+        Otherwise a temporary file is created on the local file system
+        that can be used by the format to read from or write to.
+        """
+        
+        if self._uri_type == URI_FILENAME:
+            return self._filename
+        else:
+            # Get filename
+            ext = os.path.splitext(self._filename)[1]
+            self._filename_local = tempfile.mktemp(ext, 'imageio')
+            # Write stuff to it?
+            if isinstance(self, ReadRequest):
+                with open(self._filename_local, 'wb') as file:
+                    shutil.copyfileobj(self.get_file(), file)
+            return self._filename_local
+    
+    
     def finish(self):
         """ finish()
-        For internal use. Finishes this request. Close open files and
-        return any resulting data.
+        For internal use (called when the context of the reader/writer
+        exists). Finishes this request. Close open files and process
+        results.
         """
-        written = isinstance(self, WriteRequest) and self._file
         
+        # Init
+        bytes = None
+        
+        # Collect bytes from temp file
+        if self._filename_local and isinstance(self, WriteRequest):
+            bytes = open(self._filename_local, 'rb').read()
+        
+        # Collect bytes from BytesIO file object.
+        written = isinstance(self, WriteRequest) and self._file
         if written and self._uri_type in [URI_BYTES, URI_ZIPPED]:
-            # Get bytes (in both cases self._file is a BytesIO object)
             bytes = self._file.getvalue()
-            
-            # Handle
-            if self._uri_type == URI_BYTES:
-                self._result = bytes # Picked up by imread function
-            elif self._uri_type == URI_ZIPPED:
-                self._zipfile.writestr(self._filename_zip[1], bytes)
         
         # Close open files that we know of (and are responsible for)
         if self._file and self._uri_type != URI_FILE:
@@ -260,6 +283,22 @@ class Request(object):
         if self._zipfile:
             self._zipfile.close()
             self._zipfile = None
+        # Remove temp file
+        if self._filename_local:
+            try:
+                os.remove(self._filename_local)
+            except Exception:
+                pass
+            self._filename_local = None
+        
+        # Handle bytes that we collected
+        if bytes is not None:
+            if self._uri_type == URI_BYTES:
+                self._result = bytes  # Picked up by imread function
+            elif self._uri_type == URI_ZIPPED:
+                zf = zipfile.ZipFile(self._filename_zip[0], 'a')
+                zf.writestr(self._filename_zip[1], bytes)
+                zf.close()
         
         # Detach so gc can clean even if a reference of self lingers
         self._bytes = None

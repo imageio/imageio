@@ -56,9 +56,7 @@ class FreeimageFormat(Format):
                 return True
 
 
-# todo: reader and writer use filenames directly if possible, so that
-# when only reading meta data, or not all files from a multi-page file,
-# the performance is increased.
+
 class Reader(base.Reader):
     
     def _get_length(self):
@@ -69,8 +67,9 @@ class Reader(base.Reader):
         
         # Create bitmap
         bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
-        bb = self.request.get_bytes()
-        bm.load_from_bytes(bb)
+        #bb = self.request.get_bytes()
+        #bm.load_from_bytes(bb)
+        bm.load_from_filename(self.request.get_local_filename())
         self._bm = bm
     
     
@@ -114,8 +113,9 @@ class Writer(base.Writer):
         # Set global meta now
         self._bm.set_meta_data(self._meta)
         # Save
-        bb = self._bm.save_to_bytes()
-        self.request.set_bytes(bb)
+        #bb = self._bm.save_to_bytes()
+        #self.request.set_bytes(bb)
+        self._bm.save_to_filename(self.request.get_local_filename())
         # Close bitmap
         self._bm.close()
     
