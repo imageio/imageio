@@ -76,10 +76,13 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     # (case-insensitive)
     lib_paths = []
     for lib_dir in lib_dirs:
+        # Get files, prefer short names, last version
         files = os.listdir(lib_dir)
+        files = reversed(sorted(files))
+        files = sorted(files, key=len)
         for lib_name in lib_names:
-            # Test all filenames for name and ext (prefer short names)
-            for fname in sorted(files, key=len):
+            # Test all filenames for name and ext
+            for fname in files:
                 if fname.lower().startswith(lib_name) and looks_lib(fname):
                     lib_paths.append(os.path.join(lib_dir, fname))
     
