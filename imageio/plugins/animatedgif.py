@@ -43,7 +43,7 @@ class AnimatedGifFormat(Format):
 
     class Reader(Format.Reader):
         
-        def _enter(self, flags=0, playback=True):
+        def _open(self, flags=0, playback=True):
             # Build flags from kwargs
             flags = int(flags)
             if playback:
@@ -52,7 +52,7 @@ class AnimatedGifFormat(Format):
             self._bm = fi.create_multipage_bitmap(self.request.filename, FIF, flags)
             self._bm.load_from_filename(self.request.get_local_filename())
         
-        def _exit(self):
+        def _close(self):
             self._bm.close()
         
         def _get_length(self):
@@ -83,13 +83,13 @@ class AnimatedGifFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _enter(self, flags=0):        
+        def _open(self, flags=0):        
             self._flags = flags  # Store flags for later use
             self._bm = None
             self._set = False
             self._meta = {}
         
-        def _exit(self):
+        def _close(self):
             # Set global meta now
             self._bm.set_meta_data(self._meta)
             # Save

@@ -178,12 +178,16 @@ class Format:
 
     class _BaseReaderWriter(object):
         """ Base class for the Reader and Writer class to implement common 
-        functionality.
+        functionality. It implements a similar approach for opening/closing
+        and context management as Python's file objects.
         """
         
         def __init__(self, format, request):
+            self.__closed = False
             self._format = format
             self._request = request
+            # Open the reader/writer
+            self._open(**self.request.kwargs.copy())
         
         @property
         def format(self):
@@ -198,13 +202,30 @@ class Format:
             """
             return self._request
         
+        
         def __enter__(self):
-            self._enter(**self.request.kwargs.copy())
+            self._checkClosed()
             return self
         
         def __exit__(self, type, value, traceback):
+            self.close()
+        
+        def __del__(self):
             try:
-                self._exit()
+                self.close()
+            except:
+                pass  # Supress noise when called during interpreter shutdown
+        
+        
+        def close(self):
+            """Flush and close the reader/writer.
+            This method has no effect if it is already closed.
+            """
+            if self.__closed:
+                return
+            self.__closed = True
+            try:
+                self._close()
             except Exception:
                 if value:
                     # Let other error fall through, give warning
@@ -212,19 +233,32 @@ class Format:
                     print('imagio.%s: Error in cleanup: %s' % 
                             (self.format.name, str(e_value)) )
                 else:
-                    # Re-raise error in _exit()
+                    # Re-raise error in _close()
                     raise
-            
             # Process results and clean request object
             self.request.finish()
         
+        @property
+        def closed(self):
+            """ Get whether the reader/writer is closed.
+            """
+            return self.__closed
         
-        def _enter(self, **kwargs):
-            """ _enter(**kwargs)
+        def _checkClosed(self, msg=None):
+            """Internal: raise an ValueError if file is closed
+            """
+            if self.closed:
+                what = self.__class__.__name__
+                msg = msg or ("I/O operation on closed %s." % what)
+                raise ValueError(msg)
+        
+        
+        def _open(self, **kwargs):
+            """ _open(**kwargs)
             
             Plugins should probably implement this.
             
-            It is called when the context manager is 'entered'. Here the
+            It is called when reader/writer is created. Here the
             plugin can do its initialization. The given keyword arguments
             are those that were given by the user at imageio.read() or
             imageio.write().
@@ -233,12 +267,12 @@ class Format:
             pass
         
         
-        def _exit(self):
-            """ _exit()
+        def _close(self):
+            """ _close()
             
             Plugins should probably implement this.
             
-            It is called when the context manager 'exits'. Here the plugin
+            It is called when the reader/writer is closed. Here the plugin
             can do a cleanup, flush, etc.
             
             """ 
@@ -257,8 +291,8 @@ class Format:
         specific for the file-format it exposes.
         
         A reader object should be obtained by calling imageio.read() or
-        by calling the read() method on a format object. A reader should
-        be used as a context manager, i.e. "with reader: ...".
+        by calling the read() method on a format object. A reader can
+        be used as a context manager so that it is automatically closed.
         
         """
         
@@ -402,8 +436,8 @@ class Format:
         specific for the file-format it exposes.
         
         A writer object should be obtained by calling imageio.save() or
-        by calling the save() method on a format object. A writer should
-        be used as a context manager, i.e. "with writer: ...".
+        by calling the save() method on a format object. A writer can
+        be used as a context manager so that it is automatically closed.
         
         """
         
