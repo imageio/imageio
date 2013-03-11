@@ -31,10 +31,10 @@ class DummyFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _enter(self):
+        def _open(self):
             self._fp = self.request.get_file()
         
-        def _exit(self):
+        def _close(self):
             pass  # The request object will close the file
         
         def _get_length(self):
@@ -63,10 +63,10 @@ class DummyFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _enter(self, flags=0):        
+        def _open(self, flags=0):        
             pass
         
-        def _exit(self):
+        def _close(self):
             pass
         
         def _append_data(self, im, meta):    
