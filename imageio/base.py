@@ -116,7 +116,7 @@ class Format:
         """
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
-        return '%s - %s\n\n   %s\n' % (self.name, self.description, self.__doc__.strip())
+        return '%s - %s\n\n    %s\n' % (self.name, self.description, self.__doc__.strip())
     
     @property
     def name(self):

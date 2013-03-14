@@ -35,9 +35,17 @@ sys_is_little_endian = (sys.byteorder == 'little')
 
 
 class DicomFormat(Format):
-    """ DICOM (Digital Imaging and Communications in Medicine) is a
-    common format used to store medical image data, such as X-ray, CT
-    and MRI.
+    """ A format for reading DICOM images: a common format used to store
+    medical image data, such as X-ray, CT and MRI.
+    
+    Keyword arguments for reading
+    -----------------------------
+    progress : {True, False, BaseProgressIndicator}
+        Whether to show progress when reading from multiple files.
+        Default True. By passing an object that inherits from
+        BaseProgressIndicator, the way in which progress is reported
+        can be costumized.
+    
     """
     
     def _can_read(self, request):
@@ -51,7 +59,7 @@ class DicomFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, progressIndicator=None):
+        def _open(self, progress=True):
             
             if os.path.isdir(self.request.filename):
                 # A dir can be given if the user used the format explicitly
@@ -67,14 +75,14 @@ class DicomFormat(Format):
             self._series = None  # only created if needed
             
             # Set progress indicator
-            if progressIndicator == False:
-                self._progressIndicator = BaseProgressIndicator('Dummy')
-            elif progressIndicator in (None, True):
+            if isinstance(progress, BaseProgressIndicator):
+                self._progressIndicator = progress 
+            elif progress == True:
                 self._progressIndicator = StdoutProgressIndicator('Reading DICOM')
-            elif isinstance(progressIndicator, BaseProgressIndicator):
-                self._progressIndicator = progressIndicator 
+            elif progress in (None, False):
+                self._progressIndicator = BaseProgressIndicator('Dummy')
             else:
-                raise ValueError('Invalid value for progressIndicator.')
+                raise ValueError('Invalid value for progress.')
         
         def _close(self):
             # Clean up
@@ -161,25 +169,12 @@ class DicomFormat(Format):
             # images as a stream. If not implemented, imageio will ask for
             # the length and use _get_data() to get the images.
             raise NotImplementedError()  
-    
-    
-    class Writer(Format.Writer):
-        
-        def _open(self, flags=0):        
-            pass
-        
-        def _close(self):
-            pass
-        
-        def _append_data(self, im, meta):    
-            raise RuntimeError('The dymmy format cannot save image data.')
-        
-        def set_meta_data(self, meta):
-            raise RuntimeError('The dymmy format cannot save meta data.')
 
 
 # Add this format
-formats.add_format(DicomFormat('DCM', 'DICOM', '.dcm .ct .mri'))
+formats.add_format(DicomFormat('DICOM', 
+            'Digital Imaging and Communications in Medicine', 
+            '.dcm .ct .mri'))
 
 
 # Define a dictionary that contains the tags that we would like to know
