@@ -138,7 +138,7 @@ class DicomFormat(Format):
             if self.request.expect == EXPECT_IM:
                 # Allow index >1 only if this file contains >1
                 if nslices > 1:
-                    return self._data[index]  
+                    return self._data[index], self._info
                 elif index == 0:
                     return self._data, self._info
                 else:
@@ -162,7 +162,36 @@ class DicomFormat(Format):
                 raise ValueError('DICOM plugin needs to know what is expected.')
         
         def _get_meta_data(self, index):
-            raise RuntimeError('The dummy format cannot read meta data.')
+            if self._data is None:
+                dcm = self.series[0][0]
+                self._info = dcm._info
+                self._data = dcm.get_numpy_array()
+            
+            nslices = self._data.shape[0] if (self._data.ndim==3) else 1
+            
+            # Default is the meta data of the given file, or the "first" file.
+            if index is None:
+                return self._info
+
+            if self.request.expect == EXPECT_IM:
+                return self._info
+            elif self.request.expect == EXPECT_MIM:
+                # Return slice from volume, or return item from series
+                if index==0 and nslices > 1:
+                    return self._info
+                else:
+                    L = []
+                    for serie in self.series:
+                        L.extend([dcm for dcm in serie])
+                    return L[index].info
+            elif self.request.expect in (EXPECT_VOL, EXPECT_MVOL):
+                # Return volume or series
+                if index == 0 and nslices > 1:
+                    return self._info
+                else:
+                    return self.series[index].info
+            else:
+                raise ValueError('DICOM plugin needs to know what is expected.')
         
         def _get_next_data(self):
             # Optional. Formats can implement this to support reading the
