@@ -76,8 +76,7 @@ class DummyFormat(Format):
             raise RuntimeError('The dymmy format cannot save meta data.')
 
 
-# Register. You register an *instance* of a Format class, which has
-# corresponding Reader and Writer *classes*.
+# Register. You register an *instance* of a Format class.
 format = DummyFormat('dummy', 'An example format that does nothing.')
 formats.add_format(format)
 

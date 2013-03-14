@@ -74,3 +74,4 @@ For the imageio.format.Writer class:
 import imageio.plugins.animatedgif
 import imageio.plugins.plugin_freeimage
 import imageio.plugins.example
+import imageio.plugins.dicom

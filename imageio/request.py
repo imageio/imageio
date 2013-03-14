@@ -318,7 +318,7 @@ class Request(object):
             # Read
             first_bytes = binary_type()
             while len(first_bytes) < N:
-                extra_bytes = f.read(N-len(first_bytes))
+                extra_bytes = self._file.read(N-len(first_bytes))
                 if not extra_bytes:
                     break
                 first_bytes += extra_bytes

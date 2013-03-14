@@ -33,7 +33,10 @@ class FreeimageFormat(Format):
     def _can_read(self, request):
         if fi and request.expect in [None, base.EXPECT_IM]:
             if not hasattr(request, '_fif'):
-                request._fif = fi.getFIF(request.filename, 'r')
+                try:
+                    request._fif = fi.getFIF(request.filename, 'r')
+                except Exception:
+                    request._fif = -1
             if request._fif == self.fif:
                 return True
                 # Note: adding as a potential format and then returning False

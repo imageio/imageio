@@ -239,11 +239,13 @@ def mimsave(uri, ims, format=None, **kwargs):
 
 ## Volumes
 
-def volread(self, filename, vol, format, **kwargs):
-    raise NotImplemented()
+def volread(uri, format=None, **kwargs):
+    reader = read(uri, format, imageio.EXPECT_VOL, **kwargs)
+    with reader:
+        return reader.get_data(0)
 
 
-def volsave(self, filename, vol, format, **kwargs):
+def volsave(filename, vol, format, **kwargs):
     raise NotImplemented()
 
 
