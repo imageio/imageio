@@ -137,7 +137,7 @@ class DicomFormat(Format):
                     raise IndexError('Dicom file contains only one slice.')
             elif self.request.expect == EXPECT_MIM:
                 # Return slice from volume, or return item from series
-                if nslices > 1:
+                if index==0 and nslices > 1:
                     return self._data[index], self._info
                 else:
                     L = []
@@ -146,7 +146,7 @@ class DicomFormat(Format):
                     return L[index].get_numpy_array(), L[index].info
             elif self.request.expect in (EXPECT_VOL, EXPECT_MVOL):
                 # Return volume or series
-                if nslices > 1:
+                if index == 0 and nslices > 1:
                     return self._data, self._info
                 else:
                     return self.series[index].get_numpy_array(), self.series[index].info
@@ -242,6 +242,7 @@ MINIDICT =  {   (0x7FE0, 0x0010): ('PixelData',             'OB'),
                 (0x0028, 0x0053): ('RescaleSlope',          'DS'),
                 # Image specific (for the user)
                 (0x0028, 0x0030): ('PixelSpacing',          'DS'),
+                (0x0018, 0x0088): ('SliceSpacing',          'DS'),
             }
 
 # Define some special tags:
@@ -369,6 +370,7 @@ class SimpleDicomReader(object):
         # Read
         self._read_header()
         self._read_data_elements()
+        self._get_shape_and_sampling()
         # Close if done, reopen if necessary to read pixel data
         if os.path.isfile(self._filename):
             self._file.close()
@@ -397,7 +399,7 @@ class SimpleDicomReader(object):
             f.seek(here+vl)
             return group, element, b'Deferred loading of pixel data'
         else:
-            if vl == 0xFFFFFFFFL:
+            if vl == 0xFFFFFFFF:
                 value = self._read_undefined_length_value()
             else:
                 value = f.read(vl)
@@ -521,7 +523,7 @@ class SimpleDicomReader(object):
                 self._file = open(self._filename, 'rb')
             # Read data
             self._file.seek(self._pixel_data_loc[0])
-            if self._pixel_data_loc[1] == 0xFFFFFFFFL:
+            if self._pixel_data_loc[1] == 0xFFFFFFFF:
                 value = self._read_undefined_length_value()
             else:
                 value = self._file.read(self._pixel_data_loc[1])
@@ -539,6 +541,39 @@ class SimpleDicomReader(object):
         return data
     
     
+    def _get_shape_and_sampling(self):
+        """ Get shape and sampling without actuall using the pixel data.
+        In this way, the user can get an idea what's inside without having
+        to load it.
+        """
+        # Get shape (in the same way that pydicom does)
+        if 'NumberOfFrames' in self and self.NumberOfFrames > 1:
+            if self.SamplesPerPixel > 1:
+                shape = self.SamplesPerPixel, self.NumberOfFrames, self.Rows, self.Columns
+            else:
+                shape = self.NumberOfFrames, self.Rows, self.Columns
+        else:
+            if self.SamplesPerPixel > 1:
+                if self.BitsAllocated == 8:
+                    shape = self.SamplesPerPixel, self.Rows, self.Columns
+                else:
+                    raise NotImplementedError("This code only handles SamplesPerPixel > 1 if Bits Allocated = 8")
+            else:
+                shape = self.Rows, self.Columns
+        
+        # Try getting sampling between pixels
+        sampling = float(self.PixelSpacing[0]), float(self.PixelSpacing[1])
+        if 'SliceSpacing' in self:
+            sampling = (abs(self.SliceSpacing),) + sampling
+        
+        # Ensure that sampling has as many elements as shape
+        sampling = (1.0,)*(len(shape)-len(sampling)) + sampling[-len(shape):]
+        
+        # Set shape and sampling
+        self._info['shape'] = shape
+        self._info['sampling'] = sampling
+    
+    
     def _pixel_data_numpy(self):
         """Return a NumPy array of the pixel data.
         """
@@ -547,12 +582,6 @@ class SimpleDicomReader(object):
         
         if not 'PixelData' in self:
             raise TypeError("No pixel data found in this dataset.")
-        
-        # Try getting sampling between pixels now
-        try:
-            self._info['sampling'] = float(self.PixelSpacing[0]), float(self.PixelSpacing[1])
-        except AttributeError:
-            pass
         
         # determine the type used for the array
         need_byteswap = (self.is_little_endian != sys_is_little_endian)
@@ -569,27 +598,16 @@ class SimpleDicomReader(object):
             raise TypeError("Data type not understood by NumPy: "
                             "format='%s', PixelRepresentation=%d, BitsAllocated=%d" % (
                             numpy_format, self.PixelRepresentation, self.BitsAllocated))
-
+        
         # Have correct Numpy format, so create the NumPy array
         arr = np.fromstring(self.PixelData, numpy_format)
-
+        
         # XXX byte swap - may later handle this in read_file!!?
         if need_byteswap:
             arr.byteswap(True)  # True means swap in-place, don't make a new copy
+        
         # Note the following reshape operations return a new *view* onto arr, but don't copy the data
-        if 'NumberOfFrames' in self and self.NumberOfFrames > 1:
-            if self.SamplesPerPixel > 1:
-                arr = arr.reshape(self.SamplesPerPixel, self.NumberOfFrames, self.Rows, self.Columns)
-            else:
-                arr = arr.reshape(self.NumberOfFrames, self.Rows, self.Columns)
-        else:
-            if self.SamplesPerPixel > 1:
-                if self.BitsAllocated == 8:
-                    arr = arr.reshape(self.SamplesPerPixel, self.Rows, self.Columns)
-                else:
-                    raise NotImplementedError("This code only handles SamplesPerPixel > 1 if Bits Allocated = 8")
-            else:
-                arr = arr.reshape(self.Rows, self.Columns)
+        arr = arr.reshape(*self._info['shape'])
         return arr
     
     
@@ -678,6 +696,10 @@ class SimpleDicomReader(object):
 
 
 
+# todo: with some modifications, the SimpleDicomReader can be replaced by a pydicom dataset
+# ... allowing us to real *all* tags
+
+
 class DicomSeries(object):
     """ DicomSeries
     This class represents a serie of dicom files (SimpleDicomReader
@@ -691,8 +713,7 @@ class DicomSeries(object):
         
         # Init props
         self._suid = suid
-        self._shape = None
-        self._sampling = None
+        self._info = {}
         self._progressIndicator = progressIndicator
     
     def __len__(self):
@@ -709,21 +730,18 @@ class DicomSeries(object):
     @property
     def shape(self):
         """ The shape of the data (nz, ny, nx). """
-        return self._shape
+        return self._info['shape']
     
     @property
     def sampling(self):
         """ The sampling (voxel distances) of the data (dz, dy, dx). """
-        return self._sampling
+        return self._info['sampling']
     
     @property
     def info(self):
         """ A dictionary containing the information as present in the
         first dicomfile of this serie. None if there are no entries. """
-        if self._entries:
-            info = self._entries[0].info.copy()
-            info['sampling'] = self.sampling
-            return info
+        return self._info
     
     @property
     def description(self):
@@ -818,12 +836,9 @@ class DicomSeries(object):
         if len(L)==0:
             return
         elif len(L) == 1:
-            # Set attributes
-            ds = L[0]
-            self._shape = [ds.Rows, ds.Columns]
-            self._sampling = [float(ds.PixelSpacing[0]), float(ds.PixelSpacing[1])]
+            self._info = L[0].info
             return
-
+        
         # Get previous
         ds1 = L[0]
         # Init measures to calculate average of
@@ -831,7 +846,7 @@ class DicomSeries(object):
         # Init measures to check (these are in 2D)
         dimensions = ds1.Rows, ds1.Columns
         sampling = float(ds1.PixelSpacing[0]), float(ds1.PixelSpacing[1]) # row, column
-    
+        
         for index in range(len(L)):
             # The first round ds1 and ds2 will be the same, for the
             # distance calculation this does not matter
@@ -857,10 +872,13 @@ class DicomSeries(object):
         # Finish calculating average distance
         # (Note that there are len(L)-1 distances)
         distance_mean = distance_sum / (len(L)-1)
+        
+        # Set info dict
+        self._info = L[0].info.copy()
+        
         # Store information that is specific for the serie
-        self._shape = [len(L), ds2.Rows, ds2.Columns]
-        self._sampling = [distance_mean, float(ds2.PixelSpacing[0]), 
-                               float(ds2.PixelSpacing[1])]
+        self._info['shape'] = (len(L),) + ds2.info['shape']
+        self._info['sampling'] = (distance_mean,) + ds2.info['sampling']
 
 
 
