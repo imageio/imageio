@@ -16,8 +16,8 @@ advanced users and plugin developers. A brief overview:
   
   * :ref:`imageio.FormatManager<insertdocs-imageio-FormatManager>` - for keeping track of registered formats.
   * :ref:`imageio.Format<insertdocs-imageio-Format>` - representation of a file format reader/writer
-  * imageio.Format.Reader - object used during the reading of a file.
-  * imageio.Format.Writer - object used during saving a file.
+  * :ref:`imageio.Format.Reader<insertdocs-imageio-Format-Reader>` - object used during the reading of a file.
+  * :ref:`imageio.Format.Writer<insertdocs-imageio-Format-Writer>` - object used during saving a file.
   * :ref:`imageio.Request<insertdocs-imageio-Request>` - used to store the filename and other info.
 
 Plugins need to implement a Format class and register
@@ -187,18 +187,207 @@ a format object using ``imageio.formats.add_format()``.
 
 ----
 
-.. insertdocs start:: imageio.Reader
+.. insertdocs start:: imageio.Format.Reader
 .. insertdocs :inherited-members: 
 .. insertdocs :members: 
+
+
+.. _insertdocs-imageio-Format-Reader:
+
+.. py:class:: imageio.Format.Reader
+
+  *Inherits from _BaseReaderWriter*
+
+  
+  A reader is an object that is instantiated for reading data from
+  an image file. A reader can be used as an iterator, and only reads
+  data from the file when new data is requested. 
+  
+  Plugins should overload a couple of methods to implement a reader. 
+  A plugin may also specify extra methods to expose an interface
+  specific for the file-format it exposes.
+  
+  A reader object should be obtained by calling imageio.read() or
+  by calling the read() method on a format object. A reader can
+  be used as a context manager so that it is automatically closed.
+  
+  
+
+  *PROPERTIES*
+
+  .. _insertdocs-imageio-Format-Reader-closed:
+  
+  .. py:attribute:: imageio.Format.Reader.closed
+  
+    Get whether the reader/writer is closed.
+    
+
+  .. _insertdocs-imageio-Format-Reader-format:
+  
+  .. py:attribute:: imageio.Format.Reader.format
+  
+    Get the format corresponding to the current read/save operation.
+    
+
+  .. _insertdocs-imageio-Format-Reader-request:
+  
+  .. py:attribute:: imageio.Format.Reader.request
+  
+    Get the request object corresponding to the current read/save 
+    operation.
+    
+
+  *METHODS*
+
+  .. _insertdocs-imageio-Format-Reader-close:
+  
+  .. py:method:: imageio.Format.Reader.close()
+  
+    Flush and close the reader/writer.
+    This method has no effect if it is already closed.
+    
+
+  .. _insertdocs-imageio-Format-Reader-get_data:
+  
+  .. py:method:: imageio.Format.Reader.get_data(index)
+  
+    Read image data from the file, using the image index. The
+    returned image has a 'meta' attribute with the meta data.
+    
+    
+
+  .. _insertdocs-imageio-Format-Reader-get_length:
+  
+  .. py:method:: imageio.Format.Reader.get_length()
+  
+    Get the number of images in the file. (Note: you can also
+    use len(reader_object).)
+    
+    The result can be:
+    * 0 for files that only have meta data
+    * 1 for singleton images (e.g. in PNG, JPEG, etc.)
+    * N for image series
+    * np.inf for streams (series of unknown length)
+    
+    
+
+  .. _insertdocs-imageio-Format-Reader-get_meta_data:
+  
+  .. py:method:: imageio.Format.Reader.get_meta_data(index=None)
+  
+    Read meta data from the file. using the image index. If the
+    index is omitted, return the file's (global) meta data.
+    
+    Note that get_data also provides the meta data for the returned
+    image as an atrribute of that image.
+    
+    The meta data is a dict that maps group names to subdicts. Each
+    group is a dict with name-value pairs. The groups represent the
+    different metadata formats (EXIF, XMP, etc.).
+    
+    
+
+  .. _insertdocs-imageio-Format-Reader-iter_data:
+  
+  .. py:method:: imageio.Format.Reader.iter_data()
+  
+    Iterate over all images in the series. (Note: you can also
+    iterate over the reader object.)
+    
+    
+
+
 
 .. insertdocs end::
 
 ----
 
-.. insertdocs start:: imageio.Writer
+.. insertdocs start:: imageio.Format.Writer
 .. insertdocs :inherited-members: 
 .. insertdocs :members: 
     
+
+.. _insertdocs-imageio-Format-Writer:
+
+.. py:class:: imageio.Format.Writer
+
+  *Inherits from _BaseReaderWriter*
+
+  
+  A writer is an object that is instantiated for saving data to
+  an image file. 
+  
+  Plugins should overload a couple of methods to implement a writer. 
+  A plugin may also specify extra methods to expose an interface
+  specific for the file-format it exposes.
+  
+  A writer object should be obtained by calling imageio.save() or
+  by calling the save() method on a format object. A writer can
+  be used as a context manager so that it is automatically closed.
+  
+  
+
+  *PROPERTIES*
+
+  .. _insertdocs-imageio-Format-Writer-closed:
+  
+  .. py:attribute:: imageio.Format.Writer.closed
+  
+    Get whether the reader/writer is closed.
+    
+
+  .. _insertdocs-imageio-Format-Writer-format:
+  
+  .. py:attribute:: imageio.Format.Writer.format
+  
+    Get the format corresponding to the current read/save operation.
+    
+
+  .. _insertdocs-imageio-Format-Writer-request:
+  
+  .. py:attribute:: imageio.Format.Writer.request
+  
+    Get the request object corresponding to the current read/save 
+    operation.
+    
+
+  *METHODS*
+
+  .. _insertdocs-imageio-Format-Writer-append_data:
+  
+  .. py:method:: imageio.Format.Writer.append_data(im, meta={})
+  
+    Append an image to the file. 
+    
+    The appended meta data consists of the meta data on the given
+    image (if applicable), updated with the given meta data.
+    
+    
+
+  .. _insertdocs-imageio-Format-Writer-close:
+  
+  .. py:method:: imageio.Format.Writer.close()
+  
+    Flush and close the reader/writer.
+    This method has no effect if it is already closed.
+    
+
+  .. _insertdocs-imageio-Format-Writer-set_meta_data:
+  
+  .. py:method:: imageio.Format.Writer.set_meta_data(meta)
+  
+    Sets the file's (global) meta data.
+    
+    The meta data is a dict that maps group names to subdicts. Each
+    group is a dict with name-value pairs. The groups represents
+    the different metadata formats (EXIF, XMP, etc.). Note that
+    some meta formats may not be supported for writing, and even
+    individual fields may be ignored if they are invalid.
+    
+    
+
+
+
 .. insertdocs end::
 
 ----

@@ -16,7 +16,6 @@ What is a plugin
 
 In imageio, a plugin provides one or more imageio.Format objects, and 
 corresponding imageio.Reader and imageio.Writer classes.
-
 Each imageio.Format object represents an implementation to read/save a 
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.

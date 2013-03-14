@@ -19,8 +19,7 @@ Plugins
 
 
 In imageio, a plugin provides one or more :ref:`imageio.Format<insertdocs-imageio-Format>` objects, and 
-corresponding :ref:`imageio.Reader<insertdocs-imageio-Reader>` and :ref:`imageio.Writer<insertdocs-imageio-Writer>` classes.
-
+corresponding imageio.Reader and imageio.Writer classes.
 Each :ref:`imageio.Format<insertdocs-imageio-Format>` object represents an implementation to read/save a 
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.
@@ -57,7 +56,7 @@ For the :ref:`imageio.Format<insertdocs-imageio-Format>` class, the following ne
   * Implement _can_read(request), return a bool. See also the Request class.
   * Implement _can_save(request), dito.
 
-For the imageio.Format.Reader class:
+For the :ref:`imageio.Format.Reader<insertdocs-imageio-Format-Reader>` class:
   
   * Implement _open(**kwargs) to initialize the reader, with the
     user-provided keyword arguments.

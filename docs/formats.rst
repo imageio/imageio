@@ -8,7 +8,7 @@ You can get this list also by running ``imageio.help()``.
 
 
 List of currently supported formats:
-  * :ref:`AGIF <AGIF>` - Animated gif
+  * :ref:`ANIGIF <ANIGIF>` - Animated gif
   * :ref:`BMP <BMP>` - Windows or OS/2 Bitmap
   * :ref:`ICO <ICO>` - Windows Icon
   * :ref:`JPEG <JPEG>` - JPEG - JFIF Compliant
@@ -47,10 +47,10 @@ List of currently supported formats:
   * :ref:`DUMMY <DUMMY>` - An example format that does nothing.
   * :ref:`DICOM <DICOM>` - Digital Imaging and Communications in Medicine
 
-.. _AGIF:
+.. _ANIGIF:
 
-AGIF Animated gif
-^^^^^^^^^^^^^^^^^
+ANIGIF Animated gif
+^^^^^^^^^^^^^^^^^^^
 
 Extensions: ``gif``
 

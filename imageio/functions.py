@@ -10,32 +10,21 @@ arguments, which are passed on to the format that does the actual work.
 To see what keyword arguments are supported by a specific format, use
 the imageio.help function.
 
-All image data is represented using numpy arrays. When reading, the
-resulting array will have its meta data stored in an attribute called
-'meta'.
-
 Functions for reading
 ---------------------
 
-All read functions accept an uri, which can be a normal filename, a
-file in a zipfile, an http/ftp address, a file object, or the raw bytes.
-
-  * imageio.imread - read an image from the specified uri.
-  * imageio.mimread - read a series of images from the specified uri.
-  * imageio.volread - read a volume from the specified uri.
-  * imageio.mvolsave - save a series of volumes to the specified uri.
+  * imageio.imread - read an image from the specified uri
+  * imageio.mimread - read a series of images from the specified uri
+  * imageio.volread - read a volume from the specified uri
+  * imageio.mvolsave - save a series of volumes to the specified uri
 
 Functions for saving
 --------------------
 
-All save functions accept an uri, which can be a normal filename, a
-file in a zipfile, or imageio.RETURN_BYTES, in which case the raw bytes
-are returned.
-
-  * imageio.imsave - save an image to the specified uri.
-  * imageio.mimsave - save a series of images to the specified uri.
-  * imageio.volsave - save a volume to the specified uri.
-  * imageio.mvolread - read a series of volumes from the specified uri.
+  * imageio.imsave - save an image to the specified uri
+  * imageio.mimsave - save a series of images to the specified uri
+  * imageio.volsave - save a volume to the specified uri
+  * imageio.mvolread - read a series of volumes from the specified uri
 
 More control
 ------------

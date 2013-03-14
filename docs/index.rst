@@ -15,8 +15,11 @@ range of image data, including animated images, volumetric data, and
 scientific formats. It is written in pure Python (2.x and 3.x) and
 is designed to be powerful, yet simple in usage and installation.
 
-The imageio library is intended as a replacement for PIL. Currently, most
-functionality is obtained by wrapping the FreeImage library using ctypes. 
+Imageio has a relatively simple core that provides a common interface
+to different file formats. The actual file formats are implemented in
+plugins, which makes imageio easy to extend. A large range of formats
+are already supported (in part thanks to the freeimage library), but
+we aim to include much more (scientific) formats in the future.
 
 Quickstart:
 
@@ -37,6 +40,7 @@ Features
   * Easy to extend using plugins, also for file formats with complex data structures.
   * Pure Python, runs on Python 2.x and 3.x (without 2to3).
   * Lots of supported :doc:`formats <formats>`.
+  * Can also read from zipfiles, http/ftp, raw bytes.
 
 Installation
 ============
