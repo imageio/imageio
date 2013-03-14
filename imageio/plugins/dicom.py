@@ -52,10 +52,16 @@ class DicomFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self, progressIndicator=None):
-            # Read the given dataset now ...
-            dcm = SimpleDicomReader(self.request.get_file())
-            self._info = dcm._info
-            self._data = dcm.get_numpy_array()
+            
+            if os.path.isdir(self.request.filename):
+                # A dir can be given if the user used the format explicitly
+                self._info = {}
+                self._data = None
+            else:
+                # Read the given dataset now ...
+                dcm = SimpleDicomReader(self.request.get_file())
+                self._info = dcm._info
+                self._data = dcm.get_numpy_array()
             
             # Initialize series, list of DicomSeries objects
             self._series = None  # only created if needed
@@ -83,6 +89,11 @@ class DicomFormat(Format):
             return self._series
         
         def _get_length(self):
+            if self._data is None:
+                dcm = self.series[0][0]
+                self._info = dcm._info
+                self._data = dcm.get_numpy_array()
+            
             nslices = self._data.shape[0] if (self._data.ndim==3) else 1
             
             if self.request.expect == EXPECT_IM:
@@ -109,6 +120,11 @@ class DicomFormat(Format):
                 raise ValueError('DICOM plugin needs to know what is expected.')
         
         def _get_data(self, index):
+            if self._data is None:
+                dcm = self.series[0][0]
+                self._info = dcm._info
+                self._data = dcm.get_numpy_array()
+            
             nslices = self._data.shape[0] if (self._data.ndim==3) else 1
             
             if self.request.expect == EXPECT_IM:
@@ -353,6 +369,11 @@ class SimpleDicomReader(object):
         # Read
         self._read_header()
         self._read_data_elements()
+        # Close if done, reopen if necessary to read pixel data
+        if os.path.isfile(self._filename):
+            self._file.close()
+            self._file = None
+    
     
     def _readDataElement(self):
         f = self._file
@@ -495,11 +516,16 @@ class SimpleDicomReader(object):
         
         # Load it now if it was not already loaded
         if self._pixel_data_loc and len(self.PixelData) < 100:
+            # Reopen file?
+            if self._file is None:
+                self._file = open(self._filename, 'rb')
+            # Read data
             self._file.seek(self._pixel_data_loc[0])
             if self._pixel_data_loc[1] == 0xFFFFFFFFL:
                 value = self._read_undefined_length_value()
             else:
                 value = self._file.read(self._pixel_data_loc[1])
+            # Overwrite
             self._info['PixelData'] = value
         
         # Get data
@@ -861,7 +887,9 @@ def process_directory(request, progressIndicator, readPixelData=False):
     methods should be equally fast.
     """
     # Get directory to examine
-    if os.path.isfile(request.filename):
+    if os.path.isdir(request.filename):
+        path = request.filename
+    elif os.path.isfile(request.filename):
         path = os.path.dirname(request.filename)
     else:
         raise ValueError('Dicom plugin needs a valid filename to examine the directory ')
