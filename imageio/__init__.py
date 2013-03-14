@@ -39,6 +39,9 @@ except OSError:
     print(str(e_value))
     fi = None
 
+# Load some utils in this namespace
+from imageio.util import Image
+
 # Load root plugin and insert some of its functions in this namesplace
 from imageio.base import Format, FormatManager
 from imageio.request import Request, RETURN_BYTES
