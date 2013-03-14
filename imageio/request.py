@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2013, imageio contributers
+# imageio is distributed under the terms of the (new) BSD License.
+
+""" 
+Definition of the Request object, which acts as a kind of bridge between
+what the user wants and what the plugins can.
+"""
 
 import sys
 import os

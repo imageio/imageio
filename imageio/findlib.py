@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012, Almar Klein, Zach Pincus and others
+# Copyright (C) 2013, Zach Pincus, Almar Klein and others
 
 """ This module contains generic code to find and load a dynamic library.
 """

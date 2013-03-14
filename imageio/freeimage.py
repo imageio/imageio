@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2013, imageio contributers
+# imageio is distributed under the terms of the (new) BSD License.
+
 """ Module imageio/freeimage.py
 
 This module contains the wrapper code for the freeimage library.
