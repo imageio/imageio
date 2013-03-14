@@ -6,20 +6,18 @@
 
 .. note::
     imageio is under construction, some details with regard to the 
-    Reader and Writer classes will probably change. We'll have to
-    implement a few more plugins to see what works well and what not.
+    Reader and Writer classes may change. 
 
 These are the main classes of imageio. They expose an interface for
 advanced users and plugin developers. A brief overview:
   
   * imageio.FormatManager - for keeping track of registered formats.
-  * imageio.Format - the thing that says it can read/save a certain file.
-    Has a reader and writer class associated with it.
-  * imageio.Reader - object used during the reading of a file.
-  * imageio.Writer - object used during saving a file.
+  * imageio.Format - representation of a file format reader/writer
+  * imageio.Format.Reader - object used during the reading of a file.
+  * imageio.Format.Writer - object used during saving a file.
   * imageio.Request - used to store the filename and other info.
 
-Plugins need to implement a Reader, Writer and Format class and register
+Plugins need to implement a Format class and register
 a format object using ``imageio.formats.add_format()``.
 
 """
@@ -57,9 +55,7 @@ else:
 
 
 # Define expects
-# todo: should this not be what the user expects per-image, so we only need IM and VOL?
-# todo: what code is going to 'listen' to what is expected: plugins
-# todo: what code is going to verify: base Reader class?
+# These are like hints, that the plugins can use to better serve the user.
 EXPECT_IM = 0
 EXPECT_MIM = 1
 EXPECT_VOL = 2
@@ -71,15 +67,15 @@ class Format:
     A format represents an implementation to read/save a particular 
     file format.
     
-    A format instance is responsible for 1) providing information
-    about a format; 2) instantiating a reader/writer class; 3) determining
-    whether a certain file can be read/saved with this format.
+    A format instance is responsible for 1) providing information about
+    a format; 2) determining whether a certain file can be read/saved
+    with this format; 3) providing a reader/writer class.
     
     Generally, imageio will select the right format and use that to
-    read/save an image. A format can also be used directly by calling 
-    its read() and save() methods.
+    read/save an image. A format can also be explicitly chosen in all
+    read/save functios.
     
-    Use print(format) to see its documentation.
+    Use print(format), or help(format_name) to see its documentation.
     
     To implement a specific format, see the docs for the plugins.
     
