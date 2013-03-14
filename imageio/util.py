@@ -4,6 +4,7 @@ import sys
 import numpy as np
 
 
+# currently not used ... the only use it to easly provide the global meta info
 class ImageList(list):
     def __init__(self, meta=None):
         list.__init__(self)
