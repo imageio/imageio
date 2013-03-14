@@ -376,8 +376,50 @@ class SimpleDicomReader(object):
             f.seek(here+vl)
             return group, element, b'Deferred loading of pixel data'
         else:
-            value = f.read(vl)
+            if vl == 0xFFFFFFFFL:
+                value = self._read_undefined_length_value()
+            else:
+                value = f.read(vl)
             return group, element, value
+    
+    def _read_undefined_length_value(self, read_size=128):
+        """ Copied (in compacted form) from PyDicom
+        Copyright Darcy Mason.
+        """
+        fp = self._file
+        delimiter = SequenceDelimiterTag
+        data_start = fp.tell()
+        search_rewind = 3
+        bytes_to_find = struct.pack(self._unpackPrefix+'HH', 
+                            SequenceDelimiterTag[0], SequenceDelimiterTag[1])
+        
+        found = False
+        value_chunks = []
+        while not found:
+            chunk_start = fp.tell()
+            bytes_read = fp.read(read_size)
+            if len(bytes_read) < read_size:
+                # try again - if still don't get required amount, this is last block
+                new_bytes = fp.read(read_size - len(bytes_read))
+                bytes_read += new_bytes
+                if len(bytes_read) < read_size:
+                    raise EOFError("End of file reached before sequence delimiter found.")
+            index = bytes_read.find(bytes_to_find)
+            if index != -1:
+                found = True
+                value_chunks.append(bytes_read[:index])
+                fp.seek(chunk_start + index + 4)  # rewind to end of delimiter
+                length = fp.read(4)
+                if length != b"\0\0\0\0":
+                    print("Expected 4 zero bytes after undefined length delimiter")
+            else:
+                fp.seek(fp.tell() - search_rewind)  # rewind a bit 
+                # accumulate the bytes read (not including the rewind)
+                value_chunks.append(bytes_read[:-search_rewind])
+        
+        # if get here then have found the byte string
+        return b"".join(value_chunks)
+    
     
     def _read_header(self):
         f = self._file
@@ -454,7 +496,11 @@ class SimpleDicomReader(object):
         # Load it now if it was not already loaded
         if self._pixel_data_loc and len(self.PixelData) < 100:
             self._file.seek(self._pixel_data_loc[0])
-            self._info['PixelData'] = self._file.read(self._pixel_data_loc[1])
+            if self._pixel_data_loc[1] == 0xFFFFFFFFL:
+                value = self._read_undefined_length_value()
+            else:
+                value = self._file.read(self._pixel_data_loc[1])
+            self._info['PixelData'] = value
         
         # Get data
         data = self._pixel_data_numpy()
@@ -917,7 +963,7 @@ def splitSerieIfRequired(serie, series, progressIndicator):
         else:
             # Test missing file
             if distance and newDist > 1.5*distance:
-                print('Warning: missing file after %r' % ds1._filename)
+                progressIndicator.write('Warning: missing file after %r' % ds1._filename)
             distance = newDist
         # Add to last list
         L2[-1].append( ds2 )
