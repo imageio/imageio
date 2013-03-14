@@ -1,4 +1,6 @@
 
+import os
+import sys
 import numpy as np
 
 
@@ -119,6 +121,134 @@ class DictWitNames(dict):
 
 
 
+class BaseProgressIndicator:
+    """ A progress indicator helps display the progres of a task to the
+    user. Progress can be pending, running, finished or failed.
+    
+    Each task has:
+      * a name - a short description of what needs to be done.
+      * an action - the current action in performing the task (e.g. a subtask)
+      * progress - how far the task is completed
+      * max - the maximum number of progress units. If 0, the progress is undefinite
+      * unit - the units in which the progress is counted
+      * status - 0: pending, 1: in progress, 2: finished, 3: failed
+    
+    This class defines an abstract interface. Subclasses should implement
+    _start, _stop, _update_progress(progressText), _write(message).
+    """
+    
+    def __init__(self, name):
+        self._name = name
+        self._action = ''
+        self._unit = ''
+        self._max = 0
+        self._status = 0
+    
+    def start(self,  action='', unit='', max=0):
+        self._action = action
+        self._unit = unit
+        self._max = max
+        #
+        self._progress = 0 
+        self._status = 1
+        self._start()
+    
+    def status(self):
+        return self._status
+    
+    def set_progress(self, progress=0):
+        self._progress = progress
+        # Compose new string
+        unit = self._unit or ''
+        progressText = ''
+        if unit == '%':
+            progressText = '%2.1f%%' % progress
+        elif self._max > 0:
+            percent = 100 * float(progress) / self._max
+            progressText = '%i/%i %s (%2.1f%%)' % (progress, self._max, unit, percent)
+        elif progress > 0:
+            if isinstance(progress, float):
+                progressText = '%0.4g %s' % (progress, unit)
+            else:
+                progressText = '%i %s' % (progress, unit)
+        # Update
+        self._update_progress(progressText)
+    
+    def finish(self, message=None):
+        if self._max > 0 and self._progress < self._max:
+            self.set_progress(self._max)
+        self._status = 2
+        self._stop()
+        if message is not None:
+            self._write(message)
+        
+    
+    def fail(self, message=None):
+        self._status = 3
+        self._stop()
+        message = 'FAIL ' + (message or '')
+        self._write(message)
+    
+    def write(self, message):
+        if self.__class__ == BaseProgressIndicator:
+            # When this class is used as a dummy, print explicit message
+            print(message)
+        else:
+            return self._write(message)
+    
+    # Implementing classes should implement these
+    
+    def _start(self):
+        pass
+        
+    def _stop(self):
+        pass
+    
+    def _update_progress(self, progressText):
+        pass
+    
+    def _write(self, message):
+        pass
+    
+
+class StdoutProgressIndicator(BaseProgressIndicator):
+    
+    def _start(self):
+        self._chars_prefix, self._chars = '', ''
+        # Write message
+        if self._action:
+            self._chars_prefix = '%s (%s): ' % (self._name, self._action)
+        else:
+            self._chars_prefix = '%s: ' % self._name
+        sys.stdout.write(self._chars_prefix)
+        sys.stdout.flush()
+    
+    def _update_progress(self, progressText):
+        # If progress is unknown, at least make something move
+        if not progressText:
+            i1, i2, i3, i4 = '-\\|/'
+            progressText = {i1:i2, i2:i3, i3:i4, i4:i1}.get(self._chars, i1)
+        # Store new string and write
+        delChars = '\b'*len(self._chars)
+        self._chars = progressText
+        sys.stdout.write(delChars+self._chars)
+        sys.stdout.flush()
+    
+    def _stop(self):
+        self._chars = self._chars_prefix = ''
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+    
+    def _write(self, message):
+        # Write message
+        delChars = '\b'*len(self._chars_prefix+self._chars)
+        sys.stdout.write(delChars+'  '+message+'\n')
+        # Reprint progress text
+        sys.stdout.write(self._chars_prefix+self._chars)
+        sys.stdout.flush()
+
+
+
 if __name__ == '__main__':
     a = np.ones((5,5))
     im1 = Image(a)
@@ -128,5 +258,22 @@ if __name__ == '__main__':
     L = ImageList()
     L.append(im1)
     L.append(im2)
+    
+    p = StdoutProgressIndicator('Testing')
+    p.start('foo', '', 102)
+    import time
+    for i in range(100):
+        time.sleep(0.02)
+        p.set_progress(i)
+    p.finish('Hooray')
+    
+    p.start('bar', 'items', 80)
+    import time
+    for i in range(100):
+        time.sleep(0.02)
+        p.set_progress(i)
+    p.fail('Too little items found')
+    
+        
     
     
