@@ -7,34 +7,52 @@ The functions in imageio
 
 
 
-
-.. note::
-    imageio is under construction, only a limited set of functions have yet
-    been implemented. However, the imread and imsave functions work
-    and their signature is very likely to stay the same.
-
 These functions are the main interface for the imageio user. They
-provide a common interface to read and save image data 
-for a large variety of formats. All read and save functions accept keyword 
-arguments, which are passed on to the format that does the actual work. 
+provide a common interface to read and save image data for a large
+variety of formats. All read and save functions accept keyword
+arguments, which are passed on to the format that does the actual work.
 To see what keyword arguments are supported by a specific format, use
 the :ref:`imageio.help<insertdocs-imageio-help>` function.
 
-Functions for reading/saving of images:
+All image data is represented using numpy arrays. When reading, the
+resulting array will have its meta data stored in an attribute called
+'meta'.
 
-  * :ref:`imageio.imread<insertdocs-imageio-imread>` - reads an image from the specified file and return as a 
-    numpy array.
-  * :ref:`imageio.imsave<insertdocs-imageio-imsave>` - save an image to the specified file.
-  * imageio.mimread - read a series of images from the specified file.
-  * imageio.mimsave - save a series of images to the specified file.
+**Functions for reading**
 
-Functions for reading/saving of volumes: todo
 
-For a larger degree of control, imageio provides the functions 
-:ref:`imageio.read<insertdocs-imageio-read>` and :ref:`imageio.save<insertdocs-imageio-save>`. They respectively return an :ref:`imageio.Reader<insertdocs-imageio-Reader>`
-and an :ref:`imageio.Writer<insertdocs-imageio-Writer>` object, which can be used to read/save data and meta
-data in a more controlled manner. This also allows specific scientific 
-formats to be exposed in a way that best suits that file-format.
+
+All read functions accept an uri, which can be a normal filename, a
+file in a zipfile, an http/ftp address, a file object, or the raw bytes.
+
+  * :ref:`imageio.imread<insertdocs-imageio-imread>` - read an image from the specified uri.
+  * imageio.mimread - read a series of images from the specified uri.
+  * imageio.volread - read a volume from the specified uri.
+  * imageio.mvolsave - save a series of volumes to the specified uri.
+
+**Functions for saving**
+
+
+
+All save functions accept an uri, which can be a normal filename, a
+file in a zipfile, or imageio.RETURN_BYTES, in which case the raw bytes
+are returned.
+
+  * :ref:`imageio.imsave<insertdocs-imageio-imsave>` - save an image to the specified uri.
+  * imageio.mimsave - save a series of images to the specified uri.
+  * imageio.volsave - save a volume to the specified uri.
+  * imageio.mvolread - read a series of volumes from the specified uri.
+
+**More control**
+
+
+
+For a larger degree of control, imageio provides the functions
+:ref:`imageio.read<insertdocs-imageio-read>` and :ref:`imageio.save<insertdocs-imageio-save>`. They respectively return an
+imageio.Format.Reader and an imageio.Format.Writer object, which can
+be used to read/save data and meta data in a more controlled manner.
+This also allows specific scientific formats to be exposed in a way
+that best suits that file-format.
 
 .. insertdocs end::
 
@@ -65,7 +83,7 @@ formats to be exposed in a way that best suits that file-format.
 
 .. _insertdocs-imageio-read:
 
-.. py:function:: imageio.read(filename, format=None, expect=None, **kwargs)
+.. py:function:: imageio.read(uri, format=None, expect=None, **kwargs)
 
   Returns a reader object which can be used to read data and info 
   from the specified file.
@@ -73,16 +91,18 @@ formats to be exposed in a way that best suits that file-format.
   **Parameters**
   
   
-  filename : str
-      The location of the file on the file system.
+  uri : {str, bytes}
+      The resource to load the image from. This can be a normal
+      filename, a file in a zipfile, an http/ftp address, a file
+      object, or the raw bytes.
   format : str
       The format to use to read the file. By default imageio selects
       the appropriate for you based on the filename and its contents.
   expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
       Used to give the reader a hint on what the user expects. Optional.
   
-  Further keyword arguments are passed to the reader. See the docstring
-  of the corresponding format to see what arguments are available.
+  Further keyword arguments are passed to the reader. See :ref:`imageio.help<insertdocs-imageio-help>`
+  to see what arguments are available for a particular format.
   
   
 .. insertdocs end::
@@ -92,7 +112,7 @@ formats to be exposed in a way that best suits that file-format.
 
 .. _insertdocs-imageio-save:
 
-.. py:function:: imageio.save(filename, format=None, expect=None, **kwargs)
+.. py:function:: imageio.save(uri, format=None, expect=None, **kwargs)
 
   Returns a writer object which can be used to save data and info 
   to the specified file.
@@ -100,16 +120,18 @@ formats to be exposed in a way that best suits that file-format.
   **Parameters**
   
   
-  filename : str
-      The location of the file to save to.
+  uri : str
+      The resource to save the image to. This can be a normal
+      filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
+      case the raw bytes are returned.
   format : str
       The format to use to read the file. By default imageio selects
       the appropriate for you based on the filename.
   expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
       Used to give the writer a hint on what kind of data to expect. Optional.
   
-  Further keyword arguments are passed to the writer. See the docstring
-  of the corresponding format to see what arguments are available.
+  Further keyword arguments are passed to the reader. See :ref:`imageio.help<insertdocs-imageio-help>`
+  to see what arguments are available for a particular format.
   
   
 .. insertdocs end::
@@ -119,21 +141,24 @@ formats to be exposed in a way that best suits that file-format.
 
 .. _insertdocs-imageio-imread:
 
-.. py:function:: imageio.imread(filename, format=None, **kwargs)
+.. py:function:: imageio.imread(uri, format=None, **kwargs)
 
-  Reads an image from the specified file. Returns a numpy array.
+  Reads an image from the specified file. Returns a numpy array, which
+  comes with a dict of meta data at its 'meta' attribute.
   
   **Parameters**
   
   
-  filename : str
-      The location of the file on the file system.
+  uri : {str, bytes}
+      The resource to load the image from. This can be a normal
+      filename, a file in a zipfile, an http/ftp address, a file
+      object, or the raw bytes.
   format : str
       The format to use to read the file. By default imageio selects
       the appropriate for you based on the filename and its contents.
   
-  Further keyword arguments are passed to the reader. See the docstring
-  of the corresponding format to see what arguments are available.
+  Further keyword arguments are passed to the reader. See :ref:`imageio.help<insertdocs-imageio-help>`
+  to see what arguments are available for a particular format.
   
   
 .. insertdocs end::
@@ -143,23 +168,25 @@ formats to be exposed in a way that best suits that file-format.
 
 .. _insertdocs-imageio-imsave:
 
-.. py:function:: imageio.imsave(filename, im, format=None, **kwargs)
+.. py:function:: imageio.imsave(uri, im, format=None, **kwargs)
 
   Save an image to the specified file.
   
   **Parameters**
   
   
-  filename : str
-      The location of the file to save to.
+  uri : str
+      The resource to save the image to. This can be a normal
+      filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
+      case the raw bytes are returned.
   im : numpy.ndarray
       The image data. Must be NxM, NxMx3 or NxMx4.
   format : str
       The format to use to read the file. By default imageio selects
       the appropriate for you based on the filename and its contents.
   
-  Further keyword arguments are passed to the writer. See the docstring
-  of the corresponding format to see what arguments are available.
+  Further keyword arguments are passed to the reader. See :ref:`imageio.help<insertdocs-imageio-help>`
+  to see what arguments are available for a particular format.
   
   
 .. insertdocs end::

@@ -22,8 +22,8 @@ In imageio, a plugin provides one or more :ref:`imageio.Format<insertdocs-imagei
 corresponding :ref:`imageio.Reader<insertdocs-imageio-Reader>` and :ref:`imageio.Writer<insertdocs-imageio-Writer>` classes.
 
 Each :ref:`imageio.Format<insertdocs-imageio-Format>` object represents an implementation to read/save a 
-particular file format. The :ref:`imageio.Reader<insertdocs-imageio-Reader>` and :ref:`imageio.Writer<insertdocs-imageio-Writer>` classes 
-do the actual reading/saving.
+particular file format. Its Reader and Writer classes do the actual
+reading/saving.
 
 
 **Registering**
@@ -43,36 +43,39 @@ easy to extend.
 
 
 
-Imageio is designed such that plugins mostly only need to implement 
-private methods. These private methods are called from public methods.
+Imageio is designed such that plugins only need to implement a few
+private methods. The public API is implemented by the base classes.
 In effect, the public methods can be given a descent docstring which
 does not have to be repeated at the plugins.
 
 For the :ref:`imageio.Format<insertdocs-imageio-Format>` class, the following needs to be implemented/specified:
 
-  * The format needs a short name, a description and a list of file extensions
-    that are common for the file-format in question.
-  * Use a docstring to provide more detailed information about the format/plugin.
-  * Implement _get_reader_class() and _get_writer_class() to return the
-    Reader and Writer corresponding the format.
+  * The format needs a short name, a description, and a list of file
+    extensions that are common for the file-format in question.
+  * Use a docstring to provide more detailed information about the
+    format/plugin.
   * Implement _can_read(request), return a bool. See also the Request class.
   * Implement _can_save(request), dito.
 
-For the :ref:`imageio.Reader<insertdocs-imageio-Reader>` class:
-    
-  * Implement _read_data(*indices, **kwargs)
-  * Implement _read_info(*indices, **kwargs), empty indices means global info.
-  * Implement _mshape(), should implement the shape of the data. 1 for single
-    image, 5 for 5 images (4,5) for a series of 4 images of 5 stacks, etc.
-    Under construction... we might also want to specify that we dont know
-    the number if images.
-  * Implement _init() and _close() to open and close files and resources. 
+For the imageio.Format.Reader class:
+  
+  * Implement _open(**kwargs) to initialize the reader, with the
+    user-provided keyword arguments.
+  * Implement _close() to clearn up
+  * Implement _get_length() to provide a suitable length based on what
+    the user expects. Can be np.inf for streaming data.
+  * Implement _get_data(index) to return an array and a meta-data dict.
+  * Implement _get_meta_data(index) to return a meta-data dict. If index
+    is None, it should return the 'global' meta-data.
+  * Optionally implement _get_next_data() to provide allow streaming.
 
-For the :ref:`imageio.Writer<insertdocs-imageio-Writer>` class:
+For the imageio.format.Writer class:
     
-  * Implement _save_data(data, *indices, **kwargs)
-  * Implement _save_info(info, *indices, **kwargs), empty indices means global info.
-  * Implement _init() and _close() to open and close files and resources. 
+  * Implement _open(**kwargs) to initialize the writer, with the
+    user-provided keyword arguments.
+  * Implement _close() to clearn up
+  * Implement _append_data(im, meta) to add data (and meta-data).
+  * Implement _set_meta_data(meta) to set the global meta-data.
 
 .. insertdocs end::
 
