@@ -2,8 +2,25 @@ Release notes
 -------------
 
 Version 0.2.4:
+
+This was a long haul. Implemented several plugins for animation and
+volumetric data to give an idea of what sort of API's work and which 
+do not. 
     
-    * Refactored for more conventional package layout (but importing without installing still supported)
+    * Refactored for more conventional package layout 
+      (but importing without installing still supported)
+    * Put Reader and Writer classes in the namespace of the format. This
+      makes a format a unified whole, and gets rid of the
+      _get_reader_class and _get_write_class methods (at the cost of
+      some extra indentation).
+    * Refactored Reader and Writer classes to come up with a better API
+      for both users as plugins.
+    * The Request class acts as a smart bridging object. Therefore all
+      plugins can now read from a zipfile, http/ftp, and bytes. And they
+      don't have to do a thing.
+    * Implemented specific BMP, JPEG, PNG, GIF, ICON formats.
+    * Implemented animated gif plugin (based on freeimage).
+    * Implemented standalone DICOM plugin.
 
 Version 0.2.3:
     
