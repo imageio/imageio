@@ -1,7 +1,7 @@
 Release notes
 -------------
 
-Version 0.2.4:
+Version 0.3.0
 
 This was a long haul. Implemented several plugins for animation and
 volumetric data to give an idea of what sort of API's work and which 
