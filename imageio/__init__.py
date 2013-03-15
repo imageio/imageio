@@ -24,7 +24,7 @@ Quickstart:
 
 # todo: test images at: http://sourceforge.net/projects/freeimage/files/
 # todo: Change description to focus more on pluggable
-__version__ = '0.2.3dev'
+__version__ = '0.3.0'
 
 import sys
 
