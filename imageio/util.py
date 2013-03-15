@@ -8,6 +8,7 @@ Utilities for imageio
 
 import os
 import sys
+import time
 import numpy as np
 
 
@@ -151,8 +152,11 @@ class BaseProgressIndicator:
         self._unit = ''
         self._max = 0
         self._status = 0
+        self._last_progress_update = 0
     
     def start(self,  action='', unit='', max=0):
+        if self._status == 1:
+            self.finish() 
         self._action = action
         self._unit = unit
         self._max = max
@@ -164,8 +168,12 @@ class BaseProgressIndicator:
     def status(self):
         return self._status
     
-    def set_progress(self, progress=0):
+    def set_progress(self, progress=0, force=False):
         self._progress = progress
+        # Update or not?
+        if not (force or (time.time() - self._last_progress_update > 0.1)):
+            return
+        self._last_progress_update = time.time()
         # Compose new string
         unit = self._unit or ''
         progressText = ''
@@ -183,8 +191,7 @@ class BaseProgressIndicator:
         self._update_progress(progressText)
     
     def finish(self, message=None):
-        if self._max > 0 and self._progress < self._max:
-            self.set_progress(self._max)
+        self.set_progress(self._progress, True)  # fore update
         self._status = 2
         self._stop()
         if message is not None:
@@ -192,6 +199,7 @@ class BaseProgressIndicator:
         
     
     def fail(self, message=None):
+        self.set_progress(self._progress, True)  # fore update
         self._status = 3
         self._stop()
         message = 'FAIL ' + (message or '')
