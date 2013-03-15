@@ -956,6 +956,9 @@ def process_directory(request, progressIndicator, readPixelData=False):
     count = 0
     progressIndicator.start('examining files', 'files', len(files))
     for filename in files:
+        # Show progress (note that we always start with a 0.0)
+        count += 1
+        progressIndicator.set_progress(count)
         # Skip DICOMDIR files
         if filename.count("DICOMDIR"):
             continue
@@ -975,9 +978,6 @@ def process_directory(request, progressIndicator, readPixelData=False):
         if suid not in series:
             series[suid] = DicomSeries(suid, progressIndicator)
         series[suid]._append(dcm)
-        # Show progress (note that we always start with a 0.0)
-        count += 1
-        progressIndicator.set_progress(count)
     
     # Finish progress
     #progressIndicator.finish('Found %i series.' % len(series))
@@ -999,7 +999,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
             series_.append(series[i])
         except Exception:
             pass # Skip serie (probably report-like file without pixels)
-        progressIndicator.set_progress(i+1)
+        #progressIndicator.set_progress(i+1)
     progressIndicator.finish('Found %i correct series.' % len(series))
     
     # Done
