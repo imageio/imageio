@@ -1,7 +1,16 @@
 Release notes
 -------------
 
-Version 0.3.0
+Version 0.3.2:
+    
+    * Fix in dicom reader (RescaleSlope and RescaleIntercept were not found)
+    * Fixed that progress indicator made things slow
+
+Version 0.3.1:
+    
+    * Fix installation/distribution issue.
+
+Version 0.3.0:
 
 This was a long haul. Implemented several plugins for animation and
 volumetric data to give an idea of what sort of API's work and which 
