@@ -78,7 +78,7 @@ setup(
     
     url = 'http://imageio.readthedocs.org',
     download_url = 'http://pypi.python.org/pypi/imageio',    
-    keywords = "FreeImage image imread imsave io",
+    keywords = "FreeImage image imread imsave io animation volume",
     description = description,
     long_description = __doc__,
     
@@ -87,7 +87,7 @@ setup(
     requires = ['numpy'],
     
     packages = ['imageio', 'imageio.plugins'],
-    package_dir = {'imageio': 'imageio'}, # must be a dot, not an empty string
-    package_data = {'imageio': [libFilter,]},
+    package_dir = {'imageio': 'imageio'}, 
+    package_data = {'imageio': [libFilter, '../freeimage_install.py'] },
     zip_safe = False,
     )
