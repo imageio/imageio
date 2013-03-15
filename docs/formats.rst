@@ -567,6 +567,14 @@ Extensions: ``dcm``, ``ct``, ``mri``
  A format for reading DICOM images: a common format used to store
     medical image data, such as X-ray, CT and MRI.
     
+    This format borrows some code (and ideas) from the pydicom project,
+    and (to the best of our knowledge) has the same limitations as
+    pydicom with regard to the type of files that it can handle. However,
+    only a predefined subset of tags are extracted from the file. This allows
+    for great simplifications allowing us to make a stand-alone reader, and
+    also results in a much faster read time. We plan to allow reading all
+    tags in the future (by using pydicom).
+    
 **Keyword arguments for reading**
 
 
