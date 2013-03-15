@@ -22,9 +22,7 @@ Quickstart:
  
 """
 
-# todo: test images at: http://sourceforge.net/projects/freeimage/files/
-# todo: Change description to focus more on pluggable
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 import sys
 
