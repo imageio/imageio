@@ -277,8 +277,8 @@ MINIDICT =  {   (0x7FE0, 0x0010): ('PixelData',             'OB'),
                 (0x0028, 0x0103): ('PixelRepresentation',   'US'),
                 (0x0028, 0x0010): ('Rows',                  'US'),
                 (0x0028, 0x0011): ('Columns',               'US'),
-                (0x0028, 0x0052): ('RescaleIntercept',      'DS'),
-                (0x0028, 0x0053): ('RescaleSlope',          'DS'),
+                (0x0028, 0x1052): ('RescaleIntercept',      'DS'),
+                (0x0028, 0x1053): ('RescaleSlope',          'DS'),
                 # Image specific (for the user)
                 (0x0028, 0x0030): ('PixelSpacing',          'DS'),
                 (0x0018, 0x0088): ('SliceSpacing',          'DS'),
@@ -381,7 +381,7 @@ class SimpleDicomReader(object):
         s = x.decode('ascii').strip('\x00')
         try:
             if splitter in s:
-                return tuple( [type(v) for v in s.split(splitter) if v] )
+                return tuple( [type(v) for v in s.split(splitter) if v.strip()] )
             else:
                 return type(s)
         except ValueError:
