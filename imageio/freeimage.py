@@ -243,13 +243,19 @@ class METADATA_DATATYPE(object):
     FIDT_DOUBLE = 12 # 64-bit IEEE floating point
     FIDT_IFD = 13 # 32-bit unsigned integer (offset)
     FIDT_PALETTE = 14 # 32-bit RGBQUAD
-
+    FIDT_LONG8 = 16 # 64-bit unsigned integer
+    FIDT_SLONG8 = 17 # 64-bit signed integer
+    FIDT_IFD8 = 18 # 64-bit unsigned integer (offset)
+    
     dtypes = {
         FIDT_BYTE: numpy.uint8,
         FIDT_SHORT: numpy.uint16,
         FIDT_LONG: numpy.uint32,
         FIDT_RATIONAL:  [('numerator', numpy.uint32),
                          ('denominator', numpy.uint32)],
+        FIDT_LONG8: numpy.uint64,
+        FIDT_SLONG8: numpy.int64,
+        FIDT_IFD8: numpy.uint64,
         FIDT_SBYTE: numpy.int8,
         FIDT_UNDEFINED: numpy.uint8,
         FIDT_SSHORT: numpy.int16,
@@ -570,6 +576,8 @@ class FIBaseBitmap(object):
                         # Convert to a Python value in the metadata dict
                         if tag_type == METADATA_DATATYPE.FIDT_ASCII:
                             tag_val = tag_str.value.decode('utf-8')
+                        elif not tag_type in METADATA_DATATYPE.dtypes:
+                            tag_val = tag_str.value  # We don't know, return bytes
                         else:
                             tag_val = numpy.fromstring(tag_str,
                                     dtype=METADATA_DATATYPE.dtypes[tag_type])
