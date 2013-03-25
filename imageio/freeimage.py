@@ -575,7 +575,7 @@ class FIBaseBitmap(object):
                         tag_str = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
                         # Convert to a Python value in the metadata dict
                         if tag_type == METADATA_DATATYPE.FIDT_ASCII:
-                            tag_val = tag_str.value.decode('utf-8')
+                            tag_val = tag_str.value.decode('utf-8', 'replace')
                         elif not tag_type in METADATA_DATATYPE.dtypes:
                             tag_val = tag_str.value  # We don't know, return bytes
                         else:
@@ -805,8 +805,8 @@ class FIBitmap(FIBaseBitmap):
     
     
     def get_image_data(self):
-        dtype, shape = self._get_type_and_shape()
-        array = self._wrap_bitmap_bits_in_array(shape, dtype)
+        dtype, shape, bpp = self._get_type_and_shape()
+        array = self._wrap_bitmap_bits_in_array(shape, dtype, bpp)
         with self._fi as lib:
             isle = lib.FreeImage_IsLittleEndian()
         
@@ -875,7 +875,7 @@ class FIBitmap(FIBaseBitmap):
             ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
     
     
-    def _wrap_bitmap_bits_in_array(self, shape, dtype):
+    def _wrap_bitmap_bits_in_array(self, shape, dtype, bpp=None):
         """Return an ndarray view on the data in a FreeImage bitmap. Only
         valid for as long as the bitmap is loaded (if single page) / locked
         in memory (if multipage).
@@ -891,6 +891,23 @@ class FIBitmap(FIBaseBitmap):
         byte_size = height * pitch
         itemsize = dtype.itemsize
         
+        # Get bytes data, convert to uint8 for bpp<8
+        if bpp and bpp < 8:
+            # Read bytes and make bits (not very efficient memory-wise)
+            raw = numpy.frombuffer(
+                    (ctypes.c_char*byte_size).from_address(bits), 'uint8')
+            bits = numpy.unpackbits(raw)
+            # Now make bytes again, but with padded zeros.
+            bits.shape = -1, bpp
+            padding = numpy.zeros((bits.shape[0], 8-bpp), 'bool')
+            bits = numpy.hstack((padding, bits))
+            data = numpy.packbits(bits, -1)
+            # Set corrected pitch
+            pitch = int( 8*pitch/bpp )
+        else:
+            # Data as-is
+            data = (ctypes.c_char*byte_size).from_address(bits)
+        
         # Get strides
         if len(shape) == 3:
             strides = (itemsize, shape[0]*itemsize, pitch)
@@ -898,9 +915,7 @@ class FIBitmap(FIBaseBitmap):
             strides = (itemsize, pitch)
         
         # Create numpy array and return
-        array = numpy.ndarray(shape, dtype=dtype,
-                                buffer=(ctypes.c_char*byte_size).from_address(bits),
-                                strides=strides)
+        array = numpy.ndarray(shape, dtype=dtype, buffer=data, strides=strides)
         return array
     
     
@@ -916,6 +931,7 @@ class FIBitmap(FIBaseBitmap):
                 raise ValueError('Unknown image pixel type')
         
         # Determine required props for numpy array
+        bpp = None
         dtype = FI_TYPES.dtypes[fi_type]
         if fi_type == FI_TYPES.FIT_BITMAP:
             with self._fi as lib:
@@ -926,13 +942,15 @@ class FIBitmap(FIBaseBitmap):
                 extra_dims = [3]
             elif bpp == 32:
                 extra_dims = [4]
+            elif bpp < 8:
+                extra_dims = []  # Make uint8 in _wrap_bitmap_bits_in_array
             else:
                 raise ValueError('Cannot convert %d BPP bitmap' % bpp)
         else:
             extra_dims = FI_TYPES.extra_dims[fi_type]
         
         # Return dtype and shape
-        return numpy.dtype(dtype), extra_dims + [w, h]
+        return numpy.dtype(dtype), extra_dims + [w, h], bpp
 
 
 
