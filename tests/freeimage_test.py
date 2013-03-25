@@ -13,24 +13,29 @@ import imageio
 
 ulr = "http://sourceforge.net/projects/freeimage/files/Test%20Suite%20%28graphics%29/2.5.0/"
 
-names = ['png', 'jpeg', 'tiff', 'targa']  # etc..
+names = ['png', 'jpeg', 'bmp', 'ico',  'tiff', 'targa', 'koa', 'mng', 'iff', 'psd', 'ppm', 'pcx'] 
+
+NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
 
 
 if __name__ == '__main__':
     
     THISDIR = os.path.dirname(os.path.abspath(__file__))
     TESTDIR = os.path.join(THISDIR, 'temp')
+    ZIPDIR = os.path.join(THISDIR, 'zipped')
     
     if not os.path.isdir(TESTDIR):
         os.mkdir(TESTDIR)
+    if not os.path.isdir(ZIPDIR):
+        os.mkdir(ZIPDIR)
     
     for name in names:
-        fname = os.path.join(TESTDIR, name+'.zip')
+        fname = os.path.join(ZIPDIR, name+'.zip')
         # Make sure that the file is there
         if not os.path.isfile(fname):
             print('Downloading %s.zip' % name)
             f1 = urlopen(ulr+name+'.zip')
-            f2 = open(os.path.join(TESTDIR, name+'.zip'), 'wb')
+            f2 = open(fname, 'wb')
             shutil.copyfileobj(f1, f2)
             f1.close()
             f2.close()
@@ -38,14 +43,18 @@ if __name__ == '__main__':
         # Check contents
         zf = zipfile.ZipFile(fname, 'r')
         subnames = zf.namelist()
-        zf.extractall()
+        zf.extractall(TESTDIR)
         zf.close()
         
         # Read and write each one
         for subname in subnames:
             fname_zip = fname+'/%s' % subname
-            fname_dst1 = os.path.join(TESTDIR, '_1'+subname)
-            fname_dst2 = os.path.join(TESTDIR, '_2'+subname)
+            subname_, ext = os.path.splitext(subname)
+            fname_dst1 = os.path.join(TESTDIR, subname+'_1'+ext)
+            fname_dst2 = os.path.join(TESTDIR, subname+'_2'+ext)
+            if os.path.splitext(subname)[1].lower() in NOT_WRITABLE:
+                fname_dst1 += '.png'
+                fname_dst2 += '.png'
             print('Reading+saving %s' % subname)
             try:
                 # Read from zip, save to file
@@ -55,6 +64,5 @@ if __name__ == '__main__':
                 im = imageio.imread(fname_dst1)
                 imageio.imsave(fname_dst2, im)
             except Exception as err:
-                print(err)
-            
-        
+                print('woops! ' + fname_zip)
+                print('  '+str(err))
