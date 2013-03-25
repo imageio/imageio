@@ -220,17 +220,7 @@ class Format:
             if self.__closed:
                 return
             self.__closed = True
-            try:
-                self._close()
-            except Exception:
-                if value:
-                    # Let other error fall through, give warning
-                    e_type, e_value, e_tb = sys.exc_info(); del e_tb
-                    print('imagio.%s: Error in cleanup: %s' % 
-                            (self.format.name, str(e_value)) )
-                else:
-                    # Re-raise error in _close()
-                    raise
+            self._close()
             # Process results and clean request object
             self.request.finish()
         
