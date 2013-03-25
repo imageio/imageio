@@ -11,11 +11,20 @@ import shutil
 
 import imageio
 
+
+# Url to download images from
 ulr = "http://sourceforge.net/projects/freeimage/files/Test%20Suite%20%28graphics%29/2.5.0/"
 
+# Names of zipfiles to download
 names = ['png', 'jpeg', 'bmp', 'ico',  'tiff', 'targa', 'koa', 'mng', 'iff', 'psd', 'ppm', 'pcx'] 
 
+# Define what formats are not writable, we will convert these to png
 NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
+
+# Define files that fail (i.e. crash)
+FAILS = []
+if sys.platform.startswith('linux'):
+    FAILS.extend( ['quad-jpeg.tif', 'test1g.tif'] )
 
 
 if __name__ == '__main__':
@@ -48,6 +57,8 @@ if __name__ == '__main__':
         
         # Read and write each one
         for subname in subnames:
+            if subname in FAILS:
+                continue
             fname_zip = fname+'/%s' % subname
             subname_, ext = os.path.splitext(subname)
             fname_dst1 = os.path.join(TESTDIR, subname+'_1'+ext)
