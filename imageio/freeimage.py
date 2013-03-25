@@ -935,7 +935,12 @@ class FIBitmap(FIBaseBitmap):
             elif bpp == 32:
                 extra_dims = [4]
             else:
-                raise ValueError('Cannot convert %d BPP bitmap' % bpp)
+                #raise ValueError('Cannot convert %d BPP bitmap' % bpp)
+                # Convert bitmap and call this method again
+                newbitmap = lib.FreeImage_ConvertTo32Bits(bitmap)
+                newbitmap = ctypes.c_void_p(newbitmap)
+                self._set_bitmap(newbitmap)
+                return self._get_type_and_shape()
         else:
             extra_dims = FI_TYPES.extra_dims[fi_type]
         
