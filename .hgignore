@@ -5,6 +5,7 @@ docs/_build/*
 build/*
 dist/*
 temp/*
+tests/zipped/*
 tests/freezing/frozen/*
 *.dll
 *.dylib
