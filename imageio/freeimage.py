@@ -510,34 +510,34 @@ class FIBaseBitmap(object):
         self._ftype = ftype
         self._flags = flags
         self._bitmap = None
-        self._close_func = None
+        self._close_funcs = []
     
     def __del__(self):
         self.close()
     
     def close(self):
-        if self._bitmap is not None and self._close_func is not None:
-            try:
-                with self._fi as lib:
-                    fun = self._close_func[0]
-                    fun(*self._close_func[1:])
-            except Exception:
-                pass
-            finally:
-                self._bitmap = None
+        if (self._bitmap is not None) and self._close_funcs:
+            for close_func in self._close_funcs:
+                try:
+                    with self._fi as lib:
+                        fun = close_func[0]
+                        fun(*close_func[1:])
+                except Exception:
+                    pass
+            self._close_funcs = []
+            self._bitmap = None
     
     def _set_bitmap(self, bitmap, close_func=None):
         """ Function to set the bitmap and specify the function to unload it.
         """ 
         if self._bitmap is not None:
-            raise RuntimeError('Bitmap is already set.')
+            pass # bitmap is converted #raise RuntimeError('Bitmap is already set.')
         if close_func is None:
-            close_func = self._fi._lib.FreeImage_Unload
-        if not close_func:
-            close_func = None
+            close_func = self._fi._lib.FreeImage_Unload, bitmap
         
         self._bitmap = bitmap
-        self._close_func = close_func
+        if close_func:
+            self._close_funcs.append(close_func)
     
     
     def get_meta_data(self):
@@ -891,23 +891,6 @@ class FIBitmap(FIBaseBitmap):
         byte_size = height * pitch
         itemsize = dtype.itemsize
         
-        # Get bytes data, convert to uint8 for bpp<8
-        if bpp and bpp < 8:
-            # Read bytes and make bits (not very efficient memory-wise)
-            raw = numpy.frombuffer(
-                    (ctypes.c_char*byte_size).from_address(bits), 'uint8')
-            bits = numpy.unpackbits(raw)
-            # Now make bytes again, but with padded zeros.
-            bits.shape = -1, bpp
-            padding = numpy.zeros((bits.shape[0], 8-bpp), 'bool')
-            bits = numpy.hstack((padding, bits))
-            data = numpy.packbits(bits, -1)
-            # Set corrected pitch
-            pitch = int( 8*pitch/bpp )
-        else:
-            # Data as-is
-            data = (ctypes.c_char*byte_size).from_address(bits)
-        
         # Get strides
         if len(shape) == 3:
             strides = (itemsize, shape[0]*itemsize, pitch)
@@ -915,6 +898,7 @@ class FIBitmap(FIBaseBitmap):
             strides = (itemsize, pitch)
         
         # Create numpy array and return
+        data = (ctypes.c_char*byte_size).from_address(bits)
         array = numpy.ndarray(shape, dtype=dtype, buffer=data, strides=strides)
         return array
     
@@ -933,17 +917,23 @@ class FIBitmap(FIBaseBitmap):
         # Determine required props for numpy array
         bpp = None
         dtype = FI_TYPES.dtypes[fi_type]
+        
         if fi_type == FI_TYPES.FIT_BITMAP:
             with self._fi as lib:
                 bpp = lib.FreeImage_GetBPP(bitmap)
-            if bpp == 8:
+                has_pallette = lib.FreeImage_GetColorsUsed(bitmap)
+            if has_pallette:
+                # Convert bitmap and call this method again
+                newbitmap = lib.FreeImage_ConvertTo32Bits(bitmap)
+                newbitmap = ctypes.c_void_p(newbitmap)
+                self._set_bitmap(newbitmap)
+                return self._get_type_and_shape()
+            elif bpp == 8:
                 extra_dims = []
             elif bpp == 24:
                 extra_dims = [3]
             elif bpp == 32:
                 extra_dims = [4]
-            elif bpp < 8:
-                extra_dims = []  # Make uint8 in _wrap_bitmap_bits_in_array
             else:
                 raise ValueError('Cannot convert %d BPP bitmap' % bpp)
         else:
