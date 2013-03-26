@@ -5,7 +5,11 @@ We also use it to test reading from a zipfile.
 import os
 import sys
 
-from urllib.request import urlopen
+try:
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen # Py3k
+
 import zipfile
 import shutil
 
