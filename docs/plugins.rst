@@ -88,18 +88,18 @@ This code is from ``imageio/plugins/example.py``:
     :linenos:
 
     from imageio import formats
-    from imageio import base
+    from imageio.base import Format
     import numpy as np
     
     
-    class DummyFormat(base.Format):
+    class DummyFormat(Format):
         """ The dummy format is an example format that does nothing.
         It will never indicate that it can read or save a file. When
         explicitly asked to read, it will simply read the bytes. When 
         explicitly asked to save, it will raise an error.
         """
         
-        def _can_read(request):
+        def _can_read(self, request):
             # The request object has:
             # request.filename: the filename
             # request.firstbytes: the first 256 bytes of the file.
@@ -107,61 +107,57 @@ This code is from ``imageio/plugins/example.py``:
             # request.kwargs: the keyword arguments specified by the user
             return False
         
-        def _can_save(request):
+        def _can_save(self, request):
             return False
-    
-        def _get_reader_class(self):
-            return Reader
         
-        def _get_writer_class(self):
-            return Writer 
+        
+        class Reader(Format.Reader):
+        
+            def _open(self):
+                self._fp = self.request.get_file()
+            
+            def _close(self):
+                pass  # The request object will close the file
+            
+            def _get_length(self):
+                return 1
+            
+            def _get_data(self, index):
+                if index != 0:
+                    raise IndexError('The dummy format only supports singleton images.')
+                # Read all bytes
+                data = self._fp.read()
+                # Put in a numpy array
+                im = np.frombuffer(data, 'uint8')
+                im.shape = len(im), 1
+                # Return array and dummy meta data
+                return im, {}
+            
+            def _get_meta_data(self, index):
+                raise RuntimeError('The dymmy format cannot read meta data.')
+            
+            def _get_next_data(self):
+                # Optional. Formats can implement this to support reading the
+                # images as a stream. If not implemented, imageio will ask for
+                # the length and use _get_data() to get the images.
+                raise NotImplementedError()  
+        
+        
+        class Writer(Format.Writer):
+            
+            def _open(self, flags=0):        
+                pass
+            
+            def _close(self):
+                pass
+            
+            def _append_data(self, im, meta):    
+                raise RuntimeError('The dymmy format cannot save image data.')
+            
+            def set_meta_data(self, meta):
+                raise RuntimeError('The dymmy format cannot save meta data.')
     
-    # Register. You register an *instance* of a Format class, which has
-    # corresponding Reader and Writer *classes*.
+    
+    # Register. You register an *instance* of a Format class.
     format = DummyFormat('dummy', 'An example format that does nothing.')
     formats.add_format(format)
-    
-    
-    class Reader(base.Reader):
-        
-        def _init(self):
-            self._fp = open(self.request.filename, 'rb')
-        
-        def _close(self):
-            self._fp.close()
-        
-        def _read_data(self, *indices, **kwargs):
-            if indices and indices != (0,):
-                raise RuntimeError('The dymmy format only supports reading single images.')
-            
-            # Read all bytes
-            self._fp.seek(0)
-            data = self._fp.read()
-            
-            # Put in a numpy array
-            im = np.frombuffer(data, 'uint8')
-            im.shape = len(im), 1
-            return im
-        
-        def _read_info(self, *indices, **kwargs):
-            raise RuntimeError('The dymmy format cannot read meta data.')
-    
-    
-    class Writer(base.Writer):
-        
-        # No need to inplement _init or _close, because we are not opening any files.
-        
-        def _save_data(self, data, *indices, **kwargs):
-            raise RuntimeError('The dymmy format cannot save image data.')
-        
-        def _save_info(self, info, *indices, **kwargs):
-            raise RuntimeError('The dymmy format cannot save meta data.')
-    
-    
-    if __name__ == '__main__':
-        import imageio
-        fname = 'C:/almar/projects/py/visvis/visvisResources/lena.png'
-        
-        im = imageio.imread(fname, 'dummy') # Explicitly use this format
-        print(im.shape) # (473831, 1)
-        imageio.imsave(fname, im, 'dummy') # Raises error
