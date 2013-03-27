@@ -607,18 +607,23 @@ class FIBaseBitmap(object):
                         char_ptr = ctypes.c_char * byte_size
                         data = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
                         tag_bytes = binary_type(bytearray(data))  # Convert in a way compatible with Pypy
+                        # The default value is the raw bytes
+                        tag_val = tag_bytes
                         # Convert to a Python value in the metadata dict
                         if tag_type == METADATA_DATATYPE.FIDT_ASCII:
                             tag_val = tag_bytes.decode('utf-8', 'replace')
-                        elif not tag_type in METADATA_DATATYPE.dtypes:
-                            tag_val = tag_bytes  # We don't know, return bytes
-                        else:
+                        elif tag_type in METADATA_DATATYPE.dtypes:
                             dtype = METADATA_DATATYPE.dtypes[tag_type]
                             if ISPYPY and isinstance(dtype, (list, tuple)):
-                                tag_bytes = b''  # or we get a segfault
-                            tag_val = numpy.fromstring(tag_bytes, dtype=dtype)
-                            if len(tag_val) == 1:
-                                tag_val = tag_val[0]
+                                pass  # or we get a segfault
+                            else:
+                                try:
+                                    tag_val = numpy.fromstring(tag_bytes, dtype=dtype)
+                                    if len(tag_val) == 1:
+                                        tag_val = tag_val[0]
+                                except Exception:
+                                    pass
+                        # Store data in dict
                         subdict = metadata.setdefault(model_name, DictWitNames())
                         subdict[tag_name] = tag_val
                         # Next
