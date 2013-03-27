@@ -613,8 +613,6 @@ class FIBaseBitmap(object):
                         elif not tag_type in METADATA_DATATYPE.dtypes:
                             tag_val = tag_bytes  # We don't know, return bytes
                         else:
-                            #print(repr(tag_bytes), METADATA_DATATYPE.dtypes[tag_type])
-                            #import time;  time.sleep(0.1)
                             dtype = METADATA_DATATYPE.dtypes[tag_type]
                             if ISPYPY and isinstance(dtype, (list, tuple)):
                                 tag_bytes = b''  # or we get a segfault

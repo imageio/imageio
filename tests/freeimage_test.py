@@ -4,7 +4,6 @@ We also use it to test reading from a zipfile.
 """
 import os
 import sys
-import platform
 try:
     from urllib2 import urlopen
 except ImportError:
@@ -29,7 +28,7 @@ NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
 FAILS = []
 if sys.platform.startswith('linux'):
     FAILS.extend( ['quad-jpeg.tif', 'test1g.tif'] )
-if platform.python_implementation() == 'PyPy':
+if imageio.util.ISPYPY:
     FAILS.extend( ['LAGEPLAN.PNG', 'Buch.tif'] ) # 'RedbrushAlpha.png',
 
 
@@ -80,6 +79,8 @@ if __name__ == '__main__':
                 # Read from file, save to file
                 im = imageio.imread(fname_dst1)
                 imageio.imsave(fname_dst2, im)
-            except Exception as err:
+            except Exception:
+                e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                err = str(e_value)
                 print('woops! ' + fname_zip)
-                print('  '+str(err))
+                print('  ' + err)
