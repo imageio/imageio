@@ -39,6 +39,7 @@ Features
   * More powerfull interface if needed via :ref:`imageio.read<insertdocs-imageio-read>` and :ref:`imageio.save<insertdocs-imageio-save>`.
   * Easy to extend using plugins, also for file formats with complex data structures.
   * Pure Python, runs on Python 2.x and 3.x (without 2to3).
+  * Experimental support for Pypy.
   * Lots of supported :doc:`formats <formats>`.
   * Can also read from zipfiles, http/ftp, raw bytes.
 
