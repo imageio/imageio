@@ -1,14 +1,29 @@
 Release notes
 -------------
 
+Version 0.4:
+
+Some more thorough testing resulted in several fixes and improvements over
+the last release.
+
+    * Fixes to reading of meta data in freeimage plugin which could
+      cause errors when reading a file.
+    * Support for reading 4 bpp images.
+    * The color table for index images is now applied to yield an RGBA image.
+    * Basic support for Pypy.
+    * Better __repr__ for the Image class.
+
+
 Version 0.3.2:
     
     * Fix in dicom reader (RescaleSlope and RescaleIntercept were not found)
     * Fixed that progress indicator made things slow
 
+
 Version 0.3.1:
     
     * Fix installation/distribution issue.
+
 
 Version 0.3.0:
 
@@ -31,9 +46,11 @@ do not.
     * Implemented animated gif plugin (based on freeimage).
     * Implemented standalone DICOM plugin.
 
+
 Version 0.2.3:
     
     * Fixed issue 2 (fail at instal, introduced when implementing freezing)
+
 
 Version 0.2.2:
     
@@ -41,16 +58,19 @@ Version 0.2.2:
     * Worked on distribution.
     * Freezing should work now.
 
+
 Version 0.2.1:
 
     * Introduction of the :ref:`imageio.help<insertdocs-imageio-help>` function.
     * Wrote a lot of documentation.
     * Added example (dummy) plugin.
-    
+
+
 Version 0.2:
     
     * New plugin system implemented after discussions in group.
     * Access to format information.
+
 
 Version 0.1:
 
