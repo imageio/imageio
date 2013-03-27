@@ -30,6 +30,9 @@ import sys
 import imageio.findlib 
 import imageio.freeze 
 
+# Load some utils in this namespace
+from imageio.util import Image
+
 # Try to load freeimage wrapper
 import imageio.freeimage
 try:
@@ -39,9 +42,6 @@ except OSError:
     e_type, e_value, e_tb = sys.exc_info(); del e_tb
     print(str(e_value))
     fi = None
-
-# Load some utils in this namespace
-from imageio.util import Image
 
 # Load root plugin and insert some of its functions in this namesplace
 from imageio.base import Format, FormatManager

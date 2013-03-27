@@ -22,7 +22,7 @@ import numpy
 
 from imageio.findlib import load_lib
 from imageio.freeze import resource_dir
-from imageio.util import DictWitNames
+from imageio.util import DictWitNames, ISPYPY
 
 # todo: make API class more complete
 # todo: write with palette?
@@ -33,8 +33,13 @@ from imageio.util import DictWitNames
 PY3 = sys.version_info[0] == 3
 if PY3:
     string_types = str,
+    text_type = str
+    binary_type = bytes
 else:
     string_types = basestring,
+    text_type = unicode
+    binary_type = str
+
 
 # Define function to encode a filename to bytes (for the current system)
 efn = lambda x : x.encode(sys.getfilesystemencoding())
@@ -304,6 +309,7 @@ class Freeimage(object):
         'FreeImage_GetTagKey': (ctypes.c_char_p, None),
         'FreeImage_GetTagValue': (ctypes.c_void_p, None),
         
+        'FreeImage_Save': (ctypes.c_void_p, None),
         'FreeImage_Load': (ctypes.c_void_p, None),
         'FreeImage_LoadFromMemory': (ctypes.c_void_p, None),
         
@@ -319,6 +325,33 @@ class Freeimage(object):
         'FreeImage_GetFIFExtensionList': (ctypes.c_char_p, None),
         'FreeImage_GetFormatFromFIF': (ctypes.c_char_p, None),
         'FreeImage_GetFIFDescription': (ctypes.c_char_p, None),
+        
+        # Pypy wants some extra definitions, so here we go ...
+        'FreeImage_IsLittleEndian': (ctypes.c_int, None),
+        'FreeImage_SetOutputMessage': (ctypes.c_void_p, None),
+        'FreeImage_GetFIFCount': (ctypes.c_int, None),
+        'FreeImage_IsPluginEnabled': (ctypes.c_int, None),
+        'FreeImage_GetFileType': (ctypes.c_int, None),
+        #
+        'FreeImage_GetTagType': (ctypes.c_int, None),
+        'FreeImage_GetTagLength': (ctypes.c_int, None),
+        'FreeImage_FindNextMetadata': (ctypes.c_int, None),
+        'FreeImage_FindCloseMetadata': (ctypes.c_void_p, None),
+        #
+        'FreeImage_GetFIFFromFilename': (ctypes.c_int, None),
+        'FreeImage_FIFSupportsReading': (ctypes.c_int, None),
+        'FreeImage_FIFSupportsWriting': (ctypes.c_int, None),
+        'FreeImage_FIFSupportsExportType': (ctypes.c_int, None),
+        'FreeImage_FIFSupportsExportBPP': (ctypes.c_int, None),
+        'FreeImage_GetHeight': (ctypes.c_int, None),
+        'FreeImage_GetWidth': (ctypes.c_int, None),
+        'FreeImage_GetImageType': (ctypes.c_int, None),
+        'FreeImage_GetBPP': (ctypes.c_int, None),
+        'FreeImage_GetColorsUsed': (ctypes.c_int, None),
+        'FreeImage_ConvertTo32Bits': (ctypes.c_void_p, None),
+        'FreeImage_GetPitch': (ctypes.c_int, None),
+        'FreeImage_Unload': (ctypes.c_void_p, None),
+        
         }
     
     
@@ -572,15 +605,20 @@ class FIBaseBitmap(object):
                         tag_type = lib.FreeImage_GetTagType(tag)
                         byte_size = lib.FreeImage_GetTagLength(tag)
                         char_ptr = ctypes.c_char * byte_size
-                        tag_str = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
+                        data = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
+                        tag_bytes = binary_type(bytearray(data))  # Convert in a way compatible with Pypy
                         # Convert to a Python value in the metadata dict
                         if tag_type == METADATA_DATATYPE.FIDT_ASCII:
-                            tag_val = tag_str.value.decode('utf-8', 'replace')
+                            tag_val = tag_bytes.decode('utf-8', 'replace')
                         elif not tag_type in METADATA_DATATYPE.dtypes:
-                            tag_val = tag_str.value  # We don't know, return bytes
+                            tag_val = tag_bytes  # We don't know, return bytes
                         else:
-                            tag_val = numpy.fromstring(tag_str,
-                                    dtype=METADATA_DATATYPE.dtypes[tag_type])
+                            #print(repr(tag_bytes), METADATA_DATATYPE.dtypes[tag_type])
+                            #import time;  time.sleep(0.1)
+                            dtype = METADATA_DATATYPE.dtypes[tag_type]
+                            if ISPYPY and isinstance(dtype, (list, tuple)):
+                                tag_bytes = b''  # or we get a segfault
+                            tag_val = numpy.fromstring(tag_bytes, dtype=dtype)
                             if len(tag_val) == 1:
                                 tag_val = tag_val[0]
                         subdict = metadata.setdefault(model_name, DictWitNames())
@@ -631,8 +669,8 @@ class FIBaseBitmap(object):
                         # Convert Python value to FI type, val
                         if isinstance(tag_val, string_types):
                             tag_type = METADATA_DATATYPE.FIDT_ASCII
-                            tag_str = tag_val.encode('utf-8') #+ chr(0).encode('utf-8')
-                            tag_count = len(tag_str)
+                            tag_bytes = tag_val.encode('utf-8') #+ chr(0).encode('utf-8')
+                            tag_count = len(tag_bytes)
                         else:
                             if not hasattr(tag_val, 'dtype'):
                                 tag_val = numpy.array([tag_val])
@@ -640,15 +678,15 @@ class FIBaseBitmap(object):
                             if tag_type is None:
                                 print('imageio.freeimage warning: Could not determine tag type of %r.' % tag_name)
                                 continue
-                            tag_str = tag_val.tostring()
+                            tag_bytes = tag_val.tostring()
                             tag_count = tag_val.size
                         
                         # Set properties
                         lib.FreeImage_SetTagKey(tag, tag_name.encode('utf-8'))
                         lib.FreeImage_SetTagType(tag, tag_type)
-                        lib.FreeImage_SetTagLength(tag, len(tag_str))
+                        lib.FreeImage_SetTagLength(tag, len(tag_bytes))
                         lib.FreeImage_SetTagCount(tag, tag_count)
-                        lib.FreeImage_SetTagValue(tag, tag_str)
+                        lib.FreeImage_SetTagValue(tag, tag_bytes)
                         # Store tag
                         tag_key = lib.FreeImage_GetTagKey(tag)
                         lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
@@ -814,10 +852,19 @@ class FIBitmap(FIBaseBitmap):
         # FreeImage's BGR[A] and upside-down internal memory format to something
         # more normal
         def n(arr):
-            return arr[..., ::-1].T
+            #return arr[..., ::-1].T  # Does not work on numpypy yet
+            if arr.ndim == 1:
+                return arr[::-1].T
+            elif arr.ndim == 2:
+                return arr[:, ::-1].T
+            elif arr.ndim == 3:
+                return arr[:, :, ::-1].T
+            elif arr.ndim == 4:
+                return arr[:, :, :, ::-1].T
+        
         if len(shape) == 3 and isle and dtype.type == numpy.uint8:
             b = n(array[0])
-            g = n(array[1])
+            g = n(array[1]) 
             r = n(array[2])
             if shape[0] == 3:
                 return numpy.dstack( (r, g, b) )
@@ -899,7 +946,17 @@ class FIBitmap(FIBaseBitmap):
         
         # Create numpy array and return
         data = (ctypes.c_char*byte_size).from_address(bits)
-        array = numpy.ndarray(shape, dtype=dtype, buffer=data, strides=strides)
+        try:
+            array = numpy.ndarray(shape, dtype=dtype, buffer=data, strides=strides)
+        except NotImplementedError:
+            # Pypy compatibility. 
+            # (Note that e.g. b''.join(data) consumes vast amounts of memory)
+            bytes = binary_type(bytearray(data))
+            array = numpy.fromstring(bytes, dtype=dtype)
+            try:
+                array.shape = shape 
+            except ValueError:
+                raise RuntimeError('Numpypy cannot deal with strided arrays yet.')
         return array
     
     

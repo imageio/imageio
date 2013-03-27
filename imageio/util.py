@@ -9,7 +9,24 @@ Utilities for imageio
 import os
 import sys
 import time
+
+# Try load numpy from pypy
+ISPYPY = False
+try:
+    import numpypy
+    ISPYPY = True
+except ImportError:
+    pass
+
 import numpy as np
+
+# Extra numpypy compatibility
+def _dstack(tup):
+    for a in tup:
+        a.shape = a.shape + tuple( [1]*(3-a.ndim) )
+    return np.concatenate(tup, axis=2)
+if not hasattr(np, 'dstack'):
+    np.dstack = _dstack
 
 
 # currently not used ... the only use it to easly provide the global meta info
@@ -45,7 +62,11 @@ class Image(np.ndarray):
             raise ValueError('Image expects meta data to be a dict.')
         # Convert and return
         meta = meta if meta is not None else {}
-        ob = array.view(cls)
+        try:
+            ob = array.view(cls)
+        except AttributeError:
+            # In Pypy, we just return the original; no metadata on the array in Pypy!
+            return array
         ob._copy_meta(meta)
         return ob
     
