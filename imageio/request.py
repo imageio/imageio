@@ -141,7 +141,7 @@ class Request(object):
             uri_r = repr(uri)
             if len(uri_r) > 60:
                 uri_r = uri_r[:57]+ '...'
-            print("Cannot understand given URI: %s." % uri_r)
+            raise IOError("Cannot understand given URI: %s." % uri_r)
         
         # Check if this is supported
         noWriting = [URI_HTTP, URI_FTP]
