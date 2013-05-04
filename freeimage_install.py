@@ -25,7 +25,8 @@ LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 # that lists the most up-to-date libraries, but the current approach is
 # much easier, and its probably enough to just change the filenames to
 # the latest libs available at each release.
-BASE_ADDRESS = 'http://bitbucket.org/almarklein/imageio/downloads/'
+#BASE_ADDRESS = 'http://bitbucket.org/almarklein/imageio/downloads/'
+BASE_ADDRESS = 'https://github.com/imageio/imageio-binaries/raw/master/'
 
 FILES = ['README.txt', 'FreeImage-License.txt']
 

@@ -56,9 +56,9 @@ You can install imageio using one of these options:
 Important links
 ================
 
-  * main website: http://imageio.readthedocs.org
+  * main website: http://imageio.github.io
   * discussion group: http://groups.google.com/d/forum/imageio
-  * source code: http://bitbucket.org/almarklein/imageio
+  * source code: http://github.com/imageio/imageio
   * downloads: http://pypi.python.org/pypi/imageio
 
 
