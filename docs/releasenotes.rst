@@ -1,6 +1,11 @@
 Release notes
 -------------
 
+Version latest:
+
+We moved to github!
+
+
 Version 0.4:
 
 Some more thorough testing resulted in several fixes and improvements over
