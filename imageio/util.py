@@ -46,6 +46,8 @@ class ImageList(list):
         return self._meta
 
 
+# todo: Note that skimage also has an Image class that overloads ndarray
+# See if we can learn from that
 class Image(np.ndarray):
     """ Image(array)
     
