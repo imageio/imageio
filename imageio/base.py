@@ -204,7 +204,9 @@ class Format:
             return self
         
         def __exit__(self, type, value, traceback):
-            self.close()
+            if value is None:
+                # Otherwise error in close hide the real error.
+                self.close() 
         
         def __del__(self):
             try:
