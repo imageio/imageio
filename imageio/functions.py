@@ -401,7 +401,7 @@ def mvolread(uri, format, **kwargs):
     """ 
     
     # Get reader and read all
-    reader = read(uri, format, imageio.EXPECT_MVOL **kwargs)
+    reader = read(uri, format, imageio.EXPECT_MVOL, **kwargs)
     with reader:
         return [im for im in reader]
 

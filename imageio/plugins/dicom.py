@@ -601,7 +601,10 @@ class SimpleDicomReader(object):
                 shape = self.Rows, self.Columns
         
         # Try getting sampling between pixels
-        sampling = float(self.PixelSpacing[0]), float(self.PixelSpacing[1])
+        if 'PixelSpacing' in self:
+            sampling = float(self.PixelSpacing[0]), float(self.PixelSpacing[1])
+        else:
+            sampling = 1.0, 1.0
         if 'SliceSpacing' in self:
             sampling = (abs(self.SliceSpacing),) + sampling
         
@@ -880,7 +883,8 @@ class DicomSeries(object):
         distance_sum = 0.0
         # Init measures to check (these are in 2D)
         dimensions = ds1.Rows, ds1.Columns
-        sampling = float(ds1.PixelSpacing[0]), float(ds1.PixelSpacing[1]) # row, column
+        #sampling = float(ds1.PixelSpacing[0]), float(ds1.PixelSpacing[1]) # row, column
+        sampling = ds1.info['sampling'][:2] # row, column
         
         for index in range(len(L)):
             # The first round ds1 and ds2 will be the same, for the
@@ -894,7 +898,8 @@ class DicomSeries(object):
             distance_sum += abs(pos1 - pos2)
             # Test measures
             dimensions2 = ds2.Rows, ds2.Columns
-            sampling2 = float(ds2.PixelSpacing[0]), float(ds2.PixelSpacing[1])
+            #sampling2 = float(ds2.PixelSpacing[0]), float(ds2.PixelSpacing[1])
+            sampling2 = ds2.info['sampling'][:2] # row, column
             if dimensions != dimensions2:
                 # We cannot produce a volume if the dimensions match
                 raise ValueError('Dimensions of slices does not match.')
@@ -997,10 +1002,11 @@ def process_directory(request, progressIndicator, readPixelData=False):
         try:
             series[i]._finish()
             series_.append(series[i])
-        except Exception:
+        except Exception as err:
+            progressIndicator.write(str(err))
             pass # Skip serie (probably report-like file without pixels)
         #progressIndicator.set_progress(i+1)
-    progressIndicator.finish('Found %i correct series.' % len(series))
+    progressIndicator.finish('Found %i correct series.' % len(series_))
     
     # Done
     return series_
