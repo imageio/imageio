@@ -2,11 +2,17 @@ Release notes
 -------------
 
 Version latest:
+    * ...
 
-We moved to github!
+
+version 0.4.1 (26-10-2013):
+    * We moved to github!
+    * Raise error if URI could not be understood.
+    * Small improvement for better error reporting.
+    * FIxes in mvolread and DICOM plugin
 
 
-Version 0.4:
+Version 0.4 (27-03-2013):
 
 Some more thorough testing resulted in several fixes and improvements over
 the last release.
