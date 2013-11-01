@@ -683,12 +683,11 @@ class FIBaseBitmap(object):
                                 continue
                             tag_bytes = tag_val.tostring()
                             tag_count = tag_val.size
-                        
                         # Set properties
                         lib.FreeImage_SetTagKey(tag, tag_name.encode('utf-8'))
                         lib.FreeImage_SetTagType(tag, tag_type)
-                        lib.FreeImage_SetTagLength(tag, len(tag_bytes))
                         lib.FreeImage_SetTagCount(tag, tag_count)
+                        lib.FreeImage_SetTagLength(tag, len(tag_bytes))
                         lib.FreeImage_SetTagValue(tag, tag_bytes)
                         # Store tag
                         tag_key = lib.FreeImage_GetTagKey(tag)
@@ -1006,7 +1005,26 @@ class FIBitmap(FIBaseBitmap):
         
         # Return dtype and shape
         return numpy.dtype(dtype), extra_dims + [w, h], bpp
-
+    
+    
+    def quantize(self, quantizer=0, palettesize=256):
+        """ Quantize the bitmap to make it 8-bit (paletted). Returns a new
+        FIBitmap objec.
+        Only for 24 bit images.
+        """
+        with self._fi as lib:
+            # New bitmap
+            bitmap = lib.FreeImage_ColorQuantizeEx(self._bitmap, quantizer, palettesize)
+            bitmap = ctypes.c_void_p(bitmap)
+            
+             # Check and return
+            if not bitmap:
+                raise ValueError('Could not quantize bitmap "%s": %s' 
+                            % (self._filename, self._fi._get_error_message()))
+            else:
+                new = FIBitmap(self._fi, self._filename, self._ftype, self._flags)
+                new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+                return new
 
 
 class FIMultipageBitmap(FIBaseBitmap):
@@ -1107,19 +1125,9 @@ class FIMultipageBitmap(FIBaseBitmap):
             return bm
     
     
-    def append_page(self, im):
-        """ Add a page to the multi-page bitmap and return the sub-bitmap.
-        Please close the returned bitmap when done.
+    def append_bitmap(self, bitmap):
+        """ Add a sub-bitmap to the multi-page bitmap.
         """ 
-        
-        # Create new bitmap
-        bm = FIBitmap(self._fi, self._filename, self._ftype, self._flags)
-        bm.allocate(im)
-        
-        # Add it
         with self._fi as lib:
-            self._lib.FreeImage_AppendPage(self._bitmap, bm._bitmap) # no return value
-        
-        # Return last added
-        return get_page(len(self)-1)
+            lib.FreeImage_AppendPage(self._bitmap, bitmap._bitmap) # no return value
 

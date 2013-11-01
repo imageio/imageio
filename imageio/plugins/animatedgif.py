@@ -5,6 +5,8 @@
 """ Plugin for animated GIF, using the freeimage lib as a backend.
 """
 
+import numpy as np
+
 from imageio import Format, formats
 from imageio import base
 from imageio import fi
@@ -28,6 +30,22 @@ class AnimatedGifFormat(Format):
     
     Keyword arguments for writing
     -----------------------------
+    loop : int
+        The number of iterations. Default 0 (meaning loop indefinitely)
+        This argumen is not implemented yet :(
+    duration : {float, list}
+        The duration (in seconds) of each frame. Either specify one value
+        that is used for all frames, or one value for each frame.
+        Default 0.1
+    palettesize : int
+        The number of colors to quantize the image to. Is rounded to
+        the nearest power of two. Default 256.
+    quantizer : {'wu', 'nq'}
+        The quantization algorithm:
+          * wu - Wu, Xiaolin, Efficient Statistical Computations for
+            Optimal Color Quantization
+          * nq (neuqant) - Dekker A. H., Kohonen neural networks for
+            optimal color quantization
     
     """
     
@@ -83,37 +101,72 @@ class AnimatedGifFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _open(self, flags=0):        
-            self._flags = flags  # Store flags for later use
-            self._bm = None
-            self._set = False
-            self._meta = {}
+        # todo: loop argument
+        # todo: subrectangles
+        # todo: global palette
+        
+        def _open(self, flags=0, loop=0, duration=0.1, palettesize=256, quantizer='Wu'): 
+            # Check palettesize
+            self._palettesize = max(2, min(256, int(palettesize)))
+            if palettesize not in [2, 4, 8, 16, 32, 64, 128, 256]:
+                print('Warning: palettesize (%r) modified to a factor of two between 2-256.' % palettesize)
+            # Check quantizer
+            self._quantizer = {'wu':0, 'nq':1}.get(quantizer.lower(), None)
+            if self._quantizer is None:
+                raise ValueError('Invalid quantizer, must be "wu" or "nq".')
+            # Check frametime
+            if isinstance(duration, list):
+                self._frametime = [int(1000*d) for d in duration]
+            elif isinstance(duration, (float, int)):
+                self._frametime = [ int(1000*duration) ]
+            else:
+                raise ValueError('Invalid value for duration: %r' % duration)
+            
+            # Set flags
+            self._flags = int(flags)
+            # Intialize meta
+            self._meta = {'ANIMATION': {    #'GlobalPalette': np.array([]).astype(np.uint8),
+                                           # 'Loop': np.array([loop]).astype(np.uint32),
+                                           # Loop segfaults, why?
+                                        }
+                            }
+            # Instantiate multi-page bitmap
+            self._bm = fi.create_multipage_bitmap(self.request.filename, FIF, flags)
+            self._bm.save_to_filename(self.request.get_local_filename())
         
         def _close(self):
             # Set global meta now
             self._bm.set_meta_data(self._meta)
-            # Save
-            self._bm.save_to_filename(self.request.get_local_filename())
             # Close bitmap
             self._bm.close()
         
-        def _append_data(self, im, meta):        
-            if not self._set:
-                self._set = True
+        def _append_data(self, im, meta): 
+            meta = meta.copy()
+            meta_a = meta['ANIMATION'] = {}
+            # Tweak meta data
+            index = len(self._bm)
+            if index < len(self._frametime):
+                ft = self._frametime[index]
             else:
-                raise RuntimeError('Singleton image; can only append image data once.')
-            
-            # Lazy instantaion of the bitmap, we need image data
-            if self._bm is None:
-                self._bm = fi.create_bitmap(self.request.filename, FIF, self._flags)
-                self._bm.allocate(im)
-            
-            # Set
-            self._bm.set_image_data(im)
-            self._bm.set_meta_data(meta)
+                ft = self._frametime[-1]
+            meta_a['FrameTime'] = np.array([ft]).astype(np.uint32)
+            # Discard alpha
+            if im.ndim == 3 and im.shape[-1] ==4:
+                im = im[:,:,:3]
+            # Create sub bitmap
+            sub1 = fi.create_bitmap(self._bm._filename, FIF)
+            sub1.allocate(im)
+            sub1.set_image_data(im)
+            # Quantize it
+            sub2 = sub1.quantize(self._quantizer, self._palettesize)
+            sub2.set_meta_data(meta)
+            # Add
+            self._bm.append_bitmap(sub2)
+            sub1.close()
+            sub2.close()
         
         def set_meta_data(self, meta):
-            self._meta = meta
+            self._meta.update(meta)
 
 
 formats.add_format(AnimatedGifFormat('ANIGIF', 'Animated gif', '.gif'))
