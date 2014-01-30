@@ -94,8 +94,12 @@ class Request(object):
             elif py3k:
                 self._uri_type = URI_FILENAME
                 self._filename = uri
-            else:                
-                if os.path.isfile(uri):
+            else:
+                try:
+                    isfile = os.path.isfile(uri)
+                except Exception:
+                    isfile = False  # If checking does not even work ...
+                if isfile:
                     self._uri_type = URI_FILENAME
                     self._filename = uri
                 elif len(uri) < 256: # Can go wrong with veeery tiny images
