@@ -40,7 +40,12 @@ _old = sys.modules.pop(MODULE_NAME, None)
 # Import the *real* package. This will put the new package in
 # sys.modules. Note that the new package is injected in the namespace
 # from which "import package" is called; we do not need to import *.
-__import__(MODULE_NAME, level=0)
+try:
+  __import__(MODULE_NAME, level=0)
+except Exception as err:
+  sys.modules[MODULE_NAME] = _old  # Prevent KeyError
+  raise
+
 
 # Clean up after ourselves
 if PARENT_DIR_OF_MODULE in sys.path:
