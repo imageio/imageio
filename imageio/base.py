@@ -63,9 +63,7 @@ EXPECT_MVOL = 3
 
 
 class Format:
-    """ 
-    A format represents an implementation to read/save a particular 
-    file format.
+    """ Represents an implementation to read/save a particular file format
     
     A format instance is responsible for 1) providing information about
     a format; 2) determining whether a certain file can be read/saved
@@ -78,6 +76,17 @@ class Format:
     Use print(format), or help(format_name) to see its documentation.
     
     To implement a specific format, see the docs for the plugins.
+    
+    Parameters
+    ----------
+    name : str
+        A short name of this format. Users can select a format using its name.
+    description : str
+        A one-line description of the format
+    extensions : str | list | None
+        List of filename extensions that this format supports. If a string
+        is passed it should be space or comma separated. Users can select
+        a format by specifying the file extension.
     
     """
     
@@ -180,6 +189,7 @@ class Format:
         
         def __init__(self, format, request):
             self.__closed = False
+            self._BaseReaderWriter_last_index = -1
             self._format = format
             self._request = request
             # Open the reader/writer
@@ -307,8 +317,18 @@ class Format:
             returned image has a 'meta' attribute with the meta data.
             
             """
+            self._BaseReaderWriter_last_index = index
             im, meta = self._get_data(index)
             return Image(im, meta)
+        
+        
+        def get_next_data(self):
+            """ get_next_data()
+            
+            Read the next image from the series.
+            
+            """
+            return self.get_data(self._BaseReaderWriter_last_index+1)
         
         
         def get_meta_data(self, index=None):
