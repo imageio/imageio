@@ -87,6 +87,9 @@ class Request(object):
             elif uri.startswith('file://'):
                 self._uri_type = URI_FILENAME
                 self._filename = uri[7:]
+            elif uri.startswith('<video') and isinstance(self, ReadRequest):
+                self._uri_type = URI_BYTES
+                self._filename = uri
             elif uri == RETURN_BYTES and isinstance(self, WriteRequest):
                 self._uri_type = URI_BYTES
                 self._filename = '<bytes>'

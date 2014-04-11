@@ -21,11 +21,16 @@ import imageio
 from imageio import formats
 from imageio.base import Format
 
+# todo: select an exe!
 FFMPEG_BINARY = '/home/almar/Videos/ffmpeg'
+
 
 class FfmpegFormat(Format):
     """ The ffmpeg format provides reading and writing for a wide range of
-    movie formats such as .avi, .mpeg, .mp4, etc.
+    movie formats such as .avi, .mpeg, .mp4, etc. And also to read streams
+    from webcams and USB cameras.
+    
+    Supply <video0> to stream data from your default camera.
     """
     
     def _can_read(self, request):
@@ -36,6 +41,14 @@ class FfmpegFormat(Format):
         # request.kwargs: the keyword arguments specified by the user
         if (request.expect is not None) and request.expect != imageio.EXPECT_MIM:
             return False
+        
+        # Read from video stream?
+        # Note that we could write the _video flag here, but a user might
+        # select this format explicitly (and this code is not run)
+        if request.filename in ['<video%i>' % i for i in range(10)]:
+            return True
+        
+        # Read from file that we know?
         ext = os.path.splitext(request.filename)[1].lower()
         if ext in '.avi .mpg .mpeg .mp4':
             return True
@@ -47,27 +60,30 @@ class FfmpegFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self):
+            # Write "_video"_arg
+            self.request._video = None
+            if self.request.filename in ['<video%i>' % i for i in range(10)]:
+                self.request._video = self.request.filename
             # Get local filename
-            self._filename = self.request.get_local_filename()
+            if self.request._video:
+                self._filename = '/dev/' + self.request._video[1:-1]
+            else:
+                self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
             self._pix_fmt = self.request.kwargs.get('pix_fmt', 'rgb24')
             self._depth = 4 if self._pix_fmt=="rgba" else 3
             # Initialize parameters
             self._proc = None
             self._pos = -1
-            self._meta = {'nframes': float('inf')}
+            self._meta = {'nframes': float('inf'), 'nframes': float('inf')}
             self._load_infos()
             self._lastread = None
             # Start ffmpeg subprocess
             self._initialize()
         
         def _close(self):
-            # Close subprocess
-            if self._proc is not None:
-                self._proc.terminate()
-                for std in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
-                    std.close()
-                self._proc = None
+            self._terminate()
+            self._proc = None
         
         def _get_length(self):
             return self._meta['nframes']
@@ -100,21 +116,50 @@ class FfmpegFormat(Format):
         
         def _initialize(self):
             """ Opens the file, creates the pipe. """
-            
-            cmd = [ FFMPEG_BINARY, '-i', self._filename,
+            if self.request._video:
+                cmd = [FFMPEG_BINARY, 
+                    '-f', 'video4linux2', '-i', self._filename,
                     '-f', 'image2pipe',
-                    "-pix_fmt", self._pix_fmt,
+                    "-pix_fmt", 'rgb24',
                     '-vcodec', 'rawvideo', '-']
+            else:
+                cmd = [FFMPEG_BINARY, '-i', self._filename,
+                        '-f', 'image2pipe',
+                        "-pix_fmt", self._pix_fmt,
+                        '-vcodec', 'rawvideo', '-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
         
+        def _terminate(self):
+            """ Terminate the sub process.
+            """
+            # Check
+            if self._proc is None:
+                return  # no process
+            if self._proc.poll() is None:
+                return  # process already dead
+            # Close, terminate
+            for std in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
+                std.close()
+            self._proc.terminate()
+            # Wait for it to close (but do not get stuck)
+            etime = time.time() + 1.0
+            while time.time() < etime:
+                time.sleep(0.01)
+                if self._proc.poll() is not None:
+                    break
         
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
             duration and nframes. """
+            # build command
+            if self.request._video:
+                cmd = [FFMPEG_BINARY, '-f', 'video4linux2', 
+                                      '-i', self._filename, '-']
+            else:
+                cmd = [FFMPEG_BINARY, "-i", self._filename, "-"]
             # open the file in a pipe, provoke an error, read output
-            proc = sp.Popen([FFMPEG_BINARY,"-i",self._filename, "-"],
-                    stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+            proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
             proc.stdout.readline()
             proc.terminate()
             infos = proc.stderr.read().decode('utf-8')
@@ -124,7 +169,10 @@ class FfmpegFormat(Format):
                 print('-'*80)
             lines = infos.splitlines()
             if "No such file or directory" in lines[-1]:
-                raise IOError("%s not found ! Wrong path ?" % self._filename)
+                if self.request._video:
+                    raise IOError("Could not open steam %s." % self._filename)
+                else:
+                    raise IOError("%s not found! Wrong path?" % self._filename)
             
             # get the output line that speaks about video
             line = [l for l in lines if ' Video: ' in l][0]
@@ -140,38 +188,53 @@ class FfmpegFormat(Format):
             # get duration (in seconds)
             line = [l for l in lines if 'Duration: ' in l][0]
             match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",line)
-            hms = map(float,line[match.start()+1:match.end()].split(':'))
-            self._meta['duration'] = duration = cvsecs(*hms)
-            self._meta['nframes'] = int(duration*fps)
+            if match is not None:
+                hms = map(float,line[match.start()+1:match.end()].split(':'))
+                self._meta['duration'] = duration = cvsecs(*hms)
+                self._meta['nframes'] = int(duration*fps)
+        
+        def _read_frame_data(self):
+            # Init and check
+            w, h = self._meta['size']
+            framesize = self._depth * w * h
+            if self._proc is None:
+                raise RuntimeError('No active ffmpeg process, maybe the reader is closed?')
+            
+            try:
+                # Read framesize bytes
+                s = self._proc.stdout.read(framesize)
+                while len(s) < framesize:
+                    need = framesize - len(s)
+                    part = self.proc.stdout.read(need)
+                    if not part:
+                        break
+                    s += part
+                # Check and flush
+                assert len(s) == framesize
+                self._proc.stdout.flush()
+            except Exception as err:
+                self._terminate()
+                err1 = str(err)
+                err2 = self._proc.stderr.read().decode('utf-8')
+                raise RuntimeError('Could not read frame:\n%s\n%s' % (err1, err2))
+            return s
         
         def _skip_frames(self, n=1):
             """ Reads and throws away n frames """
             w, h = self._meta['size']
             for i in range(n):
-                self._proc.stdout.read(self._depth*w*h)
-                self._proc.stdout.flush()
+                self._read_frame_data()
             self._pos += n
         
         def _read_frame(self):
+            # Read and convert to numpy array
             w, h = self._meta['size']
-            if self._proc is None:
-                raise RuntimeError('No active ffmpeg process, maybe the reader is closed?')
-            try:
-                # Normally, the readr should not read after the last frame...
-                # if it does, raise an error.
-                t0 = time.time()
-                s = self._proc.stdout.read(self._depth*w*h)
-                result = np.fromstring(s,
-                                dtype='uint8').reshape((h,w,len(s)/(w*h)))
-                t1 = time.time()
-                #print('etime', t1-t0)
-                self._proc.stdout.flush()
-            except Exception:
-                if self._proc is not None:
-                    self._proc.terminate()
-                    serr = self._proc.stderr.read()  # todo: this can block
-                    print("Could not read frame. stderr: %s" % serr)
-                raise
+            t0 = time.time()
+            s = self._read_frame_data()
+            result = np.fromstring(s, dtype='uint8').reshape((h,w,self._depth))
+            t1 = time.time()
+            #print('etime', t1-t0)
+            
             # Store and return
             self._lastread = result
             return result
@@ -179,6 +242,8 @@ class FfmpegFormat(Format):
         def _reinitialize(self, index=0):
             """ Restarts the reading, starts at an arbitrary location
             (!! SLOW !!) """
+            if self.request._video:
+                raise RuntimeError('No random access when streaming from camera.')
             self._close()
             if index == 0:
                 self._initialize()
@@ -254,6 +319,8 @@ class FfmpegFormat(Format):
             """ Creates the pipe to ffmpeg. Open the file to write to. """
             
             # Get parameters
+            # Note that H264 is a widespread and very good codec, but if we
+            # do not specify a bitrate, we easily get crap results.
             sizestr = "%dx%d" % (self._size[1], self._size[0])
             fps = self.request.kwargs.get('fps', 10)
             codec = self.request.kwargs.get('codec', 'libx264') # libx264 mpeg4 msmpeg4v2
@@ -289,6 +356,6 @@ def cvsecs(*args):
 
 
 # Register. You register an *instance* of a Format class.
-format = FfmpegFormat('ffmpeg', 'Many video formats via ffmpeg.', 
+format = FfmpegFormat('ffmpeg', 'Many video formats and cameras via ffmpeg.', 
                       '.avi .mpg .mpeg .mp4')
 formats.add_format(format)
