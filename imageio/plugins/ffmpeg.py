@@ -10,6 +10,7 @@ by Zulko
 
 """
 
+import sys
 import os
 import re
 import time
@@ -23,6 +24,17 @@ from imageio.base import Format
 
 # todo: select an exe!
 FFMPEG_BINARY = '/home/almar/Videos/ffmpeg'
+FFMPEG_BINARY = r'C:\almar\build\ffmpeg.exe'
+
+
+if sys.platform.startswith('win'):
+    CAM_FORMAT = 'dshow'  # dshow or vfwcap
+elif sys.platform.startswith('linux'):
+    CAM_FORMAT ='video4linux2'
+elif sys.platform.startswith('darwin'):
+    CAM_FORMAT ='??'
+else:
+    CAM_FORMAT = 'unknown-cam-format'
 
 
 class FfmpegFormat(Format):
@@ -58,7 +70,41 @@ class FfmpegFormat(Format):
     
     
     class Reader(Format.Reader):
-    
+        
+        def _get_cam_inputname(self, index):
+            if sys.platform.startswith('linux'):
+                return '/dev/' + self.request._video[1:-1]
+            
+            elif sys.platform.startswith('win'):
+                # Ask ffmpeg for list of dshow device names
+                cmd = [FFMPEG_BINARY, '-list_devices', 'true',
+                                '-f', CAM_FORMAT, '-i', 'dummy']
+                proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+                proc.stdout.readline()
+                proc.terminate()
+                infos = proc.stderr.read().decode('utf-8')
+                # Parse the result
+                device_names = []
+                in_video_devices = False
+                for line in infos.splitlines():
+                    if line.startswith('[dshow'):
+                        line = line.split(']', 1)[1].strip()
+                        if line.startswith('"'):
+                            if in_video_devices:
+                                device_names.append(line[1:-1])
+                        elif 'video devices' in line:
+                            in_video_devices = True
+                        else:
+                            in_video_devices = False
+                # Return device name at index
+                try:
+                    name = device_names[index]
+                except IndexError:
+                    raise IndexError('No ffdshow camera at index %i.' % index)
+                return 'video=%s' % name
+            else:
+                return '??'
+        
         def _open(self):
             # Write "_video"_arg
             self.request._video = None
@@ -66,7 +112,8 @@ class FfmpegFormat(Format):
                 self.request._video = self.request.filename
             # Get local filename
             if self.request._video:
-                self._filename = '/dev/' + self.request._video[1:-1]
+                index = int(self.request._video[-2])
+                self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
@@ -118,7 +165,7 @@ class FfmpegFormat(Format):
             """ Opens the file, creates the pipe. """
             if self.request._video:
                 cmd = [FFMPEG_BINARY, 
-                    '-f', 'video4linux2', '-i', self._filename,
+                    '-f', CAM_FORMAT, '-i', self._filename,
                     '-f', 'image2pipe',
                     "-pix_fmt", 'rgb24',
                     '-vcodec', 'rawvideo', '-']
@@ -154,8 +201,10 @@ class FfmpegFormat(Format):
             duration and nframes. """
             # build command
             if self.request._video:
-                cmd = [FFMPEG_BINARY, '-f', 'video4linux2', 
+                cmd = [FFMPEG_BINARY, '-f', CAM_FORMAT,
                                       '-i', self._filename, '-']
+                #cmd = [FFMPEG_BINARY, '-f', 'dshow',
+                #                      '-i', 'video= ', '1.3M WebCam', '-']
             else:
                 cmd = [FFMPEG_BINARY, "-i", self._filename, "-"]
             # open the file in a pipe, provoke an error, read output
@@ -205,7 +254,7 @@ class FfmpegFormat(Format):
                 s = self._proc.stdout.read(framesize)
                 while len(s) < framesize:
                     need = framesize - len(s)
-                    part = self.proc.stdout.read(need)
+                    part = self._proc.stdout.read(need)
                     if not part:
                         break
                     s += part
