@@ -14,6 +14,7 @@ import sys
 import os
 import re
 import time
+import threading
 import subprocess as sp
 
 import numpy as np
@@ -174,8 +175,11 @@ class FfmpegFormat(Format):
                         '-f', 'image2pipe',
                         "-pix_fmt", self._pix_fmt,
                         '-vcodec', 'rawvideo', '-']
+            # Create process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
+            # Create thread that keeps reading from stderr
+            self._stderr_catcher = StreamCatcher(self._proc.stderr)
         
         def _terminate(self):
             """ Terminate the sub process.
@@ -183,7 +187,7 @@ class FfmpegFormat(Format):
             # Check
             if self._proc is None:
                 return  # no process
-            if self._proc.poll() is None:
+            if self._proc.poll() is not None:
                 return  # process already dead
             # Close, terminate
             for std in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
@@ -264,8 +268,9 @@ class FfmpegFormat(Format):
             except Exception as err:
                 self._terminate()
                 err1 = str(err)
-                err2 = self._proc.stderr.read().decode('utf-8')
-                raise RuntimeError('Could not read frame:\n%s\n%s' % (err1, err2))
+                err2 = self._stderr_catcher.get_text(0.4)
+                fmt = 'Could not read frame:\n%s\n=== stderr ===\n%s'
+                raise RuntimeError(fmt % (err1, err2))
             return s
         
         def _skip_frames(self, n=1):
@@ -402,6 +407,76 @@ def cvsecs(*args):
         return 60*args[0]+args[1]
     elif len(args) ==3:
         return 3600*args[0]+60*args[1]+args[2]
+
+
+class StreamCatcher(threading.Thread):
+    """ Thread to keep reading from stderr so that the buffer does not
+    fill up and stalls the ffmpeg process. On stderr a message is send
+    on every few frames with some meta information. We only keep the
+    last ones.
+    """
+    
+    def __init__(self, file):
+        self._file = file
+        self._header = ''
+        self._lines = []
+        self._remainder = b''
+        threading.Thread.__init__(self)
+        self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self.start()
+    
+    @property
+    def header(self):
+        """ Get header text. Empty string if the header is not yet parsed.
+        """
+        return self._header
+    
+    def get_text(self, timeout=0):
+        """ Get the whole text printed to stderr so far. To preserve
+        memory, only the last 50 to 100 frames are kept.
+        
+        If a timeout is givem, wait for this thread to finish. When
+        something goes wrong, we stop ffmpeg and want a full report of
+        stderr, but this thread might need a tiny bit more time.
+        """
+        
+        # Wait?
+        if timeout > 0:
+            etime = time.time() + timeout
+            while self.isAlive() and time.time() < etime:
+                time.sleep(0.025)
+        # Return str
+        lines = b'\n'.join(self._lines)
+        return self._header + '\n' + lines.decode('utf-8', 'ignore')
+    
+    def run(self):
+        while True:
+            time.sleep(0.001)
+            # Read one line. Detect when closed, and exit
+            try:
+                line = self._file.read(100)
+            except ValueError:
+                break
+            if not line:
+                break
+            # Process to divide in lines
+            line = line.replace(b'\r', b'\n').replace(b'\n\n', b'\n')
+            lines = line.split(b'\n')
+            lines[0] = self._remainder + lines[0]
+            self._remainder = lines.pop(-1)
+            # Process each line
+            for line in lines:
+                self._lines.append(line)
+                if line.startswith(b'Stream mapping'):
+                    header = b'\n'.join(self._lines)
+                    self._header += header.decode('utf-8', 'ignore')
+                    self._lines = []
+            # Check lines
+            N = 32
+            if len(self._lines) > 2*N:
+                print('asd')
+                self._lines = [b'... showing only last few lines ...'] + self._lines[N:]
+            
 
 
 # Register. You register an *instance* of a Format class.
