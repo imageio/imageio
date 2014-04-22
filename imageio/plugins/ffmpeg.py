@@ -124,10 +124,10 @@ class FfmpegFormat(Format):
             self._proc = None
             self._pos = -1
             self._meta = {'nframes': float('inf'), 'nframes': float('inf')}
-            self._load_infos()
             self._lastread = None
-            # Start ffmpeg subprocess
+            # Start ffmpeg subprocess and get meta information
             self._initialize()
+            self._load_infos()
         
         def _close(self):
             self._terminate()
@@ -203,19 +203,20 @@ class FfmpegFormat(Format):
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
             duration and nframes. """
-            # build command
-            if self.request._video:
-                cmd = [FFMPEG_BINARY, '-f', CAM_FORMAT,
-                                      '-i', self._filename, '-']
-                #cmd = [FFMPEG_BINARY, '-f', 'dshow',
-                #                      '-i', 'video= ', '1.3M WebCam', '-']
-            else:
-                cmd = [FFMPEG_BINARY, "-i", self._filename, "-"]
-            # open the file in a pipe, provoke an error, read output
-            proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-            proc.stdout.readline()
-            proc.terminate()
-            infos = proc.stderr.read().decode('utf-8')
+            
+            # Wait for the catcher to get the meta information
+            etime = time.time() + 4.0
+            while (not self._stderr_catcher.header) and time.time() < etime:
+                time.sleep(0.01)
+            
+            # Check whether we have the information
+            infos = self._stderr_catcher.header
+            if not infos:
+                self._terminate()
+                err2 = self._stderr_catcher.get_text(0.2)
+                fmt = 'Could not load meta information\n=== stderr ===\n%s'
+                raise RuntimeError(fmt % err2)
+            
             if self.request.kwargs.get('print_infos', False):
                 # print the whole info text returned by FFMPEG
                 print(infos)
@@ -226,6 +227,10 @@ class FfmpegFormat(Format):
                     raise IOError("Could not open steam %s." % self._filename)
                 else:
                     raise IOError("%s not found! Wrong path?" % self._filename)
+            
+            # Get version
+            ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
+            self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
             
             # get the output line that speaks about video
             line = [l for l in lines if ' Video: ' in l][0]
@@ -454,7 +459,7 @@ class StreamCatcher(threading.Thread):
             time.sleep(0.001)
             # Read one line. Detect when closed, and exit
             try:
-                line = self._file.read(100)
+                line = self._file.read(20)
             except ValueError:
                 break
             if not line:
