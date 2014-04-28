@@ -24,8 +24,9 @@ from imageio import formats
 from imageio.base import Format
 
 # todo: select an exe!
-FFMPEG_BINARY = '/home/almar/Videos/ffmpeg'
-FFMPEG_BINARY = r'C:\almar\build\ffmpeg.exe'
+FFMPEG_EXE = os.path.join(os.path.dirname(imageio.__file__), 'lib', 'ffmpeg')
+if sys.platform.startswith('win'):
+    FFMPEG_EXE += '.exe'
 
 
 if sys.platform.startswith('win'):
@@ -78,7 +79,7 @@ class FfmpegFormat(Format):
             
             elif sys.platform.startswith('win'):
                 # Ask ffmpeg for list of dshow device names
-                cmd = [FFMPEG_BINARY, '-list_devices', 'true',
+                cmd = [FFMPEG_EXE, '-list_devices', 'true',
                                 '-f', CAM_FORMAT, '-i', 'dummy']
                 proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
                 proc.stdout.readline()
@@ -165,13 +166,13 @@ class FfmpegFormat(Format):
         def _initialize(self):
             """ Opens the file, creates the pipe. """
             if self.request._video:
-                cmd = [FFMPEG_BINARY, 
+                cmd = [FFMPEG_EXE, 
                     '-f', CAM_FORMAT, '-i', self._filename,
                     '-f', 'image2pipe',
                     "-pix_fmt", 'rgb24',
                     '-vcodec', 'rawvideo', '-']
             else:
-                cmd = [FFMPEG_BINARY, '-i', self._filename,
+                cmd = [FFMPEG_EXE, '-i', self._filename,
                         '-f', 'image2pipe',
                         "-pix_fmt", self._pix_fmt,
                         '-vcodec', 'rawvideo', '-']
@@ -309,7 +310,7 @@ class FfmpegFormat(Format):
             else:
                 starttime = index / self._meta['fps']
                 offset = min(1, starttime)
-                cmd = [ FFMPEG_BINARY, '-ss',"%.03f"%(starttime-offset),
+                cmd = [ FFMPEG_EXE, '-ss',"%.03f"%(starttime-offset),
                         '-i', self._filename,
                         '-ss', "%.03f"%offset,
                         '-f', 'image2pipe',
@@ -386,7 +387,7 @@ class FfmpegFormat(Format):
             bitrate = self.request.kwargs.get('bitrate', 400000)
             
             # Get command
-            cmd = [FFMPEG_BINARY, '-y',
+            cmd = [FFMPEG_EXE, '-y',
                 "-f", 'rawvideo',
                 "-vcodec", "rawvideo",
                 '-s', sizestr,
