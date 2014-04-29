@@ -129,6 +129,13 @@ class FfmpegFormat(Format):
             # Start ffmpeg subprocess and get meta information
             self._initialize()
             self._load_infos()
+            
+            # For cameras, create thread that keeps reading the images
+            self._frame_catcher = None
+            if self.request._video:
+                w, h = self._meta['size']
+                framesize = self._depth * w * h
+                self._frame_catcher = FrameCatcher(self._proc.stdout, framesize)
         
         def _close(self):
             self._terminate()
@@ -261,16 +268,18 @@ class FfmpegFormat(Format):
             
             try:
                 # Read framesize bytes
-                s = self._proc.stdout.read(framesize)
-                while len(s) < framesize:
-                    need = framesize - len(s)
-                    part = self._proc.stdout.read(need)
-                    if not part:
-                        break
-                    s += part
-                # Check and flush
+                if self._frame_catcher:
+                    s = self._frame_catcher.get_frame()
+                else:
+                    s = self._proc.stdout.read(framesize)
+                    while len(s) < framesize:
+                        need = framesize - len(s)
+                        part = self._proc.stdout.read(need)
+                        if not part:
+                            break
+                        s += part
+                # Check
                 assert len(s) == framesize
-                self._proc.stdout.flush()
             except Exception as err:
                 self._terminate()
                 err1 = str(err)
@@ -415,6 +424,55 @@ def cvsecs(*args):
         return 3600*args[0]+60*args[1]+args[2]
 
 
+
+class FrameCatcher(threading.Thread):
+    """ Thread to keep reading the frame data from stdout. This is
+    useful when streaming from a webcam. Otherwise, if the user code
+    does not grab frames fast enough, the buffer will fill up, leading
+    to lag, and ffmpeg can also stall (experienced on Linux). The
+    get_frame() method always returns the last available image.
+    """
+    
+    def __init__(self, file, framesize):
+        self._file = file
+        self._framesize = framesize
+        self._frame = None
+        #self._lock = threading.RLock()
+        threading.Thread.__init__(self)
+        self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self.start()
+    
+    def get_frame(self):
+        while self._frame is None:
+            time.sleep(0.001)
+        return self._frame
+    
+    def _read(self, n):
+        try:
+            return self._file.read(n)
+        except ValueError:
+            return b''
+    
+    def run(self):
+        framesize = self._framesize
+        
+        while True:
+            time.sleep(0.001)
+            s = self._read(framesize)
+            while len(s) < framesize:
+                need = framesize - len(s)
+                part = self._read(need)
+                if not part:
+                    break
+                s += part
+            # Stop?
+            if not s:
+                return
+            # Store frame
+            self._frame = s
+
+
+
 class StreamCatcher(threading.Thread):
     """ Thread to keep reading from stderr so that the buffer does not
     fill up and stalls the ffmpeg process. On stderr a message is send
@@ -480,7 +538,6 @@ class StreamCatcher(threading.Thread):
             # Check lines
             N = 32
             if len(self._lines) > 2*N:
-                print('asd')
                 self._lines = [b'... showing only last few lines ...'] + self._lines[N:]
             
 
