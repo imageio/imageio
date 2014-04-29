@@ -40,9 +40,10 @@ else:
 
 
 class FfmpegFormat(Format):
-    """ The ffmpeg format provides reading and writing for a wide range of
-    movie formats such as .avi, .mpeg, .mp4, etc. And also to read streams
-    from webcams and USB cameras.
+    """ The ffmpeg format provides reading and writing for a wide range
+    of movie formats such as .avi, .mpeg, .mp4, etc. And also to read
+    streams from webcams and USB cameras. When aksing for a new frame
+    when the video has ended, 
     
     Supply <video0> to stream data from your default camera.
     """
@@ -107,7 +108,9 @@ class FfmpegFormat(Format):
             else:
                 return '??'
         
-        def _open(self):
+        def _open(self, loop=False):
+            # Process input args
+            self._loop = loop
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -150,7 +153,10 @@ class FfmpegFormat(Format):
             slow if some decoding has to be done. This function tries
             to avoid fectching arbitrary frames whenever possible, by
             moving between adjacent frames. """
-           
+            # Modulo index (for looping)
+            if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
+                index = index % self._meta['nframes']
+            
             if index == self._pos:
                 return self._lastread, {}
             else:
@@ -158,7 +164,13 @@ class FfmpegFormat(Format):
                     self._reinitialize(index)
                 else:
                     self._skip_frames(index-self._pos-1)
-                result = self._read_frame()
+                try:
+                    result = self._read_frame()
+                except IndexError:
+                    if self._loop and self._pos >= self._meta['nframes']-1:
+                        return self._get_data(0)
+                    else:
+                        raise
                 self._pos = index
                 return result, {}
         
@@ -169,6 +181,7 @@ class FfmpegFormat(Format):
             result = self._read_frame()
             self._pos += 1
             return result, {}
+        
         
         def _initialize(self):
             """ Opens the file, creates the pipe. """
@@ -188,6 +201,30 @@ class FfmpegFormat(Format):
                                   stdout=sp.PIPE, stderr=sp.PIPE)
             # Create thread that keeps reading from stderr
             self._stderr_catcher = StreamCatcher(self._proc.stderr)
+        
+        
+        def _reinitialize(self, index=0):
+            """ Restarts the reading, starts at an arbitrary location
+            (!! SLOW !!) """
+            if self.request._video:
+                raise RuntimeError('No random access when streaming from camera.')
+            self._close()
+            if index == 0:
+                self._initialize()
+            else:
+                starttime = index / self._meta['fps']
+                offset = min(1, starttime)
+                cmd = [ FFMPEG_EXE, '-ss',"%.03f"%(starttime-offset),
+                        '-i', self._filename,
+                        '-ss', "%.03f"%offset,
+                        '-f', 'image2pipe',
+                        "-pix_fmt", self._pix_fmt,
+                        '-vcodec','rawvideo', '-']
+                self._proc = sp.Popen(cmd, stdin=sp.PIPE,
+                                      stdout=sp.PIPE, stderr=sp.PIPE)
+                # Create thread that keeps reading from stderr
+                self._stderr_catcher = StreamCatcher(self._proc.stderr)
+        
         
         def _terminate(self):
             """ Terminate the sub process.
@@ -281,6 +318,8 @@ class FfmpegFormat(Format):
                 # Check
                 assert len(s) == framesize
             except Exception as err:
+                if not s:
+                    raise IndexError('Stream ended')
                 self._terminate()
                 err1 = str(err)
                 err2 = self._stderr_catcher.get_text(0.4)
@@ -307,26 +346,6 @@ class FfmpegFormat(Format):
             # Store and return
             self._lastread = result
             return result
-        
-        def _reinitialize(self, index=0):
-            """ Restarts the reading, starts at an arbitrary location
-            (!! SLOW !!) """
-            if self.request._video:
-                raise RuntimeError('No random access when streaming from camera.')
-            self._close()
-            if index == 0:
-                self._initialize()
-            else:
-                starttime = index / self._meta['fps']
-                offset = min(1, starttime)
-                cmd = [ FFMPEG_EXE, '-ss',"%.03f"%(starttime-offset),
-                        '-i', self._filename,
-                        '-ss', "%.03f"%offset,
-                        '-f', 'image2pipe',
-                        "-pix_fmt", self._pix_fmt,
-                        '-vcodec','rawvideo', '-']
-                self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                      stdout=sp.PIPE, stderr=sp.PIPE)
     
     
     class Writer(Format.Writer):
