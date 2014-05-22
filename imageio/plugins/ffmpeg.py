@@ -56,12 +56,12 @@ class FfmpegFormat(Format):
     size : str
         The frame size (i.e. resolution) to read the images, e.g. "640x480". 
         For camera streams, this allows setting the capture resolution. 
-        For normal video data, and if the exact camera resolution is
-        not available, ffmpeg will rescale the data.
+        For normal video data, ffmpeg will rescale the data.
     pixelformat : str
-        The pixel format for the camera to use (e.g. "rgb8"). The camera
-        needs to support the format in order for this to take effect.
-        Note that the images produced by this reader are always rgb8.
+        The pixel format for the camera to use (e.g. "yuyv422" or
+        "gray"). The camera needs to support the format in order for
+        this to take effect. Note that the images produced by this
+        reader are always rgb8.
     
     """
     
@@ -127,7 +127,9 @@ class FfmpegFormat(Format):
         
         def _open(self, loop=False, size=None, pixelformat=None):
             # Process input args
-            self._loop = loop
+            self._arg_loop = loop
+            self._arg_size = size
+            self._arg_pxelformat = pixelformat
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -139,7 +141,7 @@ class FfmpegFormat(Format):
             else:
                 self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
-            self._pix_fmt = self.request.kwargs.get('pix_fmt', 'rgb24')
+            self._pix_fmt = 'rgb24'
             self._depth = 4 if self._pix_fmt=="rgba" else 3
             # Initialize parameters
             self._proc = None
@@ -172,7 +174,7 @@ class FfmpegFormat(Format):
             moving between adjacent frames. """
             # Modulo index (for looping)
             if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
-                if self._loop:
+                if self._arg_loop:
                     index = index % self._meta['nframes']
             
             if index == self._pos:
@@ -200,15 +202,15 @@ class FfmpegFormat(Format):
             # Create input args
             if self.request._video:
                 iargs = ['-f', CAM_FORMAT]
-                if 'pixelformat' in self.request.kwargs:
-                    iargs.extend(['-pix_fmt', self.request.kwargs['pixelformat']])
-                if 'size' in self.request.kwargs:
-                    iargs.extend(['-s', self.request.kwargs['size']])
+                if self._arg_pxelformat:
+                    iargs.extend(['-pix_fmt', self._arg_pxelformat])
+                if self._arg_size:
+                    iargs.extend(['-s', self._arg_size])
             else:
                 iargs = []
             # Output args, for writing to pipe
             oargs = ['-f', 'image2pipe',
-                     '-pix_fmt', 'rgb24',
+                     '-pix_fmt', self._pix_fmt,
                      '-vcodec', 'rawvideo']
             if 'size' in self.request.kwargs:
                 oargs.extend(['-s', self.request.kwargs['size']])
@@ -235,7 +237,7 @@ class FfmpegFormat(Format):
                 iargs = ['-ss', "%.03f"%(starttime-offset)]
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
-                        '-pix_fmt', 'rgb24',
+                        '-pix_fmt', self._pix_fmt,
                         '-vcodec', 'rawvideo']
                 if 'size' in self.request.kwargs:
                     oargs.extend(['-s', self.request.kwargs['size']])
