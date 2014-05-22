@@ -42,10 +42,27 @@ else:
 class FfmpegFormat(Format):
     """ The ffmpeg format provides reading and writing for a wide range
     of movie formats such as .avi, .mpeg, .mp4, etc. And also to read
-    streams from webcams and USB cameras. When aksing for a new frame
-    when the video has ended, 
+    streams from webcams and USB cameras. 
     
-    Supply <video0> to stream data from your default camera.
+    To read from camera streams, supply "<video0>" as the filename,
+    where the "0" can be replaced with any index of cameras known to
+    the system.
+    
+    Keyword arguments for reading
+    -----------------------------
+    loop : bool
+        If True, the video will rewind as soon as a frame is requested
+        beyond the last frame. Otherwise, IndexError is raised.
+    size : str
+        The frame size (i.e. resolution) to read the images, e.g. "640x480". 
+        For camera streams, this allows setting the capture resolution. 
+        For normal video data, and if the exact camera resolution is
+        not available, ffmpeg will rescale the data.
+    pixelformat : str
+        The pixel format for the camera to use (e.g. "rgb8"). The camera
+        needs to support the format in order for this to take effect.
+        Note that the images produced by this reader are always rgb8.
+    
     """
     
     def _can_read(self, request):
@@ -108,7 +125,7 @@ class FfmpegFormat(Format):
             else:
                 return '??'
         
-        def _open(self, loop=False):
+        def _open(self, loop=False, size=None, pixelformat=None):
             # Process input args
             self._loop = loop
             # Write "_video"_arg
@@ -155,7 +172,8 @@ class FfmpegFormat(Format):
             moving between adjacent frames. """
             # Modulo index (for looping)
             if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
-                index = index % self._meta['nframes']
+                if self._loop:
+                    index = index % self._meta['nframes']
             
             if index == self._pos:
                 return self._lastread, {}
@@ -164,13 +182,7 @@ class FfmpegFormat(Format):
                     self._reinitialize(index)
                 else:
                     self._skip_frames(index-self._pos-1)
-                try:
-                    result = self._read_frame()
-                except IndexError:
-                    if self._loop and self._pos >= self._meta['nframes']-1:
-                        return self._get_data(0)
-                    else:
-                        raise
+                result = self._read_frame()
                 self._pos = index
                 return result, {}
         
@@ -185,18 +197,23 @@ class FfmpegFormat(Format):
         
         def _initialize(self):
             """ Opens the file, creates the pipe. """
+            # Create input args
             if self.request._video:
-                cmd = [FFMPEG_EXE, 
-                    '-f', CAM_FORMAT, '-i', self._filename,
-                    '-f', 'image2pipe',
-                    "-pix_fmt", 'rgb24',
-                    '-vcodec', 'rawvideo', '-']
+                iargs = ['-f', CAM_FORMAT]
+                if 'pixelformat' in self.request.kwargs:
+                    iargs.extend(['-pix_fmt', self.request.kwargs['pixelformat']])
+                if 'size' in self.request.kwargs:
+                    iargs.extend(['-s', self.request.kwargs['size']])
             else:
-                cmd = [FFMPEG_EXE, '-i', self._filename,
-                        '-f', 'image2pipe',
-                        "-pix_fmt", self._pix_fmt,
-                        '-vcodec', 'rawvideo', '-']
+                iargs = []
+            # Output args, for writing to pipe
+            oargs = ['-f', 'image2pipe',
+                     '-pix_fmt', 'rgb24',
+                     '-vcodec', 'rawvideo']
+            if 'size' in self.request.kwargs:
+                oargs.extend(['-s', self.request.kwargs['size']])
             # Create process
+            cmd = [FFMPEG_EXE] + iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
             # Create thread that keeps reading from stderr
@@ -214,12 +231,16 @@ class FfmpegFormat(Format):
             else:
                 starttime = index / self._meta['fps']
                 offset = min(1, starttime)
-                cmd = [ FFMPEG_EXE, '-ss',"%.03f"%(starttime-offset),
-                        '-i', self._filename,
-                        '-ss', "%.03f"%offset,
-                        '-f', 'image2pipe',
-                        "-pix_fmt", self._pix_fmt,
-                        '-vcodec','rawvideo', '-']
+                # Create input args -> start time
+                iargs = ['-ss', "%.03f"%(starttime-offset)]
+                # Output args, for writing to pipe
+                oargs = ['-f', 'image2pipe',
+                        '-pix_fmt', 'rgb24',
+                        '-vcodec', 'rawvideo']
+                if 'size' in self.request.kwargs:
+                    oargs.extend(['-s', self.request.kwargs['size']])
+                # Create process
+                cmd = [FFMPEG_EXE] + iargs + ['-i', self._filename] + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
                 # Create thread that keeps reading from stderr
@@ -278,15 +299,27 @@ class FfmpegFormat(Format):
             self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
             
             # get the output line that speaks about video
-            line = [l for l in lines if ' Video: ' in l][0]
-            
-            # get the size, of the form 460x320 (w x h)
-            match = re.search(" [0-9]*x[0-9]*(,| )",line)
-            self._meta['size'] = tuple(map(int,line[match.start():match.end()-1].split('x')))
+            videolines = [l for l in lines if ' Video: ' in l]
+            line = videolines[0]
             
             # get the frame rate
             match = re.search("( [0-9]*.| )[0-9]* (tbr|fps)",line)
             self._meta['fps'] = fps = float(line[match.start():match.end()].split(' ')[1])
+            
+            # get the size of the original stream, of the form 460x320 (w x h)
+            match = re.search(" [0-9]*x[0-9]*(,| )", line)
+            self._meta['source_size'] = tuple(map(int,line[match.start():match.end()-1].split('x')))
+            
+            # get the size of what we receive, of the form 460x320 (w x h)
+            line = videolines[-1]  # Pipe output
+            match = re.search(" [0-9]*x[0-9]*(,| )", line)
+            self._meta['size'] = tuple(map(int,line[match.start():match.end()-1].split('x')))
+            
+            # Check the two sizes
+            if self._meta['source_size'] != self._meta['size']:
+                print('Warning: the frame size for reading %s is different '
+                      'from the source frame size %s.' % 
+                      (self._meta['size'], self._meta['source_size'], ))
             
             # get duration (in seconds)
             line = [l for l in lines if 'Duration: ' in l][0]
