@@ -2,7 +2,8 @@ Release notes
 -------------
 
 Version latest:
-    * ...
+    * DICOM reader closes file after reading pixel data 
+      (avoid too-many-open-files error)
 
 
 version 0.4.1 (26-10-2013):

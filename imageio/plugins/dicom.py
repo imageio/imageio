@@ -558,7 +558,9 @@ class SimpleDicomReader(object):
         # Load it now if it was not already loaded
         if self._pixel_data_loc and len(self.PixelData) < 100:
             # Reopen file?
+            close_file = False
             if self._file is None:
+                close_file = True
                 self._file = open(self._filename, 'rb')
             # Read data
             self._file.seek(self._pixel_data_loc[0])
@@ -566,6 +568,10 @@ class SimpleDicomReader(object):
                 value = self._read_undefined_length_value()
             else:
                 value = self._file.read(self._pixel_data_loc[1])
+            # Close file
+            if close_file:
+                self._file.close()
+                self._file = None
             # Overwrite
             self._info['PixelData'] = value
         
