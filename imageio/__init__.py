@@ -22,7 +22,7 @@ Quickstart:
  
 """
 
-__version__ = '0.5dev'
+__version__ = '0.5.1'
 
 import sys
 

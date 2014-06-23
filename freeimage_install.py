@@ -31,8 +31,8 @@ BASE_ADDRESS = 'https://github.com/imageio/imageio-binaries/raw/master/'
 FILES = ['README.txt', 'FreeImage-License.txt']
 
 LIBRARIES = {
-    ('darwin', 32): 'libfreeimage-3.15.1-osx10.6.dylib',
-    ('darwin', 64): 'libfreeimage-3.15.1-osx10.6.dylib',
+    ('darwin', 32): 'libfreeimage-3.16.0-osx10.6.dylib',
+    ('darwin', 64): 'libfreeimage-3.16.0-osx10.6.dylib',
     ('win32', 32): 'FreeImage-3.15.4-win32.dll',  # Also works on Python 3.3
     ('win32', 64): 'FreeImage-3.15.1-win64.dll'
 }
