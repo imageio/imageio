@@ -1,9 +1,13 @@
 Release notes
 -------------
 
-Version latest:
-    * DICOM reader closes file after reading pixel data 
-      (avoid too-many-open-files error)
+Version 0.5 (23-06-2014):
+
+* DICOM reader closes file after reading pixel data 
+  (avoid too-many-open-files error)
+* Support for video data (import and export) via ffmpeg
+* Read images from usb camera via ffmpeg (experimental)
+
 
 
 version 0.4.1 (26-10-2013):
