@@ -281,9 +281,13 @@ class FfmpegFormat(Format):
             infos = self._stderr_catcher.header
             if not infos:
                 self._terminate()
-                err2 = self._stderr_catcher.get_text(0.2)
-                fmt = 'Could not load meta information\n=== stderr ===\n%s'
-                raise RuntimeError(fmt % err2)
+                if self.request._video:
+                    raise IndexError('No video4linux camera at %s.' % 
+                                     self.request._video)
+                else:
+                    err2 = self._stderr_catcher.get_text(0.2)
+                    fmt = 'Could not load meta information\n=== stderr ===\n%s'
+                    raise RuntimeError(fmt % err2)
             
             if self.request.kwargs.get('print_infos', False):
                 # print the whole info text returned by FFMPEG
