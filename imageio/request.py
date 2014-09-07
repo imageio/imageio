@@ -123,12 +123,12 @@ class Request(object):
         elif isinstance(self, ReadRequest):
             if hasattr(uri, 'read') and hasattr(uri, 'close'):
                 self._uri_type = URI_FILE
-                self._filename = '<file>'
+                self._filename = uri.name
                 self._file = uri
         elif isinstance(self, WriteRequest):
             if hasattr(uri, 'write') and hasattr(uri, 'close'):
                 self._uri_type = URI_FILE
-                self._filename = '<file>'
+                self._filename = uri.name
                 self._file = uri
         
         # Check if a zipfile
