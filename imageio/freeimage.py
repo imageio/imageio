@@ -501,10 +501,10 @@ class Freeimage(object):
                 if bytes is not None:
                     fimemory = lib.FreeImage_OpenMemory(
                                         ctypes.c_char_p(bytes), len(bytes))
-                    lib.FreeImage_GetFileTypeFromMemory(
+                    ftype = lib.FreeImage_GetFileTypeFromMemory(
                                         ctypes.c_void_p(fimemory), len(bytes))
                     lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
-                elif os.path.isfile(filename):
+                if (ftype == -1) and os.path.isfile(filename):
                     ftype = lib.FreeImage_GetFileType(efn(filename), 0)
             # Try getting the format from the extension
             if ftype == -1:

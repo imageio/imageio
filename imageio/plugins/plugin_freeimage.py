@@ -34,7 +34,8 @@ class FreeimageFormat(Format):
         if fi and request.expect in [None, base.EXPECT_IM]:
             if not hasattr(request, '_fif'):
                 try:
-                    request._fif = fi.getFIF(request.filename, 'r')
+                    request._fif = fi.getFIF(request.filename, 'r', 
+                                             request.firstbytes)
                 except Exception:
                     request._fif = -1
             if request._fif == self.fif:
