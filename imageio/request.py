@@ -133,6 +133,9 @@ class Request(object):
         
         # Check if a zipfile
         if self._uri_type == URI_FILENAME:
+            # Expand user dir
+            if self._filename.startswith('~'):
+                self._filename = os.path.expanduser(self._filename)
             # Search for zip extension followed by a path separater
             for needle in ['.zip/', '.zip\\']:
                 zip_i = self._filename.lower().find(needle)
