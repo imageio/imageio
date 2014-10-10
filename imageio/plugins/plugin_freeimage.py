@@ -242,7 +242,7 @@ class FreeimageJpegFormat(FreeimageFormat):
     Keyword arguments for writing
     -----------------------------
     quality : scalar
-        The compression factor of the saved image (0..100), higher
+        The compression factor of the saved image (1..100), higher
         numbers result in higher quality but larger file size. Default 75.
     progressive : bool
         Save as a progressive JPEG file (e.g. for images on the web).
@@ -269,6 +269,10 @@ class FreeimageJpegFormat(FreeimageFormat):
     class Writer(FreeimageFormat.Writer):
         def _open(self, flags=0, 
                 quality=75, progressive=False, optimize=False, baseline=False):
+            # Test quality
+            quality = int(quality)
+            if quality < 1 or quality > 100:
+                raise ValueError('JPEG quality should be between 1 and 100.')
             # Build flags from kwargs
             flags = int(flags)
             flags |= quality
