@@ -138,23 +138,22 @@ class Maker:
                     except Exception as err:
                         print('Could not remove %r: %s' % (dname_r, str(err)))
         
-    def _test(self, arg):
+    def test(self, arg):
         """ Run tests:
                 * unit - run unit tests
                 * style - flake style testing (PEP8 and more)
         """
         if not arg:
             return self.help('test')
-        from imageio import test
-        try:
-            args = arg.split(' ')
-            test(args[0], ' '.join(args[1:]))
-        except Exception as err:
-            print(err)
-            if not isinstance(err, RuntimeError):
-                type_, value, tb = sys.exc_info()
-                traceback.print_exception(type, value, tb)
-            raise SystemExit(1)
+        # from imageio import testing
+        
+        if arg in ('flake', 'style'):
+            raise NotImplementedError()
+        elif arg == 'unit':
+            import pytest
+            pytest.main('-v tests')
+        else:
+            raise RuntimeError('Invalid arg for make test: %r' % arg)
     
     def copyright(self, arg):
         """ Update all copyright notices to the current year.

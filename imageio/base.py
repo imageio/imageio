@@ -75,7 +75,8 @@ class Format:
     
     Use print(format), or help(format_name) to see its documentation.
     
-    To implement a specific format, see the docs for the plugins.
+    To implement a specific format, one should create a subclass of Format
+    and the Reader and Writer classes. see the plugins-docs for details.
     
     Parameters
     ----------
