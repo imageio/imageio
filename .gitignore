@@ -1,3 +1,4 @@
+__pychache__
 *.pyc
 *.pyo
 docs/_build
@@ -9,4 +10,5 @@ tests/freezing/frozen
 *.dll
 imageio/lib
 *.dylib
+MANIFEST
 

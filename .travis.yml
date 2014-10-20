@@ -1,0 +1,40 @@
+# Travis CI configuration file for imageio
+# Resources:
+# Validate this at http://lint.travis-ci.org/
+
+language: python
+
+
+python:
+    # all versions except pypy and pypy3 have numpy as well.
+    # -> TRAVIS_PYTHON_VERSION
+    - "pypy3"
+    - "2.6"
+    - "2.7"
+    - "3.4"
+
+
+before_install:
+    
+
+# Install dependencies
+install:
+    - apt-get install libfreeimage3
+
+
+before_script:
+
+
+# Run the tests
+script: 
+    - python -c "import sys; print(sys.version, '\n', sys.prefix)"
+    #- python make test X
+
+
+after_success:
+    - echo SUCCESS!
+
+after_failure:
+    - echo FAIL!
+
+after_script:
