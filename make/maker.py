@@ -145,13 +145,11 @@ class Maker:
         """
         if not arg:
             return self.help('test')
-        # from imageio import testing
-        
+        from imageio import testing
         if arg in ('flake', 'style'):
-            raise NotImplementedError()
+            testing.test_style()
         elif arg == 'unit':
-            import pytest
-            pytest.main('-v tests')
+            testing.test_unit()
         else:
             raise RuntimeError('Invalid arg for make test: %r' % arg)
     
