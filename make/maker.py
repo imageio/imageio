@@ -84,7 +84,7 @@ class Maker:
         if not op.isfile(fname):
             raise IOError('Generated file not found: %s' % fname)
         webbrowser.open_new_tab(fname)
-
+    
     def help(self, arg):
         """ Show help message. Use 'help X' to get more help on command X. """
         if arg:
@@ -108,6 +108,36 @@ class Maker:
                 print(' %s  %s' % (preamble, doc))
             print()
     
+    def clean(self, arg):
+        """ Clean the repo of .pyc files and __pycache__ directories.
+        """
+        # Remove files
+        for dir, dirnames, filenames in os.walk(ROOT_DIR):
+            if dir.startswith('.'):
+                continue
+            for fname in filenames:
+                if fname.endswith('.pyc'):
+                    filename = os.path.join(dir, fname)
+                    fname_r = os.path.relpath(filename, ROOT_DIR)
+                    try:
+                        os.remove(filename)
+                        print('Removed %r' % fname_r)
+                    except Exception as err:
+                        print('Could not remove %r: %s' % (fname_r, str(err)))
+        # Remove directories
+        for dir, dirnames, filenames in os.walk(ROOT_DIR):
+            if dir.startswith('.'):
+                continue
+            for dname in dirnames:
+                if dname == '__pycache__':
+                    dirname = os.path.join(dir, dname)
+                    dname_r = os.path.relpath(dirname, ROOT_DIR)
+                    try:
+                        os.rmdir(dirname)
+                        print('Removed dir %r' % dname_r)
+                    except Exception as err:
+                        print('Could not remove %r: %s' % (dname_r, str(err)))
+        
     def _test(self, arg):
         """ Run tests:
                 * unit - run unit tests
