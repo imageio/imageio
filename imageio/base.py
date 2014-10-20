@@ -39,7 +39,7 @@ import os
 
 import numpy as np
 
-from imageio.util import Image, ImageList
+from imageio.util import Image
 
 
 # Taken from six.py
@@ -49,8 +49,8 @@ if PY3:
     text_type = str
     binary_type = bytes
 else:
-    string_types = basestring,
-    text_type = unicode
+    string_types = basestring,  # noqa
+    text_type = unicode  # noqa
     binary_type = str
 
 
@@ -122,7 +122,8 @@ class Format:
         """
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
-        return '%s - %s\n\n    %s\n' % (self.name, self.description, self.__doc__.strip())
+        return '%s - %s\n\n    %s\n' % (self.name, self.description, 
+                                        self.__doc__.strip())
     
     @property
     def name(self):
@@ -147,7 +148,8 @@ class Format:
         """ read(request)
         
         Return a reader object that can be used to read data and info
-        from the given file. Users are encouraged to use imageio.read() instead.
+        from the given file. Users are encouraged to use imageio.read()
+        instead.
         """
         return self.Reader(self, request)
     
@@ -173,15 +175,14 @@ class Format:
         """
         return self._can_save(request)
     
-    
     def _can_read(self, request):
-        return None # Plugins must implement this
+        return None  # Plugins must implement this
     
     def _can_save(self, request):
-        return None # Plugins must implement this
+        return None  # Plugins must implement this
 
-
-
+    # -----
+    
     class _BaseReaderWriter(object):
         """ Base class for the Reader and Writer class to implement common 
         functionality. It implements a similar approach for opening/closing
@@ -198,7 +199,7 @@ class Format:
         
         @property
         def format(self):
-            """ Get the format corresponding to the current read/save operation.
+            """ The format corresponding to the current read/save operation.
             """
             return self._format
         
@@ -208,7 +209,6 @@ class Format:
             operation.
             """
             return self._request
-        
         
         def __enter__(self):
             self._checkClosed()
@@ -224,7 +224,6 @@ class Format:
                 self.close()
             except:
                 pass  # Supress noise when called during interpreter shutdown
-        
         
         def close(self):
             """Flush and close the reader/writer.
@@ -251,7 +250,6 @@ class Format:
                 msg = msg or ("I/O operation on closed %s." % what)
                 raise ValueError(msg)
         
-        
         def _open(self, **kwargs):
             """ _open(**kwargs)
             
@@ -265,7 +263,6 @@ class Format:
             """ 
             pass
         
-        
         def _close(self):
             """ _close()
             
@@ -277,7 +274,7 @@ class Format:
             """ 
             pass
     
-    
+    # -----
     
     class Reader(_BaseReaderWriter):
         """
@@ -310,7 +307,6 @@ class Format:
             """ 
             return self._get_length()
         
-        
         def get_data(self, index):
             """ get_data(index)
             
@@ -322,7 +318,6 @@ class Format:
             im, meta = self._get_data(index)
             return Image(im, meta)
         
-        
         def get_next_data(self):
             """ get_next_data()
             
@@ -330,7 +325,6 @@ class Format:
             
             """
             return self.get_data(self._BaseReaderWriter_last_index+1)
-        
         
         def get_meta_data(self, index=None):
             """ get_meta_data(index=None)
@@ -348,7 +342,6 @@ class Format:
             """
             return self._get_meta_data(index)
         
-        
         def iter_data(self):
             """ iter_data():
             
@@ -363,7 +356,8 @@ class Format:
                 yield Image(im, meta)
             
             except NotImplementedError:
-                # No luck, but we can still iterate (in a way that allows len==inf)
+                # No luck, but we can still iterate 
+                # (in a way that allows len==inf)
                 i, n = 0, self.get_length()
                 while i < n:
                     im, meta = self._get_data(i)
@@ -375,13 +369,13 @@ class Format:
                     im, meta = self._get_next_data()
                     yield Image(im, meta)
         
-        
         # Compatibility
+        
         def __iter__(self):
             return self.iter_data()
+        
         def __len__(self):
             return self.get_length()
-        
         
         # The plugin part
         
@@ -396,7 +390,6 @@ class Format:
             """ 
             raise NotImplementedError() 
         
-        
         def _get_data(self, index):
             """ _get_data()
             
@@ -407,7 +400,6 @@ class Format:
             
             """ 
             raise NotImplementedError() 
-        
         
         def _get_meta_data(self, index):
             """ _get_meta_data(index)
@@ -421,7 +413,6 @@ class Format:
             """ 
             raise NotImplementedError() 
         
-        
         def _get_next_data(self):
             """ _get_next_data()
             
@@ -433,7 +424,7 @@ class Format:
             """
             raise NotImplementedError() 
     
-    
+    # -----
     
     class Writer(_BaseReaderWriter):
         """ 
@@ -450,7 +441,6 @@ class Format:
         
         """
         
-        
         def append_data(self, im, meta=None):
             """ append_data(im, meta={})
             
@@ -463,7 +453,7 @@ class Format:
             
             # Check image data
             if not isinstance(im, np.ndarray):
-                raise ValueError('append_data accepts a numpy array as first argument.')
+                raise ValueError('append_data requires ndarray as first arg')
             # Get total meta dict
             total_meta = {}
             if hasattr(im, 'meta') and isinstance(im.meta, dict):
@@ -476,9 +466,8 @@ class Format:
                 total_meta.update(meta)        
             
             # Call
-            im = np.asarray(im) # Decouple meta info
+            im = np.asarray(im)  # Decouple meta info
             return self._append_data(im, total_meta)
-        
         
         def set_meta_data(self, meta):
             """ set_meta_data(meta)
@@ -497,7 +486,6 @@ class Format:
             else:
                 return self._set_meta_data(meta)
         
-        
         # The plugin part
         
         def _append_data(self, im, meta):
@@ -507,7 +495,6 @@ class Format:
         def _set_meta_data(self, meta):
             # Plugins must implement this
             raise NotImplementedError() 
-
 
 
 class FormatManager:
@@ -527,7 +514,7 @@ class FormatManager:
         self._formats = []
     
     def __repr__(self):
-        return '<imageio.FormatManager with %i registered formats>' % len(self._formats)
+        return '<imageio.FormatManager with %i registered formats>' % len(self)
     
     def __iter__(self):
         return iter(self._formats)
@@ -536,7 +523,7 @@ class FormatManager:
         return len(self._formats)
     
     def __str__(self):
-        ss =  []
+        ss = []
         for format in self._formats: 
             ext = ', '.join(format.extensions)
             s = '%s - %s [%s]' % (format.name, format.description, ext)
@@ -546,7 +533,8 @@ class FormatManager:
     def __getitem__(self, name):
         # Check
         if not isinstance(name, string_types):
-            raise ValueError('Looking up a format should be done by name or extension.')
+            raise ValueError('Looking up a format should be done by name '
+                             'or by extension.')
         
         # Test if name is existing file
         if os.path.isfile(name):
@@ -556,7 +544,7 @@ class FormatManager:
         
         if '.' in name:
             # Look for extension
-            e1, e2 =os.path.splitext(name)
+            e1, e2 = os.path.splitext(name)
             name = e2 or e1
             # Search for format that supports this extension
             name = name.lower()[1:]
@@ -582,9 +570,9 @@ class FormatManager:
         Register a format, so that imageio can use it.
         """
         if not isinstance(format, Format):
-            raise ValueError('add_format needs argument to be a Format instance.')
+            raise ValueError('add_format needs argument to be a Format object')
         elif format in self._formats:
-            raise ValueError('Given Format instance is already registered.')
+            raise ValueError('Given Format instance is already registered')
         else:
             self._formats.append(format)
     
@@ -619,22 +607,23 @@ class FormatManager:
         txt = 'List of currently supported formats:'
         
         # Get bullet list of all formats
-        ss =  ['']
+        ss = ['']
         for format in self._formats: 
-            s = '  * :ref:`%s <%s>` - %s' % (format.name, format.name, format.description)
+            s = '  * :ref:`%s <%s>` - %s' % (format.name, 
+                                             format.name, format.description)
             ss.append(s)
         txt += '\n'.join(ss) + '\n\n'
         
         # Get more docs for each format
         for format in self._formats:
             title = '%s %s' % (format.name, format.description)
-            ext = ', '.join(['``%s``'%e for e in format.extensions])
+            ext = ', '.join(['``%s``' % e for e in format.extensions])
             ext = ext or 'None'
             #
             txt += '.. _%s:\n\n' % format.name
             txt += '%s\n%s\n\n' % (title, '^'*len(title))
             txt += 'Extensions: %s\n\n' % ext
-            txt += format.__doc__  + '\n\n'
+            txt += format.__doc__ + '\n\n'
         
         # Done
         return txt

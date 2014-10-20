@@ -1,3 +1,5 @@
+.. _sec-functions:
+
 ------------------------
 The functions in imageio
 ------------------------

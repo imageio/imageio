@@ -49,10 +49,10 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     lib_dirs = lib_dirs or []
     
     # Get system dirs to search
-    sys_lib_dirs = [    '/lib', 
-                        '/usr/lib', 
-                        '/usr/local/lib', 
-                        '/opt/local/lib'    ]
+    sys_lib_dirs = ['/lib', 
+                    '/usr/lib', 
+                    '/usr/local/lib', 
+                    '/opt/local/lib', ]
     
     # Get Python dirs to search (shared if for Pyzo)
     py_sub_dirs = ['lib', 'DLLs', 'shared']    
@@ -63,7 +63,6 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     # Get user dirs to search (i.e. HOME)
     home_dir = os.path.expanduser('~')
     user_lib_dirs = [os.path.join(home_dir, d) for d in ['lib']]
-    
     
     # Select only the dirs for which a directory exists, and remove duplicates
     potential_lib_dirs = lib_dirs + sys_lib_dirs + py_lib_dirs + user_lib_dirs
@@ -147,14 +146,14 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
         if errors:
             # No library loaded, and load-errors reported for some
             # candidate libs
-            err_txt = ['%s:\n%s'%(l, str(e)) for l, e in errors]
-            raise OSError('One or more %s libraries were found, but '%the_lib_name + 
-                          'could not be loaded due to the following errors:\n' +
-                          '\n\n'.join(err_txt))
+            err_txt = ['%s:\n%s' % (l, str(e)) for l, e in errors]
+            msg = ('One or more %s libraries were found, but ' + 
+                   'could not be loaded due to the following errors:\n%s')
+            raise OSError(msg % (the_lib_name, '\n\n'.join(err_txt)))
         else:
             # No errors, because no potential libraries found at all!
-            raise OSError('Could not find a %s library in any of:\n'%the_lib_name +
-                          '\n'.join(lib_dirs))
+            msg = 'Could not find a %s library in any of:\n%s'
+            raise OSError(msg % (the_lib_name, '\n'.join(lib_dirs)))
     
     # Done
     return the_lib, fname

@@ -18,7 +18,7 @@ Quickstart:
 
   * Use imageio.imread to read an image.
   * Use imageio.imsave to save an image.
-  * See the `functions page <http://imageio.readthedocs.org/en/latest/functions.html>`_ for more information.
+  * See the :ref:`functions page <sec-functions>` for more information.
  
 """
 
@@ -31,7 +31,7 @@ import imageio.findlib
 import imageio.freeze 
 
 # Load some utils in this namespace
-from imageio.util import Image
+from imageio.util import Image  # noqa
 
 # Try to load freeimage wrapper
 import imageio.freeimage
@@ -39,26 +39,26 @@ try:
     fi = imageio.freeimage.Freeimage()
 except OSError:
     print('Warning: the freeimage wrapper of imageio could not be loaded:')
-    e_type, e_value, e_tb = sys.exc_info(); del e_tb
+    e_type, e_value, e_tb = sys.exc_info()
+    del e_tb
     print(str(e_value))
     fi = None
 
 # Load root plugin and insert some of its functions in this namesplace
-from imageio.base import Format, FormatManager
-from imageio.request import Request, RETURN_BYTES
-from imageio.base import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL
+from imageio.base import Format, FormatManager  # noqa
+from imageio.request import Request, RETURN_BYTES  # noqa
+from imageio.base import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL  # noqa
 
 # Instantiate format manager
 formats = FormatManager()
 
 # Load all the plugins
-import imageio.plugins
+from imageio import plugins  # noqa
 
 # Load the functions
-from imageio.functions import help
-from imageio.functions import read, imread, mimread, volread, mvolread
-from imageio.functions import save, imsave, mimsave, volsave, mvolsave
+from imageio.functions import help  # noqa
+from imageio.functions import read, imread, mimread, volread, mvolread  # noqa
+from imageio.functions import save, imsave, mimsave, volsave, mvolsave  # noqa
 
 # Clean up some names
 del sys
-

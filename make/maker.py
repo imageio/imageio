@@ -18,11 +18,7 @@ import sys
 import os
 from os import path as op
 import time
-import shutil
-import subprocess
-import re
 import webbrowser
-import traceback
 
 
 # Save where we came frome and where this module lives
@@ -195,4 +191,3 @@ class Maker:
         # Report
         print('Replaced %i copyright statements' % count_replaced)
         print('Found %i copyright statements up to date' % count_ok)
-

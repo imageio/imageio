@@ -111,7 +111,8 @@ def resource_dir(package_name, subdir=None):
         # Code to get application dir from pyzolib.paths.applicationdir()
         package_parts = os.path.join(*package_name.split('.'))
         application_dir = os.path.abspath(os.path.dirname(sys.path[0]))
-        return os.path.join(application_dir, 'resources', package_parts, subdir)
+        return os.path.join(application_dir, 'resources', 
+                            package_parts, subdir)
     else:
         # Find location of given module. The module does not have to be
         # imported (making life easier for freezers), but must be "importable".
@@ -124,7 +125,7 @@ def resource_dir(package_name, subdir=None):
 
 def get_includes():
     if sys.version_info[0] == 3:
-        urllib = ['email', 'urllib.request',]
+        urllib = ['email', 'urllib.request', ]
     else:
         urllib = ['urllib2']
     return urllib + ['numpy', 'zipfile', 'io']
@@ -150,6 +151,8 @@ def get_resources():
 # todo: yet untested
 
 import shutil
+
+
 def freeze_copy_resources(app_path, package_name):
     """ Copy resources from a source directory to
     the frozen destination directory.

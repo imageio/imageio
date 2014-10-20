@@ -40,12 +40,10 @@ that best suits that file-format.
 
 
 import sys
-import os 
 import numpy as np
 
 import imageio
 from imageio import formats
-from imageio import base
 
 # Taken from six.py
 PY3 = sys.version_info[0] == 3
@@ -54,8 +52,8 @@ if PY3:
     text_type = str
     binary_type = bytes
 else:
-    string_types = basestring,
-    text_type = unicode
+    string_types = basestring,  # noqa
+    text_type = unicode  # noqa
     binary_type = str
 
 
@@ -79,6 +77,7 @@ def help(name=None):
 # todo: implement inforead function?
 
 ## Base functions that return a reader/writer
+
 
 def read(uri, format=None, expect=None, **kwargs):
     """ read(uri, format=None, expect=None, **kwargs)
@@ -134,7 +133,8 @@ def save(uri, format=None, expect=None, **kwargs):
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
     expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
-        Used to give the writer a hint on what kind of data to expect. Optional.
+        Used to give the writer a hint on what kind of data to expect.
+        Optional.
     
     Further keyword arguments are passed to the reader. See imageio.help
     to see what arguments are available for a particular format.
@@ -214,7 +214,7 @@ def imsave(uri, im, format=None, **kwargs):
     if isinstance(im, np.ndarray):
         if im.ndim == 2:
             pass
-        elif im.ndim == 3 and im.shape[2] in [3,4]:
+        elif im.ndim == 3 and im.shape[2] in [3, 4]:
             pass
         else:
             raise ValueError('Image must be 2D (grayscale, RGB, or RGBA).')
@@ -292,10 +292,11 @@ def mimsave(uri, ims, format=None, **kwargs):
             if isinstance(im, np.ndarray):
                 if im.ndim == 2:
                     pass
-                elif im.ndim == 3 and im.shape[2] in [3,4]:
+                elif im.ndim == 3 and im.shape[2] in [3, 4]:
                     pass
                 else:
-                    raise ValueError('Image must be 2D (grayscale, RGB, or RGBA).')
+                    raise ValueError('Image must be 2D '
+                                     '(grayscale, RGB, or RGBA).')
             else:
                 raise ValueError('Image must be a numpy array.')
             
@@ -364,7 +365,8 @@ def volsave(uri, im, format, **kwargs):
         elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
             pass
         else:
-            raise ValueError('Image must be 3D, or 4D if each voxel is a tuple.')
+            raise ValueError('Image must be 3D, or 4D if each voxel is '
+                             'a tuple.')
     else:
         raise ValueError('Image must be a numpy array.')
     
@@ -440,10 +442,11 @@ def mvolsave(uri, ims, format, **kwargs):
             if isinstance(im, np.ndarray):
                 if im.ndim == 3:
                     pass
-                elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
-                    pass
+                elif im.ndim == 4 and im.shape[3] < 32:
+                    pass  # How large can a tuple be?
                 else:
-                    raise ValueError('Image must be 3D, or 4D if each voxel is a tuple.')
+                    raise ValueError('Image must be 3D, or 4D if each voxel is'
+                                     'a tuple.')
             else:
                 raise ValueError('Image must be a numpy array.')
             
