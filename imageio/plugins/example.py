@@ -28,6 +28,7 @@ class DummyFormat(Format):
     def _can_save(self, request):
         return False
     
+    # -- reader
     
     class Reader(Format.Reader):
     
@@ -42,7 +43,7 @@ class DummyFormat(Format):
         
         def _get_data(self, index):
             if index != 0:
-                raise IndexError('The dummy format only supports singleton images.')
+                raise IndexError('Dummy format only supports singleton images')
             # Read all bytes
             data = self._fp.read()
             # Put in a numpy array
@@ -60,6 +61,7 @@ class DummyFormat(Format):
             # the length and use _get_data() to get the images.
             raise NotImplementedError()  
     
+    # -- writer
     
     class Writer(Format.Writer):
         
@@ -81,13 +83,11 @@ format = DummyFormat('dummy', 'An example format that does nothing.')
 formats.add_format(format)
 
 
-
-
 if __name__ == '__main__':
     import imageio
     #fname = 'C:/almar/projects/pylib/visvis/visvisResources/lena.png'
     fname = '/home/almar/projects/pylib/visvis/visvisResources/lena.png'
     
-    im = imageio.imread(fname, 'dummy') # Explicitly use this format
-    print(im.shape) # (473831, 1)
-    imageio.imsave(fname, im, 'dummy') # Raises error
+    im = imageio.imread(fname, 'dummy')  # Explicitly use this format
+    print(im.shape)  # (473831, 1)
+    imageio.imsave(fname, im, 'dummy')  # Raises error

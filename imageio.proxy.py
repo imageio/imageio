@@ -30,7 +30,7 @@ PARENT_DIR_OF_MODULE = os.path.join(THIS_DIR, MODULE_NAME)
 
 
 # Insert in sys.path, so we can import the *real* package
-if not PARENT_DIR_OF_MODULE in sys.path:
+if PARENT_DIR_OF_MODULE not in sys.path:
     sys.path.insert(0, PARENT_DIR_OF_MODULE)
 
 # Remove *this* module from sys.modules, so we can import that name again
@@ -41,10 +41,10 @@ _old = sys.modules.pop(MODULE_NAME, None)
 # sys.modules. Note that the new package is injected in the namespace
 # from which "import package" is called; we do not need to import *.
 try:
-  __import__(MODULE_NAME, level=0)
+    __import__(MODULE_NAME, level=0)
 except Exception as err:
-  sys.modules[MODULE_NAME] = _old  # Prevent KeyError
-  raise
+    sys.modules[MODULE_NAME] = _old  # Prevent KeyError
+    raise
 
 
 # Clean up after ourselves

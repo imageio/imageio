@@ -2,6 +2,8 @@
 # Copyright (c) 2013, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
+# styletest: skip for now
+
 """ Plugin that wraps the freeimage lib. The wrapper for Freeimage is
 part of the core of imageio, but it's functionality is exposed via
 the plugin system (therefore this plugin is very thin).

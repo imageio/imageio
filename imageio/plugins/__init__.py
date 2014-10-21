@@ -53,7 +53,8 @@ For the imageio.Format class, the following needs to be implemented/specified:
     extensions that are common for the file-format in question.
   * Use a docstring to provide more detailed information about the
     format/plugin.
-  * Implement ``_can_read(request)``, return a bool. See also the Request class.
+  * Implement ``_can_read(request)``, return a bool. 
+    See also the Request class.
   * Implement ``_can_save(request)``, dito.
 
 For the imageio.Format.Reader class:
@@ -78,8 +79,8 @@ For the imageio.format.Writer class:
 
 """
 
-import imageio.plugins.animatedgif
-import imageio.plugins.plugin_freeimage
-import imageio.plugins.example
-import imageio.plugins.dicom
-import imageio.plugins.ffmpeg
+import imageio.plugins.animatedgif  # noqa
+import imageio.plugins.plugin_freeimage  # noqa
+import imageio.plugins.example  # noqa
+import imageio.plugins.dicom  # noqa
+import imageio.plugins.ffmpeg  # noqa

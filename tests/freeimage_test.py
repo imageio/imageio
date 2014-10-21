@@ -2,12 +2,13 @@
 Download zipfiles with the test suite of freeimage.
 We also use it to test reading from a zipfile.
 """
+
 import os
 import sys
 try:
     from urllib2 import urlopen
 except ImportError:
-    from urllib.request import urlopen # Py3k
+    from urllib.request import urlopen  # Py3k
 
 import zipfile
 import shutil
@@ -16,10 +17,12 @@ import imageio
 
 
 # Url to download images from
-ulr = "http://sourceforge.net/projects/freeimage/files/Test%20Suite%20%28graphics%29/2.5.0/"
+ulr = ("http://sourceforge.net/projects/freeimage/files/"
+       "Test%20Suite%20%28graphics%29/2.5.0/")
 
 # Names of zipfiles to download
-names = ['png', 'jpeg', 'bmp', 'ico',  'tiff', 'targa', 'koa', 'mng', 'iff', 'psd', 'ppm', 'pcx'] 
+names = ['png', 'jpeg', 'bmp', 'ico',  'tiff', 'targa', 'koa', 'mng', 'iff', 
+         'psd', 'ppm', 'pcx'] 
 
 # Define what formats are not writable, we will convert these to png
 NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
@@ -27,9 +30,9 @@ NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
 # Define files that fail (i.e. crash)
 FAILS = []
 if sys.platform.startswith('linux'):
-    FAILS.extend( ['quad-jpeg.tif', 'test1g.tif'] )
+    FAILS.extend(['quad-jpeg.tif', 'test1g.tif'])
 if imageio.util.ISPYPY:
-    FAILS.extend( ['LAGEPLAN.PNG', 'Buch.tif'] ) # 'RedbrushAlpha.png',
+    FAILS.extend(['LAGEPLAN.PNG', 'Buch.tif'])  # 'RedbrushAlpha.png',
 
 
 if __name__ == '__main__':
@@ -80,7 +83,8 @@ if __name__ == '__main__':
                 im = imageio.imread(fname_dst1)
                 imageio.imsave(fname_dst2, im)
             except Exception:
-                e_type, e_value, e_tb = sys.exc_info(); del e_tb
+                e_type, e_value, e_tb = sys.exc_info()
+                del e_tb
                 err = str(e_value)
                 print('woops! ' + fname_zip)
                 print('  ' + err)

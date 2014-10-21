@@ -4,6 +4,8 @@
 # imageio is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
 
+# styletest: skip
+
 """ To Update to new version:
 
   * Increase __version__
@@ -91,20 +93,20 @@ setup(
     package_data = {'imageio': [libFilter, '../freeimage_install.py'] },
     zip_safe = False,
     
-    classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Science/Research',
-          'Intended Audience :: Education',
-          'Intended Audience :: Developers',
-          'License :: OSI Approved :: BSD License',
-          'Operating System :: MacOS :: MacOS X',
-          'Operating System :: Microsoft :: Windows',
-          'Operating System :: POSIX',
-          'Programming Language :: Python',
-          'Programming Language :: Python :: 2.6',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.2',
-          'Programming Language :: Python :: 3.3',
-          'Programming Language :: Python :: 3.4',
-          ],
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Education',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        ],
     )

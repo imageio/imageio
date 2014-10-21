@@ -12,7 +12,7 @@ try:
     from urllib2 import urlopen
 except ImportError:
     try:
-        from urllib.request import urlopen # Py3k
+        from urllib.request import urlopen  # Py3k
     except ImportError:
         # If we cannot import this, there is still a chance things work
         # Sometimes this happens when frozen because cannot import email
@@ -37,6 +37,7 @@ LIBRARIES = {
     ('win32', 64): 'FreeImage-3.15.1-win64.dll'
 }
 
+
 def _download(url, dest, timeout=20):
     print('Downloading: %s' % url)
     dest_f = open(dest, 'wb')
@@ -55,7 +56,7 @@ def _download(url, dest, timeout=20):
     except:
         dest_f.close()
         os.remove(dest)
-        raise RuntimeError('Could not download %s to %s.' %(url, dest))
+        raise RuntimeError('Could not download %s to %s.' % (url, dest))
     finally:
         remote.close()
     # Close local file
@@ -86,12 +87,13 @@ def retrieve_files(lib_dir, selection=None):
     """
     # Check
     bits = None
-    if selection in [32,64]:
+    if selection in [32, 64]:
         bits = selection
     elif selection in [None, 'all']:
         pass
     else:
-        raise ValueError("Invalid value for selection: must be None, 32, 64 or 'all'.")
+        raise ValueError("Invalid value for selection:"
+                         " must be None, 32, 64 or 'all'.")
     
     if selection == 'all':
         # We want to download all files
@@ -102,11 +104,11 @@ def retrieve_files(lib_dir, selection=None):
         # We only want to download the one for this system
         key = get_key_for_available_lib(bits)
         if key is None:
-            # Silent return. It is up to the caller to check and raise if necessary
+            # Silent return. It is up to the caller to raise if necessary
             return
         library = LIBRARIES[key]
         print('Found: %s for %d-bit %s systems at %s' % (library, key[1], 
-                key[0], BASE_ADDRESS))
+              key[0], BASE_ADDRESS))
         # Select files to download
         files = list(FILES)
         files.append(library)

@@ -2,6 +2,8 @@
 # Copyright (c) 2013, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
+# styletest: skip for now
+
 """ Plugin that uses ffmpeg to read and write series of images to
 a wide range of video formats.
 

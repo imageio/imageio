@@ -2,6 +2,9 @@
 # Copyright (c) 2013, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
+# styletest: skip
+
+
 """ Plugin for reading DICOM files.
 """
 

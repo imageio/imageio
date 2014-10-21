@@ -2,7 +2,7 @@
 # Copyright (c) 2013, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
-# styletest: skip
+# styletest: skip for now
 
 """ Module imageio/freeimage.py
 

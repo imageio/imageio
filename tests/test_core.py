@@ -30,7 +30,6 @@ def test_format():
     #assert isinstance(F.read('test-request'), F.Reader)
     #assert isinstance(F.save('test-request'), F.Writer)
     
-    
     # Test subclassing
     class MyFormat(Format):
         """ TEST DOCS """

@@ -98,7 +98,8 @@ def test_style():
     
     # Reporting
     print('Running flake8 ... ')
-    sys.stdout.flush()
+    sys.stdout._write = sys.stdout.write
+    sys.stdout.write = _write
     
     # Init
     ignores = ['E226', 'E241', 'E265', 'W291', 'W293']
@@ -128,10 +129,20 @@ def test_style():
                 sys.stdout.flush()
     
     # Report result
+    sys.stdout.write = sys.stdout._write
     if fail:
         raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
     else:
         print('    Hooray! flake8 passed (checked %i files)' % count)
+
+
+def _write(msg):
+    """ Alternative to stdout.write() that makes path relative to ROOT_DIR
+    """
+    if msg.startswith(ROOT_DIR):
+        msg = os.path.relpath(msg, ROOT_DIR)
+    sys.__stdout__._write(msg)
+    sys.__stdout__.flush()
 
 
 def _get_style_test_options(filename):
@@ -149,8 +160,9 @@ def _get_style_test_options(filename):
                 skip = True
             elif 'ignore' in line:
                 words = line.replace(',', ' ').split(' ')
+                words = [w.strip() for w in words if w.strip()]
                 words = [w for w in words if 
-                         (w[0] in 'EWFCN' and w[1:].isalpha())]
+                         (w[1:].isnumeric() and w[0] in 'EWFCN')]
                 ignores.extend(words)
     return skip, ignores
 
