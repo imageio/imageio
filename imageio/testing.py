@@ -98,8 +98,7 @@ def test_style():
     
     # Reporting
     print('Running flake8 ... ')
-    sys.stdout._write = sys.stdout.write
-    sys.stdout.write = _write
+    sys.stdout = FileForTesting(sys.stdout)
     
     # Init
     ignores = ['E226', 'E241', 'E265', 'W291', 'W293']
@@ -129,20 +128,30 @@ def test_style():
                 sys.stdout.flush()
     
     # Report result
-    sys.stdout.write = sys.stdout._write
+    sys.stdout.revert()
     if fail:
         raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
     else:
         print('    Hooray! flake8 passed (checked %i files)' % count)
 
 
-def _write(msg):
-    """ Alternative to stdout.write() that makes path relative to ROOT_DIR
+class FileForTesting(object):
+    """ Alternative to stdout that makes path relative to ROOT_DIR
     """
-    if msg.startswith(ROOT_DIR):
-        msg = os.path.relpath(msg, ROOT_DIR)
-    sys.__stdout__._write(msg)
-    sys.__stdout__.flush()
+    def __init__(self, original):
+        self._original = original
+    
+    def write(self, msg):
+        if msg.startswith(ROOT_DIR):
+            msg = os.path.relpath(msg, ROOT_DIR)
+        self._original.write(msg)
+        self._original.flush()
+    
+    def flush(self):
+        self._original.flush()
+    
+    def revert(self):
+        sys.stdout = self._original
 
 
 def _get_style_test_options(filename):
