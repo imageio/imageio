@@ -1,35 +1,55 @@
 # Travis CI configuration file for imageio
-# Resources:
 # Validate this at http://lint.travis-ci.org/
 
 language: python
 
-
 python:
-    # all versions except pypy and pypy3 have numpy as well.
-    # -> TRAVIS_PYTHON_VERSION
-    - "pypy3"
+    # - We do unit tests in all envs
+    # - Style tests only in 2.7
+    # - Image test (todo)
+    
+    #- "pypy3"  numpy support is really bad right now
     - "2.6"
-    - "2.7"
+    - "2.7"  # has numpy
     - "3.4"
 
-
 before_install:
-    
+    - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
+    - sudo apt-get update -qq;
+    # Install miniconda
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+        wget -q http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
+        chmod +x miniconda.sh;
+        ./miniconda.sh -b -p ~/anaconda &> ${REDIRECT_TO};
+        export PATH=~/anaconda/bin:$PATH;
+        conda update --yes --quiet conda &> ${REDIRECT_TO};
+      fi;
 
-# Install dependencies
 install:
-    - apt-get install libfreeimage3
-
+    # Install Python with numpy
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+        conda create -n testenv --yes --quiet pip python=$TRAVIS_PYTHON_VERSION > ${REDIRECT_TO};
+        source activate testenv > ${REDIRECT_TO};
+        conda install --yes --quiet numpy > ${REDIRECT_TO};
+      fi;
+    # Install prerequisites
+    - travis_retry sudo apt-get install libfreeimage3;
+    # Install needs for testing
+    - pip install pytest;
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        pip install -q flake8;
+      fi;
 
 before_script:
 
-
-# Run the tests
 script: 
-    - python -c "import sys; print(sys.version, '\n', sys.prefix)"
-    #- python make test X
-
+    - python -c "import sys; print(sys.version, '\n', sys.prefix)";
+    # Run unit tests everywhere
+    - python make test unit;
+    # Run style tests only on 3.4
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then 
+        python make test style;
+      fi;
 
 after_success:
     - echo SUCCESS!
