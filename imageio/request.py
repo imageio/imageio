@@ -70,7 +70,6 @@ class Request(object):
         # Parse what was given
         self._parse_uri(uri)
     
-    
     def _parse_uri(self, uri):
         """ Try to figure our what we were given
         """
@@ -354,7 +353,6 @@ class Request(object):
         priority should be given to another Format.
         """
         self._potential_formats.append(format)
-    
     
     def get_potential_format(self):
         """ get_potential_format()

@@ -143,7 +143,10 @@ class Maker:
             return self.help('test')
         from imageio import testing
         if arg in ('flake', 'style'):
-            testing.test_style()
+            try:
+                testing.test_style()
+            except RuntimeError as err:
+                sys.exit(str(err))
         elif arg == 'unit':
             testing.test_unit()
         else:

@@ -57,7 +57,7 @@ def test_unit():
         os.chdir(orig_dir)
 
 
-def test_style():
+def __test_style():
     """ Test style using flake8
     """
     orig_dir = os.getcwd()
@@ -81,6 +81,100 @@ def test_style():
                 pass  # do not exit yet, we want to print a success msg
             else:
                 raise RuntimeError('flake8 failed')
+    finally:
+        os.chdir(orig_dir)
+        sys.argv[:] = orig_argv
+
+
+def test_style():
+    """ Test style using flake8
+    """
+    # Test if flake is there
+    try:
+        from flake8.main import main  # noqa
+    except ImportError:
+        print('Skipping flake8 test, flake8 not installed')
+        return
+    
+    # Reporting
+    print('Running flake8 ... ')
+    sys.stdout.flush()
+    
+    # Init
+    ignores = ['E226', 'E241', 'E265', 'W291', 'W293']
+    fail = False
+    count = 0
+    
+    # Iterate over files
+    for dir, dirnames, filenames in os.walk(ROOT_DIR):
+        # Skip this dir?
+        exclude_dirs = set(['.git', 'docs', 'build', 'dist', '__pycache__'])
+        if exclude_dirs.intersection(dir.split(os.path.sep)):
+            continue
+        # Check all files ...
+        for fname in filenames:
+            if fname.endswith('.py'):
+                # Get test options for this file
+                filename = os.path.join(dir, fname)
+                skip, extra_ignores = _get_style_test_options(filename)
+                if skip:
+                    continue
+                # Test
+                count += 1
+                thisfail = _test_style(filename, ignores + extra_ignores)
+                if thisfail:
+                    fail = True
+                    print('----')
+                sys.stdout.flush()
+    
+    # Report result
+    if fail:
+        raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
+    else:
+        print('    Hooray! flake8 passed (checked %i files)' % count)
+
+
+def _get_style_test_options(filename):
+    """ Returns (skip, ignores) for the specifies source file.
+    """
+    skip = False
+    ignores = []
+    text = open(filename, 'rb').read().decode('utf-8')
+    # Iterate over lines
+    for i, line in enumerate(text.splitlines()):
+        if i > 20:
+            break
+        if line.startswith('# styletest:'):
+            if 'skip' in line:
+                skip = True
+            elif 'ignore' in line:
+                words = line.replace(',', ' ').split(' ')
+                words = [w for w in words if 
+                         (w[0] in 'EWFCN' and w[1:].isalpha())]
+                ignores.extend(words)
+    return skip, ignores
+
+
+def _test_style(filename, ignore):
+    """ Test style for a certain file.
+    """
+    if isinstance(ignore, (list, tuple)):
+        ignore = ','.join(ignore)
+    
+    orig_dir = os.getcwd()
+    orig_argv = sys.argv
+    
+    os.chdir(ROOT_DIR)
+    sys.argv[1:] = [filename]
+    sys.argv.append('--ignore=' + ignore)
+    try:
+        from flake8.main import main
+        main()
+    except SystemExit as ex:
+        if ex.code in (None, 0):
+            return False
+        else:
+            return True
     finally:
         os.chdir(orig_dir)
         sys.argv[:] = orig_argv
