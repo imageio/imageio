@@ -1,4 +1,6 @@
 __pychache__
+_imageio-binaries
+_imageio.github.io
 *.pyc
 *.pyo
 docs/_build
