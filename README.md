@@ -2,6 +2,8 @@
 IMAGEIO
 -------
 
+|Build Status| |Coverage Status| |Pypi Downloads|
+
 The imageio library aims to support reading and writing a wide 
 range of image data, including animated images, volumetric data, and
 scientific formats. It is written in pure Python (2.x and 3.x) and
@@ -30,3 +32,9 @@ You can clone the source from the repository and put it somwhere on your PYTHONP
 Then import imageio as usual, saving you from having to reinstall it after
 each update.
 
+
+.. |Build Status| image:: https://travis-ci.org/imageio/imageio.png?branch=master
+   :target: https://travis-ci.org/imageio/imageio
+.. |Coverage Status| image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
+   :target: https://coveralls.io/r/imageio/imageio?branch=master
+.. |Pypi Downloads| image:: https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
