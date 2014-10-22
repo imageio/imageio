@@ -37,4 +37,5 @@ each update.
    :target: https://travis-ci.org/imageio/imageio
 .. |Coverage Status| image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
    :target: https://coveralls.io/r/imageio/imageio?branch=master
-.. |Pypi Downloads| image:: https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
+.. |Pypi Downloads| image:: https://pypip.in/d/imageio/badge.png
+   :target: https://crate.io/packages/imageio
