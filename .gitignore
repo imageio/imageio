@@ -1,16 +1,25 @@
-__pychache__
+# Folders in root folder
 _imageio-binaries
 _imageio.github.io
-*.pyc
-*.pyo
-docs/_build
+htmlcov
 build
 dist
 temp
+
+# Files in root folder
+MANIFEST
+.coverage
+
+# Specific folders
+imageio/lib
+docs/_build
 tests/zipped
 tests/freezing/frozen
+
+# Files / folders that should always be ignored
+__pychache__
+*.pyc
+*.pyo
 *.dll
-imageio/lib
 *.dylib
-MANIFEST
 

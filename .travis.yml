@@ -35,8 +35,9 @@ install:
     # Install prerequisites
     - travis_retry sudo apt-get install libfreeimage3;
     # Install needs for testing
-    - pip install pytest;
+    - pip install -q pytest pytest-cov;
     - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        pip install -q coveralls;
         pip install -q flake8;
       fi;
 
@@ -52,9 +53,12 @@ script:
       fi;
 
 after_success:
-    - echo SUCCESS!
+    - echo == ALL TESTS PASS ==
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        coveralls;
+      fi;
 
 after_failure:
-    - echo FAIL!
+    - echo == FAILURE ==
 
 after_script:

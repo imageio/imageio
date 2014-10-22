@@ -64,6 +64,6 @@ def test_format_manager():
     assert F1 is F2
     # Fail
     pytest.raises(IndexError, formats.__getitem__, '.nonexistentformat')
-    
+
 
 run_tests_if_main()
