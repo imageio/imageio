@@ -35,24 +35,32 @@ def pytest_runtest_call(item):
 runner.pytest_runtest_call = pytest_runtest_call
 
 
-def run_tests_if_main():
+def run_tests_if_main(show_coverage=False):
     """ Run tests in a given file if it is run as a script
+    
+    Coverage is reported for running this single test. Set show_coverage to
+    launch the report in the web browser.
     """
     local_vars = inspect.currentframe().f_back.f_locals
     if not local_vars.get('__name__', '') == '__main__':
         return
     # we are in a "__main__"
+    os.chdir(ROOT_DIR)
     fname = local_vars['__file__']
-    pytest.main('-v -x --color=yes %s' % fname)
+    pytest.main('-v -x --color=yes --cov imageio --cov-report html %s' % fname)
+    if show_coverage:
+        import webbrowser
+        fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
+        webbrowser.open_new_tab(fname)
 
 
-def test_unit():
+def test_unit(cov_report='term'):
     """ Run all unit tests
     """
     orig_dir = os.getcwd()
     os.chdir(ROOT_DIR)
     try:
-        pytest.main('-v tests')
+        pytest.main('-v --cov imageio --cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
 

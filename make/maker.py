@@ -67,14 +67,10 @@ class Maker:
         else:
             sys.exit('Invalid command: "%s"' % command)
 
-    def coverage_html(self, arg):
-        """Generate html report from .coverage and launch"""
-        print('Generating HTML...')
-        from coverage import coverage
-        cov = coverage(auto_data=False, branch=True, data_suffix=None,
-                       source=['imageio'])  # should match testing/_coverage.py
-        cov.load()
-        cov.html_report()
+    def coverage(self, arg):
+        """Generate html coverage report and show in browser. """
+        from imageio import testing
+        testing.test_unit(cov_report='html')
         print('Done, launching browser.')
         fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
         if not op.isfile(fname):
