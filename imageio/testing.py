@@ -5,7 +5,6 @@ import inspect
 
 import pytest
 from _pytest import runner
-runner.pytest_runtest_call_orig = runner.pytest_runtest_call
 
 # Get root dir
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +31,9 @@ def pytest_runtest_call(item):
         raise
 
 # Monkey-patch pytest
-runner.pytest_runtest_call = pytest_runtest_call
+if not runner.pytest_runtest_call.__module__.startswith('imageio'):
+    runner.pytest_runtest_call_orig = runner.pytest_runtest_call
+    runner.pytest_runtest_call = pytest_runtest_call
 
 
 def run_tests_if_main(show_coverage=False):
@@ -47,6 +48,7 @@ def run_tests_if_main(show_coverage=False):
     # we are in a "__main__"
     os.chdir(ROOT_DIR)
     fname = local_vars['__file__']
+    _clear_imageio()
     pytest.main('-v -x --color=yes --cov imageio --cov-report html %s' % fname)
     if show_coverage:
         import webbrowser
@@ -60,9 +62,17 @@ def test_unit(cov_report='term'):
     orig_dir = os.getcwd()
     os.chdir(ROOT_DIR)
     try:
+        _clear_imageio()
         pytest.main('-v --cov imageio --cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
+
+
+def _clear_imageio():
+    # Remove ourselves from sys.modules to force an import
+    for key in list(sys.modules.keys()):
+        if key.startswith('imageio'):
+            del sys.modules[key]
 
 
 def __test_style():
