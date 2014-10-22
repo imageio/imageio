@@ -35,7 +35,7 @@ install:
     # Install prerequisites
     - travis_retry sudo apt-get install libfreeimage3;
     # Install needs for testing
-    - pip install -q pytest;
+    - pip install -q pytest pytest-cov;
     - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
         pip install -q coveralls;
         pip install -q flake8;
