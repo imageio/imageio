@@ -1,6 +1,7 @@
 # Folders in root folder
 _imageio-binaries
 _imageio.github.io
+_website
 htmlcov
 build
 dist
