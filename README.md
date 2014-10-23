@@ -1,12 +1,10 @@
 # IMAGEIO
 
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio) |
-
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master) |
-
 [![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
 
-website: http://imageio.readthedocs.org
+Website: http://imageio.readthedocs.org
 
 
 <p class='summary'>
