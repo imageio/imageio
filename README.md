@@ -1,11 +1,12 @@
 # IMAGEIO
 
-[![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio) |
-[![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master) |
+[![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
+[![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
 
-Website: http://imageio.readthedocs.org
+Website: http://imageio.github.io
 
+<!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
 
 <p class='summary'>
 
