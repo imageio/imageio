@@ -11,5 +11,6 @@ xhr.onreadystatechange = function (event) {
 };
 
 function load_content_from_readme() {
+  document.getElementById("content").innerHTML = "loading ..."
   xhr.send();
 }
