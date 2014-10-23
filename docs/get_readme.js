@@ -1,4 +1,4 @@
-var readme_url = "../README.md";
+var readme_url = "https://raw.githubusercontent.com/imageio/imageio/master/README.md";
 
 var xhr = new XMLHttpRequest();
 xhr.open('GET', readme_url, true);
