@@ -215,6 +215,9 @@ class BaseProgressIndicator:
         # Update
         self._update_progress(progressText)
     
+    def increase_progress(self, extra_progress):
+        self.set_progress(self._progress + extra_progress)
+    
     def finish(self, message=None):
         self.set_progress(self._progress, True)  # fore update
         self._status = 2
@@ -287,6 +290,61 @@ class StdoutProgressIndicator(BaseProgressIndicator):
         # Reprint progress text
         sys.stdout.write(self._chars_prefix+self._chars)
         sys.stdout.flush()
+
+
+# From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
+import os, sys
+def appdata_dir(appname=None, roaming=False, macAsLinux=False):
+    """ appdata_dir(appname=None, roaming=False,  macAsLinux=False)
+    Get the path to the application directory, where applications are allowed
+    to write user specific files (e.g. configurations). For non-user specific
+    data, consider using common_appdata_dir().
+    If appname is given, a subdir is appended (and created if necessary). 
+    If roaming is True, will prefer a roaming directory (Windows Vista/7).
+    If macAsLinux is True, will return the Linux-like location on Mac.
+    """
+    
+    # Define default user directory
+    userDir = os.path.expanduser('~')
+    
+    # Get system app data dir
+    path = None
+    if sys.platform.startswith('win'):
+        path1, path2 = os.getenv('LOCALAPPDATA'), os.getenv('APPDATA')
+        path = (path2 or path1) if roaming else (path1 or path2)
+    elif sys.platform.startswith('darwin') and not macAsLinux:
+        path = os.path.join(userDir, 'Library', 'Application Support')
+    # On Linux and as fallback
+    if not (path and os.path.isdir(path)):
+        path = userDir
+    
+    # Maybe we should store things local to the executable (in case of a 
+    # portable distro or a frozen application that wants to be portable)
+    prefix = sys.prefix
+    if getattr(sys, 'frozen', None): # See application_dir() function
+        prefix = os.path.abspath(os.path.dirname(sys.path[0]))
+    for reldir in ('settings', '../settings'):
+        localpath = os.path.abspath(os.path.join(prefix, reldir))
+        if os.path.isdir(localpath):
+            try:
+                open(os.path.join(localpath, 'test.write'), 'wb').close()
+                os.remove(os.path.join(localpath, 'test.write'))
+            except IOError:
+                pass # We cannot write in this directory
+            else:
+                path = localpath
+                break
+    
+    # Get path specific for this app
+    if appname:
+        if path == userDir:
+            appname = '.' + appname.lstrip('.') # Make it a hidden directory
+        path = os.path.join(path, appname)
+        if not os.path.isdir(path):
+            os.mkdir(path)
+    
+    # Done
+    return path
 
 
 if __name__ == '__main__':

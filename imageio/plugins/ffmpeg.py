@@ -17,6 +17,7 @@ import os
 import re
 import time
 import threading
+import struct
 import subprocess as sp
 
 import numpy as np
@@ -24,13 +25,24 @@ import numpy as np
 import imageio
 from imageio import formats
 from imageio.base import Format
+from imageio.fetching import get_remote_file
 
-# todo: select an exe!
-FFMPEG_EXE = os.path.join(os.path.dirname(imageio.__file__), 'lib', 'ffmpeg')
-if sys.platform.startswith('win'):
-    FFMPEG_EXE += '.exe'
+# Get ffmpeg exe
+NBYTES = struct.calcsize('P') * 8
+if sys.platform.startswith('linux'):
+    fname = 'ffmpeg.linux%i' % NBYTES
+elif sys.platform.startswith('win'):
+    fname = 'ffmpeg.win32.exe'
+elif sys.platform.startswith('darwin'):
+    fname = 'ffmpeg.osx'
+else:
+    fname = 'ffmpeg'  # hope for the best
+#
+FFMPEG_EXE = 'ffmpeg'
+if fname:
+    get_remote_file('ffmpeg/' + fname)
 
-
+# Get camera format
 if sys.platform.startswith('win'):
     CAM_FORMAT = 'dshow'  # dshow or vfwcap
 elif sys.platform.startswith('linux'):

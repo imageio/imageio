@@ -95,8 +95,8 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     
     Load a dynamic library. 
     
-    This function first tries to just load the library from the given
-    exact names. When that fails, it tries to find the library in common
+    This function first tries to load the library from the given exact
+    names. When that fails, it tries to find the library in common
     locations. It searches for files that start with one of the names
     given in lib_names (case insensitive). The search is performed in
     the given lib_dirs and a set of common library dirs.

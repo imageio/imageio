@@ -23,8 +23,6 @@ import os
 import sys
 from distutils.core import setup
 
-from freeimage_install import retrieve_files
-
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
 
@@ -47,30 +45,6 @@ for line in open(initFile).readlines():
         __doc__ += line
 
 
-# Get Resource dir
-RD = os.path.abspath('imageio/lib') 
-
-# Download libs at install-time. Determine which libs to include
-if ('build' in sys.argv) or ('install' in sys.argv):
-    # Download what *this* system needs
-    if sys.platform.startswith('win'):
-        retrieve_files(RD, 32) 
-        retrieve_files(RD, 64)
-    else:
-        retrieve_files(RD)
-    libFilter = 'lib/*'
-elif 'sdist' in sys.argv:
-    # Pack only the txt file
-    libFilter = 'lib/*.txt' 
-elif 'bdist' in sys.argv or 'bdist_wininst' in sys.argv:
-    # Download and pack 32 bit and 64 bit binaries 
-    retrieve_files(RD, 32) 
-    retrieve_files(RD, 64)
-    libFilter = 'lib/*'
-else:
-    libFilter = 'lib/*'
-
-
 setup(
     name = name,
     version = __version__,
@@ -90,7 +64,6 @@ setup(
     
     packages = ['imageio', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
-    package_data = {'imageio': [libFilter, '../freeimage_install.py'] },
     zip_safe = False,
     
     classifiers = [
