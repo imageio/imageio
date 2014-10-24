@@ -7,11 +7,10 @@
 
 import numpy as np
 
-from imageio import Format, formats
-from imageio import base
-from imageio import fi
-
-from imageio.freeimage import IO_FLAGS
+from imageio import formats
+from imageio import core
+from imageio.core import Format
+from ._freeimage import fi, IO_FLAGS
 
 # The freetype image format for GIF is 25
 FIF = 25
@@ -49,7 +48,7 @@ class AnimatedGifFormat(Format):
     """
     
     def _can_read(self, request):
-        if fi and request.expect == base.EXPECT_MIM:
+        if fi and request.expect == core.EXPECT_MIM:
             if request.filename.lower().endswith('.gif'):
                 return True
     

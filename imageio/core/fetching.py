@@ -12,7 +12,7 @@ import sys
 import shutil
 import time
 
-from imageio.util import appdata_dir, StdoutProgressIndicator
+from imageio.core import appdata_dir, StdoutProgressIndicator
 
 try:
     from urllib2 import urlopen
@@ -26,8 +26,6 @@ if sys.version_info[0] >= 3:
     string_types = str
 else:
     string_types = basestring
-
-data_dir = appdata_dir('imageio')
 
 
 def get_remote_file(fname, directory=None, force_download=False):
@@ -55,7 +53,7 @@ def get_remote_file(fname, directory=None, force_download=False):
     """
     _url_root = 'https://github.com/imageio/imageio-binaries/raw/master/'
     url = _url_root + fname
-    directory = directory or data_dir
+    directory = directory or appdata_dir('imageio')
 
     fname = op.join(directory, op.normcase(fname))  # convert to native
     if op.isfile(fname):
@@ -100,7 +98,7 @@ def _fetch_file(url, file_name, print_destination=True):
         # Checking file size and displaying it alongside the download url
         u = urlopen(url, timeout=5.)
         file_size = int(u.headers['Content-Length'].strip())
-        print('Downloading data from %s (%s)' % (url, sizeof_fmt(file_size)))
+        print('Downloading data from %s (%s)' % (url, _sizeof_fmt(file_size)))
         # Downloading data (can be extended to resume if need be)
         local_file = open(temp_file_name, "wb")
         data = urlopen(url, timeout=5.)
@@ -164,7 +162,7 @@ def _chunk_write(chunk, local_file, progress):
     time.sleep(0.0001)
 
 
-def sizeof_fmt(num):
+def _sizeof_fmt(num):
     """Turn number of bytes into human-readable str"""
     units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB']
     decimals = [0, 0, 1, 2, 2, 2]

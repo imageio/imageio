@@ -3,7 +3,7 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ 
-Utilities for imageio
+Various utilities for imageio
 """
 
 import sys
@@ -18,6 +18,18 @@ except ImportError:
     pass
 
 import numpy as np
+
+
+# Taken from six.py
+PY3 = sys.version_info[0] == 3
+if PY3:
+    string_types = str,
+    text_type = str
+    binary_type = bytes
+else:
+    string_types = basestring,  # noqa
+    text_type = unicode  # noqa
+    binary_type = str
 
 
 # Extra numpypy compatibility

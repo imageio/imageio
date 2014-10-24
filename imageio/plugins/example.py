@@ -6,7 +6,7 @@
 """
 
 from imageio import formats
-from imageio.base import Format
+from imageio.core import Format
 import numpy as np
 
 

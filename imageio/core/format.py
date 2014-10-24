@@ -39,19 +39,8 @@ import os
 
 import numpy as np
 
-from imageio.util import Image
-
-
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,  # noqa
-    text_type = unicode  # noqa
-    binary_type = str
+from . import Image
+from . import string_types, text_type, binary_type  # noqa
 
 
 # Define expects

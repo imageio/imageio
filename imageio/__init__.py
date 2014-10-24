@@ -24,41 +24,20 @@ Quickstart:
 
 __version__ = '0.5.1dev'
 
-import sys
-
-# Explicitly import these
-import imageio.findlib 
-import imageio.freeze 
-
-# Load some utils in this namespace
-from imageio.util import Image  # noqa
-
-# Try to load freeimage wrapper
-import imageio.freeimage
-try:
-    fi = imageio.freeimage.Freeimage()
-except OSError:
-    print('Warning: the freeimage wrapper of imageio could not be loaded:')
-    e_type, e_value, e_tb = sys.exc_info()
-    del e_tb
-    print(str(e_value))
-    fi = None
-
-# Load root plugin and insert some of its functions in this namesplace
-from imageio.base import Format, FormatManager  # noqa
-from imageio.request import Request, RETURN_BYTES  # noqa
-from imageio.base import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL  # noqa
+# Load some bits from core
+from .core import FormatManager, RETURN_BYTES  # noqa
+from .core import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL  # noqa
 
 # Instantiate format manager
 formats = FormatManager()
 
-# Load all the plugins
-from imageio import plugins  # noqa
-
 # Load the functions
-from imageio.functions import help  # noqa
-from imageio.functions import read, imread, mimread, volread, mvolread  # noqa
-from imageio.functions import save, imsave, mimsave, volsave, mvolsave  # noqa
+from .core.functions import help  # noqa
+from .core.functions import read, imread, mimread, volread, mvolread  # noqa
+from .core.functions import save, imsave, mimsave, volsave, mvolsave  # noqa
+
+# Load all the plugins
+from . import plugins  # noqa
 
 # Clean up some names
-del sys
+del FormatManager

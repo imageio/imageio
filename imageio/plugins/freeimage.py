@@ -8,13 +8,11 @@
 part of the core of imageio, but it's functionality is exposed via
 the plugin system (therefore this plugin is very thin).
 """
-
-from imageio import Format, formats
-from imageio import base
-from imageio import fi
 import ctypes
 
-from imageio.freeimage import IO_FLAGS
+from imageio import formats
+from imageio.core import Format, EXPECT_IM
+from ._freeimage import fi, IO_FLAGS
 
 
 # todo: support files with only meta data
@@ -33,7 +31,7 @@ class FreeimageFormat(Format):
     
     
     def _can_read(self, request):
-        if fi and request.expect in [None, base.EXPECT_IM]:
+        if fi and request.expect in [None, EXPECT_IM]:
             if not hasattr(request, '_fif'):
                 try:
                     request._fif = fi.getFIF(request.filename, 'r', 
@@ -47,7 +45,7 @@ class FreeimageFormat(Format):
                 #request.add_potential_format(self)
     
     def _can_save(self, request):
-        if fi and request.expect in [None, base.EXPECT_IM]:
+        if fi and request.expect in [None, EXPECT_IM]:
             if not hasattr(request, '_fif'):
                 request._fif = fi.getFIF(request.filename, 'w')
             if request._fif is self.fif:

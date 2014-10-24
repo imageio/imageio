@@ -14,7 +14,7 @@ import zipfile
 import tempfile
 import shutil
 
-from imageio.base import string_types, binary_type
+from imageio.core import string_types, binary_type
 
 # URI types
 URI_BYTES = 1

@@ -24,8 +24,8 @@ import numpy as np
 
 import imageio
 from imageio import formats
-from imageio.base import Format
-from imageio.fetching import get_remote_file
+from imageio.core import Format, get_remote_file
+
 
 # Get ffmpeg exe
 NBYTES = struct.calcsize('P') * 8

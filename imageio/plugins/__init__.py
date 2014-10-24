@@ -79,8 +79,8 @@ For the imageio.format.Writer class:
 
 """
 
-import imageio.plugins.animatedgif  # noqa
-import imageio.plugins.plugin_freeimage  # noqa
-import imageio.plugins.example  # noqa
-import imageio.plugins.dicom  # noqa
-import imageio.plugins.ffmpeg  # noqa
+from . import animatedgif  # noqa
+from . import freeimage  # noqa
+from . import example  # noqa
+from . import dicom  # noqa
+from . import ffmpeg  # noqa

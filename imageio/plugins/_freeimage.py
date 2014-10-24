@@ -22,10 +22,8 @@ import threading
 import numpy
 import struct
 
-from imageio.fetching import get_remote_file
-from imageio.findlib import load_lib
-from imageio.freeze import resource_dir
-from imageio.util import DictWitNames, ISPYPY, appdata_dir
+from imageio.core import get_remote_file, load_lib, DictWitNames, appdata_dir
+from imageio.core.util import ISPYPY
 
 # todo: make API class more complete
 # todo: write with palette?
@@ -1179,3 +1177,13 @@ class FIMultipageBitmap(FIBaseBitmap):
         with self._fi as lib:
             lib.FreeImage_AppendPage(self._bitmap, bitmap._bitmap) # no return value
 
+
+# Create instance
+try:
+    fi = Freeimage()
+except OSError:
+    print('Warning: the freeimage wrapper of imageio could not be loaded:')
+    e_type, e_value, e_tb = sys.exc_info()
+    del e_tb
+    print(str(e_value))
+    fi = None

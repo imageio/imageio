@@ -19,12 +19,11 @@ import sys
 import os
 import struct
 
-from imageio import formats
-from imageio.base import Format
 import numpy as np
 
+from imageio import formats
+from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from imageio import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL
-from imageio.util import BaseProgressIndicator, StdoutProgressIndicator
 
 
 # From six.py
