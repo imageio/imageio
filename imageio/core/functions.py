@@ -338,7 +338,7 @@ def volread(uri, format=None, **kwargs):
         return reader.get_data(0)
 
 
-def volsave(uri, im, format, **kwargs):
+def volsave(uri, im, format=None, **kwargs):
     """ volsave(uri, vol, format=None, **kwargs)
     
     Save a volume to the specified file.
@@ -383,7 +383,7 @@ def volsave(uri, im, format, **kwargs):
 
 ## Multiple volumes
 
-def mvolread(uri, format, **kwargs):
+def mvolread(uri, format=None, **kwargs):
     """ mvolread(uri, format=None, **kwargs)
     
     Reads multiple volumes from the specified file. Returns a list of
@@ -410,7 +410,7 @@ def mvolread(uri, format, **kwargs):
         return [im for im in reader]
 
 
-def mvolsave(uri, ims, format, **kwargs):
+def mvolsave(uri, ims, format=None, **kwargs):
     """ mvolsave(uri, vols, format=None, **kwargs)
     
     Save multiple volumes to the specified file.

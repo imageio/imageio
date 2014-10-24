@@ -53,8 +53,7 @@ class AnimatedGifFormat(Format):
                 return True
     
     def _can_save(self, request):
-        return False  # self._can_read(request)
-        # todo: Needs implementing
+        return self._can_read(request)
 
     # -- reader
     
@@ -162,8 +161,10 @@ class AnimatedGifFormat(Format):
             sub1 = fi.create_bitmap(self._bm._filename, FIF)
             sub1.allocate(im)
             sub1.set_image_data(im)
-            # Quantize it
-            sub2 = sub1.quantize(self._quantizer, self._palettesize)
+            # Quantize it if its RGB or RGBA
+            sub2 = sub1
+            if im.ndim == 3 and im.shape[2] in (3, 4):
+                sub2 = sub1.quantize(self._quantizer, self._palettesize)
             sub2.set_meta_data(meta)
             # Add
             self._bm.append_bitmap(sub2)

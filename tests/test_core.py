@@ -6,6 +6,7 @@ import sys
 import os
 import shutil
 import ctypes.util
+import zipfile
 
 import numpy as np
 from pytest import raises
@@ -359,5 +360,101 @@ def test_progres_bar(sleep=0):
         if sleep:
             return
 
+
+def test_functions():
+    """ Test the user-facing API functions """
+    
+    # Test help(), it prints stuff, so we just check whether that goes ok
+    imageio.help()  # should print overview
+    imageio.help('PNG')  # should print about PNG
+    
+    fname1 = get_remote_file('images/chelsea.png')
+    fname2 = fname1[:-3] + 'jpg'
+    fname3 = fname1[:-3] + 'notavalidext'
+    open(fname3, 'wb')
+    
+    # Test read()
+    R1 = imageio.read(fname1)
+    R2 = imageio.read(fname1, 'png')
+    assert R1.format is R2.format
+    # Fail
+    raises(ValueError, imageio.read, fname3)  # existing but not readable
+    raises(OSError, imageio.read, 'notexisting.barf')
+    raises(IndexError, imageio.read, fname1, 'notexistingformat')
+    
+    # Test save()
+    W1 = imageio.save(fname2)
+    W2 = imageio.save(fname2, 'JPG')
+    assert W1.format is W2.format
+    # Fail
+    raises(ValueError, imageio.save, 'wtf.notexistingfile')
+    
+    # Test imread()
+    im1 = imageio.imread(fname1)
+    im2 = imageio.imread(fname1, 'png')
+    assert im1.shape[2] == 3
+    assert np.all(im1 == im2)
+    
+    # Test imsave()
+    if os.path.isfile(fname2):
+        os.remove(fname2)
+    assert not os.path.isfile(fname2)
+    imageio.imsave(fname2, im1[:, :, 0])
+    imageio.imsave(fname2, im1)
+    assert os.path.isfile(fname2)
+    
+    # Test mimread()
+    fname3 = get_remote_file('images/newtonscradle.gif')
+    ims = imageio.mimread(fname3)
+    assert isinstance(ims, list)
+    assert len(ims) > 1
+    assert ims[0].ndim == 3
+    assert ims[0].shape[2] in (1, 3, 4)
+    
+    # Test mimsave()
+    fname5 = fname3[:-5] + '2.gif'
+    if os.path.isfile(fname5):
+        os.remove(fname5)
+    assert not os.path.isfile(fname5)
+    imageio.mimsave(fname5, [im[:, :, 0] for im in ims])
+    imageio.mimsave(fname5, ims)
+    assert os.path.isfile(fname5)
+    
+    # Test volread()
+    fname4 = get_remote_file('images/dicom_sample.zip')
+    dname4 = fname4[:-4]
+    z = zipfile.ZipFile(fname4)
+    z.extractall(dname4)
+    #
+    vol = imageio.volread(dname4, 'DICOM')
+    assert vol.ndim == 3
+    assert vol.shape[0] > 20
+    assert vol.shape[1] == 512
+    assert vol.shape[2] == 512
+    
+    # Test volsave()
+    raises(ValueError, imageio.volsave, dname4, vol)
+    raises(ValueError, imageio.volsave, dname4, np.zeros((100, 100, 100, 3)))
+    # todo: we have no format to save volumes yet!
+    
+    # Test mvolread()
+    vols = imageio.mvolread(dname4, 'DICOM')
+    assert isinstance(vols, list)
+    assert len(vols) == 1
+    assert vols[0].shape == vol.shape
+    
+    # Test mvolsave()
+    raises(ValueError, imageio.mvolsave, dname4, vols)
+    # todo: we have no format to save volumes yet!
+    
+    # Fail for save functions
+    raises(ValueError, imageio.imsave, fname2, np.zeros((100, 100, 5)))
+    raises(ValueError, imageio.imsave, fname2, 42)
+    raises(ValueError, imageio.mimsave, fname5, [np.zeros((100, 100, 5))])
+    raises(ValueError, imageio.mimsave, fname5, [42])
+    raises(ValueError, imageio.volsave, dname4, np.zeros((100, 100, 100, 40)))
+    raises(ValueError, imageio.volsave, dname4, 42)
+    raises(ValueError, imageio.mvolsave, dname4, [np.zeros((90, 90, 90, 40))])
+    raises(ValueError, imageio.mvolsave, dname4, [42])
 
 run_tests_if_main()
