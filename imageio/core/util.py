@@ -6,16 +6,9 @@
 Various utilities for imageio
 """
 
+import os
 import sys
 import time
-
-# Try load numpy from pypy
-ISPYPY = False
-try:
-    import numpypy  # noqa
-    ISPYPY = True
-except ImportError:
-    pass
 
 import numpy as np
 
@@ -30,15 +23,6 @@ else:
     string_types = basestring,  # noqa
     text_type = unicode  # noqa
     binary_type = str
-
-
-# Extra numpypy compatibility
-def _dstack(tup):
-    for a in tup:
-        a.shape = a.shape + tuple([1]*(3-a.ndim))
-    return np.concatenate(tup, axis=2)
-if not hasattr(np, 'dstack'):
-    np.dstack = _dstack
 
 
 # currently not used ... the only use it to easly provide the global meta info
@@ -78,7 +62,7 @@ class Image(np.ndarray):
         meta = meta if meta is not None else {}
         try:
             ob = array.view(cls)
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             # Just return the original; no metadata on the array in Pypy!
             return array
         ob._copy_meta(meta)
@@ -87,10 +71,10 @@ class Image(np.ndarray):
     def _copy_meta(self, meta):
         """ Make a 2-level deep copy of the meta dictionary.
         """
-        self._meta = DictWitNames()
+        self._meta = Dict()
         for key, val in meta.items():
             if isinstance(val, dict):
-                val = DictWitNames(val)  # Copy this level
+                val = Dict(val)  # Copy this level
             self._meta[key] = val
     
     def __repr__(self):
@@ -132,14 +116,24 @@ class Image(np.ndarray):
             return out  # Type Image
 
 
-class DictWitNames(dict):
-    """ DictWitNames()
-    A dict in which the keys can be get and set as if they were
+try:
+    from collections import OrderedDict as _dict
+except ImportError:
+    _dict = dict
+
+
+class Dict(_dict):
+    """ A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
     
-    This dict only makes sense if the keys are valid attribute names.
-    
+    This Dict still behaves as much as possible as a normal dict, and
+    keys can be anything that are otherwise valid keys. However, 
+    keys that are not valid identifiers or that are names of the dict
+    class (such as 'items' and 'copy') cannot be get/set as attributes.
     """
+    
+    __reserved_names__ = dir(_dict())  # Also from OrderedDict
+    __pure_names__ = dir(dict())
     
     def __getattribute__(self, key):
         try:
@@ -151,19 +145,21 @@ class DictWitNames(dict):
                 raise
     
     def __setattr__(self, key, val):
-        if key in self.__dict__:
-            raise RuntimeError('The name %r is reserved.' % key)
+        if key in Dict.__reserved_names__:
+            # Either let OrderedDict do its work, or disallow
+            if key not in Dict.__pure_names__:
+                return _dict.__setattr__(self, key, val)
+            else:
+                raise AttributeError('Reserved name, this key can only ' +
+                                     'be set via ``d[%r] = X``' % key)
         else:
-            # This would have been nice, but it would mean that changes
-            # to the given val would not have effect.
-            #if isinstance(val, dict):
-            #    val = DictWitNames(val)
+            # if isinstance(val, dict): val = Dict(val) -> no, makes a copy!
             self[key] = val
     
     def __dir__(self):
-        a = list(self.__dict__.keys())
-        b = list(self.keys())
-        return a+b
+        names = [k for k in self.keys() if 
+                 (hasattr(k, 'isidentifier') and k.isidentifier())]
+        return Dict.__reserved_names__ + names
 
 
 class BaseProgressIndicator:
@@ -305,15 +301,13 @@ class StdoutProgressIndicator(BaseProgressIndicator):
 
 
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
-import os, sys
-def appdata_dir(appname=None, roaming=False, macAsLinux=False):
-    """ appdata_dir(appname=None, roaming=False,  macAsLinux=False)
+def appdata_dir(appname=None, roaming=False):
+    """ appdata_dir(appname=None, roaming=False)
     Get the path to the application directory, where applications are allowed
     to write user specific files (e.g. configurations). For non-user specific
     data, consider using common_appdata_dir().
     If appname is given, a subdir is appended (and created if necessary). 
     If roaming is True, will prefer a roaming directory (Windows Vista/7).
-    If macAsLinux is True, will return the Linux-like location on Mac.
     """
     
     # Define default user directory
@@ -324,7 +318,7 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     if sys.platform.startswith('win'):
         path1, path2 = os.getenv('LOCALAPPDATA'), os.getenv('APPDATA')
         path = (path2 or path1) if roaming else (path1 or path2)
-    elif sys.platform.startswith('darwin') and not macAsLinux:
+    elif sys.platform.startswith('darwin'):
         path = os.path.join(userDir, 'Library', 'Application Support')
     # On Linux and as fallback
     if not (path and os.path.isdir(path)):
@@ -333,16 +327,16 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     # Maybe we should store things local to the executable (in case of a 
     # portable distro or a frozen application that wants to be portable)
     prefix = sys.prefix
-    if getattr(sys, 'frozen', None): # See application_dir() function
+    if getattr(sys, 'frozen', None):
         prefix = os.path.abspath(os.path.dirname(sys.path[0]))
     for reldir in ('settings', '../settings'):
         localpath = os.path.abspath(os.path.join(prefix, reldir))
-        if os.path.isdir(localpath):
+        if os.path.isdir(localpath):  # pragma: no cover
             try:
                 open(os.path.join(localpath, 'test.write'), 'wb').close()
                 os.remove(os.path.join(localpath, 'test.write'))
             except IOError:
-                pass # We cannot write in this directory
+                pass  # We cannot write in this directory
             else:
                 path = localpath
                 break
@@ -350,34 +344,10 @@ def appdata_dir(appname=None, roaming=False, macAsLinux=False):
     # Get path specific for this app
     if appname:
         if path == userDir:
-            appname = '.' + appname.lstrip('.') # Make it a hidden directory
+            appname = '.' + appname.lstrip('.')  # Make it a hidden directory
         path = os.path.join(path, appname)
-        if not os.path.isdir(path):
+        if not os.path.isdir(path):  # pragma: no cover
             os.mkdir(path)
     
     # Done
     return path
-
-
-if __name__ == '__main__':
-    a = np.ones((5, 5))
-    im1 = Image(a)
-    im1.meta['foo'] = 'bar'
-    im2 = im1*2
-    
-    L = ImageList()
-    L.append(im1)
-    L.append(im2)
-    
-    p = StdoutProgressIndicator('Testing')
-    p.start('foo', '', 102)
-    for i in range(100):
-        time.sleep(0.02)
-        p.set_progress(i)
-    p.finish('Hooray')
-    
-    p.start('bar', 'items', 80)
-    for i in range(100):
-        time.sleep(0.02)
-        p.set_progress(i)
-    p.fail('Too little items found')

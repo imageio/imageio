@@ -22,8 +22,9 @@ import threading
 import numpy
 import struct
 
-from imageio.core import get_remote_file, load_lib, DictWitNames, appdata_dir
-from imageio.core.util import ISPYPY
+from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
+
+ISPYPY = False  # todo: do we need this?
 
 # todo: make API class more complete
 # todo: write with palette?
@@ -617,7 +618,7 @@ class FIBaseBitmap(object):
             METADATA_MODELS.__dict__.items() if name.startswith('FIMD_')]
         
         # Prepare
-        metadata = DictWitNames()
+        metadata = Dict()
         tag = ctypes.c_void_p()
         
         with self._fi as lib:
@@ -658,7 +659,7 @@ class FIBaseBitmap(object):
                                 except Exception:
                                     pass
                         # Store data in dict
-                        subdict = metadata.setdefault(model_name, DictWitNames())
+                        subdict = metadata.setdefault(model_name, Dict())
                         subdict[tag_name] = tag_val
                         # Next
                         more = lib.FreeImage_FindNextMetadata(mdhandle, ctypes.byref(tag))

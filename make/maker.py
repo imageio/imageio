@@ -69,7 +69,7 @@ class Maker:
 
     def coverage(self, arg):
         """Generate html coverage report and show in browser. """
-        from imageio import testing
+        from imageio.core import testing
         testing.test_unit(cov_report='html')
         print('Done, launching browser.')
         fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
@@ -137,7 +137,7 @@ class Maker:
         """
         if not arg:
             return self.help('test')
-        from imageio import testing
+        from imageio.core import testing
         if arg in ('flake', 'style'):
             try:
                 testing.test_style()

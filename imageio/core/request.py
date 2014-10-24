@@ -34,16 +34,24 @@ class Request(object):
     
     Represents a request for reading or saving a file. This object wraps
     information to that request and acts as an interface for the plugins
-    to several resources; it allows the user to read from http, zipfiles,
-    raw bytes, etc., but offer a simple interface to the plugins:
-    get_file() and get_local_filename().
+    to several resources; it allows the user to read from http,
+    zipfiles, raw bytes, etc., but offer a simple interface to the
+    plugins: get_file() and get_local_filename().
     
     Per read/save operation a single Request instance is used and passed
-    to the can_read/can_save method of a format, and subsequently to the
-    Reader/Writer class. This allows rudimentary passing of information
-    between different formats and between a format and its reader/writer.
-    
+    to the can_read/can_save method of a format, and subsequently to
+    the Reader/Writer class. This allows rudimentary passing of
+    information between different formats and between a format and
+    associated reader/writer.
+
+    parameters
+    ----------
+    uri : {str, bytes, file}
+        The resource to load the image from.
+    expect : str
+        A few characters to indicate the expected value.
     """
+    # todo: expect -> mode
     
     def __init__(self, uri, expect, **kwargs):
         

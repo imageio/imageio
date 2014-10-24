@@ -31,8 +31,6 @@ NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
 FAILS = []
 if sys.platform.startswith('linux'):
     FAILS.extend(['quad-jpeg.tif', 'test1g.tif'])
-if imageio.util.ISPYPY:
-    FAILS.extend(['LAGEPLAN.PNG', 'Buch.tif'])  # 'RedbrushAlpha.png',
 
 
 if __name__ == '__main__':

@@ -47,7 +47,10 @@ class FreeimageFormat(Format):
     def _can_save(self, request):
         if fi and request.expect in [None, EXPECT_IM]:
             if not hasattr(request, '_fif'):
-                request._fif = fi.getFIF(request.filename, 'w')
+                try:
+                    request._fif = fi.getFIF(request.filename, 'w')
+                except Exception:
+                    request._fif = -1
             if request._fif is self.fif:
                 return True
     

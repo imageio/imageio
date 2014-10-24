@@ -34,7 +34,6 @@ a format object using ``imageio.formats.add_format()``.
 
 from __future__ import with_statement
 
-import sys
 import os
 
 import numpy as np
@@ -527,7 +526,8 @@ class FormatManager:
         
         # Test if name is existing file
         if os.path.isfile(name):
-            format = self.search_read_format(name)
+            from .request import ReadRequest
+            format = self.search_read_format(ReadRequest(name, EXPECT_IM))
             if format is not None:
                 return format
         
@@ -547,7 +547,7 @@ class FormatManager:
                 if name == format.name:
                     return format
             else:
-                # Maybe the user ment to specify an extension
+                # Maybe the user meant to specify an extension
                 return self['.'+name.lower()]
         
         # Nothing found ...

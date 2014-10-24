@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2014, Imageio team
+# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+
+""" Functionality used for testing. This code itself is not covered in tests.
+"""
 
 import os
 import sys
@@ -49,7 +55,8 @@ def run_tests_if_main(show_coverage=False):
     os.chdir(ROOT_DIR)
     fname = local_vars['__file__']
     _clear_imageio()
-    pytest.main('-v -x --color=yes --cov imageio --cov-report html %s' % fname)
+    pytest.main('-v -x --color=yes --cov imageio '
+                '--cov-config .coveragerc --cov-report html %s' % fname)
     if show_coverage:
         import webbrowser
         fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
@@ -63,7 +70,8 @@ def test_unit(cov_report='term'):
     os.chdir(ROOT_DIR)
     try:
         _clear_imageio()
-        pytest.main('-v --cov imageio --cov-report %s tests' % cov_report)
+        pytest.main('-v --cov imageio --cov-config .coveragerc '
+                    '--cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
 
@@ -73,35 +81,6 @@ def _clear_imageio():
     for key in list(sys.modules.keys()):
         if key.startswith('imageio'):
             del sys.modules[key]
-
-
-def __test_style():
-    """ Test style using flake8
-    """
-    orig_dir = os.getcwd()
-    orig_argv = sys.argv
-    
-    os.chdir(ROOT_DIR)
-    sys.argv[1:] = ['imageio', 'make']
-    sys.argv.append('--ignore=E226,E241,E265,W291,W293')
-    sys.argv.append('--exclude=six.py,py24_ordereddict.py')
-    try:
-        from flake8.main import main
-    except ImportError:
-        print('Skipping flake8 test, flake8 not installed')
-    else:
-        print('Running flake8... ')  # if end='', first error gets ugly
-        sys.stdout.flush()
-        try:
-            main()
-        except SystemExit as ex:
-            if ex.code in (None, 0):
-                pass  # do not exit yet, we want to print a success msg
-            else:
-                raise RuntimeError('flake8 failed')
-    finally:
-        os.chdir(orig_dir)
-        sys.argv[:] = orig_argv
 
 
 def test_style():

@@ -23,9 +23,22 @@ class DummyFormat(Format):
         # request.firstbytes: the first 256 bytes of the file.
         # request.expect: what kind of data the user expects
         # request.kwargs: the keyword arguments specified by the user
+        
+        # These lines are used in testing
+        if request.kwargs.get('dummy_potential', False):
+            request.add_potential_format(self)
+        if request.kwargs.get('dummy_can', False):
+            return True
+        
         return False
     
     def _can_save(self, request):
+        # These lines are used in testing
+        if request.kwargs.get('dummy_potential', False):
+            request.add_potential_format(self)
+        if request.kwargs.get('dummy_can', False):
+            return True
+        
         return False
     
     # -- reader
@@ -53,7 +66,7 @@ class DummyFormat(Format):
             return im, {}
         
         def _get_meta_data(self, index):
-            raise RuntimeError('The dymmy format cannot read meta data.')
+            raise RuntimeError('The dummy format cannot read meta data.')
         
         def _get_next_data(self):
             # Optional. Formats can implement this to support reading the

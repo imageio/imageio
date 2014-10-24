@@ -14,6 +14,7 @@ by Zulko
 
 import sys
 import os
+import stat
 import re
 import time
 import threading
@@ -40,7 +41,8 @@ else:
 #
 FFMPEG_EXE = 'ffmpeg'
 if fname:
-    get_remote_file('ffmpeg/' + fname)
+    FFMPEG_EXE = get_remote_file('ffmpeg/' + fname)
+    os.chmod(FFMPEG_EXE, os.stat(FFMPEG_EXE).st_mode | stat.S_IEXEC)  # exe
 
 # Get camera format
 if sys.platform.startswith('win'):

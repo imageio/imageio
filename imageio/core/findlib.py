@@ -104,6 +104,14 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     Returns (ctypes_library, library_path)
     """
     
+    # Checks
+    assert isinstance(exact_lib_names, list)
+    assert isinstance(lib_names, list)
+    if lib_dirs is not None:
+        assert isinstance(lib_dirs, list)
+    exact_lib_names = [n for n in exact_lib_names if n]
+    lib_names = [n for n in lib_names if n]
+    
     # Get reference name (for better messages)
     if lib_names:
         the_lib_name = lib_names[0]

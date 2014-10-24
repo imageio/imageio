@@ -25,7 +25,7 @@ except ImportError:
 if sys.version_info[0] >= 3:
     string_types = str
 else:
-    string_types = basestring
+    string_types = basestring  # noqa
 
 
 def get_remote_file(fname, directory=None, force_download=False):
