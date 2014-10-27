@@ -83,3 +83,4 @@ from . import freeimage  # noqa
 from . import example  # noqa
 from . import dicom  # noqa
 from . import ffmpeg  # noqa
+from . import npz  # noqa

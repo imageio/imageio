@@ -22,6 +22,8 @@ a format object using ``imageio.formats.add_format()``.
 
 """
 
+# todo: do we even use the known extensions?
+
 # Some notes:
 #
 # The classes in this module use the Request object to pass filename and

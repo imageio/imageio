@@ -11,6 +11,7 @@ from zipfile import ZipFile
 from io import BytesIO
 
 import numpy as np
+
 from pytest import raises
 from imageio.core.testing import run_tests_if_main, get_test_dir
 
@@ -634,7 +635,7 @@ def test_functions():
     assert ims[0].shape[2] in (1, 3, 4)
     
     # Test mimsave()
-    fname5 = fname3[:-5] + '2.gif'
+    fname5 = fname3[:-4] + '2.gif'
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)
@@ -643,40 +644,46 @@ def test_functions():
     assert os.path.isfile(fname5)
     
     # Test volread()
-    fname4 = get_remote_file('images/dicom_sample.zip', test_dir)
-    dname4 = fname4[:-4]
-    z = ZipFile(fname4)
-    z.extractall(dname4)
-    #
-    vol = imageio.volread(dname4, 'DICOM')
+    fname4 = get_remote_file('images/stent.npz', test_dir)
+    vol = imageio.volread(fname4)
     assert vol.ndim == 3
-    assert vol.shape[0] > 20
-    assert vol.shape[1] == 512
-    assert vol.shape[2] == 512
+    assert vol.shape[0] == 256
+    assert vol.shape[1] == 128
+    assert vol.shape[2] == 128
     
     # Test volsave()
-    raises(ValueError, imageio.volsave, dname4, vol)
-    raises(ValueError, imageio.volsave, dname4, np.zeros((100, 100, 100, 3)))
-    # todo: we have no format to save volumes yet!
+    volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
+    fname6 = fname4[:-4] + '2.npz'
+    if os.path.isfile(fname6):
+        os.remove(fname6)
+    assert not os.path.isfile(fname6)
+    imageio.volsave(fname6, volc)
+    imageio.volsave(fname6, vol)
+    assert os.path.isfile(fname6)
     
     # Test mvolread()
-    vols = imageio.mvolread(dname4, 'DICOM')
+    vols = imageio.mvolread(fname4)
     assert isinstance(vols, list)
     assert len(vols) == 1
     assert vols[0].shape == vol.shape
     
     # Test mvolsave()
-    raises(ValueError, imageio.mvolsave, dname4, vols)
-    # todo: we have no format to save volumes yet!
+    if os.path.isfile(fname6):
+        os.remove(fname6)
+    assert not os.path.isfile(fname6)
+    imageio.mvolsave(fname6, [volc, volc])
+    imageio.mvolsave(fname6, vols)
+    assert os.path.isfile(fname6)
     
     # Fail for save functions
     raises(ValueError, imageio.imsave, fname2, np.zeros((100, 100, 5)))
     raises(ValueError, imageio.imsave, fname2, 42)
     raises(ValueError, imageio.mimsave, fname5, [np.zeros((100, 100, 5))])
     raises(ValueError, imageio.mimsave, fname5, [42])
-    raises(ValueError, imageio.volsave, dname4, np.zeros((100, 100, 100, 40)))
-    raises(ValueError, imageio.volsave, dname4, 42)
-    raises(ValueError, imageio.mvolsave, dname4, [np.zeros((90, 90, 90, 40))])
-    raises(ValueError, imageio.mvolsave, dname4, [42])
+    raises(ValueError, imageio.volsave, fname4, np.zeros((100, 100, 100, 40)))
+    raises(ValueError, imageio.volsave, fname4, 42)
+    raises(ValueError, imageio.mvolsave, fname4, [np.zeros((90, 90, 90, 40))])
+    raises(ValueError, imageio.mvolsave, fname4, [42])
+
 
 run_tests_if_main()
