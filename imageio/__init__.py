@@ -26,7 +26,6 @@ __version__ = '0.5.1dev'
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES  # noqa
-from .core import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL  # noqa
 
 # Instantiate format manager
 formats = FormatManager()

@@ -42,14 +42,6 @@ from . import Image
 from . import string_types, text_type, binary_type  # noqa
 
 
-# Define expects
-# These are like hints, that the plugins can use to better serve the user.
-EXPECT_IM = 0
-EXPECT_MIM = 1
-EXPECT_VOL = 2
-EXPECT_MVOL = 3
-
-
 class Format:
     """ Represents an implementation to read/save a particular file format
     
@@ -526,8 +518,8 @@ class FormatManager:
         
         # Test if name is existing file
         if os.path.isfile(name):
-            from .request import ReadRequest
-            format = self.search_read_format(ReadRequest(name, EXPECT_IM))
+            from . import Request
+            format = self.search_read_format(Request(name, 'r?'))
             if format is not None:
                 return format
         

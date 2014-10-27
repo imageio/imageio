@@ -23,24 +23,11 @@ import numpy as np
 
 from imageio import formats
 from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
-from imageio import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL
-
-
-# From six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,    
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,
-    text_type = unicode
-    binary_type = str
+from imageio.core import string_types
 
 
 # Determine endianity of system
 sys_is_little_endian = (sys.byteorder == 'little')
-
 
 
 class DicomFormat(Format):
@@ -121,24 +108,24 @@ class DicomFormat(Format):
             
             nslices = self._data.shape[0] if (self._data.ndim==3) else 1
             
-            if self.request.expect == EXPECT_IM:
+            if self.request.mode[1] == 'i':
                 # User expects one, but lets be honest about what is in this file
                 return nslices 
-            elif self.request.expect == EXPECT_MIM:
+            elif self.request.mode[1] == 'I':
                 # User expects multiple, if this file has multiple slices, ok.
                 # Otherwise we have to check the series.
                 if nslices > 1:
                     return nslices
                 else:
                     return sum([len(serie) for serie in self.series])
-            elif self.request.expect == EXPECT_VOL:
+            elif self.request.mode[1] == 'v':
                 # User expects a volume, if this file has one, ok.
                 # Otherwise we have to check the series
                 if nslices > 1:
                     return 1
                 else:
                     return len(self.series)  # Note: we assume one volume per series
-            elif self.request.expect == EXPECT_MVOL:
+            elif self.request.mode[1] == 'V':
                 # User expects multiple volumes. We have to check the series
                 return len(self.series)  # Note: we assume one volume per series
             else:
@@ -152,7 +139,7 @@ class DicomFormat(Format):
             
             nslices = self._data.shape[0] if (self._data.ndim==3) else 1
             
-            if self.request.expect == EXPECT_IM:
+            if self.request.mode[1] == 'i':
                 # Allow index >1 only if this file contains >1
                 if nslices > 1:
                     return self._data[index], self._info
@@ -160,7 +147,7 @@ class DicomFormat(Format):
                     return self._data, self._info
                 else:
                     raise IndexError('Dicom file contains only one slice.')
-            elif self.request.expect == EXPECT_MIM:
+            elif self.request.mode[1] == 'I':
                 # Return slice from volume, or return item from series
                 if index==0 and nslices > 1:
                     return self._data[index], self._info
@@ -169,7 +156,7 @@ class DicomFormat(Format):
                     for serie in self.series:
                         L.extend([dcm for dcm in serie])
                     return L[index].get_numpy_array(), L[index].info
-            elif self.request.expect in (EXPECT_VOL, EXPECT_MVOL):
+            elif self.request.mode[1] in 'vV':
                 # Return volume or series
                 if index == 0 and nslices > 1:
                     return self._data, self._info
@@ -190,9 +177,9 @@ class DicomFormat(Format):
             if index is None:
                 return self._info
 
-            if self.request.expect == EXPECT_IM:
+            if self.request.mode[1] == 'i':
                 return self._info
-            elif self.request.expect == EXPECT_MIM:
+            elif self.request.mode[1] == 'I':
                 # Return slice from volume, or return item from series
                 if index==0 and nslices > 1:
                     return self._info
@@ -201,7 +188,7 @@ class DicomFormat(Format):
                     for serie in self.series:
                         L.extend([dcm for dcm in serie])
                     return L[index].info
-            elif self.request.expect in (EXPECT_VOL, EXPECT_MVOL):
+            elif self.request.mode[1] in 'vV':
                 # Return volume or series
                 if index == 0 and nslices > 1:
                     return self._info

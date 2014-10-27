@@ -11,7 +11,7 @@ the plugin system (therefore this plugin is very thin).
 import ctypes
 
 from imageio import formats
-from imageio.core import Format, EXPECT_IM
+from imageio.core import Format
 from ._freeimage import fi, IO_FLAGS
 
 
@@ -31,7 +31,7 @@ class FreeimageFormat(Format):
     
     
     def _can_read(self, request):
-        if fi and request.expect in [None, EXPECT_IM]:
+        if fi and request.mode[1] in 'i?':
             if not hasattr(request, '_fif'):
                 try:
                     request._fif = fi.getFIF(request.filename, 'r', 
@@ -45,7 +45,7 @@ class FreeimageFormat(Format):
                 #request.add_potential_format(self)
     
     def _can_save(self, request):
-        if fi and request.expect in [None, EXPECT_IM]:
+        if fi and request.mode[1] in 'i?':
             if not hasattr(request, '_fif'):
                 try:
                     request._fif = fi.getFIF(request.filename, 'w')
@@ -172,6 +172,7 @@ class FreeimageIcoFormat(FreeimageFormat):
         mask when loading. Default True.
     
     """
+    # todo: this supports multiple images!
     
     class Reader(FreeimageFormat.Reader):
         def _open(self, flags=0, makealpha=True):

@@ -8,7 +8,6 @@
 import numpy as np
 
 from imageio import formats
-from imageio import core
 from imageio.core import Format
 from ._freeimage import fi, IO_FLAGS
 
@@ -48,7 +47,7 @@ class AnimatedGifFormat(Format):
     """
     
     def _can_read(self, request):
-        if fi and request.expect == core.EXPECT_MIM:
+        if fi and request.mode[1] in 'I?':
             if request.filename.lower().endswith('.gif'):
                 return True
     

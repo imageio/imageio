@@ -13,6 +13,5 @@ from .findlib import load_lib  # noqa
 from .fetching import get_remote_file  # noqa
 from .request import Request, RETURN_BYTES  # noqa
 from .format import Format, FormatManager  # noqa
-from .format import EXPECT_IM, EXPECT_MIM, EXPECT_VOL, EXPECT_MVOL  # noqa
 # todo: reader, writer
 # todo: read or write request?

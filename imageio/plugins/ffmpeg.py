@@ -85,9 +85,9 @@ class FfmpegFormat(Format):
         # The request object has:
         # request.filename: the filename
         # request.firstbytes: the first 256 bytes of the file.
-        # request.expect: what kind of data the user expects
+        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
         # request.kwargs: the keyword arguments specified by the user
-        if (request.expect is not None) and request.expect != imageio.EXPECT_MIM:
+        if request.mode[1] not in 'I?':
             return False
         
         # Read from video stream?

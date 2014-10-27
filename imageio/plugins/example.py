@@ -21,7 +21,8 @@ class DummyFormat(Format):
         # The request object has:
         # request.filename: the filename
         # request.firstbytes: the first 256 bytes of the file.
-        # request.expect: what kind of data the user expects
+        # request.mode[0]: read or write mode
+        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
         # request.kwargs: the keyword arguments specified by the user
         
         # These lines are used in testing

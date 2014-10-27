@@ -23,6 +23,7 @@ import numpy
 import struct
 
 from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
+from imageio.core import string_types, binary_type
 
 ISPYPY = False  # todo: do we need this?
 
@@ -30,17 +31,6 @@ ISPYPY = False  # todo: do we need this?
 # todo: write with palette?
 # todo: Check if jpeg has alpha channel. if so, deal with it and maybe warn.
 # todo: Maybe sometimes the flags should be overriden later?
-
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,
-    text_type = unicode
-    binary_type = str
 
 
 def get_imageio_lib():

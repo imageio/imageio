@@ -8,6 +8,8 @@
 import os
 import sys
 import inspect
+import shutil
+import atexit
 
 import pytest
 from _pytest import runner
@@ -21,26 +23,7 @@ for i in range(9):
         break
 
 
-def pytest_runtest_call(item):
-    """ Variant of pytest_runtest_call() that stores traceback info for
-    postmortem debugging.
-    """
-    try:
-        runner.pytest_runtest_call_orig(item)
-    except Exception:
-        type, value, tb = sys.exc_info()
-        tb = tb.tb_next  # Skip *this* frame
-        sys.last_type = type
-        sys.last_value = value
-        sys.last_traceback = tb
-        del tb  # Get rid of it in this namespace
-        raise
-
-# Monkey-patch pytest
-if not runner.pytest_runtest_call.__module__.startswith('imageio'):
-    runner.pytest_runtest_call_orig = runner.pytest_runtest_call
-    runner.pytest_runtest_call = pytest_runtest_call
-
+## Functions to use in tests
 
 def run_tests_if_main(show_coverage=False):
     """ Run tests in a given file if it is run as a script
@@ -63,6 +46,26 @@ def run_tests_if_main(show_coverage=False):
         webbrowser.open_new_tab(fname)
 
 
+_the_test_dir = None
+
+
+def get_test_dir():
+    global _the_test_dir
+    if _the_test_dir is None:
+        # Define dir
+        from imageio.core import appdata_dir
+        _the_test_dir = os.path.join(appdata_dir('imageio'), 'testdir')
+        # Clear it now
+        if os.path.isdir(_the_test_dir):
+            shutil.rmtree(_the_test_dir)
+        os.makedirs(_the_test_dir)
+        # And later
+        atexit.register(lambda x=None: shutil.rmtree(_the_test_dir))
+    return _the_test_dir
+
+
+## Functions to use from make
+
 def test_unit(cov_report='term'):
     """ Run all unit tests
     """
@@ -74,13 +77,6 @@ def test_unit(cov_report='term'):
                     '--cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
-
-
-def _clear_imageio():
-    # Remove ourselves from sys.modules to force an import
-    for key in list(sys.modules.keys()):
-        if key.startswith('imageio'):
-            del sys.modules[key]
 
 
 def test_style():
@@ -130,6 +126,15 @@ def test_style():
         raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
     else:
         print('    Hooray! flake8 passed (checked %i files)' % count)
+
+
+## Requirements
+
+def _clear_imageio():
+    # Remove ourselves from sys.modules to force an import
+    for key in list(sys.modules.keys()):
+        if key.startswith('imageio'):
+            del sys.modules[key]
 
 
 class FileForTesting(object):
@@ -196,3 +201,26 @@ def _test_style(filename, ignore):
     finally:
         os.chdir(orig_dir)
         sys.argv[:] = orig_argv
+
+
+## Patching
+
+def pytest_runtest_call(item):
+    """ Variant of pytest_runtest_call() that stores traceback info for
+    postmortem debugging.
+    """
+    try:
+        runner.pytest_runtest_call_orig(item)
+    except Exception:
+        type, value, tb = sys.exc_info()
+        tb = tb.tb_next  # Skip *this* frame
+        sys.last_type = type
+        sys.last_value = value
+        sys.last_traceback = tb
+        del tb  # Get rid of it in this namespace
+        raise
+
+# Monkey-patch pytest
+if not runner.pytest_runtest_call.__module__.startswith('imageio'):
+    runner.pytest_runtest_call_orig = runner.pytest_runtest_call
+    runner.pytest_runtest_call = pytest_runtest_call

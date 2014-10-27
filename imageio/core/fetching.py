@@ -12,7 +12,7 @@ import sys
 import shutil
 import time
 
-from imageio.core import appdata_dir, StdoutProgressIndicator
+from . import appdata_dir, StdoutProgressIndicator, string_types
 
 try:
     from urllib2 import urlopen
@@ -21,11 +21,6 @@ except ImportError:
         from urllib.request import urlopen  # Py3k
     except ImportError:
         urlopen = None  # import works, but downloading not
-
-if sys.version_info[0] >= 3:
-    string_types = str
-else:
-    string_types = basestring  # noqa
 
 
 def get_remote_file(fname, directory=None, force_download=False):

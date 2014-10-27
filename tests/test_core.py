@@ -6,15 +6,17 @@ import sys
 import os
 import shutil
 import ctypes.util
-import zipfile
+from zipfile import ZipFile
+from io import BytesIO
 
 import numpy as np
 from pytest import raises
-from imageio.core.testing import run_tests_if_main
+from imageio.core.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio import core
-from imageio.core import Format, FormatManager, get_remote_file
+from imageio.core import Format, FormatManager, Request
+from imageio.core import get_remote_file
 
 
 def test_namespace():
@@ -24,7 +26,6 @@ def test_namespace():
     has_names = set([n for n in has_names if not n.startswith('_')])
     
     need_names = ('help formats read save RETURN_BYTES '
-                  'EXPECT_IM EXPECT_MIM EXPECT_VOL EXPECT_MVOL '
                   'read imread mimread volread mvolread '
                   'save imsave mimsave volsave mvolsave'
                   ).split(' ')
@@ -40,6 +41,7 @@ def test_namespace():
 
 def test_format():
     """ Test the working of the Format class """
+    
     # Test basic format creation
     F = Format('testname', 'test description', 'foo bar spam')
     assert F.name == 'TESTNAME'
@@ -73,6 +75,7 @@ def test_format():
 
 def test_format_manager():
     """ Test working of the format manager """
+    
     formats = imageio.formats
     
     # Test basics of FormatManager
@@ -92,7 +95,7 @@ def test_format_manager():
         assert format.name in smalldocs
         assert format.name in fulldocs
     
-    fname = get_remote_file('images/chelsea.png')
+    fname = get_remote_file('images/chelsea.png', get_test_dir())
     fname2 = fname[:-3] + 'noext'
     shutil.copy(fname, fname2)
     
@@ -123,26 +126,23 @@ def test_format_manager():
     raises(ValueError, formats.add_format, myformat)  # cannot add twice
     
     # Test searchinhgfor read / write format
-    ReadRequest = imageio.core.request.ReadRequest
-    WriteRequest = imageio.core.request.WriteRequest
-    F = formats.search_read_format(ReadRequest(fname, imageio.EXPECT_IM))
+    F = formats.search_read_format(Request(fname, 'ri'))
     assert F is formats['PNG']
-    F = formats.search_save_format(WriteRequest(fname, imageio.EXPECT_IM))
+    F = formats.search_save_format(Request(fname, 'wi'))
     assert F is formats['PNG']
     # Potential
-    F = formats.search_read_format(ReadRequest(b'asd', imageio.EXPECT_IM,
-                                               dummy_potential=True))
+    F = formats.search_read_format(Request(b'asd', 'ri', dummy_potential=1))
     assert F is formats['DUMMY']
-    F = formats.search_save_format(WriteRequest('<bytes>', imageio.EXPECT_IM,
-                                                dummy_potential=True))
+    F = formats.search_save_format(Request('<bytes>', 'wi', dummy_potential=1))
     assert F is formats['DUMMY']
 
 
 def test_fetching():
     """ Test fetching of files """
     
+    return
     # Clear image files
-    test_dir = os.path.join(core.appdata_dir('imageio'), 'test')
+    test_dir = get_test_dir()
     if os.path.isdir(test_dir):
         shutil.rmtree(test_dir)   
     
@@ -226,31 +226,127 @@ def test_findlb():
 
 def test_request():
     """ Test request object """
-    return
+    
+    test_dir = get_test_dir()
     
     # Check uri-type, this is not a public property, so we test the private
-    R = core.Request('http://example.com')
+    R = Request('http://example.com', 'ri')
     assert R._uri_type == core.request.URI_HTTP
-    R = core.Request('ftp://example.com')
+    R = Request('ftp://example.com', 'ri')
     assert R._uri_type == core.request.URI_FTP
-    R = core.Request('file://example.com')
+    R = Request('file://example.com', 'wi')
     assert R._uri_type == core.request.URI_FILENAME
-    R = core.Request('<video0>')
+    R = Request('<video0>', 'rI')
     assert R._uri_type == core.request.URI_BYTES
-    R = core.Request('<bytes>')
+    R = Request(imageio.RETURN_BYTES, 'wi')
     assert R._uri_type == core.request.URI_BYTES
     #
-    R = core.Request(get_remote_file('images/chelsea.png'))
+    fname = get_remote_file('images/chelsea.png', get_test_dir())
+    R = Request(fname, 'ri')
     assert R._uri_type == core.request.URI_FILENAME
-    R = core.Request(get_remote_file('/file/that/does/not/exist'))
+    R = Request('/file/that/does/not/exist', 'wi')
     assert R._uri_type == core.request.URI_FILENAME  # Too short to be bytes
-    R = core.Request(b'x'*600)
+    R = Request(b'x'*600, 'ri')
     assert R._uri_type == core.request.URI_BYTES
-    R = core.request.ReadRequest(sys.stdin)
+    R = Request(sys.stdin, 'ri')
     assert R._uri_type == core.request.URI_FILE
-    R = core.request.WriteRequest(sys.stdout)
+    R = Request(sys.stdout, 'wi')
     assert R._uri_type == core.request.URI_FILE
+    # exapand user dir
+    R = Request('~/foo', 'wi')
+    assert R.filename == os.path.expanduser('~/foo')
+    # zip file
+    R = Request('/foo/bar.zip/spam.png', 'wi')
+    assert R._uri_type == core.request.URI_ZIPPED
+    
+    # Test failing inits
+    raises(ValueError, Request, '/some/file', None)  # mode must be str
+    raises(ValueError, Request, '/some/file', 3)  # mode must be str
+    raises(ValueError, Request, '/some/file', '')  # mode must be len 2
+    raises(ValueError, Request, '/some/file', 'r')  # mode must be len 2
+    raises(ValueError, Request, '/some/file', 'rii')  # mode must be len 2
+    raises(ValueError, Request, '/some/file', 'xi')  # mode[0] must be in rw
+    raises(ValueError, Request, '/some/file', 'rx')  # mode[1] must be in iIvV?
     #
+    raises(IOError, Request, ['invalid', 'uri'] * 10, 'ri')  # invalid uri
+    raises(IOError, Request, 4, 'ri')  # invalid uri
+    raises(IOError, Request, '/does/not/exist', 'ri')  # reading nonexistent
+    raises(IOError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
+    raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
+    
+    # Make an image available in many ways
+    burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
+    fname = 'images/chelsea.png'
+    filename = get_remote_file(fname, test_dir)
+    bytes = open(filename, 'rb').read()
+    z = ZipFile(os.path.join(test_dir, 'test.zip'), 'w')
+    z.writestr(fname, bytes)
+    z.close()
+    file = open(filename, 'rb')
+    
+    # Read that image from these different sources. Read data from file
+    # and from local file (the two main plugin-facing functions)
+    for uri in (filename, 
+                os.path.join(test_dir, 'test.zip', fname),
+                bytes,
+                file,
+                burl + fname):
+        # Init
+        firsbytes_list, bytes_list = [], []
+        # Via file
+        R = Request(uri, 'ri')
+        firsbytes_list.append(R.firstbytes)
+        bytes_list.append(R.get_file().read())
+        R.finish()
+        # Via local filename
+        R = Request(uri, 'ri')
+        firsbytes_list.append(R.firstbytes)
+        f = open(R.get_local_filename(), 'rb')
+        bytes_list.append(f.read())
+        R.finish()
+        # Test repeated
+        if uri == filename:
+            bytes_list.append(R.get_file().read())
+            f = open(R.get_local_filename(), 'rb')
+            bytes_list.append(f.read())
+            R.finish()
+        # Test
+        for i in range(len(firsbytes_list)):
+            assert len(firsbytes_list[i]) > 0
+            assert bytes.startswith(firsbytes_list[i])
+        for i in range(len(bytes_list)):
+            assert bytes == bytes_list[i]
+    
+    # Prepare desinations
+    fname2 = fname + '.out'
+    filename2 = os.path.join(test_dir, fname2)
+    zipfilename2 = os.path.join(test_dir, 'test.zip')
+    file2 = BytesIO()
+    
+    # Write an image into many different destinations
+    # Do once via file and ones via local filename
+    for i in range(2):
+        # Clear
+        for xx in (filename2, zipfilename2):
+            if os.path.isfile(xx):
+                os.remove(xx)
+        # Write to three destinations
+        for uri in (filename2, 
+                    os.path.join(zipfilename2, fname2),
+                    file2,
+                    imageio.RETURN_BYTES  # This one last to fill `res`
+                    ):
+            R = Request(uri, 'wi')
+            if i == 0:
+                R.get_file().write(bytes)  # via file
+            else:
+                open(R.get_local_filename(), 'wb').write(bytes)  # via local
+            R.finish()
+            res = R.get_result()
+        # Test three results
+        assert open(filename2, 'rb').read() == bytes
+        assert ZipFile(zipfilename2, 'r').open(fname2).read() == bytes
+        assert res == bytes
 
 
 def test_util():
@@ -364,11 +460,13 @@ def test_progres_bar(sleep=0):
 def test_functions():
     """ Test the user-facing API functions """
     
+    test_dir = get_test_dir()
+    
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help('PNG')  # should print about PNG
     
-    fname1 = get_remote_file('images/chelsea.png')
+    fname1 = get_remote_file('images/chelsea.png', test_dir)
     fname2 = fname1[:-3] + 'jpg'
     fname3 = fname1[:-3] + 'notavalidext'
     open(fname3, 'wb')
@@ -404,7 +502,7 @@ def test_functions():
     assert os.path.isfile(fname2)
     
     # Test mimread()
-    fname3 = get_remote_file('images/newtonscradle.gif')
+    fname3 = get_remote_file('images/newtonscradle.gif', test_dir)
     ims = imageio.mimread(fname3)
     assert isinstance(ims, list)
     assert len(ims) > 1
@@ -421,9 +519,9 @@ def test_functions():
     assert os.path.isfile(fname5)
     
     # Test volread()
-    fname4 = get_remote_file('images/dicom_sample.zip')
+    fname4 = get_remote_file('images/dicom_sample.zip', test_dir)
     dname4 = fname4[:-4]
-    z = zipfile.ZipFile(fname4)
+    z = ZipFile(fname4)
     z.extractall(dname4)
     #
     vol = imageio.volread(dname4, 'DICOM')

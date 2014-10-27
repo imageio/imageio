@@ -19,7 +19,7 @@ if PY3:
     string_types = str,
     text_type = str
     binary_type = bytes
-else:
+else:  # pragma: no cover
     string_types = basestring,  # noqa
     text_type = unicode  # noqa
     binary_type = str
