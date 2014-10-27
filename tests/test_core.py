@@ -4,6 +4,7 @@
 import time
 import sys
 import os
+import gc
 import shutil
 import ctypes.util
 from zipfile import ZipFile
@@ -17,6 +18,51 @@ import imageio
 from imageio import core
 from imageio.core import Format, FormatManager, Request
 from imageio.core import get_remote_file
+
+
+class MyFormat(Format):
+    """ TEST DOCS """
+    _closed = []
+    
+    class Reader(Format.Reader):
+        _failmode = False
+        
+        def _open(self):
+            pass
+        
+        def _close(self):
+            self.format._closed.append(id(self))
+        
+        def _get_length(self):
+            return 3
+        
+        def _get_data(self, index):
+            if self._failmode:
+                return 'not an array', {}
+            else:
+                return np.ones((10, 10)) * index, self._get_meta_data(index)
+        
+        def _get_meta_data(self, index):
+            if self._failmode:
+                return 'not a dict'
+            return {'index': index}
+            
+    class Writer(Format.Writer):
+        
+        def _open(self):
+            self._written_data = []
+            self._written_meta = []
+            self._meta = None
+        
+        def _close(self):
+            self.format._closed.append(id(self))
+        
+        def _append_data(self, im, meta):
+            self._written_data.append(im)
+            self._written_meta.append(meta)
+        
+        def _set_meta_data(self, meta):
+            self._meta = meta
 
 
 def test_namespace():
@@ -42,6 +88,9 @@ def test_namespace():
 def test_format():
     """ Test the working of the Format class """
     
+    filename1 = get_remote_file('images/chelsea.png', get_test_dir())
+    filename2 = filename1 + '.out'
+    
     # Test basic format creation
     F = Format('testname', 'test description', 'foo bar spam')
     assert F.name == 'TESTNAME'
@@ -61,16 +110,92 @@ def test_format():
     # Fail
     raises(ValueError, Format, 'test', '', 3)  # not valid ext
     
-    # Read/write
-    #assert isinstance(F.read('test-request'), F.Reader)
-    #assert isinstance(F.save('test-request'), F.Writer)
-    
     # Test subclassing
-    class MyFormat(Format):
-        """ TEST DOCS """
-        pass
     F = MyFormat('test', '')
     assert 'TEST DOCS' in F.doc
+    
+    # Get and check reader and write classes
+    R = F.read(Request(filename1, 'ri'))
+    W = F.save(Request(filename2, 'wi'))
+    assert isinstance(R, MyFormat.Reader)
+    assert isinstance(W, MyFormat.Writer)
+    assert R.format is F
+    assert W.format is F
+    assert R.request.filename == filename1
+    assert W.request.filename == filename2
+    
+    # Use as context manager
+    with R:
+        pass
+    with W:
+        pass
+    # Objects are now closed, cannot be used
+    assert R.closed
+    assert W.closed
+    #
+    raises(RuntimeError, R.__enter__)
+    raises(RuntimeError, W.__enter__)
+    #
+    raises(RuntimeError, R.get_data, 0)
+    raises(RuntimeError, W.append_data, np.zeros((10, 10)))
+    
+    # Test __del__
+    R = F.read(Request(filename1, 'ri'))
+    W = F.save(Request(filename2, 'wi'))
+    ids = id(R), id(W)
+    F._closed[:] = []
+    del R
+    del W
+    gc.collect()  # Invoke __del__
+    assert set(ids) == set(F._closed)
+    
+    # Test using reader
+    n = 3
+    R = F.read(Request(filename1, 'ri'))
+    assert len(R) == n
+    ims = [im for im in R]
+    assert len(ims) == n
+    for i in range(3):
+        assert ims[i][0, 0] == i
+        assert ims[i].meta['index'] == i
+    for i in range(3):
+        assert R.get_meta_data(i)['index'] == i
+    # Read next
+    assert R.get_data(0)[0, 0] == 0
+    assert R.get_next_data()[0, 0] == 1
+    assert R.get_next_data()[0, 0] == 2
+    # Fail
+    R._failmode = True
+    raises(ValueError, R.get_data, 0)
+    raises(ValueError, R.get_meta_data, 0)
+    
+    # Test using writer
+    im1 = np.zeros((10, 10))
+    im2 = imageio.core.Image(im1, {'foo': 1})
+    W = F.save(Request(filename2, 'wi'))
+    W.append_data(im1)
+    W.append_data(im2)
+    W.append_data(im1, {'bar': 1})
+    W.append_data(im2, {'bar': 1})
+    # Test that no data is copies (but may be different views)
+    assert len(W._written_data) == 4 
+    for im in W._written_data:
+        assert (im == im1).all()
+    im1[2, 2] == 99
+    for im in W._written_data:
+        assert (im == im1).all()
+    # Test meta
+    assert W._written_meta[0] == {}
+    assert W._written_meta[1] == {'foo': 1}
+    assert W._written_meta[2] == {'bar': 1}
+    assert W._written_meta[3] == {'foo': 1, 'bar': 1}
+    #
+    W.set_meta_data({'spam': 1})
+    assert W._meta == {'spam': 1}
+    # Fail
+    raises(ValueError, W.append_data, 'not an array')
+    raises(ValueError, W.append_data, im, 'not a dict')
+    raises(ValueError, W.set_meta_data, 'not a dict')
 
 
 def test_format_manager():
@@ -140,7 +265,6 @@ def test_format_manager():
 def test_fetching():
     """ Test fetching of files """
     
-    return
     # Clear image files
     test_dir = get_test_dir()
     if os.path.isdir(test_dir):
@@ -174,7 +298,7 @@ def test_fetching():
     
     # Test failures
     _urlopen = core.fetching.urlopen
-    _move = shutil.move
+    _chunk_read = core.fetching._chunk_read
     #
     raises(RuntimeError, get_remote_file, 'this_does_not_exist', test_dir)
     #
@@ -185,10 +309,10 @@ def test_fetching():
         core.fetching.urlopen = _urlopen
     #
     try:
-        shutil.move = None
+        core.fetching._chunk_read = None
         raises(RuntimeError, get_remote_file, 'images/chelsea.png', None, True)
     finally:
-        shutil.move = _move
+        core.fetching._chunk_read = _chunk_read
     
     # Coverage miss
     assert '0 bytes' == core.fetching._sizeof_fmt(0)

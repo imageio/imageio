@@ -25,6 +25,19 @@ else:  # pragma: no cover
     binary_type = str
 
 
+def urlopen(*args, **kwargs):
+    """ Compatibility function for the urlopen function.
+    """ 
+    try:
+        from urllib2 import urlopen
+    except ImportError:
+        try:
+            from urllib.request import urlopen  # Py3k
+        except ImportError:
+            raise RuntimeError('Could not import urlopen.')
+    return urlopen(*args, **kwargs)
+
+
 # currently not used ... the only use it to easly provide the global meta info
 class ImageList(list):
     def __init__(self, meta=None):

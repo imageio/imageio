@@ -6,7 +6,7 @@
 """
 
 
-from .util import Image, Dict, appdata_dir  # noqa
+from .util import Image, Dict, appdata_dir, urlopen  # noqa
 from .util import BaseProgressIndicator, StdoutProgressIndicator  # noqa
 from .util import string_types, text_type, binary_type  # noqa
 from .findlib import load_lib  # noqa

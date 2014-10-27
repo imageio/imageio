@@ -202,7 +202,7 @@ class Format:
         def __del__(self):
             try:
                 self.close()
-            except:
+            except Exception:  # pragma: no cover
                 pass  # Supress noise when called during interpreter shutdown
         
         def close(self):
@@ -223,12 +223,12 @@ class Format:
             return self.__closed
         
         def _checkClosed(self, msg=None):
-            """Internal: raise an ValueError if file is closed
+            """Internal: raise an ValueError if reader/writer is closed
             """
             if self.closed:
                 what = self.__class__.__name__
                 msg = msg or ("I/O operation on closed %s." % what)
-                raise ValueError(msg)
+                raise RuntimeError(msg)
         
         # To implement
         
@@ -296,9 +296,10 @@ class Format:
             returned image has a 'meta' attribute with the meta data.
             
             """
+            self._checkClosed()
             self._BaseReaderWriter_last_index = index
             im, meta = self._get_data(index)
-            return Image(im, meta)
+            return Image(im, meta)  # Image tests im and meta 
         
         def get_next_data(self):
             """ get_next_data()
@@ -322,7 +323,12 @@ class Format:
             different metadata formats (EXIF, XMP, etc.).
             
             """
-            return self._get_meta_data(index)
+            self._checkClosed()
+            meta = self._get_meta_data(index)
+            if not isinstance(meta, dict):
+                raise ValueError('Meta data must be a dict, not %r' % 
+                                 meta.__class__.__name__)
+            return meta
         
         def iter_data(self):
             """ iter_data():
@@ -331,6 +337,7 @@ class Format:
             iterate over the reader object.)
             
             """ 
+            self._checkClosed()
             i, n = 0, self.get_length()
             while i < n:
                 im, meta = self._get_data(i)
@@ -381,7 +388,6 @@ class Format:
             """ 
             raise NotImplementedError() 
     
-    
     # -----
     
     class Writer(_BaseReaderWriter):
@@ -408,7 +414,7 @@ class Format:
             image (if applicable), updated with the given meta data.
             
             """ 
-            
+            self._checkClosed()
             # Check image data
             if not isinstance(im, np.ndarray):
                 raise ValueError('append_data requires ndarray as first arg')
@@ -439,6 +445,7 @@ class Format:
             individual fields may be ignored if they are invalid.
             
             """ 
+            self._checkClosed()
             if not isinstance(meta, dict):
                 raise ValueError('Meta must be a dict.')
             else:

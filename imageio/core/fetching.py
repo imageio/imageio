@@ -12,15 +12,7 @@ import sys
 import shutil
 import time
 
-from . import appdata_dir, StdoutProgressIndicator, string_types
-
-try:
-    from urllib2 import urlopen
-except ImportError:
-    try:
-        from urllib.request import urlopen  # Py3k
-    except ImportError:
-        urlopen = None  # import works, but downloading not
+from . import appdata_dir, StdoutProgressIndicator, string_types, urlopen
 
 
 def get_remote_file(fname, directory=None, force_download=False):
@@ -91,13 +83,12 @@ def _fetch_file(url, file_name, print_destination=True):
     initial_size = 0
     try:
         # Checking file size and displaying it alongside the download url
-        u = urlopen(url, timeout=5.)
-        file_size = int(u.headers['Content-Length'].strip())
+        remote_file = urlopen(url, timeout=5.)
+        file_size = int(remote_file.headers['Content-Length'].strip())
         print('Downloading data from %s (%s)' % (url, _sizeof_fmt(file_size)))
         # Downloading data (can be extended to resume if need be)
         local_file = open(temp_file_name, "wb")
-        data = urlopen(url, timeout=5.)
-        _chunk_read(data, local_file, initial_size=initial_size)
+        _chunk_read(remote_file, local_file, initial_size=initial_size)
         # temp file must be closed prior to the move
         if not local_file.closed:
             local_file.close()

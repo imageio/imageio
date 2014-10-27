@@ -14,7 +14,7 @@ import zipfile
 import tempfile
 import shutil
 
-from imageio.core import string_types, binary_type
+from imageio.core import string_types, binary_type, urlopen
 
 # URI types
 URI_BYTES = 1
@@ -264,8 +264,8 @@ class Request(object):
                 self._file = self._zipfile.open(name, 'r')
         
         elif self._uri_type in [URI_HTTP or URI_FTP]:
-            assert not want_to_write  # This should be tested in init
-            self._file = compat_urlopen(self.filename, timeout=20)
+            assert not want_to_write  # This should have been tested in init
+            self._file = urlopen(self.filename, timeout=5)
         
         return self._file
     
@@ -406,17 +406,3 @@ class Request(object):
             return self._potential_formats.pop(0)
         else:
             return None
-   
-
-def compat_urlopen(*args, **kwargs):
-    """ Compatibility function for the urlopen function.
-    """ 
-    try:
-        from urllib2 import urlopen
-    except ImportError:
-        try:
-            from urllib.request import urlopen  # Py3k
-        except ImportError:
-            raise RuntimeError('Could not import urlopen.')
-    
-    return urlopen(*args, **kwargs)
