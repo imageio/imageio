@@ -67,7 +67,6 @@ For the imageio.Format.Reader class:
   * Implement ``_get_data(index)`` to return an array and a meta-data dict.
   * Implement ``_get_meta_data(index)`` to return a meta-data dict. If index
     is None, it should return the 'global' meta-data.
-  * Optionally implement ``_get_next_data()`` to provide allow streaming.
 
 For the imageio.format.Writer class:
     

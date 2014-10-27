@@ -196,12 +196,6 @@ class DicomFormat(Format):
                     return self.series[index].info
             else:
                 raise ValueError('DICOM plugin needs to know what is expected.')
-        
-        def _get_next_data(self):
-            # Optional. Formats can implement this to support reading the
-            # images as a stream. If not implemented, imageio will ask for
-            # the length and use _get_data() to get the images.
-            raise NotImplementedError()  
 
 
 # Add this format

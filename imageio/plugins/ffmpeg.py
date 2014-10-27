@@ -207,12 +207,6 @@ class FfmpegFormat(Format):
         def _get_meta_data(self, index):
             return self._meta
         
-        def _get_next_data(self):
-            result = self._read_frame()
-            self._pos += 1
-            return result, {}
-        
-        
         def _initialize(self):
             """ Opens the file, creates the pipe. """
             # Create input args

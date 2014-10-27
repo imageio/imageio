@@ -90,11 +90,6 @@ class AnimatedGifFormat(Format):
                     return sub.get_meta_data()
                 finally:
                     sub.close()
-        
-        def _get_next_data(self):
-            # No need to implement, imageio will determine our length and
-            # then iterate via _get_data()
-            raise NotImplementedError()
     
     # -- writer 
     

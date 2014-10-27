@@ -230,6 +230,8 @@ class Format:
                 msg = msg or ("I/O operation on closed %s." % what)
                 raise ValueError(msg)
         
+        # To implement
+        
         def _open(self, **kwargs):
             """ _open(**kwargs)
             
@@ -241,7 +243,7 @@ class Format:
             imageio.write().
             
             """ 
-            pass
+            raise NotImplementedError()
         
         def _close(self):
             """ _close()
@@ -252,7 +254,7 @@ class Format:
             can do a cleanup, flush, etc.
             
             """ 
-            pass
+            raise NotImplementedError()
     
     # -----
     
@@ -329,25 +331,11 @@ class Format:
             iterate over the reader object.)
             
             """ 
-            
-            try:
-                # Test one
-                im, meta = self._get_next_data()
+            i, n = 0, self.get_length()
+            while i < n:
+                im, meta = self._get_data(i)
                 yield Image(im, meta)
-            
-            except NotImplementedError:
-                # No luck, but we can still iterate 
-                # (in a way that allows len==inf)
-                i, n = 0, self.get_length()
-                while i < n:
-                    im, meta = self._get_data(i)
-                    yield Image(im, meta)
-                    i += 1
-            else:
-                # Iterate further (untill StopIteration is raised)
-                while True:
-                    im, meta = self._get_next_data()
-                    yield Image(im, meta)
+                i += 1
         
         # Compatibility
         
@@ -357,7 +345,7 @@ class Format:
         def __len__(self):
             return self.get_length()
         
-        # The plugin part
+        # To implement
         
         def _get_length(self):
             """ _get_length()
@@ -392,17 +380,7 @@ class Format:
             
             """ 
             raise NotImplementedError() 
-        
-        def _get_next_data(self):
-            """ _get_next_data()
-            
-            Plugins can implement this to provide a more efficient way to
-            stream images.
-            
-            It should return the next image and meta data: (ndarray, dict).
-            
-            """
-            raise NotImplementedError() 
+    
     
     # -----
     
@@ -466,7 +444,7 @@ class Format:
             else:
                 return self._set_meta_data(meta)
         
-        # The plugin part
+        # To implement
         
         def _append_data(self, im, meta):
             # Plugins must implement this

@@ -90,12 +90,6 @@ class DummyFormat(Format):
         def _get_meta_data(self, index):
             # Get the meta data for the given index
             raise RuntimeError('The dummy format cannot read meta data.')
-        
-        def _get_next_data(self):
-            # Optional. Formats can implement this to support reading the
-            # images as a stream. If not implemented, imageio will ask for
-            # the length and use _get_data() to get the images.
-            raise NotImplementedError()  
     
     # -- writer
     
