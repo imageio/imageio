@@ -6,28 +6,7 @@
 Welcome to imageio's documentation!
 ===================================
 
-.. insertdocs start:: imageio.__doc__
-
-
-
-The imageio library aims to support reading and writing a wide 
-range of image data, including animated images, volumetric data, and
-scientific formats. It is written in pure Python (2.x and 3.x) and
-is designed to be powerful, yet simple in usage and installation.
-
-Imageio has a relatively simple core that provides a common interface
-to different file formats. The actual file formats are implemented in
-plugins, which makes imageio easy to extend. A large range of formats
-are already supported (in part thanks to the freeimage library), but
-we aim to include much more (scientific) formats in the future.
-
-Quickstart:
-
-  * Use :ref:`imageio.imread<insertdocs-imageio-imread>` to read an image.
-  * Use :ref:`imageio.imsave<insertdocs-imageio-imsave>` to save an image.
-  * See the :ref:`functions page <sec-functions>` for more information.
- 
-.. insertdocs end::
+.. automodule:: imageio
 
 
 Features
@@ -36,7 +15,7 @@ Features
   * Simple interface via a consise set of :doc:`functions <functions>`.
   * Easy to install (no compilation needed, required binaries are automatically 
     downloaded on Windows and Mac).
-  * More powerfull interface if needed via :ref:`imageio.read<insertdocs-imageio-read>` and :ref:`imageio.save<insertdocs-imageio-save>`.
+  * More powerfull interface if needed via imageio.read and imageio.save.
   * Easy to extend using plugins, also for file formats with complex data structures.
   * Pure Python, runs on Python 2.x and 3.x (without 2to3).
   * Experimental support for Pypy.
