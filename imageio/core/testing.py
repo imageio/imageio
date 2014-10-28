@@ -38,6 +38,7 @@ def run_tests_if_main(show_coverage=False):
     os.chdir(ROOT_DIR)
     fname = local_vars['__file__']
     _clear_imageio()
+    _enable_faulthandler()
     pytest.main('-v -x --color=yes --cov imageio '
                 '--cov-config .coveragerc --cov-report html %s' % fname)
     if show_coverage:
@@ -73,6 +74,7 @@ def test_unit(cov_report='term'):
     os.chdir(ROOT_DIR)
     try:
         _clear_imageio()
+        _enable_faulthandler()
         pytest.main('-v --cov imageio --cov-config .coveragerc '
                     '--cov-report %s tests' % cov_report)
     finally:
@@ -129,6 +131,17 @@ def test_style():
 
 
 ## Requirements
+
+def _enable_faulthandler():
+    """ Enable faulthandler (if we can), so that we get tracebacks
+    on segfaults.
+    """
+    try:
+        import faulthandler
+        faulthandler.enable()
+    except Exception:
+        pass
+
 
 def _clear_imageio():
     # Remove ourselves from sys.modules to force an import
