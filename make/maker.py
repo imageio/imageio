@@ -12,7 +12,7 @@ Convenience tools for developers
 
 """
 
-from __future__ import division, print_function
+from __future__ import absolute_import, print_function, division
 
 import sys
 import os
@@ -128,7 +128,7 @@ class Maker:
         """
         if not arg:
             return self.help('test')
-        from imageio.core import testing
+        from imageio import testing
         
         if arg in ('flake', 'style'):
             try:
@@ -137,9 +137,10 @@ class Maker:
                 sys.exit(str(err))
             
         elif arg == 'unit':
-            testing.test_unit(cov_report='html')
+            testing.test_unit()
         
         elif arg == 'cover':
+            testing.test_unit(cov_report='html')
             print('Launching browser.')
             fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
             if not op.isfile(fname):

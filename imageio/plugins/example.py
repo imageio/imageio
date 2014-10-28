@@ -5,6 +5,8 @@
 """ Example plugin. You can use this as a template for your own plugin.
 """
 
+from __future__ import absolute_import, print_function, division
+
 from imageio import formats
 from imageio.core import Format
 import numpy as np

@@ -15,6 +15,8 @@
 # * For series, only ned to read the full info from one file: speed still high
 # * Perhaps allow writing?
 
+from __future__ import absolute_import, print_function, division
+
 import sys
 import os
 import struct

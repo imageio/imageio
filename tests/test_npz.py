@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from pytest import raises
-from imageio.core.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio.core import get_remote_file, Request

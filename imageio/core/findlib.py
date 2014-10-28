@@ -4,6 +4,8 @@
 """ This module contains generic code to find and load a dynamic library.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import os
 import sys
 import ctypes
@@ -51,6 +53,7 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     # Get system dirs to search
     sys_lib_dirs = ['/lib', 
                     '/usr/lib', 
+                    '/usr/lib/x86_64-linux-gnu',
                     '/usr/local/lib', 
                     '/opt/local/lib', ]
     

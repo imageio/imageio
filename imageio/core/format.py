@@ -22,6 +22,8 @@ a format object using ``imageio.formats.add_format()``.
 
 """
 
+from __future__ import absolute_import, print_function, division
+
 # todo: do we even use the known extensions?
 
 # Some notes:

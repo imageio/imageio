@@ -13,12 +13,14 @@ from io import BytesIO
 import numpy as np
 
 from pytest import raises
-from imageio.core.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio import core
 from imageio.core import Format, FormatManager, Request
 from imageio.core import get_remote_file
+
+test_dir = get_test_dir()
 
 
 class MyFormat(Format):
@@ -66,30 +68,10 @@ class MyFormat(Format):
             self._meta = meta
 
 
-def test_namespace():
-    """ Test that all names from the public API are in the main namespace """
-    
-    has_names = dir(imageio)
-    has_names = set([n for n in has_names if not n.startswith('_')])
-    
-    need_names = ('help formats read save RETURN_BYTES '
-                  'read imread mimread volread mvolread '
-                  'save imsave mimsave volsave mvolsave'
-                  ).split(' ')
-    need_names = set([n for n in need_names if n])
-    
-    # Check that all names are there
-    assert need_names.issubset(has_names)
-    
-    # Check that there are no extra names
-    extra_names = has_names.difference(need_names)
-    assert extra_names == set(['core', 'plugins'])
-
-
 def test_format():
     """ Test the working of the Format class """
     
-    filename1 = get_remote_file('images/chelsea.png', get_test_dir())
+    filename1 = get_remote_file('images/chelsea.png', test_dir)
     filename2 = filename1 + '.out'
     
     # Test basic format creation
@@ -221,7 +203,7 @@ def test_format_manager():
         assert format.name in smalldocs
         assert format.name in fulldocs
     
-    fname = get_remote_file('images/chelsea.png', get_test_dir())
+    fname = get_remote_file('images/chelsea.png', test_dir)
     fname2 = fname[:-3] + 'noext'
     shutil.copy(fname, fname2)
     
@@ -251,13 +233,14 @@ def test_format_manager():
     raises(ValueError, formats.add_format, 678)  # must be Format
     raises(ValueError, formats.add_format, myformat)  # cannot add twice
     
-    # Test searchinhgfor read / write format
+    # Test searchinhg for read / write format
     F = formats.search_read_format(Request(fname, 'ri'))
     assert F is formats['PNG']
     F = formats.search_save_format(Request(fname, 'wi'))
     assert F is formats['PNG']
     # Potential
-    F = formats.search_read_format(Request(b'asd', 'ri', dummy_potential=1))
+    bytes = b'x' * 300
+    F = formats.search_read_format(Request(bytes, 'ri', dummy_potential=1))
     assert F is formats['DUMMY']
     F = formats.search_save_format(Request('<bytes>', 'wi', dummy_potential=1))
     assert F is formats['DUMMY']
@@ -267,7 +250,6 @@ def test_fetching():
     """ Test fetching of files """
     
     # Clear image files
-    test_dir = get_test_dir()
     if os.path.isdir(test_dir):
         shutil.rmtree(test_dir)   
     
@@ -319,14 +301,14 @@ def test_fetching():
     assert '0 bytes' == core.fetching._sizeof_fmt(0)
 
 
-def test_findlb():
+def test_findlib():
     """ Test finding of libs """
     
     if not sys.platform.startswith('linux'):
         return
     
     # Candidate libs for common lib
-    dirs, paths = core.findlib.generate_candidate_libs(['libzip'])
+    dirs, paths = core.findlib.generate_candidate_libs(['libpython'])
     assert paths
     
     # Candidate libs for common freeimage 
@@ -347,12 +329,10 @@ def test_findlb():
     raises(ValueError, core.load_lib, ['', None], [])  # Nothing given
     raises(OSError, core.load_lib, ['thislibdoesnotexist_foobar'], [])
     raises(OSError, core.load_lib, [], ['notalib'], [fi_dir])
-    
+
 
 def test_request():
     """ Test request object """
-    
-    test_dir = get_test_dir()
     
     # Check uri-type, this is not a public property, so we test the private
     R = Request('http://example.com', 'ri')
@@ -366,7 +346,7 @@ def test_request():
     R = Request(imageio.RETURN_BYTES, 'wi')
     assert R._uri_type == core.request.URI_BYTES
     #
-    fname = get_remote_file('images/chelsea.png', get_test_dir())
+    fname = get_remote_file('images/chelsea.png', test_dir)
     R = Request(fname, 'ri')
     assert R._uri_type == core.request.URI_FILENAME
     R = Request('/file/that/does/not/exist', 'wi')
@@ -585,8 +565,6 @@ def test_progres_bar(sleep=0):
 def test_functions():
     """ Test the user-facing API functions """
     
-    test_dir = get_test_dir()
-    
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help('PNG')  # should print about PNG
@@ -602,7 +580,7 @@ def test_functions():
     assert R1.format is R2.format
     # Fail
     raises(ValueError, imageio.read, fname3)  # existing but not readable
-    raises(OSError, imageio.read, 'notexisting.barf')
+    raises(IOError, imageio.read, 'notexisting.barf')
     raises(IndexError, imageio.read, fname1, 'notexistingformat')
     
     # Test save()
@@ -635,7 +613,7 @@ def test_functions():
     assert ims[0].shape[2] in (1, 3, 4)
     
     # Test mimsave()
-    fname5 = fname3[:-4] + '2.gif'
+    fname5 = fname3[:-4] + '2.npz'
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)

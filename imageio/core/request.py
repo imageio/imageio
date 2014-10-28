@@ -7,6 +7,8 @@ Definition of the Request object, which acts as a kind of bridge between
 what the user wants and what the plugins can.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import sys
 import os
 from io import BytesIO

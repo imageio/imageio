@@ -5,6 +5,8 @@
 """ Functionality used for testing. This code itself is not covered in tests.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import os
 import sys
 import inspect
@@ -36,7 +38,7 @@ def run_tests_if_main(show_coverage=False):
         return
     # we are in a "__main__"
     os.chdir(ROOT_DIR)
-    fname = local_vars['__file__']
+    fname = str(local_vars['__file__'])
     _clear_imageio()
     _enable_faulthandler()
     pytest.main('-v -x --color=yes --cov imageio '
@@ -75,8 +77,9 @@ def test_unit(cov_report='term'):
     try:
         _clear_imageio()
         _enable_faulthandler()
-        pytest.main('-v --cov imageio --cov-config .coveragerc '
-                    '--cov-report %s tests' % cov_report)
+        ret = pytest.main('-v --cov imageio --cov-config .coveragerc '
+                          '--cov-report %s tests' % cov_report)
+        sys.exit(ret)
     finally:
         os.chdir(orig_dir)
 
@@ -92,7 +95,7 @@ def test_style():
         return
     
     # Reporting
-    print('Running flake8 ... ')
+    print('Running flake8 on %s' % ROOT_DIR)
     sys.stdout = FileForTesting(sys.stdout)
     
     # Init
@@ -102,6 +105,7 @@ def test_style():
     
     # Iterate over files
     for dir, dirnames, filenames in os.walk(ROOT_DIR):
+        dir = os.path.relpath(dir, ROOT_DIR)
         # Skip this dir?
         exclude_dirs = set(['.git', 'docs', 'build', 'dist', '__pycache__'])
         if exclude_dirs.intersection(dir.split(os.path.sep)):
@@ -110,7 +114,7 @@ def test_style():
         for fname in filenames:
             if fname.endswith('.py'):
                 # Get test options for this file
-                filename = os.path.join(dir, fname)
+                filename = os.path.join(ROOT_DIR, dir, fname)
                 skip, extra_ignores = _get_style_test_options(filename)
                 if skip:
                     continue
@@ -124,7 +128,9 @@ def test_style():
     
     # Report result
     sys.stdout.revert()
-    if fail:
+    if not count:
+        raise RuntimeError('    Arg! flake8 did not check any files')
+    elif fail:
         raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
     else:
         print('    Hooray! flake8 passed (checked %i files)' % count)
@@ -139,8 +145,9 @@ def _enable_faulthandler():
     try:
         import faulthandler
         faulthandler.enable()
+        print('Faulthandler enabled')
     except Exception:
-        pass
+        print('Could not enable faulthandler')
 
 
 def _clear_imageio():

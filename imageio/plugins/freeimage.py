@@ -8,6 +8,9 @@
 part of the core of imageio, but it's functionality is exposed via
 the plugin system (therefore this plugin is very thin).
 """
+
+from __future__ import absolute_import, print_function, division
+
 import ctypes
 
 from imageio import formats

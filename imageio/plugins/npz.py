@@ -6,6 +6,8 @@
 it supports volumetric data. And its less than 100 lines.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import numpy as np
 
 from imageio import formats

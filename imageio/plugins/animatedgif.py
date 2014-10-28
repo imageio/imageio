@@ -5,6 +5,8 @@
 """ Plugin for animated GIF, using the freeimage lib as a backend.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import numpy as np
 
 from imageio import formats

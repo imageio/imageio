@@ -6,6 +6,8 @@
 Various utilities for imageio
 """
 
+from __future__ import absolute_import, print_function, division
+
 import os
 import sys
 import time
@@ -170,11 +172,12 @@ class Dict(_dict):
             self[key] = val
     
     def __dir__(self):
+        isidentifier = lambda x: (x.isalnum() and x[0].isalpha())
         names = [k for k in self.keys() if 
-                 (hasattr(k, 'isidentifier') and k.isidentifier())]
+                 (isinstance(k, string_types) and isidentifier(k))]
         return Dict.__reserved_names__ + names
 
-
+    
 class BaseProgressIndicator:
     """ A progress indicator helps display the progres of a task to the
     user. Progress can be pending, running, finished or failed.
