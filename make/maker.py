@@ -66,16 +66,6 @@ class Maker:
             func(arg)
         else:
             sys.exit('Invalid command: "%s"' % command)
-
-    def coverage(self, arg):
-        """Generate html coverage report and show in browser. """
-        from imageio.core import testing
-        testing.test_unit(cov_report='html')
-        print('Done, launching browser.')
-        fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
-        if not op.isfile(fname):
-            raise IOError('Generated file not found: %s' % fname)
-        webbrowser.open_new_tab(fname)
     
     def help(self, arg):
         """ Show help message. Use 'help X' to get more help on command X. """
@@ -134,17 +124,28 @@ class Maker:
         """ Run tests:
                 * unit - run unit tests
                 * style - flake style testing (PEP8 and more)
+                * cover - show coverage html report
         """
         if not arg:
             return self.help('test')
         from imageio.core import testing
+        
         if arg in ('flake', 'style'):
             try:
                 testing.test_style()
             except RuntimeError as err:
                 sys.exit(str(err))
+            
         elif arg == 'unit':
-            testing.test_unit()
+            testing.test_unit(cov_report='html')
+        
+        elif arg == 'cover':
+            print('Launching browser.')
+            fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
+            if not op.isfile(fname):
+                raise IOError('Generated file not found: %s' % fname)
+            webbrowser.open_new_tab(fname)
+        
         else:
             raise RuntimeError('Invalid arg for make test: %r' % arg)
     
