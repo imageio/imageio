@@ -38,23 +38,12 @@ that best suits that file-format.
 
 """
 
+from __future__ import absolute_import, print_function, division
 
-import sys
 import numpy as np
 
-import imageio
-from imageio import formats
-
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,  # noqa
-    text_type = unicode  # noqa
-    binary_type = str
+from . import Request
+from .. import formats
 
 
 def help(name=None):
@@ -79,8 +68,8 @@ def help(name=None):
 ## Base functions that return a reader/writer
 
 
-def read(uri, format=None, expect=None, **kwargs):
-    """ read(uri, format=None, expect=None, **kwargs)
+def read(uri, format=None, mode='?', **kwargs):
+    """ read(uri, format=None, mode='?', **kwargs)
     
     Returns a reader object which can be used to read data and info 
     from the specified file.
@@ -94,8 +83,13 @@ def read(uri, format=None, expect=None, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
-        Used to give the reader a hint on what the user expects. Optional.
+    mode : {'i', 'I', 'v', 'V', '?'}
+        Used to give the reader a hint on what the user expects (default '?'):
+        * "i" for an image
+        * "I" for multiple images
+        * "v" for a volume
+        * "V" for multiple volumes
+        * "?" for don't care
     
     Further keyword arguments are passed to the reader. See imageio.help
     to see what arguments are available for a particular format.
@@ -103,7 +97,7 @@ def read(uri, format=None, expect=None, **kwargs):
     """ 
     
     # Create request object
-    request = imageio.request.ReadRequest(uri, expect, **kwargs)
+    request = Request(uri, 'r' + mode, **kwargs)
     
     # Get format
     if format is not None:
@@ -117,8 +111,8 @@ def read(uri, format=None, expect=None, **kwargs):
     return format.read(request)
 
 
-def save(uri, format=None, expect=None, **kwargs):
-    """ save(uri, format=None, expect=None, **kwargs)
+def save(uri, format=None, mode='?', **kwargs):
+    """ save(uri, format=None, mode='?', **kwargs)
     
     Returns a writer object which can be used to save data and info 
     to the specified file.
@@ -132,9 +126,13 @@ def save(uri, format=None, expect=None, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
-    expect : {imageio.EXPECT_IM, imageio.EXPECT_MIM, imageio.EXPECT_VOL}
-        Used to give the writer a hint on what kind of data to expect.
-        Optional.
+    mode : {'i', 'I', 'v', 'V', '?'}
+        Used to give the writer a hint on what the user expects (default '?'):
+        * "i" for an image
+        * "I" for multiple images
+        * "v" for a volume
+        * "V" for multiple volumes
+        * "?" for can be anything
     
     Further keyword arguments are passed to the reader. See imageio.help
     to see what arguments are available for a particular format.
@@ -142,7 +140,7 @@ def save(uri, format=None, expect=None, **kwargs):
     """ 
     
     # Create request object
-    request = imageio.request.WriteRequest(uri, expect, **kwargs)
+    request = Request(uri, 'w' + mode, **kwargs)
     
     # Get format
     if format is not None:
@@ -180,7 +178,7 @@ def imread(uri, format=None, **kwargs):
     """ 
     
     # Get reader and read first
-    reader = read(uri, format, imageio.EXPECT_IM, **kwargs)
+    reader = read(uri, format, 'i', **kwargs)
     with reader:
         return reader.get_data(0)
 
@@ -222,7 +220,7 @@ def imsave(uri, im, format=None, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(uri, format, imageio.EXPECT_IM, **kwargs)
+    writer = save(uri, format, 'i', **kwargs)
     with writer:
         writer.append_data(im)
     
@@ -254,7 +252,7 @@ def mimread(uri, format=None, **kwargs):
     """ 
     
     # Get reader and read all
-    reader = read(uri, format, imageio.EXPECT_MIM, **kwargs)
+    reader = read(uri, format, 'I', **kwargs)
     with reader:
         return [im for im in reader]
 
@@ -282,7 +280,7 @@ def mimsave(uri, ims, format=None, **kwargs):
     """ 
     
     # Get writer
-    writer = save(uri, format, imageio.EXPECT_MIM, **kwargs)
+    writer = save(uri, format, 'I', **kwargs)
     with writer:
         
         # Iterate over images (ims may be a generator)
@@ -331,12 +329,12 @@ def volread(uri, format=None, **kwargs):
     """ 
     
     # Get reader and read first
-    reader = read(uri, format, imageio.EXPECT_VOL, **kwargs)
+    reader = read(uri, format, 'v', **kwargs)
     with reader:
         return reader.get_data(0)
 
 
-def volsave(uri, im, format, **kwargs):
+def volsave(uri, im, format=None, **kwargs):
     """ volsave(uri, vol, format=None, **kwargs)
     
     Save a volume to the specified file.
@@ -371,7 +369,7 @@ def volsave(uri, im, format, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(uri, format, imageio.EXPECT_VOL, **kwargs)
+    writer = save(uri, format, 'v', **kwargs)
     with writer:
         writer.append_data(im)
     
@@ -381,7 +379,7 @@ def volsave(uri, im, format, **kwargs):
 
 ## Multiple volumes
 
-def mvolread(uri, format, **kwargs):
+def mvolread(uri, format=None, **kwargs):
     """ mvolread(uri, format=None, **kwargs)
     
     Reads multiple volumes from the specified file. Returns a list of
@@ -403,12 +401,12 @@ def mvolread(uri, format, **kwargs):
     """ 
     
     # Get reader and read all
-    reader = read(uri, format, imageio.EXPECT_MVOL, **kwargs)
+    reader = read(uri, format, 'V', **kwargs)
     with reader:
         return [im for im in reader]
 
 
-def mvolsave(uri, ims, format, **kwargs):
+def mvolsave(uri, ims, format=None, **kwargs):
     """ mvolsave(uri, vols, format=None, **kwargs)
     
     Save multiple volumes to the specified file.
@@ -432,7 +430,7 @@ def mvolsave(uri, ims, format, **kwargs):
     """ 
     
     # Get writer
-    writer = save(uri, format, imageio.EXPECT_MVOL, **kwargs)
+    writer = save(uri, format, 'V', **kwargs)
     with writer:
         
         # Iterate over images (ims may be a generator)

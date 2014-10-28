@@ -4,6 +4,8 @@
 """ This module contains generic code to find and load a dynamic library.
 """
 
+from __future__ import absolute_import, print_function, division
+
 import os
 import sys
 import ctypes
@@ -51,6 +53,7 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     # Get system dirs to search
     sys_lib_dirs = ['/lib', 
                     '/usr/lib', 
+                    '/usr/lib/x86_64-linux-gnu',
                     '/usr/local/lib', 
                     '/opt/local/lib', ]
     
@@ -95,14 +98,22 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     
     Load a dynamic library. 
     
-    This function first tries to just load the library from the given
-    exact names. When that fails, it tries to find the library in common
+    This function first tries to load the library from the given exact
+    names. When that fails, it tries to find the library in common
     locations. It searches for files that start with one of the names
     given in lib_names (case insensitive). The search is performed in
     the given lib_dirs and a set of common library dirs.
     
     Returns (ctypes_library, library_path)
     """
+    
+    # Checks
+    assert isinstance(exact_lib_names, list)
+    assert isinstance(lib_names, list)
+    if lib_dirs is not None:
+        assert isinstance(lib_dirs, list)
+    exact_lib_names = [n for n in exact_lib_names if n]
+    lib_names = [n for n in lib_names if n]
     
     # Get reference name (for better messages)
     if lib_names:

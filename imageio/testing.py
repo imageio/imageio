@@ -1,7 +1,17 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2014, Imageio team
+# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+
+""" Functionality used for testing. This code itself is not covered in tests.
+"""
+
+from __future__ import absolute_import, print_function, division
 
 import os
 import sys
 import inspect
+import shutil
+import atexit
 
 import pytest
 from _pytest import runner
@@ -15,26 +25,7 @@ for i in range(9):
         break
 
 
-def pytest_runtest_call(item):
-    """ Variant of pytest_runtest_call() that stores traceback info for
-    postmortem debugging.
-    """
-    try:
-        runner.pytest_runtest_call_orig(item)
-    except Exception:
-        type, value, tb = sys.exc_info()
-        tb = tb.tb_next  # Skip *this* frame
-        sys.last_type = type
-        sys.last_value = value
-        sys.last_traceback = tb
-        del tb  # Get rid of it in this namespace
-        raise
-
-# Monkey-patch pytest
-if not runner.pytest_runtest_call.__module__.startswith('imageio'):
-    runner.pytest_runtest_call_orig = runner.pytest_runtest_call
-    runner.pytest_runtest_call = pytest_runtest_call
-
+## Functions to use in tests
 
 def run_tests_if_main(show_coverage=False):
     """ Run tests in a given file if it is run as a script
@@ -47,14 +38,36 @@ def run_tests_if_main(show_coverage=False):
         return
     # we are in a "__main__"
     os.chdir(ROOT_DIR)
-    fname = local_vars['__file__']
+    fname = str(local_vars['__file__'])
     _clear_imageio()
-    pytest.main('-v -x --color=yes --cov imageio --cov-report html %s' % fname)
+    _enable_faulthandler()
+    pytest.main('-v -x --color=yes --cov imageio '
+                '--cov-config .coveragerc --cov-report html %s' % fname)
     if show_coverage:
         import webbrowser
         fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
         webbrowser.open_new_tab(fname)
 
+
+_the_test_dir = None
+
+
+def get_test_dir():
+    global _the_test_dir
+    if _the_test_dir is None:
+        # Define dir
+        from imageio.core import appdata_dir
+        _the_test_dir = os.path.join(appdata_dir('imageio'), 'testdir')
+        # Clear it now
+        if os.path.isdir(_the_test_dir):
+            shutil.rmtree(_the_test_dir)
+        os.makedirs(_the_test_dir)
+        # And later
+        atexit.register(lambda x=None: shutil.rmtree(_the_test_dir))
+    return _the_test_dir
+
+
+## Functions to use from make
 
 def test_unit(cov_report='term'):
     """ Run all unit tests
@@ -63,45 +76,12 @@ def test_unit(cov_report='term'):
     os.chdir(ROOT_DIR)
     try:
         _clear_imageio()
-        pytest.main('-v --cov imageio --cov-report %s tests' % cov_report)
+        _enable_faulthandler()
+        ret = pytest.main('-v --cov imageio --cov-config .coveragerc '
+                          '--cov-report %s tests' % cov_report)
+        sys.exit(ret)
     finally:
         os.chdir(orig_dir)
-
-
-def _clear_imageio():
-    # Remove ourselves from sys.modules to force an import
-    for key in list(sys.modules.keys()):
-        if key.startswith('imageio'):
-            del sys.modules[key]
-
-
-def __test_style():
-    """ Test style using flake8
-    """
-    orig_dir = os.getcwd()
-    orig_argv = sys.argv
-    
-    os.chdir(ROOT_DIR)
-    sys.argv[1:] = ['imageio', 'make']
-    sys.argv.append('--ignore=E226,E241,E265,W291,W293')
-    sys.argv.append('--exclude=six.py,py24_ordereddict.py')
-    try:
-        from flake8.main import main
-    except ImportError:
-        print('Skipping flake8 test, flake8 not installed')
-    else:
-        print('Running flake8... ')  # if end='', first error gets ugly
-        sys.stdout.flush()
-        try:
-            main()
-        except SystemExit as ex:
-            if ex.code in (None, 0):
-                pass  # do not exit yet, we want to print a success msg
-            else:
-                raise RuntimeError('flake8 failed')
-    finally:
-        os.chdir(orig_dir)
-        sys.argv[:] = orig_argv
 
 
 def test_style():
@@ -115,7 +95,7 @@ def test_style():
         return
     
     # Reporting
-    print('Running flake8 ... ')
+    print('Running flake8 on %s' % ROOT_DIR)
     sys.stdout = FileForTesting(sys.stdout)
     
     # Init
@@ -125,6 +105,7 @@ def test_style():
     
     # Iterate over files
     for dir, dirnames, filenames in os.walk(ROOT_DIR):
+        dir = os.path.relpath(dir, ROOT_DIR)
         # Skip this dir?
         exclude_dirs = set(['.git', 'docs', 'build', 'dist', '__pycache__'])
         if exclude_dirs.intersection(dir.split(os.path.sep)):
@@ -133,7 +114,7 @@ def test_style():
         for fname in filenames:
             if fname.endswith('.py'):
                 # Get test options for this file
-                filename = os.path.join(dir, fname)
+                filename = os.path.join(ROOT_DIR, dir, fname)
                 skip, extra_ignores = _get_style_test_options(filename)
                 if skip:
                     continue
@@ -147,10 +128,33 @@ def test_style():
     
     # Report result
     sys.stdout.revert()
-    if fail:
+    if not count:
+        raise RuntimeError('    Arg! flake8 did not check any files')
+    elif fail:
         raise RuntimeError('    Arg! flake8 failed (checked %i files)' % count)
     else:
         print('    Hooray! flake8 passed (checked %i files)' % count)
+
+
+## Requirements
+
+def _enable_faulthandler():
+    """ Enable faulthandler (if we can), so that we get tracebacks
+    on segfaults.
+    """
+    try:
+        import faulthandler
+        faulthandler.enable()
+        print('Faulthandler enabled')
+    except Exception:
+        print('Could not enable faulthandler')
+
+
+def _clear_imageio():
+    # Remove ourselves from sys.modules to force an import
+    for key in list(sys.modules.keys()):
+        if key.startswith('imageio'):
+            del sys.modules[key]
 
 
 class FileForTesting(object):
@@ -217,3 +221,26 @@ def _test_style(filename, ignore):
     finally:
         os.chdir(orig_dir)
         sys.argv[:] = orig_argv
+
+
+## Patching
+
+def pytest_runtest_call(item):
+    """ Variant of pytest_runtest_call() that stores traceback info for
+    postmortem debugging.
+    """
+    try:
+        runner.pytest_runtest_call_orig(item)
+    except Exception:
+        type, value, tb = sys.exc_info()
+        tb = tb.tb_next  # Skip *this* frame
+        sys.last_type = type
+        sys.last_value = value
+        sys.last_traceback = tb
+        del tb  # Get rid of it in this namespace
+        raise
+
+# Monkey-patch pytest
+if not runner.pytest_runtest_call.__module__.startswith('imageio'):
+    runner.pytest_runtest_call_orig = runner.pytest_runtest_call
+    runner.pytest_runtest_call = pytest_runtest_call

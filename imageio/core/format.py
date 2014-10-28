@@ -22,6 +22,10 @@ a format object using ``imageio.formats.add_format()``.
 
 """
 
+from __future__ import absolute_import, print_function, division
+
+# todo: do we even use the known extensions?
+
 # Some notes:
 #
 # The classes in this module use the Request object to pass filename and
@@ -34,32 +38,12 @@ a format object using ``imageio.formats.add_format()``.
 
 from __future__ import with_statement
 
-import sys
 import os
 
 import numpy as np
 
-from imageio.util import Image
-
-
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,  # noqa
-    text_type = unicode  # noqa
-    binary_type = str
-
-
-# Define expects
-# These are like hints, that the plugins can use to better serve the user.
-EXPECT_IM = 0
-EXPECT_MIM = 1
-EXPECT_VOL = 2
-EXPECT_MVOL = 3
+from . import Image
+from . import string_types, text_type, binary_type  # noqa
 
 
 class Format:
@@ -222,7 +206,7 @@ class Format:
         def __del__(self):
             try:
                 self.close()
-            except:
+            except Exception:  # pragma: no cover
                 pass  # Supress noise when called during interpreter shutdown
         
         def close(self):
@@ -243,12 +227,14 @@ class Format:
             return self.__closed
         
         def _checkClosed(self, msg=None):
-            """Internal: raise an ValueError if file is closed
+            """Internal: raise an ValueError if reader/writer is closed
             """
             if self.closed:
                 what = self.__class__.__name__
                 msg = msg or ("I/O operation on closed %s." % what)
-                raise ValueError(msg)
+                raise RuntimeError(msg)
+        
+        # To implement
         
         def _open(self, **kwargs):
             """ _open(**kwargs)
@@ -261,7 +247,7 @@ class Format:
             imageio.write().
             
             """ 
-            pass
+            raise NotImplementedError()
         
         def _close(self):
             """ _close()
@@ -272,7 +258,7 @@ class Format:
             can do a cleanup, flush, etc.
             
             """ 
-            pass
+            raise NotImplementedError()
     
     # -----
     
@@ -314,9 +300,10 @@ class Format:
             returned image has a 'meta' attribute with the meta data.
             
             """
+            self._checkClosed()
             self._BaseReaderWriter_last_index = index
             im, meta = self._get_data(index)
-            return Image(im, meta)
+            return Image(im, meta)  # Image tests im and meta 
         
         def get_next_data(self):
             """ get_next_data()
@@ -340,7 +327,12 @@ class Format:
             different metadata formats (EXIF, XMP, etc.).
             
             """
-            return self._get_meta_data(index)
+            self._checkClosed()
+            meta = self._get_meta_data(index)
+            if not isinstance(meta, dict):
+                raise ValueError('Meta data must be a dict, not %r' % 
+                                 meta.__class__.__name__)
+            return meta
         
         def iter_data(self):
             """ iter_data():
@@ -349,25 +341,12 @@ class Format:
             iterate over the reader object.)
             
             """ 
-            
-            try:
-                # Test one
-                im, meta = self._get_next_data()
+            self._checkClosed()
+            i, n = 0, self.get_length()
+            while i < n:
+                im, meta = self._get_data(i)
                 yield Image(im, meta)
-            
-            except NotImplementedError:
-                # No luck, but we can still iterate 
-                # (in a way that allows len==inf)
-                i, n = 0, self.get_length()
-                while i < n:
-                    im, meta = self._get_data(i)
-                    yield Image(im, meta)
-                    i += 1
-            else:
-                # Iterate further (untill StopIteration is raised)
-                while True:
-                    im, meta = self._get_next_data()
-                    yield Image(im, meta)
+                i += 1
         
         # Compatibility
         
@@ -377,7 +356,7 @@ class Format:
         def __len__(self):
             return self.get_length()
         
-        # The plugin part
+        # To implement
         
         def _get_length(self):
             """ _get_length()
@@ -412,17 +391,6 @@ class Format:
             
             """ 
             raise NotImplementedError() 
-        
-        def _get_next_data(self):
-            """ _get_next_data()
-            
-            Plugins can implement this to provide a more efficient way to
-            stream images.
-            
-            It should return the next image and meta data: (ndarray, dict).
-            
-            """
-            raise NotImplementedError() 
     
     # -----
     
@@ -450,7 +418,7 @@ class Format:
             image (if applicable), updated with the given meta data.
             
             """ 
-            
+            self._checkClosed()
             # Check image data
             if not isinstance(im, np.ndarray):
                 raise ValueError('append_data requires ndarray as first arg')
@@ -481,12 +449,13 @@ class Format:
             individual fields may be ignored if they are invalid.
             
             """ 
+            self._checkClosed()
             if not isinstance(meta, dict):
                 raise ValueError('Meta must be a dict.')
             else:
                 return self._set_meta_data(meta)
         
-        # The plugin part
+        # To implement
         
         def _append_data(self, im, meta):
             # Plugins must implement this
@@ -538,7 +507,8 @@ class FormatManager:
         
         # Test if name is existing file
         if os.path.isfile(name):
-            format = self.search_read_format(name)
+            from . import Request
+            format = self.search_read_format(Request(name, 'r?'))
             if format is not None:
                 return format
         
@@ -558,7 +528,7 @@ class FormatManager:
                 if name == format.name:
                     return format
             else:
-                # Maybe the user ment to specify an extension
+                # Maybe the user meant to specify an extension
                 return self['.'+name.lower()]
         
         # Nothing found ...

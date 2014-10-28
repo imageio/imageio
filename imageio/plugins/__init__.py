@@ -67,7 +67,6 @@ For the imageio.Format.Reader class:
   * Implement ``_get_data(index)`` to return an array and a meta-data dict.
   * Implement ``_get_meta_data(index)`` to return a meta-data dict. If index
     is None, it should return the 'global' meta-data.
-  * Optionally implement ``_get_next_data()`` to provide allow streaming.
 
 For the imageio.format.Writer class:
     
@@ -79,8 +78,9 @@ For the imageio.format.Writer class:
 
 """
 
-import imageio.plugins.animatedgif  # noqa
-import imageio.plugins.plugin_freeimage  # noqa
-import imageio.plugins.example  # noqa
-import imageio.plugins.dicom  # noqa
-import imageio.plugins.ffmpeg  # noqa
+from . import animatedgif  # noqa
+from . import freeimage  # noqa
+from . import example  # noqa
+from . import dicom  # noqa
+from . import ffmpeg  # noqa
+from . import npz  # noqa

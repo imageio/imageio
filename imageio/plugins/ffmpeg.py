@@ -12,25 +12,44 @@ by Zulko
 
 """
 
+from __future__ import absolute_import, print_function, division
+
 import sys
 import os
+import stat
 import re
 import time
 import threading
+import struct
 import subprocess as sp
 
 import numpy as np
 
 import imageio
 from imageio import formats
-from imageio.base import Format
-
-# todo: select an exe!
-FFMPEG_EXE = os.path.join(os.path.dirname(imageio.__file__), 'lib', 'ffmpeg')
-if sys.platform.startswith('win'):
-    FFMPEG_EXE += '.exe'
+from imageio.core import Format, get_remote_file
 
 
+def get_exe():
+    """ Get ffmpeg exe
+    """
+    NBYTES = struct.calcsize('P') * 8
+    if sys.platform.startswith('linux'):
+        fname = 'ffmpeg.linux%i' % NBYTES
+    elif sys.platform.startswith('win'):
+        fname = 'ffmpeg.win32.exe'
+    elif sys.platform.startswith('darwin'):
+        fname = 'ffmpeg.osx'
+    else:
+        fname = 'ffmpeg'  # hope for the best
+    #
+    FFMPEG_EXE = 'ffmpeg'
+    if fname:
+        FFMPEG_EXE = get_remote_file('ffmpeg/' + fname)
+        os.chmod(FFMPEG_EXE, os.stat(FFMPEG_EXE).st_mode | stat.S_IEXEC)  # exe
+    return FFMPEG_EXE
+
+# Get camera format
 if sys.platform.startswith('win'):
     CAM_FORMAT = 'dshow'  # dshow or vfwcap
 elif sys.platform.startswith('linux'):
@@ -71,9 +90,9 @@ class FfmpegFormat(Format):
         # The request object has:
         # request.filename: the filename
         # request.firstbytes: the first 256 bytes of the file.
-        # request.expect: what kind of data the user expects
+        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
         # request.kwargs: the keyword arguments specified by the user
-        if (request.expect is not None) and request.expect != imageio.EXPECT_MIM:
+        if request.mode[1] not in 'I?':
             return False
         
         # Read from video stream?
@@ -99,7 +118,7 @@ class FfmpegFormat(Format):
             
             elif sys.platform.startswith('win'):
                 # Ask ffmpeg for list of dshow device names
-                cmd = [FFMPEG_EXE, '-list_devices', 'true',
+                cmd = [self._exe, '-list_devices', 'true',
                                 '-f', CAM_FORMAT, '-i', 'dummy']
                 proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
                 proc.stdout.readline()
@@ -128,6 +147,8 @@ class FfmpegFormat(Format):
                 return '??'
         
         def _open(self, loop=False, size=None, pixelformat=None):
+            # Get exe
+            self._exe = get_exe()
             # Process input args
             self._arg_loop = loop
             self._arg_size = size
@@ -193,12 +214,6 @@ class FfmpegFormat(Format):
         def _get_meta_data(self, index):
             return self._meta
         
-        def _get_next_data(self):
-            result = self._read_frame()
-            self._pos += 1
-            return result, {}
-        
-        
         def _initialize(self):
             """ Opens the file, creates the pipe. """
             # Create input args
@@ -217,7 +232,7 @@ class FfmpegFormat(Format):
             if 'size' in self.request.kwargs:
                 oargs.extend(['-s', self.request.kwargs['size']])
             # Create process
-            cmd = [FFMPEG_EXE] + iargs + ['-i', self._filename] + oargs + ['-']
+            cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
             # Create thread that keeps reading from stderr
@@ -244,7 +259,7 @@ class FfmpegFormat(Format):
                 if 'size' in self.request.kwargs:
                     oargs.extend(['-s', self.request.kwargs['size']])
                 # Create process
-                cmd = [FFMPEG_EXE] + iargs + ['-i', self._filename] + oargs + ['-']
+                cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
                 # Create thread that keeps reading from stderr
@@ -391,7 +406,8 @@ class FfmpegFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _open(self):        
+        def _open(self):    
+            self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
@@ -456,7 +472,7 @@ class FfmpegFormat(Format):
             bitrate = self.request.kwargs.get('bitrate', 400000)
             
             # Get command
-            cmd = [FFMPEG_EXE, '-y',
+            cmd = [self._exe, '-y',
                 "-f", 'rawvideo',
                 "-vcodec", "rawvideo",
                 '-s', sizestr,

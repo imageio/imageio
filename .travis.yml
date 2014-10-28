@@ -12,6 +12,7 @@ python:
     - "2.6"
     - "2.7"  # has numpy
     - "3.4"
+    - "3.3"  # Test only style on this machine
 
 before_install:
     - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
@@ -32,29 +33,29 @@ install:
         source activate testenv > ${REDIRECT_TO};
         conda install --yes --quiet numpy > ${REDIRECT_TO};
       fi;
-    # Install prerequisites
-    - travis_retry sudo apt-get install libfreeimage3;
-    # Install needs for testing
-    - pip install -q pytest pytest-cov;
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+    # Install dependencies (also for testing)
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         pip install -q coveralls;
         pip install -q flake8;
+      else
+        travis_retry sudo apt-get install libfreeimage3;
+        pip install -q pytest pytest-cov;
       fi;
 
 before_script:
 
 script: 
     - python -c "import sys; print(sys.version, '\n', sys.prefix)";
-    # Run unit tests everywhere
-    - python make test unit;
-    # Run style tests only on 3.4
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then 
+    # Run unit tests or style test
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;
+      else
+        python make test unit;
       fi;
 
 after_success:
     - echo == ALL TESTS PASS ==
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         coveralls;
       fi;
 

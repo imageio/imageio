@@ -13,34 +13,53 @@ types.
 
 """
 
-from __future__ import with_statement
+from __future__ import absolute_import, print_function, with_statement
 
 import os
 import sys
 import ctypes
 import threading
 import numpy
+import struct
 
+from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
+from imageio.core import string_types, binary_type
 
-from imageio.findlib import load_lib
-from imageio.freeze import resource_dir
-from imageio.util import DictWitNames, ISPYPY
+ISPYPY = False  # todo: do we need this?
 
 # todo: make API class more complete
 # todo: write with palette?
 # todo: Check if jpeg has alpha channel. if so, deal with it and maybe warn.
 # todo: Maybe sometimes the flags should be overriden later?
 
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = str,
-    text_type = str
-    binary_type = bytes
-else:
-    string_types = basestring,
-    text_type = unicode
-    binary_type = str
+
+def get_imageio_lib():
+    """ Ensure we have our version of the binary freeimage lib.
+    """ 
+    # Get platform
+    if sys.platform.startswith('linux'):
+        plat = 'linux%i' % (struct.calcsize('P') * 8)
+    elif sys.platform.startswith('win'):
+        plat = 'win%i' % (struct.calcsize('P') * 8)
+    elif sys.platform.startswith('darwin'):
+        plat = 'osx64'
+    else:
+        plat = None
+    
+    LIBRARIES = {
+        'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
+        'win32': 'FreeImage-3.15.4-win32.dll',  # Also works on Python 3.3
+        'win64': 'FreeImage-3.15.1-win64.dll',
+        'linux32': 'libfreeimage-3.10.0-linux32.so',
+        'linux64': 'libfreeimage-3.10.0-linux64.so',
+    }
+    
+    # Get filename to load
+    if plat:
+        try:
+            return get_remote_file('freeimage/' + LIBRARIES[plat])
+        except RuntimeError as e:
+            print(str(e))
 
 
 # Define function to encode a filename to bytes (for the current system)
@@ -404,12 +423,16 @@ class Freeimage(object):
         MSG_NOLIB_OTHER = 'Please install the FreeImage library.'
         
         # Get lib dirs
-        lib_dirs = [resource_dir('imageio', ''), resource_dir('imageio', 'lib')]
+        #lib_dirs = [resource_dir('imageio', ''), resource_dir('imageio', 'lib')]
+        lib_dirs = [appdata_dir('imageio')]
+        
+        # Make sure that we have our binary version of the libary
+        lib_filename = get_imageio_lib() or 'notavalidlibname'
         
         # Load library
         lib_names = ['freeimage', 'libfreeimage']
-        exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
-                            'libfreeimage.so', 'libfreeimage.so.3']
+        exact_lib_names = [lib_filename, 'FreeImage', 'libfreeimage.dylib', 
+                           'libfreeimage.so', 'libfreeimage.so.3']
         try:
             lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
         except OSError:
@@ -585,7 +608,7 @@ class FIBaseBitmap(object):
             METADATA_MODELS.__dict__.items() if name.startswith('FIMD_')]
         
         # Prepare
-        metadata = DictWitNames()
+        metadata = Dict()
         tag = ctypes.c_void_p()
         
         with self._fi as lib:
@@ -626,7 +649,7 @@ class FIBaseBitmap(object):
                                 except Exception:
                                     pass
                         # Store data in dict
-                        subdict = metadata.setdefault(model_name, DictWitNames())
+                        subdict = metadata.setdefault(model_name, Dict())
                         subdict[tag_name] = tag_val
                         # Next
                         more = lib.FreeImage_FindNextMetadata(mdhandle, ctypes.byref(tag))
@@ -1145,3 +1168,13 @@ class FIMultipageBitmap(FIBaseBitmap):
         with self._fi as lib:
             lib.FreeImage_AppendPage(self._bitmap, bitmap._bitmap) # no return value
 
+
+# Create instance
+try:
+    fi = Freeimage()
+except OSError:
+    print('Warning: the freeimage wrapper of imageio could not be loaded:')
+    e_type, e_value, e_tb = sys.exc_info()
+    del e_tb
+    print(str(e_value))
+    fi = None
