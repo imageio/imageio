@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2013, Almar Klein
+# Copyright (c) 2014, Almar Klein
 # (new) BSD License.
 
 """

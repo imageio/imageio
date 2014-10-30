@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014 Almar Klein
+# Copyright (c) 2014, imageio contributors
 # Distributed under the (new) BSD License. 
 
 # Originally developed under the Vispy project.
@@ -181,7 +181,7 @@ class Maker:
         """ Update all copyright notices to the current year.
         """
         # Initialize
-        TEMPLATE = "# Copyright (c) %i, Imageio Development Team."
+        TEMPLATE = "# Copyright (c) %i, imageio contributors"
         CURYEAR = int(time.strftime('%Y'))
         OLDTEXT = TEMPLATE % (CURYEAR - 1)
         NEWTEXT = TEMPLATE % CURYEAR
@@ -194,7 +194,7 @@ class Maker:
             reldirpath = op.relpath(dirpath, ROOT_DIR)
             if reldirpath[0] in '._' or reldirpath.endswith('__pycache__'):
                 continue
-            if op.split(reldirpath)[0] in ('build', 'dist'):
+            if reldirpath.startswith('build') or reldirpath.startswith('dist'):
                 continue
             # Process files
             for fname in filenames:

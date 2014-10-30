@@ -45,7 +45,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'imageio'
-copyright = u'2012, imageio contributers'
+copyright = u'2012, imageio contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -190,7 +190,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'imageio.tex', u'imageio Documentation',
-   u'imageio contributers', 'manual'),
+   u'imageio contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -220,7 +220,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'imageio', u'imageio Documentation',
-     [u'imageio contributers'], 1)
+     [u'imageio contributors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -234,7 +234,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'imageio', u'imageio Documentation',
-   u'imageio contributers', 'imageio', 'One line description of project.',
+   u'imageio contributors', 'imageio', 'One line description of project.',
    'Miscellaneous'),
 ]
 

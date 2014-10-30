@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2013, imageio contributers
+# Copyright (C) 2014, imageio contributors
 #
 # imageio is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
@@ -48,7 +48,7 @@ for line in open(initFile).readlines():
 setup(
     name = name,
     version = __version__,
-    author = 'imageio contributers',
+    author = 'imageio contributors',
     author_email = 'a.klein@science-applied.nl',
     license = '(new) BSD',
     
