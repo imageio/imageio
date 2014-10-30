@@ -104,7 +104,7 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     given in lib_names (case insensitive). The search is performed in
     the given lib_dirs and a set of common library dirs.
     
-    Returns (ctypes_library, library_path)
+    Returns ``(ctypes_library, library_path)``
     """
     
     # Checks

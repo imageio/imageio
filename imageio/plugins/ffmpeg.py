@@ -69,8 +69,8 @@ class FfmpegFormat(Format):
     where the "0" can be replaced with any index of cameras known to
     the system.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     loop : bool
         If True, the video will rewind as soon as a frame is requested
         beyond the last frame. Otherwise, IndexError is raised.

@@ -55,12 +55,12 @@ class Format:
     
     Generally, imageio will select the right format and use that to
     read/save an image. A format can also be explicitly chosen in all
-    read/save functios.
+    read/save functios. Use ``print(format)``, or ``help(format_name)``
+    to see its documentation.
     
-    Use print(format), or help(format_name) to see its documentation.
-    
-    To implement a specific format, one should create a subclass of Format
-    and the Reader and Writer classes. see the plugins-docs for details.
+    To implement a specific format, one should create a subclass of
+    Format and the Format.Reader and Format.Writer classes. see
+    :doc:`plugins` for details.
     
     Parameters
     ----------
@@ -72,7 +72,6 @@ class Format:
         List of filename extensions that this format supports. If a string
         is passed it should be space or comma separated. Users can select
         a format by specifying the file extension.
-    
     """
     
     def __init__(self, name, description, extensions=None):
@@ -102,7 +101,7 @@ class Format:
     
     @property
     def doc(self):
-        """ Get documentation for this format (name + description + docstring).
+        """ The documentation for this format (name + description + docstring).
         """
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
@@ -111,19 +110,19 @@ class Format:
     
     @property
     def name(self):
-        """ Get the name of this format.
+        """ The name of this format.
         """
         return self._name
     
     @property
     def description(self):
-        """ Get a short description of this format.
+        """ A short description of this format.
         """ 
         return self._description
     
     @property
     def extensions(self):
-        """ Get a list of file extensions supported by this plugin.
+        """ A list of file extensions supported by this plugin.
         These are all lowercase without a leading dot.
         """
         return self._extensions
@@ -183,14 +182,15 @@ class Format:
         
         @property
         def format(self):
-            """ The format corresponding to the current read/save operation.
+            """ The :class:`.Format` object corresponding to the current
+            read/save operation.
             """
             return self._format
         
         @property
         def request(self):
-            """ Get the request object corresponding to the current read/save 
-            operation.
+            """ The :class:`.Request` object corresponding to the
+            current read/save operation.
             """
             return self._request
         
@@ -210,7 +210,7 @@ class Format:
                 pass  # Supress noise when called during interpreter shutdown
         
         def close(self):
-            """Flush and close the reader/writer.
+            """ Flush and close the reader/writer.
             This method has no effect if it is already closed.
             """
             if self.__closed:
@@ -222,7 +222,7 @@ class Format:
         
         @property
         def closed(self):
-            """ Get whether the reader/writer is closed.
+            """ Whether the reader/writer is closed.
             """
             return self.__closed
         
@@ -245,7 +245,6 @@ class Format:
             plugin can do its initialization. The given keyword arguments
             are those that were given by the user at imageio.read() or
             imageio.write().
-            
             """ 
             raise NotImplementedError()
         
@@ -264,32 +263,30 @@ class Format:
     
     class Reader(_BaseReaderWriter):
         """
-        A reader is an object that is instantiated for reading data from
-        an image file. A reader can be used as an iterator, and only reads
-        data from the file when new data is requested. 
+        The purpose of a reader object is to read data from an image
+        resource, and should be obtained by calling :func:`.read`. 
         
-        Plugins should overload a couple of methods to implement a reader. 
-        A plugin may also specify extra methods to expose an interface
-        specific for the file-format it exposes.
+        A reader can be used as an iterator to read multiple images,
+        and (if the format permits) only reads data from the file when
+        new data is requested (i.e. streaming). A reader can also be
+        used as a context manager so that it is automatically closed.
         
-        A reader object should be obtained by calling imageio.read() or
-        by calling the read() method on a format object. A reader can
-        be used as a context manager so that it is automatically closed.
-        
+        Plugins implement Reader's for different formats. Though rare,
+        plugins may provide additional functionality (beyond what is
+        provided by the base reader class).
         """
         
         def get_length(self):
             """ get_length()
             
             Get the number of images in the file. (Note: you can also
-            use len(reader_object).)
+            use ``len(reader_object)``.)
             
             The result can be:
-            * 0 for files that only have meta data
-            * 1 for singleton images (e.g. in PNG, JPEG, etc.)
-            * N for image series
-            * np.inf for streams (series of unknown length)
-            
+                * 0 for files that only have meta data
+                * 1 for singleton images (e.g. in PNG, JPEG, etc.)
+                * N for image series
+                * inf for streams (series of unknown length)
             """ 
             return self._get_length()
         
@@ -298,7 +295,6 @@ class Format:
             
             Read image data from the file, using the image index. The
             returned image has a 'meta' attribute with the meta data.
-            
             """
             self._checkClosed()
             self._BaseReaderWriter_last_index = index
@@ -317,15 +313,15 @@ class Format:
             """ get_meta_data(index=None)
             
             Read meta data from the file. using the image index. If the
-            index is omitted, return the file's (global) meta data.
+            index is omitted or None, return the file's (global) meta data.
             
-            Note that get_data also provides the meta data for the returned
+            Note that ``get_data`` also provides the meta data for the returned
             image as an atrribute of that image.
             
-            The meta data is a dict that maps group names to subdicts. Each
-            group is a dict with name-value pairs. The groups represent the
-            different metadata formats (EXIF, XMP, etc.).
-            
+            The meta data is a dict, which shape depends on the format.
+            E.g. for JPEG, the dict maps group names to subdicts and each
+            group is a dict with name-value pairs. The groups represent
+            the different metadata formats (EXIF, XMP, etc.).
             """
             self._checkClosed()
             meta = self._get_meta_data(index)
@@ -335,7 +331,7 @@ class Format:
             return meta
         
         def iter_data(self):
-            """ iter_data():
+            """ iter_data()
             
             Iterate over all images in the series. (Note: you can also
             iterate over the reader object.)
@@ -365,7 +361,6 @@ class Format:
             
             The retured scalar specifies the number of images in the series.
             See Reader.get_length for more information.
-            
             """ 
             raise NotImplementedError() 
         
@@ -376,7 +371,6 @@ class Format:
             case the plugin does not support random access.
             
             It should return the image and meta data: (ndarray, dict).
-            
             """ 
             raise NotImplementedError() 
         
@@ -388,7 +382,6 @@ class Format:
             It should return the meta data as a dict, corresponding to the
             given index, or to the file's (global) meta data if index is
             None.
-            
             """ 
             raise NotImplementedError() 
     
@@ -396,27 +389,25 @@ class Format:
     
     class Writer(_BaseReaderWriter):
         """ 
-        A writer is an object that is instantiated for saving data to
-        an image file. 
+        The purpose of a writer object is to save data to an image
+        resource, and should be obtained by calling :func:`.save`. 
         
-        Plugins should overload a couple of methods to implement a writer. 
-        A plugin may also specify extra methods to expose an interface
-        specific for the file-format it exposes.
+        A writer will (if the format permits) write data to the file
+        as soon as new data is provided (i.e. streaming). A writer can
+        also be used as a context manager so that it is automatically
+        closed.
         
-        A writer object should be obtained by calling imageio.save() or
-        by calling the save() method on a format object. A writer can
-        be used as a context manager so that it is automatically closed.
-        
+        Plugins implement Writer's for different formats. Though rare,
+        plugins may provide additional functionality (beyond what is
+        provided by the base writer class).
         """
         
         def append_data(self, im, meta=None):
             """ append_data(im, meta={})
             
-            Append an image to the file. 
-            
-            The appended meta data consists of the meta data on the given
+            Append an image (and meta data) to the file. The final meta
+            data that is used consists of the meta data on the given
             image (if applicable), updated with the given meta data.
-            
             """ 
             self._checkClosed()
             # Check image data
@@ -440,14 +431,15 @@ class Format:
         def set_meta_data(self, meta):
             """ set_meta_data(meta)
             
-            Sets the file's (global) meta data.
+            Sets the file's (global) meta data. The meta data is a dict which
+            shape depends on the format. E.g. for JPEG the dict maps
+            group names to subdicts, and each group is a dict with
+            name-value pairs. The groups represents the different
+            metadata formats (EXIF, XMP, etc.). 
             
-            The meta data is a dict that maps group names to subdicts. Each
-            group is a dict with name-value pairs. The groups represents
-            the different metadata formats (EXIF, XMP, etc.). Note that
-            some meta formats may not be supported for writing, and even
-            individual fields may be ignored if they are invalid.
-            
+            Note that some meta formats may not be supported for
+            writing, and individual fields may be ignored without
+            warning if they are invalid.
             """ 
             self._checkClosed()
             if not isinstance(meta, dict):
@@ -468,15 +460,14 @@ class Format:
 
 class FormatManager:
     """ 
-    The format manager keeps track of the registered formats.
-    
-    This object supports getting a format object using indexing (by 
-    format name or extension). When used as an iterator, this object 
-    yields all format objects.
-    
     There is exactly one FormatManager object in imageio: ``imageio.formats``.
+    Its purpose it to keep track of the registered formats.
     
-    See also imageio.help.
+    The format manager supports getting a format object using indexing (by 
+    format name or extension). When used as an iterator, this object
+    yields all registered format objects.
+    
+    See also :func:`.help`.
     """
     
     def __init__(self):
@@ -569,31 +560,3 @@ class FormatManager:
                 return format
         else:
             return request.get_potential_format()
-    
-    def create_docs_for_all_formats(self):
-        """ Function to auto-generate documentation for all the formats.
-        """
-        
-        txt = 'List of currently supported formats:'
-        
-        # Get bullet list of all formats
-        ss = ['']
-        for format in self._formats: 
-            s = '  * :ref:`%s <%s>` - %s' % (format.name, 
-                                             format.name, format.description)
-            ss.append(s)
-        txt += '\n'.join(ss) + '\n\n'
-        
-        # Get more docs for each format
-        for format in self._formats:
-            title = '%s %s' % (format.name, format.description)
-            ext = ', '.join(['``%s``' % e for e in format.extensions])
-            ext = ext or 'None'
-            #
-            txt += '.. _%s:\n\n' % format.name
-            txt += '%s\n%s\n\n' % (title, '^'*len(title))
-            txt += 'Extensions: %s\n\n' % ext
-            txt += format.__doc__ + '\n\n'
-        
-        # Done
-        return txt

@@ -33,13 +33,14 @@ RETURN_BYTES = '<bytes>'
 class Request(object):
     """ Request(uri, mode, **kwargs)
     
-    Represents a request for reading or saving a file. This object wraps
-    information to that request and acts as an interface for the plugins
-    to several resources; it allows the user to read from http,
-    zipfiles, raw bytes, etc., but offer a simple interface to the
-    plugins: get_file() and get_local_filename().
+    Represents a request for reading or saving an image resource. This
+    object wraps information to that request and acts as an interface
+    for the plugins to several resources; it allows the user to read
+    from filenames, files, http, zipfiles, raw bytes, etc., but offer
+    a simple interface to the plugins via ``get_file()`` and
+    ``get_local_filename()``.
     
-    Per read/save operation a single Request instance is used and passed
+    For each read/save operation a single Request instance is used and passed
     to the can_read/can_save method of a format, and subsequently to
     the Reader/Writer class. This allows rudimentary passing of
     information between different formats and between a format and
@@ -52,11 +53,8 @@ class Request(object):
     mode : str
         The first character is "r" or "w", indicating a read or write
         request. The second character is used to indicate the kind of data:
-          * "i" for an image
-          * "I" for multiple images
-          * "v" for a volume
-          * "V" for multiple volumes
-          * "?" for don't care
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
     """
     
     def __init__(self, uri, mode, **kwargs):
@@ -195,10 +193,10 @@ class Request(object):
     
     @property
     def filename(self):
-        """ Get the uri for which reading/saving was requested. This
+        """ The uri for which reading/saving was requested. This
         can be a filename, an http address, or other resource
         identifier. Do not rely on the filename to obtain the data,
-        but use the get_file() or get_local_filename() instead.
+        but use ``get_file()`` or ``get_local_filename()`` instead.
         """
         return self._filename
     
@@ -207,17 +205,14 @@ class Request(object):
         """ The mode of the request. The first character is "r" or "w",
         indicating a read or write request. The second character is
         used to indicate the kind of data:
-        * "i" for an image
-        * "I" for multiple images
-        * "v" for a volume
-        * "V" for multiple volumes
-        * "?" for don't care
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
         """
         return self._mode
     
     @property
     def kwargs(self):
-        """ Get the dict of keyword arguments supplied by the user.
+        """ The dict of keyword arguments supplied by the user.
         """
         return self._kwargs
     
@@ -230,8 +225,9 @@ class Request(object):
         otherwise in write mode. This method is not thread safe. Plugins
         do not need to close the file when done.
         
-        This is the preferred way to read/write the data. If a format
-        cannot handle file-like objects, they should use get_local_filename().
+        This is the preferred way to read/write the data. But if a
+        format cannot handle file-like objects, they should use
+        ``get_local_filename()``.
         """
         want_to_write = self.mode[0] == 'w'
         
@@ -345,7 +341,7 @@ class Request(object):
     
     @property
     def firstbytes(self):
-        """ Get the first 256 bytes of the file. This can be used to 
+        """ The first 256 bytes of the file. These can be used to 
         parse the header to determine the file-format.
         """
         if self._firstbytes is None:

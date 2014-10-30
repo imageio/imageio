@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
-
+[![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://readthedocs.org/projects/imageio/?badge=latest)
+   
 Website: http://imageio.github.io
 
 <!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
@@ -25,7 +26,8 @@ aim to include much more (scientific) formats in the future.
 
 
 <h2>Example</h2>
-Here's a minimal example of how to use imageio. For more examples, see XXX.
+Here's a minimal example of how to use imageio. For the docs for 
+<a href='http://imageio.readthedocs.org/en/latest/examples.html'>more examples</a>.
 <pre>
 >>> import imageio
 >>> im = imageio.imread('chelsea.png')
@@ -42,6 +44,7 @@ As a user, you just have to remember a handfull of functions:
     <li>mimread() and mimsave() - for image series (animations)</li>
     <li>volread() and volsave() - for volumetric image data</li>
     <li>read() and save() - for more control (e.g. streaming)</li>
+    <li>See the <a href='http://imageio.readthedocs.org/en/latest/userapi.html'>user api</a> for more information</li>
 </ul>
 
 
@@ -59,8 +62,6 @@ As a user, you just have to remember a handfull of functions:
 <h2>Installation</h2>
 
 <ul>
+    <li>Via conda: <kdb>conda install imageio</kdb></li> 
     <li>Via pip: <kdb>pip install imageio</kdb></li>
-    <li>Via conda: <kdb>conda install imageio</kdb> (to come)</li> 
-    <li>Get the the source code, and call <kdb>python setup.py install</kdb>
 </ul>
-

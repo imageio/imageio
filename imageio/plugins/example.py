@@ -7,9 +7,10 @@
 
 from __future__ import absolute_import, print_function, division
 
+import numpy as np
+
 from imageio import formats
 from imageio.core import Format
-import numpy as np
 
 
 class DummyFormat(Format):
@@ -20,12 +21,12 @@ class DummyFormat(Format):
     
     This documentation is shown when the user does ``help('thisformat')``.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     Specify arguments in numpy doc style here.
     
-    Keyword arguments for writing
-    -----------------------------
+    Parameters for saving
+    ---------------------
     Specify arguments in numpy doc style here.
     
     """

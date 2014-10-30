@@ -88,7 +88,7 @@ Version 0.2.2
 Version 0.2.1
 =============
 
-* Introduction of the :ref:`imageio.help<insertdocs-imageio-help>` function.
+* Introduction of the imageio.help function.
 * Wrote a lot of documentation.
 * Added example (dummy) plugin.
 

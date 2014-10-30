@@ -2,9 +2,9 @@
 # Copyright (c) 2014, Imageio team
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-""" The core of imageio; everything that is not a plugin.
+""" This subpackage provides the core functionality of imageio
+(everything but the plugins).
 """
-
 
 from .util import Image, Dict, appdata_dir, urlopen  # noqa
 from .util import BaseProgressIndicator, StdoutProgressIndicator  # noqa

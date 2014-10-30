@@ -26,6 +26,18 @@ class FreeimageFormat(Format):
     """ This is the default format used for FreeImage. Each Freeimage
     format has the 'flags' keyword argument. See the Freeimage
     documentation for more information.
+    
+    Parameters for reading
+    ----------------------
+    flags : int
+        A freeimage-specific option. In most cases we provide explicit
+        parameters for influencing image reading.
+    
+    Parameters for saving
+    ----------------------
+    flags : int
+        A freeimage-specific option. In most cases we provide explicit
+        parameters for influencing image saving.
     """
     
     @property
@@ -122,9 +134,9 @@ class FreeimageFormat(Format):
 
 class FreeimageBmpFormat(FreeimageFormat):
     """ A BMP format based on the Freeimage library.
-        
-    Keyword arguments for writing
-    -----------------------------
+    
+    Parameters for saving
+    ---------------------
     compression : bool
         Whether to compress the bitmap using RLE when saving. Default False.
     
@@ -146,8 +158,8 @@ class FreeimageBmpFormat(FreeimageFormat):
 class FreeimageGifFormat(FreeimageFormat):
     """ A GIF format based on the Freeimage library.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     playback : bool
         'Play' the GIF to generate each frame (as 32bpp) instead of
         returning raw frame data when loading. Default True.
@@ -168,8 +180,8 @@ class FreeimageGifFormat(FreeimageFormat):
 class FreeimageIcoFormat(FreeimageFormat):
     """ An ICO format based on the Freeimage library.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     makealpha : bool
         Convert to 32-bit and create an alpha channel from the AND-
         mask when loading. Default True.
@@ -191,13 +203,13 @@ class FreeimageIcoFormat(FreeimageFormat):
 class FreeimagePngFormat(FreeimageFormat):
     """ A PNG format based on the Freeimage library.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     ignoregamma : bool
         Avoid gamma correction. Default False.
     
-    Keyword arguments for writing
-    -----------------------------
+    Parameters for saving
+    ---------------------
     compression : {0, 1, 6, 9}
         The compression factor. Higher factors result in more
         compression at the cost of speed. Note that PNG compression is
@@ -239,15 +251,15 @@ class FreeimagePngFormat(FreeimageFormat):
 class FreeimageJpegFormat(FreeimageFormat):
     """ A JPEG format based on the Freeimage library.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     exifrotate : bool
         Automatically rotate the image according to the exif flag. Default True.
     quickread : bool
         Read the image more quickly, at the expense of quality. Default False.
     
-    Keyword arguments for writing
-    -----------------------------
+    Parameters for saving
+    ---------------------
     quality : scalar
         The compression factor of the saved image (1..100), higher
         numbers result in higher quality but larger file size. Default 75.

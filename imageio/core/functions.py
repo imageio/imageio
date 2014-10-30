@@ -3,35 +3,32 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ 
-These functions are the main interface for the imageio user. They
-provide a common interface to read and save image data for a large
+These functions represent imageio's main interface for the user. They
+provide a common API to read and save image data for a large
 variety of formats. All read and save functions accept keyword
 arguments, which are passed on to the format that does the actual work.
 To see what keyword arguments are supported by a specific format, use
-the imageio.help function.
+the :func:`.help` function.
 
-Functions for reading
----------------------
+Functions for reading:
 
-  * imageio.imread - read an image from the specified uri
-  * imageio.mimread - read a series of images from the specified uri
-  * imageio.volread - read a volume from the specified uri
-  * imageio.mvolsave - save a series of volumes to the specified uri
+  * :func:`.imread` - read an image from the specified uri
+  * :func:`.mimread` - read a series of images from the specified uri
+  * :func:`.volread` - read a volume from the specified uri
+  * :func:`.mvolsave` - save a series of volumes to the specified uri
 
-Functions for saving
---------------------
+Functions for saving:
 
-  * imageio.imsave - save an image to the specified uri
-  * imageio.mimsave - save a series of images to the specified uri
-  * imageio.volsave - save a volume to the specified uri
-  * imageio.mvolread - read a series of volumes from the specified uri
+  * :func:`.imsave` - save an image to the specified uri
+  * :func:`.mimsave` - save a series of images to the specified uri
+  * :func:`.volsave` - save a volume to the specified uri
+  * :func:`.mvolread` - read a series of volumes from the specified uri
 
-More control
-------------
+More control:
 
 For a larger degree of control, imageio provides the functions
-imageio.read and imageio.save. They respectively return an
-imageio.Format.Reader and an imageio.Format.Writer object, which can
+:func:`.read` and :func:`.save`. They respectively return an
+:class:`.Reader` and an :class:`.Writer` object, which can
 be used to read/save data and meta data in a more controlled manner.
 This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
@@ -50,13 +47,13 @@ def help(name=None):
     """ help(name=None)
     
     Print the documentation of the format specified by name, or a list
-    of supported formats if name is omitted.
+    of supported formats if name is omitted. 
     
-    The specified name can be the name of a format, a filename extension, 
-    or a full filename.
-    
-    See also the :doc:`formats page <formats>`.
-    
+    Parameters
+    ----------
+    name : str
+        Can be the name of a format, a filename extension, or a full
+        filename. See also the :doc:`formats page <formats>`.
     """
     if not name:
         print(formats)
@@ -71,12 +68,12 @@ def help(name=None):
 def read(uri, format=None, mode='?', **kwargs):
     """ read(uri, format=None, mode='?', **kwargs)
     
-    Returns a reader object which can be used to read data and info 
-    from the specified file.
+    Returns a :class:`.Reader` object which can be used to read data
+    and meta data from the specified file.
     
     Parameters
     ----------
-    uri : {str, bytes}
+    uri : {str, bytes, file}
         The resource to load the image from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
         object, or the raw bytes.
@@ -84,16 +81,12 @@ def read(uri, format=None, mode='?', **kwargs):
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
     mode : {'i', 'I', 'v', 'V', '?'}
-        Used to give the reader a hint on what the user expects (default '?'):
-        * "i" for an image
-        * "I" for multiple images
-        * "v" for a volume
-        * "V" for multiple volumes
-        * "?" for don't care
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+        Used to give the reader a hint on what the user expects (default "?"):
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Create request object
@@ -114,29 +107,26 @@ def read(uri, format=None, mode='?', **kwargs):
 def save(uri, format=None, mode='?', **kwargs):
     """ save(uri, format=None, mode='?', **kwargs)
     
-    Returns a writer object which can be used to save data and info 
-    to the specified file.
+    Returns a :class:`.Writer` object which can be used to save data
+    and meta data to the specified file.
     
     Parameters
     ----------
-    uri : str
+    uri : {str, file}
         The resource to save the image to. This can be a normal
-        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
-        case the raw bytes are returned.
+        filename, a file in a zipfile, a file object, or
+        ``imageio.RETURN_BYTES``, in which case the raw bytes are
+        returned.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
     mode : {'i', 'I', 'v', 'V', '?'}
         Used to give the writer a hint on what the user expects (default '?'):
-        * "i" for an image
-        * "I" for multiple images
-        * "v" for a volume
-        * "V" for multiple volumes
-        * "?" for can be anything
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
+    kwargs : ...
+        Further keyword arguments are passed to the writer. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Create request object
@@ -164,17 +154,16 @@ def imread(uri, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : {str, bytes}
+    uri : {str, bytes, file}
         The resource to load the image from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
         object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get reader and read first
@@ -193,19 +182,19 @@ def imsave(uri, im, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : str
+    uri : {str, file}
         The resource to save the image to. This can be a normal
-        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
-        case the raw bytes are returned.
+        filename, a file in a zipfile, a file object, or
+        ``imageio.RETURN_BYTES``, in which case the raw bytes are
+        returned.
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the writer. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Test image
@@ -238,17 +227,16 @@ def mimread(uri, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : {str, bytes}
+    uri : {str, bytes, file}
         The resource to load the images from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
         object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get reader and read all
@@ -264,19 +252,19 @@ def mimsave(uri, ims, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : str
+    uri : {str, file}
         The resource to save the images to. This can be a normal
-        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
-        case the raw bytes are returned.
+        filename, a file in a zipfile, a file object, or
+        ``imageio.RETURN_BYTES``, in which case the raw bytes are
+        returned.
     ims : sequence of numpy arrays
         The image data. Each array must be NxM, NxMx3 or NxMx4.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the writer. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get writer
@@ -315,17 +303,16 @@ def volread(uri, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : {str, bytes}
+    uri : {str, bytes, file}
         The resource to load the volume from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
         object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get reader and read first
@@ -341,19 +328,19 @@ def volsave(uri, im, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : str
+    uri : {str, file}
         The resource to save the image to. This can be a normal
-        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
-        case the raw bytes are returned.
+        filename, a file in a zipfile, a file object, or
+        ``imageio.RETURN_BYTES``, in which case the raw bytes are
+        returned.
     vol : numpy.ndarray
         The image data. Must be NxMxL (or NxMxLxK if each voxel is a tuple).
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the writer. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Test image
@@ -387,17 +374,16 @@ def mvolread(uri, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : {str, bytes}
+    uri : {str, bytes, file}
         The resource to load the volumes from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
         object, or the raw bytes.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get reader and read all
@@ -413,20 +399,20 @@ def mvolsave(uri, ims, format=None, **kwargs):
     
     Parameters
     ----------
-    uri : str
+    uri : {str, file}
         The resource to save the volumes to. This can be a normal
-        filename, a file in a zipfile, or imageio.RETURN_BYTES, in which
-        case the raw bytes are returned.
+        filename, a file in a zipfile, a file object, or
+        ``imageio.RETURN_BYTES``, in which case the raw bytes are
+        returned.
     ims : sequence of numpy arrays
         The image data. Each array must be NxMxL (or NxMxLxK if each
         voxel is a tuple).
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    
-    Further keyword arguments are passed to the reader. See imageio.help
-    to see what arguments are available for a particular format.
-    
+    kwargs : ...
+        Further keyword arguments are passed to the writer. See :func:`.help`
+        to see what arguments are available for a particular format.
     """ 
     
     # Get writer
