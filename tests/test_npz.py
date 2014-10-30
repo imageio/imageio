@@ -9,7 +9,7 @@ from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
-from imageio.core import get_remote_file, Request
+from imageio.core import get_remote_file, Request, IS_PYPY
 
 test_dir = get_test_dir()
 
@@ -30,6 +30,9 @@ def test_npz_format():
         
 def test_npz_reading_writing():
     """ Test reading and saveing npz """
+    
+    if IS_PYPY:
+        return  # no support for npz format :(
     
     im2 = np.ones((10, 10), np.uint8) * 2
     im3 = np.ones((10, 10, 10), np.uint8) * 3

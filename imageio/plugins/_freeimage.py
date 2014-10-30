@@ -23,9 +23,8 @@ import numpy
 import struct
 
 from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
-from imageio.core import string_types, binary_type
+from imageio.core import string_types, binary_type, IS_PYPY
 
-ISPYPY = False  # todo: do we need this?
 
 # todo: make API class more complete
 # todo: write with palette?
@@ -639,7 +638,7 @@ class FIBaseBitmap(object):
                             tag_val = tag_bytes.decode('utf-8', 'replace')
                         elif tag_type in METADATA_DATATYPE.dtypes:
                             dtype = METADATA_DATATYPE.dtypes[tag_type]
-                            if ISPYPY and isinstance(dtype, (list, tuple)):
+                            if IS_PYPY and isinstance(dtype, (list, tuple)):
                                 pass  # or we get a segfault
                             else:
                                 try:
@@ -958,7 +957,11 @@ class FIBitmap(FIBaseBitmap):
             palette = ctypes.c_void_p(palette)
             if not palette:
                 raise RuntimeError('Could not get image palette')
-            ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
+            try:
+                ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
+            except Exception:
+                if not IS_PYPY:
+                    raise
     
     
     def _wrap_bitmap_bits_in_array(self, shape, dtype, bpp=None):
@@ -992,10 +995,13 @@ class FIBitmap(FIBaseBitmap):
             # (Note that e.g. b''.join(data) consumes vast amounts of memory)
             bytes = binary_type(bytearray(data))
             array = numpy.fromstring(bytes, dtype=dtype)
-            try:
-                array.shape = shape 
-            except ValueError:
-                raise RuntimeError('Numpypy cannot deal with strided arrays yet.')
+            # Deal with strides
+            if len(shape) == 3:
+                array.shape = shape[0], strides[-1]/shape[0], shape[2]
+                array = array[:shape[0], :shape[1], :shape[2]] 
+            else:
+                array.shape = strides[-1], shape[1]
+                array = array[:shape[0], :shape[1]]
         return array
     
     
