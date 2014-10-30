@@ -18,6 +18,7 @@ import sys
 import os
 from os import path as op
 import time
+import shutil
 import webbrowser
 
 
@@ -35,7 +36,7 @@ else:
 
 
 # Define directories and repos of interest
-DOC_DIR = op.join(ROOT_DIR, 'doc')
+DOC_DIR = op.join(ROOT_DIR, 'docs')
 #
 WEBSITE_DIR = op.join(ROOT_DIR, '_website')
 WEBSITE_REPO = 'git@github.com:imageio/imageio'
@@ -119,7 +120,31 @@ class Maker:
                         print('Removed dir %r' % dname_r)
                     except Exception as err:
                         print('Could not remove %r: %s' % (dname_r, str(err)))
-        
+    
+    def doc(self, arg):
+        """ Make API documentation:
+                * clean - clean html
+                * html - build html
+                * show - show the docs in your browser
+        """
+        # Prepare
+        build_dir = op.join(DOC_DIR, '_build')
+        if not arg:
+            return self.help('doc')
+        # Go
+        for a in arg.split(' '):
+            if 'clean' == a:
+                sphinx_clean(build_dir)
+            elif 'html' == a:
+                sphinx_build(DOC_DIR, build_dir)
+            elif 'show' == a:
+                index_html = op.join(build_dir, 'html', 'index.html')
+                if not op.isfile(index_html):
+                    sys.exit('Cannot show pages, build the html first.')
+                webbrowser.open_new_tab(index_html)
+            else:
+                sys.exit('Command "doc" does not have subcommand "%s"' % arg)
+    
     def test(self, arg):
         """ Run tests:
                 * unit - run unit tests
@@ -192,3 +217,25 @@ class Maker:
         # Report
         print('Replaced %i copyright statements' % count_replaced)
         print('Found %i copyright statements up to date' % count_ok)
+
+
+## Helper functions
+
+def sphinx_clean(build_dir):
+    if op.isdir(build_dir):
+        shutil.rmtree(build_dir)
+    os.mkdir(build_dir)
+    print('Cleared build directory.')
+
+
+def sphinx_build(src_dir, build_dir):
+    import sphinx
+    ret = sphinx.main(('sphinx-build',  # Dummy
+                       '-b', 'html',
+                       '-d', op.join(build_dir, 'doctrees'),
+                       src_dir,  # Source
+                       op.join(build_dir, 'html'),  # Dest
+                       ))
+    if ret != 0:
+        raise RuntimeError('Sphinx error: %s' % ret)
+    print("Build finished. The HTML pages are in %s/html." % build_dir)

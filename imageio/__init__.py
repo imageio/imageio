@@ -8,18 +8,14 @@ range of image data, including animated images, volumetric data, and
 scientific formats. It is written in pure Python (2.x and 3.x) and
 is designed to be powerful, yet simple in usage and installation.
 
-Imageio has a relatively simple core that provides a common interface
-to different file formats. The actual file formats are implemented in
-plugins, which makes imageio easy to extend. A large range of formats
-are already supported (in part thanks to the freeimage library), but
-we aim to include much more (scientific) formats in the future.
+Main website: http://imageio.github.io
 
 Quickstart:
 
-  * Use imageio.imread to read an image.
-  * Use imageio.imsave to save an image.
-  * See the :ref:`functions page <sec-functions>` for more information.
- 
+* Use :func:`.imread` to read an image.
+* Use :func:`.imsave` to save an image.
+* See :doc:`userapi` for more information.
+
 """
 
 __version__ = '0.5.1dev'

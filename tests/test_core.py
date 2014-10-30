@@ -193,7 +193,7 @@ def test_format_manager():
     
     # Get docs
     smalldocs = str(formats)
-    fulldocs = formats.create_docs_for_all_formats()
+    #fulldocs = formats.create_docs_for_all_formats()
     
     # Check each format ...
     for format in formats:
@@ -201,7 +201,7 @@ def test_format_manager():
         assert isinstance(format, Format)
         # That they are mentioned
         assert format.name in smalldocs
-        assert format.name in fulldocs
+        #assert format.name in fulldocs
     
     fname = get_remote_file('images/chelsea.png', test_dir)
     fname2 = fname[:-3] + 'noext'

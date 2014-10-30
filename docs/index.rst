@@ -1,55 +1,18 @@
-.. imageio documentation master file, created by
-   sphinx-quickstart on Thu May 17 16:58:47 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to imageio's documentation!
 ===================================
 
 .. automodule:: imageio
 
 
-Features
-========
-
-  * Simple interface via a consise set of :doc:`functions <functions>`.
-  * Easy to install (no compilation needed, required binaries are automatically 
-    downloaded on Windows and Mac).
-  * More powerfull interface if needed via imageio.read and imageio.save.
-  * Easy to extend using plugins, also for file formats with complex data structures.
-  * Pure Python, runs on Python 2.x and 3.x (without 2to3).
-  * Experimental support for Pypy.
-  * Lots of supported :doc:`formats <formats>`.
-  * Can also read from zipfiles, http/ftp, raw bytes.
-
-Installation
-============
-You can install imageio using one of these options:
-  
-  * ``pip install imageio`` or ``easy_install imageio``.
-  * Get the zip file with the source code, extract and call 
-    ``python setup.py install``.
-  * Clone the repository to a directory called "imageio" and place that 
-    somewhere on your PYTHONPATH. 
-
-Important links
-================
-
-  * main website: http://imageio.github.io
-  * discussion group: http://groups.google.com/d/forum/imageio
-  * source code: http://github.com/imageio/imageio
-  * downloads: http://pypi.python.org/pypi/imageio
-
-
-Contents
-========
+Contents:
 
 .. toctree::
   :maxdepth: 1
   
-  imageio's functions (user API) <functions>
-  imageio's classes (developer API) <classes>
-  supported formats <formats>
-  writing plugins <plugins>
-  release notes <releasenotes>
-    
+  Installation <installation>
+  Usage examples <examples>
+  User API <userapi>
+  Developer API <devapi>
+  Supported formats <formats>
+  Writing plugins <plugins>
+  Release notes <releasenotes>

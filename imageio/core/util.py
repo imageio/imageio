@@ -28,7 +28,9 @@ else:  # pragma: no cover
 
 
 def urlopen(*args, **kwargs):
-    """ Compatibility function for the urlopen function.
+    """ Compatibility function for the urlopen function. Raises an
+    RuntimeError if urlopen could not be imported (which can occur in
+    frozen applications.
     """ 
     try:
         from urllib2 import urlopen
@@ -60,11 +62,9 @@ class ImageList(list):
 # todo: Note that skimage also has an Image class that overloads ndarray
 # See if we can learn from that
 class Image(np.ndarray):
-    """ Image(array)
+    """ Image(array, meta=None)
     
-    For ND images. Objects of this class have a 'meta' attribute that
-    keeps the meta information as a dict.
-    
+    A subclass of np.ndarray that has a meta attribute
     """
     
     def __new__(cls, array, meta=None):
@@ -179,7 +179,9 @@ class Dict(_dict):
 
     
 class BaseProgressIndicator:
-    """ A progress indicator helps display the progres of a task to the
+    """ BaseProgressIndicator(name)
+    
+    A progress indicator helps display the progres of a task to the
     user. Progress can be pending, running, finished or failed.
     
     Each task has:
@@ -203,6 +205,11 @@ class BaseProgressIndicator:
         self._last_progress_update = 0
     
     def start(self,  action='', unit='', max=0):
+        """ start(action='', unit='', max=0)
+        
+        Start the progress. Optionally specify an action, a unit,
+        and a maxium progress value.
+        """
         if self._status == 1:
             self.finish() 
         self._action = action
@@ -214,9 +221,20 @@ class BaseProgressIndicator:
         self._start()
     
     def status(self):
+        """ status()
+        
+        Get the status of the progress - 0: pending, 1: in progress,
+        2: finished, 3: failed
+        """
         return self._status
     
     def set_progress(self, progress=0, force=False):
+        """ set_progress(progress=0, force=False)
+        
+        Set the current progress. To avoid unnecessary progress updates
+        this will only have a visual effect if the time since the last
+        update is > 0.1 seconds, or if force is True.
+        """
         self._progress = progress
         # Update or not?
         if not (force or (time.time() - self._last_progress_update > 0.1)):
@@ -240,9 +258,18 @@ class BaseProgressIndicator:
         self._update_progress(progressText)
     
     def increase_progress(self, extra_progress):
+        """ increase_progress(extra_progress)
+        
+        Increase the progress by a certain amount.
+        """
         self.set_progress(self._progress + extra_progress)
     
     def finish(self, message=None):
+        """ finish(message=None)
+        
+        Finish the progress, optionally specifying a message. This will
+        not set the progress to the maximum.
+        """
         self.set_progress(self._progress, True)  # fore update
         self._status = 2
         self._stop()
@@ -250,6 +277,10 @@ class BaseProgressIndicator:
             self._write(message)
     
     def fail(self, message=None):
+        """ fail(message=None)
+        
+        Stop the progress with a failure, optionally specifying a message.
+        """
         self.set_progress(self._progress, True)  # fore update
         self._status = 3
         self._stop()
@@ -257,6 +288,10 @@ class BaseProgressIndicator:
         self._write(message)
     
     def write(self, message):
+        """ write(message)
+        
+        Write a message during progress (such as a warning).
+        """
         if self.__class__ == BaseProgressIndicator:
             # When this class is used as a dummy, print explicit message
             print(message)
@@ -279,7 +314,12 @@ class BaseProgressIndicator:
 
 
 class StdoutProgressIndicator(BaseProgressIndicator):
+    """ StdoutProgressIndicator(name)
     
+    A progress indicator that shows the progress in stdout. It
+    assumes that the tty can appropriately deal with backspace
+    characters.
+    """
     def _start(self):
         self._chars_prefix, self._chars = '', ''
         # Write message

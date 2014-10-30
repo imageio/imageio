@@ -21,14 +21,14 @@ class AnimatedGifFormat(Format):
     """ A format for reading and writing animated GIF, based on the
     Freeimage library.
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     playback : bool
         'Play' the GIF to generate each frame (as 32bpp) instead of
         returning raw frame data when loading. Default True.
     
-    Keyword arguments for writing
-    -----------------------------
+    Parameters for saving
+    ---------------------
     loop : int
         The number of iterations. Default 0 (meaning loop indefinitely)
         This argumen is not implemented yet :(
@@ -41,11 +41,11 @@ class AnimatedGifFormat(Format):
         the nearest power of two. Default 256.
     quantizer : {'wu', 'nq'}
         The quantization algorithm:
-          * wu - Wu, Xiaolin, Efficient Statistical Computations for
-            Optimal Color Quantization
-          * nq (neuqant) - Dekker A. H., Kohonen neural networks for
-            optimal color quantization
-    
+            * wu - Wu, Xiaolin, Efficient Statistical Computations for
+              Optimal Color Quantization
+            * nq (neuqant) - Dekker A. H., Kohonen neural networks for
+              optimal color quantization
+            
     """
     
     def _can_read(self, request):
@@ -59,6 +59,13 @@ class AnimatedGifFormat(Format):
     # -- reader
     
     class Reader(Format.Reader):
+        """ 
+        Parameters
+        ----------
+        playback : bool
+            'Play' the GIF to generate each frame (as 32bpp) instead of
+            returning raw frame data when loading. Default True.
+        """
         
         def _open(self, flags=0, playback=True):
             # Build flags from kwargs
@@ -96,6 +103,26 @@ class AnimatedGifFormat(Format):
     # -- writer 
     
     class Writer(Format.Writer):
+        """
+        Parameters
+        ----------
+        loop : int
+            The number of iterations. Default 0 (meaning loop indefinitely)
+            This argumen is not implemented yet :(
+        duration : {float, list}
+            The duration (in seconds) of each frame. Either specify one value
+            that is used for all frames, or one value for each frame.
+            Default 0.1
+        palettesize : int
+            The number of colors to quantize the image to. Is rounded to
+            the nearest power of two. Default 256.
+        quantizer : {'wu', 'nq'}
+            The quantization algorithm:
+            * wu - Wu, Xiaolin, Efficient Statistical Computations for
+                Optimal Color Quantization
+            * nq (neuqant) - Dekker A. H., Kohonen neural networks for
+                optimal color quantization
+        """
         
         # todo: loop argument
         # todo: subrectangles

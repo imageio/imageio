@@ -44,8 +44,8 @@ class DicomFormat(Format):
     also results in a much faster read time. We plan to allow reading all
     tags in the future (by using pydicom).
     
-    Keyword arguments for reading
-    -----------------------------
+    Parameters for reading
+    ----------------------
     progress : {True, False, BaseProgressIndicator}
         Whether to show progress when reading from multiple files.
         Default True. By passing an object that inherits from

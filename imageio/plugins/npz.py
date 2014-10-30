@@ -25,6 +25,14 @@ class NpzFormat(Format):
     Beware that the numpy npz format has a bug on a certain combination
     of Python 2.7 and numpy, which can cause the resulting files to
     become unreadable on Python 3.
+    
+    Parameters for reading
+    ----------------------
+    None
+    
+    Parameters for saving
+    ---------------------
+    None
     """
     
     def _can_read(self, request):

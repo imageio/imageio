@@ -2,27 +2,25 @@
 # Copyright (c) 2013, imageio contributers
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" 
+"""
 
-.. note::
-    imageio is under construction, some details with regard to the 
-    Reader and Writer classes and how they should be implemented
-    may still change. If you want to implement a plugin, maybe you
-    can also help work out the details of the API for the Reader
-    and Writer classes.
+Imagio is plugin-based. Every supported format is provided with a
+plugin. You can write your own plugins to make imageio support
+additional formats. And we would be interested in adding such code to the
+imageio codebase!
 
 
 What is a plugin
 ----------------
 
-In imageio, a plugin provides one or more imageio.Format objects, and 
-corresponding imageio.Reader and imageio.Writer classes.
-Each imageio.Format object represents an implementation to read/save a 
+In imageio, a plugin provides one or more :class:`.Format` objects, and 
+corresponding :class:`.Reader` and :class:`.Writer` classes.
+Each Format object represents an implementation to read/save a 
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.
 
 The reader and writer objects have a ``request`` attribute that can be
-used to obtain information about the read or save request, such as
+used to obtain information about the read or save :class:`.Request`, such as
 user-provided keyword arguments, as well get access to the raw image
 data.
 
@@ -47,32 +45,34 @@ private methods. The public API is implemented by the base classes.
 In effect, the public methods can be given a descent docstring which
 does not have to be repeated at the plugins.
 
-For the imageio.Format class, the following needs to be implemented/specified:
+For the Format class, the following needs to be implemented/specified:
 
   * The format needs a short name, a description, and a list of file
     extensions that are common for the file-format in question.
+    These ase set when instantiation the Format object.
   * Use a docstring to provide more detailed information about the
-    format/plugin.
+    format/plugin, such as parameters for reading and saving that the user
+    can supply via keyword arguments.
   * Implement ``_can_read(request)``, return a bool. 
-    See also the Request class.
+    See also the :class:`.Request` class.
   * Implement ``_can_save(request)``, dito.
 
-For the imageio.Format.Reader class:
+For the Format.Reader class:
   
-  * Implement ``_open(**kwargs)`` to initialize the reader, with the
-    user-provided keyword arguments.
-  * Implement ``_close()`` to clean up
+  * Implement ``_open(**kwargs)`` to initialize the reader. Deal with the
+    user-provided keyword arguments here.
+  * Implement ``_close()`` to clean up.
   * Implement ``_get_length()`` to provide a suitable length based on what
     the user expects. Can be ``inf`` for streaming data.
   * Implement ``_get_data(index)`` to return an array and a meta-data dict.
   * Implement ``_get_meta_data(index)`` to return a meta-data dict. If index
     is None, it should return the 'global' meta-data.
 
-For the imageio.format.Writer class:
+For the Format.Writer class:
     
-  * Implement ``_open(**kwargs)`` to initialize the writer, with the
-    user-provided keyword arguments.
-  * Implement ``_close()`` to clean up
+  * Implement ``_open(**kwargs)`` to initialize the writer. Deal with the
+    user-provided keyword arguments here.
+  * Implement ``_close()`` to clean up.
   * Implement ``_append_data(im, meta)`` to add data (and meta-data).
   * Implement ``_set_meta_data(meta)`` to set the global meta-data.
 
