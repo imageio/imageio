@@ -81,18 +81,12 @@ def read(uri, format=None, mode='?', **kwargs):
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
     mode : {'i', 'I', 'v', 'V', '?'}
-        Used to give the reader a hint on what the user expects (default '?'):
+        Used to give the reader a hint on what the user expects (default "?"):
         "i" for an image, "I" for multiple images, "v" for a volume,
         "V" for multiple volumes, "?" for don't care.
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    
-            * "i" for an image
-            * "I" for multiple images
-            * "v" for a volume
-            * "V" for multiple volumes
-            * "?" for don't care
     """ 
     
     # Create request object
@@ -128,11 +122,8 @@ def save(uri, format=None, mode='?', **kwargs):
         the appropriate for you based on the filename.
     mode : {'i', 'I', 'v', 'V', '?'}
         Used to give the writer a hint on what the user expects (default '?'):
-            * "i" for an image
-            * "I" for multiple images
-            * "v" for a volume
-            * "V" for multiple volumes
-            * "?" for can be anything
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.

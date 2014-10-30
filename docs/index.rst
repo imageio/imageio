@@ -12,7 +12,7 @@ Contents:
   Installation <installation>
   Usage examples <examples>
   User API <userapi>
+  Docs for the formats <formats>
   Developer API <devapi>
-  Supported formats <formats>
   Writing plugins <plugins>
   Release notes <releasenotes>

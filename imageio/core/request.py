@@ -53,11 +53,8 @@ class Request(object):
     mode : str
         The first character is "r" or "w", indicating a read or write
         request. The second character is used to indicate the kind of data:
-            * "i" for an image
-            * "I" for multiple images
-            * "v" for a volume
-            * "V" for multiple volumes
-            * "?" for don't care
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
     """
     
     def __init__(self, uri, mode, **kwargs):
@@ -208,11 +205,8 @@ class Request(object):
         """ The mode of the request. The first character is "r" or "w",
         indicating a read or write request. The second character is
         used to indicate the kind of data:
-            * "i" for an image
-            * "I" for multiple images
-            * "v" for a volume
-            * "V" for multiple volumes
-            * "?" for don't care
+        "i" for an image, "I" for multiple images, "v" for a volume,
+        "V" for multiple volumes, "?" for don't care.
         """
         return self._mode
     
