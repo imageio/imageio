@@ -35,7 +35,7 @@ EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png',
                   'hubble_deep_field.png', 'immunohistochemistry.png',
                   'lena.png', 'moon.png', 'page.png', 'text.png', 'wikkie.png',
                   'chelsea.zip',
-                  'newtonscradle.gif',
+                  'newtonscradle.gif', 'cockatoo.mp4',
                   'stent.npz', ]
 
 

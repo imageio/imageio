@@ -84,6 +84,17 @@ class FfmpegFormat(Format):
         this to take effect. Note that the images produced by this
         reader are always rgb8.
     
+    Parameters for saving
+    ---------------------
+    fps : scalar
+        The number of frames per second. Default 10.
+    codec : str
+        the video codec to use. Default 'libx264', which represents the
+        widely available mpeg4.
+    bitrate : int
+        A measure for quality. Default 400000
+    
+    
     """
     
     def _can_read(self, request):
@@ -406,7 +417,7 @@ class FfmpegFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _open(self):    
+        def _open(self, fps=10, codec='libx264', bitrate=400000):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
