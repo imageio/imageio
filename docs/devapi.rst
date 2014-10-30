@@ -2,7 +2,7 @@
 Imageio's developer API
 -----------------------
 
-.. comment::
+..
     We just import the whole of imageio.core 
     The imageio.core docstring and __all__ are modified in
     at the init of documenation building to make this show

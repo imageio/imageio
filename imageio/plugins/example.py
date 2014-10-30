@@ -13,7 +13,6 @@ from imageio import formats
 from imageio.core import Format
 
 
-
 class DummyFormat(Format):
     """ The dummy format is an example format that does nothing.
     It will never indicate that it can read or save a file. When

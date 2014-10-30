@@ -51,11 +51,11 @@ def main():
         ext = ', '.join(['``%s``' % e for e in format.extensions])
         ext = ext or 'None'
         #
-        text = ''
+        text = ':orphan:\n\n'
         text += '.. _%s:\n\n' % format.name
         text += '%s\n%s\n\n' % (title, '='*len(title))
         #
-        text += generaltext
+        text += generaltext + '\n\n'
         text += 'Extensions: %s\n\n' % ext
         docs = '    ' + format.__doc__.lstrip()
         docs = '\n'.join([x[4:].rstrip() for x in docs.splitlines()])

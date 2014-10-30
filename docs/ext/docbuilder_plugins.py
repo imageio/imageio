@@ -20,7 +20,7 @@ def main():
     text += '.. automodule:: imageio.plugins\n\n'
     
     # Insert code from example plugin
-    text += 'Example / template plugin\n------------------------\n\n'
+    text += 'Example / template plugin\n-------------------------\n\n'
     text += ".. code-block:: python\n    :linenos:\n\n"
     filename = imageio.plugins.example.__file__
     code = open(filename, 'rb').read().decode('utf-8')
