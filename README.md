@@ -19,9 +19,7 @@ and is designed to be powerful, yet simple in usage and installation.
 <p>
 Imageio has a relatively simple core that provides a common interface 
 to different file formats. The actual file formats are implemented in 
-plugins, which makes imageio easy to extend. A large range of formats
-are already supported (in part thanks to the freeimage library), but we 
-aim to include much more (scientific) formats in the future.
+plugins, which makes imageio easy to extend.
 </p>
 
 
@@ -33,7 +31,7 @@ Here's a minimal example of how to use imageio. See the docs for
 >>> im = imageio.imread('chelsea.png')
 >>> im.shape  # im is a numpy array
 (300, 451, 3)
->>> imageio.imsave('chelsea-gray.jpg', im[:,:,0])
+>>> imageio.imsave('chelsea-gray.jpg', im[:, :, 0])
 </pre>
 
 <h2>API in a nutshell</h2>
@@ -51,17 +49,11 @@ As a user, you just have to remember a handfull of functions:
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a consise set of functions.</li>
-    <li>Easy to install (no compilation required, binaries are automatically downloaded).</li>    
-    <li>Pure Python, runs on Python 2.x, 3.x, Pypy, Jython?</li>
-    <li>Lots of supported formats.</li>
+    <li>Easy to <a href='http://imageio.readthedocs.org/en/latest/installation.html'>install</a> using conda or pip.</li>    
+    <li>Few dependencies (only Numpy).</li>
+    <li>Pure Python, runs on Python 2.x, 3.x, and Pypy</li>
+    <li>Lots of supported <a href='http://imageio.readthedocs.org/en/latest/formats.html'>formats</a>.</li>
     <li>Can also read from zipfiles, http/ftp, and raw bytes.</li>
     <li>Easy to extend using plugins.</li>
-</ul>
-
-
-<h2>Installation</h2>
-
-<ul>
-    <li>Via conda: <kdb>conda install imageio</kdb></li> 
-    <li>Via pip: <kdb>pip install imageio</kdb></li>
+    <li>Loads of unit tests with continuous integration.</li>
 </ul>
