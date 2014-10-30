@@ -60,10 +60,8 @@ def help(name=None):
     else:
         print(formats[name])
 
-# todo: implement inforead function?
 
 ## Base functions that return a reader/writer
-
 
 def read(uri, format=None, mode='?', **kwargs):
     """ read(uri, format=None, mode='?', **kwargs)
@@ -171,9 +169,6 @@ def imread(uri, format=None, **kwargs):
     with reader:
         return reader.get_data(0)
 
-
-# todo: add meta attribbute to easily provide meta data
-# now, the only way to give meta data is via the imageio.Image class
 
 def imsave(uri, im, format=None, **kwargs):
     """ imsave(uri, im, format=None, **kwargs)

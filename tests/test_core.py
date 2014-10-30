@@ -481,10 +481,10 @@ def test_util():
     assert not isinstance(im2, core.util.Image)
     s = im.sum()
     assert not isinstance(s, core.util.Image)
-    # Repr
-    assert '2D image' in repr(core.util.Image(np.zeros((10, 10))))
-    assert '2D image' in repr(core.util.Image(np.zeros((10, 10, 3))))
-    assert '3D image' in repr(core.util.Image(np.zeros((10, 10, 10))))
+    # Repr !! no more
+    #assert '2D image' in repr(core.util.Image(np.zeros((10, 10))))
+    #assert '2D image' in repr(core.util.Image(np.zeros((10, 10, 3))))
+    #assert '3D image' in repr(core.util.Image(np.zeros((10, 10, 10))))
     # Fail
     raises(ValueError, core.util.Image, 3)  # not a ndarray
     raises(ValueError, core.util.Image, a, 3)  # not a dict

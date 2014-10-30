@@ -59,12 +59,12 @@ class ImageList(list):
         return self._meta
 
 
-# todo: Note that skimage also has an Image class that overloads ndarray
-# See if we can learn from that
 class Image(np.ndarray):
     """ Image(array, meta=None)
     
-    A subclass of np.ndarray that has a meta attribute
+    A subclass of np.ndarray that has a meta attribute.
+    Following scikit-image, we leave this as a normal numpy array as much 
+    as we can.
     """
     
     def __new__(cls, array, meta=None):
@@ -91,18 +91,6 @@ class Image(np.ndarray):
             if isinstance(val, dict):
                 val = Dict(val)  # Copy this level
             self._meta[key] = val
-    
-    def __repr__(self):
-        n = 'x'.join([str(i) for i in self.shape])
-        dtype = self.dtype
-        ndim = self.ndim
-        if self.shape[-1] in (1, 3, 4):
-            ndim -= 1
-        fmt = '<%iD image: numpy array with %s elements of dtype %s>'
-        return fmt % (ndim, n, dtype)
-    
-    def __str__(self):
-        return np.ndarray.__str__(self)  # print() shows elements as normal
     
     @property
     def meta(self):
