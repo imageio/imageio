@@ -92,9 +92,11 @@ def test_format():
         assert set(F.extensions) == set(['foo', 'bar', 'spam'])
     # Fail
     raises(ValueError, Format, 'test', '', 3)  # not valid ext
+    raises(ValueError, Format, 'test', '', '', 3)  # not valid mode
+    raises(ValueError, Format, 'test', '', '', 'x')  # not valid mode
     
     # Test subclassing
-    F = MyFormat('test', '')
+    F = MyFormat('test', '', modes='i')
     assert 'TEST DOCS' in F.doc
     
     # Get and check reader and write classes
@@ -106,6 +108,9 @@ def test_format():
     assert W.format is F
     assert R.request.filename == filename1
     assert W.request.filename == filename2
+    # Fail
+    raises(RuntimeError, F.read, Request(filename1, 'rI'))
+    raises(RuntimeError, F.save, Request(filename2, 'wI'))
     
     # Use as context manager
     with R:
@@ -238,12 +243,12 @@ def test_format_manager():
     assert F is formats['PNG']
     F = formats.search_save_format(Request(fname, 'wi'))
     assert F is formats['PNG']
-    # Potential
-    bytes = b'x' * 300
-    F = formats.search_read_format(Request(bytes, 'ri', dummy_potential=1))
-    assert F is formats['DUMMY']
-    F = formats.search_save_format(Request('<bytes>', 'wi', dummy_potential=1))
-    assert F is formats['DUMMY']
+#     # Potential
+#     bytes = b'x' * 300
+#     F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
+#     assert F is formats['DUMMY']
+#     F = formats.search_save_format(Request('<bytes>', 'w?', dummy_potential=1))
+#     assert F is formats['DUMMY']
 
 
 def test_fetching():
@@ -670,5 +675,24 @@ def test_functions():
     raises(ValueError, imageio.mvolsave, fname4, [np.zeros((90, 90, 90, 40))])
     raises(ValueError, imageio.mvolsave, fname4, [42])
 
+
+def test_example_plugin():
+    """ Test the example plugin """
+    
+    fname = os.path.join(test_dir, 'out.png')
+    R = imageio.formats['dummy'].read(Request('chelsea.png', 'r?'))
+    W = imageio.formats['dummy'].save(Request(fname, 'w?'))
+    #
+    assert len(R) == 1
+    assert R.get_data(0).ndim
+    raises(IndexError, R.get_data, 1)
+    raises(RuntimeError, R.get_meta_data)
+    R.close()
+    #
+    raises(RuntimeError, W.append_data, np.zeros((10, 10)))
+    raises(RuntimeError, W.set_meta_data, {})
+    W.close()
+    
+    
 
 run_tests_if_main()

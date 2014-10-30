@@ -57,9 +57,6 @@ class FreeimageFormat(Format):
                     request._fif = -1
             if request._fif == self.fif:
                 return True
-                # Note: adding as a potential format and then returning False
-                # will give preference to other formats that can read the file.
-                #request.add_potential_format(self)
     
     def _can_save(self, request):
         if fi and request.mode[1] in 'i?':

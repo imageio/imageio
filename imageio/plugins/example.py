@@ -37,22 +37,9 @@ class DummyFormat(Format):
         # request.firstbytes: the first 256 bytes of the file.
         # request.mode[0]: read or write mode
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-        
-        # These lines are used in testing
-        if request.kwargs.get('dummy_potential', False):
-            request.add_potential_format(self)
-        if request.kwargs.get('dummy_can', False):
-            return True
-        
         return False
     
     def _can_save(self, request):
-        # These lines are used in testing
-        if request.kwargs.get('dummy_potential', False):
-            request.add_potential_format(self)
-        if request.kwargs.get('dummy_can', False):
-            return True
-        
         return False
     
     # -- reader

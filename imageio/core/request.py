@@ -85,7 +85,7 @@ class Request(object):
         self._firstbytes = None         # For easy header parsing
         
         # To store formats that may be able to fulfil this request
-        self._potential_formats = []
+        #self._potential_formats = []
         
         # Check mode
         self._mode = mode
@@ -394,29 +394,29 @@ class Request(object):
                     raise ValueError('Error in firstbytes: '
                                      'could not tell/seek in the given file.')
 
-    ## For formats
-    
-    # This is a bit experimental. Not sure how useful it will be in practice.
-    # One use case I though of is that if there is a bug in FreeImage, we might
-    # be able to circumvent it by providing an alternative Format for that
-    # file-format.
-    def add_potential_format(self, format):
-        """ add_potential_format(format)
-        
-        Allows a format to add itself as a potential format in cases
-        where it seems capable of reading-saving the file, but 
-        priority should be given to another Format.
-        """
-        self._potential_formats.append(format)
-    
-    def get_potential_format(self):
-        """ get_potential_format()
-        
-        Get the first known potential format. Calling this method 
-        repeatedly will yield different formats until the list of 
-        potential formats is exhausted.
-        """
-        if self._potential_formats:
-            return self._potential_formats.pop(0)
-        else:
-            return None
+#     ## For formats
+#     
+#     # This is a bit experimental. Not sure how useful it will be in practice.
+#     # One use case I though of is that if there is a bug in FreeImage, we might
+#     # be able to circumvent it by providing an alternative Format for that
+#     # file-format.
+#     def add_potential_format(self, format):
+#         """ add_potential_format(format)
+#         
+#         Allows a format to add itself as a potential format in cases
+#         where it seems capable of reading-saving the file, but 
+#         priority should be given to another Format.
+#         """
+#         self._potential_formats.append(format)
+#     
+#     def get_potential_format(self):
+#         """ get_potential_format()
+#         
+#         Get the first known potential format. Calling this method 
+#         repeatedly will yield different formats until the list of 
+#         potential formats is exhausted.
+#         """
+#         if self._potential_formats:
+#             return self._potential_formats.pop(0)
+#         else:
+#             return None
