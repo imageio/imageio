@@ -162,10 +162,12 @@ class Maker:
                 sys.exit(str(err))
             
         elif arg == 'unit':
-            testing.test_unit()
+            sys.exit(testing.test_unit())
         
         elif arg == 'cover':
-            testing.test_unit(cov_report='html')
+            res = testing.test_unit(cov_report='html')
+            if res:
+                raise RuntimeError('Cannot show coverage, tests failed.')
             print('Launching browser.')
             fname = op.join(os.getcwd(), 'htmlcov', 'index.html')
             if not op.isfile(fname):
