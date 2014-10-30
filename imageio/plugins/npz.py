@@ -98,5 +98,5 @@ class NpzFormat(Format):
 
 
 # Register
-format = NpzFormat('npz', "Numpy's compressed array format", 'npz')
+format = NpzFormat('npz', "Numpy's compressed array format", 'npz', 'iIvV')
 formats.add_format(format)

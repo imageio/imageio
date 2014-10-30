@@ -72,9 +72,12 @@ class Format:
         List of filename extensions that this format supports. If a string
         is passed it should be space or comma separated. Users can select
         a format by specifying the file extension.
+    modes : str
+        A string containing the modes that this format can handle ('iIvV').
+        
     """
     
-    def __init__(self, name, description, extensions=None):
+    def __init__(self, name, description, extensions=None, modes=None):
         
         # Store name and description
         self._name = name.upper()
@@ -92,6 +95,14 @@ class Format:
         else:
             raise ValueError('Invalid value for extensions given.')
         
+        # Store mode
+        self._modes = modes or ''
+        if not isinstance(self._modes, string_types):
+            raise ValueError('Invalid value for modes given.')
+        for m in self._modes:
+            if m not in 'iIvV?':
+                raise ValueError('Invalid value for mode given.')
+    
     def __repr__(self):
         # Short description
         return '<Format %s - %s>' % (self.name, self.description)
@@ -126,6 +137,12 @@ class Format:
         These are all lowercase without a leading dot.
         """
         return self._extensions
+    
+    @property
+    def modes(self):
+        """ A string specifying the modes that this format can handle.
+        """
+        return self._modes
     
     def read(self, request):
         """ read(request)

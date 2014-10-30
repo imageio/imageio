@@ -203,7 +203,7 @@ class DicomFormat(Format):
 # Add this format
 formats.add_format(DicomFormat('DICOM', 
             'Digital Imaging and Communications in Medicine', 
-            '.dcm .ct .mri'))
+            '.dcm .ct .mri', 'iIvV'))
 
 
 # Define a dictionary that contains the tags that we would like to know
