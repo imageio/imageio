@@ -243,12 +243,12 @@ def test_format_manager():
     assert F is formats['PNG']
     F = formats.search_save_format(Request(fname, 'wi'))
     assert F is formats['PNG']
-#     # Potential
-#     bytes = b'x' * 300
-#     F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
-#     assert F is formats['DUMMY']
-#     F = formats.search_save_format(Request('<bytes>', 'w?', dummy_potential=1))
-#     assert F is formats['DUMMY']
+#   # Potential
+#   bytes = b'x' * 300
+#   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
+#   assert F is formats['DUMMY']
+#   F = formats.search_save_format(Request('<bytes>', 'w?', dummy_potential=1))
+#   assert F is formats['DUMMY']
 
 
 def test_fetching():
@@ -696,7 +696,6 @@ def test_example_plugin():
     raises(RuntimeError, W.append_data, np.zeros((10, 10)))
     raises(RuntimeError, W.set_meta_data, {})
     W.close()
-    
-    
+
 
 run_tests_if_main()

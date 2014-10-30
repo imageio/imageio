@@ -59,7 +59,7 @@ class ImageList(list):
         """ 
         return self._meta
 
-##
+
 class Image(np.ndarray):
     """ Image(array, meta=None)
     
