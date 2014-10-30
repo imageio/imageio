@@ -379,6 +379,13 @@ def test_request():
     raises(IOError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
     
+    # Test auto-download
+    R = Request('chelsea.png', 'ri')
+    assert R.filename == get_remote_file('images/chelsea.png')
+    R = Request('chelsea.zip/chelsea.png', 'ri')
+    assert R._filename_zip[0] == get_remote_file('images/chelsea.zip')
+    assert R.filename == get_remote_file('images/chelsea.zip') + '/chelsea.png'
+    
     # Make an image available in many ways
     burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
     fname = 'images/chelsea.png'

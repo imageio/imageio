@@ -16,7 +16,7 @@ import zipfile
 import tempfile
 import shutil
 
-from imageio.core import string_types, binary_type, urlopen
+from imageio.core import string_types, binary_type, urlopen, get_remote_file
 
 # URI types
 URI_BYTES = 1
@@ -28,6 +28,15 @@ URI_FTP = 6
 
 # The user can use this string in a write call to get the data back as bytes.
 RETURN_BYTES = '<bytes>'
+
+# Example images that will be auto-downloaded
+EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png', 
+                  'clock.png', 'coffee.png', 'coins.png', 'horse.png',
+                  'hubble_deep_field.png', 'immunohistochemistry.png',
+                  'lena.png', 'moon.png', 'page.png', 'text.png', 'wikkie.png',
+                  'chelsea.zip',
+                  'newtonscradle.gif',
+                  'stent.npz', ]
 
 
 class Request(object):
@@ -182,14 +191,21 @@ class Request(object):
         if is_write_request and self._uri_type in noWriting:
             raise IOError('imageio does not support writing to http/ftp.')
         
-        # Check if file exists
+        # Check if file exists. If not, it might be an example image
         if is_read_request:
             if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
                 fn = self._filename
                 if self._filename_zip:
                     fn = self._filename_zip[0]
                 if not os.path.exists(fn):
-                    raise IOError("No such file: '%s'" % fn)
+                    if fn in EXAMPLE_IMAGES:
+                        fn = get_remote_file('images/' + fn)
+                        self._filename = fn
+                        if self._filename_zip:
+                            self._filename_zip = fn, self._filename_zip[1]
+                            self._filename = fn + '/' + self._filename_zip[1]
+                    else:
+                        raise IOError("No such file: '%s'" % fn)
     
     @property
     def filename(self):
