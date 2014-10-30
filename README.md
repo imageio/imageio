@@ -26,7 +26,7 @@ aim to include much more (scientific) formats in the future.
 
 
 <h2>Example</h2>
-Here's a minimal example of how to use imageio. For the docs for 
+Here's a minimal example of how to use imageio. See the docs for 
 <a href='http://imageio.readthedocs.org/en/latest/examples.html'>more examples</a>.
 <pre>
 >>> import imageio
