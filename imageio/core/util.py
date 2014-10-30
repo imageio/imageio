@@ -14,6 +14,7 @@ import time
 
 import numpy as np
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 # Taken from six.py
 PY3 = sys.version_info[0] == 3

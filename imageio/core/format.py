@@ -67,14 +67,20 @@ class Format:
     name : str
         A short name of this format. Users can select a format using its name.
     description : str
-        A one-line description of the format
+        A one-line description of the format.
     extensions : str | list | None
-        List of filename extensions that this format supports. If a string
-        is passed it should be space or comma separated. Users can select
-        a format by specifying the file extension.
+        List of filename extensions that this format supports. If a
+        string is passed it should be space or comma separated. The
+        extensions are used in the documentation and to allow users to
+        select a format by file extension. It is not used to determine
+        what format to use for reading/saving a file.
+    modes : str
+        A string containing the modes that this format can handle ('iIvV').
+        This attribute is used in the documentation and to select the
+        formats when reading/saving a file.
     """
     
-    def __init__(self, name, description, extensions=None):
+    def __init__(self, name, description, extensions=None, modes=None):
         
         # Store name and description
         self._name = name.upper()
@@ -92,6 +98,14 @@ class Format:
         else:
             raise ValueError('Invalid value for extensions given.')
         
+        # Store mode
+        self._modes = modes or ''
+        if not isinstance(self._modes, string_types):
+            raise ValueError('Invalid value for modes given.')
+        for m in self._modes:
+            if m not in 'iIvV?':
+                raise ValueError('Invalid value for mode given.')
+    
     def __repr__(self):
         # Short description
         return '<Format %s - %s>' % (self.name, self.description)
@@ -127,6 +141,12 @@ class Format:
         """
         return self._extensions
     
+    @property
+    def modes(self):
+        """ A string specifying the modes that this format can handle.
+        """
+        return self._modes
+    
     def read(self, request):
         """ read(request)
         
@@ -134,6 +154,10 @@ class Format:
         from the given file. Users are encouraged to use imageio.read()
         instead.
         """
+        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        if select_mode not in self.modes:
+            raise RuntimeError('Format %s cannot read in mode %r' % 
+                               (self.name, select_mode))
         return self.Reader(self, request)
     
     def save(self, request):
@@ -142,6 +166,10 @@ class Format:
         Return a writer object that can be used to save data and info
         to the given file. Users are encouraged to use imageio.save() instead.
         """
+        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        if select_mode not in self.modes:
+            raise RuntimeError('Format %s cannot save in mode %r' % 
+                               (self.name, select_mode))
         return self.Writer(self, request)
     
     def can_read(self, request):
@@ -543,11 +571,11 @@ class FormatManager:
         Search a format that can read a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
+        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
         for format in self._formats:
-            if format.can_read(request):
-                return format
-        else:
-            return request.get_potential_format()
+            if select_mode in format.modes:
+                if format.can_read(request):
+                    return format
     
     def search_save_format(self, request):
         """ search_save_format(request)
@@ -555,8 +583,8 @@ class FormatManager:
         Search a format that can save a file according to the given request. 
         Returns None if no appropriate format was found. (used internally)
         """
+        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
         for format in self._formats:
-            if format.can_save(request):
-                return format
-        else:
-            return request.get_potential_format()
+            if select_mode in format.modes:
+                if format.can_save(request):
+                    return format

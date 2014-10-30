@@ -37,22 +37,9 @@ class DummyFormat(Format):
         # request.firstbytes: the first 256 bytes of the file.
         # request.mode[0]: read or write mode
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-        
-        # These lines are used in testing
-        if request.kwargs.get('dummy_potential', False):
-            request.add_potential_format(self)
-        if request.kwargs.get('dummy_can', False):
-            return True
-        
         return False
     
     def _can_save(self, request):
-        # These lines are used in testing
-        if request.kwargs.get('dummy_potential', False):
-            request.add_potential_format(self)
-        if request.kwargs.get('dummy_can', False):
-            return True
-        
         return False
     
     # -- reader
@@ -124,18 +111,9 @@ class DummyFormat(Format):
 
 
 # Register. You register an *instance* of a Format class. Here specify:
-# - name
-# - short description
-# - list of extensions (can be a space or comma separated string)
-format = DummyFormat('dummy', 'An example format that does nothing.', '')
+format = DummyFormat('dummy',  # shot name
+                     'An example format that does nothing.',  # one line descr.
+                     '',  # list of extensions as a space separated string
+                     ''  # modes, characters in iIvV
+                     )
 formats.add_format(format)
-
-
-if __name__ == '__main__':
-    import imageio
-    #fname = 'C:/almar/projects/pylib/visvis/visvisResources/lena.png'
-    fname = '/home/almar/projects/pylib/visvis/visvisResources/lena.png'
-    
-    im = imageio.imread(fname, 'dummy')  # Explicitly use this format
-    print(im.shape)  # (473831, 1)
-    imageio.imsave(fname, im, 'dummy')  # Raises error

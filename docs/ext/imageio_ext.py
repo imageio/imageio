@@ -141,11 +141,21 @@ def create_format_docs():
     text += 'This page lists all formats currently supported by imageio:'
     
     # Get bullet list of all formats
-    ss = ['']
-    for format in imageio.formats: 
-        s = '  * :ref:`%s <%s>` - %s' % (format.name, 
-                                         format.name, format.description)
-        ss.append(s)
+    ss = ['\n']
+    covered_formats = []
+    modemap = {'i': 'Single images', 'I': 'Multiple images',
+               'v': 'Single volumes', 'V': 'Multiple volumes', }
+    for mode in 'iIvV-':
+        subtitle = modemap.get(mode, 'Unsorted')
+        ss.append('%s\n%s\n' % (subtitle, '^' * len(subtitle)))
+        for format in imageio.formats: 
+            if ((mode in format.modes) or 
+                (mode == '-' and format not in covered_formats)):
+                covered_formats.append(format)
+                s = '  * :ref:`%s <%s>` - %s' % (format.name, 
+                                                 format.name, 
+                                                 format.description)
+                ss.append(s)
     text += '\n'.join(ss) + '\n\n'
     _write('formats.rst', text)
     

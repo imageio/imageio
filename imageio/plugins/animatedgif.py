@@ -198,4 +198,4 @@ class AnimatedGifFormat(Format):
             self._meta.update(meta)
 
 
-formats.add_format(AnimatedGifFormat('ANIGIF', 'Animated gif', '.gif'))
+formats.add_format(AnimatedGifFormat('ANIGIF', 'Animated gif', '.gif', 'I'))

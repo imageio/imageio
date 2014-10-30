@@ -40,6 +40,8 @@ class FreeimageFormat(Format):
         parameters for influencing image saving.
     """
     
+    _modes = 'i'
+    
     @property
     def fif(self):
         return self._fif  # Set when format is created
@@ -55,9 +57,6 @@ class FreeimageFormat(Format):
                     request._fif = -1
             if request._fif == self.fif:
                 return True
-                # Note: adding as a potential format and then returning False
-                # will give preference to other formats that can read the file.
-                #request.add_potential_format(self)
     
     def _can_save(self, request):
         if fi and request.mode[1] in 'i?':
@@ -187,6 +186,9 @@ class FreeimageIcoFormat(FreeimageFormat):
         mask when loading. Default True.
     
     """
+    
+    _modes = 'iI'
+    
     # todo: this supports multiple images!
     
     class Reader(FreeimageFormat.Reader):
@@ -335,7 +337,7 @@ def create_freeimage_formats():
             # Get class for format
             FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
             # Create Format and add
-            format = FormatClass(name, des, ext)
+            format = FormatClass(name, des, ext, FormatClass._modes)
             format._fif = i
             formats.add_format(format)
 

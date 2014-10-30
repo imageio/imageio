@@ -3,7 +3,7 @@ Installing imageio
 
 Imageio is written in pure Python, so installation is easy. 
 Imageio works on Python 2.6 and up (including Python 3). It also works
-on Pypy and possibly on Jython. For some formats, imageio needs
+on Pypy. For some formats, imageio needs
 additional libraries (e.g. freeimage), which are downloaded
 automatically and stored in a folder in your application data.
 

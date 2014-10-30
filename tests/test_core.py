@@ -18,7 +18,7 @@ from imageio.testing import run_tests_if_main, get_test_dir
 import imageio
 from imageio import core
 from imageio.core import Format, FormatManager, Request
-from imageio.core import get_remote_file
+from imageio.core import get_remote_file, IS_PYPY
 
 test_dir = get_test_dir()
 
@@ -92,9 +92,11 @@ def test_format():
         assert set(F.extensions) == set(['foo', 'bar', 'spam'])
     # Fail
     raises(ValueError, Format, 'test', '', 3)  # not valid ext
+    raises(ValueError, Format, 'test', '', '', 3)  # not valid mode
+    raises(ValueError, Format, 'test', '', '', 'x')  # not valid mode
     
     # Test subclassing
-    F = MyFormat('test', '')
+    F = MyFormat('test', '', modes='i')
     assert 'TEST DOCS' in F.doc
     
     # Get and check reader and write classes
@@ -106,6 +108,9 @@ def test_format():
     assert W.format is F
     assert R.request.filename == filename1
     assert W.request.filename == filename2
+    # Fail
+    raises(RuntimeError, F.read, Request(filename1, 'rI'))
+    raises(RuntimeError, F.save, Request(filename2, 'wI'))
     
     # Use as context manager
     with R:
@@ -238,12 +243,12 @@ def test_format_manager():
     assert F is formats['PNG']
     F = formats.search_save_format(Request(fname, 'wi'))
     assert F is formats['PNG']
-    # Potential
-    bytes = b'x' * 300
-    F = formats.search_read_format(Request(bytes, 'ri', dummy_potential=1))
-    assert F is formats['DUMMY']
-    F = formats.search_save_format(Request('<bytes>', 'wi', dummy_potential=1))
-    assert F is formats['DUMMY']
+#   # Potential
+#   bytes = b'x' * 300
+#   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
+#   assert F is formats['DUMMY']
+#   F = formats.search_save_format(Request('<bytes>', 'w?', dummy_potential=1))
+#   assert F is formats['DUMMY']
 
 
 def test_fetching():
@@ -379,6 +384,13 @@ def test_request():
     raises(IOError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
     
+    # Test auto-download
+    R = Request('chelsea.png', 'ri')
+    assert R.filename == get_remote_file('images/chelsea.png')
+    R = Request('chelsea.zip/chelsea.png', 'ri')
+    assert R._filename_zip[0] == get_remote_file('images/chelsea.zip')
+    assert R.filename == get_remote_file('images/chelsea.zip') + '/chelsea.png'
+    
     # Make an image available in many ways
     burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
     fname = 'images/chelsea.png'
@@ -478,7 +490,8 @@ def test_util():
     assert im2.meta == im.meta
     # Turn to normal array / scalar if shape none
     im2 = im.sum(0)
-    assert not isinstance(im2, core.util.Image)
+    if not IS_PYPY:  # known fail on Pypy
+        assert not isinstance(im2, core.util.Image)
     s = im.sum()
     assert not isinstance(s, core.util.Image)
     # Repr !! no more
@@ -612,6 +625,9 @@ def test_functions():
     assert ims[0].ndim == 3
     assert ims[0].shape[2] in (1, 3, 4)
     
+    if IS_PYPY:
+        return  # no support for npz format :(
+    
     # Test mimsave()
     fname5 = fname3[:-4] + '2.npz'
     if os.path.isfile(fname5):
@@ -662,6 +678,24 @@ def test_functions():
     raises(ValueError, imageio.volsave, fname4, 42)
     raises(ValueError, imageio.mvolsave, fname4, [np.zeros((90, 90, 90, 40))])
     raises(ValueError, imageio.mvolsave, fname4, [42])
+
+
+def test_example_plugin():
+    """ Test the example plugin """
+    
+    fname = os.path.join(test_dir, 'out.png')
+    R = imageio.formats['dummy'].read(Request('chelsea.png', 'r?'))
+    W = imageio.formats['dummy'].save(Request(fname, 'w?'))
+    #
+    assert len(R) == 1
+    assert R.get_data(0).ndim
+    raises(IndexError, R.get_data, 1)
+    raises(RuntimeError, R.get_meta_data)
+    R.close()
+    #
+    raises(RuntimeError, W.append_data, np.zeros((10, 10)))
+    raises(RuntimeError, W.set_meta_data, {})
+    W.close()
 
 
 run_tests_if_main()

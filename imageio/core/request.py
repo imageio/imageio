@@ -16,7 +16,7 @@ import zipfile
 import tempfile
 import shutil
 
-from imageio.core import string_types, binary_type, urlopen
+from imageio.core import string_types, binary_type, urlopen, get_remote_file
 
 # URI types
 URI_BYTES = 1
@@ -28,6 +28,15 @@ URI_FTP = 6
 
 # The user can use this string in a write call to get the data back as bytes.
 RETURN_BYTES = '<bytes>'
+
+# Example images that will be auto-downloaded
+EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png', 
+                  'clock.png', 'coffee.png', 'coins.png', 'horse.png',
+                  'hubble_deep_field.png', 'immunohistochemistry.png',
+                  'lena.png', 'moon.png', 'page.png', 'text.png', 'wikkie.png',
+                  'chelsea.zip',
+                  'newtonscradle.gif', 'cockatoo.mp4',
+                  'stent.npz', ]
 
 
 class Request(object):
@@ -76,7 +85,7 @@ class Request(object):
         self._firstbytes = None         # For easy header parsing
         
         # To store formats that may be able to fulfil this request
-        self._potential_formats = []
+        #self._potential_formats = []
         
         # Check mode
         self._mode = mode
@@ -182,14 +191,21 @@ class Request(object):
         if is_write_request and self._uri_type in noWriting:
             raise IOError('imageio does not support writing to http/ftp.')
         
-        # Check if file exists
+        # Check if file exists. If not, it might be an example image
         if is_read_request:
             if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
                 fn = self._filename
                 if self._filename_zip:
                     fn = self._filename_zip[0]
                 if not os.path.exists(fn):
-                    raise IOError("No such file: '%s'" % fn)
+                    if fn in EXAMPLE_IMAGES:
+                        fn = get_remote_file('images/' + fn)
+                        self._filename = fn
+                        if self._filename_zip:
+                            self._filename_zip = fn, self._filename_zip[1]
+                            self._filename = fn + '/' + self._filename_zip[1]
+                    else:
+                        raise IOError("No such file: '%s'" % fn)
     
     @property
     def filename(self):
@@ -377,30 +393,3 @@ class Request(object):
                 if self._uri_type == URI_FILE:  # pragma: no cover
                     raise ValueError('Error in firstbytes: '
                                      'could not tell/seek in the given file.')
-
-    ## For formats
-    
-    # This is a bit experimental. Not sure how useful it will be in practice.
-    # One use case I though of is that if there is a bug in FreeImage, we might
-    # be able to circumvent it by providing an alternative Format for that
-    # file-format.
-    def add_potential_format(self, format):
-        """ add_potential_format(format)
-        
-        Allows a format to add itself as a potential format in cases
-        where it seems capable of reading-saving the file, but 
-        priority should be given to another Format.
-        """
-        self._potential_formats.append(format)
-    
-    def get_potential_format(self):
-        """ get_potential_format()
-        
-        Get the first known potential format. Calling this method 
-        repeatedly will yield different formats until the list of 
-        potential formats is exhausted.
-        """
-        if self._potential_formats:
-            return self._potential_formats.pop(0)
-        else:
-            return None

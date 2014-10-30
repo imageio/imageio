@@ -96,7 +96,8 @@ def read(uri, format=None, mode='?', **kwargs):
     else:
         format = formats.search_read_format(request)
     if format is None:
-        raise ValueError('Could not find a format to read the specified file.')
+        raise ValueError('Could not find a format to read the specified file '
+                         'in mode %r' % mode)
     
     # Return its reader object
     return format.read(request)
@@ -136,7 +137,8 @@ def save(uri, format=None, mode='?', **kwargs):
     else:
         format = formats.search_save_format(request)
     if format is None:
-        raise ValueError('Could not find a format to save the specified file.')
+        raise ValueError('Could not find a format to save the specified file '
+                         'in mode %r' % mode)
     
     # Return its writer object
     return format.save(request)
