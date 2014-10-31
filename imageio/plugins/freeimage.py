@@ -148,6 +148,8 @@ class FreeimageBmpFormat(FreeimageFormat):
     ---------------------
     compression : bool
         Whether to compress the bitmap using RLE when saving. Default False.
+        It seems this does not always work, but who cares, you should use
+        PNG anyway.
     
     """
 
@@ -313,10 +315,6 @@ class FreeimagePngFormat(FreeimageFormat):
         If the value of 0 the image is not quantized.
     interlaced : bool
         Save using Adam7 interlacing. Default False.
-    
-    Note: the compression and interlaced parameters currently do not
-    seem to work.
-    
     """
     
     class Reader(FreeimageFormat.Reader):
@@ -374,7 +372,8 @@ class FreeimageJpegFormat(FreeimageFormat):
     ----------------------
     exifrotate : bool
         Automatically rotate the image according to the exif flag.
-        Default True.
+        Default True. If 2 is given, do the rotation in Python instead
+        of freeimage.
     quickread : bool
         Read the image more quickly, at the expense of quality. 
         Default False.
@@ -399,8 +398,8 @@ class FreeimageJpegFormat(FreeimageFormat):
         def _open(self, flags=0, exifrotate=True, quickread=False):
             # Build flags from kwargs
             flags = int(flags)        
-            if exifrotate:
-                pass  # we do this ourselves  flags |= IO_FLAGS.JPEG_EXIFROTATE
+            if exifrotate and exifrotate != 2:
+                flags |= IO_FLAGS.JPEG_EXIFROTATE
             if not quickread:
                 flags |= IO_FLAGS.JPEG_ACCURATE
             # Enter as usual, with modified flags
@@ -416,11 +415,12 @@ class FreeimageJpegFormat(FreeimageFormat):
             orient the image correctly. Freeimage is also supposed to
             support that, and I am pretty sure it once did, but now it
             does not, so let's just do it in Python.
+            Edit: and now it works again, just leave in place as a fallback.
             """
-            if self.request.kwargs.get('exifrotate', True):
+            if self.request.kwargs.get('exifrotate', None) == 2:
                 try:
                     ori = meta['EXIF_MAIN']['Orientation']
-                except KeyError:
+                except KeyError:  # pragma: no cover
                     pass  # Orientation not available
                 else:  # pragma: no cover  we cannot touch all cases
                     # www.impulseadventure.com/photo/exif-orientation.html

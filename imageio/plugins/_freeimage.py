@@ -49,8 +49,8 @@ def get_imageio_lib():
         'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
         'win32': 'FreeImage-3.15.4-win32.dll',  # Also works on Python 3.3
         'win64': 'FreeImage-3.15.1-win64.dll',
-        'linux32': 'libfreeimage-3.10.0-linux32.so',
-        'linux64': 'libfreeimage-3.10.0-linux64.so',
+        'linux32': 'libfreeimage-3.16.0-linux32.so',
+        'linux64': 'libfreeimage-3.16.0-linux64.so',
     }
     
     # Get filename to load

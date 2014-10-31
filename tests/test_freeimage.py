@@ -155,17 +155,14 @@ def test_png():
     imageio.imsave(fnamebase + '2.png', im, compression=9)
     s1 = os.stat(fnamebase + '1.png').st_size
     s2 = os.stat(fnamebase + '2.png').st_size
-    assert s2 + s1   # todo: compression does not work!  assert s2 < s1 
-    # Faul
+    assert s2 < s1
+    # Fail
     raises(ValueError, imageio.imsave, fnamebase + '.png', im, compression=12)
     
     # Quantize
     imageio.imsave(fnamebase + '1.png', im, quantize=256)
     imageio.imsave(fnamebase + '2.png', im, quantize=4)
-    
-    # todo: TRAVIS, is the SEGFAULT in reading?
-    #im = imageio.imread(fnamebase + '2.png')  # touch palette read code
-    
+    im = imageio.imread(fnamebase + '2.png')  # touch palette read code
     s1 = os.stat(fnamebase + '1.png').st_size
     s2 = os.stat(fnamebase + '2.png').st_size
     assert s1 > s2
@@ -224,6 +221,8 @@ def test_jpg():
     assert im.shape[0] > im.shape[1]
     im = imageio.imread(fname, exifrotate=False)
     assert im.shape[0] < im.shape[1]
+    im = imageio.imread(fname, exifrotate=2)  # Rotation in Python
+    assert im.shape[0] > im.shape[1]
     # Write the jpg and check that exif data is maintained
     imageio.imsave(fnamebase + 'rommel.jpg', im)
     im = imageio.imread(fname)
@@ -247,7 +246,7 @@ def test_bmp():
     imageio.imsave(fnamebase + '2.bmp', im3, compression=True)
     s1 = os.stat(fnamebase + '1.bmp').st_size
     s2 = os.stat(fnamebase + '2.bmp').st_size
-    assert s1 + s2  # todo: compression does not work! assert s2 < s1 
+    assert s1 + s2  # todo: bug in FreeImage? assert s1 < s2
     
     # Parameter fail
     raises(TypeError, imageio.imread, fnamebase + '1.bmp', notavalidkwarg=True)
