@@ -255,10 +255,11 @@ def test_bmp():
 
 
 def test_gif():
-    # todo: cannot save RGB and RGBA now
+    # The not-animated gif
+    
     for float in (False, True):
         for crop in (0, 1, 2):
-            for colors in (0, 1, ):
+            for colors in (0, 3, 4):
                 fname = fnamebase + '%i.%i.%i.gif' % (float, crop, colors)
                 rim = get_ref_im(colors, crop, float)
                 imageio.imsave(fname, rim)
@@ -266,11 +267,63 @@ def test_gif():
                 mul = 255 if float else 1
                 if colors in (0, 1):
                     im = im[:, :, 0]
+                else:
+                    im = im[:, :, :3]
+                    rim = rim[:, :, :3]
                 assert_close(rim * mul, im, 1.1)  # lossless
     
     # Parameter fail
     raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
     raises(TypeError, imageio.imsave, fnamebase + '1.gif', im, notavalidk=True)
+
+
+def test_animated_gif():
+    
+    # Get images
+    im = get_ref_im(4, 0, 0)
+    ims = []
+    for i in range(10):
+        im = im.copy()
+        im[:, -5:, 0] = i * 20
+        ims.append(im)
+    
+    # Store - animated GIF always poops out RGB
+    for float in (False, True):
+        for colors in (3, 4):
+            ims1 = ims[:]
+            if float:
+                ims1 = [x.astype(np.float32) / 256 for x in ims1]
+            ims1 = [x[:, :, :colors] for x in ims1]
+            fname = fnamebase + '.animated.%i.gif' % colors
+            imageio.mimsave(fname, ims1, duration=0.2)
+            # Retrieve
+            ims2 = imageio.mimread(fname)
+            ims1 = [x[:, :, :3] for x in ims]  # fresh ref
+            ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
+            for im1, im2 in zip(ims1, ims2):
+                assert_close(im1, im2, 1.1)
+    
+    # We can also store grayscale
+    fname = fnamebase + '.animated.%i.gif' % 1
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
+    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2)
+    
+    # Irragular duration. You probably want to check this manually (I did)
+    duration = [0.1 for i in ims]
+    for i in [2, 5, 7]:
+        duration[i] = 0.5
+    imageio.mimsave(fnamebase + '.animated_irr.gif', ims, duration=duration)
+    
+    # Other parameters
+    R = imageio.save(fnamebase + '.animated.x.gif', palettesize=100)
+    assert R._palettesize == 128
+    # Fail
+    raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
+    raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
+    raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
+    
+    # Meta (dummy, because always {}
+    assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
 def test_ico():

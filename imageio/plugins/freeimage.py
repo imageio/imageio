@@ -130,7 +130,7 @@ class FreeimageFormat(Format):
             # for singleton images
             self._meta = meta  
         
-        def set_meta_data(self, meta):
+        def _set_meta_data(self, meta):
             self._meta = meta
 
 
@@ -168,129 +168,6 @@ class FreeimageBmpFormat(FreeimageFormat):
             if im.dtype in (np.float32, np.float64):
                 im = (im * 255).astype(np.uint8)
             return FreeimageFormat.Writer._append_data(self, im, meta)
-
-
-class FreeimageGifFormat(FreeimageFormat):
-    """ A GIF format based on the Freeimage library.
-    
-    Reading a gif image always yields an RGBA image.
-    
-    Parameters for reading
-    ----------------------
-    playback : bool
-        'Play' the GIF to generate each frame (as 32bpp) instead of
-        returning raw frame data when loading. Default True.
-
-    """
-    
-    class Reader(FreeimageFormat.Reader):
-        def _open(self, flags=0, playback=True):
-            # Build flags from kwargs
-            flags = int(flags)
-            if playback:
-                flags |= IO_FLAGS.GIF_PLAYBACK 
-            # Act as usual, but with modified flags
-            return FreeimageFormat.Reader._open(self, flags)
-    
-    class Writer(FreeimageFormat.Writer):
-        def _append_data(self, im, meta):
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
-            return FreeimageFormat.Writer._append_data(self, im, meta)
-
-
-class FreeimageIcoFormat(FreeimageFormat):
-    """ An ICO format based on the Freeimage library.
-    
-    This format supports grayscale, RGB and RGBA images.
-    
-    Parameters for reading
-    ----------------------
-    makealpha : bool
-        Convert to 32-bit and create an alpha channel from the AND-
-        mask when loading. Default False. Note that this returns wrong
-        results if the image was already RGBA.
-    
-    """
-    
-    _modes = 'iI'
-    
-    # todo: this supports multiple images!
-    
-    class Reader(FreeimageFormat.Reader):
-        def _open(self, flags=0, makealpha=False):
-            # Build flags from kwargs
-            flags = int(flags)
-            if makealpha:
-                flags |= IO_FLAGS.ICO_MAKEALPHA
-            # Create bitmap
-            self._bm = fi.create_multipage_bitmap(self.request.filename, 
-                                                  self.format.fif, flags)
-            self._bm.load_from_filename(self.request.get_local_filename())
-            
-            # Act as usual, but with modified flags
-            #return FreeimageFormat.Reader._open(self, flags)
-        
-        def _close(self):
-            self._bm.close()
-        
-        def _get_length(self):
-            return len(self._bm)
-        
-        def _get_data(self, index):
-            sub = self._bm.get_page(index)
-            try:
-                return sub.get_image_data(), sub.get_meta_data()
-            finally:
-                sub.close()
-        
-        def _get_meta_data(self, index):
-            if index is None:
-                return {}
-                # ICO does not support global meta data (I think)
-                # return self._bm.get_meta_data()  # SEGFAULT
-            else:
-                sub = self._bm.get_page(index)
-                try:
-                    return sub.get_meta_data()
-                finally:
-                    sub.close()
-    
-    # --
-    
-    class Writer(FreeimageFormat.Writer):
-        
-        def _open(self, flags=0): 
-            self._meta = {}
-            # Set flags
-            self._flags = int(flags)
-            # Instantiate multi-page bitmap
-            self._bm = fi.create_multipage_bitmap(self.request.filename, 
-                                                  self.format.fif, flags)
-            self._bm.save_to_filename(self.request.get_local_filename())
-        
-        def _close(self):
-            # Set global meta now
-            self._bm.set_meta_data(self._meta)
-            # Close bitmap
-            self._bm.close()
-        
-        def _append_data(self, im, meta): 
-            if im.ndim == 3 and im.shape[-1] == 1:
-                im = im.reshape(im.shape[:2])
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
-            # Create sub bitmap
-            sub1 = fi.create_bitmap(self._bm._filename, self.format.fif)
-            sub1.allocate(im)
-            sub1.set_image_data(im)
-            sub1.set_meta_data(meta)
-            # Add
-            self._bm.append_bitmap(sub1)
-            sub1.close()
-        
-        def set_meta_data(self, meta):
-            self._meta.update(meta)
 
 
 class FreeimagePngFormat(FreeimageFormat):
@@ -470,8 +347,8 @@ class FreeimageJpegFormat(FreeimageFormat):
 SPECIAL_CLASSES = {'jpeg': FreeimageJpegFormat,
                    'png': FreeimagePngFormat,
                    'bmp': FreeimageBmpFormat,
-                   'gif': FreeimageGifFormat,
-                   'ico': FreeimageIcoFormat,
+                   'gif': None,  # defined in freeimagemulti
+                   'ico': None,  # defined in freeimagemulti
                    }
 
 
@@ -493,9 +370,10 @@ def create_freeimage_formats():
             ext = lib.FreeImage_GetFIFExtensionList(i).decode('ascii')
             # Get class for format
             FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
-            # Create Format and add
-            format = FormatClass(name, des, ext, FormatClass._modes)
-            format._fif = i
-            formats.add_format(format)
+            if FormatClass:
+                # Create Format and add
+                format = FormatClass(name, des, ext, FormatClass._modes)
+                format._fif = i
+                formats.add_format(format)
 
 create_freeimage_formats()
