@@ -353,8 +353,8 @@ class FreeimagePngFormat(FreeimageFormat):
             q = int(self.request.kwargs.get('quantize', False))
             if not q:
                 pass
-            elif not (im.ndim == 3 and im.shape[-1] in (3, 4)):
-                raise ValueError('Cannot quantize grayscale images')
+            elif not (im.ndim == 3 and im.shape[-1] == 3):
+                raise ValueError('Can only quantize RGB images')
             elif q < 2 or q > 256:
                 raise ValueError('PNG quantize param must be 2..256')
             else:

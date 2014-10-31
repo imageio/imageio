@@ -26,12 +26,6 @@ from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
 from imageio.core import string_types, binary_type, IS_PYPY
 
 
-# todo: make API class more complete
-# todo: write with palette?
-# todo: Check if jpeg has alpha channel. if so, deal with it and maybe warn.
-# todo: Maybe sometimes the flags should be overriden later?
-
-
 def get_imageio_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
@@ -1054,8 +1048,8 @@ class FIBitmap(FIBaseBitmap):
         """
         with self._fi as lib:
             # New bitmap
-            bitmap = lib.FreeImage_ColorQuantizeEx(self._bitmap, quantizer, 
-                                                   palettesize)
+            bitmap = lib.FreeImage_ColorQuantizeEx(self._bitmap, quantizer,
+                                                   palettesize, 0, None)
             bitmap = ctypes.c_void_p(bitmap)
             
             # Check and return

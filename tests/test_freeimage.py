@@ -162,14 +162,15 @@ def test_png():
     # Quantize
     imageio.imsave(fnamebase + '1.png', im, quantize=256)
     imageio.imsave(fnamebase + '2.png', im, quantize=4)
+    
     im = imageio.imread(fnamebase + '2.png')  # touch palette read code
     s1 = os.stat(fnamebase + '1.png').st_size
     s2 = os.stat(fnamebase + '2.png').st_size
     assert s1 > s2
     # Fail
     fname = fnamebase + '1.png'
-    raises(ValueError, imageio.imsave, fname, im, quantize=300)
-    raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=300)
+    raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
+    raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
 
 def test_jpg():
@@ -314,8 +315,8 @@ def test_other():
     # Cannot safe float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + '.jng', im, 'JNG')
-    
-    
+
+
 run_tests_if_main()
 
 #if __name__ == '__main__':
