@@ -6,14 +6,11 @@ import sys
 import zipfile
 import shutil
 
-import numpy as np
-
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from pytest import raises  # noqa
+from imageio.testing import get_test_dir
 
 import imageio
-from imageio import core
-from imageio.core import get_remote_file, IS_PYPY, urlopen
+from imageio.core import get_remote_file, IS_PYPY, urlopen  # noqa
 
 test_dir = get_test_dir()
 
@@ -37,6 +34,7 @@ if sys.platform.startswith('linux'):
 THISDIR = os.path.dirname(os.path.abspath(__file__))
 TESTDIR = os.path.join(THISDIR, 'temp')
 ZIPDIR = os.path.join(THISDIR, 'zipped')
+
 
 def run_feeimage_test_suite():
     """ Run freeimage test suite.
@@ -94,5 +92,4 @@ def run_feeimage_test_suite():
 
 
 if __name__ == '__main__':
-    test_freeimage()
-    run_tests_if_main()
+    run_feeimage_test_suite()
