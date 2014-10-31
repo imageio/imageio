@@ -159,12 +159,13 @@ def test_png():
     # Faul
     raises(ValueError, imageio.imsave, fnamebase + '.png', im, compression=12)
     
-    return  # todo: temp early exit to test TRAVIS
-    
     # Quantize
     imageio.imsave(fnamebase + '1.png', im, quantize=256)
     imageio.imsave(fnamebase + '2.png', im, quantize=4)
-    im = imageio.imread(fnamebase + '2.png')  # touch palette read code
+    
+    # todo: TRAVIS, is the SEGFAULT in reading?
+    #im = imageio.imread(fnamebase + '2.png')  # touch palette read code
+    
     s1 = os.stat(fnamebase + '1.png').st_size
     s2 = os.stat(fnamebase + '2.png').st_size
     assert s1 > s2
