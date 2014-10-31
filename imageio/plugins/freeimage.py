@@ -2,16 +2,12 @@
 # Copyright (c) 2014, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
-# styletest: skip for now
-
 """ Plugin that wraps the freeimage lib. The wrapper for Freeimage is
 part of the core of imageio, but it's functionality is exposed via
 the plugin system (therefore this plugin is very thin).
 """
 
 from __future__ import absolute_import, print_function, division
-
-import ctypes
 
 import numpy as np
 
@@ -48,7 +44,6 @@ class FreeimageFormat(Format):
     def fif(self):
         return self._fif  # Set when format is created
     
-    
     def _can_read(self, request):
         modes = self._modes + '?'
         if fi and request.mode[1] in modes:
@@ -72,6 +67,7 @@ class FreeimageFormat(Format):
             if request._fif is self.fif:
                 return True
     
+    # --
     
     class Reader(Format.Reader):
         
@@ -79,7 +75,8 @@ class FreeimageFormat(Format):
             return 1
         
         def _open(self, flags=0):
-            self._bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
+            self._bm = fi.create_bitmap(self.request.filename, 
+                                        self.format.fif, flags)
             self._bm.load_from_filename(self.request.get_local_filename())
         
         def _close(self):
@@ -91,10 +88,11 @@ class FreeimageFormat(Format):
             return self._bm.get_image_data(), self._bm.get_meta_data()
         
         def _get_meta_data(self, index):
-            if not (index is None or index==0):
+            if not (index is None or index == 0):
                 raise IndexError()
             return self._bm.get_meta_data()
     
+    # --
     
     class Writer(Format.Writer):
         
@@ -116,27 +114,30 @@ class FreeimageFormat(Format):
             if not self._is_set:
                 self._is_set = True
             else:
-                raise RuntimeError('Singleton image; can only append image data once.')
+                raise RuntimeError('Singleton image; '
+                                   'can only append image data once.')
             # Pop unit dimension for grayscale images
             if im.ndim == 3 and im.shape[-1] == 1:
                 im = im.reshape(im.shape[:2])
             # Lazy instantaion of the bitmap, we need image data
             if self._bm is None:
-                self._bm = fi.create_bitmap(self.request.filename, self.format.fif, self._flags)
+                self._bm = fi.create_bitmap(self.request.filename, 
+                                            self.format.fif, self._flags)
                 self._bm.allocate(im)
             # Set data
             self._bm.set_image_data(im)
-            self._meta = meta  # There is no distinction between global and per-image meta data for singleton images
+            # There is no distinction between global and per-image meta data 
+            # for singleton images
+            self._meta = meta  
         
         def set_meta_data(self, meta):
             self._meta = meta
 
 
-
 ## Special plugins
 
-# todo: there is also FIF_LOAD_NOPIXELS, but perhaps that should be used with get_meta_data.
-
+# todo: there is also FIF_LOAD_NOPIXELS, 
+# but perhaps that should be used with get_meta_data.
 
 class FreeimageBmpFormat(FreeimageFormat):
     """ A BMP format based on the Freeimage library.
@@ -253,6 +254,8 @@ class FreeimageIcoFormat(FreeimageFormat):
                 finally:
                     sub.close()
     
+    # --
+    
     class Writer(FreeimageFormat.Writer):
         
         def _open(self, flags=0): 
@@ -325,13 +328,14 @@ class FreeimagePngFormat(FreeimageFormat):
             # Enter as usual, with modified flags
             return FreeimageFormat.Reader._open(self, flags)
     
+    # -- 
     
     class Writer(FreeimageFormat.Writer):
         def _open(self, flags=0, compression=9, quantize=0, interlaced=False):
-            compression_map = { 0: IO_FLAGS.PNG_Z_NO_COMPRESSION,
-                                1: IO_FLAGS.PNG_Z_BEST_SPEED,
-                                6: IO_FLAGS.PNG_Z_DEFAULT_COMPRESSION,
-                                9: IO_FLAGS.PNG_Z_BEST_COMPRESSION, }
+            compression_map = {0: IO_FLAGS.PNG_Z_NO_COMPRESSION,
+                               1: IO_FLAGS.PNG_Z_BEST_SPEED,
+                               6: IO_FLAGS.PNG_Z_DEFAULT_COMPRESSION,
+                               9: IO_FLAGS.PNG_Z_BEST_COMPRESSION, }
             # Build flags from kwargs
             flags = int(flags)
             if interlaced:
@@ -369,9 +373,11 @@ class FreeimageJpegFormat(FreeimageFormat):
     Parameters for reading
     ----------------------
     exifrotate : bool
-        Automatically rotate the image according to the exif flag. Default True.
+        Automatically rotate the image according to the exif flag.
+        Default True.
     quickread : bool
-        Read the image more quickly, at the expense of quality. Default False.
+        Read the image more quickly, at the expense of quality. 
+        Default False.
     
     Parameters for saving
     ---------------------
@@ -430,10 +436,11 @@ class FreeimageJpegFormat(FreeimageFormat):
                         im = np.fliplr(im)
             return im
     
+    # --
         
     class Writer(FreeimageFormat.Writer):
-        def _open(self, flags=0, 
-                quality=75, progressive=False, optimize=False, baseline=False):
+        def _open(self, flags=0, quality=75, progressive=False, optimize=False,
+                  baseline=False):
             # Test quality
             quality = int(quality)
             if quality < 1 or quality > 100:
@@ -460,12 +467,12 @@ class FreeimageJpegFormat(FreeimageFormat):
 
 ## Create the formats
 
-SPECIAL_CLASSES = { 'jpeg': FreeimageJpegFormat,
-                    'png': FreeimagePngFormat,
-                    'bmp': FreeimageBmpFormat,
-                    'gif': FreeimageGifFormat,
-                    'ico': FreeimageIcoFormat,
-                }
+SPECIAL_CLASSES = {'jpeg': FreeimageJpegFormat,
+                   'png': FreeimagePngFormat,
+                   'bmp': FreeimageBmpFormat,
+                   'gif': FreeimageGifFormat,
+                   'ico': FreeimageIcoFormat,
+                   }
 
 
 def create_freeimage_formats():
