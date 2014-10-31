@@ -1,19 +1,21 @@
-"""
-Download zipfiles with the test suite of freeimage.
-We also use it to test reading from a zipfile.
+""" The test suite of freeimage plugin
 """
 
 import os
 import sys
-try:
-    from urllib2 import urlopen
-except ImportError:
-    from urllib.request import urlopen  # Py3k
-
 import zipfile
 import shutil
 
+import numpy as np
+
+from pytest import raises
+from imageio.testing import run_tests_if_main, get_test_dir
+
 import imageio
+from imageio import core
+from imageio.core import get_remote_file, IS_PYPY, urlopen
+
+test_dir = get_test_dir()
 
 
 # Url to download images from
@@ -30,14 +32,17 @@ NOT_WRITABLE = ['.pgm', '.koa', '.pcx', '.mng', '.iff', '.psd', '.lbm']
 # Define files that fail (i.e. crash)
 FAILS = []
 if sys.platform.startswith('linux'):
-    FAILS.extend(['quad-jpeg.tif', 'test1g.tif'])
+    FAILS.extend(['quad-jpeg.tif', 'test1g.tif', 'ycbcr-cat.tif'])
 
+THISDIR = os.path.dirname(os.path.abspath(__file__))
+TESTDIR = os.path.join(THISDIR, 'temp')
+ZIPDIR = os.path.join(THISDIR, 'zipped')
 
-if __name__ == '__main__':
-    
-    THISDIR = os.path.dirname(os.path.abspath(__file__))
-    TESTDIR = os.path.join(THISDIR, 'temp')
-    ZIPDIR = os.path.join(THISDIR, 'zipped')
+def run_feeimage_test_suite():
+    """ Run freeimage test suite.
+    Lots of images. Berrer done locally and then checking the result.
+    Not so much suited for CI, I think.
+    """
     
     if not os.path.isdir(TESTDIR):
         os.mkdir(TESTDIR)
@@ -86,3 +91,8 @@ if __name__ == '__main__':
                 err = str(e_value)
                 print('woops! ' + fname_zip)
                 print('  ' + err)
+
+
+if __name__ == '__main__':
+    test_freeimage()
+    run_tests_if_main()

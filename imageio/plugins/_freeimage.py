@@ -42,7 +42,7 @@ def get_imageio_lib():
         plat = 'win%i' % (struct.calcsize('P') * 8)
     elif sys.platform.startswith('darwin'):
         plat = 'osx64'
-    else:
+    else:  # pragma: no cover
         plat = None
     
     LIBRARIES = {
@@ -57,7 +57,7 @@ def get_imageio_lib():
     if plat:
         try:
             return get_remote_file('freeimage/' + LIBRARIES[plat])
-        except RuntimeError as e:
+        except RuntimeError as e:  # pragma: no cover
             print(str(e))
 
 
@@ -385,7 +385,6 @@ class Freeimage(object):
         
         # Init log messages lists
         self._messages = []
-        self._messages2 = []
         
         # Select functype for error handler
         if sys.platform.startswith('win'): 
@@ -397,9 +396,8 @@ class Freeimage(object):
         def error_handler(fif, message):
             message = message.decode('utf-8')
             self._messages.append(message)
-            self._messages2.append(message)
-            while (len(self._messages2)) > 256:
-                self._messages2.pop(0)
+            while (len(self._messages)) > 256:  # pragma: no cover
+                self._messages.pop(0)
         
         # Make sure to keep a ref to function
         self._error_handler = error_handler
@@ -434,7 +432,7 @@ class Freeimage(object):
                            'libfreeimage.so', 'libfreeimage.so.3']
         try:
             lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
-        except OSError:
+        except OSError:  # pragma: no cover
             # Could not load. Get why
             e_type, e_value, e_tb = sys.exc_info(); del e_tb
             load_error = str(e_value)
@@ -501,7 +499,7 @@ class Freeimage(object):
         (warnings and errors) produced by the FreeImage library.
         """ 
         # This message log is not cleared/reset, but kept to 256 elements.
-        return [m for m in self._messages2]
+        return [m for m in self._messages]
     
 
     def getFIF(self, filename, mode, bytes=None):
@@ -539,7 +537,7 @@ class Freeimage(object):
                 raise ValueError('Cannot determine format of file "%s"' % filename)
             elif mode == 'w' and not lib.FreeImage_FIFSupportsWriting(ftype):
                 raise ValueError('Cannot write the format of file "%s"' % filename)
-            elif mode == 'r' and not lib.FreeImage_FIFSupportsReading(ftype):
+            elif mode == 'r' and not lib.FreeImage_FIFSupportsReading(ftype):  # pragma: no cover
                 raise ValueError('Cannot read the format of file "%s"' % filename)
             else:
                 return ftype
@@ -579,7 +577,7 @@ class FIBaseBitmap(object):
                     with self._fi as lib:
                         fun = close_func[0]
                         fun(*close_func[1:])
-                except Exception:
+                except Exception:  # pragma: no cover
                     pass
             self._close_funcs = []
             self._bitmap = None
@@ -639,13 +637,13 @@ class FIBaseBitmap(object):
                         elif tag_type in METADATA_DATATYPE.dtypes:
                             dtype = METADATA_DATATYPE.dtypes[tag_type]
                             if IS_PYPY and isinstance(dtype, (list, tuple)):
-                                pass  # or we get a segfault
+                                pass  # pragma: nocover - or we get a segfault
                             else:
                                 try:
                                     tag_val = numpy.fromstring(tag_bytes, dtype=dtype)
                                     if len(tag_val) == 1:
                                         tag_val = tag_val[0]
-                                except Exception:
+                                except Exception:  # pragma: no cover
                                     pass
                         # Store data in dict
                         subdict = metadata.setdefault(model_name, Dict())
@@ -717,7 +715,7 @@ class FIBaseBitmap(object):
                         tag_key = lib.FreeImage_GetTagKey(tag)
                         lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
                     
-                    except Exception:
+                    except Exception:  # pragma: no cover
                         # Could not load. Get why
                         e_type, e_value, e_tb = sys.exc_info(); del e_tb
                         load_error = str(e_value)
@@ -761,7 +759,7 @@ class FIBitmap(FIBaseBitmap):
             bitmap = ctypes.c_void_p(bitmap)
             
             # Check and store
-            if not bitmap:
+            if not bitmap:  # pragma: no cover
                 raise RuntimeError('Could not allocate bitmap for storage: %s'
                                     % self._fi._get_error_message() )
             else:
@@ -779,7 +777,7 @@ class FIBitmap(FIBaseBitmap):
             bitmap = ctypes.c_void_p(bitmap)
             
             # Check and store
-            if not bitmap:
+            if not bitmap:  # pragma: no cover
                 raise ValueError('Could not load bitmap "%s": %s' 
                             % (self._filename, self._fi._get_error_message()))
             else:
@@ -825,9 +823,8 @@ class FIBitmap(FIBaseBitmap):
             
             # Save to file
             res = lib.FreeImage_Save(ftype, bitmap, efn(filename), self._flags)
-            
             # Check
-            if not res:
+            if not res:  # pragma: no cover, we do so many checks, this is rare
                 raise RuntimeError('Could not save file "%s": %s' 
                         % (self._filename, self._fi._get_error_message()))
     
@@ -879,13 +876,13 @@ class FIBitmap(FIBaseBitmap):
         # more normal
         def n(arr):
             #return arr[..., ::-1].T  # Does not work on numpypy yet
-            if arr.ndim == 1:
+            if arr.ndim == 1:  # pragma: no cover
                 return arr[::-1].T
-            elif arr.ndim == 2:
+            elif arr.ndim == 2:  # Always the case here ...
                 return arr[:, ::-1].T
-            elif arr.ndim == 3:
+            elif arr.ndim == 3:  # pragma: no cover
                 return arr[:, :, ::-1].T
-            elif arr.ndim == 4:
+            elif arr.ndim == 4:  # pragma: no cover
                 return arr[:, :, :, ::-1].T
         
         if len(shape) == 3 and isle and dtype.type == numpy.uint8:
@@ -897,7 +894,7 @@ class FIBitmap(FIBaseBitmap):
             elif shape[0] == 4:
                 a = n(array[3])
                 return numpy.dstack( (r, g, b, a) )
-            else:
+            else:  # pragma: no cover
                 raise ValueError('Cannot handle images of shape %s' % shape)
         
         # We need to copy because array does *not* own its memory
@@ -959,8 +956,10 @@ class FIBitmap(FIBaseBitmap):
                 raise RuntimeError('Could not get image palette')
             try:
                 ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
-            except Exception:
-                if not IS_PYPY:
+            except Exception:  # pragma: no cover
+                if IS_PYPY:
+                    print('WARNING: Cannot set image pallette on Pypy')
+                else:
                     raise
     
     
@@ -990,7 +989,7 @@ class FIBitmap(FIBaseBitmap):
         data = (ctypes.c_char*byte_size).from_address(bits)
         try:
             array = numpy.ndarray(shape, dtype=dtype, buffer=data, strides=strides)
-        except NotImplementedError:
+        except NotImplementedError:  # pragma: no cover
             # Pypy compatibility. 
             # (Note that e.g. b''.join(data) consumes vast amounts of memory)
             bytes = binary_type(bytearray(data))
@@ -1025,6 +1024,15 @@ class FIBitmap(FIBaseBitmap):
                 bpp = lib.FreeImage_GetBPP(bitmap)
                 has_pallette = lib.FreeImage_GetColorsUsed(bitmap)
             if has_pallette:
+                # Examine the palette. If it is grayscale, we return as such
+                if has_pallette == 256:
+                    palette = lib.FreeImage_GetPalette(bitmap)
+                    palette = ctypes.c_void_p(palette)
+                    p = (ctypes.c_uint8*(256*4)).from_address(palette.value)
+                    p = numpy.frombuffer(p, numpy.uint32)
+                    if (GREY_PALETTE == p).all():
+                        extra_dims = []
+                        return numpy.dtype(dtype), extra_dims + [w, h], bpp
                 # Convert bitmap and call this method again
                 newbitmap = lib.FreeImage_ConvertTo32Bits(bitmap)
                 newbitmap = ctypes.c_void_p(newbitmap)
@@ -1036,7 +1044,7 @@ class FIBitmap(FIBaseBitmap):
                 extra_dims = [3]
             elif bpp == 32:
                 extra_dims = [4]
-            else:
+            else:  # pragma: no cover
                 #raise ValueError('Cannot convert %d BPP bitmap' % bpp)
                 # Convert bitmap and call this method again
                 newbitmap = lib.FreeImage_ConvertTo32Bits(bitmap)
@@ -1052,7 +1060,7 @@ class FIBitmap(FIBaseBitmap):
     
     def quantize(self, quantizer=0, palettesize=256):
         """ Quantize the bitmap to make it 8-bit (paletted). Returns a new
-        FIBitmap objec.
+        FIBitmap object.
         Only for 24 bit images.
         """
         with self._fi as lib:
@@ -1067,6 +1075,7 @@ class FIBitmap(FIBaseBitmap):
             else:
                 new = FIBitmap(self._fi, self._filename, self._ftype, self._flags)
                 new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+                new._fi_type = self._fi_type
                 return new
 
 
@@ -1075,7 +1084,7 @@ class FIMultipageBitmap(FIBaseBitmap):
     """ 
     
     def load_from_filename(self, filename=None):
-        if filename is None:
+        if filename is None:  # pragma: no cover
             filename = self._filename
         
         # Prepare
@@ -1093,7 +1102,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             multibitmap = ctypes.c_void_p(multibitmap)
             
             # Check
-            if not multibitmap:
+            if not multibitmap:  # pragma: no cover
                 raise ValueError('Could not open file "%s" as multi-page image: %s' 
                                 % (self._filename, self._fi._get_error_message()))
             else:
@@ -1119,7 +1128,7 @@ class FIMultipageBitmap(FIBaseBitmap):
 #                 self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
         
     def save_to_filename(self, filename=None):
-        if filename is None:
+        if filename is None:  # pragma: no cover
             filename = self._filename
         
         # Prepare
@@ -1136,7 +1145,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             multibitmap = ctypes.c_void_p(multibitmap)
         
             # Check
-            if not multibitmap:
+            if not multibitmap:  # pragma: no cover
                 raise ValueError('Could not open file "%s" for writing multi-page image: %s' 
                             % (self._filename, self._fi._get_error_message()))
             else:
@@ -1157,7 +1166,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             # Create low-level bitmap in freeimage
             bitmap = lib.FreeImage_LockPage(self._bitmap, index)
             bitmap = ctypes.c_void_p(bitmap)
-            if not bitmap:
+            if not bitmap:  # pragma: no cover
                 raise ValueError('Could not open sub-image %i in %r: %s'
                         % (index, self._filename, self._fi._get_error_message()))
             
@@ -1178,7 +1187,7 @@ class FIMultipageBitmap(FIBaseBitmap):
 # Create instance
 try:
     fi = Freeimage()
-except OSError:
+except OSError:  # pragma: no cover
     print('Warning: the freeimage wrapper of imageio could not be loaded:')
     e_type, e_value, e_tb = sys.exc_info()
     del e_tb

@@ -2,6 +2,15 @@
 Release notes
 -------------
 
+
+Version X
+=========
+
+* PNG, JPEG, BMP and GIF can now handle float data (pixel values are
+  assumed to be between 0 and 1.
+* 
+
+
 Version 0.5 (23-06-2014)
 ========================
 

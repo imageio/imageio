@@ -198,7 +198,7 @@ def imsave(uri, im, format=None, **kwargs):
     if isinstance(im, np.ndarray):
         if im.ndim == 2:
             pass
-        elif im.ndim == 3 and im.shape[2] in [3, 4]:
+        elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
             pass
         else:
             raise ValueError('Image must be 2D (grayscale, RGB, or RGBA).')
@@ -275,7 +275,7 @@ def mimsave(uri, ims, format=None, **kwargs):
             if isinstance(im, np.ndarray):
                 if im.ndim == 2:
                     pass
-                elif im.ndim == 3 and im.shape[2] in [3, 4]:
+                elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
                     pass
                 else:
                     raise ValueError('Image must be 2D '

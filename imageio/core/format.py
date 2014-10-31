@@ -452,8 +452,9 @@ class Format:
             else:
                 total_meta.update(meta)        
             
+            # Decouple meta info
+            im = np.asarray(im)
             # Call
-            im = np.asarray(im)  # Decouple meta info
             return self._append_data(im, total_meta)
         
         def set_meta_data(self, meta):
