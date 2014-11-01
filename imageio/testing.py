@@ -77,12 +77,8 @@ def test_unit(cov_report=None):
     try:
         _clear_imageio()
         _enable_faulthandler()
-        if cov_report:
-            return pytest.main('-v --cov imageio --cov-config .coveragerc '
-                               '--cov-report %s tests' % cov_report)
-        else:
-            return pytest.main('-v --cov imageio --cov-config .coveragerc '
-                               'tests')
+        return pytest.main('-v --cov imageio --cov-config .coveragerc '
+                           '--cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
 
