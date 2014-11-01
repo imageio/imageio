@@ -69,7 +69,7 @@ def get_test_dir():
 
 ## Functions to use from make
 
-def test_unit(cov_report='term'):
+def test_unit(cov_report=None):
     """ Run all unit tests. Returns exit code.
     """
     orig_dir = os.getcwd()
@@ -77,8 +77,12 @@ def test_unit(cov_report='term'):
     try:
         _clear_imageio()
         _enable_faulthandler()
-        return pytest.main('-v --cov imageio --cov-config .coveragerc '
-                           '--cov-report %s tests' % cov_report)
+        if cov_report:
+            return pytest.main('-v --cov imageio --cov-config .coveragerc '
+                            '--cov-report %s tests' % cov_report)
+        else:
+            return pytest.main('-v --cov imageio --cov-config .coveragerc '
+                               'tests')
     finally:
         os.chdir(orig_dir)
 
