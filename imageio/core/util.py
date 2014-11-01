@@ -8,6 +8,7 @@ Various utilities for imageio
 
 from __future__ import absolute_import, print_function, division
 
+import re
 import os
 import sys
 import time
@@ -161,7 +162,7 @@ class Dict(_dict):
             self[key] = val
     
     def __dir__(self):
-        isidentifier = lambda x: (x.isalnum() and x[0].isalpha())
+        isidentifier = lambda x: bool(re.match(r'[a-z_]\w*$', x, re.I))
         names = [k for k in self.keys() if 
                  (isinstance(k, string_types) and isidentifier(k))]
         return Dict.__reserved_names__ + names

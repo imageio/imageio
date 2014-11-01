@@ -78,8 +78,8 @@ For the Format.Writer class:
 
 """
 
-from . import animatedgif  # noqa
 from . import freeimage  # noqa
+from . import freeimagemulti  # noqa
 from . import example  # noqa
 from . import dicom  # noqa
 from . import ffmpeg  # noqa
