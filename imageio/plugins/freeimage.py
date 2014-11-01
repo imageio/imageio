@@ -349,6 +349,7 @@ SPECIAL_CLASSES = {'jpeg': FreeimageJpegFormat,
                    'bmp': FreeimageBmpFormat,
                    'gif': None,  # defined in freeimagemulti
                    'ico': None,  # defined in freeimagemulti
+                   'mng': None,  # defined in freeimagemulti
                    }
 
 
