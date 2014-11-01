@@ -69,7 +69,7 @@ def get_test_dir():
 
 ## Functions to use from make
 
-def test_unit(cov_report=None):
+def test_unit(cov_report='term'):
     """ Run all unit tests. Returns exit code.
     """
     orig_dir = os.getcwd()
