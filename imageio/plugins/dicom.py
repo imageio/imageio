@@ -55,6 +55,16 @@ class DicomFormat(Format):
     """
     
     def _can_read(self, request):
+        # If user URI was a directory, we check whether it has a DICOM file
+        if os.path.isdir(request.filename):
+            files = os.listdir(request.filename)
+            if files:
+                filename = os.path.join(request.filename, files[0])
+                firstbytes = open(filename, 'rb').read(140)
+                return firstbytes[128:132] == b'DICM'
+            else:
+                return False
+        # Check
         return request.firstbytes[128:132] == b'DICM'
     
     def _can_save(self, request):
@@ -131,7 +141,7 @@ class DicomFormat(Format):
                 # User expects multiple volumes. We have to check the series
                 return len(self.series)  # Note: we assume one volume per series
             else:
-                raise ValueError('DICOM plugin needs to know what is expected.')
+                raise RuntimeError('DICOM plugin needs to know what is expected.')
         
         def _get_data(self, index):
             if self._data is None:
@@ -164,7 +174,7 @@ class DicomFormat(Format):
                     return self._data, self._info
                 else:
                     return self.series[index].get_numpy_array(), self.series[index].info
-            else:
+            else:  # pragma: no cover
                 raise ValueError('DICOM plugin needs to know what is expected.')
         
         def _get_meta_data(self, index):
@@ -196,7 +206,7 @@ class DicomFormat(Format):
                     return self._info
                 else:
                     return self.series[index].info
-            else:
+            else:  # pragma: no cover
                 raise ValueError('DICOM plugin needs to know what is expected.')
 
 
@@ -383,7 +393,7 @@ class SimpleDicomReader(object):
         info = object.__getattribute__(self, '_info')
         if key in info:
             return info[key]
-        return object.__getattribute__(self, key)
+        return object.__getattribute__(self, key)  # pragma: no cover
     
     def _read(self):
         f = self._file
@@ -485,7 +495,7 @@ class SimpleDicomReader(object):
                     # No more group 2: rewind and break (don't trust group length)
                     f.seek(fp_save)
                     break
-        except (EOFError, struct.error):
+        except (EOFError, struct.error):  # pragma: no cover
             raise RuntimeError('End of file reached while still reading header.')
         
         # Handle transfer syntax
@@ -524,10 +534,13 @@ class SimpleDicomReader(object):
                     key = (group, element)                    
                     name, vr = MINIDICT.get(key, (None, None))
                     # Is it an element we are interested in?
+                    print(name, key)
                     if name:
                         # Store value
                         converter = self._converters.get(vr, lambda x:x)
                         info[name] = converter(value)
+                else:
+                    print(group)
         except (EOFError, struct.error):
             pass # end of file ...
     
@@ -537,7 +550,7 @@ class SimpleDicomReader(object):
         and pixel values scaled appropriately.
         """
         # Is there pixel data at all?
-        if not 'PixelData' in self:
+        if not 'PixelData' in self:  # pragma: no cover
             raise TypeError("No pixel data found in this dataset.")
         
         # Load it now if it was not already loaded
@@ -582,7 +595,7 @@ class SimpleDicomReader(object):
                 shape = self.SamplesPerPixel, self.NumberOfFrames, self.Rows, self.Columns
             else:
                 shape = self.NumberOfFrames, self.Rows, self.Columns
-        else:
+        elif 'SamplesPerPixel' in self:
             if self.SamplesPerPixel > 1:
                 if self.BitsAllocated == 8:
                     shape = self.SamplesPerPixel, self.Rows, self.Columns
@@ -590,6 +603,8 @@ class SimpleDicomReader(object):
                     raise NotImplementedError("This code only handles SamplesPerPixel > 1 if Bits Allocated = 8")
             else:
                 shape = self.Rows, self.Columns
+        else:
+            raise RuntimeError('DICOM file has no pixel data (maybe a report?)')
         
         # Try getting sampling between pixels
         if 'PixelSpacing' in self:
@@ -613,7 +628,7 @@ class SimpleDicomReader(object):
         # Taken from pydicom
         # Copyright (c) 2008-2012 Darcy Mason
         
-        if not 'PixelData' in self:
+        if not 'PixelData' in self:  # pragma: no cover
             raise TypeError("No pixel data found in this dataset.")
         
         # determine the type used for the array
@@ -627,7 +642,7 @@ class SimpleDicomReader(object):
                                   self.BitsAllocated)
         try:
             numpy_format = np.dtype(format_str)
-        except TypeError:
+        except TypeError:  # pragma: no cover
             raise TypeError("Data type not understood by NumPy: "
                             "format='%s', PixelRepresentation=%d, BitsAllocated=%d" % (
                             numpy_format, self.PixelRepresentation, self.BitsAllocated))
@@ -781,7 +796,7 @@ class DicomSeries(object):
         info = self.info
         
         # If no info available, return simple description
-        if not info:
+        if not info:  # pragma: no cover
             return "DicomSeries containing %i images" % len(self)
         
         fields = []
@@ -940,7 +955,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
         path = request.filename
     elif os.path.isfile(request.filename):
         path = os.path.dirname(request.filename)
-    else:
+    else:  # pragma: no cover
         raise ValueError('Dicom plugin needs a valid filename to examine the directory ')
     
     # Check files
@@ -956,20 +971,20 @@ def process_directory(request, progressIndicator, readPixelData=False):
         count += 1
         progressIndicator.set_progress(count)
         # Skip DICOMDIR files
-        if filename.count("DICOMDIR"):
+        if filename.count("DICOMDIR"):  # pragma: no cover
             continue
         # Try loading dicom ...
         try:
             dcm = SimpleDicomReader(filename)
-        except NotADicomFile:
+        except NotADicomFile:  # pragma: no cover
             continue # skip non-dicom file
-        except Exception as why:
+        except Exception as why:  # pragma: no cover
             progressIndicator.write(str(why))
             continue
         # Get SUID and register the file with an existing or new series object
         try:
             suid = dcm.SeriesInstanceUID
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             continue # some other kind of dicom file
         if suid not in series:
             series[suid] = DicomSeries(suid, progressIndicator)
@@ -993,7 +1008,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
         try:
             series[i]._finish()
             series_.append(series[i])
-        except Exception as err:
+        except Exception as err:  # pragma: no cover
             progressIndicator.write(str(err))
             pass # Skip serie (probably report-like file without pixels)
         #progressIndicator.set_progress(i+1)
