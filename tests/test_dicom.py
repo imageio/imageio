@@ -16,22 +16,33 @@ from imageio.core import get_remote_file
 
 test_dir = get_test_dir()
 
+
+_prepared = None
+
+
 def _prepare():
-    # Create two dirs, one with one dataset and one with two datasets
-    fname1 = get_remote_file('images/dicom_sample.zip')
+    """ Create two dirs, one with one dataset and one with two datasets
+    """
+    global _prepared
+    if _prepared and os.path.isfile(_prepared[2]):
+        return _prepared
+    # Prepare sources
+    fname1 = get_remote_file('images/dicom_sample1.zip')
     fname2 = get_remote_file('images/dicom_sample2.zip')
-    dname1 = os.path.join(test_dir, 'dicom_sample')
+    dname1 = os.path.join(test_dir, 'dicom_sample1')
     dname2 = os.path.join(test_dir, 'dicom_sample2')
+    # Extract zipfiles
     z = ZipFile(fname1)
     z.extractall(dname1)
     z.extractall(dname2)
     z = ZipFile(fname2)
     z.extractall(dname2)
-    return dname1, dname2
-
-dname1, dname2 = _prepare()
-fname1 = os.path.join(dname1, os.listdir(dname1)[0])
-fname2 = os.path.join(dname2, os.listdir(dname2)[0])
+    # Get arbitrary file names
+    fname1 = os.path.join(dname1, os.listdir(dname1)[0])
+    fname2 = os.path.join(dname2, os.listdir(dname2)[0])
+    # Cache and return
+    _prepared = dname1, dname2, fname1, fname2
+    return dname1, dname2, fname1, fname2
 
 
 def test_read_empty_dir():
@@ -46,6 +57,8 @@ def test_read_empty_dir():
     
 
 def test_selection():
+    
+    dname1, dname2, fname1, fname2 = _prepare()
     
     # Test that DICOM can examine file
     F = imageio.formats.search_read_format(core.Request(fname1, 'ri'))
@@ -62,13 +75,14 @@ def test_selection():
     bb = bb[:128] + b'XXXX' + bb[132:]
     open(fname2, 'wb').write(bb)
     raises(Exception, F.read, core.Request(fname2, 'ri'))
-
-    
     
     # Test special files with other formats
     im = imageio.imread(get_remote_file('images/dicom_file01.dcm'))
-    imageio.imread(get_remote_file('images/dicom_file03.dcm'))
-    imageio.imread(get_remote_file('images/dicom_file04.dcm'))
+    assert im.shape == (512, 512)
+    im = imageio.imread(get_remote_file('images/dicom_file03.dcm'))
+    assert im.shape == (512, 512)
+    im = imageio.imread(get_remote_file('images/dicom_file04.dcm'))
+    assert im.shape == (512, 512)
     
     # Expected fails
     fname = get_remote_file('images/dicom_file90.dcm')
@@ -85,13 +99,17 @@ def test_selection():
 
 def test_progress():
     
-    im = imageio.imread(fname1, progress=True)
-    im = imageio.imread(fname1, progress=core.StdoutProgressIndicator('test'))
-    im = imageio.imread(fname1, progress=None)
+    dname1, dname2, fname1, fname2 = _prepare()
+    
+    imageio.imread(fname1, progress=True)
+    imageio.imread(fname1, progress=core.StdoutProgressIndicator('test'))
+    imageio.imread(fname1, progress=None)
     raises(ValueError, imageio.imread, fname1, progress=3)
 
 
 def test_different_read_modes():
+    
+    dname1, dname2, fname1, fname2 = _prepare()
     
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
         
@@ -127,6 +145,8 @@ def test_different_read_modes():
     
 
 def test_different_read_modes_with_readers():
+    
+    dname1, dname2, fname1, fname2 = _prepare()
     
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
         
