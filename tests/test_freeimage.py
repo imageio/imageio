@@ -315,12 +315,22 @@ def test_animated_gif():
     imageio.mimsave(fnamebase + '.animated_irr.gif', ims, duration=duration)
     
     # Other parameters
-    R = imageio.save(fnamebase + '.animated.x.gif', palettesize=100)
-    assert R._palettesize == 128
+    imageio.mimsave(fnamebase + '.animated.loop2.gif', ims, loop=2)
+    R = imageio.read(fnamebase + '.animated.loop2.gif')
+    W = imageio.save(fnamebase + '.animated.palettes100.gif', palettesize=100)
+    assert W._palettesize == 128
     # Fail
+    raises(IndexError, R.get_meta_data, -1)
     raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
     raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
     raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
+    
+    # Test subrectangles
+    imageio.mimsave(fnamebase + '.subno.gif', ims, subrectangles=False)
+    imageio.mimsave(fnamebase + '.subyes.gif', ims, subrectangles=True)
+    s1 = os.stat(fnamebase + '.subno.gif').st_size
+    s2 = os.stat(fnamebase + '.subyes.gif').st_size
+    assert s2 < s1
     
     # Meta (dummy, because always {}
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
@@ -361,6 +371,11 @@ def test_ico():
     ims2 = imageio.mimread(fnamebase + 'I.ico')
     for im1, im2 in zip(ims1, ims2):
         assert_close(im1, im2, 0.1)
+
+
+def test_mng():
+    pass  # MNG seems broken in FreeImage
+    #ims = imageio.imread(get_remote_file('images/mngexample.mng'))
 
 
 def test_other():

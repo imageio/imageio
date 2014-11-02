@@ -44,41 +44,71 @@ class FreeimageMulti(FreeimageFormat):
                 sub.close()
         
         def _get_meta_data(self, index):
-            if index is None:
-                return {}
-                # return self._bm.get_meta_data()  SEGFAULT
-            else:
-                sub = self._bm.get_page(index)
-                try:
-                    return sub.get_meta_data()
-                finally:
-                    sub.close()
+            index = index or 0
+            if index < 0 or index >= len(self._bm):
+                raise IndexError()
+            sub = self._bm.get_page(index)
+            try:
+                return sub.get_meta_data()
+            finally:
+                sub.close()
     
     # --
     
     class Writer(FreeimageFormat.Writer):
         
         def _open(self, flags=0):
-            self._meta = {}
             # Set flags
             self._flags = flags = int(flags)
             # Instantiate multi-page bitmap
             self._bm = fi.create_multipage_bitmap(self.request.filename, 
                                                   self.format.fif, flags)
             self._bm.save_to_filename(self.request.get_local_filename())
+            self._bm0 = None
         
         def _close(self):
-            # Set global meta now
-            #self._bm.set_meta_data(self._meta)  We cannot get, so why set?
             # Close bitmap
             self._bm.close()
-        
+            
         def _append_data(self, im, meta):
-            raise NotImplementedError()
+            # Prepare data
+            if im.ndim == 3 and im.shape[-1] == 1:
+                im = im.reshape(im.shape[:2])
+            if im.dtype in (np.float32, np.float64):
+                im = (im * 255).astype(np.uint8)
+            # Create sub bitmap
+            sub1 = fi.create_bitmap(self._bm._filename, self.format.fif)
+            # Let subclass add data to bitmap, optionally return new
+            sub2 = self._append_bitmap(im, meta, sub1)
+            # Add
+            self._bm.append_bitmap(sub2)
+            sub2.close()
+            if sub1 is not sub2:
+                sub1.close()
+        
+        def _append_bitmap(self, im, meta, bitmap):
+            # Set data
+            bitmap.allocate(im)
+            bitmap.set_image_data(im)
+            bitmap.set_meta_data(meta)
+            # Return that same bitmap
+            return bitmap
         
         def _set_meta_data(self, meta):
-            self._meta.update(meta)
+            pass  # ignore global meta data
 
+
+class MngFormat(FreeimageMulti):
+    """ An Mng format based on the Freeimage library.
+    
+    Read only. Seems broken.
+    """
+    
+    _fif = 6
+    
+    def _can_save(self, request):  # pragma: no cover
+        return False
+    
 
 class IcoFormat(FreeimageMulti):
     """ An ICO format based on the Freeimage library.
@@ -103,24 +133,7 @@ class IcoFormat(FreeimageMulti):
             if makealpha:
                 flags |= IO_FLAGS.ICO_MAKEALPHA
             return FreeimageMulti.Reader._open(self, flags)
-    
-    class Writer(FreeimageMulti.Writer):
-        
-        def _append_data(self, im, meta):
-            # Make array unint8 and nicely shaped
-            if im.ndim == 3 and im.shape[-1] == 1:
-                im = im.reshape(im.shape[:2])
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
-            # Create sub bitmap
-            sub1 = fi.create_bitmap(self._bm._filename, self.format.fif)
-            sub1.allocate(im)
-            sub1.set_image_data(im)
-            sub1.set_meta_data(meta)
-            # Add
-            self._bm.append_bitmap(sub1)
-            sub1.close()
-    
+
 
 class GifFormat(FreeimageMulti):
     """ A format for reading and writing static and animated GIF, based
@@ -140,7 +153,6 @@ class GifFormat(FreeimageMulti):
     ---------------------
     loop : int
         The number of iterations. Default 0 (meaning loop indefinitely)
-        This argument is not implemented yet :(
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
@@ -154,7 +166,12 @@ class GifFormat(FreeimageMulti):
               Optimal Color Quantization
             * nq (neuqant) - Dekker A. H., Kohonen neural networks for
               optimal color quantization
-            
+    subrectangles : bool
+        If True, will try and optimize the GIG by storing only the
+        rectangular parts of each frame that change with respect to the
+        previous. Unfortunately, this option seems currently broken
+        because FreeImage does not handle DisposalMethod correctly.
+        Default False.
     """
     
     _fif = 25
@@ -177,12 +194,11 @@ class GifFormat(FreeimageMulti):
     
     class Writer(FreeimageMulti.Writer):
        
-        # todo: loop argument
         # todo: subrectangles
         # todo: global palette
         
         def _open(self, flags=0, loop=0, duration=0.1, palettesize=256, 
-                  quantizer='Wu'):
+                  quantizer='Wu', subrectangles=False):
             # Check palettesize
             if palettesize < 2 or palettesize > 256:
                 raise ValueError('PNG quantize param must be 2..256')
@@ -202,24 +218,22 @@ class GifFormat(FreeimageMulti):
                 self._frametime = [int(1000 * duration)]
             else:
                 raise ValueError('Invalid value for duration: %r' % duration)
-            # Intialize meta
-            self._meta = {'ANIMATION': {  
-                          #'GlobalPalette': np.array([]).astype(np.uint8),
-                          # 'Loop': np.array([loop]).astype(np.uint32),
-                          # Loop segfaults, why?
-                          }
-                          }
+            # Check subrectangles
+            self._subrectangles = bool(subrectangles)
+            self._prev_im = None
+            # Init
             FreeimageMulti.Writer._open(self, flags)
+            # Set global meta data
+            self._meta = {}
+            self._meta['ANIMATION'] = {
+                # 'GlobalPalette': np.array([0]).astype(np.uint8),
+                'Loop': np.array([loop]).astype(np.uint32),
+                #'LogicalWidth': np.array([x]).astype(np.uint16),
+                #'LogicalHeight': np.array([x]).astype(np.uint16),
+            }
         
-        def _append_data(self, im, meta): 
-            # Check array
-            if im.ndim == 3 and im.shape[-1] == 4:
-                im = im[:, :, :3]
-            if im.ndim == 3 and im.shape[-1] == 1:
-                im = im.reshape(im.shape[:2])
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
-            # Tweak meta data
+        def _append_bitmap(self, im, meta, bitmap):
+            # Prepare meta data
             meta = meta.copy()
             meta_a = meta['ANIMATION'] = {}
             # Set frame time
@@ -229,26 +243,63 @@ class GifFormat(FreeimageMulti):
             else:
                 ft = self._frametime[-1]
             meta_a['FrameTime'] = np.array([ft]).astype(np.uint32)
-            # Create sub bitmap
-            sub1 = fi.create_bitmap(self._bm._filename, self.format.fif)
+            # If this is the first frame, assign it our "global" meta data
+            if len(self._bm) == 0:
+                meta.update(self._meta)
+                
+            # Check array
+            if im.ndim == 3 and im.shape[-1] == 4:
+                im = im[:, :, :3]
+            # Process subrectangles
+            im_uncropped = im
+            if self._subrectangles and self._prev_im is not None:
+                im, xy = self._get_sub_rectangles(self._prev_im, im)
+                meta_a['DisposalMethod'] = np.array([1]).astype(np.uint8)
+                meta_a['FrameLeft'] = np.array([xy[0]]).astype(np.uint16)
+                meta_a['FrameTop'] = np.array([xy[1]]).astype(np.uint16)
+            self._prev_im = im_uncropped
+            # Set image data
+            sub2 = sub1 = bitmap
             sub1.allocate(im)
             sub1.set_image_data(im)
             # Quantize it if its RGB 
-            sub2 = sub1
-            if im.ndim == 3 and im.shape[2] in (3, 4):
+            if im.ndim == 3 and im.shape[-1] == 3:
                 sub2 = sub1.quantize(self._quantizer, self._palettesize)
-            # Set meta data for this frame
+            
+            # If single image, omit animation data
             if self.request.mode[1] == 'i':
                 del meta['ANIMATION']
+            # Set meta data and return
             sub2.set_meta_data(meta)
-            # Append bitmap and close sub bitmap(s)
-            self._bm.append_bitmap(sub2)
-            sub2.close()
-            if sub1 is not sub2:
-                sub1.close()
+            return sub2
+        
+        def _get_sub_rectangles(self, prev, im):
+            """
+            Calculate the minimal rectangles that need updating each frame.
+            Returns a two-element tuple containing the cropped images and a
+            list of x-y positions.
+            """
+            # Get difference, sum over colors
+            diff = np.abs(im - prev)
+            if diff.ndim == 3:
+                diff = diff.sum(2)  
+            # Get begin and end for both dimensions
+            X = np.argwhere(diff.sum(0))
+            Y = np.argwhere(diff.sum(1))
+            # Get rect coordinates
+            if X.size and Y.size:
+                x0, x1 = X[0], X[-1]+1
+                y0, y1 = Y[0], Y[-1]+1
+            else:  # pragma: no cover - No change ... make it minimal
+                x0, x1 = 0, 2
+                y0, y1 = 0, 2
+            # Cut out and return
+            return im[y0:y1, x0:x1], (int(x0), int(y0))
 
 
-formats.add_format(GifFormat('GIF', 'Static and animated gif', 
-                             '.gif', 'iI'))
+# formats.add_format(MngFormat('MNG', 'Multiple network graphics', 
+#                                    '.mng', 'iI'))
 formats.add_format(IcoFormat('ICO', 'Windows icon', 
                              '.ico', 'iI'))
+formats.add_format(GifFormat('GIF', 'Static and animated gif', 
+                             '.gif', 'iI'))
