@@ -2,7 +2,7 @@
 
 # Do not test our testing file
 omit = 
-    imageio/core/testing.py
+    imageio/testing.py
     imageio/freeze.py
 
 exclude_lines =
