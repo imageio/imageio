@@ -375,7 +375,7 @@ def test_ico():
     ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
     imageio.mimsave(fnamebase + 'I2.ico', ims)
     ims2 = imageio.mimread(fnamebase + 'I2.ico')
-    for im1, im2 in zip(ims1, ims2):
+    for im1, im2 in zip(ims, ims2):
         assert_close(im1, im2, 0.1)
 
 
