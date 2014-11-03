@@ -136,6 +136,14 @@ def test_format():
     del W
     gc.collect()  # Invoke __del__
     assert set(ids) == set(F._closed)
+
+
+def test_reader_and_writer():
+    
+    # Prepare
+    filename1 = get_remote_file('images/chelsea.png', test_dir)
+    filename2 = filename1 + '.out'
+    F = MyFormat('test', '', modes='i')
     
     # Test using reader
     n = 3
@@ -184,6 +192,29 @@ def test_format():
     raises(ValueError, W.append_data, 'not an array')
     raises(ValueError, W.append_data, im, 'not a dict')
     raises(ValueError, W.set_meta_data, 'not a dict')
+
+
+def test_default_can_read_and_can_save():
+    
+    F = imageio.plugins.example.DummyFormat('test', '', 'foo bar', 'v')
+    
+    # Prepare files
+    filename1 = os.path.join(test_dir, 'test')
+    open(filename1 + '.foo', 'wb')
+    open(filename1 + '.bar', 'wb')
+    open(filename1 + '.spam', 'wb')
+    
+    # Test _can_read()
+    assert F._can_read(Request(filename1 + '.foo', 'rv'))
+    assert F._can_read(Request(filename1 + '.bar', 'r?'))
+    assert not F._can_read(Request(filename1 + '.spam', 'r?'))
+    assert not F._can_read(Request(filename1 + '.foo', 'ri'))
+    
+    # Test _can_save()
+    assert F._can_save(Request(filename1 + '.foo', 'wv'))
+    assert F._can_save(Request(filename1 + '.bar', 'w?'))
+    assert not F._can_save(Request(filename1 + '.spam', 'w?'))
+    assert not F._can_save(Request(filename1 + '.foo', 'wi'))
 
 
 def test_format_manager():
@@ -390,12 +421,16 @@ def test_request():
     R = Request('chelsea.zip/chelsea.png', 'ri')
     assert R._filename_zip[0] == get_remote_file('images/chelsea.zip')
     assert R.filename == get_remote_file('images/chelsea.zip') + '/chelsea.png'
+
+
+def test_request_read_sources():
     
     # Make an image available in many ways
-    burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
     fname = 'images/chelsea.png'
     filename = get_remote_file(fname, test_dir)
     bytes = open(filename, 'rb').read()
+    #
+    burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
     z = ZipFile(os.path.join(test_dir, 'test.zip'), 'w')
     z.writestr(fname, bytes)
     z.close()
@@ -433,8 +468,15 @@ def test_request():
             assert bytes.startswith(firsbytes_list[i])
         for i in range(len(bytes_list)):
             assert bytes == bytes_list[i]
+
+
+def test_request_save_sources():
     
     # Prepare desinations
+    fname = 'images/chelsea.png'
+    filename = get_remote_file(fname, test_dir)
+    bytes = open(filename, 'rb').read()
+    #
     fname2 = fname + '.out'
     filename2 = os.path.join(test_dir, fname2)
     zipfilename2 = os.path.join(test_dir, 'test.zip')
@@ -690,7 +732,8 @@ def test_example_plugin():
     assert len(R) == 1
     assert R.get_data(0).ndim
     raises(IndexError, R.get_data, 1)
-    raises(RuntimeError, R.get_meta_data)
+    #raises(RuntimeError, R.get_meta_data)
+    assert R.get_meta_data() == {}
     R.close()
     #
     raises(RuntimeError, W.append_data, np.zeros((10, 10)))

@@ -98,11 +98,6 @@ class FfmpegFormat(Format):
     """
     
     def _can_read(self, request):
-        # The request object has:
-        # request.filename: the filename
-        # request.firstbytes: the first 256 bytes of the file.
-        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-        # request.kwargs: the keyword arguments specified by the user
         if request.mode[1] not in 'I?':
             return False
         
@@ -113,12 +108,15 @@ class FfmpegFormat(Format):
             return True
         
         # Read from file that we know?
-        ext = os.path.splitext(request.filename)[1].lower()
-        if ext in '.avi .mpg .mpeg .mp4':
-            return True
+        for ext in self.extensions:
+            if request.filename.endswith('.' + ext):
+                return True
     
     def _can_save(self, request):
-        return self._can_read(request)
+        if request.mode[1] in (self.modes + '?'):
+            for ext in self.extensions:
+                if request.filename.endswith('.' + ext):
+                    return True
     
     
     class Reader(Format.Reader):

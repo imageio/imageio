@@ -375,13 +375,7 @@ class Request(object):
             except Exception:
                 i = None
             # Read
-            first_bytes = binary_type()
-            while len(first_bytes) < N:
-                extra_bytes = f.read(N-len(first_bytes))
-                if not extra_bytes:
-                    break
-                first_bytes += extra_bytes
-            self._firstbytes = first_bytes
+            self._firstbytes = read_n_bytes(f, N)
             # Set back
             try:
                 if i is None:
@@ -393,3 +387,16 @@ class Request(object):
                 if self._uri_type == URI_FILE:  # pragma: no cover
                     raise ValueError('Error in firstbytes: '
                                      'could not tell/seek in the given file.')
+
+
+def read_n_bytes(f, N):
+    """ Read N bytes from the given file, or less if the file has less bytes. 
+    Does not close the file.
+    """
+    bb = binary_type()
+    while len(bb) < N:
+        extra_bytes = f.read(N-len(bb))
+        if not extra_bytes:
+            break
+        bb += extra_bytes
+    return bb

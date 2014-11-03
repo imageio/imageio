@@ -2,17 +2,15 @@
 # Copyright (c) 2014, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
-# styletest: skip
-
-
 """ Plugin for reading DICOM files.
 """
 
 # todo: Use pydicom:
 # * Note: is not py3k ready yet
 # * Allow reading the full meta info
-# * I think we can more or less replace the SimpleDicomReader with a pydicom.Dataset
-# * For series, only ned to read the full info from one file: speed still high
+# I think we can more or less replace the SimpleDicomReader with a
+# pydicom.Dataset For series, only ned to read the full info from one
+# file: speed still high
 # * Perhaps allow writing?
 
 from __future__ import absolute_import, print_function, division
@@ -26,6 +24,7 @@ import numpy as np
 from imageio import formats
 from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from imageio.core import string_types
+from imageio.core.request import read_n_bytes
 
 
 # Determine endianity of system
@@ -44,6 +43,12 @@ class DicomFormat(Format):
     also results in a much faster read time. We plan to allow reading all
     tags in the future (by using pydicom).
     
+    This format provides functionality to group images of the same
+    series together, thus extracting volumes (and multiple volumes).
+    Using volread will attempt to yield a volume. If multiple volumes
+    are present, the first one is given. Using mimread will simply yield
+    all images in the given directory (not taking series into account).
+    
     Parameters for reading
     ----------------------
     progress : {True, False, BaseProgressIndicator}
@@ -55,6 +60,17 @@ class DicomFormat(Format):
     """
     
     def _can_read(self, request):
+        # If user URI was a directory, we check whether it has a DICOM file
+        if os.path.isdir(request.filename):
+            files = os.listdir(request.filename)
+            files.sort()  # Make it consistent
+            if files:
+                with open(os.path.join(request.filename, files[0]), 'rb') as f:
+                    first_bytes = read_n_bytes(f, 140)
+                return first_bytes[128:132] == b'DICM'
+            else:
+                return False
+        # Check
         return request.firstbytes[128:132] == b'DICM'
     
     def _can_save(self, request):
@@ -62,6 +78,7 @@ class DicomFormat(Format):
         # a backend.
         return False
     
+    # --
     
     class Reader(Format.Reader):
     
@@ -83,8 +100,9 @@ class DicomFormat(Format):
             # Set progress indicator
             if isinstance(progress, BaseProgressIndicator):
                 self._progressIndicator = progress 
-            elif progress == True:
-                self._progressIndicator = StdoutProgressIndicator('Reading DICOM')
+            elif progress is True:
+                p = StdoutProgressIndicator('Reading DICOM')
+                self._progressIndicator = p
             elif progress in (None, False):
                 self._progressIndicator = BaseProgressIndicator('Dummy')
             else:
@@ -99,7 +117,8 @@ class DicomFormat(Format):
         @property
         def series(self):
             if self._series is None:
-                self._series = process_directory(self.request, self._progressIndicator)
+                self._series = process_directory(self.request, 
+                                                 self._progressIndicator)
             return self._series
         
         def _get_length(self):
@@ -108,10 +127,10 @@ class DicomFormat(Format):
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
             
-            nslices = self._data.shape[0] if (self._data.ndim==3) else 1
+            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
             
             if self.request.mode[1] == 'i':
-                # User expects one, but lets be honest about what is in this file
+                # User expects one, but lets be honest about this file
                 return nslices 
             elif self.request.mode[1] == 'I':
                 # User expects multiple, if this file has multiple slices, ok.
@@ -126,12 +145,12 @@ class DicomFormat(Format):
                 if nslices > 1:
                     return 1
                 else:
-                    return len(self.series)  # Note: we assume one volume per series
+                    return len(self.series)  # We assume one volume per series
             elif self.request.mode[1] == 'V':
                 # User expects multiple volumes. We have to check the series
-                return len(self.series)  # Note: we assume one volume per series
+                return len(self.series)  # We assume one volume per series
             else:
-                raise ValueError('DICOM plugin needs to know what is expected.')
+                raise RuntimeError('DICOM plugin should know what to expect.')
         
         def _get_data(self, index):
             if self._data is None:
@@ -139,7 +158,7 @@ class DicomFormat(Format):
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
             
-            nslices = self._data.shape[0] if (self._data.ndim==3) else 1
+            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
             
             if self.request.mode[1] == 'i':
                 # Allow index >1 only if this file contains >1
@@ -151,21 +170,22 @@ class DicomFormat(Format):
                     raise IndexError('Dicom file contains only one slice.')
             elif self.request.mode[1] == 'I':
                 # Return slice from volume, or return item from series
-                if index==0 and nslices > 1:
+                if index == 0 and nslices > 1:
                     return self._data[index], self._info
                 else:
                     L = []
                     for serie in self.series:
-                        L.extend([dcm for dcm in serie])
+                        L.extend([dcm_ for dcm_ in serie])
                     return L[index].get_numpy_array(), L[index].info
             elif self.request.mode[1] in 'vV':
                 # Return volume or series
                 if index == 0 and nslices > 1:
                     return self._data, self._info
                 else:
-                    return self.series[index].get_numpy_array(), self.series[index].info
-            else:
-                raise ValueError('DICOM plugin needs to know what is expected.')
+                    return (self.series[index].get_numpy_array(), 
+                            self.series[index].info)
+            else:  # pragma: no cover
+                raise ValueError('DICOM plugin should know what to expect.')
         
         def _get_meta_data(self, index):
             if self._data is None:
@@ -173,7 +193,7 @@ class DicomFormat(Format):
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
             
-            nslices = self._data.shape[0] if (self._data.ndim==3) else 1
+            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
             
             # Default is the meta data of the given file, or the "first" file.
             if index is None:
@@ -183,12 +203,12 @@ class DicomFormat(Format):
                 return self._info
             elif self.request.mode[1] == 'I':
                 # Return slice from volume, or return item from series
-                if index==0 and nslices > 1:
+                if index == 0 and nslices > 1:
                     return self._info
                 else:
                     L = []
                     for serie in self.series:
-                        L.extend([dcm for dcm in serie])
+                        L.extend([dcm_ for dcm_ in serie])
                     return L[index].info
             elif self.request.mode[1] in 'vV':
                 # Return volume or series
@@ -196,84 +216,86 @@ class DicomFormat(Format):
                     return self._info
                 else:
                     return self.series[index].info
-            else:
-                raise ValueError('DICOM plugin needs to know what is expected.')
+            else:  # pragma: no cover
+                raise ValueError('DICOM plugin should know what to expect.')
 
 
 # Add this format
-formats.add_format(DicomFormat('DICOM', 
-            'Digital Imaging and Communications in Medicine', 
-            '.dcm .ct .mri', 'iIvV'))
+formats.add_format(DicomFormat(
+    'DICOM', 
+    'Digital Imaging and Communications in Medicine', 
+    '.dcm .ct .mri', 'iIvV'))  # Often DICOM files have weird or no extensions
 
 
 # Define a dictionary that contains the tags that we would like to know
-MINIDICT =  {   (0x7FE0, 0x0010): ('PixelData',             'OB'),
-                # Date and time
-                (0x0008, 0x0020): ('StudyDate',             'DA'),
-                (0x0008, 0x0021): ('SeriesDate',            'DA'),
-                (0x0008, 0x0022): ('AcquisitionDate',       'DA'),
-                (0x0008, 0x0023): ('ContentDate',           'DA'),
-                (0x0008, 0x0030): ('StudyTime',             'TM'),
-                (0x0008, 0x0031): ('SeriesTime',            'TM'),
-                (0x0008, 0x0032): ('AcquisitionTime',       'TM'),
-                (0x0008, 0x0033): ('ContentTime',           'TM'),
-                # With what, where, by whom?
-                (0x0008, 0x0060): ('Modality',              'CS'),
-                (0x0008, 0x0070): ('Manufacturer',          'LO'),
-                (0x0008, 0x0080): ('InstitutionName',       'LO'),
-                # Descriptions 
-                (0x0008, 0x1030): ('StudyDescription',      'LO'),
-                (0x0008, 0x103E): ('SeriesDescription',     'LO'),
-                # UID's                
-                (0x0020, 0x0016): ('SOPClassUID',           'UI'),
-                (0x0020, 0x0018): ('SOPInstanceUID',        'UI'),
-                (0x0020, 0x000D): ('StudyInstanceUID',      'UI'),
-                (0x0020, 0x000E): ('SeriesInstanceUID',     'UI'),
-                (0x0008, 0x0117): ('ContextUID',            'UI'),
-                # Numbers
-                (0x0020, 0x0011): ('SeriesNumber',          'IS'),
-                (0x0020, 0x0012): ('AcquisitionNumber',     'IS'),
-                (0x0020, 0x0013): ('InstanceNumber',        'IS'),
-                (0x0020, 0x0014): ('IsotopeNumber',         'IS'),
-                (0x0020, 0x0015): ('PhaseNumber',           'IS'),
-                (0x0020, 0x0016): ('IntervalNumber',        'IS'),
-                (0x0020, 0x0017): ('TimeSlotNumber',        'IS'),
-                (0x0020, 0x0018): ('AngleNumber',           'IS'),
-                (0x0020, 0x0019): ('ItemNumber',            'IS'),
-                (0x0020, 0x0020): ('PatientOrientation',    'CS'),
-                (0x0020, 0x0030): ('ImagePosition',         'CS'),
-                (0x0020, 0x0032): ('ImagePositionPatient',  'CS'),
-                (0x0020, 0x0035): ('ImageOrientation',      'CS'),
-                (0x0020, 0x0037): ('ImageOrientationPatient', 'CS'),
-                # Patient infotmation
-                (0x0010, 0x0010): ('PatientName',           'PN'),
-                (0x0010, 0x0020): ('PatientID',             'LO'),
-                (0x0010, 0x0030): ('PatientBirthDate',      'DA'),
-                (0x0010, 0x0040): ('PatientSex',            'CS'),
-                (0x0010, 0x1010): ('PatientAge',            'AS'),
-                (0x0010, 0x1020): ('PatientSize',           'DS'),
-                (0x0010, 0x1030): ('PatientWeight',         'DS'),
-                # Image specific (required to construct numpy array)
-                (0x0028, 0x0002): ('SamplesPerPixel',       'US'),
-                (0x0028, 0x0008): ('NumberOfFrames',        'IS'),
-                (0x0028, 0x0100): ('BitsAllocated',         'US'),
-                (0x0028, 0x0101): ('BitsStored',            'US'),
-                (0x0028, 0x0102): ('HighBit',               'US'),
-                (0x0028, 0x0103): ('PixelRepresentation',   'US'),
-                (0x0028, 0x0010): ('Rows',                  'US'),
-                (0x0028, 0x0011): ('Columns',               'US'),
-                (0x0028, 0x1052): ('RescaleIntercept',      'DS'),
-                (0x0028, 0x1053): ('RescaleSlope',          'DS'),
-                # Image specific (for the user)
-                (0x0028, 0x0030): ('PixelSpacing',          'DS'),
-                (0x0018, 0x0088): ('SliceSpacing',          'DS'),
-            }
+MINIDICT = {   
+    (0x7FE0, 0x0010): ('PixelData',             'OB'),
+    # Date and time
+    (0x0008, 0x0020): ('StudyDate',             'DA'),
+    (0x0008, 0x0021): ('SeriesDate',            'DA'),
+    (0x0008, 0x0022): ('AcquisitionDate',       'DA'),
+    (0x0008, 0x0023): ('ContentDate',           'DA'),
+    (0x0008, 0x0030): ('StudyTime',             'TM'),
+    (0x0008, 0x0031): ('SeriesTime',            'TM'),
+    (0x0008, 0x0032): ('AcquisitionTime',       'TM'),
+    (0x0008, 0x0033): ('ContentTime',           'TM'),
+    # With what, where, by whom?
+    (0x0008, 0x0060): ('Modality',              'CS'),
+    (0x0008, 0x0070): ('Manufacturer',          'LO'),
+    (0x0008, 0x0080): ('InstitutionName',       'LO'),
+    # Descriptions 
+    (0x0008, 0x1030): ('StudyDescription',      'LO'),
+    (0x0008, 0x103E): ('SeriesDescription',     'LO'),
+    # UID's                
+    (0x0020, 0x0016): ('SOPClassUID',           'UI'),
+    (0x0020, 0x0018): ('SOPInstanceUID',        'UI'),
+    (0x0020, 0x000D): ('StudyInstanceUID',      'UI'),
+    (0x0020, 0x000E): ('SeriesInstanceUID',     'UI'),
+    (0x0008, 0x0117): ('ContextUID',            'UI'),
+    # Numbers
+    (0x0020, 0x0011): ('SeriesNumber',          'IS'),
+    (0x0020, 0x0012): ('AcquisitionNumber',     'IS'),
+    (0x0020, 0x0013): ('InstanceNumber',        'IS'),
+    (0x0020, 0x0014): ('IsotopeNumber',         'IS'),
+    (0x0020, 0x0015): ('PhaseNumber',           'IS'),
+    (0x0020, 0x0016): ('IntervalNumber',        'IS'),
+    (0x0020, 0x0017): ('TimeSlotNumber',        'IS'),
+    (0x0020, 0x0018): ('AngleNumber',           'IS'),
+    (0x0020, 0x0019): ('ItemNumber',            'IS'),
+    (0x0020, 0x0020): ('PatientOrientation',    'CS'),
+    (0x0020, 0x0030): ('ImagePosition',         'CS'),
+    (0x0020, 0x0032): ('ImagePositionPatient',  'CS'),
+    (0x0020, 0x0035): ('ImageOrientation',      'CS'),
+    (0x0020, 0x0037): ('ImageOrientationPatient', 'CS'),
+    # Patient infotmation
+    (0x0010, 0x0010): ('PatientName',           'PN'),
+    (0x0010, 0x0020): ('PatientID',             'LO'),
+    (0x0010, 0x0030): ('PatientBirthDate',      'DA'),
+    (0x0010, 0x0040): ('PatientSex',            'CS'),
+    (0x0010, 0x1010): ('PatientAge',            'AS'),
+    (0x0010, 0x1020): ('PatientSize',           'DS'),
+    (0x0010, 0x1030): ('PatientWeight',         'DS'),
+    # Image specific (required to construct numpy array)
+    (0x0028, 0x0002): ('SamplesPerPixel',       'US'),
+    (0x0028, 0x0008): ('NumberOfFrames',        'IS'),
+    (0x0028, 0x0100): ('BitsAllocated',         'US'),
+    (0x0028, 0x0101): ('BitsStored',            'US'),
+    (0x0028, 0x0102): ('HighBit',               'US'),
+    (0x0028, 0x0103): ('PixelRepresentation',   'US'),
+    (0x0028, 0x0010): ('Rows',                  'US'),
+    (0x0028, 0x0011): ('Columns',               'US'),
+    (0x0028, 0x1052): ('RescaleIntercept',      'DS'),
+    (0x0028, 0x1053): ('RescaleSlope',          'DS'),
+    # Image specific (for the user)
+    (0x0028, 0x0030): ('PixelSpacing',          'DS'),
+    (0x0018, 0x0088): ('SliceSpacing',          'DS'),
+}
 
 # Define some special tags:
 # See PS 3.5-2008 section 7.5 (p.40)
-ItemTag = (0xFFFE, 0xE000)              # start of Sequence Item
-ItemDelimiterTag = (0xFFFE, 0xE00D)     # end of Sequence Item
-SequenceDelimiterTag = (0xFFFE, 0xE0DD) # end of Sequence of undefined length
+ItemTag = (0xFFFE, 0xE000)               # start of Sequence Item
+ItemDelimiterTag = (0xFFFE, 0xE00D)      # end of Sequence Item
+SequenceDelimiterTag = (0xFFFE, 0xE0DD)  # end of Sequence of undefined length
 
 # Define set of groups that we're interested in (so we can quickly skip others)
 GROUPS = set([key[0] for key in MINIDICT.keys()])
@@ -339,21 +361,21 @@ class SimpleDicomReader(object):
         self._info = {}
         # VR Conversion
         self._converters = {
-                # Numbers
-                'US': lambda x: self._unpack('H', x),
-                'UL': lambda x: self._unpack('L', x),
-                # Numbers encoded as strings
-                'DS': lambda x: self._splitValues(x, float, '\\'),
-                'IS': lambda x: self._splitValues(x, int, '\\'),
-                # strings
-                'AS': lambda x: x.decode('ascii').strip('\x00'),
-                'DA': lambda x: x.decode('ascii').strip('\x00'),                
-                'TM': lambda x: x.decode('ascii').strip('\x00'),
-                'UI': lambda x: x.decode('ascii').strip('\x00'),
-                'LO': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
-                'CS': lambda x: self._splitValues(x, float, '\\'),
-                'PN': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
-            }
+            # Numbers
+            'US': lambda x: self._unpack('H', x),
+            'UL': lambda x: self._unpack('L', x),
+            # Numbers encoded as strings
+            'DS': lambda x: self._splitValues(x, float, '\\'),
+            'IS': lambda x: self._splitValues(x, int, '\\'),
+            # strings
+            'AS': lambda x: x.decode('ascii').strip('\x00'),
+            'DA': lambda x: x.decode('ascii').strip('\x00'),                
+            'TM': lambda x: x.decode('ascii').strip('\x00'),
+            'UI': lambda x: x.decode('ascii').strip('\x00'),
+            'LO': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
+            'CS': lambda x: self._splitValues(x, float, '\\'),
+            'PN': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
+        }
         
         # Initiate reading
         self._read()
@@ -366,24 +388,24 @@ class SimpleDicomReader(object):
         s = x.decode('ascii').strip('\x00')
         try:
             if splitter in s:
-                return tuple( [type(v) for v in s.split(splitter) if v.strip()] )
+                return tuple([type(v) for v in s.split(splitter) if v.strip()])
             else:
                 return type(s)
         except ValueError:
             return s
-    
-    
+        
     def _unpack(self, fmt, value):
         return struct.unpack(self._unpackPrefix+fmt, value)[0]
     
     # Really only so we need minimal changes to _pixel_data_numpy
     def __iter__(self):
         return iter(self._info.keys())
+    
     def __getattr__(self, key):
         info = object.__getattribute__(self, '_info')
         if key in info:
             return info[key]
-        return object.__getattribute__(self, key)
+        return object.__getattribute__(self, key)  # pragma: no cover
     
     def _read(self):
         f = self._file
@@ -400,7 +422,6 @@ class SimpleDicomReader(object):
             self._file.close()
             self._file = None
     
-    
     def _readDataElement(self):
         f = self._file
         # Get group  and element
@@ -412,7 +433,7 @@ class SimpleDicomReader(object):
         else:
             vr = f.read(2)
             if vr in (b'OB', b'OW', b'SQ', b'UN'):
-                reserved = f.read(2)
+                reserved = f.read(2)  # noqa
                 vl = self._unpack('I', f.read(4))
             else:
                 vl = self._unpack('H', f.read(2))
@@ -434,11 +455,11 @@ class SimpleDicomReader(object):
         Copyright Darcy Mason.
         """
         fp = self._file
-        delimiter = SequenceDelimiterTag
-        data_start = fp.tell()
+        #data_start = fp.tell()
         search_rewind = 3
         bytes_to_find = struct.pack(self._unpackPrefix+'HH', 
-                            SequenceDelimiterTag[0], SequenceDelimiterTag[1])
+                                    SequenceDelimiterTag[0], 
+                                    SequenceDelimiterTag[1])
         
         found = False
         value_chunks = []
@@ -446,11 +467,13 @@ class SimpleDicomReader(object):
             chunk_start = fp.tell()
             bytes_read = fp.read(read_size)
             if len(bytes_read) < read_size:
-                # try again - if still don't get required amount, this is last block
+                # try again, 
+                # if still don't get required amount, this is last block
                 new_bytes = fp.read(read_size - len(bytes_read))
                 bytes_read += new_bytes
                 if len(bytes_read) < read_size:
-                    raise EOFError("End of file reached before sequence delimiter found.")
+                    raise EOFError("End of file reached before sequence "
+                                   "delimiter found.")
             index = bytes_read.find(bytes_to_find)
             if index != -1:
                 found = True
@@ -458,7 +481,8 @@ class SimpleDicomReader(object):
                 fp.seek(chunk_start + index + 4)  # rewind to end of delimiter
                 length = fp.read(4)
                 if length != b"\0\0\0\0":
-                    print("Expected 4 zero bytes after undefined length delimiter")
+                    print("Expected 4 zero bytes after undefined length "
+                          "delimiter")
             else:
                 fp.seek(fp.tell() - search_rewind)  # rewind a bit 
                 # accumulate the bytes read (not including the rewind)
@@ -466,7 +490,6 @@ class SimpleDicomReader(object):
         
         # if get here then have found the byte string
         return b"".join(value_chunks)
-    
     
     def _read_header(self):
         f = self._file
@@ -478,35 +501,42 @@ class SimpleDicomReader(object):
                 fp_save = f.tell()
                 # Get element
                 group, element, value = self._readDataElement()
-                if group==0x02:
-                    if group==0x02 and element==0x10:
+                if group == 0x02:
+                    if group == 0x02 and element == 0x10:
                         TransferSyntaxUID = value.decode('ascii').strip('\x00') 
                 else:
-                    # No more group 2: rewind and break (don't trust group length)
+                    # No more group 2: rewind and break 
+                    # (don't trust group length)
                     f.seek(fp_save)
                     break
-        except (EOFError, struct.error):
-            raise RuntimeError('End of file reached while still reading header.')
+        except (EOFError, struct.error):  # pragma: no cover
+            raise RuntimeError('End of file reached while still in header.')
         
         # Handle transfer syntax
         self._info['TransferSyntaxUID'] = TransferSyntaxUID
         #
-        if TransferSyntaxUID is None: # Assume ExplicitVRLittleEndian
+        if TransferSyntaxUID is None: 
+            # Assume ExplicitVRLittleEndian
             is_implicit_VR, is_little_endian = False, True
-        elif TransferSyntaxUID == '1.2.840.10008.1.2.1': # ExplicitVRLittleEndian
+        elif TransferSyntaxUID == '1.2.840.10008.1.2.1':
+            # ExplicitVRLittleEndian
             is_implicit_VR, is_little_endian = False, True
-        elif TransferSyntaxUID == '1.2.840.10008.1.2.2':  # ExplicitVRBigEndian
+        elif TransferSyntaxUID == '1.2.840.10008.1.2.2':  
+            # ExplicitVRBigEndian
             is_implicit_VR, is_little_endian = False, False
-        elif TransferSyntaxUID == '1.2.840.10008.1.2': # implicit VR little endian
+        elif TransferSyntaxUID == '1.2.840.10008.1.2': 
+            # implicit VR little endian
             is_implicit_VR, is_little_endian = True, True
-        elif TransferSyntaxUID == '1.2.840.10008.1.2.1.99':  # DeflatedExplicitVRLittleEndian:
+        elif TransferSyntaxUID == '1.2.840.10008.1.2.1.99':  
+            # DeflatedExplicitVRLittleEndian:
             is_implicit_VR, is_little_endian = False, True
             self._inflate()
         elif TransferSyntaxUID == '1.2.840.10008.1.2.4.70': 
             is_implicit_VR, is_little_endian = False, True
         else:
-            raise RuntimeError('The simple dicom reader can only read files ' +
-                        'with uncompressed image data (not %r)' % TransferSyntaxUID)
+            raise RuntimeError('The simple dicom reader can only read files '
+                               'with uncompressed image data '
+                               '(not %r)' % TransferSyntaxUID)
                         
         # From hereon, use implicit/explicit big/little endian
         self.is_implicit_VR = is_implicit_VR
@@ -526,18 +556,17 @@ class SimpleDicomReader(object):
                     # Is it an element we are interested in?
                     if name:
                         # Store value
-                        converter = self._converters.get(vr, lambda x:x)
+                        converter = self._converters.get(vr, lambda x: x)
                         info[name] = converter(value)
         except (EOFError, struct.error):
-            pass # end of file ...
-    
+            pass  # end of file ...
     
     def get_numpy_array(self):
         """ Get numpy arra for this DICOM file, with the correct shape,
         and pixel values scaled appropriately.
         """
         # Is there pixel data at all?
-        if not 'PixelData' in self:
+        if 'PixelData' not in self:  # pragma: no cover
             raise TypeError("No pixel data found in this dataset.")
         
         # Load it now if it was not already loaded
@@ -566,10 +595,9 @@ class SimpleDicomReader(object):
         
         # Remove data again to preserve memory
         # Note that the data for the original file is loaded twice ...
-        self._info['PixelData'] = b'Data converted to numpy array, raw data removed to preserve memory'
-        
+        self._info['PixelData'] = (b'Data converted to numpy array, ' +
+                                   b'raw data removed to preserve memory')
         return data
-    
     
     def _get_shape_and_sampling(self):
         """ Get shape and sampling without actuall using the pixel data.
@@ -579,17 +607,23 @@ class SimpleDicomReader(object):
         # Get shape (in the same way that pydicom does)
         if 'NumberOfFrames' in self and self.NumberOfFrames > 1:
             if self.SamplesPerPixel > 1:
-                shape = self.SamplesPerPixel, self.NumberOfFrames, self.Rows, self.Columns
+                shape = (self.SamplesPerPixel, self.NumberOfFrames, 
+                         self.Rows, self.Columns)
             else:
                 shape = self.NumberOfFrames, self.Rows, self.Columns
-        else:
+        elif 'SamplesPerPixel' in self:
             if self.SamplesPerPixel > 1:
                 if self.BitsAllocated == 8:
                     shape = self.SamplesPerPixel, self.Rows, self.Columns
                 else:
-                    raise NotImplementedError("This code only handles SamplesPerPixel > 1 if Bits Allocated = 8")
+                    raise NotImplementedError("DICOM plugin only handles "
+                                              "SamplesPerPixel > 1 if Bits "
+                                              "Allocated = 8")
             else:
                 shape = self.Rows, self.Columns
+        else:
+            raise RuntimeError('DICOM file has no SamplesPerPixel '
+                               '(perhaps this is a report?)')
         
         # Try getting sampling between pixels
         if 'PixelSpacing' in self:
@@ -606,14 +640,13 @@ class SimpleDicomReader(object):
         self._info['shape'] = shape
         self._info['sampling'] = sampling
     
-    
     def _pixel_data_numpy(self):
         """Return a NumPy array of the pixel data.
         """
         # Taken from pydicom
         # Copyright (c) 2008-2012 Darcy Mason
         
-        if not 'PixelData' in self:
+        if 'PixelData' not in self:  # pragma: no cover
             raise TypeError("No pixel data found in this dataset.")
         
         # determine the type used for the array
@@ -627,22 +660,23 @@ class SimpleDicomReader(object):
                                   self.BitsAllocated)
         try:
             numpy_format = np.dtype(format_str)
-        except TypeError:
-            raise TypeError("Data type not understood by NumPy: "
-                            "format='%s', PixelRepresentation=%d, BitsAllocated=%d" % (
-                            numpy_format, self.PixelRepresentation, self.BitsAllocated))
+        except TypeError:  # pragma: no cover
+            raise TypeError("Data type not understood by NumPy: format='%s', "
+                            " PixelRepresentation=%d, BitsAllocated=%d" % 
+                            (numpy_format, self.PixelRepresentation, 
+                             self.BitsAllocated))
         
         # Have correct Numpy format, so create the NumPy array
         arr = np.fromstring(self.PixelData, numpy_format)
         
         # XXX byte swap - may later handle this in read_file!!?
         if need_byteswap:
-            arr.byteswap(True)  # True means swap in-place, don't make a new copy
+            arr.byteswap(True)  # True means swap in-place, don't make new copy
         
-        # Note the following reshape operations return a new *view* onto arr, but don't copy the data
+        # Note the following reshape operations return a new *view* onto arr, 
+        # but don't copy the data
         arr = arr.reshape(*self._info['shape'])
         return arr
-    
     
     def _apply_slope_and_offset(self, data):
         """ 
@@ -658,7 +692,7 @@ class SimpleDicomReader(object):
         if 'RescaleIntercept' in self:
             needApplySlopeOffset = True
             offset = self.RescaleIntercept
-        if int(slope)!= slope or int(offset) != offset:
+        if int(slope) != slope or int(offset) != offset:
             needFloats = True
         if not needFloats:
             slope, offset = int(slope), int(offset)
@@ -673,12 +707,14 @@ class SimpleDicomReader(object):
             else:
                 # Determine required range
                 minReq, maxReq = data.min(), data.max()
-                minReq = min([minReq, minReq*slope+offset, maxReq*slope+offset])
-                maxReq = max([maxReq, minReq*slope+offset, maxReq*slope+offset])
+                minReq = min([minReq, minReq * slope + offset, 
+                              maxReq * slope + offset])
+                maxReq = max([maxReq, minReq * slope + offset, 
+                              maxReq * slope + offset])
                 
                 # Determine required datatype from that
                 dtype = None
-                if minReq<0:
+                if minReq < 0:
                     # Signed integer type
                     maxReq = max([-minReq, maxReq])
                     if maxReq < 2**7:
@@ -710,7 +746,6 @@ class SimpleDicomReader(object):
         # Done
         return data
     
-    
     def _inflate(self):
         # Taken from pydicom
         # Copyright (c) 2008-2012 Darcy Mason
@@ -726,7 +761,6 @@ class SimpleDicomReader(object):
         # groups.google.com/group/comp.lang.python/msg/e95b3b38a71e6799
         unzipped = zlib.decompress(zipped, -zlib.MAX_WBITS)
         self._file = BytesIO(unzipped)  # a file-like object
-
 
 
 class DicomSeries(object):
@@ -747,8 +781,10 @@ class DicomSeries(object):
     
     def __len__(self):
         return len(self._entries)
+    
     def __iter__(self):
         return iter(self._entries)
+    
     def __getitem__(self, index):
         return self._entries[index]
     
@@ -781,7 +817,7 @@ class DicomSeries(object):
         info = self.info
         
         # If no info available, return simple description
-        if not info:
+        if not info:  # pragma: no cover
             return "DicomSeries containing %i images" % len(self)
         
         fields = []
@@ -791,7 +827,7 @@ class DicomSeries(object):
         # Also add dimensions
         if self.shape:
             tmp = [str(d) for d in self.shape]
-            fields.append( 'x'.join(tmp) )
+            fields.append('x'.join(tmp))
         # Try adding more fields
         if 'SeriesDescription' in info:
             fields.append("'"+info['SeriesDescription']+"'")
@@ -801,11 +837,9 @@ class DicomSeries(object):
         # Combine
         return ' '.join(fields)
 
-
     def __repr__(self):
         adr = hex(id(self)).upper()
         return "<DicomSeries with %i images at %s>" % (len(self), adr)
-
 
     def get_numpy_array(self):
         """ Get (load) the data that this DicomSeries represents, and return
@@ -814,9 +848,9 @@ class DicomSeries(object):
         """
         
         # It's easy if no file or if just a single file
-        if len(self)==0:
+        if len(self) == 0:
             raise ValueError('Serie does not contain any files.')
-        elif len(self)==1:
+        elif len(self) == 1:
             return self[0].get_numpy_array()
         
         # Check info
@@ -862,7 +896,7 @@ class DicomSeries(object):
         
         # The datasets list should be sorted by instance number
         L = self._entries
-        if len(L)==0:
+        if len(L) == 0:
             return
         elif len(L) == 1:
             self._info = L[0].info
@@ -874,8 +908,8 @@ class DicomSeries(object):
         distance_sum = 0.0
         # Init measures to check (these are in 2D)
         dimensions = ds1.Rows, ds1.Columns
-        #sampling = float(ds1.PixelSpacing[0]), float(ds1.PixelSpacing[1]) # row, column
-        sampling = ds1.info['sampling'][:2] # row, column
+        #sampling = float(ds1.PixelSpacing[0]), float(ds1.PixelSpacing[1])
+        sampling = ds1.info['sampling'][:2]  # row, column
         
         for index in range(len(L)):
             # The first round ds1 and ds2 will be the same, for the
@@ -890,13 +924,13 @@ class DicomSeries(object):
             # Test measures
             dimensions2 = ds2.Rows, ds2.Columns
             #sampling2 = float(ds2.PixelSpacing[0]), float(ds2.PixelSpacing[1])
-            sampling2 = ds2.info['sampling'][:2] # row, column
+            sampling2 = ds2.info['sampling'][:2]  # row, column
             if dimensions != dimensions2:
                 # We cannot produce a volume if the dimensions match
                 raise ValueError('Dimensions of slices does not match.')
             if sampling != sampling2:
                 # We can still produce a volume, but we should notify the user
-                self._progressIndicator.write('Warning: sampling does not match.')
+                self._progressIndicator.write('Warn: sampling does not match.')
             # Store previous
             ds1 = ds2
         
@@ -912,7 +946,6 @@ class DicomSeries(object):
         self._info['sampling'] = (distance_mean,) + ds2.info['sampling']
 
 
-
 def list_files(files, path):
     """List all files in the directory, recursively. """
     for item in os.listdir(path):
@@ -921,7 +954,6 @@ def list_files(files, path):
             list_files(files, item)
         elif os.path.isfile(item):
             files.append(item)
-
 
 
 def process_directory(request, progressIndicator, readPixelData=False):
@@ -940,8 +972,9 @@ def process_directory(request, progressIndicator, readPixelData=False):
         path = request.filename
     elif os.path.isfile(request.filename):
         path = os.path.dirname(request.filename)
-    else:
-        raise ValueError('Dicom plugin needs a valid filename to examine the directory ')
+    else:  # pragma: no cover
+        raise ValueError('Dicom plugin needs a valid filename to examine '
+                         'the directory')
     
     # Check files
     files = []
@@ -956,21 +989,21 @@ def process_directory(request, progressIndicator, readPixelData=False):
         count += 1
         progressIndicator.set_progress(count)
         # Skip DICOMDIR files
-        if filename.count("DICOMDIR"):
+        if filename.count("DICOMDIR"):  # pragma: no cover
             continue
         # Try loading dicom ...
         try:
             dcm = SimpleDicomReader(filename)
-        except NotADicomFile:
-            continue # skip non-dicom file
-        except Exception as why:
+        except NotADicomFile:  # pragma: no cover
+            continue  # skip non-dicom file
+        except Exception as why:  # pragma: no cover
             progressIndicator.write(str(why))
             continue
         # Get SUID and register the file with an existing or new series object
         try:
             suid = dcm.SeriesInstanceUID
-        except AttributeError:
-            continue # some other kind of dicom file
+        except AttributeError:  # pragma: no cover
+            continue  # some other kind of dicom file
         if suid not in series:
             series[suid] = DicomSeries(suid, progressIndicator)
         series[suid]._append(dcm)
@@ -980,7 +1013,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
     
     # Make a list and sort, so that the order is deterministic
     series = list(series.values())
-    series.sort(key=lambda x:x.suid)
+    series.sort(key=lambda x: x.suid)
     
     # Split series if necessary
     for serie in reversed([serie for serie in series]):
@@ -993,9 +1026,9 @@ def process_directory(request, progressIndicator, readPixelData=False):
         try:
             series[i]._finish()
             series_.append(series[i])
-        except Exception as err:
+        except Exception as err:  # pragma: no cover
             progressIndicator.write(str(err))
-            pass # Skip serie (probably report-like file without pixels)
+            pass  # Skip serie (probably report-like file without pixels)
         #progressIndicator.set_progress(i+1)
     progressIndicator.finish('Found %i correct series.' % len(series_))
     
@@ -1017,14 +1050,14 @@ def splitSerieIfRequired(serie, series, progressIndicator):
     # Init previous slice
     ds1 = L[0]
     # Check whether we can do this
-    if not "ImagePositionPatient" in ds1:
+    if "ImagePositionPatient" not in ds1:
         return
     # Initialize a list of new lists
     L2 = [[ds1]]
     # Init slice distance estimate
     distance = 0
     
-    for index in range(1,len(L)):
+    for index in range(1, len(L)):
         # Get current slice
         ds2 = L[index]
         # Get positions
@@ -1041,10 +1074,11 @@ def splitSerieIfRequired(serie, series, progressIndicator):
         else:
             # Test missing file
             if distance and newDist > 1.5*distance:
-                progressIndicator.write('Warning: missing file after %r' % ds1._filename)
+                progressIndicator.write('Warning: missing file after %r' % 
+                                        ds1._filename)
             distance = newDist
         # Add to last list
-        L2[-1].append( ds2 )
+        L2[-1].append(ds2)
         # Store previous
         ds1 = ds2
     
