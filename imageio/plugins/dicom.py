@@ -24,6 +24,7 @@ import numpy as np
 from imageio import formats
 from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from imageio.core import string_types
+from imageio.core.request import read_n_bytes
 
 
 # Determine endianity of system
@@ -62,10 +63,11 @@ class DicomFormat(Format):
         # If user URI was a directory, we check whether it has a DICOM file
         if os.path.isdir(request.filename):
             files = os.listdir(request.filename)
+            files.sort()  # Make it consistent
             if files:
-                filename = os.path.join(request.filename, files[0])
-                firstbytes = open(filename, 'rb').read(140)
-                return firstbytes[128:132] == b'DICM'
+                with open(os.path.join(request.filename, files[0]), 'rb') as f:
+                    first_bytes = read_n_bytes(f, 140)
+                return first_bytes[128:132] == b'DICM'
             else:
                 return False
         # Check
