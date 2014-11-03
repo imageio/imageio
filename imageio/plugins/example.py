@@ -32,22 +32,45 @@ class DummyFormat(Format):
     """
     
     def _can_read(self, request):
+        # This method is called when the format manager is searching
+        # for a format to read a certain image. Return True if this format
+        # can do it.
+        #
+        # The format manager is aware of the extensions and the modes
+        # that each format can handle. However, the ability to read a
+        # format could be more subtle. Also, the format would ideally
+        # check the request.firstbytes and look for a header of some
+        # kind. Further, the extension might not always be known.
+        #
         # The request object has:
         # request.filename: a representation of the source (only for reporing)
         # request.firstbytes: the first 256 bytes of the file.
         # request.mode[0]: read or write mode
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-        return False
+        
+        if request.mode[1] in (self.modes + '?'):
+            for ext in self.extensions:
+                if request.filename.endswith('.' + ext):
+                    return True
     
     def _can_save(self, request):
-        return False
+        # This method is called when the format manager is searching
+        # for a format to save a certain image. Return True if the
+        # format can do it.
+        #
+        # In most cases, the code does suffice.
+        
+        if request.mode[1] in (self.modes + '?'):
+            for ext in self.extensions:
+                if request.filename.endswith('.' + ext):
+                    return True
     
     # -- reader
     
     class Reader(Format.Reader):
     
         def _open(self, some_option=False):
-            # Process kwargs here. Optionally, the user-specified kwargs
+            # Specify kwargs here. Optionally, the user-specified kwargs
             # can also be accessed via the request.kwargs object.
             #
             # The request object provides two ways to get access to the
@@ -66,7 +89,7 @@ class DummyFormat(Format):
             return 1
         
         def _get_data(self, index):
-            # Return the data for the given index
+            # Return the data and meta data for the given index
             if index != 0:
                 raise IndexError('Dummy format only supports singleton images')
             # Read all bytes
@@ -78,15 +101,16 @@ class DummyFormat(Format):
             return im, {}
         
         def _get_meta_data(self, index):
-            # Get the meta data for the given index
-            raise RuntimeError('The dummy format cannot read meta data.')
+            # Get the meta data for the given index. If index is None, it
+            # should return the global meta data.
+            return {}  # This format does not support meta data
     
     # -- writer
     
     class Writer(Format.Writer):
         
         def _open(self, flags=0):        
-            # Process kwargs here. Optionally, the user-specified kwargs
+            # Specify kwargs here. Optionally, the user-specified kwargs
             # can also be accessed via the request.kwargs object.
             #
             # The request object provides two ways to write the data.
