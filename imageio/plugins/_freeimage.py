@@ -26,7 +26,7 @@ from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
 from imageio.core import string_types, binary_type, IS_PYPY
 
 
-def get_imageio_lib():
+def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
     # Get platform
@@ -412,7 +412,7 @@ class Freeimage(object):
         lib_dirs = [appdata_dir('imageio')]
         
         # Make sure that we have our binary version of the libary
-        lib_filename = get_imageio_lib() or 'notavalidlibname'
+        lib_filename = get_freeimage_lib() or 'notavalidlibname'
         
         # Load library
         lib_names = ['freeimage', 'libfreeimage']

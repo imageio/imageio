@@ -629,5 +629,5 @@ class StreamCatcher(threading.Thread):
 
 # Register. You register an *instance* of a Format class.
 format = FfmpegFormat('ffmpeg', 'Many video formats and cameras via ffmpeg.', 
-                      '.avi .mpg .mpeg .mp4', 'I')
+                      '.mov .avi .mpg .mpeg .mp4', 'I')
 formats.add_format(format)
