@@ -12,6 +12,7 @@ import re
 import os
 import sys
 import time
+import struct
 
 import numpy as np
 
@@ -397,3 +398,19 @@ def appdata_dir(appname=None, roaming=False):
     
     # Done
     return path
+    
+def get_platform():
+    # Get platform
+    if sys.platform.startswith('linux'):
+        plat = 'linux%i'
+    elif sys.platform.startswith('win'):
+        plat = 'win%i'
+    elif sys.platform.startswith('darwin'):
+        plat = 'osx%i'
+    else:  # pragma: no cover
+        return None
+    
+    return plat % (struct.calcsize('P') * 8) # 32 or 64 bits
+
+
+

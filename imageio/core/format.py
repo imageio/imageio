@@ -318,24 +318,29 @@ class Format:
             """ 
             return self._get_length()
         
-        def get_data(self, index):
-            """ get_data(index)
+        def get_data(self, index, **kwargs):
+            """ get_data(index, **kwargs)
             
             Read image data from the file, using the image index. The
             returned image has a 'meta' attribute with the meta data.
+            
+            Some formats may support additional keyword arguments. These are
+            listed in the documentation of those formats.
             """
             self._checkClosed()
             self._BaseReaderWriter_last_index = index
-            im, meta = self._get_data(index)
+            im, meta = self._get_data(index, **kwargs)
             return Image(im, meta)  # Image tests im and meta 
         
-        def get_next_data(self):
-            """ get_next_data()
+        def get_next_data(self, **kwargs):
+            """ get_next_data(**kwargs)
             
             Read the next image from the series.
             
+            Some formats may support additional keyword arguments. These are
+            listed in the documentation of those formats.
             """
-            return self.get_data(self._BaseReaderWriter_last_index+1)
+            return self.get_data(self._BaseReaderWriter_last_index+1, **kwargs)
         
         def get_meta_data(self, index=None):
             """ get_meta_data(index=None)

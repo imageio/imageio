@@ -43,7 +43,7 @@ class DummyFormat(Format):
         # kind. Further, the extension might not always be known.
         #
         # The request object has:
-        # request.filename: a representation of the source (only for reporing)
+        # request.filename: a representation of the source (only for reporting)
         # request.firstbytes: the first 256 bytes of the file.
         # request.mode[0]: read or write mode
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
@@ -135,7 +135,7 @@ class DummyFormat(Format):
 
 
 # Register. You register an *instance* of a Format class. Here specify:
-format = DummyFormat('dummy',  # shot name
+format = DummyFormat('dummy',  # short name
                      'An example format that does nothing.',  # one line descr.
                      '',  # list of extensions as a space separated string
                      ''  # modes, characters in iIvV
