@@ -425,7 +425,7 @@ class SimpleDicomReader(object):
         else:
             vr = f.read(2)
             if vr in (b'OB', b'OW', b'SQ', b'UN'):
-                #reserved = f.read(2)
+                reserved = f.read(2)  # noqa
                 vl = self._unpack('I', f.read(4))
             else:
                 vl = self._unpack('H', f.read(2))
@@ -447,7 +447,6 @@ class SimpleDicomReader(object):
         Copyright Darcy Mason.
         """
         fp = self._file
-        #delimiter = SequenceDelimiterTag
         #data_start = fp.tell()
         search_rewind = 3
         bytes_to_find = struct.pack(self._unpackPrefix+'HH', 
@@ -615,7 +614,8 @@ class SimpleDicomReader(object):
             else:
                 shape = self.Rows, self.Columns
         else:
-            raise RuntimeError('DICOM file has no PixelData (maybe a report?)')
+            raise RuntimeError('DICOM file has no SamplesPerPixel '
+                               '(perhaps this is a report?)')
         
         # Try getting sampling between pixels
         if 'PixelSpacing' in self:
