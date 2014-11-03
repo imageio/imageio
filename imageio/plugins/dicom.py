@@ -42,6 +42,12 @@ class DicomFormat(Format):
     also results in a much faster read time. We plan to allow reading all
     tags in the future (by using pydicom).
     
+    This format provides functionality to group images of the same
+    series together, thus extracting volumes (and multiple volumes).
+    Using volread will attempt to yield a volume. If multiple volumes
+    are present, the first one is given. Using mimread will simply yield
+    all images in the given directory (not taking series into account).
+    
     Parameters for reading
     ----------------------
     progress : {True, False, BaseProgressIndicator}
@@ -216,7 +222,7 @@ class DicomFormat(Format):
 formats.add_format(DicomFormat(
     'DICOM', 
     'Digital Imaging and Communications in Medicine', 
-    '.dcm .ct .mri', 'iIvV'))
+    '.dcm .ct .mri', 'iIvV'))  # Often DICOM files have weird or no extensions
 
 
 # Define a dictionary that contains the tags that we would like to know
