@@ -1063,6 +1063,26 @@ class FIBitmap(FIBaseBitmap):
                 new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
                 new._fi_type = self._fi_type
                 return new
+    
+# def convert_to_32bit(self):
+#     """ Convert to 32bit image.
+#     """
+#     with self._fi as lib:
+#         # New bitmap
+#         bitmap = lib.FreeImage_ConvertTo32Bits(self._bitmap)
+#         bitmap = ctypes.c_void_p(bitmap)
+#         
+#         # Check and return
+#         if not bitmap:
+#             raise ValueError('Could not convert bitmap to 32bit "%s": %s' %
+#                                 (self._filename, 
+#                                 self._fi._get_error_message()))
+#         else:
+#             new = FIBitmap(self._fi, self._filename, self._ftype, 
+#                             self._flags)
+#             new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+#             new._fi_type = self._fi_type
+#             return new
 
 
 class FIMultipageBitmap(FIBaseBitmap):
