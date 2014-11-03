@@ -2,10 +2,11 @@
 """
 
 import os
+import sys
 
 import numpy as np
 
-from pytest import raises
+from pytest import raises, skip
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
@@ -340,7 +341,7 @@ def test_ico():
     
     for float in (False, True):
         for crop in (0, 1, 2):
-            for colors in (0, 1, 3, 4):
+            for colors in (1, 3, 4):
                 fname = fnamebase + '%i.%i.%i.ico' % (float, crop, colors)
                 rim = get_ref_im(colors, crop, float)
                 imageio.imsave(fname, rim)
@@ -349,26 +350,31 @@ def test_ico():
                 assert_close(rim * mul, im, 0.1)  # lossless
     
     # Meta data
-    R = imageio.read(fnamebase + '0.0.0.ico')
+    R = imageio.read(fnamebase + '0.0.1.ico')
     assert isinstance(R.get_meta_data(0), dict)
     assert isinstance(R.get_meta_data(None), dict)  # But this print warning
+    R.close()
     writer = imageio.save(fnamebase + 'I.ico')
     writer.set_meta_data({})
     writer.close()
     
     # Parameters. Note that with makealpha, RGBA images are read in incorrectly
-    im = imageio.imread(fnamebase + '0.0.0.ico', makealpha=True)
+    im = imageio.imread(fnamebase + '0.0.1.ico', makealpha=True)
     assert im.ndim == 3 and im.shape[-1] == 4
     
     # Parameter fail
     raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
     raises(TypeError, imageio.imsave, fnamebase + '1.gif', im, notavalidk=True)
+
+    if sys.platform.startswith('win'):  # issue #21
+        skip('Windows has a known issue with multi-icon files')
     
     # Multiple images
     im = get_ref_im(4, 0, 0)
-    ims1 = im, np.column_stack([im, im]), np.row_stack([im, im])
-    imageio.mimsave(fnamebase + 'I.ico', ims1)
-    ims2 = imageio.mimread(fnamebase + 'I.ico')
+    ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
+    ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
+    imageio.mimsave(fnamebase + 'I2.ico', ims)
+    ims2 = imageio.mimread(fnamebase + 'I2.ico')
     for im1, im2 in zip(ims1, ims2):
         assert_close(im1, im2, 0.1)
 
