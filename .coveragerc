@@ -26,3 +26,6 @@ exclude_lines =
     
     # Don't complain about caught import fails
     except ImportError:
+    
+    # In ffmpeg plugin - no video on Travis
+    if self.request._video:

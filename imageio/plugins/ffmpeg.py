@@ -27,7 +27,7 @@ import numpy as np
 
 import imageio
 from imageio import formats
-from imageio.core import Format, get_remote_file
+from imageio.core import Format, get_remote_file, string_types
 
 
 def get_exe():
@@ -40,7 +40,7 @@ def get_exe():
         fname = 'ffmpeg.win32.exe'
     elif sys.platform.startswith('darwin'):
         fname = 'ffmpeg.osx'
-    else:
+    else:  # pragma: no cover
         fname = 'ffmpeg'  # hope for the best
     #
     FFMPEG_EXE = 'ffmpeg'
@@ -56,7 +56,7 @@ elif sys.platform.startswith('linux'):
     CAM_FORMAT ='video4linux2'
 elif sys.platform.startswith('darwin'):
     CAM_FORMAT ='??'
-else:
+else:  # pragma: no cover
     CAM_FORMAT = 'unknown-cam-format'
 
 
@@ -74,15 +74,18 @@ class FfmpegFormat(Format):
     loop : bool
         If True, the video will rewind as soon as a frame is requested
         beyond the last frame. Otherwise, IndexError is raised.
-    size : str
-        The frame size (i.e. resolution) to read the images, e.g. "640x480". 
-        For camera streams, this allows setting the capture resolution. 
-        For normal video data, ffmpeg will rescale the data.
+    size : str | tuple
+        The frame size (i.e. resolution) to read the images, e.g. 
+        (100, 100) or "640x480". For camera streams, this allows setting
+        the capture resolution. For normal video data, ffmpeg will
+        rescale the data.
     pixelformat : str
         The pixel format for the camera to use (e.g. "yuyv422" or
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
         reader are always rgb8.
+    print_info : bool
+        Print information about the video file as reported by ffmpeg.
     
     Parameters for saving
     ---------------------
@@ -93,8 +96,6 @@ class FfmpegFormat(Format):
         widely available mpeg4.
     bitrate : int
         A measure for quality. Default 400000
-    
-    
     """
     
     def _can_read(self, request):
@@ -152,16 +153,28 @@ class FfmpegFormat(Format):
                 except IndexError:
                     raise IndexError('No ffdshow camera at index %i.' % index)
                 return 'video=%s' % name
-            else:
+            else:  # pragma: no cover
                 return '??'
         
-        def _open(self, loop=False, size=None, pixelformat=None):
+        def _open(self, loop=False, size=None, pixelformat=None, 
+                  print_info=False):
             # Get exe
             self._exe = get_exe()
             # Process input args
-            self._arg_loop = loop
-            self._arg_size = size
-            self._arg_pxelformat = pixelformat
+            self._arg_loop = bool(loop)
+            if size is None:
+                self._arg_size = None
+            elif isinstance(size, tuple):
+                self._arg_size = "%ix%i" % size
+            elif isinstance(size, string_types) and 'x' in size:
+                self._arg_size = size
+            else:
+                raise ValueError('FFMPEG size must be tuple of "NxM"')
+            if pixelformat is None:
+                pass
+            elif not isinstance(pixelformat, string_types):
+                raise ValueError('FFMPEG pixelformat must be str')
+            self._arg_pixelformat = pixelformat
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -228,8 +241,8 @@ class FfmpegFormat(Format):
             # Create input args
             if self.request._video:
                 iargs = ['-f', CAM_FORMAT]
-                if self._arg_pxelformat:
-                    iargs.extend(['-pix_fmt', self._arg_pxelformat])
+                if self._arg_pixelformat:
+                    iargs.extend(['-pix_fmt', self._arg_pixelformat])
                 if self._arg_size:
                     iargs.extend(['-s', self._arg_size])
             else:
@@ -238,8 +251,7 @@ class FfmpegFormat(Format):
             oargs = ['-f', 'image2pipe',
                      '-pix_fmt', self._pix_fmt,
                      '-vcodec', 'rawvideo']
-            if 'size' in self.request.kwargs:
-                oargs.extend(['-s', self.request.kwargs['size']])
+            oargs.extend(['-s', self._arg_size] if self._arg_size else [])
             # Create process
             cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -265,8 +277,7 @@ class FfmpegFormat(Format):
                 oargs = ['-f', 'image2pipe',
                         '-pix_fmt', self._pix_fmt,
                         '-vcodec', 'rawvideo']
-                if 'size' in self.request.kwargs:
-                    oargs.extend(['-s', self.request.kwargs['size']])
+                oargs.extend(['-s', self._arg_size] if self._arg_size else [])
                 # Create process
                 cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -279,7 +290,7 @@ class FfmpegFormat(Format):
             """ Terminate the sub process.
             """
             # Check
-            if self._proc is None:
+            if self._proc is None:  # pragma: no cover
                 return  # no process
             if self._proc.poll() is not None:
                 return  # process already dead
@@ -315,7 +326,7 @@ class FfmpegFormat(Format):
                     fmt = 'Could not load meta information\n=== stderr ===\n%s'
                     raise RuntimeError(fmt % err2)
             
-            if self.request.kwargs.get('print_infos', False):
+            if self.request.kwargs.get('print_info', False):
                 # print the whole info text returned by FFMPEG
                 print(infos)
                 print('-'*80)
@@ -323,7 +334,7 @@ class FfmpegFormat(Format):
             if "No such file or directory" in lines[-1]:
                 if self.request._video:
                     raise IOError("Could not open steam %s." % self._filename)
-                else:
+                else:  # pragma: no cover - this is checked by Request
                     raise IOError("%s not found! Wrong path?" % self._filename)
             
             # Get version
@@ -365,16 +376,15 @@ class FfmpegFormat(Format):
             # Init and check
             w, h = self._meta['size']
             framesize = self._depth * w * h
-            if self._proc is None:
-                raise RuntimeError('No active ffmpeg process, maybe the reader is closed?')
+            assert self._proc is not None
             
             try:
                 # Read framesize bytes
-                if self._frame_catcher:
+                if self._frame_catcher:  # pragma: no cover - camera thing
                     s = self._frame_catcher.get_frame()
                 else:
                     s = self._proc.stdout.read(framesize)
-                    while len(s) < framesize:
+                    while len(s) < framesize:  # pragma: no cover
                         need = framesize - len(s)
                         part = self._proc.stdout.read(need)
                         if not part:
@@ -382,7 +392,7 @@ class FfmpegFormat(Format):
                         s += part
                 # Check
                 assert len(s) == framesize
-            except Exception as err:
+            except Exception as err:  # pragma: no cover - broken video
                 if not s:
                     raise IndexError('Stream ended')
                 self._terminate()
@@ -445,12 +455,12 @@ class FfmpegFormat(Format):
             
             # Set size and initialize if not initialized yet
             if self._size is None:
-                self._size = size
-                self._depth = depth
                 map = {1:'gray', 2:'gray8a', 3:'rgb24', 4:'rgba'}
                 self._pix_fmt = map.get(depth, None)
                 if self._pix_fmt is None:
                     raise ValueError('Image data must have 1, 2, 3 or 4 channels.')
+                self._size = size
+                self._depth = depth
                 self._initialize()
             
             # Check size of image
@@ -459,9 +469,7 @@ class FfmpegFormat(Format):
             if depth != self._depth:
                 raise ValueError('All images in a movie should have the same number of channels.')
             
-            # Check status
-            if self._proc is None:
-                raise RuntimeError('No active ffmpeg process, maybe writer is closed?')
+            assert self._proc is not None  # Check status
             
             # Write
             self._proc.stdin.write(im.tostring())
@@ -509,6 +517,13 @@ def cvsecs(*args):
         return 3600*args[0]+60*args[1]+args[2]
 
 
+def limit_lines(lines, N=32):
+    """ When number of lines > 2*N, reduce to N.
+    """
+    if len(lines) > 2*N:
+        lines = [b'... showing only last few lines ...'] + lines[-N:]
+    return lines
+
 
 class FrameCatcher(threading.Thread):
     """ Thread to keep reading the frame data from stdout. This is
@@ -522,13 +537,14 @@ class FrameCatcher(threading.Thread):
         self._file = file
         self._framesize = framesize
         self._frame = None
+        self._bytes_read = 0
         #self._lock = threading.RLock()
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
         self.start()
     
     def get_frame(self):
-        while self._frame is None:
+        while self._frame is None:  # pragma: no cover
             time.sleep(0.001)
         return self._frame
     
@@ -550,12 +566,12 @@ class FrameCatcher(threading.Thread):
                 if not part:
                     break
                 s += part
+                self._bytes_read += len(part)
             # Stop?
             if not s:
                 return
             # Store frame
             self._frame = s
-
 
 
 class StreamCatcher(threading.Thread):
@@ -592,7 +608,7 @@ class StreamCatcher(threading.Thread):
         # Wait?
         if timeout > 0:
             etime = time.time() + timeout
-            while self.isAlive() and time.time() < etime:
+            while self.isAlive() and time.time() < etime:  # pragma: no cover
                 time.sleep(0.025)
         # Return str
         lines = b'\n'.join(self._lines)
@@ -620,11 +636,7 @@ class StreamCatcher(threading.Thread):
                     header = b'\n'.join(self._lines)
                     self._header += header.decode('utf-8', 'ignore')
                     self._lines = []
-            # Check lines
-            N = 32
-            if len(self._lines) > 2*N:
-                self._lines = [b'... showing only last few lines ...'] + self._lines[N:]
-            
+            self._lines = limit_lines(self._lines)
 
 
 # Register. You register an *instance* of a Format class.
