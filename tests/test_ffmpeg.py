@@ -33,7 +33,6 @@ def show():
 def test_select():
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
-    fname2 = fname1[:-4] + '.out.mp4'
     
     F = imageio.formats['ffmpeg']
     assert F.can_read(core.Request(fname1, 'rI'))
@@ -87,13 +86,13 @@ def test_read_and_write():
     im4 = R.get_data(2)  # touch skipping frames
     assert (im1 == im2).all()
     assert (im1 == im3).all()
+    assert not (im1 == im4).all()
     R.close()
 
 
 def test_reader_more():
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
-    fname2 = fname1[:-4] + '.out.mp4'
     fname3 = fname1[:-4] + '.stub.mp4'
     
     # Get meta data
@@ -146,7 +145,7 @@ def test_cvsecs():
 
 
 def test_limit_lines():
-    limit_lines =  imageio.plugins.ffmpeg.limit_lines
+    limit_lines = imageio.plugins.ffmpeg.limit_lines
     lines = ['foo'] * 10
     assert len(limit_lines(lines)) == 10
     lines = ['foo'] * 50
@@ -212,7 +211,7 @@ def test_framecatcher():
 def test_webcam():
     
     try:
-        R = imageio.read('<video2>')
+        imageio.read('<video2>')
     except Exception:
         skip('no web cam')
 
