@@ -296,16 +296,26 @@ class FfmpegFormat(Format):
             if self._proc.poll() is not None:
                 return  # process already dead
             # Close, terminate
-            for std in (self._proc.stdin, self._proc.stdout, 
-                        self._proc.stderr):
-                std.close()
+            self._close_streams()
+            time.sleep(0.02)
             self._proc.terminate()
+            time.sleep(0.02)
+            self._close_streams()
             # Wait for it to close (but do not get stuck)
             etime = time.time() + 1.0
             while time.time() < etime:
                 time.sleep(0.01)
                 if self._proc.poll() is not None:
                     break
+        
+        def _close_streams(self):
+            for std in (self._proc.stdin, 
+                        self._proc.stdout, 
+                        self._proc.stderr):
+                try:
+                    std.close()
+                except Exception:  # pragma: no cover
+                    pass
         
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
