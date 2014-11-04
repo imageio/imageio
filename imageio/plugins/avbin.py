@@ -15,13 +15,14 @@ from imageio import formats
 from imageio.core import Format, get_platform, get_remote_file
 
 
-
 AVBIN_RESULT_ERROR = -1
 AVBIN_RESULT_OK = 0
 AVbinResult = ctypes.c_int
+
+
 def AVbinResult(x):
     if x != AVBIN_RESULT_OK:
-        raise AVbinException
+        raise RuntimeError
     return x
 
 AVBIN_STREAM_TYPE_UNKNOWN = 0
@@ -51,6 +52,7 @@ AVbinStreamP = ctypes.c_void_p
 
 Timestamp = ctypes.c_int64
 
+
 class AVbinFileInfo(ctypes.Structure):
     _fields_ = [
         ('structure_size', ctypes.c_size_t),
@@ -67,6 +69,7 @@ class AVbinFileInfo(ctypes.Structure):
         ('genre', ctypes.c_char * 32),
     ]
 
+
 class _AVbinStreamInfoVideo8(ctypes.Structure):
     _fields_ = [
         ('width', ctypes.c_uint),
@@ -77,6 +80,7 @@ class _AVbinStreamInfoVideo8(ctypes.Structure):
         ('frame_rate_den', ctypes.c_uint),
     ]
 
+
 class _AVbinStreamInfoAudio8(ctypes.Structure):
     _fields_ = [
         ('sample_format', ctypes.c_int),
@@ -85,11 +89,13 @@ class _AVbinStreamInfoAudio8(ctypes.Structure):
         ('channels', ctypes.c_uint),
     ]
 
+
 class _AVbinStreamInfoUnion8(ctypes.Union):
     _fields_ = [
         ('video', _AVbinStreamInfoVideo8),
         ('audio', _AVbinStreamInfoAudio8),
     ]
+
 
 class AVbinStreamInfo8(ctypes.Structure):
     _fields_ = [
@@ -97,6 +103,7 @@ class AVbinStreamInfo8(ctypes.Structure):
         ('type', ctypes.c_int),
         ('u', _AVbinStreamInfoUnion8)
     ]
+
 
 class AVbinPacket(ctypes.Structure):
     _fields_ = [
@@ -107,8 +114,9 @@ class AVbinPacket(ctypes.Structure):
         ('size', ctypes.c_size_t),
     ]
 
-AVbinLogCallback = ctypes.CFUNCTYPE(None,
-    ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p)
+
+AVbinLogCallback = ctypes.CFUNCTYPE(None, ctypes.c_char_p, ctypes.c_int, 
+                                    ctypes.c_char_p)
 
 
 def timestamp_from_avbin(timestamp):
@@ -132,12 +140,11 @@ def get_avbin_lib():
     try:
         lib = LIBRARIES[platform]
     except KeyError:  # pragma: no cover
-        raise RuntimeError('Avbin plugin is not supported on platform %s' % platform)
+        raise RuntimeError('Avbin plugin is not supported on platform %s' % 
+                           platform)
     
-
     return get_remote_file('avbin/' + lib)
     
-
 
 class AvBinFormat(Format):
     """ 
@@ -192,9 +199,7 @@ class AvBinFormat(Format):
                     return True
     
     def _can_save(self, request):
-        return False # AvBin does not support writing videos
-    
-    
+        return False  # AvBin does not support writing videos
     
     def avbinlib(self, libpath=None):
         if self._avbin is not None and libpath is None:
@@ -206,7 +211,6 @@ class AvBinFormat(Format):
             
         self._avbin = avbin = ctypes.cdll.LoadLibrary(libpath)
        
-        
         avbin.avbin_get_version.restype = ctypes.c_int
         avbin.avbin_get_ffmpeg_revision.restype = ctypes.c_int
         avbin.avbin_get_audio_buffer_size.restype = ctypes.c_size_t
@@ -221,12 +225,14 @@ class AvBinFormat(Format):
         avbin.avbin_open_filename.restype = AVbinFileP
         avbin.avbin_open_filename.argtypes = [ctypes.c_char_p]
         avbin.avbin_open_filename_with_format.restype = AVbinFileP
-        avbin.avbin_open_filename_with_format.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+        avbin.avbin_open_filename_with_format.argtypes = [ctypes.c_char_p,
+                                                          ctypes.c_char_p]
         avbin.avbin_close_file.argtypes = [AVbinFileP]
         avbin.avbin_seek_file.argtypes = [AVbinFileP, Timestamp]
-        avbin.avbin_file_info.argtypes = [AVbinFileP, ctypes.POINTER(AVbinFileInfo)]
+        avbin.avbin_file_info.argtypes = [AVbinFileP, 
+                                          ctypes.POINTER(AVbinFileInfo)]
         avbin.avbin_stream_info.argtypes = [AVbinFileP, ctypes.c_int,
-                                        ctypes.POINTER(AVbinStreamInfo8)]
+                                            ctypes.POINTER(AVbinStreamInfo8)]
         
         avbin.avbin_open_stream.restype = ctypes.c_void_p
         avbin.avbin_open_stream.argtypes = [AVbinFileP, ctypes.c_int]
@@ -235,13 +241,12 @@ class AvBinFormat(Format):
         avbin.avbin_read.argtypes = [AVbinFileP, ctypes.POINTER(AVbinPacket)]
         avbin.avbin_read.restype = AVbinResult
         avbin.avbin_decode_audio.restype = ctypes.c_int
-        avbin.avbin_decode_audio.argtypes = [AVbinStreamP, 
-            ctypes.c_void_p, ctypes.c_size_t,
-            ctypes.c_void_p, ctypes.POINTER(ctypes.c_int)]
+        avbin.avbin_decode_audio.argtypes = [AVbinStreamP, ctypes.c_void_p,
+                                             ctypes.c_size_t, ctypes.c_void_p,
+                                             ctypes.POINTER(ctypes.c_int)]
         avbin.avbin_decode_video.restype = ctypes.c_int
-        avbin.avbin_decode_video.argtypes = [AVbinStreamP, 
-            ctypes.c_void_p, ctypes.c_size_t,
-            ctypes.c_void_p]
+        avbin.avbin_decode_video.argtypes = [AVbinStreamP, ctypes.c_void_p,
+                                             ctypes.c_size_t, ctypes.c_void_p]
                 
         avbin.avbin_init()
         avbin.avbin_set_log_level(AVBIN_LOG_QUIET)
@@ -277,14 +282,13 @@ class AvBinFormat(Format):
             if not self._file:
                 raise IOError('Could not open "%s"' % filename)
             
-            
             self._info = AVbinFileInfo()
             self._info.structure_size = ctypes.sizeof(self._info)        
             avbin.avbin_file_info(self._file, ctypes.byref(self._info))
             self._duration = timestamp_from_avbin(self._info.duration)
             
-            # Parse through the available streams in the file and find the video
-            # stream specified by stream
+            # Parse through the available streams in the file and find
+            # the video stream specified by stream
     
             video_stream_counter = 0
             
@@ -297,7 +301,7 @@ class AvBinFormat(Format):
                     continue
                 
                 if video_stream_counter != stream:
-                    video_stream_counter+=1
+                    video_stream_counter += 1
                     continue
                 
                 # We have the n-th (n=stream number specified) video stream
@@ -306,11 +310,11 @@ class AvBinFormat(Format):
                 self._width = info.u.video.width
                 self._height = info.u.video.height
                 
-                
                 self._stream_index = i
                 break
             else:
-                raise IOError('Stream #%d not found in %r' % (stream, filename))
+                raise IOError('Stream #%d not found in %r' % 
+                              (stream, filename))
             
             self._packet = AVbinPacket()
             self._packet.structure_size = ctypes.sizeof(self._packet)
@@ -320,17 +324,14 @@ class AvBinFormat(Format):
         def _close(self):
             avbin = self.format.avbinlib()
             if self._file is not None:
-                avbin_close_file(self._file)
+                avbin.avbin_close_file(self._file)
         
         def _get_length(self):
             # Return the number of images. Can be np.inf
             return np.inf
-
             
         def create_empty_image(self):
-            return np.zeros((self._height, self._width, 3), dtype = np.uint8)
-            
-    
+            return np.zeros((self._height, self._width, 3), dtype=np.uint8)
         
         def _get_data(self, index, out=None):
             avbin = self.format.avbinlib()
@@ -346,34 +347,29 @@ class AvBinFormat(Format):
             assert (out.dtype == np.uint8 and out.flags.c_contiguous and
                     out.shape == (self._height, self._width, 3))
             
-            # Read from the file until the next packet of our video stream is found
+            # Read from the file until the next packet of our video
+            # stream is found
             while True:
-                avbin.avbin_read(self._file,ctypes.byref(self._packet))
+                avbin.avbin_read(self._file, ctypes.byref(self._packet))
                 if self._packet.stream_index == self._stream_index:
                     break
             
             # Decode the image, storing data in the out array
-            avbin.avbin_decode_video(self._stream, self._packet.data, self._packet.size, out.ctypes.data)
+            avbin.avbin_decode_video(self._stream, self._packet.data, 
+                                     self._packet.size, out.ctypes.data)
             
             # Return array and dummy meta data
             return out, {}
             
-        
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None, it
             # should return the global meta data.
             return {}  # This format does not support meta data
     
- 
-
 # Register. You register an *instance* of a Format class. Here specify:
-format = AvBinFormat('AvBin',  # shot name
-                     'Reading videos using AvBin (libav libraries)',  # one line descr.
-                     'mov avi mp4 mpg mpeg',  # list of extensions as a space separated string
+format = AvBinFormat('AvBin',  # short name
+                     'Reading videos using AvBin (libav libraries)',  
+                     'mov avi mp4 mpg mpeg',  # list of extensions
                      'I'  # modes, characters in iIvV
                      )
 formats.add_format(format)
-
-    
-
-

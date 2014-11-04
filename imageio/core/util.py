@@ -398,6 +398,7 @@ def appdata_dir(appname=None, roaming=False):
     
     # Done
     return path
+   
     
 def get_platform():
     # Get platform
@@ -410,7 +411,4 @@ def get_platform():
     else:  # pragma: no cover
         return None
     
-    return plat % (struct.calcsize('P') * 8) # 32 or 64 bits
-
-
-
+    return plat % (struct.calcsize('P') * 8)  # 32 or 64 bits
