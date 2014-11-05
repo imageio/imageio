@@ -733,18 +733,11 @@ def write_swf(filename, images, duration=0.1, repeat=True):
     0 and 255 for integer types, and between 0 and 1 for float types.
 
     """
-
-    # Check Numpy
-    if np is None:
-        raise RuntimeError("Need Numpy to write an SWF file.")
-
+    
     # Check images (make all Numpy)
     images2 = []
-    images = checkImages(images)
-    if not images:
-        raise ValueError("Image list is empty!")
     for im in images:
-        images2.append(im)
+        images2.append(checkImages(im))
 
     # Init
     taglist = [FileAttributesTag(), SetBackgroundTag(0, 0, 0)]
@@ -796,7 +789,7 @@ def write_swf(filename, images, duration=0.1, repeat=True):
     #print("Writing SWF took %1.2f and %1.2f seconds" % (t1-t0, t2-t1) )
 
 
-def _read_pixels(bb, i, tagType, L1):
+def read_pixels(bb, i, tagType, L1):
     """ With pf's seed after the recordheader, reads the pixeldata.
     """
 
@@ -906,7 +899,7 @@ def read_swf(filename):
 
             # Read image if we can
             if T in [20, 36]:
-                im = _read_pixels(bb, i+6, T, L1)
+                im = read_pixels(bb, i+6, T, L1)
                 if im is not None:
                     images.append(im)
             elif T in [6, 21, 35, 90]:
