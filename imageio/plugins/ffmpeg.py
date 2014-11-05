@@ -68,11 +68,14 @@ class FfmpegFormat(Format):
     where the "0" can be replaced with any index of cameras known to
     the system.
     
+    Note that for reading regular video files, the avbin plugin is more
+    efficient.
+    
     Parameters for reading
     ----------------------
     loop : bool
         If True, the video will rewind as soon as a frame is requested
-        beyond the last frame. Otherwise, IndexError is raised.
+        beyond the last frame. Otherwise, IndexError is raised. Default False.
     size : str | tuple
         The frame size (i.e. resolution) to read the images, e.g. 
         (100, 100) or "640x480". For camera streams, this allows setting
@@ -192,7 +195,8 @@ class FfmpegFormat(Format):
             # Initialize parameters
             self._proc = None
             self._pos = -1
-            self._meta = {'nframes': float('inf'), 'nframes': float('inf')}
+            self._meta = {'plugin': 'ffmpeg', 
+                          'nframes': float('inf'), 'nframes': float('inf')}
             self._lastread = None
             # Start ffmpeg subprocess and get meta information
             self._initialize()
@@ -207,7 +211,7 @@ class FfmpegFormat(Format):
                                                    framesize)
         
         def _close(self):
-            self._terminate()
+            self._terminate(0.05)  # Short timeout
             self._proc = None
         
         def _get_length(self):
@@ -226,6 +230,10 @@ class FfmpegFormat(Format):
             
             if index == self._pos:
                 return self._lastread, {}
+            elif index < 0:
+                raise IndexError('Frame index must be > 0') 
+            elif index >= self._meta['nframes']:
+                raise IndexError('Reached end of video')
             else:
                 if (index < self._pos) or (index > self._pos+100):
                     self._reinitialize(index)
@@ -287,7 +295,7 @@ class FfmpegFormat(Format):
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
         
-        def _terminate(self):
+        def _terminate(self, timeout=1.0):
             """ Terminate the sub process.
             """
             # Check
@@ -295,27 +303,23 @@ class FfmpegFormat(Format):
                 return  # no process
             if self._proc.poll() is not None:
                 return  # process already dead
-            # Close, terminate
-            self._close_streams()
-            time.sleep(0.02)
+            # Terminate process
             self._proc.terminate()
-            time.sleep(0.02)
-            self._close_streams()
             # Wait for it to close (but do not get stuck)
-            etime = time.time() + 1.0
+            etime = time.time() + timeout
             while time.time() < etime:
                 time.sleep(0.01)
                 if self._proc.poll() is not None:
                     break
         
-        def _close_streams(self):
-            for std in (self._proc.stdin, 
-                        self._proc.stdout, 
-                        self._proc.stderr):
-                try:
-                    std.close()
-                except Exception:  # pragma: no cover
-                    pass
+#         def _close_streams(self):
+#             for std in (self._proc.stdin, 
+#                         self._proc.stdout, 
+#                         self._proc.stderr):
+#                 try:
+#                     std.close()
+#                 except Exception:  # pragma: no cover
+#                     pass
         
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
@@ -336,7 +340,7 @@ class FfmpegFormat(Format):
                 else:
                     err2 = self._stderr_catcher.get_text(0.2)
                     fmt = 'Could not load meta information\n=== stderr ===\n%s'
-                    raise RuntimeError(fmt % err2)
+                    raise IOError(fmt % err2)
             
             if self.request.kwargs.get('print_info', False):
                 # print the whole info text returned by FFMPEG
@@ -408,9 +412,7 @@ class FfmpegFormat(Format):
                         s += part
                 # Check
                 assert len(s) == framesize
-            except Exception as err:  # pragma: no cover - broken video
-                if not s:
-                    raise IndexError('Stream ended')
+            except Exception as err:
                 self._terminate()
                 err1 = str(err)
                 err2 = self._stderr_catcher.get_text(0.4)
@@ -639,7 +641,7 @@ class StreamCatcher(threading.Thread):
             # Read one line. Detect when closed, and exit
             try:
                 line = self._file.read(20)
-            except ValueError:
+            except ValueError:  # pragma: no cover
                 break
             if not line:
                 break

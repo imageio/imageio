@@ -3,6 +3,9 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin for reading videos via AvBin
+
+Would be nice if we could capture webcam with this, but unfortunately,
+avbin does not currently support this.
 """
 
 from __future__ import absolute_import, print_function, division
@@ -17,12 +20,12 @@ from imageio.core import Format, get_platform, get_remote_file
 
 AVBIN_RESULT_ERROR = -1
 AVBIN_RESULT_OK = 0
-AVbinResult = ctypes.c_int
+#AVbinResult = ctypes.c_int
 
 
 def AVbinResult(x):
     if x != AVBIN_RESULT_OK:
-        raise RuntimeError
+        raise RuntimeError('AVBin returned error code %i' % x)
     return x
 
 AVBIN_STREAM_TYPE_UNKNOWN = 0
@@ -148,28 +151,37 @@ def get_avbin_lib():
 
 class AvBinFormat(Format):
     """ 
-    The AvBinFormat uses the AvBin library (based on libav) to read video files
+    The AvBinFormat uses the AvBin library (based on libav) to read
+    video files.
     
+    This plugin is more efficient than the ffmpeg plugin, because it
+    uses ctypes (rather than a pipe like the ffmpeg plugin does).
+    Further, it supports reading images into a given numpy array.
+    
+    The limitations of this plugin are that seeking, writing and camera
+    feeds are not supported. See the ffmpeg format for these features.
     
     Parameters for reading
     ----------------------
+    loop : bool
+        If True, the video will rewind as soon as a frame is requested
+        beyond the last frame. Otherwise, IndexError is raised. Default False.
     stream : int
-        specifies which video stream to read
-    videoformat : str
-        specifies the video format, or None (default) for auto-detect
-        
+        Specifies which video stream to read. Default 0.
+    videoformat : str | None
+        Specifies the video format (e.g. 'avi', or 'mp4'). If this is None
+        (default) the format is auto-detected.
+    
     Parameters for get_data
-    ----------------------
+    -----------------------
     out : np.ndarray
         destination for the data retrieved. This can be used to save 
         time-consuming memory allocations when reading multiple image
         sequntially. The shape of out must be (width, height, 3), the
-        dtype must be np.uint8 and out must be C-contiguous.
+        dtype must be np.uint8 and it must be C-contiguous.
         
-        Use the create_empty_image() object of the reader object
+        Use the create_empty_image() method of the reader object
         to create an array that is suitable for get_data.
-        
-        
     """
     
     def __init__(self, *args, **kwargs):
@@ -257,35 +269,46 @@ class AvBinFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, stream=0, videoformat=None):
-            # Specify kwargs here. Optionally, the user-specified kwargs
-            # can also be accessed via the request.kwargs object.
-            #
-            # The request object provides two ways to get access to the
-            # data. Use just one:
-            #  - Use request.get_file() for a file object (preferred)
-            #  - Use request.get_local_filename() for a file on the system
+        def _open(self, loop=False, stream=0, videoformat=None):
+            
+            # Init args
+            self._arg_loop = bool(loop)
+            self._arg_stream = int(stream)
+            self._arg_videoformat = videoformat
+            
+            # Init other variables
+            self._filename = self.request.get_local_filename()
+            self._file = None
+            self._meta = {'plugin': 'avbin'}
+            
+            self._init_video()
+        
+        def _init_video(self):
             
             avbin = self.format.avbinlib()
+            filename_bytes = self._filename.encode(sys.getfilesystemencoding())
             
-            filename = self.request.get_local_filename()
-            filename_bytes = filename.encode(
-                sys.getfilesystemencoding())
-            
-            if videoformat is not None:
+            # Open file
+            if self._arg_videoformat is not None:
                 self._file = avbin.avbin_open_filename_with_format(
-                    filename_bytes, videoformat.encode('ascii'))
-                
+                    filename_bytes, self._arg_videoformat.encode('ascii'))
             else:
                 self._file = avbin.avbin_open_filename(filename_bytes)
-                
             if not self._file:
-                raise IOError('Could not open "%s"' % filename)
+                raise IOError('Could not open "%s"' % self._filename)
             
+            # Get info
             self._info = AVbinFileInfo()
             self._info.structure_size = ctypes.sizeof(self._info)        
             avbin.avbin_file_info(self._file, ctypes.byref(self._info))
-            self._duration = timestamp_from_avbin(self._info.duration)
+            
+            # Store some info in meta dict
+            self._meta['avbin_version'] = str(avbin.avbin_get_version())
+            self._meta['title'] = self._info.title.decode('utf-8')
+            self._meta['author'] = self._info.author.decode('utf-8')
+            # The reported duration is different from what we get from ffmpeg,
+            # and using it as is will yielf a wrong nframes. We correct below
+            self._meta['duration'] = timestamp_from_avbin(self._info.duration)
             
             # Parse through the available streams in the file and find
             # the video stream specified by stream
@@ -300,21 +323,31 @@ class AvBinFormat(Format):
                 if info.type != AVBIN_STREAM_TYPE_VIDEO:
                     continue
                 
-                if video_stream_counter != stream:
+                if video_stream_counter != self._arg_stream:
                     video_stream_counter += 1
                     continue
                 
                 # We have the n-th (n=stream number specified) video stream
                 self._stream = avbin.avbin_open_stream(self._file, i)
-    
+                
+                # Store info specific to this stream
+                self._stream_info = info
                 self._width = info.u.video.width
                 self._height = info.u.video.height
+                # Store meta info
+                self._meta['size'] = self._width, self._height
+                self._meta['source_size'] = self._width, self._height
+                self._meta['fps'] = (float(info.u.video.frame_rate_num) / 
+                                     float(info.u.video.frame_rate_den))
+                self._meta['duration'] -= 1.0 / self._meta['fps']  # correct
+                self._meta['nframes'] = int(self._meta['duration'] * 
+                                            self._meta['fps'])
                 
                 self._stream_index = i
                 break
             else:
                 raise IOError('Stream #%d not found in %r' % 
-                              (stream, filename))
+                              (self._arg_stream, self._filename))
             
             self._packet = AVbinPacket()
             self._packet.structure_size = ctypes.sizeof(self._packet)
@@ -322,13 +355,16 @@ class AvBinFormat(Format):
             self._framecounter = 0
             
         def _close(self):
-            avbin = self.format.avbinlib()
             if self._file is not None:
+                avbin = self.format.avbinlib()
                 avbin.avbin_close_file(self._file)
+                self._file = None
         
         def _get_length(self):
             # Return the number of images. Can be np.inf
-            return np.inf
+            # Note that nframes is an estimate that can be a few frames off
+            # for very large video files
+            return self._meta['nframes']
             
         def create_empty_image(self):
             return np.zeros((self._height, self._width, 3), dtype=np.uint8)
@@ -336,9 +372,23 @@ class AvBinFormat(Format):
         def _get_data(self, index, out=None):
             avbin = self.format.avbinlib()
             
-            # Return the data and meta data for the given index
-            if index != self._framecounter:
+            # Modulo index (for looping)
+            if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
+                if self._arg_loop:
+                    index = index % self._meta['nframes']
+            
+            # Check index
+            if index < 0:
+                raise IndexError('Frame index must be > 0') 
+            elif index >= self._meta['nframes']:
+                raise IndexError('Reached end of video')
+            elif index != self._framecounter:
+                if index == 0:  # Rewind
+                    self._close()
+                    self._init_video()
+                    return self._get_data(0)
                 raise IndexError('Avbin format cannot seek')
+            
             self._framecounter += 1            
             
             if out is None:
@@ -362,10 +412,9 @@ class AvBinFormat(Format):
             return out, {}
             
         def _get_meta_data(self, index):
-            # Get the meta data for the given index. If index is None, it
-            # should return the global meta data.
-            return {}  # This format does not support meta data
-    
+            return self._meta
+
+
 # Register. You register an *instance* of a Format class. Here specify:
 format = AvBinFormat('AvBin',  # short name
                      'Reading videos using AvBin (libav libraries)',  
