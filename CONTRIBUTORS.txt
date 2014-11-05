@@ -1,0 +1,11 @@
+
+- Almar Klein
+  Plugin system
+  Most plugins so far
+
+- Rob Reilink
+  AvBin plugin
+
+- Zach Pincus and others from the scikit-image team
+  Initial version of freeimage plugin
+  Initial code for findlib and lib downloading
