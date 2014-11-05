@@ -64,7 +64,7 @@ you have multiple cameras attached.
     import visvis as vv
     
     reader = imageio.read('<video0>')
-    t = vv.imshow(reader.get_next_data())
+    t = vv.imshow(reader.get_next_data(), clim=(0, 255))
     for im in reader:
         vv.processEvents()
         t.SetData(im)
