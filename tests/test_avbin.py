@@ -25,9 +25,7 @@ def test_read():
     for i in range(10):
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
-        if i > 5:
-            # Weird, avbin seems to need some time to warm up?
-            assert im.mean() > 0
+        assert im.mean() > 100 and im.mean() < 115
     
     # We can rewind
     reader.get_next_data()
@@ -84,7 +82,8 @@ def test_read_format():
     reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 
                           videoformat='mp4')
     for i in range(10):
-        reader.get_next_data()
+        mean = reader.get_next_data().mean()
+        assert mean > 100 and mean < 115
  
  
 def test_stream():
