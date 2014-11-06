@@ -25,6 +25,7 @@ def test_read():
     for i in range(10):
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
+        # todo: fix this
         #assert im.mean() > 100 and im.mean() < 115  KNOWN FAIL
     
     # We can rewind
@@ -74,8 +75,16 @@ def test_reader_more():
     R.close()
     
     # Test size when skipping empty frames, are there *any* valid frames?
-    ims = imageio.mimread(get_remote_file('images/realshort.mp4'), 
-                          'avbin', skipempty=True)
+    # todo: use mimread once 1) len(R) == inf, or 2) len(R) is correct
+    R = imageio.read(get_remote_file('images/realshort.mp4'), 
+                     'avbin', skipempty=True)
+    ims = []
+    with R:
+        try: 
+            while True:
+                ims.append(R.get_next_data())
+        except IndexError:
+            pass
     assert len(ims) > 20  # todo: should be 35/36 but with skipempty ...
     
     # Read invalid
