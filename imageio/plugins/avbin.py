@@ -411,8 +411,12 @@ class AvBinFormat(Format):
                                                   out.ctypes.data)
                 
                 # Check for success. If not, continue reading the file stream
-                if result != -1:
+                # AK: disabled for now, because this will make the file
+                # shorter; you're just dropping frames! We need to think
+                # of a better solution ....
+                if True:  #result != -1:
                     break
+
             
             # Return array and dummy meta data
             return out, dict(timestamp=self._packet.timestamp)

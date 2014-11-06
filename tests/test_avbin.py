@@ -22,17 +22,18 @@ def test_read():
     assert 'fps' in reader.get_meta_data()
     assert not reader.format.can_save(core.Request('test.mp4', 'wI'))
     
-    for i in range(10):
+    for i in range(20):
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
-        assert im.mean() > 100 and im.mean() < 115
+        if i > 10:
+            assert im.mean() > 100 and im.mean() < 115
     
     # We can rewind
-    reader.get_next_data()
+    reader.get_data(0)
     
     # But not seek
     with raises(IndexError):    
-        reader.get_data(1)
+        reader.get_data(4)
 
 
 def test_reader_more():
@@ -82,8 +83,8 @@ def test_read_format():
     reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 
                           videoformat='mp4')
     for i in range(10):
-        mean = reader.get_next_data().mean()
-        assert mean > 100 and mean < 115
+        im = reader.get_next_data()
+        assert im.shape == (720, 1280, 3)
  
  
 def test_stream():
