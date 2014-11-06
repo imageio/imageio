@@ -373,7 +373,12 @@ class Format:
             self._checkClosed()
             i, n = 0, self.get_length()
             while i < n:
-                im, meta = self._get_data(i)
+                try:
+                    im, meta = self._get_data(i)
+                except IndexError:
+                    if n == float('inf'):
+                        return
+                    raise
                 yield Image(im, meta)
                 i += 1
         
