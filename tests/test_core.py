@@ -29,20 +29,28 @@ class MyFormat(Format):
     
     class Reader(Format.Reader):
         _failmode = False
+        _stream_mode = False
         
         def _open(self):
-            pass
+            self._read_frames = 0
         
         def _close(self):
             self.format._closed.append(id(self))
         
         def _get_length(self):
+            if self._stream_mode:
+                return np.inf
             return 3
         
         def _get_data(self, index):
-            if self._failmode:
+            if self._failmode == 2:
+                raise IndexError()
+            elif self._failmode:
                 return 'not an array', {}
+            elif self._stream_mode and self._read_frames >= 5:
+                raise IndexError()  # Mark end of stream
             else:
+                self._read_frames += 1
                 return np.ones((10, 10)) * index, self._get_meta_data(index)
         
         def _get_meta_data(self, index):
@@ -161,9 +169,19 @@ def test_reader_and_writer():
     assert R.get_next_data()[0, 0] == 1
     assert R.get_next_data()[0, 0] == 2
     # Fail
-    R._failmode = True
+    R._failmode = 1
     raises(ValueError, R.get_data, 0)
     raises(ValueError, R.get_meta_data, 0)
+    R._failmode = 2
+    with raises(IndexError):
+        [im for im in R]
+    
+    # Test streaming reader
+    R = F.read(Request(filename1, 'ri'))
+    R._stream_mode = True
+    assert R.get_length() == np.inf
+    ims = [im for im in R]
+    assert len(ims) == 5
     
     # Test using writer
     im1 = np.zeros((10, 10))
