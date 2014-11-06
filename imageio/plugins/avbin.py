@@ -269,12 +269,14 @@ class AvBinFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, loop=False, stream=0, videoformat=None):
+        def _open(self, loop=False, stream=0, videoformat=None, 
+                  skipempty=False):
             
             # Init args
             self._arg_loop = bool(loop)
             self._arg_stream = int(stream)
             self._arg_videoformat = videoformat
+            self._arg_skipempty = bool(skipempty)
             
             # Init other variables
             self._filename = self.request.get_local_filename()
@@ -400,7 +402,10 @@ class AvBinFormat(Format):
             # Read from the file until the next packet of our video
             # stream is found
             while True:
-                avbin.avbin_read(self._file, ctypes.byref(self._packet))
+                try:
+                    avbin.avbin_read(self._file, ctypes.byref(self._packet))
+                except RuntimeError:  # todo: I hope we can fix this ...
+                    raise IndexError('Reached end of video too soon')
                 if self._packet.stream_index != self._stream_index:
                     continue
 
@@ -413,10 +418,9 @@ class AvBinFormat(Format):
                 # Check for success. If not, continue reading the file stream
                 # AK: disabled for now, because this will make the file
                 # shorter; you're just dropping frames! We need to think
-                # of a better solution ....
-                if True:  #result != -1:
+                # of a better solution ...
+                if (not self._arg_skipempty) or result != -1:
                     break
-
             
             # Return array and dummy meta data
             return out, dict(timestamp=self._packet.timestamp)
