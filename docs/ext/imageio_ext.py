@@ -124,21 +124,24 @@ def create_plugin_docs():
     # Write
     _write('plugins.rst', text)
 
+format_doc_text = """
+This page lists all formats currently supported by imageio. Each format
+can support extra keyword arguments for reading and writing, which can be 
+specified in the call to ``read()``, ``save()``, ``imread()``,
+``imsave()`` etc. Further, formats are free to provide additional
+methods on their Reader and Writer objects. These parameters and extra
+methods are specified in the documentation for each format.
+"""
 
 def create_format_docs():
     """ Create documentation for the formats.
     """
     
-    generaltext = """.. note::
-        The parameters listed below can be specifief as keyword arguments in
-        the ``read()``, ``imread()``, ``mimread()`` etc. functions.
-        """
-    
     # Build main plugin dir
     title = "Imageio formats"
-    text = '%s\n%s\n\n' % (title, '=' * len(title))
+    text = '%s\n%s\n%s\n\n' % ('=' * len(title), title, '=' * len(title))
     
-    text += 'This page lists all formats currently supported by imageio:'
+    text += format_doc_text
     
     # Get bullet list of all formats
     ss = ['\n']
@@ -171,7 +174,6 @@ def create_format_docs():
         text += '.. _%s:\n\n' % format.name
         text += '%s\n%s\n\n' % (title, '='*len(title))
         #
-        text += generaltext + '\n\n'
         text += 'Extensions: %s\n\n' % ext
         docs = '    ' + format.__doc__.lstrip()
         docs = '\n'.join([x[4:].rstrip() for x in docs.splitlines()])

@@ -18,18 +18,6 @@ from imageio.core import get_remote_file
 test_dir = get_test_dir()
 
 
-def show():
-    reader = imageio.read('<video0>')
-    
-    import visvis as vv
-    im = reader.get_next_data()
-    t = vv.imshow(im)
-    
-    while True:
-        t.SetData(reader.get_next_data())
-        vv.processEvents()
-
-
 def test_select():
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
@@ -56,6 +44,7 @@ def test_read_and_write():
             im = R.get_next_data()
             ims1.append(im)
             assert im.shape == (720, 1280, 3)
+            assert im.mean() > 0
         assert im.sum() > 0
     
         # Seek
@@ -75,19 +64,6 @@ def test_read_and_write():
     for im1, im2 in zip(ims1, ims2):
         diff = np.abs(im1.astype(np.float32) - im2.astype(np.float32))
         assert diff.mean() < 2.0
-    
-    # Check loop
-    R = imageio.read(fname2, 'ffmpeg', loop=True)
-    im1 = R.get_next_data()
-    for i in range(1, len(R)):
-        R.get_next_data()
-    im2 = R.get_next_data()
-    im3 = R.get_data(0)
-    im4 = R.get_data(2)  # touch skipping frames
-    assert (im1 == im2).all()
-    assert (im1 == im3).all()
-    assert not (im1 == im4).all()
-    R.close()
 
 
 def test_reader_more():
@@ -98,6 +74,7 @@ def test_reader_more():
     # Get meta data
     R = imageio.read(fname1, 'ffmpeg', loop=True)
     meta = R.get_meta_data()
+    assert len(R) == 280
     assert isinstance(meta, dict)
     assert 'fps' in meta
     R.close()
@@ -110,9 +87,41 @@ def test_reader_more():
     raises(ValueError, imageio.read, fname1, 'ffmpeg', size=20)
     raises(ValueError, imageio.read, fname1, 'ffmpeg', pixelformat=20)
     
+    # Read all frames and test length
+    R = imageio.read(get_remote_file('images/realshort.mp4'), 'ffmpeg')
+    count = 0
+    while True:
+        try:
+            R.get_next_data()
+        except IndexError:
+            break
+        else:
+            count += 1
+    assert count == len(R)
+    assert count in (35, 36)  # allow one frame off size that we know
+    # Test index error -1
+    raises(IndexError, R.get_data, -1)
+    # Now read beyond (simulate broken file)
+    with raises(RuntimeError):
+        R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
+        R._read_frame()
+    
+    # Test  loop
+    R = imageio.read(get_remote_file('images/realshort.mp4'), 'ffmpeg', loop=1)
+    im1 = R.get_next_data()
+    for i in range(1, len(R)):
+        R.get_next_data()
+    im2 = R.get_next_data()
+    im3 = R.get_data(0)
+    im4 = R.get_data(2)  # touch skipping frames
+    assert (im1 == im2).all()
+    assert (im1 == im3).all()
+    assert not (im1 == im4).all()
+    R.close()
+    
     # Read invalid
     open(fname3, 'wb')
-    raises(RuntimeError, imageio.read, fname3, 'ffmpeg')
+    raises(IOError, imageio.read, fname3, 'ffmpeg')
     
     # Read printing info
     imageio.read(fname1, 'ffmpeg', print_info=True)
@@ -214,6 +223,21 @@ def test_webcam():
         imageio.read('<video2>')
     except Exception:
         skip('no web cam')
+
+
+def show_in_visvis():
+    reader = imageio.read('cockatoo.mp4', 'ffmpeg')
+    #reader = imageio.read('<video0>')
+    
+    import visvis as vv
+    im = reader.get_next_data()
+    f = vv.clf()
+    f.title = reader.format.name
+    t = vv.imshow(im, clim=(0, 255))
+    
+    while not f._destroyed:
+        t.SetData(reader.get_next_data())
+        vv.processEvents()
 
 
 if __name__ == '__main__':
