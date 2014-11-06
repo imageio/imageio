@@ -61,14 +61,18 @@ def get_remote_file(fname, directory=None, force_download=False):
     # let's go get the file
     if os.getenv('CONTINUOUS_INTEGRATION', False):  # pragma: no cover
         # On Travis, we retry a few times ...
-        for i in range(3):
+        for i in range(2):
             try:
                 _fetch_file(url, fname)
+                return fname
             except IOError:
                 time.sleep(0.5)
+        else:
+            _fetch_file(url, fname)
+            return fname
     else:
         _fetch_file(url, fname)
-    return fname
+        return fname
 
 
 def _fetch_file(url, file_name, print_destination=True):

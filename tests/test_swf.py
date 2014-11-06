@@ -58,7 +58,7 @@ def test_reading_saving():
     
     # setting meta data is ignored
     W = imageio.save(fname2)
-    W.set_meta_data({'foo', 3})
+    W.set_meta_data({'foo': 3})
     W.close()
     
     # Write and re-read, now without loop, and with html page
@@ -112,11 +112,11 @@ def test_reading_saving():
 
 
 def test_read_from_url():
-   burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
-   url = burl + 'images/stent.swf'
-   
-   ims = imageio.mimread(url)
-   assert len(ims) == 10
+    burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
+    url = burl + 'images/stent.swf'
+    
+    ims = imageio.mimread(url)
+    assert len(ims) == 10
 
 
 def test_invalid():

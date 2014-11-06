@@ -199,10 +199,9 @@ class SWFFormat(Format):
                 isimage = True
                 #im = _swf.read_pixels(bb, 0, T, L1)  # can be None
             elif T in [6, 21, 35, 90]:  # pragma: no cover
-                im = None
                 print('Ignoring JPEG image: cannot read JPEG.')
             else:
-                im = None  # Not an image tag
+                pass  # Not an image tag
             
             # Done.  Return image. Can be None
             #return im
