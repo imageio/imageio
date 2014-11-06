@@ -25,7 +25,8 @@ def test_read():
     reader.format.can_save(core.Request('test.mp4', 'wI'))
     
     for i in range(10):
-        reader.get_next_data()
+        mean = reader.get_next_data().mean()
+        assert mean > 100 and mean < 115
     
     with raises(IndexError):    
         reader.get_data(0)
@@ -35,7 +36,8 @@ def test_read_format():
     reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 
                           videoformat='mp4')
     for i in range(10):
-        reader.get_next_data()
+        mean = reader.get_next_data().mean()
+        assert mean > 100 and mean < 115
  
  
 def test_stream():
