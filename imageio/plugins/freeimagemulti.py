@@ -64,7 +64,6 @@ class FreeimageMulti(FreeimageFormat):
             self._bm = fi.create_multipage_bitmap(self.request.filename, 
                                                   self.format.fif, flags)
             self._bm.save_to_filename(self.request.get_local_filename())
-            self._bm0 = None
         
         def _close(self):
             # Close bitmap
@@ -265,7 +264,6 @@ class GifFormat(FreeimageMulti):
             # Quantize it if its RGB 
             if im.ndim == 3 and im.shape[-1] == 3:
                 sub2 = sub1.quantize(self._quantizer, self._palettesize)
-            
             # If single image, omit animation data
             if self.request.mode[1] == 'i':
                 del meta['ANIMATION']

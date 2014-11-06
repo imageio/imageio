@@ -42,7 +42,7 @@ def run_tests_if_main(show_coverage=False):
     _clear_imageio()
     _enable_faulthandler()
     pytest.main('-v -x --color=yes --cov imageio '
-                '--cov-config .coveragerc --cov-report html %s' % fname)
+                '--cov-config .coveragerc --cov-report html %s' % repr(fname))
     if show_coverage:
         import webbrowser
         fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
@@ -58,14 +58,22 @@ def get_test_dir():
         # Define dir
         from imageio.core import appdata_dir
         _the_test_dir = os.path.join(appdata_dir('imageio'), 'testdir')
-        # Clear it now
-        if os.path.isdir(_the_test_dir):
-            shutil.rmtree(_the_test_dir)
+        # Clear and create it now
+        clean_test_dir(True)
         os.makedirs(_the_test_dir)
         # And later
-        atexit.register(lambda x=None: shutil.rmtree(_the_test_dir))
+        atexit.register(clean_test_dir)
     return _the_test_dir
 
+
+def clean_test_dir(strict=False):
+    if os.path.isdir(_the_test_dir):
+        try:
+            shutil.rmtree(_the_test_dir)
+        except Exception:
+            if strict:
+                raise
+        
 
 ## Functions to use from make
 
