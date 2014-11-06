@@ -52,47 +52,6 @@ PY3 = sys.version_info >= (3, )
 # todo: use FreeImage to support reading JPEG images from SWF?
 
 
-def checkImages(images):
-    """ checkImages(images)
-    Check numpy images and correct intensity range etc.
-    The same for all movie formats.
-    """
-    # Init results
-    images2 = []
-
-    for im in images:
-        if isinstance(im, np.ndarray):
-            # Check and convert dtype
-            if im.dtype == np.uint8:
-                images2.append(im) # Ok
-            elif im.dtype in [np.float32, np.float64]:
-                theMax = im.max()
-                if theMax > 128 and theMax < 300:
-                    pass # assume 0:255
-                else:
-                    im = im.copy()
-                    im[im < 0] = 0
-                    im[im > 1] = 1
-                    im *= 255
-                images2.append(im.astype(np.uint8))
-            else:
-                im = im.astype(np.uint8)
-                images2.append(im)
-            # Check size
-            if im.ndim == 2:
-                pass # ok
-            elif im.ndim == 3:
-                if im.shape[2] not in [3, 4]:
-                    raise ValueError('This array can not represent an image.')
-            else:
-                raise ValueError('This array can not represent an image.')
-        else:
-            raise ValueError('Invalid image type: ' + str(type(im)))
-
-    # Done
-    return images2
-
-
 ## Base functions and classes
 
 
@@ -132,9 +91,9 @@ class BitArray:
         # check input
         if isinstance(bits, BitArray):
             bits = str(bits)
-        if isinstance(bits, int):
+        if isinstance(bits, int):  # pragma: no cover - we dont use it
             bits = str(bits)
-        if not isinstance(bits, string_types):
+        if not isinstance(bits, string_types):  # pragma: no cover
             raise ValueError("Append bits as strings or integers!")
 
         # add bits
@@ -180,7 +139,7 @@ if PY3:
 
     def int2uint8(i):
         return int(i).to_bytes(1, 'little')
-else:
+else:  # pragma: no cover
     def int2uint32(i):
         number = int(i)
         n1, n2, n3, n4 = 1, 256, 256 * 256, 256 * 256 * 256  # noqa
@@ -216,7 +175,7 @@ def int2bits(i, n=None):
 
     # justify
     if n is not None:
-        if len(bb) > n:
+        if len(bb) > n:  # pragma: no cover
             raise ValueError("int2bits fail: len larger than padlength.")
         bb = str(bb).rjust(n, '0')
 
@@ -295,7 +254,7 @@ def signedint2bits(i, n=None):
     # justify
     bb = '0' + str(bb) # always need the sign bit in front
     if n is not None:
-        if len(bb) > n:
+        if len(bb) > n:  # pragma: no cover
             raise ValueError("signedint2bits fail: len larger than padlength.")
         bb = bb.rjust(n, '0')
 
@@ -338,7 +297,7 @@ def floats2bits(arr):
     """
     bits = int2bits(31, 5) # 32 does not fit in 5 bits!
     for i in arr:
-        if i < 0:
+        if i < 0:  # pragma: no cover
             raise ValueError("Dit not implement negative floats!")
         i1 = int(i)
         i2 = i - i1
@@ -357,7 +316,7 @@ class Tag:
 
     def process_tag(self):
         """ Implement this to create the tag. """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def get_tag(self):
         """ Calls processTag and attaches the header. """
@@ -453,7 +412,7 @@ class SetBackgroundTag(ControlTag):
         bb = binary_type()
         for i in range(3):
             clr = self.rgb[i]
-            if isinstance(clr, float):
+            if isinstance(clr, float):  # pragma: no cover - not used
                 clr = clr * 255
             bb += int2uint8(clr)
         self.bytes = bb
@@ -465,7 +424,7 @@ class DoActionTag(Tag):
         self.tagtype = 12
         self.actions = [action]
 
-    def Append(self, action):
+    def append(self, action):  # pragma: no cover - not used
         self.actions.append(action)
 
     def process_tag(self):
@@ -475,9 +434,9 @@ class DoActionTag(Tag):
             action = action.lower()
             if action == 'stop':
                 bb += '\x07'.encode('ascii')
-            elif action == 'play':
+            elif action == 'play':  # pragma: no cover - not used
                 bb += '\x06'.encode('ascii')
-            else:
+            else:  # pragma: no cover
                 print("warning, unkown action: %s" % action)
 
         bb += int2uint8(0)
@@ -514,14 +473,14 @@ class BitmapTag(DefinitionTag):
                     tmp[:, :, i + 1] = im[:, :, i]
                 if im.shape[2] == 4:
                     tmp[:, :, 0] = im[:, :, 3]  # swap channel where alpha is
-            else:
+            else:  # pragma: no cover
                 raise ValueError("Invalid shape to be an image.")
 
         elif len(im.shape) == 2:
             tmp = np.ones((im.shape[0], im.shape[1], 4), dtype=np.uint8)*255
             for i in range(3):
                 tmp[:, :, i + 1] = im[:, :]
-        else:
+        else:  # pragma: no cover
             raise ValueError("Invalid shape to be an image.")
 
         # we changed the image to uint8 4 channels.
@@ -694,9 +653,103 @@ class ShapeTag(DefinitionTag):
         return bits
 
 
+def read_pixels(bb, i, tagType, L1):
+    """ With pf's seed after the recordheader, reads the pixeldata.
+    """
+    
+    # Get info
+    charId = bb[i:i + 2]  # noqa
+    i += 2
+    format = ord(bb[i:i + 1])
+    i += 1
+    width = bits2int(bb[i:i + 2], 16)
+    i += 2
+    height = bits2int(bb[i:i + 2], 16)
+    i += 2
+
+    # If we can, get pixeldata and make numpy array
+    if format != 5:
+        print("Can only read 24bit or 32bit RGB(A) lossless images.")
+    else:
+        # Read byte data
+        offset = 2 + 1 + 2 + 2  # all the info bits
+        bb2 = bb[i:i+(L1-offset)]
+
+        # Decompress and make numpy array
+        data = zlib.decompress(bb2)
+        a = np.frombuffer(data, dtype=np.uint8)
+
+        # Set shape
+        if tagType == 20:
+            # DefineBitsLossless - RGB data
+            try:
+                a.shape = height, width, 3
+            except Exception:
+                # Byte align stuff might cause troubles
+                print("Cannot read image due to byte alignment")
+        if tagType == 36:
+            # DefineBitsLossless2 - ARGB data
+            a.shape = height, width, 4
+            # Swap alpha channel to make RGBA
+            b = a
+            a = np.zeros_like(a)
+            a[:, :, 0] = b[:, :, 1]
+            a[:, :, 1] = b[:, :, 2]
+            a[:, :, 2] = b[:, :, 3]
+            a[:, :, 3] = b[:, :, 0]
+
+        return a
+
+
 ## Last few functions
+
+
+# These are the original public functions, we don't use them, but we
+# keep it so that in principle this module can be used stand-alone.
+
+def checkImages(images):  # pragma: no cover
+    """ checkImages(images)
+    Check numpy images and correct intensity range etc.
+    The same for all movie formats.
+    """
+    # Init results
+    images2 = []
+
+    for im in images:
+        if isinstance(im, np.ndarray):
+            # Check and convert dtype
+            if im.dtype == np.uint8:
+                images2.append(im) # Ok
+            elif im.dtype in [np.float32, np.float64]:
+                theMax = im.max()
+                if theMax > 128 and theMax < 300:
+                    pass # assume 0:255
+                else:
+                    im = im.copy()
+                    im[im < 0] = 0
+                    im[im > 1] = 1
+                    im *= 255
+                images2.append(im.astype(np.uint8))
+            else:
+                im = im.astype(np.uint8)
+                images2.append(im)
+            # Check size
+            if im.ndim == 2:
+                pass # ok
+            elif im.ndim == 3:
+                if im.shape[2] not in [3, 4]:
+                    raise ValueError('This array can not represent an image.')
+            else:
+                raise ValueError('This array can not represent an image.')
+        else:
+            raise ValueError('Invalid image type: ' + str(type(im)))
+
+    # Done
+    return images2
+
+
 def build_file(fp, taglist, nframes=1, framesize=(500, 500), fps=10, 
-               version=8):
+               version=8):   # pragma: no cover
     """ Give the given file (as bytes) a header. """
 
     # compose header
@@ -723,7 +776,7 @@ def build_file(fp, taglist, nframes=1, framesize=(500, 500), fps=10,
     fp.write(int2uint32(sze))
 
 
-def write_swf(filename, images, duration=0.1, repeat=True):
+def write_swf(filename, images, duration=0.1, repeat=True):  # pragma: no cover
     """Write an swf-file from the specified images. If repeat is False,
     the movie is finished with a stop action. Duration may also
     be a list with durations for each frame (note that the duration
@@ -734,10 +787,8 @@ def write_swf(filename, images, duration=0.1, repeat=True):
 
     """
     
-    # Check images (make all Numpy)
-    images2 = []
-    for im in images:
-        images2.append(checkImages(im))
+    # Check images
+    images2 = checkImages(images)
 
     # Init
     taglist = [FileAttributesTag(), SetBackgroundTag(0, 0, 0)]
@@ -789,59 +840,7 @@ def write_swf(filename, images, duration=0.1, repeat=True):
     #print("Writing SWF took %1.2f and %1.2f seconds" % (t1-t0, t2-t1) )
 
 
-def read_pixels(bb, i, tagType, L1):
-    """ With pf's seed after the recordheader, reads the pixeldata.
-    """
-
-    # Check Numpy
-    if np is None:
-        raise RuntimeError("Need Numpy to read an SWF file.")
-
-    # Get info
-    charId = bb[i:i + 2]  # noqa
-    i += 2
-    format = ord(bb[i:i + 1])
-    i += 1
-    width = bits2int(bb[i:i + 2], 16)
-    i += 2
-    height = bits2int(bb[i:i + 2], 16)
-    i += 2
-
-    # If we can, get pixeldata and make nunmpy array
-    if format != 5:
-        print("Can only read 24bit or 32bit RGB(A) lossless images.")
-    else:
-        # Read byte data
-        offset = 2 + 1 + 2 + 2  # all the info bits
-        bb2 = bb[i:i+(L1-offset)]
-
-        # Decompress and make numpy array
-        data = zlib.decompress(bb2)
-        a = np.frombuffer(data, dtype=np.uint8)
-
-        # Set shape
-        if tagType == 20:
-            # DefineBitsLossless - RGB data
-            try:
-                a.shape = height, width, 3
-            except Exception:
-                # Byte align stuff might cause troubles
-                print("Cannot read image due to byte alignment")
-        if tagType == 36:
-            # DefineBitsLossless2 - ARGB data
-            a.shape = height, width, 4
-            # Swap alpha channel to make RGBA
-            b = a
-            a = np.zeros_like(a)
-            a[:, :, 0] = b[:, :, 1]
-            a[:, :, 1] = b[:, :, 2]
-            a[:, :, 2] = b[:, :, 3]
-            a[:, :, 3] = b[:, :, 0]
-
-        return a
-
-
-def read_swf(filename):
+def read_swf(filename):  # pragma: no cover
     """Read all images from an SWF (shockwave flash) file. Returns a list
     of numpy arrays.
 
@@ -919,3 +918,8 @@ def read_swf(filename):
     
     # Done
     return images
+
+
+# Backward compatibility; same public names as when this was images2swf.
+writeSwf = write_swf
+readSwf = read_swf
