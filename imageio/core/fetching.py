@@ -59,7 +59,15 @@ def get_remote_file(fname, directory=None, force_download=False):
     if not op.isdir(op.dirname(fname)):
         os.makedirs(op.abspath(op.dirname(fname)))
     # let's go get the file
-    _fetch_file(url, fname)
+    if os.getenv('CONTINUOUS_INTEGRATION', False):  # pragma: no cover
+        # On Travis, we retry a few times ...
+        for i in range(3):
+            try:
+                _fetch_file(url, fname)
+            except IOError:
+                time.sleep(0.5)
+    else:
+        _fetch_file(url, fname)
     return fname
 
 
@@ -99,8 +107,8 @@ def _fetch_file(url, file_name, print_destination=True):
         if print_destination is True:
             sys.stdout.write('File saved as %s.\n' % file_name)
     except Exception as e:
-        raise RuntimeError('Error while fetching file %s.\n'
-                           'Dataset fetching aborted (%s)' % (url, e))
+        raise IOError('Error while fetching file %s.\n'
+                      'Dataset fetching aborted (%s)' % (url, e))
     finally:
         if local_file is not None:
             if not local_file.closed:

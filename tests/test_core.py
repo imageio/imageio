@@ -337,17 +337,17 @@ def test_fetching():
     _urlopen = core.fetching.urlopen
     _chunk_read = core.fetching._chunk_read
     #
-    raises(RuntimeError, get_remote_file, 'this_does_not_exist', test_dir)
+    raises(IOError, get_remote_file, 'this_does_not_exist', test_dir)
     #
     try:
         core.fetching.urlopen = None
-        raises(RuntimeError, get_remote_file, 'images/chelsea.png', None, True)
+        raises(IOError, get_remote_file, 'images/chelsea.png', None, True)
     finally:
         core.fetching.urlopen = _urlopen
     #
     try:
         core.fetching._chunk_read = None
-        raises(RuntimeError, get_remote_file, 'images/chelsea.png', None, True)
+        raises(IOError, get_remote_file, 'images/chelsea.png', None, True)
     finally:
         core.fetching._chunk_read = _chunk_read
     
