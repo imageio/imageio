@@ -351,15 +351,21 @@ class AvBinFormat(Format):
             # stream is found
             while True:
                 avbin.avbin_read(self._file, ctypes.byref(self._packet))
-                if self._packet.stream_index == self._stream_index:
+                if self._packet.stream_index != self._stream_index:
+                    continue
+
+                # Decode the image, storing data in the out array
+                result = avbin.avbin_decode_video(self._stream, 
+                                                  self._packet.data, 
+                                                  self._packet.size, 
+                                                  out.ctypes.data)
+                
+                # Check for success. If not, continue reading the file stream
+                if result != -1:
                     break
             
-            # Decode the image, storing data in the out array
-            avbin.avbin_decode_video(self._stream, self._packet.data, 
-                                     self._packet.size, out.ctypes.data)
-            
             # Return array and dummy meta data
-            return out, {}
+            return out, dict(timestamp=self._packet.timestamp)
             
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None, it
