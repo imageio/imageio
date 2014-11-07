@@ -350,6 +350,7 @@ class StdoutProgressIndicator(BaseProgressIndicator):
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
 def appdata_dir(appname=None, roaming=False):
     """ appdata_dir(appname=None, roaming=False)
+    
     Get the path to the application directory, where applications are allowed
     to write user specific files (e.g. configurations). For non-user specific
     data, consider using common_appdata_dir().
@@ -401,6 +402,12 @@ def appdata_dir(appname=None, roaming=False):
    
     
 def get_platform():
+    """ get_platform()
+    
+    Get a string that specifies the platform more specific than
+    sys.platform does. The result can be: linux32, linux64, win32,
+    win64, osx32, osx64. Other platforms may be added in the future.
+    """
     # Get platform
     if sys.platform.startswith('linux'):
         plat = 'linux%i'

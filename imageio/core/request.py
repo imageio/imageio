@@ -391,8 +391,10 @@ class Request(object):
 
 
 def read_n_bytes(f, N):
-    """ Read N bytes from the given file, or less if the file has less bytes. 
-    Does not close the file.
+    """ read_n_bytes(file, n)
+    
+    Read n bytes from the given file, or less if the file has less
+    bytes. Returns zero bytes if the file is closed.
     """
     bb = binary_type()
     while len(bb) < N:
