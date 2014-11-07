@@ -326,6 +326,9 @@ def test_animated_gif():
     raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
     raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
     
+    # Add one duplicate image to ims to touch subractangle with not change
+    ims.append(ims[-1])
+    
     # Test subrectangles
     imageio.mimsave(fnamebase + '.subno.gif', ims, subrectangles=False)
     imageio.mimsave(fnamebase + '.subyes.gif', ims, subrectangles=True)

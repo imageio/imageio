@@ -288,7 +288,7 @@ class GifFormat(FreeimageMulti):
             if X.size and Y.size:
                 x0, x1 = X[0], X[-1]+1
                 y0, y1 = Y[0], Y[-1]+1
-            else:  # pragma: no cover - No change ... make it minimal
+            else:  # No change ... make it minimal
                 x0, x1 = 0, 2
                 y0, y1 = 0, 2
             # Cut out and return

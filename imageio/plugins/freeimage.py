@@ -299,7 +299,7 @@ class FreeimageJpegFormat(FreeimageFormat):
                     ori = meta['EXIF_MAIN']['Orientation']
                 except KeyError:  # pragma: no cover
                     pass  # Orientation not available
-                else:  # pragma: no cover  we cannot touch all cases
+                else:  # pragma: no cover - we cannot touch all cases
                     # www.impulseadventure.com/photo/exif-orientation.html
                     if ori in [1, 2]:
                         pass

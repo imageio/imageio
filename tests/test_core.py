@@ -526,6 +526,27 @@ def test_request_save_sources():
         assert res == bytes
 
 
+def test_request_file_no_seek():
+    
+    class File():
+        
+        def read(self, n):
+            return b'\x00' * n
+            
+        def seek(self, i):
+            raise IOError('Not supported')
+        
+        def tell(self):
+            raise Exception('Not supported')
+        
+        def close(self):
+            pass
+    
+    R = Request(File(), 'ri')
+    with raises(IOError):
+        R.firstbytes
+
+
 def test_util():
     """ Test our misc utils """
     
@@ -589,6 +610,10 @@ def test_util():
     raises(AttributeError, D.__setattr__, 'copy', False)  # reserved
     raises(AttributeError, D.__getattribute__, 'notinD')
     
+    # Test get_platform
+    platforms = 'win32', 'win64', 'linux32', 'linux64', 'osx32', 'osx32'
+    assert core.get_platform() in platforms
+
 
 def test_progres_bar(sleep=0):
     """ Test the progress bar """

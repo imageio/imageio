@@ -20,34 +20,27 @@ import sys
 import ctypes
 import threading
 import numpy
-import struct
 
 from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
-from imageio.core import string_types, binary_type, IS_PYPY
+from imageio.core import string_types, binary_type, IS_PYPY, get_platform
 
 
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
-    # Get platform
-    if sys.platform.startswith('linux'):
-        plat = 'linux%i' % (struct.calcsize('P') * 8)
-    elif sys.platform.startswith('win'):
-        plat = 'win%i' % (struct.calcsize('P') * 8)
-    elif sys.platform.startswith('darwin'):
-        plat = 'osx64'
-    else:  # pragma: no cover
-        plat = None
     
     LIBRARIES = {
+        'osx32': 'libfreeimage-3.16.0-osx10.6.dylib',  # universal library
         'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
-        'win32': 'FreeImage-3.15.4-win32.dll',  # Also works on Python 3.3
+        'win32': 'FreeImage-3.15.4-win32.dll',
         'win64': 'FreeImage-3.15.1-win64.dll',
         'linux32': 'libfreeimage-3.16.0-linux32.so',
         'linux64': 'libfreeimage-3.16.0-linux64.so',
     }
     
     # Get filename to load
+    # If we do not provide a binary, the system may still do ...
+    plat = get_platform()
     if plat:
         try:
             return get_remote_file('freeimage/' + LIBRARIES[plat])
@@ -389,7 +382,7 @@ class Freeimage(object):
         def error_handler(fif, message):
             message = message.decode('utf-8')
             self._messages.append(message)
-            while (len(self._messages)) > 256:  # pragma: no cover
+            while (len(self._messages)) > 256:
                 self._messages.pop(0)
         
         # Make sure to keep a ref to function
@@ -880,7 +873,7 @@ class FIBitmap(FIBaseBitmap):
             elif shape[0] == 4:
                 a = n(array[3])
                 return numpy.dstack((r, g, b, a))
-            else:  # pragma: no cover
+            else:  # pragma: no cover - we check this earlier
                 raise ValueError('Cannot handle images of shape %s' % shape)
         
         # We need to copy because array does *not* own its memory

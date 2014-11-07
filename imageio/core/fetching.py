@@ -70,7 +70,7 @@ def get_remote_file(fname, directory=None, force_download=False):
         else:
             _fetch_file(url, fname)
             return fname
-    else:
+    else:  # pragma: no cover
         _fetch_file(url, fname)
         return fname
 

@@ -129,7 +129,7 @@ class Request(object):
             elif py3k:
                 self._uri_type = URI_FILENAME
                 self._filename = uri
-            else:  # pragma: no cover
+            else:  # pragma: no cover - our ref for coverage is py3k
                 try:
                     isfile = os.path.isfile(uri)
                 except Exception:
@@ -379,14 +379,15 @@ class Request(object):
             # Set back
             try:
                 if i is None:
-                    raise Exception('could not tell')
+                    raise Exception('cannot seek with None')
                 f.seek(i)
             except Exception:
                 # Prevent get_file() from reusing the file
                 self._file = None
-                if self._uri_type == URI_FILE:  # pragma: no cover
-                    raise ValueError('Error in firstbytes: '
-                                     'could not tell/seek in the given file.')
+                # If the given URI was a file object, we have a problem,
+                # but that should be tested in get_file(), because we
+                # seek() there.
+                assert self._uri_type != URI_FILE
 
 
 def read_n_bytes(f, N):

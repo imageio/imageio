@@ -23,8 +23,7 @@ import numpy as np
 
 from imageio import formats
 from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
-from imageio.core import string_types
-from imageio.core.request import read_n_bytes
+from imageio.core import string_types, read_n_bytes
 
 
 # Determine endianity of system
@@ -566,7 +565,7 @@ class SimpleDicomReader(object):
         and pixel values scaled appropriately.
         """
         # Is there pixel data at all?
-        if 'PixelData' not in self:  # pragma: no cover
+        if 'PixelData' not in self:
             raise TypeError("No pixel data found in this dataset.")
         
         # Load it now if it was not already loaded
@@ -646,7 +645,7 @@ class SimpleDicomReader(object):
         # Taken from pydicom
         # Copyright (c) 2008-2012 Darcy Mason
         
-        if 'PixelData' not in self:  # pragma: no cover
+        if 'PixelData' not in self:
             raise TypeError("No pixel data found in this dataset.")
         
         # determine the type used for the array
@@ -972,7 +971,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
         path = request.filename
     elif os.path.isfile(request.filename):
         path = os.path.dirname(request.filename)
-    else:  # pragma: no cover
+    else:  # pragma: no cover - tested earlier
         raise ValueError('Dicom plugin needs a valid filename to examine '
                          'the directory')
     
@@ -994,7 +993,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
         # Try loading dicom ...
         try:
             dcm = SimpleDicomReader(filename)
-        except NotADicomFile:  # pragma: no cover
+        except NotADicomFile:
             continue  # skip non-dicom file
         except Exception as why:  # pragma: no cover
             progressIndicator.write(str(why))

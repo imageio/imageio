@@ -14,8 +14,7 @@ from io import BytesIO
 import numpy as np
 
 from imageio import formats
-from imageio.core import Format
-from imageio.core.request import read_n_bytes
+from imageio.core import Format, read_n_bytes
 
 from . import _swf
 

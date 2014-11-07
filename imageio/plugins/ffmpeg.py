@@ -24,7 +24,7 @@ import subprocess as sp
 import numpy as np
 
 from imageio import formats
-from imageio.core import Format, get_remote_file, string_types
+from imageio.core import Format, get_remote_file, string_types, read_n_bytes
 
 
 def get_exe():
@@ -401,13 +401,7 @@ class FfmpegFormat(Format):
                 if self._frame_catcher:  # pragma: no cover - camera thing
                     s = self._frame_catcher.get_frame()
                 else:
-                    s = self._proc.stdout.read(framesize)
-                    while len(s) < framesize:  # pragma: no cover
-                        need = framesize - len(s)
-                        part = self._proc.stdout.read(need)
-                        if not part:
-                            break
-                        s += part
+                    s = read_n_bytes(self._proc.stdout, framesize)
                 # Check
                 assert len(s) == framesize
             except Exception as err:
@@ -563,7 +557,7 @@ class FrameCatcher(threading.Thread):
         self.start()
     
     def get_frame(self):
-        while self._frame is None:  # pragma: no cover
+        while self._frame is None:  # pragma: no cover - an init thing
             time.sleep(0.001)
         return self._frame
     
