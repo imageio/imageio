@@ -2,23 +2,53 @@
 Release notes
 -------------
 
+Version 1.0
+===========
 
-Version X
-=========
+In this release we did a lot of work to push imageio to a new level.
+Imageio is now more or less what I always wanted it to be. This does
+not mean we're finished; we can always use more formats!
 
-* PNG, JPEG, BMP and GIF can now handle float data (pixel values are
-  assumed to be between 0 and 1.
-* 
+The big changes:
+
+* Many unit tests were written to cover over 95% of the code base.
+  (the core of imageio has 100% coverage).
+* Setup continuous integration (CI) using Travis.
+* Imageio now follows PEP8 style guides (and this is tested with CI).
+* Refactoring of the code base. Resulting in a cleaner namespace.
+* Many improvements to the documementation.
+
+Plugins:
+
+* The FFMPEG format is now well supported. Binaries are provided.
+* New AVBIN format for more efficient reading of video files.
+* New NPZ format that can store (a series of) arbitrarily shaped numpy arrays.
+* New SWF format (shockwave flash) for lossless animated images.
+* Improvements to the GIF format. The GIF and ANIGIF formats are now merged.
+
+Further:
+
+* New simple website to act as a front page (http://imageio.github.io).
+* Compatibility with Pypy.
+* We provide a range of default images that are automatically downloaded.
+  See http://imageio.readthedocs.org/en/latest/examples.html for a list.
+* Binaries (libs and executables) that plugins of imageio uses are now
+  downloaded at runtime, not at build/install time. This simplifies
+  things a lot.
+* Added utilities for developers (run ``python make`` from the repo root).
+* PNG, JPEG, BMP,GIF and other plugins can now handle float data (pixel
+  values are assumed to be between 0 and 1.
+* Imageio now expand the user dir when filename start with '~/'.
+* Many improvements and fixes overall.
 
 
-Version 0.5 (23-06-2014)
-========================
+Version 0.5.1 (23-06-2014)
+==========================
 
 * DICOM reader closes file after reading pixel data 
   (avoid too-many-open-files error)
 * Support for video data (import and export) via ffmpeg
 * Read images from usb camera via ffmpeg (experimental)
-
 
 
 Version 0.4.1 (26-10-2013)
