@@ -20,7 +20,6 @@ from os import path as op
 import time
 import shutil
 import webbrowser
-import site
 
 
 # Save where we came frome and where this module lives
@@ -170,7 +169,11 @@ class Maker:
         
         elif arg == 'installed':
             # Like unit, but give preference to installed package
-            sys.path.insert(0, site.getsitepackages()[0])
+            for p in list(sys.path):
+                if p in ('', '.'):
+                    sys.path.remove(p)
+                elif p == ROOT_DIR or p == os.path.dirname(ROOT_DIR):
+                    sys.path.remove(p)
             sys.exit(testing.test_unit())
         
         elif arg == 'cover':
