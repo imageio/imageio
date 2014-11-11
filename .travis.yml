@@ -27,7 +27,7 @@ before_install:
       fi;
     - SRC_DIR=$(pwd)
     # file size checks
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3"]; then
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
           GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
           GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
@@ -81,6 +81,8 @@ script:
         python make test style;
         echo "Size difference ${SIZE_DIFF} kB";
         test ${SIZE_DIFF} -lt 100;
+      elif [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+        python make test installed;
       else
         python make test unit;
       fi;

@@ -20,6 +20,7 @@ from os import path as op
 import time
 import shutil
 import webbrowser
+import site
 
 
 # Save where we came frome and where this module lives
@@ -148,11 +149,14 @@ class Maker:
     def test(self, arg):
         """ Run tests:
                 * unit - run unit tests
+                * installed - run unit tests using installed version
                 * style - flake style testing (PEP8 and more)
                 * cover - show coverage html report
+                
         """
         if not arg:
             return self.help('test')
+        
         from imageio import testing
         
         if arg in ('flake', 'style'):
@@ -160,8 +164,13 @@ class Maker:
                 testing.test_style()
             except RuntimeError as err:
                 sys.exit(str(err))
-            
+        
         elif arg == 'unit':
+            sys.exit(testing.test_unit())
+        
+        elif arg == 'installed':
+            # Like unit, but give preference to installed package
+            sys.path.insert(0, site.getsitepackages()[0])
             sys.exit(testing.test_unit())
         
         elif arg == 'cover':
