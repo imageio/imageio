@@ -30,10 +30,11 @@ URI_FTP = 6
 RETURN_BYTES = '<bytes>'
 
 # Example images that will be auto-downloaded
-EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png', 
+EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png',
                   'clock.png', 'coffee.png', 'coins.png', 'horse.png',
                   'hubble_deep_field.png', 'immunohistochemistry.png',
-                  'lena.png', 'moon.png', 'page.png', 'text.png', 'wikkie.png',
+                  'lena.png', 'moon.png', 'page.png', 'text.png', 
+                  'astronaut.png', 'wikkie.png',
                   'chelsea.zip',
                   'newtonscradle.gif', 'cockatoo.mp4',
                   'stent.npz', ]
