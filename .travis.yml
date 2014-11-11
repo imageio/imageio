@@ -75,7 +75,7 @@ install:
 before_script:
 
 script: 
-    - python -c "import sys; import imageio; print(sys.version, '\n', sys.prefix, '\n', str(imageio))";
+    - python -c "import sys; print(sys.version, '\n', sys.prefix)";
     # Run unit tests or style test
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;

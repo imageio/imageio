@@ -62,8 +62,7 @@ setup(
     provides = ['imageio'],
     requires = ['numpy'],
     
-    # deliberate break for testing 
-    packages = ['imageio', 'imageio.core', ],  # 'imageio.plugins'],
+    packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
     zip_safe = False,
     
