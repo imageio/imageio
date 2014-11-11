@@ -25,6 +25,32 @@ before_install:
         export PATH=~/anaconda/bin:$PATH;
         conda update --yes --quiet conda &> ${REDIRECT_TO};
       fi;
+    - SRC_DIR=$(pwd)
+    # file size checks
+    - if [ "${TEST}" == "extra" ]; then
+        if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+          GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
+          GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
+        else
+          GIT_TARGET_EXTRA="";
+          GIT_SOURCE_EXTRA="";
+        fi;
+        cd ~;
+        mkdir target-size-clone && cd target-size-clone;
+        git init &> ${REDIRECT_TO} && git remote add -t ${TRAVIS_BRANCH} origin git://github.com/${TRAVIS_REPO_SLUG}.git &>${REDIRECT_TO};
+        git fetch origin ${GIT_TARGET_EXTRA} &> ${REDIRECT_TO} && git checkout -qf FETCH_HEAD &> ${REDIRECT_TO} && cd ..;
+        TARGET_SIZE=`du -s target-size-clone | sed -e "s/\t.*//"`;
+        mkdir source-size-clone && cd source-size-clone;
+        git init &> ${REDIRECT_TO} && git remote add -t ${TRAVIS_BRANCH} origin git://github.com/${TRAVIS_REPO_SLUG}.git &> ${REDIRECT_TO};
+        git fetch origin ${GIT_SOURCE_EXTRA} &> ${REDIRECT_TO} && git checkout -qf FETCH_HEAD &> ${REDIRECT_TO} && cd ..;
+        SOURCE_SIZE=`du -s source-size-clone | sed -e "s/\t.*//"`;
+        if [ "${SOURCE_SIZE}" != "${TARGET_SIZE}" ]; then
+          SIZE_DIFF=`expr ${SOURCE_SIZE} - ${TARGET_SIZE}`;
+        else
+          SIZE_DIFF=0;
+        fi;
+      fi;
+    - cd ${SRC_DIR}
 
 install:
     # Install Python with numpy
@@ -41,14 +67,20 @@ install:
         pip install -q pytest pytest-cov;
         pip install -q coveralls;
       fi;
+    # Install imageio, only on one machine
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+        python setup.py install > ${REDIRECT_TO}
+      fi;
 
 before_script:
 
 script: 
-    - python -c "import sys; print(sys.version, '\n', sys.prefix)";
+    - python -c "import sys; import imageio; print(sys.version, '\n', sys.prefix, '\n', str(imageio))";
     # Run unit tests or style test
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;
+        echo "Size difference ${SIZE_DIFF} kB";
+        test ${SIZE_DIFF} -lt 100;
       else
         python make test unit;
       fi;
