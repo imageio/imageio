@@ -9,9 +9,9 @@ python:
     # - Image test (todo)
     
     #- "pypy3"  numpy support is really bad right now
-    - "2.6"
-    - "2.7"  # has numpy
-    - "3.4"
+    - "2.6"  # lowest that we want to support
+    - "2.7"  # native Python, has numpy, runs unit tests of installed imageio
+    - "3.4"  # coverage is produced here
     - "3.3"  # Test only style on this machine
 
 before_install:
@@ -25,6 +25,32 @@ before_install:
         export PATH=~/anaconda/bin:$PATH;
         conda update --yes --quiet conda &> ${REDIRECT_TO};
       fi;
+    - SRC_DIR=$(pwd)
+    # file size checks
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
+        if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
+          GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
+          GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
+        else
+          GIT_TARGET_EXTRA="";
+          GIT_SOURCE_EXTRA="";
+        fi;
+        cd ~;
+        mkdir target-size-clone && cd target-size-clone;
+        git init &> ${REDIRECT_TO} && git remote add -t ${TRAVIS_BRANCH} origin git://github.com/${TRAVIS_REPO_SLUG}.git &>${REDIRECT_TO};
+        git fetch origin ${GIT_TARGET_EXTRA} &> ${REDIRECT_TO} && git checkout -qf FETCH_HEAD &> ${REDIRECT_TO} && cd ..;
+        TARGET_SIZE=`du -s target-size-clone | sed -e "s/\t.*//"`;
+        mkdir source-size-clone && cd source-size-clone;
+        git init &> ${REDIRECT_TO} && git remote add -t ${TRAVIS_BRANCH} origin git://github.com/${TRAVIS_REPO_SLUG}.git &> ${REDIRECT_TO};
+        git fetch origin ${GIT_SOURCE_EXTRA} &> ${REDIRECT_TO} && git checkout -qf FETCH_HEAD &> ${REDIRECT_TO} && cd ..;
+        SOURCE_SIZE=`du -s source-size-clone | sed -e "s/\t.*//"`;
+        if [ "${SOURCE_SIZE}" != "${TARGET_SIZE}" ]; then
+          SIZE_DIFF=`expr ${SOURCE_SIZE} - ${TARGET_SIZE}`;
+        else
+          SIZE_DIFF=0;
+        fi;
+      fi;
+    - cd ${SRC_DIR}
 
 install:
     # Install Python with numpy
@@ -41,6 +67,8 @@ install:
         pip install -q pytest pytest-cov;
         pip install -q coveralls;
       fi;
+    # Install imageio, use installed version on only one machine
+    - python setup.py install > ${REDIRECT_TO}
 
 before_script:
 
@@ -49,6 +77,10 @@ script:
     # Run unit tests or style test
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;
+        echo "Size difference ${SIZE_DIFF} kB";
+        test ${SIZE_DIFF} -lt 100;
+      elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        python make test installed;
       else
         python make test unit;
       fi;

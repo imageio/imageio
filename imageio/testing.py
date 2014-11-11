@@ -89,6 +89,8 @@ def test_unit(cov_report='term'):
                            '--cov-report %s tests' % cov_report)
     finally:
         os.chdir(orig_dir)
+        import imageio
+        print('Tests were performed on', str(imageio))
 
 
 def test_style():

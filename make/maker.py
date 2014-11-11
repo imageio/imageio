@@ -148,11 +148,14 @@ class Maker:
     def test(self, arg):
         """ Run tests:
                 * unit - run unit tests
+                * installed - run unit tests using installed version
                 * style - flake style testing (PEP8 and more)
                 * cover - show coverage html report
+                
         """
         if not arg:
             return self.help('test')
+        
         from imageio import testing
         
         if arg in ('flake', 'style'):
@@ -160,8 +163,17 @@ class Maker:
                 testing.test_style()
             except RuntimeError as err:
                 sys.exit(str(err))
-            
+        
         elif arg == 'unit':
+            sys.exit(testing.test_unit())
+        
+        elif arg == 'installed':
+            # Like unit, but give preference to installed package
+            for p in list(sys.path):
+                if p in ('', '.'):
+                    sys.path.remove(p)
+                elif p == ROOT_DIR or p == os.path.dirname(ROOT_DIR):
+                    sys.path.remove(p)
             sys.exit(testing.test_unit())
         
         elif arg == 'cover':
