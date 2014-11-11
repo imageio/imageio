@@ -27,7 +27,7 @@ before_install:
       fi;
     - SRC_DIR=$(pwd)
     # file size checks
-    - if [ "${TEST}" == "extra" ]; then
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3"]; then
         if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
           GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
           GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
@@ -69,7 +69,7 @@ install:
       fi;
     # Install imageio, only on one machine
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
-        python setup.py install > ${REDIRECT_TO}
+        python setup.py install > ${REDIRECT_TO};
       fi;
 
 before_script:
