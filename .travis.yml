@@ -10,15 +10,18 @@ python:
     
     #- "pypy3"  numpy support is really bad right now
     - "2.6"  # lowest that we want to support
-    - "2.7"  # native Python, has numpy, runs unit tests of installed imageio
+    - "2.7"  # native Python, has numpy
+    - "3.2"  # runs unit tests of installed imageio
     - "3.4"  # coverage is produced here
-    - "3.3"  # Test only style on this machine
+    - "3.3"  # Test only style and size on this machine
 
 before_install:
     - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
     - sudo apt-get update -qq;
     # Install miniconda
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        echo using system Python 2.7;
+      else
         wget -q http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
         chmod +x miniconda.sh;
         ./miniconda.sh -b -p ~/anaconda &> ${REDIRECT_TO};
@@ -54,7 +57,7 @@ before_install:
 
 install:
     # Install Python with numpy
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TRAVIS_PYTHON_VERSION}" != "2.7" ]; then
         conda create -n testenv --yes --quiet pip python=$TRAVIS_PYTHON_VERSION > ${REDIRECT_TO};
         source activate testenv > ${REDIRECT_TO};
         conda install --yes --quiet numpy > ${REDIRECT_TO};
@@ -79,7 +82,7 @@ script:
         python make test style;
         echo "Size difference ${SIZE_DIFF} kB";
         test ${SIZE_DIFF} -lt 100;
-      elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+      elif [ "${TRAVIS_PYTHON_VERSION}" == "3.2" ]; then
         python make test installed;
       else
         python make test unit;
