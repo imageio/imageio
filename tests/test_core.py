@@ -620,10 +620,11 @@ def test_util():
     im3 = core.asarray(im2)
     assert type(im2) != np.ndarray
     assert type(im3) == np.ndarray
-    for i in (1, 2, 3):
-        im1[0, 0] = i
-        assert im2[0, 0] == i
-        assert im3[0, 0] == i
+    if not IS_PYPY:
+        for i in (1, 2, 3):
+            im1[0, 0] = i
+            assert im2[0, 0] == i
+            assert im3[0, 0] == i
 
 
 def test_progres_bar(sleep=0):
