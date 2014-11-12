@@ -1,7 +1,12 @@
 Welcome to imageio's documentation!
 ===================================
 
-.. automodule:: imageio
+Imageio is a Python library that provides an easy interface to read and
+write a wide range of image data, including animated images, volumetric
+data, and scientific formats. It is cross-platform, runs on Python 2.x
+and 3.x, and is easy to install.
+
+Main website: http://imageio.github.io
 
 
 Contents:
