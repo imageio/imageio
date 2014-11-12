@@ -26,7 +26,7 @@ or `more examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
 for more information.
 """
 
-__version__ = '0.5.1dev'
+__version__ = '1.0'
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES  # noqa

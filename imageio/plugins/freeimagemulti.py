@@ -72,7 +72,7 @@ class FreeimageMulti(FreeimageFormat):
         def _append_data(self, im, meta):
             # Prepare data
             if im.ndim == 3 and im.shape[-1] == 1:
-                im = im.reshape(im.shape[:2])
+                im = im[:, :, 0]
             if im.dtype in (np.float32, np.float64):
                 im = (im * 255).astype(np.uint8)
             # Create sub bitmap

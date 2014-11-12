@@ -33,7 +33,7 @@ RETURN_BYTES = '<bytes>'
 EXAMPLE_IMAGES = {
     'astronaut.png': 'Image of the astronaut Eileen Collins',
     'camera.png': 'Classic grayscale image of a photographer',
-    'checkerboard.png' : 'Black and white image of a chekerboard',
+    'checkerboard.png': 'Black and white image of a chekerboard',
     'clock.png': 'Photo of a clock with motion blur (Stefan van der Walt)',
     'coffee.png': 'Image of a cup of coffee (Rachel Michetti)',
     

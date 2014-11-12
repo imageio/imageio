@@ -105,7 +105,7 @@ class BitArray:
     def reverse(self):
         """ In-place reverse. """
         tmp = self.data[:self._len].copy()
-        self.data[:self._len] = np.flipud(tmp)
+        self.data[:self._len] = tmp[::-1]
 
     def tobytes(self):
         """ Convert to bytes. If necessary,

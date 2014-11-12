@@ -24,6 +24,8 @@ import numpy
 from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
 from imageio.core import string_types, binary_type, IS_PYPY, get_platform
 
+TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
+
 
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
@@ -612,7 +614,7 @@ class FIBaseBitmap(object):
                         elif tag_type in METADATA_DATATYPE.dtypes:
                             dtype = METADATA_DATATYPE.dtypes[tag_type]
                             if IS_PYPY and isinstance(dtype, (list, tuple)):
-                                pass  # pragma: nocover - or we get a segfault
+                                pass  # pragma: no cover - or we get a segfault
                             else:
                                 try:
                                     tag_val = numpy.fromstring(tag_bytes, 
@@ -667,9 +669,15 @@ class FIBaseBitmap(object):
                     
                     try:
                         # Convert Python value to FI type, val
+                        is_ascii = False
                         if isinstance(tag_val, string_types):
+                            try:
+                                tag_bytes = tag_val.encode('ascii')
+                                is_ascii = True
+                            except UnicodeError:
+                                pass
+                        if is_ascii:
                             tag_type = METADATA_DATATYPE.FIDT_ASCII
-                            tag_bytes = tag_val.encode('utf-8')
                             tag_count = len(tag_bytes)
                         else:
                             if not hasattr(tag_val, 'dtype'):
@@ -712,7 +720,7 @@ class FIBitmap(FIBaseBitmap):
     def allocate(self, array):
         
         # Prepare array
-        array = numpy.asarray(array)
+        assert isinstance(array, numpy.ndarray)
         shape = array.shape
         dtype = array.dtype
         
@@ -846,7 +854,7 @@ class FIBitmap(FIBaseBitmap):
     
     def get_image_data(self):
         dtype, shape, bpp = self._get_type_and_shape()
-        array = self._wrap_bitmap_bits_in_array(shape, dtype, bpp)
+        array = self._wrap_bitmap_bits_in_array(shape, dtype, False)
         with self._fi as lib:
             isle = lib.FreeImage_IsLittleEndian()
         
@@ -884,7 +892,7 @@ class FIBitmap(FIBaseBitmap):
     def set_image_data(self, array):
         
         # Prepare array
-        array = numpy.asarray(array)
+        assert isinstance(array, numpy.ndarray)
         shape = array.shape
         dtype = array.dtype
         with self._fi as lib:
@@ -903,7 +911,7 @@ class FIBitmap(FIBaseBitmap):
         
         def n(arr):  # normalise to freeimage's in-memory format
             return arr.T[:, ::-1]
-        wrapped_array = self._wrap_bitmap_bits_in_array(w_shape, dtype)
+        wrapped_array = self._wrap_bitmap_bits_in_array(w_shape, dtype, True)
         # swizzle the color components and flip the scanlines to go to
         # FreeImage's BGR[A] and upside-down internal memory format
         if len(shape) == 3:
@@ -926,6 +934,9 @@ class FIBitmap(FIBaseBitmap):
                     wrapped_array[3] = n(A)
         else:
             wrapped_array[:] = n(array)
+        if self._need_finish:
+            self._finish_wrapped_array(wrapped_array)
+        
         if len(shape) == 2 and dtype.type == numpy.uint8:
             with self._fi as lib:
                 palette = lib.FreeImage_GetPalette(self._bitmap)
@@ -933,17 +944,16 @@ class FIBitmap(FIBaseBitmap):
             if not palette:
                 raise RuntimeError('Could not get image palette')
             try:
-                ctypes.memmove(palette, GREY_PALETTE.ctypes.data, 1024)
-            except Exception:  # pragma: no cover
-                if IS_PYPY:
-                    print('WARNING: Cannot set image pallette on Pypy')
-                else:
-                    raise
+                palette_data = GREY_PALETTE.ctypes.data
+            except Exception:  # pragma: no cover - IS_PYPY
+                palette_data = GREY_PALETTE.__array_interface__['data'][0]
+            ctypes.memmove(palette, palette_data, 1024)
     
-    def _wrap_bitmap_bits_in_array(self, shape, dtype, bpp=None):
+    def _wrap_bitmap_bits_in_array(self, shape, dtype, save):
         """Return an ndarray view on the data in a FreeImage bitmap. Only
         valid for as long as the bitmap is loaded (if single page) / locked
-        in memory (if multipage).
+        in memory (if multipage). This is used in loading data, but
+        also during saving, to prepare a strided numpy array buffer.
         
         """
         # Get bitmap info
@@ -965,21 +975,59 @@ class FIBitmap(FIBaseBitmap):
         # Create numpy array and return
         data = (ctypes.c_char*byte_size).from_address(bits)
         try:
-            array = numpy.ndarray(shape, dtype=dtype, buffer=data, 
-                                  strides=strides)
-        except NotImplementedError:  # pragma: no cover
-            # Pypy compatibility. 
-            # (Note that e.g. b''.join(data) consumes vast amounts of memory)
-            bytes = binary_type(bytearray(data))
-            array = numpy.fromstring(bytes, dtype=dtype)
-            # Deal with strides
-            if len(shape) == 3:
-                array.shape = shape[0], strides[-1]/shape[0], shape[2]
-                array = array[:shape[0], :shape[1], :shape[2]] 
+            self._need_finish = False
+            if TEST_NUMPY_NO_STRIDES:
+                raise NotImplementedError()
+            return numpy.ndarray(shape, dtype=dtype, buffer=data, 
+                                 strides=strides)
+        except NotImplementedError:
+            # IS_PYPY - not very efficient. We create a C-contiguous
+            # numpy array (because pypy does not support Fortran-order)
+            # and shape it such that the rest of the code can remain.
+            if save:
+                self._need_finish = True  # Flag to use _finish_wrapped_array
+                return numpy.zeros(shape, dtype=dtype)
             else:
-                array.shape = strides[-1], shape[1]
-                array = array[:shape[0], :shape[1]]
-        return array
+                bytes = binary_type(bytearray(data))
+                array = numpy.fromstring(bytes, dtype=dtype)
+                # Deal with strides
+                if len(shape) == 3:
+                    array.shape = shape[2], strides[-1]/shape[0], shape[0]
+                    array2 = array[:shape[2], :shape[1], :shape[0]]
+                    array = numpy.zeros(shape, dtype=array.dtype)
+                    for i in range(shape[0]):
+                        array[i] = array2[:, :, i].T
+                else:
+                    array.shape = shape[1], strides[-1]
+                    array = array[:shape[1], :shape[0]].T
+                return array
+    
+    def _finish_wrapped_array(self, array):  # IS_PYPY
+        """ Hardcore way to inject numpy array in bitmap.
+        """
+        # Get bitmap info
+        with self._fi as lib:
+            pitch = lib.FreeImage_GetPitch(self._bitmap)
+            bits = lib.FreeImage_GetBits(self._bitmap)
+            bpp = lib.FreeImage_GetBPP(self._bitmap)
+        # Get channels and realwidth
+        nchannels = bpp // 8 // array.itemsize
+        realwidth = pitch // nchannels
+        # Apply padding for pitch if necessary
+        extra = realwidth - array.shape[-2]
+        assert extra >= 0 and extra < 10
+        # Make sort of Fortran, also take padding (i.e. pitch) into account
+        newshape = array.shape[-1], realwidth, nchannels
+        array2 = numpy.zeros(newshape, array.dtype)
+        if nchannels == 1:
+            array2[:, :array.shape[-2], 0] = array.T
+        else:
+            for i in range(nchannels):
+                array2[:, :array.shape[-2], i] = array[i, :, :].T
+        # copy data
+        data_ptr = array2.__array_interface__['data'][0]
+        ctypes.memmove(bits, data_ptr, array2.nbytes)
+        del array2
     
     def _get_type_and_shape(self):
         bitmap = self._bitmap

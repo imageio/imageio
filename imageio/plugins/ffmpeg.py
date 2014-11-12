@@ -462,7 +462,8 @@ class FfmpegFormat(Format):
             depth = 1 if im.ndim == 2 else im.shape[2]
             
             # Ensure that image is in uint8
-            im = im.astype(np.uint8, copy=False)
+            if im.dtype != np.uint8:
+                im = im.astype(np.uint8)  # pypy: no support copy=False
             
             # Set size and initialize if not initialized yet
             if self._size is None:

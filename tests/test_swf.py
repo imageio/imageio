@@ -15,6 +15,8 @@ from imageio.core import get_remote_file
 
 test_dir = get_test_dir()
 
+mean = lambda x: x.sum() / x.size  # pypy-compat mean
+
 
 def test_format_selection():
     
@@ -43,7 +45,7 @@ def test_reading_saving():
     ims1 = []
     for im in R:
         assert im.shape == (657, 451, 4)
-        assert im.mean() > 0
+        assert mean(im) > 0
         ims1.append(im)
     # Seek
     assert (R.get_data(3) == ims1[3]).all()
