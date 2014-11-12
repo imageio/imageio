@@ -5,11 +5,9 @@ Some of these examples use Visvis to visualize the image data. This
 should soon be replaced with Vispy. One can also use Matplotlib to show
 the images.
 
-Imageio provides a range of example images, which are automatically
-downloaded (and cached in the appdata folder). Therefore most examples
-below should just work. The full list of example images you can use:
-    
-.. autoattribute:: imageio.core.request.EXAMPLE_IMAGES
+Imageio provides a range of :doc:`example images <standardimages>`, 
+which are automatically downloaded. Therefore most examples below should
+just work.
 
 
 Read an image of a cat

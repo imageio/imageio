@@ -13,6 +13,7 @@ Contents:
   Usage examples <examples>
   User API <userapi>
   Docs for the formats <formats>
+  Standard images <standardimages>
   Developer API <devapi>
   Writing plugins <plugins>
   Release notes <releasenotes>

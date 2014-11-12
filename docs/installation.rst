@@ -9,7 +9,7 @@ automatically and stored in a folder in your application data.
 
 To install imageio, use one of the following methods:
     
-* If you are in a conda env: ``conda install imageio``
+* If you are in a conda env: ``conda install -c pyzo imageio``
 * If you have pip: ``pip install imageio``
 * Good old ``python setup.py install``
 
