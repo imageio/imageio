@@ -30,14 +30,30 @@ URI_FTP = 6
 RETURN_BYTES = '<bytes>'
 
 # Example images that will be auto-downloaded
-EXAMPLE_IMAGES = ['camera.png', 'checkerboard.png', 'chelsea.png',
-                  'clock.png', 'coffee.png', 'coins.png', 'horse.png',
-                  'hubble_deep_field.png', 'immunohistochemistry.png',
-                  'lena.png', 'moon.png', 'page.png', 'text.png', 
-                  'astronaut.png', 'wikkie.png',
-                  'chelsea.zip',
-                  'newtonscradle.gif', 'cockatoo.mp4',
-                  'stent.npz', ]
+EXAMPLE_IMAGES = {
+    'astronaut.png': 'Image of the astronaut Eileen Collins',
+    'camera.png': 'Classic grayscale image of a photographer',
+    'checkerboard.png' : 'Black and white image of a chekerboard',
+    'clock.png': 'Photo of a clock with motion blur (Stefan van der Walt)',
+    'coffee.png': 'Image of a cup of coffee (Rachel Michetti)',
+    
+    'chelsea.png': 'Image of Stefan\'s cat',
+    'wikkie.png': 'Image of Almar\'s cat',
+    
+    'coins.png': 'Image showing greek coins from Pompeii',
+    'horse.png': 'Image showing the silhouette of a horse (Andreas Preuss)',
+    'hubble_deep_field.png': 'Photograph taken by Hubble telescope (NASA)',
+    'immunohistochemistry.png': 'Immunohistochemical (IHC) staining',
+    'lena.png': 'Classic but sometimes controversioal Lena test image', 
+    'moon.png': 'Image showing a portion of the surface of the moon',
+    'page.png': 'A scanned page of text',
+    'text.png': 'A photograph of handdrawn text',
+    
+    'chelsea.zip': 'The chelsea.png in a zipfile (for testing)',
+    'newtonscradle.gif': 'Animated GIF of a newton\'s cradle',
+    'cockatoo.mp4': 'Video file of a cockatoo',
+    'stent.npz': 'Volumetric image showing a stented abdominal aorta',
+}
 
 
 class Request(object):

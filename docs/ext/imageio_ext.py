@@ -26,6 +26,7 @@ def init():
                  prepare_core_docs,
                  create_plugin_docs,
                  create_format_docs,
+                 create_standard_images_docs,
                  ]:
         print('  ' + func.__doc__.strip())
         func()
@@ -185,3 +186,36 @@ def create_format_docs():
         #text += '.. autoclass:: %s.Writer%s' % (format.__module__, members)
         
         _write('format_%s.rst' % format.name.lower(), text)
+
+
+def create_standard_images_docs():
+    """ Create documentation for imageio's standard images.
+    """
+    
+    title = "Imageio standard images"
+    text = '%s\n%s\n%s\n\n' % ('=' * len(title), title, '=' * len(title))
+    
+    docs = """
+        Imageio provides a number of standard images. These include classic
+        2D images, as well as animated and volumetric images. To the best
+        of our knowledge, all the listed images are in public domain.
+        
+        The image names can simply be used as a URI 
+        (e.g. ``imread('astronaut.png')``.
+        The images are automatically downloaded (and cached in your appdata
+        directory). If 'astronaut.png' happens to be a valid filename in the
+        current directory, that file is used instead.
+        """
+    text += '\n'.join([line.strip() for line in docs.splitlines()])
+    text += '\n\n'
+    
+    from imageio.core.request import EXAMPLE_IMAGES
+    baseurl = 'https://github.com/imageio/imageio-binaries/raw/master/images/'
+    
+    
+    sort_by_ext_and_name = lambda x: tuple(reversed(x.rsplit('.', 1)))
+    for name in sorted(EXAMPLE_IMAGES, key=sort_by_ext_and_name):
+        description = EXAMPLE_IMAGES[name]
+        text += '* `%s <%s>`_: %s\n\n' % (name,  baseurl + name, description)
+    
+    _write('standardimages.rst', text)

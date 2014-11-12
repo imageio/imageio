@@ -6,8 +6,7 @@ Version 1.0
 ===========
 
 In this release we did a lot of work to push imageio to a new level.
-Imageio is now more or less what I always wanted it to be. This does
-not mean we're finished; we can always use more formats!
+The code is now properly tested, and we have several more formats.
 
 The big changes:
 
@@ -30,8 +29,8 @@ Further:
 
 * New simple website to act as a front page (http://imageio.github.io).
 * Compatibility with Pypy.
-* We provide a range of default images that are automatically downloaded.
-  See http://imageio.readthedocs.org/en/latest/examples.html for a list.
+* We provide a range of :doc:`standard images <standardimages>` that are 
+  automatically downloaded.
 * Binaries (libs and executables) that plugins of imageio uses are now
   downloaded at runtime, not at build/install time. This simplifies
   things a lot.
