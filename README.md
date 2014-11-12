@@ -54,19 +54,20 @@ As a user, you just have to remember a handfull of functions:
 
 
 <h2>Details</h2>
-
+<p>
 Imageio has a relatively simple core that provides a common interface
 to different file formats. This core takes care of reading from different
 sources (like http), and exposes a simple API for the plugins to access
 the raw data. All file formats are implemented in plugins. Additional
 plugins can easily be registered.
-
+</p><p>
 Some plugins rely on external libraries (e.g. freeimage). These are
 automatically downloaded when needed and cached in your appdata
 directory. This keeps imageio light and scalable.
-
+</p><p>
 We plan to provide a wide range of image formats. Also scientific
 formats. Any help in implementing more formats is very welcome!
-
+</p><p>
 The codebase adheres to (a subset of) the PEP8 style guides. We strive
 for maximum test coverage (100% for the core, >95% for each plugin).
+</p>
