@@ -6,16 +6,31 @@
 
 # styletest: skip
 
-""" To Update to new version:
+"""
+
+Before release:
+
+  * Run test suite on pypy (with numpy)
+  * Run test suite on Windows 32
+  * Run test suite on Windows 64
+  * Run test suite on OS X
+  * Write release notes
+  * Check if docs are still good
+
+Release:
 
   * Increase __version__
-  * Write release notes
-  * Update docs (pushing the repo will trigger RTD to rebuild)
-  * python setup.py register
-  * python setup.py sdist upload
-  * python setup.py bdist_wininst upload
+  * Upload to Pypi:
+    * python setup.py register
+    * python setup.py sdist upload
+  * Update, build and upload conda package
 
 Add "-r testpypi" to use the test repo. 
+
+After release:
+
+  * Set __version__ to dev
+  * Announce
 
 """
 
