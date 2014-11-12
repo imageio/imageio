@@ -20,6 +20,7 @@ Before release:
 Release:
 
   * Increase __version__
+  * git tag the release
   * Upload to Pypi:
     * python setup.py register
     * python setup.py sdist upload
