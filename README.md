@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
-[![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://crate.io/packages/imageio)
+[![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://pypi.python.org/pypi/imageio)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://readthedocs.org/projects/imageio/?badge=latest)
    
 Website: http://imageio.github.io
@@ -10,18 +10,11 @@ Website: http://imageio.github.io
 <!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
 
 <p class='summary'>
-
-The imageio library aims to support reading and writing a wide 
-range of image data, including animated images, volumetric data, 
-and scientific formats. It is written in pure Python (2.x and 3.x) 
-and is designed to be powerful, yet simple in usage and installation.
+Imageio is a Python library that provides an easy interface to read and
+write a wide range of image data, including animated images, volumetric
+data, and scientific formats. It is cross-platform, runs on Python 2.x
+and 3.x, and is easy to install.
 </p>
-<p>
-Imageio has a relatively simple core that provides a common interface 
-to different file formats. The actual file formats are implemented in 
-plugins, which makes imageio easy to extend.
-</p>
-
 
 <h2>Example</h2>
 Here's a minimal example of how to use imageio. See the docs for 
@@ -51,9 +44,29 @@ As a user, you just have to remember a handfull of functions:
     <li>Simple interface via a consise set of functions.</li>
     <li>Easy to <a href='http://imageio.readthedocs.org/en/latest/installation.html'>install</a> using conda or pip.</li>    
     <li>Few dependencies (only Numpy).</li>
-    <li>Pure Python, runs on Python 2.x, 3.x, and Pypy</li>
+    <li>Pure Python, runs on Python 2.6+, 3.x, and Pypy</li>
+    <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>
     <li>Lots of supported <a href='http://imageio.readthedocs.org/en/latest/formats.html'>formats</a>.</li>
-    <li>Can also read from zipfiles, http/ftp, and raw bytes.</li>
+    <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
     <li>Easy to extend using plugins.</li>
-    <li>Loads of unit tests with continuous integration.</li>
+    <li>Code quality is maintained with many tests and continuous integration.</li>
 </ul>
+
+
+<h2>Details</h2>
+
+Imageio has a relatively simple core that provides a common interface
+to different file formats. This core takes care of reading from different
+sources (like http), and exposes a simple API for the plugins to access
+the raw data. All file formats are implemented in plugins. Additional
+plugins can easily be registered.
+
+Some plugins rely on external libraries (e.g. freeimage). These are
+automatically downloaded when needed and cached in your appdata
+directory. This keeps imageio light and scalable.
+
+We plan to provide a wide range of image formats. Also scientific
+formats. Any help in implementing more formats is very welcome!
+
+The codebase adheres to (a subset of) the PEP8 style guides. We strive
+for maximum test coverage (100% for the core, >95% for each plugin).

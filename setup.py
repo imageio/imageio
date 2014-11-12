@@ -44,17 +44,26 @@ for line in open(initFile).readlines():
     if docStatus == 1:
         __doc__ += line
 
+# Add badges
+__doc__ += """
+
+.. image:: https://travis-ci.org/imageio/imageio.svg?branch=master
+    :target: https://travis-ci.org/imageio/imageio'
+
+.. image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
+  :target: https://coveralls.io/r/imageio/imageio?branch=master
+"""
 
 setup(
     name = name,
     version = __version__,
     author = 'imageio contributors',
-    author_email = 'a.klein@science-applied.nl',
+    author_email = 'almar.klein@gmail.com',
     license = '(new) BSD',
     
-    url = 'http://imageio.readthedocs.org',
+    url = 'http://imageio.github.io/',
     download_url = 'http://pypi.python.org/pypi/imageio',    
-    keywords = "FreeImage image imread imsave io animation volume",
+    keywords = "image imread imsave io animation volume FreeImage ffmpeg",
     description = description,
     long_description = __doc__,
     
@@ -64,10 +73,9 @@ setup(
     
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
-    zip_safe = False,
     
     classifiers = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
