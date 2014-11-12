@@ -410,10 +410,14 @@ class AvBinFormat(Format):
                     continue
 
                 # Decode the image, storing data in the out array
+                try:
+                    ptr = out.ctypes.data
+                except Exception:  # pragma: no cover - IS_PYPY
+                    ptr = out.__array_interface__['data'][0]
                 result = avbin.avbin_decode_video(self._stream, 
                                                   self._packet.data, 
                                                   self._packet.size, 
-                                                  out.ctypes.data)
+                                                  ptr)
                 
                 # Check for success. If not, continue reading the file stream
                 # AK: disabled for now, because this will make the file

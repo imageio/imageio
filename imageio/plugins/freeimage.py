@@ -118,7 +118,7 @@ class FreeimageFormat(Format):
                                    'can only append image data once.')
             # Pop unit dimension for grayscale images
             if im.ndim == 3 and im.shape[-1] == 1:
-                im = im.reshape(im.shape[:2])
+                im = im[:, :, 0]
             # Lazy instantaion of the bitmap, we need image data
             if self._bm is None:
                 self._bm = fi.create_bitmap(self.request.filename, 

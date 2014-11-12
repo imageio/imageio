@@ -117,9 +117,22 @@ class Image(np.ndarray):
         if not out.shape:
             return out.dtype.type(out)  # Scalar
         elif out.shape != self.shape:
-            return np.asarray(out)
+            return out.view(type=np.ndarray)
         else:
             return out  # Type Image
+
+
+def asarray(a):
+    """ Pypy-safe version of np.asarray. Pypy's np.asarray consumes a
+    *lot* of memory if the given array is an ndarray subclass. This
+    function does not.
+    """
+    if isinstance(a, np.ndarray):
+        if IS_PYPY:
+            a = a.copy()  # pypy has issues with base views
+        plain = a.view(type=np.ndarray)
+        return plain
+    return np.asarray(a)
 
 
 try:

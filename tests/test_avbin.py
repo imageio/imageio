@@ -8,11 +8,12 @@ import imageio
 from imageio import core
 from imageio.core import get_remote_file
 
+# if IS_PYPY:
+#     skip('AVBIn not supported on pypy')
 
 test_dir = get_test_dir()
 
-
-_prepared = None
+mean = lambda x: x.sum() / x.size  # pypy-compat mean
 
 
 def test_read():
@@ -26,7 +27,7 @@ def test_read():
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
         # todo: fix this
-        #assert im.mean() > 100 and im.mean() < 115  KNOWN FAIL
+        #assert mean(im) > 100 and mean(im) < 115  KNOWN FAIL
     
     # We can rewind
     reader.get_data(0)
@@ -100,7 +101,7 @@ def test_read_format():
     for i in range(10):
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
-        assert im.mean() > 100 and im.mean() < 115
+        assert mean(im) > 100 and mean(im) < 115
 
 
 def test_stream():
@@ -134,7 +135,7 @@ def test_format_selection():
     assert imageio.formats['.mp4'] is F
 
 
-def show():
+def show_in_mpl():
     reader = imageio.read('cockatoo.mp4')
     for i in range(10):
         reader.get_next_data()

@@ -11,23 +11,23 @@ from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file
+from imageio.core import get_remote_file, IS_PYPY
 
 test_dir = get_test_dir()
 
 
 # Create test images LUMINANCE
-im0 = np.zeros((32, 32), np.uint8)
+im0 = np.zeros((42, 32), np.uint8)
 im0[:16, :] = 200
-im1 = np.zeros((32, 32, 1), np.uint8)
+im1 = np.zeros((42, 32, 1), np.uint8)
 im1[:16, :] = 200
 # Create test image RGB
-im3 = np.zeros((32, 32, 3), np.uint8)
+im3 = np.zeros((42, 32, 3), np.uint8)
 im3[:16, :, 0] = 250 
 im3[:, :16, 1] = 200
 im3[50:, :16, 2] = 100
 # Create test image RGBA
-im4 = np.zeros((32, 32, 4), np.uint8)
+im4 = np.zeros((42, 32, 4), np.uint8)
 im4[:16, :, 0] = 250
 im4[:, :16, 1] = 200
 im4[50:, :16, 2] = 100
@@ -78,21 +78,24 @@ def test_get_ref_im():
         for colors in (0, 1, 3, 4):
             rim = get_ref_im(0, crop, f)
             assert rim.flags.c_contiguous is True
-            assert rim.shape[:2] == (32, 32)
+            assert rim.shape[:2] == (42, 32)
     
     crop = 1
     for f in (False, True):
         for colors in (0, 1, 3, 4):
             rim = get_ref_im(0, crop, f)
             assert rim.flags.c_contiguous is True
-            assert rim.shape[:2] == (31, 31)
+            assert rim.shape[:2] == (41, 31)
+    
+    if IS_PYPY:
+        return 'PYPY cannot have non-contiguous data'
     
     crop = 2
     for f in (False, True):
         for colors in (0, 1, 3, 4):
             rim = get_ref_im(0, crop, f)
             assert rim.flags.c_contiguous is False
-            assert rim.shape[:2] == (31, 31)
+            assert rim.shape[:2] == (41, 31)
     
 
 def test_freeimage_format():
@@ -142,6 +145,21 @@ def test_png():
                 im = imageio.imread(fname)
                 mul = 255 if float else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
+    
+    # Run exact same test, but now in pypy backup mode
+    try:
+        imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = True
+        for float in (False, True):
+            for crop in (0, 1, 2):
+                for colors in (0, 1, 3, 4):
+                    fname = fnamebase + '%i.%i.%i.png' % (float, crop, colors)
+                    rim = get_ref_im(colors, crop, float)
+                    imageio.imsave(fname, rim)
+                    im = imageio.imread(fname)
+                    mul = 255 if float else 1
+                    assert_close(rim * mul, im, 0.1)  # lossless
+    finally:
+        imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
     
     # Parameters
     im = imageio.imread('chelsea.png', ignoregamma=True)
@@ -343,10 +361,11 @@ def test_animated_gif():
 def test_ico():
     
     for float in (False, True):
-        for crop in (0, 1, 2):
+        for crop in (0, ):
             for colors in (1, 3, 4):
                 fname = fnamebase + '%i.%i.%i.ico' % (float, crop, colors)
                 rim = get_ref_im(colors, crop, float)
+                rim = rim[:32, :32]  # ico needs nice size
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
                 mul = 255 if float else 1
@@ -373,7 +392,7 @@ def test_ico():
         skip('Windows has a known issue with multi-icon files')
     
     # Multiple images
-    im = get_ref_im(4, 0, 0)
+    im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
     ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
     imageio.mimsave(fnamebase + 'I2.ico', ims)
@@ -395,6 +414,3 @@ def test_other():
 
 
 run_tests_if_main()
-
-#if __name__ == '__main__':
-#   test_ico()

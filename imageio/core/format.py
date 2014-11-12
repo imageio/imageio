@@ -42,7 +42,7 @@ import os
 
 import numpy as np
 
-from . import Image
+from . import Image, asarray
 from . import string_types, text_type, binary_type  # noqa
 
 
@@ -463,7 +463,7 @@ class Format:
                 total_meta.update(meta)        
             
             # Decouple meta info
-            im = np.asarray(im)
+            im = asarray(im)
             # Call
             return self._append_data(im, total_meta)
         
