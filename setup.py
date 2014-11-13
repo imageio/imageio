@@ -16,6 +16,7 @@ Before release:
   * Run test suite on OS X
   * Write release notes
   * Check if docs are still good
+  * Maybe test pypi page via "python setup.py register -r test"
 
 Release:
 
@@ -25,8 +26,6 @@ Release:
     * python setup.py register
     * python setup.py sdist upload
   * Update, build and upload conda package
-
-Add "-r testpypi" to use the test repo. 
 
 After release:
 
