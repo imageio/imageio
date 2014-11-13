@@ -60,14 +60,31 @@ for line in open(initFile).readlines():
     if docStatus == 1:
         __doc__ += line
 
-# Add badges
-__doc__ += """
-
+# Template for long description. __doc__ gets inserted here
+long_description = """
 .. image:: https://travis-ci.org/imageio/imageio.svg?branch=master
     :target: https://travis-ci.org/imageio/imageio'
 
 .. image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
   :target: https://coveralls.io/r/imageio/imageio?branch=master
+
+__doc__
+
+Release notes: http://imageio.readthedocs.org/en/latest/releasenotes.html
+
+Example:
+
+.. code-block:: python:
+    
+    >>> import imageio
+    >>> im = imageio.imread('astronaut.png')
+    >>> im.shape  # im is a numpy array
+    (512, 512, 3)
+    >>> imageio.imsave('astronaut-gray.jpg', im[:, :, 0])
+
+See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
+or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
+for more information.
 """
 
 setup(
@@ -81,7 +98,7 @@ setup(
     download_url = 'http://pypi.python.org/pypi/imageio',    
     keywords = "image imread imsave io animation volume FreeImage ffmpeg",
     description = description,
-    long_description = __doc__,
+    long_description = long_description.replace('__doc__', __doc__),
     
     platforms = 'any',
     provides = ['imageio'],

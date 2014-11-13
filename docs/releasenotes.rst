@@ -2,8 +2,8 @@
 Release notes
 -------------
 
-Version 1.0
-===========
+Version 1.0 (13-11-2014)
+========================
 
 In this release we did a lot of work to push imageio to a new level.
 The code is now properly tested, and we have several more formats.
@@ -34,6 +34,7 @@ Further:
 * Binaries (libs and executables) that plugins of imageio uses are now
   downloaded at runtime, not at build/install time. This simplifies
   things a lot.
+* freeimage plugin now fully functional on pypy
 * Added utilities for developers (run ``python make`` from the repo root).
 * PNG, JPEG, BMP,GIF and other plugins can now handle float data (pixel
   values are assumed to be between 0 and 1.

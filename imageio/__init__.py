@@ -2,7 +2,9 @@
 # Copyright (c) 2014, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
-# This docstring is what is used in setup.py and ends up on our Pypi page
+# This docstring is used at the index of the documentation pages, and
+# gets inserted into a slightly larger description (in setup.py) for
+# the page on Pypi:
 """ 
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, volumetric
@@ -10,20 +12,6 @@ data, and scientific formats. It is cross-platform, runs on Python 2.x
 and 3.x, and is easy to install.
 
 Main website: http://imageio.github.io
-
-.. code-block:: python:
-    
-    import imageio
-    
-    >>> import imageio
-    >>> im = imageio.imread('astronaut.png')
-    >>> im.shape  # im is a numpy array
-    (512, 512, 3)
-    >>> imageio.imsave('astronaut-gray.jpg', im[:, :, 0])
-
-See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
-or `more examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
-for more information.
 """
 
 __version__ = '1.0'
