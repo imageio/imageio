@@ -14,7 +14,7 @@ and 3.x, and is easy to install.
 Main website: http://imageio.github.io
 """
 
-__version__ = '1.0'
+__version__ = '1.0' 
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES  # noqa
