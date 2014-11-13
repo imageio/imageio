@@ -662,7 +662,7 @@ class FIBaseBitmap(object):
                     continue # Unknown model, silent ignore
                 
                 for tag_name, tag_val in subdict.items():
-                    
+                
                     # Create new tag
                     tag = lib.FreeImage_CreateTag()
                     tag = ctypes.c_void_p(tag)

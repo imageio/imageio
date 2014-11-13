@@ -36,7 +36,7 @@ def get_exe():
     elif sys.platform.startswith('win'):
         fname = 'ffmpeg.win32.exe'
     elif sys.platform.startswith('darwin'):
-        fname = 'ffmpeg.osx'
+        fname = 'ffmpeg.osx.snowleopardandabove'
     else:  # pragma: no cover
         fname = 'ffmpeg'  # hope for the best
     #

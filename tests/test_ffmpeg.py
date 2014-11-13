@@ -255,4 +255,4 @@ def show_in_visvis():
 
 if __name__ == '__main__':
     run_tests_if_main()
-    #show()
+    #reader = imageio.read('cockatoo.mp4', 'ffmpeg')

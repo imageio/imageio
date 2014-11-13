@@ -121,7 +121,7 @@ def test_import_dependencies():
     # Get the difference; what do we import extra?
     extra_modules = modnames_new.difference(modnames_ref)
     
-    known_modules = ['zipfile']  # discard these
+    known_modules = ['zipfile', 'importlib']  # discard these
     
     # Remove modules in standard library
     stdloc = os.path.dirname(os.__file__)
