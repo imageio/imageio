@@ -71,3 +71,30 @@ formats. Any help in implementing more formats is very welcome!
 The codebase adheres to (a subset of) the PEP8 style guides. We strive
 for maximum test coverage (100% for the core, >95% for each plugin).
 </p>
+
+
+<h2>Origin and outlook</h2>
+<p>
+Imageio was based out of the frustration that many libraries that needed
+to read or write image data produced their own functionality for IO.
+PIL did not meet the needs very well, and libraries like scikit-image
+need to be able to deal with scientific formats. I felt there was a
+need for a good image io library, which is an easy dependency, easy to
+maintain, and scalable to exotic file formats.
+</p><p>
+Imageio started out with the FreeImage plugin of the skikit-image
+project, through which it was able to support a lot of common formats.
+We created a simple but powerful core, a clean user API, and a proper
+plugin system.
+</p><p>
+The purpose of imageio is to support reading and writing of image data.
+We're not processing images, you should use scikit-image for that. Imageio
+should be easy to install and be lightweight. Imageio's plugin system
+makes it possible to scale the number of supported formats and still
+keep a low footprint.
+</p><p>
+It is impossible for one person to implement and maintain a wide variety
+of formats. My hope is to form a group of developers, who each maintain
+one or more plugins. In that way, the burder of each developer is low,
+and together we can make imageio into a really useful library!
+</p>
