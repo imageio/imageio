@@ -36,7 +36,10 @@ After release:
 
 import os
 import sys
-from distutils.core import setup
+try:
+    from setuptools import setup  # Supports wheels
+except ImportError:
+    from distutils.core import setup  # Supports anything else
 
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
