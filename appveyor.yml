@@ -34,7 +34,7 @@ install:
 
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
-  - "powershell ./appveyor/install.ps1"
+  - "powershell ./make/install_python.ps1"
 
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
