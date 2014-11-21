@@ -1,5 +1,6 @@
 # IMAGEIO
 
+[![Build status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt?svg=true)](https://ci.appveyor.com/project/almarklein/imageio)
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://pypi.python.org/pypi/imageio)
