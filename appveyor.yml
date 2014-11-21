@@ -4,27 +4,19 @@
 environment:
 
   matrix:
-    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27-conda32"
       PYTHON_VERSION: "2.7.8"
       PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python27-conda64"
       PYTHON_VERSION: "2.7.8"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python33"
-      PYTHON_VERSION: "3.3.5"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python33-x64"
-      PYTHON_VERSION: "3.3.5"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34-conda32"
       PYTHON_VERSION: "3.4.1"
       PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python34-x64"
+    - PYTHON: "C:\\Python34-conda64"
       PYTHON_VERSION: "3.4.1"
       PYTHON_ARCH: "64"
 
@@ -47,7 +39,7 @@ install:
 
   # Install the build dependencies of the project. 
   #- "%CMD_IN_ENV% pip install -r dev-requirements.txt"
-  - pip install numpy pytest pytest-cov"
+  - pip install pytest pytest-cov"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
