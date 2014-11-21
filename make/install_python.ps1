@@ -172,9 +172,22 @@ function InstallMinicondaPip ($python_home) {
     }
 }
 
+
+function InstallMinicondaNumpy ($python_home) {
+    $conda_path = $python_home + "\Scripts\conda.exe"
+    Write-Host "Installing numpy..."
+    $args = "install --yes numpy"
+    Write-Host $conda_path $args
+    Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
+}
+
+
 function main () {
-    InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
-    InstallPip $env:PYTHON
+    #InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
+    #InstallPip $env:PYTHON
+    InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
+    InstallMinicondaPip $env:PYTHON
+    InstallMinicondaNumpy $env:PYTHON
 }
 
 main
