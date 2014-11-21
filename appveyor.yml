@@ -39,7 +39,8 @@ install:
 
   # Install the build dependencies of the project. 
   #- "%CMD_IN_ENV% pip install -r dev-requirements.txt"
-  - pip install pytest pytest-cov wheel"
+  - "pip install pytest pytest-cov"
+  - "pip install wheel"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
