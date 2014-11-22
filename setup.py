@@ -35,6 +35,7 @@ After release:
 """
 
 import os
+import os.path as op
 import sys
 try:
     from setuptools import setup  # Supports wheels
@@ -44,12 +45,13 @@ except ImportError:
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Get version and docstring
 __version__ = None
 __doc__ = ''
 docStatus = 0 # Not started, in progress, done
-initFile = os.path.join(os.path.dirname(__file__), 'imageio',  '__init__.py')
+initFile = os.path.join(THIS_DIR, 'imageio',  '__init__.py')
 for line in open(initFile).readlines():
     if (line.startswith('__version__')):
         exec(line.strip())
@@ -89,6 +91,24 @@ or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
 for more information.
 """
 
+# Collect files to more or less reproduce the repo in the dist package.
+# In that way the tests can be run and docs be build for Debian packaging.
+#
+# Collect docs
+docs_files = [os.path.join('docs', fn) 
+              for fn in os.listdir(op.join(THIS_DIR, 'docs'))]
+docs_files += [op.join('docs', 'ext', fn) 
+               for fn in os.listdir(op.join(THIS_DIR, 'docs', 'ext'))]
+docs_files = [fn for fn in docs_files if op.isfile(op.join(THIS_DIR, fn))]
+# Collect test files
+test_files = [os.path.join('tests', fn)
+              for fn in os.listdir(os.path.join(THIS_DIR, 'tests'))
+              if (fn.endswith('.py') or fn.endswith('.md'))]
+# Collect make files
+make_files = [os.path.join('make', fn)
+              for fn in os.listdir(os.path.join(THIS_DIR, 'make'))
+              if (fn.endswith('.py') or fn.endswith('.md'))]
+
 setup(
     name = name,
     version = __version__,
@@ -108,6 +128,11 @@ setup(
     
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
+    
+    data_files = [('tests', test_files),
+                  ('docs', docs_files), 
+                  ('make', make_files), 
+                  ('', ['LICENSE', 'README.md', 'CONTRIBUTORS.txt'])],
     
     classifiers = [
         'Development Status :: 5 - Production/Stable',
