@@ -13,8 +13,8 @@ from io import BytesIO
 
 import numpy as np
 
-from imageio import formats
-from imageio.core import Format, read_n_bytes
+from .. import formats
+from ..core import Format, read_n_bytes
 
 from . import _swf
 

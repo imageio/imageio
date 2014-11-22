@@ -16,7 +16,7 @@ import zipfile
 import tempfile
 import shutil
 
-from imageio.core import string_types, binary_type, urlopen, get_remote_file
+from ..core import string_types, binary_type, urlopen, get_remote_file
 
 # URI types
 URI_BYTES = 1

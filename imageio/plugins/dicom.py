@@ -21,9 +21,9 @@ import struct
 
 import numpy as np
 
-from imageio import formats
-from imageio.core import Format, BaseProgressIndicator, StdoutProgressIndicator
-from imageio.core import string_types, read_n_bytes
+from .. import formats
+from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
+from ..core import string_types, read_n_bytes
 
 
 # Determine endianity of system

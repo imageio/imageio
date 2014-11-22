@@ -23,8 +23,8 @@ import subprocess as sp
 
 import numpy as np
 
-from imageio import formats
-from imageio.core import Format, get_remote_file, string_types, read_n_bytes
+from .. import formats
+from ..core import Format, get_remote_file, string_types, read_n_bytes
 
 
 def get_exe():

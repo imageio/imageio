@@ -14,8 +14,8 @@ import numpy as np
 import ctypes
 import sys
 
-from imageio import formats
-from imageio.core import Format, get_platform, get_remote_file
+from .. import formats
+from ..core import Format, get_platform, get_remote_file
 
 
 AVBIN_RESULT_ERROR = -1

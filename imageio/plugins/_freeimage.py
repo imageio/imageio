@@ -21,8 +21,8 @@ import ctypes
 import threading
 import numpy
 
-from imageio.core import get_remote_file, load_lib, Dict, appdata_dir
-from imageio.core import string_types, binary_type, IS_PYPY, get_platform
+from ..core import get_remote_file, load_lib, Dict, appdata_dir
+from ..core import string_types, binary_type, IS_PYPY, get_platform
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 

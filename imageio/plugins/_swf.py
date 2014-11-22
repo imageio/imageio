@@ -45,7 +45,7 @@ import time  # noqa
 
 import numpy as np
 
-from imageio.core import string_types, binary_type
+from ..core import string_types, binary_type
 
 PY3 = sys.version_info >= (3, )
 

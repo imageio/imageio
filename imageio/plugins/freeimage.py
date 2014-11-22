@@ -11,8 +11,8 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-from imageio import formats
-from imageio.core import Format
+from .. import formats
+from ..core import Format
 from ._freeimage import fi, IO_FLAGS
 
 
