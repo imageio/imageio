@@ -109,6 +109,24 @@ make_files = [os.path.join('make', fn)
               for fn in os.listdir(os.path.join(THIS_DIR, 'make'))
               if (fn.endswith('.py') or fn.endswith('.md'))]
 
+# Populate the source dir if creating a binary dist
+package_data = []
+package_data.append('resources/shipped_resources_go_here')
+if [x for x in sys.argv if x.startswith('bdist')]:
+    import imageio
+    resource_dir = imageio.core.resource_dirs()[0]
+    # 
+    for fname in ['images/chelsea.png',
+                  'images/chelsea.zip',
+                  'images/astronaut.png',
+                  'images/newtonscradle.gif',
+                  'images/cockatoo.mp4',
+                  'images/realshort.mp4',
+                  ]:
+        imageio.core.get_remote_file(fname, resource_dir, force_download=True)
+        package_data.append('resources/' + fname)
+
+
 setup(
     name = name,
     version = __version__,
@@ -129,6 +147,10 @@ setup(
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
     
+    # Data in the package
+    package_data = {'imageio': package_data},
+    
+    # Data in the dist package
     data_files = [('tests', test_files),
                   ('docs', docs_files), 
                   ('make', make_files), 
