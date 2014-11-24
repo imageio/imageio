@@ -161,7 +161,7 @@ def asarray(a):
     function does not.
     """
     if isinstance(a, np.ndarray):
-        if IS_PYPY:
+        if IS_PYPY:  # pragma: no cover 
             a = a.copy()  # pypy has issues with base views
         plain = a.view(type=np.ndarray)
         return plain

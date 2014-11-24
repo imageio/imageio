@@ -168,12 +168,14 @@ class Maker:
             sys.exit(testing.test_unit())
         
         elif arg == 'installed':
-            # Like unit, but give preference to installed package
+            # Like unit, but give preference to installed package.
+            # And do not allow the use of an internet connection.
             for p in list(sys.path):
                 if p in ('', '.'):
                     sys.path.remove(p)
                 elif p == ROOT_DIR or p == os.path.dirname(ROOT_DIR):
                     sys.path.remove(p)
+            os.environ['IMAGEIO_NO_INTERNET'] = '1'
             sys.exit(testing.test_unit())
         
         elif arg == 'cover':

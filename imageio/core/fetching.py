@@ -68,6 +68,9 @@ def get_remote_file(fname, directory=None, force_download=False):
                     break
     
     # If we get here, we're going to try to download the file
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        raise IOError('Cannot download resource from the internet')
+    # Get filename to store to and make sure the dir exists
     filename = op.join(directory, fname)
     if not op.isdir(op.dirname(filename)):
         os.makedirs(op.abspath(op.dirname(filename)))
