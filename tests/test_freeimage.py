@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 from pytest import raises, skip
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -260,6 +260,10 @@ def test_jpg():
     s2 = os.stat(fnamebase + '2.jpg').st_size
     assert s2 > s1 
     raises(ValueError, imageio.imsave, fnamebase + '.jpg', im, quality=120)
+
+
+def test_jpg_more():
+    need_internet()
     
     # Test broken JPEG
     fname = fnamebase + '_broken.jpg'
@@ -453,7 +457,7 @@ def test_mng():
 
 def test_other():
     
-    # Cannot safe float
+    # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + '.jng', im, 'JNG')
 

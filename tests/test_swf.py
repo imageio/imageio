@@ -6,7 +6,7 @@ import os
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -16,6 +16,10 @@ from imageio.core import get_remote_file
 test_dir = get_test_dir()
 
 mean = lambda x: x.sum() / x.size  # pypy-compat mean
+
+
+# We don't shipt the swf: its rather big and a rather specific format
+need_internet()
 
 
 def test_format_selection():
