@@ -72,7 +72,7 @@ def image_as_uint8(im):
         im -= mi
     if ma != 255:
         im *= 255.0 / (ma - mi)
-    # Done
+    # Done 
     assert np.nanmax(im) < 256
     return im.astype(np.uint8)
 
