@@ -56,7 +56,7 @@ def get_ref_im(colors, crop, float):
     return rim
 
 
-def assert_close(im1, im2, tol):
+def assert_close(im1, im2, tol=0.0):
     if im1.ndim == 3 and im1.shape[-1] == 1:
         im1 = im1.reshape(im1.shape[:-1])
     if im2.ndim == 3 and im2.shape[-1] == 1:
@@ -193,6 +193,42 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
+def test_png_dtypes():
+    # See issue #44
+    
+    # Two images, one 0-255, one 0-200
+    im1 = np.zeros((100, 100, 3), dtype='uint8')
+    im2 = np.zeros((100, 100, 3), dtype='uint8')
+    im1[20:80, 20:80, :] = 255
+    im2[20:80, 20:80, :] = 200
+    
+    fname = fnamebase + '.dtype.png'
+    
+    # uint8
+    imageio.imsave(fname, im1)
+    assert_close(im1, imageio.imread(fname))
+    imageio.imsave(fname, im2)
+    assert_close(im2, imageio.imread(fname))
+    
+    # float scaled
+    imageio.imsave(fname, im1 / 255.0)
+    assert_close(im1, imageio.imread(fname))
+    imageio.imsave(fname, im2 / 255.0)
+    assert_close(im2, imageio.imread(fname))
+    
+    # float not scaled
+    imageio.imsave(fname, im1 * 1.0)
+    assert_close(im1, imageio.imread(fname))
+    imageio.imsave(fname, im2 * 1.0)
+    assert_close(im1, imageio.imread(fname))  # scaled
+    
+    # int16
+    imageio.imsave(fname, im1.astype('int16'))
+    assert_close(im1, imageio.imread(fname))
+    imageio.imsave(fname, im2.astype('int16'))
+    assert_close(im1, imageio.imread(fname))  # scaled
+    
+    
 
 def test_jpg():
     
