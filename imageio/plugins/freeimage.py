@@ -11,8 +11,9 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
+
 from .. import formats
-from ..core import Format
+from ..core import Format, image_as_uint8
 from ._freeimage import fi, IO_FLAGS
 
 
@@ -165,8 +166,7 @@ class FreeimageBmpFormat(FreeimageFormat):
             return FreeimageFormat.Writer._open(self, flags)
         
         def _append_data(self, im, meta):
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
+            im = image_as_uint8(im)
             return FreeimageFormat.Writer._append_data(self, im, meta)
 
 
@@ -223,8 +223,7 @@ class FreeimagePngFormat(FreeimageFormat):
             return FreeimageFormat.Writer._open(self, flags)
         
         def _append_data(self, im, meta):
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
+            im = image_as_uint8(im)
             FreeimageFormat.Writer._append_data(self, im, meta)
             # Quantize?
             q = int(self.request.kwargs.get('quantize', False))
@@ -337,8 +336,7 @@ class FreeimageJpegFormat(FreeimageFormat):
         def _append_data(self, im, meta):
             if im.ndim == 3 and im.shape[-1] == 4:
                 raise IOError('JPEG does not support alpha channel.')
-            if im.dtype in (np.float32, np.float64):
-                im = (im * 255).astype(np.uint8)
+            im = image_as_uint8(im)
             return FreeimageFormat.Writer._append_data(self, im, meta)
 
 

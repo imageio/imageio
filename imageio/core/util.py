@@ -45,6 +45,38 @@ def urlopen(*args, **kwargs):
     return urlopen(*args, **kwargs)
 
 
+def image_as_uint8(im):
+    """ Convert the given image to uint8
+    
+    If the dtype is already uint8, it is returned as-is. If the image
+    is float, and all values are between 0 and 1, the values are
+    multiplied by 255. In all other situations, the values are scaled
+    such that the minimum value becomes 0 and the maximum value becomes
+    255.
+    """
+    if not isinstance(im, np.ndarray):
+        raise  ValueError('image must be a numpy array')
+    dtype_str = str(im.dtype)
+    # Already uint8?
+    if dtype_str == 'uint8':
+        return im
+    # Handle float
+    mi, ma = np.nanmin(im), np.nanmax(im)
+    if dtype_str.startswith('float'):
+        if mi >= 0 and ma <= 1:
+            mi, ma = 0, 1
+    # Now make float copy before we scale
+    im = im.astype('float32')
+    # Scale the values between 0 and 255
+    if mi:
+        im -= mi
+    if ma != 255:
+        im *= 255.0 / (ma - mi)
+    # Done 
+    assert np.nanmax(im) < 256
+    return im.astype(np.uint8)
+
+
 # currently not used ... the only use it to easly provide the global meta info
 class ImageList(list):
     def __init__(self, meta=None):

@@ -108,7 +108,7 @@ def test_reading_saving():
             </html>
             """ % (fname1, fname2, fname3, fname4)
     
-    with open(os.path.join(test_dir, 'images', 'test_swf.html'), 'wb') as f:
+    with open(os.path.join(test_dir, 'test_swf.html'), 'wb') as f:
         for line in html.splitlines():
             f.write(line.strip().encode('utf-8') + b'\n')
 

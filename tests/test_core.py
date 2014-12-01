@@ -549,9 +549,7 @@ def test_request_file_no_seek():
         R.firstbytes
 
 
-def test_util():
-    """ Test our misc utils """
-    
+def test_util_imagelist():
     meta = {'foo': 3, 'bar': {'spam': 1, 'eggs': 2}}
     
     # Image list
@@ -560,7 +558,10 @@ def test_util():
     assert L.meta == meta
     # Fail
     raises(ValueError, core.util.ImageList, 3)  # not a dict
-    
+
+
+def test_util_image():
+    meta = {'foo': 3, 'bar': {'spam': 1, 'eggs': 2}}
     # Image 
     a = np.zeros((10, 10))
     im = core.util.Image(a, meta)
@@ -584,7 +585,9 @@ def test_util():
     # Fail
     raises(ValueError, core.util.Image, 3)  # not a ndarray
     raises(ValueError, core.util.Image, a, 3)  # not a dict
-    
+
+
+def test_util_dict():
     # Dict class
     D = core.Dict()
     D['foo'] = 1
@@ -611,11 +614,15 @@ def test_util():
     # Fail
     raises(AttributeError, D.__setattr__, 'copy', False)  # reserved
     raises(AttributeError, D.__getattribute__, 'notinD')
-    
+
+
+def test_util_get_platform():
     # Test get_platform
     platforms = 'win32', 'win64', 'linux32', 'linux64', 'osx32', 'osx64'
     assert core.get_platform() in platforms
-    
+
+
+def test_util_asarray():
     # Test asarray
     im1 = core.asarray([[1, 2, 3], [4, 5, 6]])
     im2 = im1.view(type=core.Image)
@@ -629,7 +636,7 @@ def test_util():
             assert im3[0, 0] == i
 
 
-def test_progres_bar(sleep=0):
+def test_util_progres_bar(sleep=0):
     """ Test the progress bar """
     # This test can also be run on itself to *see* the result
     
@@ -672,6 +679,36 @@ def test_progres_bar(sleep=0):
         B.finish('Done')
         if sleep:
             return
+
+
+def test_util_image_as_uint8():
+    
+    raises(ValueError, core.image_as_uint8, 4)
+    raises(ValueError, core.image_as_uint8, "not an image")
+    
+    res = core.image_as_uint8(np.array([0, 1], 'uint8'))
+    assert res[0] == 0 and res[1] == 1
+    res = core.image_as_uint8(np.array([4, 255], 'uint8'))
+    assert res[0] == 4 and res[1] == 255
+    
+    res = core.image_as_uint8(np.array([0, 1], 'int8'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint8(np.array([-4, 100], 'int8'))
+    assert res[0] == 0 and res[1] == 255
+    
+    res = core.image_as_uint8(np.array([0, 1], 'int16'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint8(np.array([-4, 100], 'int16'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint8(np.array([-1000, 8000], 'int16'))
+    assert res[0] == 0 and res[1] == 255
+    
+    res = core.image_as_uint8(np.array([0, 1], 'float32'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint8(np.array([0.099, 0.785], 'float32'))
+    assert res[0] == 25 and res[1] == 200
+    res = core.image_as_uint8(np.array([4, 200], 'float32'))
+    assert res[0] == 0 and res[1] == 255
 
 
 def test_functions():
