@@ -16,12 +16,34 @@ test_dir = get_test_dir()
 mean = lambda x: x.sum() / x.size  # pypy-compat mean
 
 
+def test_select():
+    
+    fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
+    
+    F = imageio.formats['avbin']
+    assert F.name == 'AVBIN'
+    
+    assert F.can_read(core.Request(fname1, 'rI'))
+    assert not F.can_save(core.Request(fname1, 'wI'))
+    assert not F.can_read(core.Request(fname1, 'ri'))
+    assert not F.can_read(core.Request(fname1, 'rv'))
+    
+    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin')
+    assert R.format is F
+    
+    # ffmpeg is default
+    #assert imageio.formats['.mp4'] is F
+    #assert imageio.formats.search_save_format(core.Request(fname1, 'wI')) is F
+    #assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
+
+
 def test_read():
-    reader = imageio.read(get_remote_file('images/cockatoo.mp4', 
-                                          force_download='2014-11-05'))
+    fname = get_remote_file('images/cockatoo.mp4', force_download='2014-11-05')
+    reader = imageio.read(fname, 'avbin')
     assert reader.get_length() == 280
     assert 'fps' in reader.get_meta_data()
-    assert not reader.format.can_save(core.Request('test.mp4', 'wI'))
+    raises(Exception, imageio.save, '~/foo.mp4', 'abin')
+    #assert not reader.format.can_save(core.Request('test.mp4', 'wI'))
     
     for i in range(10):
         im = reader.get_next_data()
@@ -96,7 +118,7 @@ def test_reader_more():
 def test_read_format():
     # Set videofomat
     # Also set skipempty, so we can test mean
-    reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 
+    reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin',
                           videoformat='mp4', skipempty=True)
     for i in range(10):
         im = reader.get_next_data()
@@ -106,7 +128,7 @@ def test_read_format():
 
 def test_stream():
     with raises(IOError):
-        imageio.read(get_remote_file('images/cockatoo.mp4'), stream=5)
+        imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin', stream=5)
   
   
 def test_invalidfile():
@@ -115,7 +137,7 @@ def test_invalidfile():
         pass
     
     with raises(IOError):
-        imageio.read(filename)
+        imageio.read(filename, 'avbin')
     
     # Check AVbinResult
     imageio.plugins.avbin.AVbinResult(imageio.plugins.avbin.AVBIN_RESULT_OK)
@@ -124,19 +146,8 @@ def test_invalidfile():
             imageio.plugins.avbin.AVbinResult(i)
 
 
-def test_format_selection():
-    # AVBIN is default format for reading video
-    
-    F = imageio.formats['AVBIN']
-    assert F.name == 'AVBIN'
-    
-    R = imageio.read(get_remote_file('images/cockatoo.mp4'))
-    assert R.format is F
-    assert imageio.formats['.mp4'] is F
-
-
 def show_in_mpl():
-    reader = imageio.read('cockatoo.mp4')
+    reader = imageio.read('cockatoo.mp4', 'avbin')
     for i in range(10):
         reader.get_next_data()
        
