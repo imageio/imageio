@@ -82,7 +82,7 @@ from . import freeimage  # noqa
 from . import freeimagemulti  # noqa
 from . import example  # noqa
 from . import dicom  # noqa
-from . import avbin  # noqa
 from . import ffmpeg  # noqa
+from . import avbin  # noqa
 from . import npz  # noqa
 from . import swf  # noqa

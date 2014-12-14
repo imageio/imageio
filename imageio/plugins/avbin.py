@@ -436,7 +436,7 @@ class AvBinFormat(Format):
 # Register. You register an *instance* of a Format class. Here specify:
 format = AvBinFormat('avbin',  # short name
                      'Many video formats (via AvBin, i.e. libav library)',  
-                     'mov avi mp4 mpg mpeg',  # list of extensions
+                     'mov avi mp4 mpg mpeg mkv',  # list of extensions
                      'I'  # modes, characters in iIvV
                      )
 formats.add_format(format)

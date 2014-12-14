@@ -56,7 +56,7 @@ def image_as_uint8(im):
     255.
     """
     if not isinstance(im, np.ndarray):
-        raise  ValueError('image must be a numpy array')
+        raise ValueError('image must be a numpy array')
     dtype_str = str(im.dtype)
     # Already uint8?
     if dtype_str == 'uint8':

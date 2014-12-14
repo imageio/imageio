@@ -193,6 +193,7 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
+
 def test_png_dtypes():
     # See issue #44
     
@@ -227,8 +228,7 @@ def test_png_dtypes():
     assert_close(im1, imageio.imread(fname))
     imageio.imsave(fname, im2.astype('int16'))
     assert_close(im1, imageio.imread(fname))  # scaled
-    
-    
+
 
 def test_jpg():
     
