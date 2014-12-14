@@ -6,6 +6,7 @@ htmlcov
 build
 dist
 temp
+imageio.egg-info
 
 # Files in root folder
 MANIFEST

@@ -24,7 +24,8 @@ import subprocess as sp
 import numpy as np
 
 from .. import formats
-from ..core import Format, get_remote_file, string_types, read_n_bytes
+from ..core import (Format, get_remote_file, string_types, read_n_bytes, 
+                    image_as_uint8)
 
 
 def get_exe():
@@ -462,8 +463,7 @@ class FfmpegFormat(Format):
             depth = 1 if im.ndim == 2 else im.shape[2]
             
             # Ensure that image is in uint8
-            if im.dtype != np.uint8:
-                im = im.astype(np.uint8)  # pypy: no support copy=False
+            im = image_as_uint8(im)
             
             # Set size and initialize if not initialized yet
             if self._size is None:
@@ -655,5 +655,5 @@ class StreamCatcher(threading.Thread):
 
 # Register. You register an *instance* of a Format class.
 format = FfmpegFormat('ffmpeg', 'Many video formats and cameras (via ffmpeg)', 
-                      '.mov .avi .mpg .mpeg .mp4', 'I')
+                      '.mov .avi .mpg .mpeg .mp4 .mkv', 'I')
 formats.add_format(format)

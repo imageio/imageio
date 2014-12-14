@@ -23,13 +23,20 @@ def test_select():
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
     
     F = imageio.formats['ffmpeg']
+    assert F.name == 'FFMPEG'
+    
     assert F.can_read(core.Request(fname1, 'rI'))
     assert F.can_save(core.Request(fname1, 'wI'))
     assert not F.can_read(core.Request(fname1, 'ri'))
     assert not F.can_read(core.Request(fname1, 'rv'))
 
-    assert imageio.formats.search_save_format(core.Request(fname1, 'rI')) is F
-    # for reading, avbin may be the default soon
+    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'ffmpeg')
+    assert R.format is F
+    
+    # ffmpeg is default
+    assert imageio.formats['.mp4'] is F
+    assert imageio.formats.search_save_format(core.Request(fname1, 'wI')) is F
+    assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
 
     
 def test_read_and_write():
