@@ -76,9 +76,10 @@ script:
     - python -c "import sys; print(sys.version, '\n', sys.prefix)";
     # Run unit tests or style test
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
-        python make test style;
         echo "Size difference ${SIZE_DIFF} kB";
         test ${SIZE_DIFF} -lt 100;
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
+        python make test style;
       elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
         python make test installed;
       else
