@@ -45,6 +45,10 @@ def urlopen(*args, **kwargs):
     return urlopen(*args, **kwargs)
 
 
+
+
+def foo():  # deliberate flake error
+    pass
 def image_as_uint8(im):
     """ Convert the given image to uint8
     
