@@ -68,12 +68,12 @@ def image_as_uint8(im):
     # Now make float copy before we scale
     im = im.astype('float32')
     # Scale the values between 0 and 255
-    if mi:
-        im -= mi
-    if ma != 255:
-        im *= 255.0 / (ma - mi)
-    # Done 
-    assert np.nanmax(im) < 256
+    if np.isfinite(mi) and np.isfinite(ma):
+        if mi:
+            im -= mi
+        if ma != 255:
+            im *= 255.0 / (ma - mi)
+        assert np.nanmax(im) < 256
     return im.astype(np.uint8)
 
 

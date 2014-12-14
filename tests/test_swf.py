@@ -165,7 +165,7 @@ def test_types():
     
     for dtype in [np.uint8, np.float32]:
         for shape in [(100, 100), (100, 100, 1), (100, 100, 3)]:
-            im1 = np.empty(shape, dtype)
+            im1 = np.empty(shape, dtype)  # empty is nice for testing nan
             imageio.mimsave(fname2, [im1], 'swf')
             im2 = imageio.mimread(fname2, 'swf')[0]
             assert im2.shape == (100, 100, 4)
