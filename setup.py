@@ -37,10 +37,14 @@ After release:
 import os
 import os.path as op
 import sys
+import shutil
+from distutils.command.sdist import sdist
+
 try:
     from setuptools import setup  # Supports wheels
 except ImportError:
     from distutils.core import setup  # Supports anything else
+
 
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image formats.'
@@ -89,6 +93,12 @@ Example:
 See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
 or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
 for more information.
+
+All distribution files are independent of the Python version. The
+platform-specific archives contain a few images and the freeimage
+library for that platform. These are recommended if you do not want to
+rely on an internet connection at runtime.
+
 """
 
 # Collect files to more or less reproduce the repo in the dist package.
@@ -109,25 +119,125 @@ make_files = [os.path.join('make', fn)
               for fn in os.listdir(os.path.join(THIS_DIR, 'make'))
               if (fn.endswith('.py') or fn.endswith('.md'))]
 
-# Populate the source dir if creating a binary dist
+# Prepare resources dir
 package_data = []
 package_data.append('resources/shipped_resources_go_here')
-if [x for x in sys.argv if x.startswith('bdist')]:
-    import imageio
-    resource_dir = imageio.core.resource_dirs()[0]
-    # 
-    for fname in ['images/chelsea.png',
-                  'images/chelsea.zip',
-                  'images/astronaut.png',
-                  'images/newtonscradle.gif',
-                  'images/cockatoo.mp4',
-                  'images/realshort.mp4',
-                  ]:
-        imageio.core.get_remote_file(fname, resource_dir, force_download=True)
-        package_data.append('resources/' + fname)
+
+
+
+class sdist_all(sdist):
+    """ Build all platform specific dist files, that contain
+    a few images and the freeimage lib of the platform.
+    """
+
+    def run(self):
+        sdist.run(self)
+        
+        # Get base tarbal
+        import tarfile
+        distdir = op.join(THIS_DIR, 'dist')
+        tarfilename = op.join(distdir, 'imageio-%s.tar.gz' % __version__)
+        assert op.isfile(tarfilename)
+        
+        # Create/clean build dir
+        build_dir = op.join(distdir, 'temp')
+        if op.isdir(build_dir):
+            shutil.rmtree(build_dir)
+        os.mkdir(build_dir)
+        
+        # Extract, get resource dir
+        with tarfile.open(tarfilename, 'r:gz') as tf:
+            tf.extractall(build_dir)
+        resource_dir = op.join(build_dir, 'imageio-%s' % __version__, 
+                               'imageio', 'resources')
+        assert os.path.isdir(resource_dir)
+        
+        # Prepare the libs resource directory with cross-platform
+        # resources, so we can copy these for each platform
+        self._set_crossplatform_resources()
+        
+        # Create archives
+        dist_files = self.distribution.dist_files
+        for plat in ['', 'linux64', 'linux32', 'win64', 'win32', 'osx64']:
+            fname = self._create_dists_for_platform(resource_dir, plat)
+            dist_files.append(('sdist', 'any', 'dist/'+fname))
+        
+        # Clean up
+        shutil.rmtree(build_dir)
+    
+    
+    def _set_crossplatform_resources(self):
+        import imageio
+        resource_dir = imageio.core.resource_dirs()[0]
+        
+        # Clear now
+        if op.isdir(resource_dir):
+            shutil.rmtree(resource_dir)
+        os.mkdir(resource_dir)
+        open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
+        
+        # Load images
+        for fname in ['images/chelsea.png',
+                    'images/chelsea.zip',
+                    'images/astronaut.png',
+                    'images/newtonscradle.gif',
+                    'images/cockatoo.mp4',
+                    'images/realshort.mp4',
+                    ]:
+            imageio.core.get_remote_file(fname, resource_dir, 
+                                         force_download=True)
+    
+    def _set_platform_resources(self, platform, resource_dir):
+        import imageio
+        
+        # Create file to show platform
+        open(op.join(resource_dir, 'platform_%s' % platform), 'wb')
+        
+        # Load freeimage
+        fname = imageio.plugins.freeimage.FNAME_PER_PLATFORM[platform]
+        imageio.core.get_remote_file('freeimage/'+fname, resource_dir,
+                                     force_download=True)
+        
+        # Load ffmpeg
+        #fname = imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[platform]
+        #imageio.core.get_remote_file('ffmpeg/'+fname, resource_dir, 
+        #                             force_download=True)
+    
+    def _create_dists_for_platform(self, resource_dir, plat):
+        import zipfile
+        import imageio
+        
+        # Copy over crossplatform resources and add platform specifics
+        shutil.rmtree(resource_dir)
+        if plat:
+            shutil.copytree(imageio.core.resource_dirs()[0], resource_dir)
+            self._set_platform_resources(plat, resource_dir)
+        else:
+            os.mkdir(resource_dir)
+            open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
+        
+        # Zip it
+        distdir = op.join(THIS_DIR, 'dist')
+        build_dir = op.join(distdir, 'temp')
+        zipfname = 'imageio-%s.zip' % __version__
+        if plat:
+            zipfname = 'imageio-%s-%s.zip' % (__version__, plat)
+        zipfilename = op.join(distdir, zipfname)
+        zf = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
+        for root, dirs, files in os.walk(build_dir):
+            for fname in files:
+                filename = op.join(root, fname)
+                relpath = op.relpath(filename, build_dir)
+                relpath = relpath.replace('imageio-%s' % __version__,
+                                          zipfname[:-4])
+                zf.write(filename, relpath)
+        zf.close()
+        return zipfname
 
 
 setup(
+    cmdclass={'sdist_all': sdist_all},
+    
     name = name,
     version = __version__,
     author = 'imageio contributors',

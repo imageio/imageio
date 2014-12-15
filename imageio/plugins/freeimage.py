@@ -14,7 +14,7 @@ import numpy as np
 
 from .. import formats
 from ..core import Format, image_as_uint8
-from ._freeimage import fi, IO_FLAGS
+from ._freeimage import fi, IO_FLAGS, FNAME_PER_PLATFORM
 
 
 # todo: support files with only meta data

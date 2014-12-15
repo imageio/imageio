@@ -26,26 +26,25 @@ from ..core import string_types, binary_type, IS_PYPY, get_platform
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 
+FNAME_PER_PLATFORM = {
+    'osx32': 'libfreeimage-3.16.0-osx10.6.dylib',  # universal library
+    'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
+    'win32': 'FreeImage-3.15.4-win32.dll',
+    'win64': 'FreeImage-3.15.1-win64.dll',
+    'linux32': 'libfreeimage-3.16.0-linux32.so',
+    'linux64': 'libfreeimage-3.16.0-linux64.so',
+}
 
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
-    
-    LIBRARIES = {
-        'osx32': 'libfreeimage-3.16.0-osx10.6.dylib',  # universal library
-        'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
-        'win32': 'FreeImage-3.15.4-win32.dll',
-        'win64': 'FreeImage-3.15.1-win64.dll',
-        'linux32': 'libfreeimage-3.16.0-linux32.so',
-        'linux64': 'libfreeimage-3.16.0-linux64.so',
-    }
     
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
     plat = get_platform()
     if plat:
         try:
-            return get_remote_file('freeimage/' + LIBRARIES[plat])
+            return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
         except RuntimeError as e:  # pragma: no cover
             print(str(e))
 
