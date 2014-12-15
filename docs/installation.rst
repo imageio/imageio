@@ -17,7 +17,7 @@ To install imageio with the freeimage library and a few images included,
 you can force downloading the libs when building, or use one of the
 provided archives from pypi:
     
-* ``python setup.py build_with_libs install``
+* ``python setup.py build_with_fi install``
 * ``pip install https://pypi.python.org/packages/source/i/imageio/imageio-x.y-linux64.zip``
 
 For developers, we provide a simple mechanism to allow importing 

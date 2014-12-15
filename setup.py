@@ -168,7 +168,7 @@ def _set_platform_resources(resource_dir, platform):
     #                             force_download=True)
 
 
-class build_with_libs(build_py):
+class build_with_fi(build_py):
     def run(self):
         # Download images and libs
         import imageio
@@ -255,7 +255,7 @@ class sdist_all(sdist):
 
 
 setup(
-    cmdclass={'sdist_all': sdist_all, 'build_with_libs': build_with_libs},
+    cmdclass={'sdist_all': sdist_all, 'build_with_fi': build_with_fi},
     
     name = name,
     version = __version__,
