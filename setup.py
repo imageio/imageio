@@ -39,6 +39,7 @@ import os.path as op
 import sys
 import shutil
 from distutils.command.sdist import sdist
+from distutils.command.build_py import build_py
 
 try:
     from setuptools import setup  # Supports wheels
@@ -122,7 +123,60 @@ make_files = [os.path.join('make', fn)
 # Prepare resources dir
 package_data = []
 package_data.append('resources/shipped_resources_go_here')
+package_data.append('resources/*.*')
+package_data.append('resources/images/*.*')
+package_data.append('resources/freeimage/*.*')
+package_data.append('resources/ffmpeg/*.*')
+package_data.append('resources/avbin/*.*')
 
+
+def _set_crossplatform_resources(resource_dir):
+    import imageio
+    
+    # Clear now
+    if op.isdir(resource_dir):
+        shutil.rmtree(resource_dir)
+    os.mkdir(resource_dir)
+    open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
+    
+    # Load images
+    for fname in ['images/chelsea.png',
+                'images/chelsea.zip',
+                'images/astronaut.png',
+                'images/newtonscradle.gif',
+                'images/cockatoo.mp4',
+                'images/realshort.mp4',
+                ]:
+        imageio.core.get_remote_file(fname, resource_dir, 
+                                     force_download=True)
+
+
+def _set_platform_resources(resource_dir, platform):
+    import imageio
+    
+    # Create file to show platform
+    open(op.join(resource_dir, 'platform_%s' % platform), 'wb')
+    
+    # Load freeimage
+    fname = imageio.plugins.freeimage.FNAME_PER_PLATFORM[platform]
+    imageio.core.get_remote_file('freeimage/'+fname, resource_dir,
+                                    force_download=True)
+    
+    # Load ffmpeg
+    #fname = imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[platform]
+    #imageio.core.get_remote_file('ffmpeg/'+fname, resource_dir, 
+    #                             force_download=True)
+
+
+class build_with_libs(build_py):
+    def run(self):
+        # Download images and libs
+        import imageio
+        resource_dir = imageio.core.resource_dirs()[0]
+        _set_crossplatform_resources(resource_dir)
+        _set_platform_resources(resource_dir, imageio.core.get_platform())
+        # Build as  normal
+        build_py.run(self)
 
 
 class sdist_all(sdist):
@@ -132,6 +186,8 @@ class sdist_all(sdist):
 
     def run(self):
         sdist.run(self)
+        
+        import imageio
         
         # Get base tarbal
         import tarfile
@@ -154,7 +210,7 @@ class sdist_all(sdist):
         
         # Prepare the libs resource directory with cross-platform
         # resources, so we can copy these for each platform
-        self._set_crossplatform_resources()
+        _set_crossplatform_resources(imageio.core.resource_dirs()[0])
         
         # Create archives
         dist_files = self.distribution.dist_files
@@ -166,43 +222,6 @@ class sdist_all(sdist):
         shutil.rmtree(build_dir)
     
     
-    def _set_crossplatform_resources(self):
-        import imageio
-        resource_dir = imageio.core.resource_dirs()[0]
-        
-        # Clear now
-        if op.isdir(resource_dir):
-            shutil.rmtree(resource_dir)
-        os.mkdir(resource_dir)
-        open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
-        
-        # Load images
-        for fname in ['images/chelsea.png',
-                    'images/chelsea.zip',
-                    'images/astronaut.png',
-                    'images/newtonscradle.gif',
-                    'images/cockatoo.mp4',
-                    'images/realshort.mp4',
-                    ]:
-            imageio.core.get_remote_file(fname, resource_dir, 
-                                         force_download=True)
-    
-    def _set_platform_resources(self, platform, resource_dir):
-        import imageio
-        
-        # Create file to show platform
-        open(op.join(resource_dir, 'platform_%s' % platform), 'wb')
-        
-        # Load freeimage
-        fname = imageio.plugins.freeimage.FNAME_PER_PLATFORM[platform]
-        imageio.core.get_remote_file('freeimage/'+fname, resource_dir,
-                                     force_download=True)
-        
-        # Load ffmpeg
-        #fname = imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[platform]
-        #imageio.core.get_remote_file('ffmpeg/'+fname, resource_dir, 
-        #                             force_download=True)
-    
     def _create_dists_for_platform(self, resource_dir, plat):
         import zipfile
         import imageio
@@ -211,7 +230,7 @@ class sdist_all(sdist):
         shutil.rmtree(resource_dir)
         if plat:
             shutil.copytree(imageio.core.resource_dirs()[0], resource_dir)
-            self._set_platform_resources(plat, resource_dir)
+            _set_platform_resources(resource_dir, plat)
         else:
             os.mkdir(resource_dir)
             open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
@@ -236,7 +255,7 @@ class sdist_all(sdist):
 
 
 setup(
-    cmdclass={'sdist_all': sdist_all},
+    cmdclass={'sdist_all': sdist_all, 'build_with_libs': build_with_libs},
     
     name = name,
     version = __version__,

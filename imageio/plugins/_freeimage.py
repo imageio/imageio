@@ -35,6 +35,7 @@ FNAME_PER_PLATFORM = {
     'linux64': 'libfreeimage-3.16.0-linux64.so',
 }
 
+
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 

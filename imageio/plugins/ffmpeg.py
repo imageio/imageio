@@ -18,7 +18,6 @@ import stat
 import re
 import time
 import threading
-import struct
 import subprocess as sp
 
 import numpy as np
