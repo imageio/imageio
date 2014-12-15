@@ -9,7 +9,7 @@ import threading
 import numpy as np
 
 from pytest import raises, skip
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -30,9 +30,6 @@ def test_select():
     assert not F.can_read(core.Request(fname1, 'ri'))
     assert not F.can_read(core.Request(fname1, 'rv'))
 
-    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'ffmpeg')
-    assert R.format is F
-    
     # ffmpeg is default
     assert imageio.formats['.mp4'] is F
     assert imageio.formats.search_save_format(core.Request(fname1, 'wI')) is F
@@ -40,6 +37,10 @@ def test_select():
 
     
 def test_read_and_write():
+    need_internet()
+    
+    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'ffmpeg')
+    assert R.format is imageio.formats['ffmpeg']
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
     fname2 = fname1[:-4] + '.out.mp4'
@@ -77,6 +78,7 @@ def test_read_and_write():
 
 
 def test_reader_more():
+    need_internet()
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
     fname3 = fname1[:-4] + '.stub.mp4'
@@ -138,6 +140,7 @@ def test_reader_more():
 
 
 def test_writer_more():
+    need_internet()
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)
     fname2 = fname1[:-4] + '.out.mp4'
@@ -228,6 +231,7 @@ def test_framecatcher():
 
 
 def test_webcam():
+    need_internet()
     
     try:
         imageio.read('<video2>')

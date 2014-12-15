@@ -61,6 +61,7 @@ def get_test_dir():
         # Clear and create it now
         clean_test_dir(True)
         os.makedirs(_the_test_dir)
+        os.makedirs(os.path.join(_the_test_dir, 'images'))
         # And later
         atexit.register(clean_test_dir)
     return _the_test_dir

@@ -2,7 +2,7 @@
 """
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -28,9 +28,6 @@ def test_select():
     assert not F.can_read(core.Request(fname1, 'ri'))
     assert not F.can_read(core.Request(fname1, 'rv'))
     
-    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin')
-    assert R.format is F
-    
     # ffmpeg is default
     #assert imageio.formats['.mp4'] is F
     #assert imageio.formats.search_save_format(core.Request(fname1, 'wI')) is F
@@ -38,6 +35,11 @@ def test_select():
 
 
 def test_read():
+    need_internet()
+    
+    R = imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin')
+    assert R.format is imageio.formats['avbin']
+    
     fname = get_remote_file('images/cockatoo.mp4', force_download='2014-11-05')
     reader = imageio.read(fname, 'avbin')
     assert reader.get_length() == 280
@@ -60,6 +62,7 @@ def test_read():
 
 
 def test_reader_more():
+    need_internet()
     
     fname1 = get_remote_file('images/cockatoo.mp4')
     fname3 = fname1[:-4] + '.stub.mp4'
@@ -116,6 +119,8 @@ def test_reader_more():
 
 
 def test_read_format():
+    need_internet()
+    
     # Set videofomat
     # Also set skipempty, so we can test mean
     reader = imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin',
@@ -127,11 +132,15 @@ def test_read_format():
 
 
 def test_stream():
+    need_internet()
+    
     with raises(IOError):
         imageio.read(get_remote_file('images/cockatoo.mp4'), 'avbin', stream=5)
   
   
 def test_invalidfile():
+    need_internet()
+    
     filename = test_dir+'/empty.mp4'
     with open(filename, 'w'):
         pass
