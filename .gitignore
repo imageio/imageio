@@ -17,6 +17,8 @@ imageio/lib
 docs/_build
 tests/zipped
 tests/freezing/frozen
+imageio/resources/images
+imageio/resources/freeimage
 
 # Files / folders that should always be ignored
 __pychache__

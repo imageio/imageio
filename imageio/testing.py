@@ -75,6 +75,11 @@ def clean_test_dir(strict=False):
                 raise
         
 
+def need_internet():
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        pytest.skip('No internet')
+
+
 ## Functions to use from make
 
 def test_unit(cov_report='term'):
