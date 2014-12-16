@@ -24,7 +24,7 @@ Release:
   * git tag the release
   * Upload to Pypi:
     * python setup.py register
-    * python setup.py sdist upload
+    * python setup.py sdist_all upload
   * Update, build and upload conda package
 
 After release:
@@ -98,7 +98,7 @@ for more information.
 All distribution files are independent of the Python version. The
 platform-specific archives contain a few images and the freeimage
 library for that platform. These are recommended if you do not want to
-rely on an internet connection at runtime.
+rely on an internet connection at runtime / install-time.
 
 """
 
@@ -141,12 +141,13 @@ def _set_crossplatform_resources(resource_dir):
     
     # Load images
     for fname in ['images/chelsea.png',
-                'images/chelsea.zip',
-                'images/astronaut.png',
-                'images/newtonscradle.gif',
-                'images/cockatoo.mp4',
-                'images/realshort.mp4',
-                ]:
+                  'images/chelsea.zip',
+                  'images/astronaut.png',
+                  'images/newtonscradle.gif',
+                  'images/cockatoo.mp4',
+                  'images/realshort.mp4',
+                  'images/stent.npz',
+                  ]:
         imageio.core.get_remote_file(fname, resource_dir, 
                                      force_download=True)
 
