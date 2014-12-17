@@ -442,7 +442,6 @@ def appdata_dir(appname=None, roaming=False):
         path = os.path.join(path, appname)
         if not os.path.isdir(path):  # pragma: no cover
             os.mkdir(path)
-            
     
     # Done
     return path
