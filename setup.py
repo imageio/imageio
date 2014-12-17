@@ -38,6 +38,7 @@ import os
 import os.path as op
 import sys
 import shutil
+from distutils.core import Command
 from distutils.command.sdist import sdist
 from distutils.command.build_py import build_py
 
@@ -169,6 +170,19 @@ def _set_platform_resources(resource_dir, platform):
     #                             force_download=True)
 
 
+class test_command(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        from imageio import testing
+        sys.exit(testing.test_unit())
+
+
 class build_with_fi(build_py):
     def run(self):
         # Download images and libs
@@ -256,7 +270,9 @@ class sdist_all(sdist):
 
 
 setup(
-    cmdclass={'sdist_all': sdist_all, 'build_with_fi': build_with_fi},
+    cmdclass={'sdist_all': sdist_all, 
+              'build_with_fi': build_with_fi,
+              'test': test_command},
     
     name = name,
     version = __version__,
