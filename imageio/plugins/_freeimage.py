@@ -317,7 +317,8 @@ class Freeimage(object):
         'FreeImage_GetPalette': (ctypes.c_void_p, None),
         'FreeImage_GetTagKey': (ctypes.c_char_p, None),
         'FreeImage_GetTagValue': (ctypes.c_void_p, None),
-        
+        'FreeImage_CreateTag': (ctypes.c_void_p, None),
+
         'FreeImage_Save': (ctypes.c_void_p, None),
         'FreeImage_Load': (ctypes.c_void_p, None),
         'FreeImage_LoadFromMemory': (ctypes.c_void_p, None),
@@ -335,6 +336,8 @@ class Freeimage(object):
         'FreeImage_GetFormatFromFIF': (ctypes.c_char_p, None),
         'FreeImage_GetFIFDescription': (ctypes.c_char_p, None),
         
+        'FreeImage_ColorQuantizeEx': (ctypes.c_void_p, None),
+
         # Pypy wants some extra definitions, so here we go ...
         'FreeImage_IsLittleEndian': (ctypes.c_int, None),
         'FreeImage_SetOutputMessage': (ctypes.c_void_p, None),
