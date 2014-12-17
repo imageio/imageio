@@ -404,7 +404,11 @@ class Freeimage(object):
         
         # todo: we want to load from location relative to exe in frozen apps
         # Get lib dirs
-        lib_dirs = [appdata_dir('imageio')]
+        lib_dirs = []
+        try:
+            lib_dirs.append(appdata_dir('imageio'))
+        except Exception:
+            pass  # The home dir may not be writable
         
         # Make sure that we have our binary version of the libary
         lib_filename = get_freeimage_lib() or 'notavalidlibname'

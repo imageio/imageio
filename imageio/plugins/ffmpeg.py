@@ -42,11 +42,18 @@ def get_exe():
     plat = get_platform()
     
     if plat and plat in FNAME_PER_PLATFORM:
-        exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
-        os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
-        return exe
-    else:
-        return 'ffmpeg'  # Let's hope the system has ffmpeg
+        try:
+            exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
+            os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
+            return exe
+        except OSError:  # pragma: no cover
+            print("Warning: could not load imageio's ffmpeg library.")
+            e_type, e_value, e_tb = sys.exc_info()
+            del e_tb
+            print(str(e_value))
+    
+    # Fallback, let's hope the system has ffmpeg
+    return 'ffmpeg'
 
 
 # Get camera format
