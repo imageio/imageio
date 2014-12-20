@@ -21,7 +21,7 @@ import ctypes
 import threading
 import numpy
 
-from ..core import get_remote_file, load_lib, Dict, appdata_dir
+from ..core import get_remote_file, load_lib, Dict, appdata_dir, resource_dirs
 from ..core import string_types, binary_type, IS_PYPY, get_platform
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
@@ -39,6 +39,9 @@ FNAME_PER_PLATFORM = {
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
+    # todo: maybe use shipped if shipped is downloaded.
+    # download if system lib not found, or ... manually? how?
+    # Maybe place a symlink in place?
     
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
@@ -391,32 +394,47 @@ class Freeimage(object):
         self._error_handler = error_handler
         
         # Load library and register API
-        self._load_freeimage()        
-        self._register_api()
+        success = False
+        try:
+            # Try without forcing a download, but giving preference
+            # to the imageio-provided lib (if previously downloaded)
+            self._load_freeimage()
+            self._register_api()
+            if self._lib.FreeImage_GetVersion().decode('utf-8') >= '3.15':
+                success = True
+        except OSError:
+            pass
         
-        # Register logger for output messages
+        if not success:
+            # Ensure we have our own lib, try again
+            get_freeimage_lib()
+            self._load_freeimage()
+            self._register_api()
+        
+        # Wrap up
         self._lib.FreeImage_SetOutputMessage(self._error_handler)
-        
-        # Store version
         self._lib_version = self._lib.FreeImage_GetVersion().decode('utf-8')
     
     def _load_freeimage(self):
         
-        # todo: we want to load from location relative to exe in frozen apps
         # Get lib dirs
         lib_dirs = []
+        lib_dirs.extend(resource_dirs())
         try:
             lib_dirs.append(appdata_dir('imageio'))
         except Exception:
             pass  # The home dir may not be writable
         
-        # Make sure that we have our binary version of the libary
-        lib_filename = get_freeimage_lib() or 'notavalidlibname'
-        
-        # Load library
+        # Define names
         lib_names = ['freeimage', 'libfreeimage']
-        exact_lib_names = [lib_filename, 'FreeImage', 'libfreeimage.dylib', 
+        exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                            'libfreeimage.so', 'libfreeimage.so.3']
+        # Add names of libraries that we provide (that file may not exist)
+        fname = FNAME_PER_PLATFORM[get_platform()]
+        for dir in lib_dirs:
+            exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
+        
+        # Load
         try:
             lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
         except OSError:  # pragma: no cover
