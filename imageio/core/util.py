@@ -452,13 +452,19 @@ def resource_dirs():
     
     Get a list of directories where imageio resources may be located.
     The first directory in this list is the "resources" directory in
-    the package itself. The list further contains the application
+    the package itself. The second directory is the appdata directory
+    (~/.imageio on Linux). The list further contains the application
     directory (for frozen apps), and may include additional directories
     in the future.
     """
     dirs = []
     # Resource dir baked in the package
     dirs.append(os.path.abspath(os.path.join(THIS_DIR, '..', 'resources')))
+    # Appdata directory
+    try:
+        dirs.append(appdata_dir('imageio'))
+    except Exception:
+        pass  # The home dir may not be writable
     # Directory where the app is located (mainly for frozen apps)
     if sys.path and sys.path[0]:
         # Get the path. If frozen, sys.path[0] is the name of the executable,

@@ -21,7 +21,7 @@ import ctypes
 import threading
 import numpy
 
-from ..core import get_remote_file, load_lib, Dict, appdata_dir, resource_dirs
+from ..core import get_remote_file, load_lib, Dict, resource_dirs
 from ..core import string_types, binary_type, IS_PYPY, get_platform
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
@@ -417,26 +417,19 @@ class Freeimage(object):
     
     def _load_freeimage(self):
         
-        # Get lib dirs
-        lib_dirs = []
-        lib_dirs.extend(resource_dirs())
-        try:
-            lib_dirs.append(appdata_dir('imageio'))
-        except Exception:
-            pass  # The home dir may not be writable
-        
         # Define names
         lib_names = ['freeimage', 'libfreeimage']
         exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                            'libfreeimage.so', 'libfreeimage.so.3']
         # Add names of libraries that we provide (that file may not exist)
         fname = FNAME_PER_PLATFORM[get_platform()]
-        for dir in lib_dirs:
+        res_dirs = resource_dirs()
+        for dir in res_dirs:
             exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
         
         # Load
         try:
-            lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
+            lib, fname = load_lib(exact_lib_names, lib_names, res_dirs)
         except OSError:  # pragma: no cover
             # Could not load. Get why
             e_type, e_value, e_tb = sys.exc_info()

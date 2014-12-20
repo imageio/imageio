@@ -50,7 +50,6 @@ def get_remote_file(fname, directory=None, force_download=False):
     # Get dirs to look for the resource
     directory = directory or appdata_dir('imageio')
     dirs = resource_dirs()
-    dirs.insert(0, appdata_dir('imageio'))
     dirs.insert(0, directory)  # Given dir has preference
     # Try to find the resource locally
     for dir in dirs:
