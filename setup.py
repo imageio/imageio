@@ -180,6 +180,7 @@ class test_command(Command):
 
     def run(self):
         from imageio import testing
+        os.environ['IMAGEIO_NO_INTERNET'] = '1'  # run tests without inet
         sys.exit(testing.test_unit())
 
 
