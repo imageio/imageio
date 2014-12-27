@@ -83,7 +83,7 @@ need to be able to deal with scientific formats. I felt there was a
 need for a good image io library, which is an easy dependency, easy to
 maintain, and scalable to exotic file formats.
 </p><p>
-Imageio started out with the FreeImage plugin of the skikit-image
+Imageio started out with the FreeImage plugin of the scikit-image
 project, through which it was able to support a lot of common formats.
 We created a simple but powerful core, a clean user API, and a proper
 plugin system.
