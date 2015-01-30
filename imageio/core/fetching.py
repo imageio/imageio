@@ -15,7 +15,8 @@ import sys
 import shutil
 import time
 
-from . import appdata_dir, StdoutProgressIndicator, string_types, urlopen
+from . import appdata_dir, resource_dirs
+from . import StdoutProgressIndicator, string_types, urlopen
 
 
 def get_remote_file(fname, directory=None, force_download=False):
@@ -24,12 +25,14 @@ def get_remote_file(fname, directory=None, force_download=False):
     Parameters
     ----------
     fname : str
-        The filename on the remote data repository to download. These
-        correspond to paths on 
+        The relative filename on the remote data repository to download.
+        These correspond to paths on
         ``https://github.com/imageio/imageio-binaries/``.
     directory : str | None
-        Directory to use to save the file. By default, the appdata
-        directory is used.
+        The directory where the file will be cached if a download was
+        required to obtain the file. By default, the appdata directory
+        is used. This is also the first directory that is checked for
+        a local version of the file.
     force_download : bool | str
         If True, the file will be downloaded even if a local copy exists
         (and this copy will be overwritten). Can also be a YYYY-MM-DD date
@@ -43,36 +46,48 @@ def get_remote_file(fname, directory=None, force_download=False):
     """
     _url_root = 'https://github.com/imageio/imageio-binaries/raw/master/'
     url = _url_root + fname
+    fname = op.normcase(fname)  # convert to native
+    # Get dirs to look for the resource
     directory = directory or appdata_dir('imageio')
-
-    fname = op.join(directory, op.normcase(fname))  # convert to native
-    if op.isfile(fname):
-        if not force_download:  # we're done
-            return fname
-        if isinstance(force_download, string_types):
-            ntime = time.strptime(force_download, '%Y-%m-%d')
-            ftime = time.gmtime(op.getctime(fname))
-            if ftime >= ntime:
-                return fname
-            else:
-                print('File older than %s, updating...' % force_download)
-    if not op.isdir(op.dirname(fname)):
-        os.makedirs(op.abspath(op.dirname(fname)))
+    dirs = resource_dirs()
+    dirs.insert(0, directory)  # Given dir has preference
+    # Try to find the resource locally
+    for dir in dirs:
+        filename = op.join(dir, fname)
+        if op.isfile(filename):
+            if not force_download:  # we're done
+                return filename
+            if isinstance(force_download, string_types):
+                ntime = time.strptime(force_download, '%Y-%m-%d')
+                ftime = time.gmtime(op.getctime(filename))
+                if ftime >= ntime:
+                    return filename
+                else:
+                    print('File older than %s, updating...' % force_download)
+                    break
+    
+    # If we get here, we're going to try to download the file
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        raise IOError('Cannot download resource from the internet')
+    # Get filename to store to and make sure the dir exists
+    filename = op.join(directory, fname)
+    if not op.isdir(op.dirname(filename)):
+        os.makedirs(op.abspath(op.dirname(filename)))
     # let's go get the file
     if os.getenv('CONTINUOUS_INTEGRATION', False):  # pragma: no cover
         # On Travis, we retry a few times ...
         for i in range(2):
             try:
-                _fetch_file(url, fname)
-                return fname
+                _fetch_file(url, filename)
+                return filename
             except IOError:
                 time.sleep(0.5)
         else:
-            _fetch_file(url, fname)
-            return fname
+            _fetch_file(url, filename)
+            return filename
     else:  # pragma: no cover
-        _fetch_file(url, fname)
-        return fname
+        _fetch_file(url, filename)
+        return filename
 
 
 def _fetch_file(url, file_name, print_destination=True):

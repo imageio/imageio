@@ -61,6 +61,7 @@ def get_test_dir():
         # Clear and create it now
         clean_test_dir(True)
         os.makedirs(_the_test_dir)
+        os.makedirs(os.path.join(_the_test_dir, 'images'))
         # And later
         atexit.register(clean_test_dir)
     return _the_test_dir
@@ -74,6 +75,11 @@ def clean_test_dir(strict=False):
             if strict:
                 raise
         
+
+def need_internet():
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        pytest.skip('No internet')
+
 
 ## Functions to use from make
 

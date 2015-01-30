@@ -21,31 +21,34 @@ import ctypes
 import threading
 import numpy
 
-from ..core import get_remote_file, load_lib, Dict, appdata_dir
+from ..core import get_remote_file, load_lib, Dict, resource_dirs
 from ..core import string_types, binary_type, IS_PYPY, get_platform
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
+
+FNAME_PER_PLATFORM = {
+    'osx32': 'libfreeimage-3.16.0-osx10.6.dylib',  # universal library
+    'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
+    'win32': 'FreeImage-3.15.4-win32.dll',
+    'win64': 'FreeImage-3.15.1-win64.dll',
+    'linux32': 'libfreeimage-3.16.0-linux32.so',
+    'linux64': 'libfreeimage-3.16.0-linux64.so',
+}
 
 
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
-    
-    LIBRARIES = {
-        'osx32': 'libfreeimage-3.16.0-osx10.6.dylib',  # universal library
-        'osx64': 'libfreeimage-3.16.0-osx10.6.dylib',
-        'win32': 'FreeImage-3.15.4-win32.dll',
-        'win64': 'FreeImage-3.15.1-win64.dll',
-        'linux32': 'libfreeimage-3.16.0-linux32.so',
-        'linux64': 'libfreeimage-3.16.0-linux64.so',
-    }
+    # todo: maybe use shipped if shipped is downloaded.
+    # download if system lib not found, or ... manually? how?
+    # Maybe place a symlink in place?
     
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
     plat = get_platform()
     if plat:
         try:
-            return get_remote_file('freeimage/' + LIBRARIES[plat])
+            return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
         except RuntimeError as e:  # pragma: no cover
             print(str(e))
 
@@ -394,30 +397,42 @@ class Freeimage(object):
         self._error_handler = error_handler
         
         # Load library and register API
-        self._load_freeimage()        
-        self._register_api()
+        success = False
+        try:
+            # Try without forcing a download, but giving preference
+            # to the imageio-provided lib (if previously downloaded)
+            self._load_freeimage()
+            self._register_api()
+            if self._lib.FreeImage_GetVersion().decode('utf-8') >= '3.15':
+                success = True
+        except OSError:
+            pass
         
-        # Register logger for output messages
+        if not success:
+            # Ensure we have our own lib, try again
+            get_freeimage_lib()
+            self._load_freeimage()
+            self._register_api()
+        
+        # Wrap up
         self._lib.FreeImage_SetOutputMessage(self._error_handler)
-        
-        # Store version
         self._lib_version = self._lib.FreeImage_GetVersion().decode('utf-8')
     
     def _load_freeimage(self):
         
-        # todo: we want to load from location relative to exe in frozen apps
-        # Get lib dirs
-        lib_dirs = [appdata_dir('imageio')]
-        
-        # Make sure that we have our binary version of the libary
-        lib_filename = get_freeimage_lib() or 'notavalidlibname'
-        
-        # Load library
+        # Define names
         lib_names = ['freeimage', 'libfreeimage']
-        exact_lib_names = [lib_filename, 'FreeImage', 'libfreeimage.dylib', 
+        exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                            'libfreeimage.so', 'libfreeimage.so.3']
+        # Add names of libraries that we provide (that file may not exist)
+        fname = FNAME_PER_PLATFORM[get_platform()]
+        res_dirs = resource_dirs()
+        for dir in res_dirs:
+            exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
+        
+        # Load
         try:
-            lib, fname = load_lib(exact_lib_names, lib_names, lib_dirs)
+            lib, fname = load_lib(exact_lib_names, lib_names, res_dirs)
         except OSError:  # pragma: no cover
             # Could not load. Get why
             e_type, e_value, e_tb = sys.exc_info()

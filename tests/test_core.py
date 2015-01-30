@@ -13,7 +13,7 @@ from io import BytesIO
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -303,12 +303,14 @@ def test_format_manager():
 def test_fetching():
     """ Test fetching of files """
     
+    need_internet()
+    
     # Clear image files
     if os.path.isdir(test_dir):
         shutil.rmtree(test_dir)   
     
-    # This should download the file
-    fname1 = get_remote_file('images/chelsea.png', test_dir)
+    # This should download the file (force download, because local cache)
+    fname1 = get_remote_file('images/chelsea.png', test_dir, True)
     mtime1 = os.path.getmtime(fname1)
     # This should reuse it
     fname2 = get_remote_file('images/chelsea.png', test_dir)
@@ -352,7 +354,12 @@ def test_fetching():
         raises(IOError, get_remote_file, 'images/chelsea.png', None, True)
     finally:
         core.fetching._chunk_read = _chunk_read
-    
+    #
+    try:
+        os.environ['IMAGEIO_NO_INTERNET'] = '1'
+        raises(IOError, get_remote_file, 'images/chelsea.png', None, True)
+    finally:
+        del os.environ['IMAGEIO_NO_INTERNET']
     # Coverage miss
     assert '0 bytes' == core.fetching._sizeof_fmt(0)
 
@@ -367,11 +374,13 @@ def test_findlib():
     dirs, paths = core.findlib.generate_candidate_libs(['libpython'])
     assert paths
     
-    # Candidate libs for common freeimage 
+    # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir('imageio'), 'freeimage')
+    if not os.path.isdir(fi_dir):
+        os.mkdir(fi_dir)
     dirs, paths = core.findlib.generate_candidate_libs(['libfreeimage'], 
                                                        [fi_dir])
-    assert fi_dir in dirs
+    #assert fi_dir in dirs -> Cannot test: lib may not exist
     assert paths
     
     open(os.path.join(fi_dir, 'notalib.test.so'), 'wb')
@@ -438,6 +447,7 @@ def test_request():
     # Test auto-download
     R = Request('chelsea.png', 'ri')
     assert R.filename == get_remote_file('images/chelsea.png')
+    #
     R = Request('chelsea.zip/chelsea.png', 'ri')
     assert R._filename_zip[0] == get_remote_file('images/chelsea.zip')
     assert R.filename == get_remote_file('images/chelsea.zip') + '/chelsea.png'

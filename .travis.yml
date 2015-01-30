@@ -68,7 +68,7 @@ install:
         pip install -q coveralls;
       fi;
     # Install imageio, use installed version on only one machine
-    - python setup.py install > ${REDIRECT_TO}
+    - python setup.py build_with_fi install > ${REDIRECT_TO}
 
 before_script:
 

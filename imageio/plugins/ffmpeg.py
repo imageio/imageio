@@ -18,34 +18,43 @@ import stat
 import re
 import time
 import threading
-import struct
 import subprocess as sp
 
 import numpy as np
 
 from .. import formats
 from ..core import (Format, get_remote_file, string_types, read_n_bytes, 
-                    image_as_uint8)
+                    image_as_uint8, get_platform)
+
+FNAME_PER_PLATFORM = {
+    'osx32': 'ffmpeg.osx.snowleopardandabove',
+    'osx64': 'ffmpeg.osx.snowleopardandabove',
+    'win32': 'ffmpeg.win32.exe',
+    'win64': 'ffmpeg.win32.exe',
+    'linux32': 'ffmpeg.linux32',
+    'linux64': 'ffmpeg.linux64',
+}
 
 
 def get_exe():
     """ Get ffmpeg exe
     """
-    NBYTES = struct.calcsize('P') * 8
-    if sys.platform.startswith('linux'):
-        fname = 'ffmpeg.linux%i' % NBYTES
-    elif sys.platform.startswith('win'):
-        fname = 'ffmpeg.win32.exe'
-    elif sys.platform.startswith('darwin'):
-        fname = 'ffmpeg.osx.snowleopardandabove'
-    else:  # pragma: no cover
-        fname = 'ffmpeg'  # hope for the best
-    #
-    FFMPEG_EXE = 'ffmpeg'
-    if fname:
-        FFMPEG_EXE = get_remote_file('ffmpeg/' + fname)
-        os.chmod(FFMPEG_EXE, os.stat(FFMPEG_EXE).st_mode | stat.S_IEXEC)  # exe
-    return FFMPEG_EXE
+    plat = get_platform()
+    
+    if plat and plat in FNAME_PER_PLATFORM:
+        try:
+            exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
+            os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
+            return exe
+        except OSError:  # pragma: no cover
+            print("Warning: could not load imageio's ffmpeg library.")
+            e_type, e_value, e_tb = sys.exc_info()
+            del e_tb
+            print(str(e_value))
+    
+    # Fallback, let's hope the system has ffmpeg
+    return 'ffmpeg'
+
 
 # Get camera format
 if sys.platform.startswith('win'):

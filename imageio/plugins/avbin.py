@@ -18,6 +18,15 @@ from .. import formats
 from ..core import Format, get_platform, get_remote_file
 
 
+FNAME_PER_PLATFORM = {
+    'osx64': 'libavbin-11alpha4-osx.dylib',
+    'win32': 'avbin-10-win32.dll',
+    'win64': 'avbin-10-win64.dll',
+    'linux32': 'libavbin-10-linux32.so',
+    'linux64': 'libavbin-10-linux64.so',
+}
+
+
 AVBIN_RESULT_ERROR = -1
 AVBIN_RESULT_OK = 0
 #AVbinResult = ctypes.c_int
@@ -129,19 +138,11 @@ def timestamp_from_avbin(timestamp):
 def get_avbin_lib():
     """ Get avbin .dll/.dylib/.so
     """
-
-    LIBRARIES = {
-        'osx64': 'libavbin-11alpha4-osx.dylib',
-        'win32': 'avbin-10-win32.dll',
-        'win64': 'avbin-10-win64.dll',
-        'linux32': 'libavbin-10-linux32.so',
-        'linux64': 'libavbin-10-linux64.so',
-    }
     
     platform = get_platform()
     
     try:
-        lib = LIBRARIES[platform]
+        lib = FNAME_PER_PLATFORM[platform]
     except KeyError:  # pragma: no cover
         raise RuntimeError('Avbin plugin is not supported on platform %s' % 
                            platform)

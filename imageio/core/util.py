@@ -17,6 +17,7 @@ import struct
 import numpy as np
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
+THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # Taken from six.py
 PY3 = sys.version_info[0] == 3
@@ -160,7 +161,7 @@ def asarray(a):
     function does not.
     """
     if isinstance(a, np.ndarray):
-        if IS_PYPY:
+        if IS_PYPY:  # pragma: no cover 
             a = a.copy()  # pypy has issues with base views
         plain = a.view(type=np.ndarray)
         return plain
@@ -444,8 +445,37 @@ def appdata_dir(appname=None, roaming=False):
     
     # Done
     return path
-   
+
+
+def resource_dirs():
+    """ resource_dirs()
     
+    Get a list of directories where imageio resources may be located.
+    The first directory in this list is the "resources" directory in
+    the package itself. The second directory is the appdata directory
+    (~/.imageio on Linux). The list further contains the application
+    directory (for frozen apps), and may include additional directories
+    in the future.
+    """
+    dirs = []
+    # Resource dir baked in the package
+    dirs.append(os.path.abspath(os.path.join(THIS_DIR, '..', 'resources')))
+    # Appdata directory
+    try:
+        dirs.append(appdata_dir('imageio'))
+    except Exception:
+        pass  # The home dir may not be writable
+    # Directory where the app is located (mainly for frozen apps)
+    if sys.path and sys.path[0]:
+        # Get the path. If frozen, sys.path[0] is the name of the executable,
+        # otherwise it is the path to the directory that contains the script.
+        thepath = sys.path[0]
+        if getattr(sys, 'frozen', None):
+            thepath = os.path.dirname(thepath)
+        dirs.append(os.path.abspath(thepath))
+    return dirs
+
+
 def get_platform():
     """ get_platform()
     

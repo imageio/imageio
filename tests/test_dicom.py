@@ -7,7 +7,7 @@ from zipfile import ZipFile
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
@@ -23,6 +23,8 @@ _prepared = None
 def _prepare():
     """ Create two dirs, one with one dataset and one with two datasets
     """
+    need_internet()
+    
     global _prepared
     if _prepared and os.path.isfile(_prepared[2]):
         return _prepared
