@@ -94,6 +94,10 @@ class DummyFormat(Format):
             if index >= self._length:
                 raise IndexError('Image index %i > %i' % (index, self._length))
             # Read all bytes
+            try:
+                self._fp.seek(0)
+            except Exception:
+                pass
             data = self._fp.read()
             # Put in a numpy array
             im = np.frombuffer(data, 'uint8')

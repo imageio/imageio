@@ -771,8 +771,6 @@ def test_functions():
     # Test protection
     with raises(RuntimeError):
         imageio.mimread('chelsea.png', 'dummy', length=np.inf)
-    with raises(RuntimeError):
-        imageio.mimread('chelsea.png', 'dummy', length=100)  # > 64
     
     if IS_PYPY:
         return  # no support for npz format :(

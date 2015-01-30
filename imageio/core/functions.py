@@ -238,32 +238,29 @@ def mimread(uri, format=None, **kwargs):
     
     Memory consumption
     ------------------
-    
-    If the list that is build in this function contains a lot of
-    images, this may consume so much memory that your machine needs to
-    resort to swapping, and thereby stall your computer (e.g.
-    ``mimread('hunger_games.avi')``).
-    
-    Therefore, this function will raise a RuntimeError if the source
-    provides an unknown/inf number of images, or if there are more than
-    64 images. Use ``imageio.get_reader()`` in that case. 
-    
+    This function will raise a RuntimeError when the read data consumes
+    over 256 MB of memory. This is to protect the system using so much
+    memory that it needs to resort to swapping, and thereby stall the
+    computer. E.g. ``mimread('hunger_games.avi')``.
     """ 
     
     # Get reader
     reader = read(uri, format, 'I', **kwargs)
     
-    # Do checks to protect user from memory congestion
-    if reader.get_length() == float('inf'):
-        raise RuntimeError('Reader provides possibly large set of images. '
-                           'Use imageio.get_reader() to avoid memory errors.')
-    elif reader.get_length() > 64:
-        raise RuntimeError('Reader provides over 64 images. '
-                           'Use imageio.get_reader() to avoid memory errors.')
-    
     # Read
-    with reader:
-        return [im for im in reader]
+    ims = []
+    nbytes = 0
+    for im in reader:
+        ims.append(im)
+        # Memory check
+        nbytes += im.nbytes
+        if nbytes > 256 * 1024 * 1024:
+            ims[:] = []  # clear to free the memory
+            raise RuntimeError('imageio.mimread() has read over 256 MiB of '
+                               'image data.\nStopped to avoid memory problems.'
+                               ' Use imageio.get_reader() instead.')
+    
+    return ims
 
 
 def mimwrite(uri, ims, format=None, **kwargs):
