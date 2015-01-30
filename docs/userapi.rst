@@ -12,31 +12,31 @@ Imageio's user API
     
 .. autofunction:: imageio.imread
 
-.. autofunction:: imageio.imsave
+.. autofunction:: imageio.imwrite
 
 ----
 
 .. autofunction:: imageio.mimread
 
-.. autofunction:: imageio.mimsave
+.. autofunction:: imageio.mimwrite
 
 ----
 
 .. autofunction:: imageio.volread
 
-.. autofunction:: imageio.volsave
+.. autofunction:: imageio.volwrite
 
 ----
 
 .. autofunction:: imageio.mvolread
 
-.. autofunction:: imageio.mvolsave
+.. autofunction:: imageio.mvolwrite
 
 ----
 
-.. autofunction:: imageio.read
+.. autofunction:: imageio.get_reader
 
-.. autofunction:: imageio.save
+.. autofunction:: imageio.get_writer
 
 ----
 

@@ -72,7 +72,7 @@ class DicomFormat(Format):
         # Check
         return request.firstbytes[128:132] == b'DICM'
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         # We cannot save yet. May be possible if we will used pydicom as
         # a backend.
         return False

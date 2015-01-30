@@ -29,12 +29,8 @@ from __future__ import absolute_import, print_function, division
 # Some notes:
 #
 # The classes in this module use the Request object to pass filename and
-# related info around. This request object is instantiated in imageio.read
-# and imageio.save.
-#
-# We use the verbs read and save throughout imageio. However, for the 
-# associated classes we use the nouns "reader" and "writer", since 
-# "saver" feels so awkward. 
+# related info around. This request object is instantiated in
+# imageio.get_reader and imageio.get_writer.
 
 from __future__ import with_statement
 
@@ -47,15 +43,15 @@ from . import string_types, text_type, binary_type  # noqa
 
 
 class Format:
-    """ Represents an implementation to read/save a particular file format
+    """ Represents an implementation to read/write a particular file format
     
     A format instance is responsible for 1) providing information about
-    a format; 2) determining whether a certain file can be read/saved
+    a format; 2) determining whether a certain file can be read/written
     with this format; 3) providing a reader/writer class.
     
     Generally, imageio will select the right format and use that to
-    read/save an image. A format can also be explicitly chosen in all
-    read/save functios. Use ``print(format)``, or ``help(format_name)``
+    read/write an image. A format can also be explicitly chosen in all
+    read/write functions. Use ``print(format)``, or ``help(format_name)``
     to see its documentation.
     
     To implement a specific format, one should create a subclass of
@@ -147,12 +143,12 @@ class Format:
         """
         return self._modes
     
-    def read(self, request):
-        """ read(request)
+    def get_reader(self, request):
+        """ get_reader(request)
         
         Return a reader object that can be used to read data and info
-        from the given file. Users are encouraged to use imageio.read()
-        instead.
+        from the given file. Users are encouraged to use
+        imageio.get_reader() instead.
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
         if select_mode not in self.modes:
@@ -160,15 +156,16 @@ class Format:
                                (self.name, select_mode))
         return self.Reader(self, request)
     
-    def save(self, request):
-        """ save(request)
+    def get_writer(self, request):
+        """ get_writer(request)
         
-        Return a writer object that can be used to save data and info
-        to the given file. Users are encouraged to use imageio.save() instead.
+        Return a writer object that can be used to write data and info
+        to the given file. Users are encouraged to use
+        imageio.get_writer() instead.
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
         if select_mode not in self.modes:
-            raise RuntimeError('Format %s cannot save in mode %r' % 
+            raise RuntimeError('Format %s cannot write in mode %r' % 
                                (self.name, select_mode))
         return self.Writer(self, request)
     
@@ -179,17 +176,17 @@ class Format:
         """
         return self._can_read(request)
     
-    def can_save(self, request):
-        """ can_save(request)
+    def can_write(self, request):
+        """ can_write(request)
         
-        Get whether this format can save data to the speciefed uri.
+        Get whether this format can write data to the speciefed uri.
         """
-        return self._can_save(request)
+        return self._can_write(request)
     
     def _can_read(self, request):
         return None  # Plugins must implement this
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         return None  # Plugins must implement this
 
     # -----
@@ -211,14 +208,14 @@ class Format:
         @property
         def format(self):
             """ The :class:`.Format` object corresponding to the current
-            read/save operation.
+            read/write operation.
             """
             return self._format
         
         @property
         def request(self):
             """ The :class:`.Request` object corresponding to the
-            current read/save operation.
+            current read/write operation.
             """
             return self._request
         
@@ -292,7 +289,7 @@ class Format:
     class Reader(_BaseReaderWriter):
         """
         The purpose of a reader object is to read data from an image
-        resource, and should be obtained by calling :func:`.read`. 
+        resource, and should be obtained by calling :func:`.get_reader`. 
         
         A reader can be used as an iterator to read multiple images,
         and (if the format permits) only reads data from the file when
@@ -427,8 +424,8 @@ class Format:
     
     class Writer(_BaseReaderWriter):
         """ 
-        The purpose of a writer object is to save data to an image
-        resource, and should be obtained by calling :func:`.save`. 
+        The purpose of a writer object is to write data to an image
+        resource, and should be obtained by calling :func:`.get_writer`. 
         
         A writer will (if the format permits) write data to the file
         as soon as new data is provided (i.e. streaming). A writer can
@@ -588,14 +585,14 @@ class FormatManager:
                 if format.can_read(request):
                     return format
     
-    def search_save_format(self, request):
-        """ search_save_format(request)
+    def search_write_format(self, request):
+        """ search_write_format(request)
         
-        Search a format that can save a file according to the given request. 
+        Search a format that can write a file according to the given request. 
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
         for format in self._formats:
             if select_mode in format.modes:
-                if format.can_save(request):
+                if format.can_write(request):
                     return format

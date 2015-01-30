@@ -24,14 +24,15 @@ def test_select():
     assert F.name == 'AVBIN'
     
     assert F.can_read(core.Request(fname1, 'rI'))
-    assert not F.can_save(core.Request(fname1, 'wI'))
+    assert not F.can_write(core.Request(fname1, 'wI'))
     assert not F.can_read(core.Request(fname1, 'ri'))
     assert not F.can_read(core.Request(fname1, 'rv'))
     
     # ffmpeg is default
-    #assert imageio.formats['.mp4'] is F
-    #assert imageio.formats.search_save_format(core.Request(fname1, 'wI')) is F
-    #assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
+    #formats = imageio.formats
+    #assert formats['.mp4'] is F
+    #assert formats.search_write_format(core.Request(fname1, 'wI')) is F
+    #assert formats.search_read_format(core.Request(fname1, 'rI')) is F
 
 
 def test_read():
@@ -45,7 +46,7 @@ def test_read():
     assert reader.get_length() == 280
     assert 'fps' in reader.get_meta_data()
     raises(Exception, imageio.save, '~/foo.mp4', 'abin')
-    #assert not reader.format.can_save(core.Request('test.mp4', 'wI'))
+    #assert not reader.format.can_write(core.Request('test.mp4', 'wI'))
     
     for i in range(10):
         im = reader.get_next_data()

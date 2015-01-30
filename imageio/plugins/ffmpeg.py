@@ -123,7 +123,7 @@ class FfmpegFormat(Format):
             if request.filename.endswith('.' + ext):
                 return True
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
             for ext in self.extensions:
                 if request.filename.endswith('.' + ext):

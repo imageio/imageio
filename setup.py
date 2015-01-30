@@ -90,7 +90,7 @@ Example:
     >>> im = imageio.imread('astronaut.png')
     >>> im.shape  # im is a numpy array
     (512, 512, 3)
-    >>> imageio.imsave('astronaut-gray.jpg', im[:, :, 0])
+    >>> imageio.imwrite('astronaut-gray.jpg', im[:, :, 0])
 
 See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
 or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
@@ -283,7 +283,7 @@ setup(
     
     url = 'http://imageio.github.io/',
     download_url = 'http://pypi.python.org/pypi/imageio',    
-    keywords = "image imread imsave io animation volume FreeImage ffmpeg",
+    keywords = "image imread imwrite io animation volume FreeImage ffmpeg",
     description = description,
     long_description = long_description.replace('__doc__', __doc__),
     

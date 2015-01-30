@@ -20,7 +20,7 @@ class NpzFormat(Format):
     shape, and also supports multiple images per file. 
     
     However, the npz format does not provide streaming; all data is
-    read/saved at once. Further, there is no support for meta data.
+    read/written at once. Further, there is no support for meta data.
 
     Beware that the numpy npz format has a bug on a certain combination
     of Python 2.7 and numpy, which can cause the resulting files to
@@ -42,7 +42,7 @@ class NpzFormat(Format):
         else:
             return False
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         if request.filename.lower().endswith('.npz'):
             return True  # We support any kind of image data
         else:

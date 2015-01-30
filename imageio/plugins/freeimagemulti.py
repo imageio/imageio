@@ -104,7 +104,7 @@ class MngFormat(FreeimageMulti):
     
     _fif = 6
     
-    def _can_save(self, request):  # pragma: no cover
+    def _can_write(self, request):  # pragma: no cover
         return False
     
 

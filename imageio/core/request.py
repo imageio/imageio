@@ -66,8 +66,8 @@ class Request(object):
     a simple interface to the plugins via ``get_file()`` and
     ``get_local_filename()``.
     
-    For each read/save operation a single Request instance is used and passed
-    to the can_read/can_save method of a format, and subsequently to
+    For each read/write operation a single Request instance is used and passed
+    to the can_read/can_write method of a format, and subsequently to
     the Reader/Writer class. This allows rudimentary passing of
     information between different formats and between a format and
     associated reader/writer.

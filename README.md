@@ -25,17 +25,17 @@ Here's a minimal example of how to use imageio. See the docs for
 >>> im = imageio.imread('chelsea.png')
 >>> im.shape  # im is a numpy array
 (300, 451, 3)
->>> imageio.imsave('chelsea-gray.jpg', im[:, :, 0])
+>>> imageio.imwrite('chelsea-gray.jpg', im[:, :, 0])
 </pre>
 
 <h2>API in a nutshell</h2>
 As a user, you just have to remember a handfull of functions:
 
 <ul>
-    <li>imread() and imsave() - for single images</li>
-    <li>mimread() and mimsave() - for image series (animations)</li>
-    <li>volread() and volsave() - for volumetric image data</li>
-    <li>read() and save() - for more control (e.g. streaming)</li>
+    <li>imread() and imwrite() - for single images</li>
+    <li>mimread() and mimwrite() - for image series (animations)</li>
+    <li>volread() and volwrite() - for volumetric image data</li>
+    <li>get_reader() and get_writer() - for more control (e.g. streaming)</li>
     <li>See the <a href='http://imageio.readthedocs.org/en/latest/userapi.html'>user api</a> for more information</li>
 </ul>
 

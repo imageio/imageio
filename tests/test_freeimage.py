@@ -104,7 +104,7 @@ def test_freeimage_format():
     F = imageio.formats['PNG']
     
     # Reader
-    R = F.read(core.Request('chelsea.png', 'ri'))
+    R = F.get_reader(core.Request('chelsea.png', 'ri'))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -112,7 +112,7 @@ def test_freeimage_format():
     raises(IndexError, R.get_meta_data, 2)
     
     # Writer
-    W = F.save(core.Request(fnamebase + '.png', 'wi'))
+    W = F.get_writer(core.Request(fnamebase + '.png', 'wi'))
     W.append_data(im0)
     W.set_meta_data({'foo': 3})
     raises(RuntimeError, W.append_data, im0)

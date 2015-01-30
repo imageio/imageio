@@ -128,8 +128,8 @@ def create_plugin_docs():
 format_doc_text = """
 This page lists all formats currently supported by imageio. Each format
 can support extra keyword arguments for reading and writing, which can be 
-specified in the call to ``read()``, ``save()``, ``imread()``,
-``imsave()`` etc. Further, formats are free to provide additional
+specified in the call to ``get_reader()``, ``get_writer()``, ``imread()``,
+``imwrite()`` etc. Further, formats are free to provide additional
 methods on their Reader and Writer objects. These parameters and extra
 methods are specified in the documentation for each format.
 """
