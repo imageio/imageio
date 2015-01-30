@@ -107,31 +107,42 @@ def _fetch_file(url, file_name, print_destination=True):
     """
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
-
+    
+    print('Imageio: %r was not found on your computer; '
+          'downloading it now.' % os.path.basename(file_name))
+    
     temp_file_name = file_name + ".part"
     local_file = None
     initial_size = 0
-    try:
-        # Checking file size and displaying it alongside the download url
-        remote_file = urlopen(url, timeout=5.)
-        file_size = int(remote_file.headers['Content-Length'].strip())
-        print('Downloading data from %s (%s)' % (url, _sizeof_fmt(file_size)))
-        # Downloading data (can be extended to resume if need be)
-        local_file = open(temp_file_name, "wb")
-        _chunk_read(remote_file, local_file, initial_size=initial_size)
-        # temp file must be closed prior to the move
-        if not local_file.closed:
-            local_file.close()
-        shutil.move(temp_file_name, file_name)
-        if print_destination is True:
-            sys.stdout.write('File saved as %s.\n' % file_name)
-    except Exception as e:
-        raise IOError('Error while fetching file %s.\n'
-                      'Dataset fetching aborted (%s)' % (url, e))
-    finally:
-        if local_file is not None:
+    errors = []
+    for tries in range(4):
+        try:
+            # Checking file size and displaying it alongside the download url
+            remote_file = urlopen(url, timeout=5.)
+            file_size = int(remote_file.headers['Content-Length'].strip())
+            size_str = _sizeof_fmt(file_size)
+            print('Try %i. Download from %s (%s)' % (tries+1, url, size_str))
+            # Downloading data (can be extended to resume if need be)
+            local_file = open(temp_file_name, "wb")
+            _chunk_read(remote_file, local_file, initial_size=initial_size)
+            # temp file must be closed prior to the move
             if not local_file.closed:
                 local_file.close()
+            shutil.move(temp_file_name, file_name)
+            if print_destination is True:
+                sys.stdout.write('File saved as %s.\n' % file_name)
+            break
+        except Exception as e:
+            errors.append(e)
+            print('Error while fetching file: %s.' % str(e))
+        finally:
+            if local_file is not None:
+                if not local_file.closed:
+                    local_file.close()
+    else:
+        raise IOError('Unable to download %r. Perhaps there is a no internet '
+                      'connection? If there is, please report this problem.' %
+                      os.path.basename(file_name))
 
 
 def _chunk_read(response, local_file, chunk_size=8192, initial_size=0):
