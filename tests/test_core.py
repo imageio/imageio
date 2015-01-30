@@ -296,8 +296,6 @@ def test_format_manager():
 #   bytes = b'x' * 300
 #   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
 #   assert F is formats['DUMMY']
-#   F = formats.search_write_format(Request('<bytes>', 'w?', dummy_potential=1))
-#   assert F is formats['DUMMY']
 
 
 def test_fetching():
@@ -770,6 +768,11 @@ def test_functions():
     assert len(ims) > 1
     assert ims[0].ndim == 3
     assert ims[0].shape[2] in (1, 3, 4)
+    # Test protection
+    with raises(RuntimeError):
+        imageio.mimread('chelsea.png', 'dummy', length=np.inf)
+    with raises(RuntimeError):
+        imageio.mimread('chelsea.png', 'dummy', length=100)  # > 64
     
     if IS_PYPY:
         return  # no support for npz format :(

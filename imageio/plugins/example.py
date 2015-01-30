@@ -69,7 +69,7 @@ class DummyFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, some_option=False):
+        def _open(self, some_option=False, length=1):
             # Specify kwargs here. Optionally, the user-specified kwargs
             # can also be accessed via the request.kwargs object.
             #
@@ -78,6 +78,7 @@ class DummyFormat(Format):
             #  - Use request.get_file() for a file object (preferred)
             #  - Use request.get_local_filename() for a file on the system
             self._fp = self.request.get_file()
+            self._length = length  # passed as an arg in this case for testing
         
         def _close(self):
             # Close the reader. 
@@ -86,12 +87,12 @@ class DummyFormat(Format):
         
         def _get_length(self):
             # Return the number of images. Can be np.inf
-            return 1
+            return self._length
         
         def _get_data(self, index):
             # Return the data and meta data for the given index
-            if index != 0:
-                raise IndexError('Dummy format only supports singleton images')
+            if index >= self._length:
+                raise IndexError('Image index %i > %i' % (index, self._length))
             # Read all bytes
             data = self._fp.read()
             # Put in a numpy array
@@ -137,7 +138,7 @@ class DummyFormat(Format):
 # Register. You register an *instance* of a Format class. Here specify:
 format = DummyFormat('dummy',  # short name
                      'An example format that does nothing.',  # one line descr.
-                     '',  # list of extensions as a space separated string
-                     ''  # modes, characters in iIvV
+                     '.png',  # list of extensions as a space separated string
+                     'iI'  # modes, characters in iIvV
                      )
 formats.add_format(format)

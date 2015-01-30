@@ -29,9 +29,10 @@ def test_select():
     assert not F.can_read(core.Request(fname1, 'rv'))
     
     # ffmpeg is default
-    #assert imageio.formats['.mp4'] is F
-    #assert imageio.formats.search_write_format(core.Request(fname1, 'wI')) is F
-    #assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
+    #formats = imageio.formats
+    #assert formats['.mp4'] is F
+    #assert formats.search_write_format(core.Request(fname1, 'wI')) is F
+    #assert formats.search_read_format(core.Request(fname1, 'rI')) is F
 
 
 def test_read():

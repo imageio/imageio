@@ -235,10 +235,33 @@ def mimread(uri, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
+    
+    Memory consumption
+    ------------------
+    
+    If the list that is build in this function contains a lot of
+    images, this may consume so much memory that your machine needs to
+    resort to swapping, and thereby stall your computer (e.g.
+    ``mimread('hunger_games.avi')``).
+    
+    Therefore, this function will raise a RuntimeError if the source
+    provides an unknown/inf number of images, or if there are more than
+    64 images. Use ``imageio.get_reader()`` in that case. 
+    
     """ 
     
-    # Get reader and read all
+    # Get reader
     reader = read(uri, format, 'I', **kwargs)
+    
+    # Do checks to protect user from memory congestion
+    if reader.get_length() == float('inf'):
+        raise RuntimeError('Reader provides possibly large set of images. '
+                           'Use imageio.get_reader() to avoid memory errors.')
+    elif reader.get_length() > 64:
+        raise RuntimeError('Reader provides over 64 images. '
+                           'Use imageio.get_reader() to avoid memory errors.')
+    
+    # Read
     with reader:
         return [im for im in reader]
 
