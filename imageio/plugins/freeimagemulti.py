@@ -154,7 +154,9 @@ class GifFormat(FreeimageMulti):
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
-        Default 0.1
+    fps : float
+        The number of frames per second. If duration is not given, the
+        duration for each frame is set to 1/fps. Default 10.
     palettesize : int
         The number of colors to quantize the image to. Is rounded to
         the nearest power of two. Default 256.
@@ -195,8 +197,8 @@ class GifFormat(FreeimageMulti):
         # todo: subrectangles
         # todo: global palette
         
-        def _open(self, flags=0, loop=0, duration=0.1, palettesize=256, 
-                  quantizer='Wu', subrectangles=False):
+        def _open(self, flags=0, loop=0, duration=None, fps=10, 
+                  palettesize=256, quantizer='Wu', subrectangles=False):
             # Check palettesize
             if palettesize < 2 or palettesize > 256:
                 raise ValueError('PNG quantize param must be 2..256')
@@ -210,7 +212,9 @@ class GifFormat(FreeimageMulti):
             if self._quantizer is None:
                 raise ValueError('Invalid quantizer, must be "wu" or "nq".')
             # Check frametime
-            if isinstance(duration, list):
+            if duration is None:
+                self._frametime = [int(1000 / float(fps))]
+            elif isinstance(duration, list):
                 self._frametime = [int(1000 * d) for d in duration]
             elif isinstance(duration, (float, int)):
                 self._frametime = [int(1000 * duration)]

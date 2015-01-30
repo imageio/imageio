@@ -383,7 +383,7 @@ def test_animated_gif():
     imageio.mimsave(fnamebase + '.animated_irr.gif', ims, duration=duration)
     
     # Other parameters
-    imageio.mimsave(fnamebase + '.animated.loop2.gif', ims, loop=2)
+    imageio.mimsave(fnamebase + '.animated.loop2.gif', ims, loop=2, fps=20)
     R = imageio.read(fnamebase + '.animated.loop2.gif')
     W = imageio.save(fnamebase + '.animated.palettes100.gif', palettesize=100)
     assert W._palettesize == 128
