@@ -108,8 +108,8 @@ def test_format():
     assert 'TEST DOCS' in F.doc
     
     # Get and check reader and write classes
-    R = F.read(Request(filename1, 'ri'))
-    W = F.save(Request(filename2, 'wi'))
+    R = F.get_reader(Request(filename1, 'ri'))
+    W = F.get_writer(Request(filename2, 'wi'))
     assert isinstance(R, MyFormat.Reader)
     assert isinstance(W, MyFormat.Writer)
     assert R.format is F
@@ -117,8 +117,8 @@ def test_format():
     assert R.request.filename == filename1
     assert W.request.filename == filename2
     # Fail
-    raises(RuntimeError, F.read, Request(filename1, 'rI'))
-    raises(RuntimeError, F.save, Request(filename2, 'wI'))
+    raises(RuntimeError, F.get_reader, Request(filename1, 'rI'))
+    raises(RuntimeError, F.get_writer, Request(filename2, 'wI'))
     
     # Use as context manager
     with R:
@@ -136,8 +136,8 @@ def test_format():
     raises(RuntimeError, W.append_data, np.zeros((10, 10)))
     
     # Test __del__
-    R = F.read(Request(filename1, 'ri'))
-    W = F.save(Request(filename2, 'wi'))
+    R = F.get_reader(Request(filename1, 'ri'))
+    W = F.get_writer(Request(filename2, 'wi'))
     ids = id(R), id(W)
     F._closed[:] = []
     del R
@@ -155,7 +155,7 @@ def test_reader_and_writer():
     
     # Test using reader
     n = 3
-    R = F.read(Request(filename1, 'ri'))
+    R = F.get_reader(Request(filename1, 'ri'))
     assert len(R) == n
     ims = [im for im in R]
     assert len(ims) == n
@@ -177,7 +177,7 @@ def test_reader_and_writer():
         [im for im in R]
     
     # Test streaming reader
-    R = F.read(Request(filename1, 'ri'))
+    R = F.get_reader(Request(filename1, 'ri'))
     R._stream_mode = True
     assert R.get_length() == np.inf
     ims = [im for im in R]
@@ -186,7 +186,7 @@ def test_reader_and_writer():
     # Test using writer
     im1 = np.zeros((10, 10))
     im2 = imageio.core.Image(im1, {'foo': 1})
-    W = F.save(Request(filename2, 'wi'))
+    W = F.get_writer(Request(filename2, 'wi'))
     W.append_data(im1)
     W.append_data(im2)
     W.append_data(im1, {'bar': 1})
@@ -212,7 +212,7 @@ def test_reader_and_writer():
     raises(ValueError, W.set_meta_data, 'not a dict')
 
 
-def test_default_can_read_and_can_save():
+def test_default_can_read_and_can_write():
     
     F = imageio.plugins.example.DummyFormat('test', '', 'foo bar', 'v')
     
@@ -223,16 +223,16 @@ def test_default_can_read_and_can_save():
     open(filename1 + '.spam', 'wb')
     
     # Test _can_read()
-    assert F._can_read(Request(filename1 + '.foo', 'rv'))
-    assert F._can_read(Request(filename1 + '.bar', 'r?'))
-    assert not F._can_read(Request(filename1 + '.spam', 'r?'))
-    assert not F._can_read(Request(filename1 + '.foo', 'ri'))
+    assert F.can_read(Request(filename1 + '.foo', 'rv'))
+    assert F.can_read(Request(filename1 + '.bar', 'r?'))
+    assert not F.can_read(Request(filename1 + '.spam', 'r?'))
+    assert not F.can_read(Request(filename1 + '.foo', 'ri'))
     
-    # Test _can_save()
-    assert F._can_save(Request(filename1 + '.foo', 'wv'))
-    assert F._can_save(Request(filename1 + '.bar', 'w?'))
-    assert not F._can_save(Request(filename1 + '.spam', 'w?'))
-    assert not F._can_save(Request(filename1 + '.foo', 'wi'))
+    # Test _can_write()
+    assert F.can_write(Request(filename1 + '.foo', 'wv'))
+    assert F.can_write(Request(filename1 + '.bar', 'w?'))
+    assert not F.can_write(Request(filename1 + '.spam', 'w?'))
+    assert not F.can_write(Request(filename1 + '.foo', 'wi'))
 
 
 def test_format_manager():
@@ -290,13 +290,13 @@ def test_format_manager():
     # Test searchinhg for read / write format
     F = formats.search_read_format(Request(fname, 'ri'))
     assert F is formats['PNG']
-    F = formats.search_save_format(Request(fname, 'wi'))
+    F = formats.search_write_format(Request(fname, 'wi'))
     assert F is formats['PNG']
 #   # Potential
 #   bytes = b'x' * 300
 #   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
 #   assert F is formats['DUMMY']
-#   F = formats.search_save_format(Request('<bytes>', 'w?', dummy_potential=1))
+#   F = formats.search_write_format(Request('<bytes>', 'w?', dummy_potential=1))
 #   assert F is formats['DUMMY']
 
 
@@ -830,8 +830,8 @@ def test_example_plugin():
     """ Test the example plugin """
     
     fname = os.path.join(test_dir, 'out.png')
-    R = imageio.formats['dummy'].read(Request('chelsea.png', 'r?'))
-    W = imageio.formats['dummy'].save(Request(fname, 'w?'))
+    R = imageio.formats['dummy'].get_reader(Request('chelsea.png', 'r?'))
+    W = imageio.formats['dummy'].get_writer(Request(fname, 'w?'))
     #
     assert len(R) == 1
     assert R.get_data(0).ndim

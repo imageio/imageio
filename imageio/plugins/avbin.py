@@ -211,7 +211,7 @@ class AvBinFormat(Format):
                 if request.filename.endswith('.' + ext):
                     return True
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         return False  # AvBin does not support writing videos
     
     def avbinlib(self, libpath=None):

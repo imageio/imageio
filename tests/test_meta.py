@@ -72,8 +72,9 @@ def test_namespace():
     has_names = set([n for n in has_names if not n.startswith('_')])
     
     need_names = ('help formats read save RETURN_BYTES '
-                  'read imread mimread volread mvolread '
-                  'save imsave mimsave volsave mvolsave'
+                  'get_reader imread mimread volread mvolread '
+                  'get_writer imwrite mimwrite volwrite mvolwrite '
+                  'read save imsave mimsave volsave mvolsave '  # aliases
                   ).split(' ')
     need_names = set([n for n in need_names if n])
     

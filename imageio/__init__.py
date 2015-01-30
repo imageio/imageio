@@ -24,8 +24,13 @@ formats = FormatManager()
 
 # Load the functions
 from .core.functions import help  # noqa
-from .core.functions import read, imread, mimread, volread, mvolread  # noqa
-from .core.functions import save, imsave, mimsave, volsave, mvolsave  # noqa
+from .core.functions import get_reader, get_writer  # noqa
+from .core.functions import imread, mimread, volread, mvolread  # noqa
+from .core.functions import imwrite, mimwrite, volwrite, mvolwrite  # noqa
+
+# Load function aliases
+from .core.functions import read, save  # noqa
+from .core.functions import imsave, mimsave, volsave, mvolsave  # noqa
 
 # Load all the plugins
 from . import plugins  # noqa

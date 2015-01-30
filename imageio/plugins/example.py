@@ -15,9 +15,9 @@ from ..core import Format
 
 class DummyFormat(Format):
     """ The dummy format is an example format that does nothing.
-    It will never indicate that it can read or save a file. When
+    It will never indicate that it can read or write a file. When
     explicitly asked to read, it will simply read the bytes. When 
-    explicitly asked to save, it will raise an error.
+    explicitly asked to write, it will raise an error.
     
     This documentation is shown when the user does ``help('thisformat')``.
     
@@ -53,9 +53,9 @@ class DummyFormat(Format):
                 if request.filename.endswith('.' + ext):
                     return True
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         # This method is called when the format manager is searching
-        # for a format to save a certain image. Return True if the
+        # for a format to write a certain image. Return True if the
         # format can do it.
         #
         # In most cases, the code does suffice.
@@ -126,12 +126,12 @@ class DummyFormat(Format):
         
         def _append_data(self, im, meta):
             # Process the given data and meta data.
-            raise RuntimeError('The dummy format cannot save image data.')
+            raise RuntimeError('The dummy format cannot write image data.')
         
         def set_meta_data(self, meta):
             # Process the given meta data (global for all images)
             # It is not mandatory to support this.
-            raise RuntimeError('The dummy format cannot save meta data.')
+            raise RuntimeError('The dummy format cannot write meta data.')
 
 
 # Register. You register an *instance* of a Format class. Here specify:

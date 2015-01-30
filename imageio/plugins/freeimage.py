@@ -57,7 +57,7 @@ class FreeimageFormat(Format):
             if request._fif == self.fif:
                 return True
     
-    def _can_save(self, request):
+    def _can_write(self, request):
         modes = self._modes + '?'
         if fi and request.mode[1] in modes:
             if not hasattr(request, '_fif'):

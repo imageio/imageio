@@ -15,12 +15,12 @@ What is a plugin
 
 In imageio, a plugin provides one or more :class:`.Format` objects, and 
 corresponding :class:`.Reader` and :class:`.Writer` classes.
-Each Format object represents an implementation to read/save a 
+Each Format object represents an implementation to read/write a 
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.
 
 The reader and writer objects have a ``request`` attribute that can be
-used to obtain information about the read or save :class:`.Request`, such as
+used to obtain information about the read or write :class:`.Request`, such as
 user-provided keyword arguments, as well get access to the raw image
 data.
 
@@ -55,7 +55,7 @@ For the Format class, the following needs to be implemented/specified:
     can supply via keyword arguments.
   * Implement ``_can_read(request)``, return a bool. 
     See also the :class:`.Request` class.
-  * Implement ``_can_save(request)``, dito.
+  * Implement ``_can_write(request)``, dito.
 
 For the Format.Reader class:
   

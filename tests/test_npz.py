@@ -24,8 +24,8 @@ def test_npz_format():
     
     # Test cannot read
     png = get_remote_file('images/chelsea.png')
-    assert not format._can_read(Request(png, 'ri'))
-    assert not format._can_save(Request(png, 'wi'))
+    assert not format.can_read(Request(png, 'ri'))
+    assert not format.can_write(Request(png, 'wi'))
 
         
 def test_npz_reading_writing():

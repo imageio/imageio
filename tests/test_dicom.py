@@ -69,14 +69,14 @@ def test_selection():
     
     # Test that we cannot save
     request = core.Request(os.path.join(test_dir, 'test.dcm'), 'wi')
-    assert not F.can_save(request)
+    assert not F.can_write(request)
     
     # Test fail on wrong file
     fname2 = fname1 + '.fake'
     bb = open(fname1, 'rb').read()
     bb = bb[:128] + b'XXXX' + bb[132:]
     open(fname2, 'wb').write(bb)
-    raises(Exception, F.read, core.Request(fname2, 'ri'))
+    raises(Exception, F.get_reader, core.Request(fname2, 'ri'))
     
     # Test special files with other formats
     im = imageio.imread(get_remote_file('images/dicom_file01.dcm'))

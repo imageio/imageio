@@ -4,8 +4,8 @@
 
 """ 
 These functions represent imageio's main interface for the user. They
-provide a common API to read and save image data for a large
-variety of formats. All read and save functions accept keyword
+provide a common API to read and write image data for a large
+variety of formats. All read and write functions accept keyword
 arguments, which are passed on to the format that does the actual work.
 To see what keyword arguments are supported by a specific format, use
 the :func:`.help` function.
@@ -15,21 +15,21 @@ Functions for reading:
   * :func:`.imread` - read an image from the specified uri
   * :func:`.mimread` - read a series of images from the specified uri
   * :func:`.volread` - read a volume from the specified uri
-  * :func:`.mvolsave` - save a series of volumes to the specified uri
+  * :func:`.mvolread` - read a series of volumes from the specified uri
 
 Functions for saving:
 
-  * :func:`.imsave` - save an image to the specified uri
-  * :func:`.mimsave` - save a series of images to the specified uri
-  * :func:`.volsave` - save a volume to the specified uri
-  * :func:`.mvolread` - read a series of volumes from the specified uri
+  * :func:`.imwrite` - write an image to the specified uri
+  * :func:`.mimwrite` - write a series of images to the specified uri
+  * :func:`.volwrite` - write a volume to the specified uri
+  * :func:`.mvolwrite` - write a series of volumes to the specified uri
 
 More control:
 
-For a larger degree of control, imageio provides the functions
-:func:`.read` and :func:`.save`. They respectively return an
+For a larger degree of control, imageio provides functions
+:func:`.get_reader` and :func:`.get_writer`. They respectively return an
 :class:`.Reader` and an :class:`.Writer` object, which can
-be used to read/save data and meta data in a more controlled manner.
+be used to read/write data and meta data in a more controlled manner.
 This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
 
@@ -63,8 +63,9 @@ def help(name=None):
 
 ## Base functions that return a reader/writer
 
-def read(uri, format=None, mode='?', **kwargs):
-    """ read(uri, format=None, mode='?', **kwargs)
+
+def get_reader(uri, format=None, mode='?', **kwargs):
+    """ get_reader(uri, format=None, mode='?', **kwargs)
     
     Returns a :class:`.Reader` object which can be used to read data
     and meta data from the specified file.
@@ -100,19 +101,19 @@ def read(uri, format=None, mode='?', **kwargs):
                          'in mode %r' % mode)
     
     # Return its reader object
-    return format.read(request)
+    return format.get_reader(request)
 
 
-def save(uri, format=None, mode='?', **kwargs):
-    """ save(uri, format=None, mode='?', **kwargs)
+def get_writer(uri, format=None, mode='?', **kwargs):
+    """ get_writer(uri, format=None, mode='?', **kwargs)
     
-    Returns a :class:`.Writer` object which can be used to save data
+    Returns a :class:`.Writer` object which can be used to write data
     and meta data to the specified file.
     
     Parameters
     ----------
     uri : {str, file}
-        The resource to save the image to. This can be a normal
+        The resource to write the image to. This can be a normal
         filename, a file in a zipfile, a file object, or
         ``imageio.RETURN_BYTES``, in which case the raw bytes are
         returned.
@@ -135,13 +136,13 @@ def save(uri, format=None, mode='?', **kwargs):
     if format is not None:
         format = formats[format]
     else:
-        format = formats.search_save_format(request)
+        format = formats.search_write_format(request)
     if format is None:
-        raise ValueError('Could not find a format to save the specified file '
+        raise ValueError('Could not find a format to write the specified file '
                          'in mode %r' % mode)
     
     # Return its writer object
-    return format.save(request)
+    return format.get_writer(request)
 
 
 ## Images
@@ -172,15 +173,15 @@ def imread(uri, format=None, **kwargs):
         return reader.get_data(0)
 
 
-def imsave(uri, im, format=None, **kwargs):
-    """ imsave(uri, im, format=None, **kwargs)
+def imwrite(uri, im, format=None, **kwargs):
+    """ imwrite(uri, im, format=None, **kwargs)
     
-    Save an image to the specified file.
+    Write an image to the specified file.
     
     Parameters
     ----------
     uri : {str, file}
-        The resource to save the image to. This can be a normal
+        The resource to write the image to. This can be a normal
         filename, a file in a zipfile, a file object, or
         ``imageio.RETURN_BYTES``, in which case the raw bytes are
         returned.
@@ -206,7 +207,7 @@ def imsave(uri, im, format=None, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(uri, format, 'i', **kwargs)
+    writer = get_writer(uri, format, 'i', **kwargs)
     with writer:
         writer.append_data(im)
     
@@ -242,15 +243,15 @@ def mimread(uri, format=None, **kwargs):
         return [im for im in reader]
 
 
-def mimsave(uri, ims, format=None, **kwargs):
-    """ mimsave(uri, ims, format=None, **kwargs)
+def mimwrite(uri, ims, format=None, **kwargs):
+    """ mimwrite(uri, ims, format=None, **kwargs)
     
-    Save multiple images to the specified file.
+    Write multiple images to the specified file.
     
     Parameters
     ----------
     uri : {str, file}
-        The resource to save the images to. This can be a normal
+        The resource to write the images to. This can be a normal
         filename, a file in a zipfile, a file object, or
         ``imageio.RETURN_BYTES``, in which case the raw bytes are
         returned.
@@ -265,7 +266,7 @@ def mimsave(uri, ims, format=None, **kwargs):
     """ 
     
     # Get writer
-    writer = save(uri, format, 'I', **kwargs)
+    writer = get_writer(uri, format, 'I', **kwargs)
     with writer:
         
         # Iterate over images (ims may be a generator)
@@ -318,15 +319,15 @@ def volread(uri, format=None, **kwargs):
         return reader.get_data(0)
 
 
-def volsave(uri, im, format=None, **kwargs):
-    """ volsave(uri, vol, format=None, **kwargs)
+def volwrite(uri, im, format=None, **kwargs):
+    """ volwrite(uri, vol, format=None, **kwargs)
     
-    Save a volume to the specified file.
+    Write a volume to the specified file.
     
     Parameters
     ----------
     uri : {str, file}
-        The resource to save the image to. This can be a normal
+        The resource to write the image to. This can be a normal
         filename, a file in a zipfile, a file object, or
         ``imageio.RETURN_BYTES``, in which case the raw bytes are
         returned.
@@ -353,7 +354,7 @@ def volsave(uri, im, format=None, **kwargs):
         raise ValueError('Image must be a numpy array.')
     
     # Get writer and write first
-    writer = save(uri, format, 'v', **kwargs)
+    writer = get_writer(uri, format, 'v', **kwargs)
     with writer:
         writer.append_data(im)
     
@@ -389,15 +390,15 @@ def mvolread(uri, format=None, **kwargs):
         return [im for im in reader]
 
 
-def mvolsave(uri, ims, format=None, **kwargs):
-    """ mvolsave(uri, vols, format=None, **kwargs)
+def mvolwrite(uri, ims, format=None, **kwargs):
+    """ mvolwrite(uri, vols, format=None, **kwargs)
     
-    Save multiple volumes to the specified file.
+    Write multiple volumes to the specified file.
     
     Parameters
     ----------
     uri : {str, file}
-        The resource to save the volumes to. This can be a normal
+        The resource to write the volumes to. This can be a normal
         filename, a file in a zipfile, a file object, or
         ``imageio.RETURN_BYTES``, in which case the raw bytes are
         returned.
@@ -413,7 +414,7 @@ def mvolsave(uri, ims, format=None, **kwargs):
     """ 
     
     # Get writer
-    writer = save(uri, format, 'V', **kwargs)
+    writer = get_writer(uri, format, 'V', **kwargs)
     with writer:
         
         # Iterate over images (ims may be a generator)
@@ -436,3 +437,13 @@ def mvolsave(uri, ims, format=None, **kwargs):
     
     # Return a result if there is any
     return writer.request.get_result()
+
+
+## Aliases
+
+read = get_reader
+save = get_writer
+imsave = imwrite
+mimsave = mimwrite
+volsave = volwrite
+mvolsave = mvolwrite

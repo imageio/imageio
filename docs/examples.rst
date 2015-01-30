@@ -44,7 +44,7 @@ Iterate over frames in a movie
 
     import imageio
     
-    reader = imageio.read('cockatoo.mp4')
+    reader = imageio.get_reader('cockatoo.mp4')
     for i, im in enumerate(reader):
         print('Mean of frame %i is %1.1f' % (i, im.mean()))
 
@@ -61,7 +61,7 @@ you have multiple cameras attached.
     import imageio
     import visvis as vv
     
-    reader = imageio.read('<video0>')
+    reader = imageio.get_reader('<video0>')
     t = vv.imshow(reader.get_next_data(), clim=(0, 255))
     for im in reader:
         vv.processEvents()
@@ -78,10 +78,10 @@ can apply any kind of (image) processing to the image here ...
 
     import imageio
     
-    reader = imageio.read('cockatoo.mp4')
+    reader = imageio.get_reader('cockatoo.mp4')
     fps = reader.get_meta_data()['fps']
     
-    writer = imageio.save('~/cockatoo_gray.mp4', fps=fps)
+    writer = imageio.get_writer('~/cockatoo_gray.mp4', fps=fps)
     
     for im in reader:
         writer.append_data(im[:, :, 1])
