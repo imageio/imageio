@@ -79,7 +79,8 @@ class DummyFormat(Format):
             #  - Use request.get_local_filename() for a file on the system
             self._fp = self.request.get_file()
             self._length = length  # passed as an arg in this case for testing
-        
+            self._data = None
+            
         def _close(self):
             # Close the reader. 
             # Note that the request object will close self._fp
@@ -94,13 +95,10 @@ class DummyFormat(Format):
             if index >= self._length:
                 raise IndexError('Image index %i > %i' % (index, self._length))
             # Read all bytes
-            try:
-                self._fp.seek(0)
-            except Exception:
-                pass
-            data = self._fp.read()
+            if self._data is None:
+                self._data = self._fp.read()
             # Put in a numpy array
-            im = np.frombuffer(data, 'uint8')
+            im = np.frombuffer(self._data, 'uint8')
             im.shape = len(im), 1
             # Return array and dummy meta data
             return im, {}
