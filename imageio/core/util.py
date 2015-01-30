@@ -406,6 +406,8 @@ def appdata_dir(appname=None, roaming=False):
     
     # Define default user directory
     userDir = os.path.expanduser('~')
+    if sys.platform.startswith('linux') and not os.path.isdir(userDir):
+        userDir = '/var/tmp'  # issue #54
     
     # Get system app data dir
     path = None
