@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014, imageio contributors
+# Copyright (c) 2015, imageio contributors
 # Distributed under the (new) BSD License. 
 
 # Originally developed under the Vispy project.

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014, imageio contributors
+# Copyright (c) 2015, imageio contributors
 # Copyright (C) 2013, Zach Pincus, Almar Klein and others
 
 """ This module contains generic code to find and load a dynamic library.

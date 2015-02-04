@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014, imageio contributors
+# Copyright (c) 2015, imageio contributors
 # Based on code from the vispy project
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 

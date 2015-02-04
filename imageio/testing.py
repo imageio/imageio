@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014, imageio contributors
+# Copyright (c) 2015, imageio contributors
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 """ Functionality used for testing. This code itself is not covered in tests.
