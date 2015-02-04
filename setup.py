@@ -84,7 +84,7 @@ Release notes: http://imageio.readthedocs.org/en/latest/releasenotes.html
 
 Example:
 
-.. code-block:: python:
+.. code-block:: python
     
     >>> import imageio
     >>> im = imageio.imread('astronaut.png')
