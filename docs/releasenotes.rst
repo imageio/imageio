@@ -2,6 +2,33 @@
 Release notes
 -------------
 
+Version 1.1 (04-02-2015)
+========================
+
+Imageio is now a dependency of `Moviepy <https://github.com/Zulko/moviepy/>`_, 
+which exposed a few issues to fix. Imageio is now also available as a
+Debian package (thanks Ghislain!). Furher, we tweaked our function names
+to be cleared and more consistent (the old names still work).
+
+* All ``Xsave()`` functions are renamed to ``Xwrite()``. 
+  Also ``read()`` and ``save()`` are now ``get_reader()`` and ``get_writer()``.
+  The old names are available as aliases (and will be for the foreseable
+  future) for backward compatibility.
+* Protect user from bringing computer in swap-mode by doing e.g.
+  ``mimread('hunger games.avi')``.
+* Continuous integration for Windows via Appveyor.
+* All imports are relative, so imageio can be used as a subpackage in
+  a larger project.
+* FFMPEG is the default plugin for reading video (since AVBIN has issues).
+* Better handling on NaN and Inf when converting to uint8.
+* Provide dist packages that include freeimage lib and a few example images.
+* Several changes to ease building into Debian package.
+* Fixed segfault when saving gif 
+  (thanks levskaya, https://github.com/imageio/imageio/pull/53).
+* Don't fail when userdir is not writable.
+* Gif plugin writer has fps param for consistency with avi/mp4 etc.
+
+
 Version 1.0 (13-11-2014)
 ========================
 

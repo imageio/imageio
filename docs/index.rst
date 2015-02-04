@@ -7,13 +7,8 @@ Welcome to imageio's documentation!
 Contents:
 
 .. toctree::
-  :maxdepth: 1
+  :maxdepth: 2
   
-  Installation <installation>
-  Usage examples <examples>
-  User API <userapi>
-  Docs for the formats <formats>
-  Standard images <standardimages>
-  Developer API <devapi>
-  Writing plugins <plugins>
-  Release notes <releasenotes>
+  sec_gettingstarted
+  sec_reference
+  sec_developer
