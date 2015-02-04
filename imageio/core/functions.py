@@ -33,6 +33,13 @@ be used to read/write data and meta data in a more controlled manner.
 This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
 
+
+.. note::
+    
+    Some of these functions were renamed in v1.1 to realize a more clear
+    and consistent API. The old functions are still available for
+    backward compatibility (and will be in the foreseeable future).
+
 """
 
 from __future__ import absolute_import, print_function, division
