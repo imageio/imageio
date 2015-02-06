@@ -35,10 +35,23 @@ FNAME_PER_PLATFORM = {
     'linux64': 'ffmpeg.linux64',
 }
 
+# This constant allows the user to use a custom FFMPEG binary instead of
+# the default binary specified by FNAME_PER_PLATFORM
+#
+# Example of use:
+# >>> import imageio
+# >>> imageio.plugin.ffmpeg.FFMPEG_PATH = 'ffmpeg' # use system's binary
+# >>> reader = imageio.get_reader('myvideo.mp4') # will use 'ffmpeg'
+FFMPEG_PATH = 'default'
+
 
 def get_exe():
     """ Get ffmpeg exe
     """
+
+    if FFMPEG_PATH != 'default':
+        return FFMPEG_PATH
+
     plat = get_platform()
     
     if plat and plat in FNAME_PER_PLATFORM:
