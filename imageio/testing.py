@@ -25,6 +25,17 @@ for i in range(9):
         break
 
 
+STYLE_IGNORES = ['E226', 
+                 'E241', 
+                 'E265', 
+                 'E266',  # too many leading '#' for block comment
+                 'E402',  # module level import not at top of file
+                 'E731',  # do not assign a lambda expression, use a def
+                 'W291', 
+                 'W293',
+                 ]
+
+
 ## Functions to use in tests
 
 def run_tests_if_main(show_coverage=False):
@@ -114,7 +125,7 @@ def test_style():
     sys.stdout = FileForTesting(sys.stdout)
     
     # Init
-    ignores = ['E226', 'E241', 'E265', 'W291', 'W293']
+    ignores = STYLE_IGNORES.copy()
     fail = False
     count = 0
     
