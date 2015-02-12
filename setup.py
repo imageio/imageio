@@ -103,24 +103,6 @@ rely on an internet connection at runtime / install-time.
 
 """
 
-# Collect files to more or less reproduce the repo in the dist package.
-# In that way the tests can be run and docs be build for Debian packaging.
-#
-# Collect docs
-docs_files = [os.path.join('docs', fn) 
-              for fn in os.listdir(op.join(THIS_DIR, 'docs'))]
-docs_files += [op.join('docs', 'ext', fn) 
-               for fn in os.listdir(op.join(THIS_DIR, 'docs', 'ext'))]
-docs_files = [fn for fn in docs_files if op.isfile(op.join(THIS_DIR, fn))]
-# Collect test files
-test_files = [os.path.join('tests', fn)
-              for fn in os.listdir(os.path.join(THIS_DIR, 'tests'))
-              if (fn.endswith('.py') or fn.endswith('.md'))]
-# Collect make files
-make_files = [os.path.join('make', fn)
-              for fn in os.listdir(os.path.join(THIS_DIR, 'make'))
-              if (fn.endswith('.py') or fn.endswith('.md'))]
-
 # Prepare resources dir
 package_data = []
 package_data.append('resources/shipped_resources_go_here')
@@ -296,12 +278,6 @@ setup(
     
     # Data in the package
     package_data = {'imageio': package_data},
-    
-    # Data in the dist package
-    data_files = [('tests', test_files),
-                  ('docs', docs_files), 
-                  ('make', make_files), 
-                  ('', ['LICENSE', 'README.md', 'CONTRIBUTORS.txt'])],
     
     classifiers = [
         'Development Status :: 5 - Production/Stable',
