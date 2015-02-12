@@ -5,7 +5,10 @@
 # styletest: ignore E251 (spaces around keyword, 
 
 import os
+
 from cx_Freeze import Executable, Freezer
+
+from imageio import freeze
 
 # Define app name and such
 name = "imageiotest"
@@ -28,9 +31,6 @@ tk_excludes = ["pywin", "pywin.debugger", "pywin.debugger.dbgcon",
                "Tkconstants", "Tkinter", "tcl",
                ]
 excludes.extend(tk_excludes)
-
-from imageio import freeze
-
 
 includes = freeze.get_includes()
 excludes.extend(freeze.get_excludes())
