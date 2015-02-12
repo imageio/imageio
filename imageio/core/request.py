@@ -208,8 +208,8 @@ class Request(object):
         if is_write_request and self._uri_type in noWriting:
             raise IOError('imageio does not support writing to http/ftp.')
         
-        # Check if file exists. If not, it might be an example image
         if is_read_request:
+            # Check if file exists. If not, it might be an example image
             if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
                 fn = self._filename
                 if self._filename_zip:
@@ -223,6 +223,15 @@ class Request(object):
                             self._filename = fn + '/' + self._filename_zip[1]
                     else:
                         raise IOError("No such file: '%s'" % fn)
+        else:
+            # Check that the directory to write to does exist
+            if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
+                fn = self._filename
+                if self._filename_zip:
+                    fn = self._filename_zip[0]
+                dn = os.path.dirname(fn)
+                if not os.path.exists(dn):
+                    raise IOError("The directory %r does not exist" % dn)
     
     @property
     def filename(self):

@@ -402,7 +402,7 @@ def test_request():
     assert R._uri_type == core.request.URI_HTTP
     R = Request('ftp://example.com', 'ri')
     assert R._uri_type == core.request.URI_FTP
-    R = Request('file://example.com', 'wi')
+    R = Request('file://~/foo.png', 'wi')
     assert R._uri_type == core.request.URI_FILENAME
     R = Request('<video0>', 'rI')
     assert R._uri_type == core.request.URI_BYTES
@@ -412,7 +412,7 @@ def test_request():
     fname = get_remote_file('images/chelsea.png', test_dir)
     R = Request(fname, 'ri')
     assert R._uri_type == core.request.URI_FILENAME
-    R = Request('/file/that/does/not/exist', 'wi')
+    R = Request('~/filethatdoesnotexist', 'wi')
     assert R._uri_type == core.request.URI_FILENAME  # Too short to be bytes
     R = Request(b'x'*600, 'ri')
     assert R._uri_type == core.request.URI_BYTES
@@ -424,7 +424,7 @@ def test_request():
     R = Request('~/foo', 'wi')
     assert R.filename == os.path.expanduser('~/foo')
     # zip file
-    R = Request('/foo/bar.zip/spam.png', 'wi')
+    R = Request('~/bar.zip/spam.png', 'wi')
     assert R._uri_type == core.request.URI_ZIPPED
     
     # Test failing inits
@@ -441,6 +441,7 @@ def test_request():
     raises(IOError, Request, '/does/not/exist', 'ri')  # reading nonexistent
     raises(IOError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
+    raises(IOError, Request, '/does/not/exist.png', 'wi')  # write dir nonexist
     
     # Test auto-download
     R = Request('chelsea.png', 'ri')
@@ -745,7 +746,7 @@ def test_functions():
     W2 = imageio.save(fname2, 'JPG')
     assert W1.format is W2.format
     # Fail
-    raises(ValueError, imageio.save, 'wtf.notexistingfile')
+    raises(IOError, imageio.save, '~/dirdoesnotexist/wtf.notexistingfile')
     
     # Test imread()
     im1 = imageio.imread(fname1)
