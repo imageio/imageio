@@ -302,10 +302,10 @@ class FfmpegFormat(Format):
 
                 # Create process
                 cmd = [self._exe]
-                cmd += iargs + ['-i', self._filename] + oargs + ['-']
+                cmd += iargs + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
-                
+
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
         
