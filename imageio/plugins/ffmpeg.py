@@ -288,18 +288,24 @@ class FfmpegFormat(Format):
             else:
                 starttime = index / self._meta['fps']
                 offset = min(1, starttime)
+                
                 # Create input args -> start time
-                iargs = ['-ss', "%.03f" % (starttime-offset)]
+                iargs = ['-ss', "%.03f" % (starttime-offset),
+                         '-i', self._filename,
+                         '-ss', "%.03f" % offset]
+                
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
                          '-pix_fmt', self._pix_fmt,
                          '-vcodec', 'rawvideo']
                 oargs.extend(['-s', self._arg_size] if self._arg_size else [])
+
                 # Create process
                 cmd = [self._exe]
-                cmd += iargs + ['-i', self._filename] + oargs + ['-']
+                cmd += iargs + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
+
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
         
