@@ -2,6 +2,18 @@
 Release notes
 -------------
 
+Version 1.2 (23-02-2015)
+========================
+
+Basically a hotfix release. But some new features were introduced.
+
+* Fixed that pip-installing would put README.md and other files in sys.prefix.
+* The used ffmpeg exe can be overridden with an environment variable 
+  'IMAGEIO_FFMPEG_EXE'.
+* Relative paths work again.
+* FFMPEG plugin moved to correct timeframe when seeking (thanks Zulko)
+
+
 Version 1.1 (04-02-2015)
 ========================
 

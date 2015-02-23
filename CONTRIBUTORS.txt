@@ -3,6 +3,15 @@
   Plugin system
   Most plugins so far
 
+- Zulko
+  Various contribution related to the ffmpeg plugin.    
+
+- Ghis Vaillant
+  Debian packaging
+
+- Anselm Levskaya
+  Fixed bug (causing segfaults) related to freeimiage GIF writing
+
 - Rob Reilink
   AvBin plugin
 
