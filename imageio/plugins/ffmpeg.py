@@ -39,6 +39,11 @@ FNAME_PER_PLATFORM = {
 def get_exe():
     """ Get ffmpeg exe
     """
+    # Is the ffmpeg exe overridden?
+    exe = os.getenv('IMAGEIO_FFMPEG_EXE', None)
+    if exe:  # pragma: no cover
+        return exe
+    
     plat = get_platform()
     
     if plat and plat in FNAME_PER_PLATFORM:
@@ -78,6 +83,10 @@ class FfmpegFormat(Format):
     
     Note that for reading regular video files, the avbin plugin is more
     efficient.
+    
+    By setting the environment variable 'IMAGEIO_FFMPEG_EXE' the
+    ffmpeg executable to use can be overridden. 
+    E.g. ``os.environ['IMAGEIO_FFMPEG_EXE'] = '/path/to/my/ffmpeg'``
     
     Parameters for reading
     ----------------------
