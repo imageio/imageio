@@ -430,7 +430,8 @@ class Freeimage(object):
         if plat:  # Can be None on e.g. FreeBSD
             fname = FNAME_PER_PLATFORM[plat]
             for dir in res_dirs:
-                exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
+                exact_lib_names.insert(0, 
+                                       os.path.join(dir, 'freeimage', fname))
         
         # Load
         try:
