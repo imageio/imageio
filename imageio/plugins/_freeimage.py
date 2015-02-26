@@ -425,10 +425,12 @@ class Freeimage(object):
         exact_lib_names = ['FreeImage', 'libfreeimage.dylib', 
                            'libfreeimage.so', 'libfreeimage.so.3']
         # Add names of libraries that we provide (that file may not exist)
-        fname = FNAME_PER_PLATFORM[get_platform()]
         res_dirs = resource_dirs()
-        for dir in res_dirs:
-            exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
+        plat = get_platform()
+        if plat:  # Can be None on e.g. FreeBSD
+            fname = FNAME_PER_PLATFORM[plat]
+            for dir in res_dirs:
+                exact_lib_names.insert(0, os.path.join(dir, 'freeimage', fname))
         
         # Load
         try:

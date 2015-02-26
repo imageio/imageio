@@ -139,6 +139,7 @@ def _set_platform_resources(resource_dir, platform):
     import imageio
     
     # Create file to show platform
+    assert platform
     open(op.join(resource_dir, 'platform_%s' % platform), 'wb')
     
     # Load freeimage
