@@ -118,7 +118,7 @@ class FfmpegFormat(Format):
     """
     
     def _can_read(self, request):
-        if request.mode[1] not in 'I?':
+        if request.mode[1] not in self._modes+'?':
             return False
         
         # Read from video stream?
