@@ -14,7 +14,6 @@ import shutil
 import atexit
 
 import pytest
-from _pytest import runner
 
 # Get root dir
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
