@@ -27,7 +27,7 @@ def test_select():
     
     assert F.can_read(core.Request(fname1, 'rI'))
     assert F.can_write(core.Request(fname1, 'wI'))
-    assert not F.can_read(core.Request(fname1, 'ri'))
+    assert F.can_read(core.Request(fname1, 'ri'))
     assert not F.can_read(core.Request(fname1, 'rv'))
 
     # ffmpeg is default

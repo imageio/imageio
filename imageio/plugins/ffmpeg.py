@@ -118,7 +118,7 @@ class FfmpegFormat(Format):
     """
     
     def _can_read(self, request):
-        if request.mode[1] not in 'I?':
+        if request.mode[1] not in self._modes+'?':
             return False
         
         # Read from video stream?
@@ -679,5 +679,5 @@ class StreamCatcher(threading.Thread):
 
 # Register. You register an *instance* of a Format class.
 format = FfmpegFormat('ffmpeg', 'Many video formats and cameras (via ffmpeg)', 
-                      '.mov .avi .mpg .mpeg .mp4 .mkv', 'I')
+                      '.mov .avi .mpg .mpeg .mp4 .mkv .dpx', 'iI')
 formats.add_format(format)
