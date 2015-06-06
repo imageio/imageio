@@ -523,8 +523,21 @@ class FfmpegFormat(Format):
             # do not specify a bitrate, we easily get crap results.
             sizestr = "%dx%d" % (self._size[1], self._size[0])
             fps = self.request.kwargs.get('fps', 10)
-            codec = self.request.kwargs.get('codec', 'libx264')
+            default_codec = 'libx264'
+            if self._filename.lower().endswith('.wmv'):
+                # This is a safer default codec on windows to get videos that will
+                # play in powerpoint and other apps. H264 is not always available on
+                # windows.
+                default_codec = 'msmpeg4'
+            codec = self.request.kwargs.get('codec', default_codec)
             bitrate = self.request.kwargs.get('bitrate', 400000)
+            # You may need to use -pix_fmt yuv420p for your output to work in
+            # QuickTime and most other players. These players only supports
+            # the YUV planar color space with 4:2:0 chroma subsampling for H.264 video.
+            # Otherwise, depending on your source, ffmpeg may output to a pixel format that may be
+            # incompatible with these players.
+            # See https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+            pixelformat = self.request.kwargs.get('pixelformat', 'yuv420p')
             
             # Get command
             cmd = [self._exe, '-y',
@@ -534,7 +547,9 @@ class FfmpegFormat(Format):
                    '-pix_fmt', self._pix_fmt,
                    '-r', "%.02f" % fps,
                    '-i', '-', '-an',
-                   '-vcodec', codec] 
+                   '-vcodec', codec,
+                   '-pix_fmt', pixelformat,
+                   ]
             cmd += ['-b', str(bitrate)] if (bitrate is not None) else [] 
             cmd += ['-r', "%d" % fps, self._filename]
             
@@ -679,5 +694,5 @@ class StreamCatcher(threading.Thread):
 
 # Register. You register an *instance* of a Format class.
 format = FfmpegFormat('ffmpeg', 'Many video formats and cameras (via ffmpeg)', 
-                      '.mov .avi .mpg .mpeg .mp4 .mkv', 'I')
+                      '.mov .avi .mpg .mpeg .mp4 .mkv .wmv', 'I')
 formats.add_format(format)

@@ -74,7 +74,7 @@ def test_read_and_write():
         if IS_PYPY:
             assert (diff.sum() / diff.size) < 100
         else:
-            assert diff.mean() < 2.0
+            assert diff.mean() < 2.5
 
 
 def test_reader_more():
