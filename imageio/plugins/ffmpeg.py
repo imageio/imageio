@@ -112,9 +112,14 @@ class FfmpegFormat(Format):
         The number of frames per second. Default 10.
     codec : str
         the video codec to use. Default 'libx264', which represents the
-        widely available mpeg4.
+        widely available mpeg4. Except when saving .wmv files, then the
+        defaults is 'msmpeg4' which is more commonly supported for windows
+        media files.
     bitrate : int
         A measure for quality. Default 400000
+    pixelformat: str
+        The output video pixel format. Default is 'yuv420p' which most widely
+        supported by video players.
     """
     
     def _can_read(self, request):
