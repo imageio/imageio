@@ -530,18 +530,19 @@ class FfmpegFormat(Format):
             fps = self.request.kwargs.get('fps', 10)
             default_codec = 'libx264'
             if self._filename.lower().endswith('.wmv'):
-                # This is a safer default codec on windows to get videos that will
-                # play in powerpoint and other apps. H264 is not always available on
-                # windows.
+                # This is a safer default codec on windows to get videos that
+                # will play in powerpoint and other apps. H264 is not always
+                # available on windows.
                 default_codec = 'msmpeg4'
             codec = self.request.kwargs.get('codec', default_codec)
             bitrate = self.request.kwargs.get('bitrate', 400000)
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
-            # the YUV planar color space with 4:2:0 chroma subsampling for H.264 video.
-            # Otherwise, depending on your source, ffmpeg may output to a pixel format that may be
-            # incompatible with these players.
-            # See https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
+            # the YUV planar color space with 4:2:0 chroma subsampling for
+            # H.264 video. Otherwise, depending on your source, ffmpeg may
+            # output to a pixel format that may be incompatible with these
+            # players. See
+            # https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
             pixelformat = self.request.kwargs.get('pixelformat', 'yuv420p')
             
             # Get command
