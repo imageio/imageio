@@ -178,16 +178,14 @@ def test_writer_ffmpeg_args(tmpdir):
     need_internet()
     # Test optional ffmpeg_args with a valid option
     tmpf = tmpdir.join('test.mp4')
-    W = imageio.get_writer(str(tmpf), ffmpeg_args=['-v', 'info'])
+    W = imageio.get_writer(str(tmpf), ffmpeg_args=['-vf', 'scale=320:240'])
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
-    # Now test failure of invalid args
-    W = imageio.get_writer(str(tmpf), ffmpeg_args=['-not-an-option'])
-    with raises(IOError):
-        for i in range(10):
-            W.append_data(np.zeros((100, 100, 3), np.uint8))
-    W.close()
+    W = imageio.get_reader(str(tmpf))
+    # Check that the optional argument scaling worked.
+    assert "320x240" in W._stderr_catcher.header
+
 
 
 def test_writer_wmv(tmpdir):
