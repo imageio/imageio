@@ -120,6 +120,10 @@ class FfmpegFormat(Format):
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
+    ffmpeg_args: list
+        List additional arguments to ffmpeg for output file options.
+        Example ffmpeg arguments to use only intra frames and set aspect ratio:
+        ['-intra', '-aspect', '16:9']
     """
     
     def _can_read(self, request):
@@ -467,7 +471,8 @@ class FfmpegFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _open(self, fps=10, codec='libx264', bitrate=400000):
+        def _open(self, fps=10, codec='libx264', bitrate=400000,
+                  pixelformat='yuv420p', ffmpeg_args=None):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
@@ -476,6 +481,7 @@ class FfmpegFormat(Format):
             # Initialize parameters
             self._proc = None
             self._size = None
+            self._cmd = None
         
         def _close(self):
             # Close subprocess
@@ -514,7 +520,15 @@ class FfmpegFormat(Format):
             assert self._proc is not None  # Check status
             
             # Write
-            self._proc.stdin.write(im.tostring())
+            try:
+                self._proc.stdin.write(im.tostring())
+            except IOError, e:
+                # Show the command and stderr from pipe
+                stdout =  self._stderr_catcher.get_text(0.1)
+                msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n{}'\
+                    .format(e, self._cmd, stdout)
+                raise IOError(msg)
+
         
         def set_meta_data(self, meta):
             raise RuntimeError('The ffmpeg format does not support setting '
@@ -536,6 +550,7 @@ class FfmpegFormat(Format):
                 default_codec = 'msmpeg4'
             codec = self.request.kwargs.get('codec', default_codec)
             bitrate = self.request.kwargs.get('bitrate', 400000)
+            extra_ffmpeg_args = self.request.kwargs.get('ffmpeg_args', [])
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
             # the YUV planar color space with 4:2:0 chroma subsampling for
@@ -556,12 +571,16 @@ class FfmpegFormat(Format):
                    '-vcodec', codec,
                    '-pix_fmt', pixelformat,
                    ]
-            cmd += ['-b', str(bitrate)] if (bitrate is not None) else [] 
-            cmd += ['-r', "%d" % fps, self._filename]
+            cmd += ['-b:v', str(bitrate)] if (bitrate is not None) else []
+            cmd += ['-r', "%d" % fps]
+            cmd += extra_ffmpeg_args
+            cmd.append(self._filename)
+            self._cmd = " ".join(cmd) # For showing command if needed
             
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
+            self._stderr_catcher = StreamCatcher(self._proc.stderr)
 
 
 def cvsecs(*args):
