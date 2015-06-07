@@ -127,7 +127,7 @@ class FfmpegFormat(Format):
     verbose: True/False
         Turns off redirection of stderr from FFMPEG process so you can see all
         output. You may also want to supply ffmpeg_args=['-v','verbose'] to get
-        more output from ffmpeg.
+        more output from ffmpeg. Also prints the FFMPEG command being run.
     """
     
     def _can_read(self, request):
@@ -583,6 +583,8 @@ class FfmpegFormat(Format):
             cmd += extra_ffmpeg_args
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
+            if self._verbose:
+                print("RUNNING FFMPEG COMMAND:", self._cmd)
 
             stderr = sp.PIPE
             if self._verbose:
