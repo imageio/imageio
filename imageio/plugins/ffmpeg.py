@@ -533,9 +533,8 @@ class FfmpegFormat(Format):
                 msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n'\
                     .format(e, self._cmd)
                 if self.__stderr_catcher:
-                    msg +=  self.__stderr_catcher.get_text(0.1)
+                    msg += self.__stderr_catcher.get_text(0.1)
                 raise IOError(msg)
-
         
         def set_meta_data(self, meta):
             raise RuntimeError('The ffmpeg format does not support setting '
@@ -586,7 +585,8 @@ class FfmpegFormat(Format):
             self._cmd = " ".join(cmd) # For showing command if needed
 
             stderr = sp.PIPE
-            if self._verbose: stderr = None
+            if self._verbose:
+                stderr = None
 
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
