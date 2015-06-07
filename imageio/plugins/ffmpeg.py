@@ -492,7 +492,8 @@ class FfmpegFormat(Format):
             # Close subprocess
             if self._proc is not None:
                 self._proc.stdin.close()
-                self._proc.stderr.close()
+                if not self._verbose:
+                    self._proc.stderr.close()
                 self._proc.wait()
                 self._proc = None
         
