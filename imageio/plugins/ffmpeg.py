@@ -532,8 +532,8 @@ class FfmpegFormat(Format):
                 # Show the command and stderr from pipe
                 msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n'\
                     .format(e, self._cmd)
-                if self.__stderr_catcher:
-                    msg += self.__stderr_catcher.get_text(0.1)
+                if not self._verbose:
+                    msg += self._proc.stderr.read()
                 raise IOError(msg)
         
         def set_meta_data(self, meta):
@@ -591,8 +591,6 @@ class FfmpegFormat(Format):
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=stderr)
-            if not self._verbose:
-                self.__stderr_catcher = StreamCatcher(self._proc.stderr)
 
 
 def cvsecs(*args):
