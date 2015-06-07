@@ -528,7 +528,7 @@ class FfmpegFormat(Format):
             # Write
             try:
                 self._proc.stdin.write(im.tostring())
-            except IOError, e:
+            except IOError as e:
                 # Show the command and stderr from pipe
                 msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n'\
                     .format(e, self._cmd)
