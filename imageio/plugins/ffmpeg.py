@@ -488,12 +488,29 @@ class FfmpegFormat(Format):
             self._size = None
             self._cmd = None
         
-        def _close(self):
-            # Close subprocess
-            if self._proc is not None:
-                self._proc.stdin.close()
-                self._proc.wait()
-                self._proc = None
+        def _close(self, timeout=1.0):
+            # Somtimes ffmpeg process not getting closed.
+            # This attempts to reliably close the process.
+            if self._proc is None:  # pragma: no cover
+                return  # no process
+            if self._proc.poll() is not None:
+                return  # process already dead
+            # Terminate process
+            self._proc.stdin.close()
+            self._proc.wait()
+            if self._proc.poll() is not None:
+                return  # process already dead
+            self._proc.terminate()
+            # Wait for it to close (but do not get stuck)
+            etime = time.time() + timeout
+            while time.time() < etime:
+                time.sleep(0.01)
+                if self._proc.poll() is not None:
+                    break
+            if self._proc.poll() is None:
+                print('killing process')
+                self._proc.kill()
+            self._proc = None
         
         def _append_data(self, im, meta):
             
