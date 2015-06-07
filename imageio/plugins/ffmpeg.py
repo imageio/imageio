@@ -582,7 +582,7 @@ class FfmpegFormat(Format):
             cmd += ['-r', "%d" % fps]
             cmd += extra_ffmpeg_args
             cmd.append(self._filename)
-            self._cmd = " ".join(cmd) # For showing command if needed
+            self._cmd = " ".join(cmd)  # For showing command if needed
 
             stderr = sp.PIPE
             if self._verbose:
