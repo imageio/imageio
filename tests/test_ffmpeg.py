@@ -185,7 +185,7 @@ def test_writer_ffmpeg_args(tmpdir):
     # Now test failure of invalid args
     W = imageio.get_writer(str(tmpf), ffmpeg_args=['-not-an-option'])
     with raises(IOError):
-        for i in xrange(10):
+        for i in range(10):
             W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
 
