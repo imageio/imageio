@@ -124,6 +124,10 @@ class FfmpegFormat(Format):
         List additional arguments to ffmpeg for output file options.
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
+    verbose: True/False
+        Turns off redirection of stderr from FFMPEG process so you can see all
+        output. You may also want to supply ffmpeg_args=['-v','verbose'] to get
+        more output from ffmpeg.
     """
     
     def _can_read(self, request):
@@ -472,12 +476,13 @@ class FfmpegFormat(Format):
     class Writer(Format.Writer):
         
         def _open(self, fps=10, codec='libx264', bitrate=400000,
-                  pixelformat='yuv420p', ffmpeg_args=None):
+                  pixelformat='yuv420p', ffmpeg_args=None, verbose=False):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
             self._pix_fmt = None
+            self._verbose = False
             # Initialize parameters
             self._proc = None
             self._size = None
@@ -524,9 +529,10 @@ class FfmpegFormat(Format):
                 self._proc.stdin.write(im.tostring())
             except IOError, e:
                 # Show the command and stderr from pipe
-                stdout =  self._stderr_catcher.get_text(0.1)
-                msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n{}'\
-                    .format(e, self._cmd, stdout)
+                msg = '{}\n\nFFMPEG COMMAND:\n{}\n\nFFMPEG STDERR OUTPUT:\n'\
+                    .format(e, self._cmd)
+                if self.__stderr_catcher:
+                    msg +=  self.__stderr_catcher.get_text(0.1)
                 raise IOError(msg)
 
         
@@ -550,6 +556,7 @@ class FfmpegFormat(Format):
                 default_codec = 'msmpeg4'
             codec = self.request.kwargs.get('codec', default_codec)
             bitrate = self.request.kwargs.get('bitrate', 400000)
+            self._verbose = self.request.kwargs.get('verbose', False)
             extra_ffmpeg_args = self.request.kwargs.get('ffmpeg_args', [])
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
@@ -576,11 +583,15 @@ class FfmpegFormat(Format):
             cmd += extra_ffmpeg_args
             cmd.append(self._filename)
             self._cmd = " ".join(cmd) # For showing command if needed
-            
+
+            stderr = sp.PIPE
+            if self._verbose: stderr = None
+
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                  stdout=sp.PIPE, stderr=sp.PIPE)
-            self._stderr_catcher = StreamCatcher(self._proc.stderr)
+                                  stdout=sp.PIPE, stderr=stderr)
+            if not self._verbose:
+                self.__stderr_catcher = StreamCatcher(self._proc.stderr)
 
 
 def cvsecs(*args):
