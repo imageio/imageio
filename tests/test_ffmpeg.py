@@ -158,6 +158,7 @@ def test_writer_more():
     W.close()
 
 def test_writer_pixelformat_verbose(tmpdir):
+    need_internet()
     # Make sure verbose option works and that default pixelformat is yuv420p
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf), verbose=True)
@@ -172,6 +173,7 @@ def test_writer_pixelformat_verbose(tmpdir):
     assert "yuv420p" in W._stderr_catcher.header
 
 def test_writer_ffmpeg_args(tmpdir):
+    need_internet()
     # Test optional ffmpeg_args with a valid option
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf), ffmpeg_args=['-v', 'info'])
@@ -186,6 +188,7 @@ def test_writer_ffmpeg_args(tmpdir):
     W.close()
 
 def test_writer_wmv(tmpdir):
+    need_internet()
     # WMV has different default codec, make sure it works.
     tmpf = tmpdir.join('test.wmv')
     W = imageio.get_writer(str(tmpf), ffmpeg_args=['-v', 'info'])
