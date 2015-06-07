@@ -492,8 +492,6 @@ class FfmpegFormat(Format):
             # Close subprocess
             if self._proc is not None:
                 self._proc.stdin.close()
-                if not self._verbose:
-                    self._proc.stderr.close()
                 self._proc.wait()
                 self._proc = None
         
@@ -593,6 +591,11 @@ class FfmpegFormat(Format):
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=stderr)
+
+            # Create thread that keeps reading from stderr so it does not fill
+            # up and cause hangs on Windows
+            if not self._verbose:
+                self._stderr_catcher = StreamCatcher(self._proc.stderr)
 
 
 def cvsecs(*args):
