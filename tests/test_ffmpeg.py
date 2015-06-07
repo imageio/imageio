@@ -187,7 +187,6 @@ def test_writer_ffmpeg_args(tmpdir):
     assert "320x240" in W._stderr_catcher.header
 
 
-
 def test_writer_wmv(tmpdir):
     need_internet()
     # WMV has different default codec, make sure it works.
