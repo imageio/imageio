@@ -67,7 +67,7 @@ if sys.platform.startswith('win'):
 elif sys.platform.startswith('linux'):
     CAM_FORMAT = 'video4linux2'
 elif sys.platform.startswith('darwin'):
-    CAM_FORMAT = '??'
+    CAM_FORMAT = 'avfoundation'
 else:  # pragma: no cover
     CAM_FORMAT = 'unknown-cam-format'
 
@@ -187,6 +187,38 @@ class FfmpegFormat(Format):
                 except IndexError:
                     raise IndexError('No ffdshow camera at index %i.' % index)
                 return 'video=%s' % name
+
+            elif sys.platform.startswith('darwin'):
+                # Ask ffmpeg for list of dshow device names
+                cmd = [self._exe, '-list_devices', 'true',
+                       '-f', CAM_FORMAT, '-i', 'dummy']
+                proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE,
+                                stderr=sp.PIPE)
+                proc.stdout.readline()
+                proc.terminate()
+                infos = proc.stderr.read().decode('utf-8')
+                # Parse the result
+                device_names = []
+                for line in infos.splitlines():
+                    if "input device" in line:
+                        print(line)
+                        line = line.split(']', 1)[1].strip()
+                        print (line)
+                        if line.startswith('['):
+                                line = line.split(']', 1)[1].strip()
+                                device_names.append(line)
+                # Return device name at index
+                try:
+                    name = device_names[index]
+                except IndexError:
+                    raise IndexError('No avfoundation camera at index %i.'
+                                     % index)
+
+                if sys.platform.startswith('darwin'):
+                    return name
+                else:
+                    return 'video=%s' % name
+
             else:  # pragma: no cover
                 return '??'
         
@@ -296,6 +328,7 @@ class FfmpegFormat(Format):
             cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
+            print(cmd)
             # Create thread that keeps reading from stderr
             self._stderr_catcher = StreamCatcher(self._proc.stderr)
         
