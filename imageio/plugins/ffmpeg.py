@@ -93,6 +93,8 @@ class FfmpegFormat(Format):
     By setting the environment variable 'IMAGEIO_FFMPEG_EXE' the
     ffmpeg executable to use can be overridden. 
     E.g. ``os.environ['IMAGEIO_FFMPEG_EXE'] = '/path/to/my/ffmpeg'``
+    Otherwise, imageio will look for ffmpeg on the system path and then
+    download ffmpeg if not found.
     
     Parameters for reading
     ----------------------
