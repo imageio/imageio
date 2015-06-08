@@ -624,7 +624,7 @@ class FfmpegFormat(Format):
                 if codec == "libx264":
                     # crf ranges 0 to 51, 51 being worst.
                     quality = int(quality * 51)
-                    cmd += ['-crf', str(quality)] # for h264
+                    cmd += ['-crf', str(quality)]  # for h264
                 else:  # Most other codecs accept this
                     # q:v range can vary, 1-31, 31 being worst
                     # But q:v does not always have the same range.
