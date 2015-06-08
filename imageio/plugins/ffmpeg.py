@@ -126,9 +126,13 @@ class FfmpegFormat(Format):
         the video codec to use. Default 'libx264', which represents the
         widely available mpeg4. Except when saving .wmv files, then the
         defaults is 'msmpeg4' which is more commonly supported for windows
-        media files.
+    quality : float
+        Video output quality. Default is 5. Uses variable bit rate. Highest
+        quality is 10, lowest is 0. Set to -1 to prevent quality flags to
+        FFMPEG so you can manually specify them using ffmpeg_args instead.
     bitrate : int
-        A measure for quality. Default 400000
+        Set a constant bitrate for the video encoding. By default 'quality'
+        is used instead.
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
@@ -492,12 +496,12 @@ class FfmpegFormat(Format):
         def _read_frame(self):
             # Read and convert to numpy array
             w, h = self._meta['size']
-            #t0 = time.time()
+            # t0 = time.time()
             s = self._read_frame_data()
             result = np.fromstring(s, dtype='uint8')
             result = result.reshape((h, w, self._depth))
-            #t1 = time.time()
-            #print('etime', t1-t0)
+            # t1 = time.time()
+            # print('etime', t1-t0)
 
             # Store and return
             self._lastread = result
@@ -507,8 +511,9 @@ class FfmpegFormat(Format):
 
     class Writer(Format.Writer):
 
-        def _open(self, fps=10, codec='libx264', bitrate=400000,
-                  pixelformat='yuv420p', ffmpeg_args=None, verbose=False):
+        def _open(self, fps=10, codec='libx264', bitrate=None,
+                  pixelformat='yuv420p', ffmpeg_args=None, verbose=False,
+                  quality=5):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
@@ -577,8 +582,8 @@ class FfmpegFormat(Format):
                 self._proc.stdin.write(im.tostring())
             except IOError as e:
                 # Show the command and stderr from pipe
-                msg = '{0:}\n\nFFMPEG COMMAND:\n{1:}\n\nFFMPEG STDERR OUTPUT:\n'\
-                    .format(e, self._cmd)
+                msg = '{0:}\n\nFFMPEG COMMAND:\n{1:}\n\nFFMPEG STDERR ' \
+                      'OUTPUT:\n'.format(e, self._cmd)
                 if not self._verbose:
                     msg += self._proc.stderr.read()
                 raise IOError(msg)
@@ -602,7 +607,8 @@ class FfmpegFormat(Format):
                 # available on windows.
                 default_codec = 'msmpeg4'
             codec = self.request.kwargs.get('codec', default_codec)
-            bitrate = self.request.kwargs.get('bitrate', 400000)
+            bitrate = self.request.kwargs.get('bitrate', None)
+            quality = self.request.kwargs.get('quality', 5)
             self._verbose = self.request.kwargs.get('verbose', False)
             extra_ffmpeg_args = self.request.kwargs.get('ffmpeg_args', [])
             # You may need to use -pix_fmt yuv420p for your output to work in
@@ -625,7 +631,19 @@ class FfmpegFormat(Format):
                    '-vcodec', codec,
                    '-pix_fmt', pixelformat,
                    ]
-            cmd += ['-b:v', str(bitrate)] if (bitrate is not None) else []
+            if bitrate is not None:
+                cmd += ['-b:v', str(bitrate)]
+            if quality >= 0:  # If < 0, then we don't add anything
+                quality = 1 - quality / 10.0
+                if codec == "libx264":
+                    # crf ranges 0 to 51, 51 being worst.
+                    quality = int(quality * 51)
+                    cmd += ['-crf', str(quality)] # for h264
+                else:  # Most other codecs accept this
+                    # q:v range can vary, 1-31, 31 being worst
+                    # But q:v does not always have the same range.
+                    quality = int(quality*30)+1
+                cmd += ['-q:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
             cmd += extra_ffmpeg_args
             cmd.append(self._filename)
@@ -680,7 +698,7 @@ class FrameCatcher(threading.Thread):
         self._framesize = framesize
         self._frame = None
         self._bytes_read = 0
-        #self._lock = threading.RLock()
+        # self._lock = threading.RLock()
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
         self.start()
@@ -741,7 +759,7 @@ class StreamCatcher(threading.Thread):
     def get_text(self, timeout=0):
         """ Get the whole text printed to stderr so far. To preserve
         memory, only the last 50 to 100 frames are kept.
-        
+
         If a timeout is givem, wait for this thread to finish. When
         something goes wrong, we stop ffmpeg and want a full report of
         stderr, but this thread might need a tiny bit more time.
