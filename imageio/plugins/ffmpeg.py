@@ -45,7 +45,7 @@ def get_exe():
         return exe
 
     # See if it exists on the system path, use that if present.
-    if sys.version_info >= (3,3):
+    if sys.version_info >= (3, 3):
         import shutil
         exe = shutil.which("ffmpeg")
     else:
