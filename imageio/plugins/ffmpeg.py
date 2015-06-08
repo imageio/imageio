@@ -19,7 +19,6 @@ import re
 import time
 import threading
 import subprocess as sp
-import distutils.spawn
 
 import numpy as np
 
@@ -46,7 +45,12 @@ def get_exe():
         return exe
 
     # See if it exists on the system path, use that if present.
-    exe = distutils.spawn.find_executable("ffmpeg")
+    if sys.version_info >= (3,3):
+        import shutil
+        exe = shutil.which("ffmpeg")
+    else:
+        import distutils.spawn
+        exe = distutils.spawn.find_executable("ffmpeg")
     if exe:  # pragma: no cover
         return exe
 
@@ -394,7 +398,8 @@ class FfmpegFormat(Format):
                     ffmpeg_err = 'FFMPEG STDERR OUTPUT:\n' + \
                                  self._stderr_catcher.get_text(.1)+"\n"
                     if "darwin" in sys.platform:
-                        if "Unknown input format: 'avfoundation'" in ffmpeg_err:
+                        if "Unknown input format: 'avfoundation'" in \
+                                ffmpeg_err:
                             ffmpeg_err += "Try installing FFMPEG using " \
                                           "home brew to get a version with " \
                                           "support for cameras."
