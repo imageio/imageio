@@ -44,16 +44,6 @@ def get_exe():
     if exe:  # pragma: no cover
         return exe
 
-    # See if it exists on the system path, use that if present.
-    if sys.version_info >= (3, 3):
-        import shutil
-        exe = shutil.which("ffmpeg")
-    else:
-        import distutils.spawn
-        exe = distutils.spawn.find_executable("ffmpeg")
-    if exe:  # pragma: no cover
-        return exe
-
     plat = get_platform()
 
     if plat and plat in FNAME_PER_PLATFORM:
