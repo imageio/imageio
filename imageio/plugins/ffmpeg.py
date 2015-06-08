@@ -19,11 +19,12 @@ import re
 import time
 import threading
 import subprocess as sp
+import distutils.spawn
 
 import numpy as np
 
 from .. import formats
-from ..core import (Format, get_remote_file, string_types, read_n_bytes, 
+from ..core import (Format, get_remote_file, string_types, read_n_bytes,
                     image_as_uint8, get_platform)
 
 FNAME_PER_PLATFORM = {
@@ -43,9 +44,14 @@ def get_exe():
     exe = os.getenv('IMAGEIO_FFMPEG_EXE', None)
     if exe:  # pragma: no cover
         return exe
-    
+
+    # See if it exists on the system path, use that if present.
+    exe = distutils.spawn.find_executable("ffmpeg")
+    if exe:  # pragma: no cover
+        return exe
+
     plat = get_platform()
-    
+
     if plat and plat in FNAME_PER_PLATFORM:
         try:
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
@@ -56,7 +62,7 @@ def get_exe():
             e_type, e_value, e_tb = sys.exc_info()
             del e_tb
             print(str(e_value))
-    
+
     # Fallback, let's hope the system has ffmpeg
     return 'ffmpeg'
 
@@ -129,41 +135,41 @@ class FfmpegFormat(Format):
         output. You may also want to supply ffmpeg_args=['-v','verbose'] to get
         more output from ffmpeg. Also prints the FFMPEG command being run.
     """
-    
+
     def _can_read(self, request):
         if request.mode[1] not in 'I?':
             return False
-        
+
         # Read from video stream?
         # Note that we could write the _video flag here, but a user might
         # select this format explicitly (and this code is not run)
         if request.filename in ['<video%i>' % i for i in range(10)]:
             return True
-        
+
         # Read from file that we know?
         for ext in self.extensions:
             if request.filename.endswith('.' + ext):
                 return True
-    
+
     def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
             for ext in self.extensions:
                 if request.filename.endswith('.' + ext):
                     return True
-    
+
     # --
-    
+
     class Reader(Format.Reader):
-        
+
         def _get_cam_inputname(self, index):
             if sys.platform.startswith('linux'):
                 return '/dev/' + self.request._video[1:-1]
-            
+
             elif sys.platform.startswith('win'):
                 # Ask ffmpeg for list of dshow device names
                 cmd = [self._exe, '-list_devices', 'true',
                        '-f', CAM_FORMAT, '-i', 'dummy']
-                proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE, 
+                proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE,
                                 stderr=sp.PIPE)
                 proc.stdout.readline()
                 proc.terminate()
@@ -189,30 +195,9 @@ class FfmpegFormat(Format):
                 return 'video=%s' % name
 
             elif sys.platform.startswith('darwin'):
-                # Ask ffmpeg for list of dshow device names
-                cmd = [self._exe, '-list_devices', 'true',
-                       '-f', CAM_FORMAT, '-i', 'dummy']
-                proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE,
-                                stderr=sp.PIPE)
-                proc.stdout.readline()
-                proc.terminate()
-                infos = proc.stderr.read().decode('utf-8')
-                # Parse the result
-                device_names = []
-                for line in infos.splitlines():
-                    if "input device" in line:
-                        print(line)
-                        line = line.split(']', 1)[1].strip()
-                        print (line)
-                        if line.startswith('['):
-                                line = line.split(']', 1)[1].strip()
-                                device_names.append(line)
-                # Return device name at index
-                try:
-                    name = device_names[index]
-                except IndexError:
-                    raise IndexError('No avfoundation camera at index %i.'
-                                     % index)
+                # Appears that newer ffmpeg builds don't support -list-devices
+                # on OS X. But you can directly open the camera by index.
+                name = str(index)
 
                 if sys.platform.startswith('darwin'):
                     return name
@@ -221,8 +206,8 @@ class FfmpegFormat(Format):
 
             else:  # pragma: no cover
                 return '??'
-        
-        def _open(self, loop=False, size=None, pixelformat=None, 
+
+        def _open(self, loop=False, size=None, pixelformat=None,
                   print_info=False):
             # Get exe
             self._exe = get_exe()
@@ -257,28 +242,28 @@ class FfmpegFormat(Format):
             # Initialize parameters
             self._proc = None
             self._pos = -1
-            self._meta = {'plugin': 'ffmpeg', 
+            self._meta = {'plugin': 'ffmpeg',
                           'nframes': float('inf'), 'nframes': float('inf')}
             self._lastread = None
             # Start ffmpeg subprocess and get meta information
             self._initialize()
             self._load_infos()
-            
+
             # For cameras, create thread that keeps reading the images
             self._frame_catcher = None
             if self.request._video:
                 w, h = self._meta['size']
                 framesize = self._depth * w * h
-                self._frame_catcher = FrameCatcher(self._proc.stdout, 
+                self._frame_catcher = FrameCatcher(self._proc.stdout,
                                                    framesize)
-        
+
         def _close(self):
             self._terminate(0.05)  # Short timeout
             self._proc = None
-        
+
         def _get_length(self):
             return self._meta['nframes']
-        
+
         def _get_data(self, index):
             """ Reads a frame at index. Note for coders: getting an
             arbitrary frame in the video with ffmpeg can be painfully
@@ -289,11 +274,11 @@ class FfmpegFormat(Format):
             if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
                 if self._arg_loop:
                     index = index % self._meta['nframes']
-            
+
             if index == self._pos:
                 return self._lastread, {}
             elif index < 0:
-                raise IndexError('Frame index must be > 0') 
+                raise IndexError('Frame index must be > 0')
             elif index >= self._meta['nframes']:
                 raise IndexError('Reached end of video')
             else:
@@ -304,10 +289,10 @@ class FfmpegFormat(Format):
                 result = self._read_frame()
                 self._pos = index
                 return result, {}
-        
+
         def _get_meta_data(self, index):
             return self._meta
-        
+
         def _initialize(self):
             """ Opens the file, creates the pipe. """
             # Create input args
@@ -328,10 +313,10 @@ class FfmpegFormat(Format):
             cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
-            print(cmd)
+
             # Create thread that keeps reading from stderr
             self._stderr_catcher = StreamCatcher(self._proc.stderr)
-        
+
         def _reinitialize(self, index=0):
             """ Restarts the reading, starts at an arbitrary location
             (!! SLOW !!) """
@@ -343,12 +328,12 @@ class FfmpegFormat(Format):
             else:
                 starttime = index / self._meta['fps']
                 offset = min(1, starttime)
-                
+
                 # Create input args -> start time
                 iargs = ['-ss', "%.03f" % (starttime-offset),
                          '-i', self._filename,
                          '-ss', "%.03f" % offset]
-                
+
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
                          '-pix_fmt', self._pix_fmt,
@@ -363,7 +348,7 @@ class FfmpegFormat(Format):
 
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
-        
+
         def _terminate(self, timeout=1.0):
             """ Terminate the sub process.
             """
@@ -380,37 +365,44 @@ class FfmpegFormat(Format):
                 time.sleep(0.01)
                 if self._proc.poll() is not None:
                     break
-        
+
 #         def _close_streams(self):
-#             for std in (self._proc.stdin, 
-#                         self._proc.stdout, 
+#             for std in (self._proc.stdin,
+#                         self._proc.stdout,
 #                         self._proc.stderr):
 #                 try:
 #                     std.close()
 #                 except Exception:  # pragma: no cover
 #                     pass
-        
+
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
             duration and nframes. """
-            
+
             # Wait for the catcher to get the meta information
             etime = time.time() + 4.0
             while (not self._stderr_catcher.header) and time.time() < etime:
                 time.sleep(0.01)
-            
+
             # Check whether we have the information
             infos = self._stderr_catcher.header
             if not infos:
                 self._terminate()
                 if self.request._video:
-                    raise IndexError('No video4linux camera at %s.' % 
-                                     self.request._video)
+                    ffmpeg_err = 'FFMPEG STDERR OUTPUT:\n' + \
+                                 self._stderr_catcher.get_text(.1)+"\n"
+                    if "darwin" in sys.platform:
+                        if "Unknown input format: 'avfoundation'" in ffmpeg_err:
+                            ffmpeg_err += "Try installing FFMPEG using " \
+                                          "home brew to get a version with " \
+                                          "support for cameras."
+                    raise IndexError('No video4linux camera at %s.\n\n%s' %
+                                     (self.request._video, ffmpeg_err))
                 else:
                     err2 = self._stderr_catcher.get_text(0.2)
                     fmt = 'Could not load meta information\n=== stderr ===\n%s'
                     raise IOError(fmt % err2)
-            
+
             if self.request.kwargs.get('print_info', False):
                 # print the whole info text returned by FFMPEG
                 print(infos)
@@ -421,37 +413,37 @@ class FfmpegFormat(Format):
                     raise IOError("Could not open steam %s." % self._filename)
                 else:  # pragma: no cover - this is checked by Request
                     raise IOError("%s not found! Wrong path?" % self._filename)
-            
+
             # Get version
             ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
             self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
-            
+
             # get the output line that speaks about video
             videolines = [l for l in lines if ' Video: ' in l]
             line = videolines[0]
-            
+
             # get the frame rate
             match = re.search("( [0-9]*.| )[0-9]* (tbr|fps)", line)
             fps = float(line[match.start():match.end()].split(' ')[1])
             self._meta['fps'] = fps
-            
+
             # get the size of the original stream, of the form 460x320 (w x h)
             match = re.search(" [0-9]*x[0-9]*(,| )", line)
             parts = line[match.start():match.end()-1].split('x')
             self._meta['source_size'] = tuple(map(int, parts))
-            
+
             # get the size of what we receive, of the form 460x320 (w x h)
             line = videolines[-1]  # Pipe output
             match = re.search(" [0-9]*x[0-9]*(,| )", line)
             parts = line[match.start():match.end()-1].split('x')
             self._meta['size'] = tuple(map(int, parts))
-            
+
             # Check the two sizes
             if self._meta['source_size'] != self._meta['size']:
                 print('Warning: the frame size for reading %s is different '
-                      'from the source frame size %s.' % 
+                      'from the source frame size %s.' %
                       (self._meta['size'], self._meta['source_size'], ))
-            
+
             # get duration (in seconds)
             line = [l for l in lines if 'Duration: ' in l][0]
             match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",
@@ -460,13 +452,13 @@ class FfmpegFormat(Format):
                 hms = map(float, line[match.start()+1:match.end()].split(':'))
                 self._meta['duration'] = duration = cvsecs(*hms)
                 self._meta['nframes'] = int(duration*fps)
-        
+
         def _read_frame_data(self):
             # Init and check
             w, h = self._meta['size']
             framesize = self._depth * w * h
             assert self._proc is not None
-            
+
             try:
                 # Read framesize bytes
                 if self._frame_catcher:  # pragma: no cover - camera thing
@@ -482,14 +474,14 @@ class FfmpegFormat(Format):
                 fmt = 'Could not read frame:\n%s\n=== stderr ===\n%s'
                 raise RuntimeError(fmt % (err1, err2))
             return s
-        
+
         def _skip_frames(self, n=1):
             """ Reads and throws away n frames """
             w, h = self._meta['size']
             for i in range(n):
                 self._read_frame_data()
             self._pos += n
-        
+
         def _read_frame(self):
             # Read and convert to numpy array
             w, h = self._meta['size']
@@ -499,15 +491,15 @@ class FfmpegFormat(Format):
             result = result.reshape((h, w, self._depth))
             #t1 = time.time()
             #print('etime', t1-t0)
-            
+
             # Store and return
             self._lastread = result
             return result
-    
+
     # --
-    
+
     class Writer(Format.Writer):
-        
+
         def _open(self, fps=10, codec='libx264', bitrate=400000,
                   pixelformat='yuv420p', ffmpeg_args=None, verbose=False):
             self._exe = get_exe()
@@ -520,7 +512,7 @@ class FfmpegFormat(Format):
             self._proc = None
             self._size = None
             self._cmd = None
-        
+
         def _close(self, timeout=1.0):
             # Somtimes ffmpeg process not getting closed.
             # This attempts to reliably close the process.
@@ -544,16 +536,16 @@ class FfmpegFormat(Format):
                 print('killing process')
                 self._proc.kill()
             self._proc = None
-        
+
         def _append_data(self, im, meta):
-            
+
             # Get props of image
             size = im.shape[:2]
             depth = 1 if im.ndim == 2 else im.shape[2]
-            
+
             # Ensure that image is in uint8
             im = image_as_uint8(im)
-            
+
             # Set size and initialize if not initialized yet
             if self._size is None:
                 map = {1: 'gray', 2: 'gray8a', 3: 'rgb24', 4: 'rgba'}
@@ -563,16 +555,16 @@ class FfmpegFormat(Format):
                 self._size = size
                 self._depth = depth
                 self._initialize()
-            
+
             # Check size of image
             if size != self._size:
                 raise ValueError('All images in a movie should have same size')
             if depth != self._depth:
                 raise ValueError('All images in a movie should have same '
                                  'number of channels')
-            
+
             assert self._proc is not None  # Check status
-            
+
             # Write
             try:
                 self._proc.stdin.write(im.tostring())
@@ -583,14 +575,14 @@ class FfmpegFormat(Format):
                 if not self._verbose:
                     msg += self._proc.stderr.read()
                 raise IOError(msg)
-        
+
         def set_meta_data(self, meta):
             raise RuntimeError('The ffmpeg format does not support setting '
                                'meta data.')
-        
+
         def _initialize(self):
             """ Creates the pipe to ffmpeg. Open the file to write to. """
-            
+
             # Get parameters
             # Note that H264 is a widespread and very good codec, but if we
             # do not specify a bitrate, we easily get crap results.
@@ -614,7 +606,7 @@ class FfmpegFormat(Format):
             # players. See
             # https://trac.ffmpeg.org/wiki/Encode/H.264#Encodingfordumbplayers
             pixelformat = self.request.kwargs.get('pixelformat', 'yuv420p')
-            
+
             # Get command
             cmd = [self._exe, '-y',
                    "-f", 'rawvideo',
@@ -675,7 +667,7 @@ class FrameCatcher(threading.Thread):
     to lag, and ffmpeg can also stall (experienced on Linux). The
     get_frame() method always returns the last available image.
     """
-    
+
     def __init__(self, file, framesize):
         self._file = file
         self._framesize = framesize
@@ -685,21 +677,21 @@ class FrameCatcher(threading.Thread):
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
         self.start()
-    
+
     def get_frame(self):
         while self._frame is None:  # pragma: no cover - an init thing
             time.sleep(0.001)
         return self._frame
-    
+
     def _read(self, n):
         try:
             return self._file.read(n)
         except ValueError:
             return b''
-    
+
     def run(self):
         framesize = self._framesize
-        
+
         while True:
             time.sleep(0.001)
             s = self._read(framesize)
@@ -723,7 +715,7 @@ class StreamCatcher(threading.Thread):
     on every few frames with some meta information. We only keep the
     last ones.
     """
-    
+
     def __init__(self, file):
         self._file = file
         self._header = ''
@@ -732,13 +724,13 @@ class StreamCatcher(threading.Thread):
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
         self.start()
-    
+
     @property
     def header(self):
         """ Get header text. Empty string if the header is not yet parsed.
         """
         return self._header
-    
+
     def get_text(self, timeout=0):
         """ Get the whole text printed to stderr so far. To preserve
         memory, only the last 50 to 100 frames are kept.
@@ -747,7 +739,7 @@ class StreamCatcher(threading.Thread):
         something goes wrong, we stop ffmpeg and want a full report of
         stderr, but this thread might need a tiny bit more time.
         """
-        
+
         # Wait?
         if timeout > 0:
             etime = time.time() + timeout
@@ -756,7 +748,7 @@ class StreamCatcher(threading.Thread):
         # Return str
         lines = b'\n'.join(self._lines)
         return self._header + '\n' + lines.decode('utf-8', 'ignore')
-    
+
     def run(self):
         while True:
             time.sleep(0.001)
@@ -783,6 +775,6 @@ class StreamCatcher(threading.Thread):
 
 
 # Register. You register an *instance* of a Format class.
-format = FfmpegFormat('ffmpeg', 'Many video formats and cameras (via ffmpeg)', 
+format = FfmpegFormat('ffmpeg', 'Many video formats and cameras (via ffmpeg)',
                       '.mov .avi .mpg .mpeg .mp4 .mkv .wmv', 'I')
 formats.add_format(format)
