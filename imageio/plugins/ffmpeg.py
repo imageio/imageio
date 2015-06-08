@@ -198,11 +198,7 @@ class FfmpegFormat(Format):
                 # Appears that newer ffmpeg builds don't support -list-devices
                 # on OS X. But you can directly open the camera by index.
                 name = str(index)
-
-                if sys.platform.startswith('darwin'):
-                    return name
-                else:
-                    return 'video=%s' % name
+                return name
 
             else:  # pragma: no cover
                 return '??'
