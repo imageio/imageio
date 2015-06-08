@@ -577,7 +577,7 @@ class FfmpegFormat(Format):
                 self._proc.stdin.write(im.tostring())
             except IOError as e:
                 # Show the command and stderr from pipe
-                msg = '{0:}\n\nFFMPEG COMMAND:\n{0:}\n\nFFMPEG STDERR OUTPUT:\n'\
+                msg = '{0:}\n\nFFMPEG COMMAND:\n{1:}\n\nFFMPEG STDERR OUTPUT:\n'\
                     .format(e, self._cmd)
                 if not self._verbose:
                     msg += self._proc.stderr.read()
