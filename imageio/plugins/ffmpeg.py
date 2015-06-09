@@ -617,19 +617,21 @@ class FfmpegFormat(Format):
                    '-vcodec', codec,
                    '-pix_fmt', pixelformat,
                    ]
+            # Add fixed bitrate or variable bitrate compression flags
             if bitrate is not None:
                 cmd += ['-b:v', str(bitrate)]
-            if quality >= 0:  # If < 0, then we don't add anything
+            elif quality >= 0:  # If < 0, then we don't add anything
                 quality = 1 - quality / 10.0
                 if codec == "libx264":
                     # crf ranges 0 to 51, 51 being worst.
                     quality = int(quality * 51)
                     cmd += ['-crf', str(quality)]  # for h264
-                else:  # Most other codecs accept this
+                else:  # Many codecs accept q:v
                     # q:v range can vary, 1-31, 31 being worst
                     # But q:v does not always have the same range.
+                    # May need a way to find range for any codec.
                     quality = int(quality*30)+1
-                cmd += ['-q:v', str(quality)]  # for others
+                cmd += ['-qscale:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
             cmd += extra_ffmpeg_params
             cmd.append(self._filename)
