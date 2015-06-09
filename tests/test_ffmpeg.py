@@ -190,11 +190,11 @@ def test_writer_pixelformat_verbose(tmpdir):
     assert "yuv420p" in W._stderr_catcher.header
 
 
-def test_writer_ffmpeg_args(tmpdir):
+def test_writer_ffmpeg_params(tmpdir):
     need_internet()
-    # Test optional ffmpeg_args with a valid option
+    # Test optional ffmpeg_params with a valid option
     tmpf = tmpdir.join('test.mp4')
-    W = imageio.get_writer(str(tmpf), ffmpeg_args=['-vf', 'scale=320:240'])
+    W = imageio.get_writer(str(tmpf), ffmpeg_params=['-vf', 'scale=320:240'])
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
@@ -207,7 +207,7 @@ def test_writer_wmv(tmpdir):
     need_internet()
     # WMV has different default codec, make sure it works.
     tmpf = tmpdir.join('test.wmv')
-    W = imageio.get_writer(str(tmpf), ffmpeg_args=['-v', 'info'])
+    W = imageio.get_writer(str(tmpf), ffmpeg_params=['-v', 'info'])
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()

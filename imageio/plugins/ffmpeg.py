@@ -119,21 +119,21 @@ class FfmpegFormat(Format):
     quality : float
         Video output quality. Default is 5. Uses variable bit rate. Highest
         quality is 10, lowest is 0. Set to -1 to prevent quality flags to
-        FFMPEG so you can manually specify them using ffmpeg_args instead.
+        FFMPEG so you can manually specify them using ffmpeg_params instead.
     bitrate : int
         Set a constant bitrate for the video encoding. By default 'quality'
         is used instead.
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
-    ffmpeg_args: list
+    ffmpeg_params: list
         List additional arguments to ffmpeg for output file options.
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
     verbose: True/False
         Turns off redirection of stderr from FFMPEG process so you can see all
-        output. You may also want to supply ffmpeg_args=['-v','verbose'] to get
-        more output from ffmpeg. Also prints the FFMPEG command being run.
+        output. You may also want to supply ffmpeg_params=['-v','verbose'] to
+        get more output from ffmpeg. Also prints the FFMPEG command being run.
     """
 
     def _can_read(self, request):
@@ -498,7 +498,7 @@ class FfmpegFormat(Format):
     class Writer(Format.Writer):
 
         def _open(self, fps=10, codec='libx264', bitrate=None,
-                  pixelformat='yuv420p', ffmpeg_args=None, verbose=False,
+                  pixelformat='yuv420p', ffmpeg_params=None, verbose=False,
                   quality=5):
             self._exe = get_exe()
             # Get local filename
@@ -596,7 +596,7 @@ class FfmpegFormat(Format):
             bitrate = self.request.kwargs.get('bitrate', None)
             quality = self.request.kwargs.get('quality', 5)
             self._verbose = self.request.kwargs.get('verbose', False)
-            extra_ffmpeg_args = self.request.kwargs.get('ffmpeg_args', [])
+            extra_ffmpeg_params = self.request.kwargs.get('ffmpeg_params', [])
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
             # the YUV planar color space with 4:2:0 chroma subsampling for
@@ -631,7 +631,7 @@ class FfmpegFormat(Format):
                     quality = int(quality*30)+1
                 cmd += ['-q:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
-            cmd += extra_ffmpeg_args
+            cmd += extra_ffmpeg_params
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
             if self._verbose:
