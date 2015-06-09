@@ -631,7 +631,7 @@ class FfmpegFormat(Format):
                     # But q:v does not always have the same range.
                     # May need a way to find range for any codec.
                     quality = int(quality*30)+1
-                cmd += ['-qscale:v', str(quality)]  # for others
+                    cmd += ['-qscale:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
             cmd += extra_ffmpeg_params
             cmd.append(self._filename)
