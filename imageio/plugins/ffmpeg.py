@@ -130,10 +130,11 @@ class FfmpegFormat(Format):
         List additional arguments to ffmpeg for output file options.
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
-    verbose: True/False
-        Turns off redirection of stderr from FFMPEG process so you can see all
-        output. You may also want to supply ffmpeg_params=['-v','verbose'] to
-        get more output from ffmpeg. Also prints the FFMPEG command being run.
+    ffmpeg_log_level: str
+        Sets ffmpeg output log level.  Default "warning".
+        Values can be "quiet", "panic", "fatal", "error", "warning", "info"
+        "verbose", or "debug".
+        Prints the FFMPEG command being run if not "quiet" or "warning".
     """
 
     def _can_read(self, request):
@@ -498,14 +499,13 @@ class FfmpegFormat(Format):
     class Writer(Format.Writer):
 
         def _open(self, fps=10, codec='libx264', bitrate=None,
-                  pixelformat='yuv420p', ffmpeg_params=None, verbose=False,
-                  quality=5):
+                  pixelformat='yuv420p', ffmpeg_params=None,
+                  ffmpeg_log_level="quiet", quality=5):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
             self._pix_fmt = None
-            self._verbose = False
             # Initialize parameters
             self._proc = None
             self._size = None
@@ -570,8 +570,6 @@ class FfmpegFormat(Format):
                 # Show the command and stderr from pipe
                 msg = '{0:}\n\nFFMPEG COMMAND:\n{1:}\n\nFFMPEG STDERR ' \
                       'OUTPUT:\n'.format(e, self._cmd)
-                if not self._verbose:
-                    msg += self._proc.stderr.read()
                 raise IOError(msg)
 
         def set_meta_data(self, meta):
@@ -595,7 +593,8 @@ class FfmpegFormat(Format):
             codec = self.request.kwargs.get('codec', default_codec)
             bitrate = self.request.kwargs.get('bitrate', None)
             quality = self.request.kwargs.get('quality', 5)
-            self._verbose = self.request.kwargs.get('verbose', False)
+            ffmpeg_log_level = self.request.kwargs.get('ffmpeg_log_level',
+                                                       'warning')
             extra_ffmpeg_params = self.request.kwargs.get('ffmpeg_params', [])
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
@@ -633,24 +632,24 @@ class FfmpegFormat(Format):
                     quality = int(quality*30)+1
                     cmd += ['-qscale:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
+            if ffmpeg_log_level:
+                # Rather than redirect stderr to a pipe, just set minimal
+                # output from ffmpeg by default. That way if there are warnings
+                # the user will see them.
+                cmd += ['-v', ffmpeg_log_level]
             cmd += extra_ffmpeg_params
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
-            if self._verbose:
+            if ('warning' not in ffmpeg_log_level) and \
+                    ('quiet' not in ffmpeg_log_level):
                 print("RUNNING FFMPEG COMMAND:", self._cmd)
-
-            stderr = sp.PIPE
-            if self._verbose:
-                stderr = None
 
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                  stdout=sp.PIPE, stderr=stderr)
-
-            # Create thread that keeps reading from stderr so it does not fill
-            # up and cause hangs on Windows
-            if not self._verbose:
-                self._stderr_catcher = StreamCatcher(self._proc.stderr)
+                                  stdout=sp.PIPE, stderr=None)
+            # Warning, directing stderr to a pipe on windows will cause ffmpeg
+            # to hang if the buffer is not periodically cleared using
+            # StreamCatcher or other means.
 
 
 def cvsecs(*args):

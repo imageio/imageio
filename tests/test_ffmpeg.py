@@ -178,7 +178,7 @@ def test_writer_pixelformat_verbose(tmpdir):
     need_internet()
     # Make sure verbose option works and that default pixelformat is yuv420p
     tmpf = tmpdir.join('test.mp4')
-    W = imageio.get_writer(str(tmpf), verbose=True)
+    W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
