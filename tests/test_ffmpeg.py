@@ -157,6 +157,7 @@ def test_writer_more():
         W.set_meta_data({'foo': 3})
     W.close()
 
+
 def test_writer_file_properly_closed(tmpdir):
     # Test to catch if file is correctly closed.
     # Otherwise it won't play in most players. This seems to occur on windows.
@@ -167,9 +168,11 @@ def test_writer_file_properly_closed(tmpdir):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
-    # If Duration: N/A reported by ffmpeg, then the file was not correctly closed.
+    # If Duration: N/A reported by ffmpeg, then the file was not
+    # correctly closed.
     # This will cause the file to not be readable in many players.
     assert "Duration: N/A" not in W._stderr_catcher.header
+
 
 def test_writer_pixelformat_verbose(tmpdir):
     need_internet()
