@@ -521,10 +521,9 @@ class FfmpegFormat(Format):
                 return  # no process
             if self._proc.poll() is not None:
                 return  # process already dead
-            # End process
-            # self._proc.stdin.close() # .communicate will take care of this
-            # The .communicate is preferred over .wait which can deadlock
-            self._proc.communicate()
+            if self._proc.stdin:
+                self._proc.stdin.close()
+            self._proc.wait()
 
         def _append_data(self, im, meta):
 
