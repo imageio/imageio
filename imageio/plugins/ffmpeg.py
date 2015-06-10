@@ -116,14 +116,18 @@ class FfmpegFormat(Format):
         the video codec to use. Default 'libx264', which represents the
         widely available mpeg4. Except when saving .wmv files, then the
         defaults is 'msmpeg4' which is more commonly supported for windows
-    quality : float
+    quality : float | None
         Video output quality. Default is 5. Uses variable bit rate. Highest
         quality is 10, lowest is 0. Set to None to prevent variable bitrate
         flags to FFMPEG so you can manually specify them using ffmpeg_params
-        instead.
-    bitrate : int
-        Set a constant bitrate for the video encoding. By default 'quality'
-        is used instead.
+        instead. Specifying a fixed bitrate using 'bitrate' disables this
+        parameter.
+    bitrate : int | None
+        Set a constant bitrate for the video encoding. Default is None causing
+        'quality' parameter to be used instead.  Better quality videos with
+        smaller file sizes will result from using the 'quality'  variable
+        bitrate parameter rather than specifiying a fixed bitrate with this
+        parameter.
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
@@ -132,10 +136,10 @@ class FfmpegFormat(Format):
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
     ffmpeg_log_level: str
-        Sets ffmpeg output log level.  Default "warning".
+        Sets ffmpeg output log level.  Default is "warning".
         Values can be "quiet", "panic", "fatal", "error", "warning", "info"
-        "verbose", or "debug".
-        Prints the FFMPEG command being run if not "quiet" or "warning".
+        "verbose", or "debug". Also prints the FFMPEG command being used by
+        imageio if not "quiet" or "warning".
     """
 
     def _can_read(self, request):
@@ -513,28 +517,14 @@ class FfmpegFormat(Format):
             self._cmd = None
 
         def _close(self, timeout=1.0):
-            # Somtimes ffmpeg process not getting closed.
-            # This attempts to reliably close the process.
             if self._proc is None:  # pragma: no cover
                 return  # no process
             if self._proc.poll() is not None:
                 return  # process already dead
-            # Terminate process
-            self._proc.stdin.close()
-            self._proc.wait()
-            if self._proc.poll() is not None:
-                return  # process already dead
-            self._proc.terminate()
-            # Wait for it to close (but do not get stuck)
-            etime = time.time() + timeout
-            while time.time() < etime:
-                time.sleep(0.01)
-                if self._proc.poll() is not None:
-                    break
-            if self._proc.poll() is None:
-                print('killing process')
-                self._proc.kill()
-            self._proc = None
+            # End process
+            # self._proc.stdin.close() # .communicate will take care of this
+            # The .communicate is preferred over .wait which can deadlock
+            self._proc.communicate()
 
         def _append_data(self, im, meta):
 
