@@ -118,8 +118,9 @@ class FfmpegFormat(Format):
         defaults is 'msmpeg4' which is more commonly supported for windows
     quality : float
         Video output quality. Default is 5. Uses variable bit rate. Highest
-        quality is 10, lowest is 0. Set to -1 to prevent quality flags to
-        FFMPEG so you can manually specify them using ffmpeg_params instead.
+        quality is 10, lowest is 0. Set to None to prevent variable bitrate
+        flags to FFMPEG so you can manually specify them using ffmpeg_params
+        instead.
     bitrate : int
         Set a constant bitrate for the video encoding. By default 'quality'
         is used instead.
@@ -619,7 +620,10 @@ class FfmpegFormat(Format):
             # Add fixed bitrate or variable bitrate compression flags
             if bitrate is not None:
                 cmd += ['-b:v', str(bitrate)]
-            elif quality >= 0:  # If < 0, then we don't add anything
+            elif quality is not None:  # If < 0, then we don't add anything
+                if quality < 0 or quality > 10:
+                    raise ValueError("ffpmeg writer quality parameter out of"
+                                     "range. Expected range 0 to 10.")
                 quality = 1 - quality / 10.0
                 if codec == "libx264":
                     # crf ranges 0 to 51, 51 being worst.
