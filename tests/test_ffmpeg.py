@@ -74,7 +74,7 @@ def test_read_and_write():
         if IS_PYPY:
             assert (diff.sum() / diff.size) < 100
         else:
-            assert diff.mean() < 2.0
+            assert diff.mean() < 2.5
 
 
 def test_reader_more():
@@ -156,6 +156,65 @@ def test_writer_more():
     with raises(RuntimeError):  # No meta data
         W.set_meta_data({'foo': 3})
     W.close()
+
+
+def test_writer_file_properly_closed(tmpdir):
+    # Test to catch if file is correctly closed.
+    # Otherwise it won't play in most players. This seems to occur on windows.
+    need_internet()
+    tmpf = tmpdir.join('test.mp4')
+    W = imageio.get_writer(str(tmpf))
+    for i in range(10):
+        W.append_data(np.zeros((100, 100, 3), np.uint8))
+    W.close()
+    W = imageio.get_reader(str(tmpf))
+    # If Duration: N/A reported by ffmpeg, then the file was not
+    # correctly closed.
+    # This will cause the file to not be readable in many players.
+    assert "Duration: N/A" not in W._stderr_catcher.header
+
+
+def test_writer_pixelformat_verbose(tmpdir):
+    need_internet()
+    # Make sure verbose option works and that default pixelformat is yuv420p
+    tmpf = tmpdir.join('test.mp4')
+    W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
+    for i in range(10):
+        W.append_data(np.zeros((100, 100, 3), np.uint8))
+    W.close()
+
+    # Check that video is correct size & default output video pixel format
+    # is correct
+    W = imageio.get_reader(str(tmpf))
+    assert "100x100" in W._stderr_catcher.header
+    assert "yuv420p" in W._stderr_catcher.header
+
+
+def test_writer_ffmpeg_params(tmpdir):
+    need_internet()
+    # Test optional ffmpeg_params with a valid option
+    tmpf = tmpdir.join('test.mp4')
+    W = imageio.get_writer(str(tmpf), ffmpeg_params=['-vf', 'scale=320:240'])
+    for i in range(10):
+        W.append_data(np.zeros((100, 100, 3), np.uint8))
+    W.close()
+    W = imageio.get_reader(str(tmpf))
+    # Check that the optional argument scaling worked.
+    assert "320x240" in W._stderr_catcher.header
+
+
+def test_writer_wmv(tmpdir):
+    need_internet()
+    # WMV has different default codec, make sure it works.
+    tmpf = tmpdir.join('test.wmv')
+    W = imageio.get_writer(str(tmpf), ffmpeg_params=['-v', 'info'])
+    for i in range(10):
+        W.append_data(np.zeros((100, 100, 3), np.uint8))
+    W.close()
+
+    W = imageio.get_reader(str(tmpf))
+    # Check that default encoder is msmpeg4 for wmv
+    assert "msmpeg4" in W._stderr_catcher.header
 
 
 def test_cvsecs():
