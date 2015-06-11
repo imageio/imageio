@@ -516,7 +516,7 @@ class FfmpegFormat(Format):
             self._size = None
             self._cmd = None
 
-        def _close(self, timeout=10.0):
+        def _close(self):
             if self._proc is None:  # pragma: no cover
                 return  # no process
             if self._proc.poll() is not None:
