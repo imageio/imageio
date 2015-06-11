@@ -19,7 +19,6 @@ import re
 import time
 import threading
 import subprocess as sp
-import warnings
 
 import numpy as np
 
