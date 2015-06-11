@@ -523,7 +523,15 @@ class FfmpegFormat(Format):
                 return  # process already dead
             if self._proc.stdin:
                 self._proc.stdin.close()
-            self._proc.wait()
+            # Wait for process to terminate or force if it doesn't in time.
+            waited = 0.0
+            while self._proc.poll() is not None:
+                time.sleep(0.1)
+                waited += 0.1
+                if waited > timeout:
+                    self._proc.terminate()
+                    break
+            self._proc = None
 
         def _append_data(self, im, meta):
 
