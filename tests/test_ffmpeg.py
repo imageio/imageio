@@ -293,7 +293,7 @@ def test_webcam():
     need_internet()
     
     try:
-        imageio.read('<video2>')
+        imageio.read('<video0>')
     except Exception:
         skip('no web cam')
 
