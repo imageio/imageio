@@ -27,8 +27,8 @@ from ..core import (Format, get_remote_file, string_types, read_n_bytes,
                     image_as_uint8, get_platform)
 
 FNAME_PER_PLATFORM = {
-    'osx32': 'ffmpeg.osx.snowleopardandabove',
-    'osx64': 'ffmpeg.osx.snowleopardandabove',
+    'osx32': 'ffmpeg.osx',
+    'osx64': 'ffmpeg.osx',
     'win32': 'ffmpeg.win32.exe',
     'win64': 'ffmpeg.win32.exe',
     'linux32': 'ffmpeg.linux32',
