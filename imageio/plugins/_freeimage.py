@@ -1258,6 +1258,10 @@ class FIMultipageBitmap(FIBaseBitmap):
 try:
     fi = Freeimage()
 except OSError as err:  # pragma: no cover
-    print('Warning: the freeimage wrapper of imageio could not be loaded:')
-    print(str(err))
     fi = None
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        pass
+        #print('Warning: freeimage not found and not allowed to download.')
+    else:
+        print('Warning: the freeimage wrapper of imageio could not be loaded:')
+        print(str(err))
