@@ -19,6 +19,13 @@ from . import appdata_dir, resource_dirs
 from . import StdoutProgressIndicator, string_types, urlopen
 
 
+class InternetNotAllowedError(IOError):
+    """ Plugins that need resources can just use get_remote_file(), but
+    should catch this error and silently ignore it.
+    """
+    pass
+
+
 def get_remote_file(fname, directory=None, force_download=False):
     """ Get a the filename for the local version of a file from the web
 
@@ -68,7 +75,9 @@ def get_remote_file(fname, directory=None, force_download=False):
     
     # If we get here, we're going to try to download the file
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
-        raise IOError('Cannot download resource from the internet')
+        raise InternetNotAllowedError('Will not download resource from the '
+                                      'internet because enironment variable '
+                                      'IMAGEIO_NO_INTERNET is set.')
     # Get filename to store to and make sure the dir exists
     filename = op.join(directory, fname)
     if not op.isdir(op.dirname(filename)):

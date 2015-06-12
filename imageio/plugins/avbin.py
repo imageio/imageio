@@ -15,7 +15,8 @@ import ctypes
 import sys
 
 from .. import formats
-from ..core import Format, get_platform, get_remote_file
+from ..core import (Format, get_platform, get_remote_file, 
+                    InternetNotAllowedError)
 
 
 FNAME_PER_PLATFORM = {
@@ -147,8 +148,12 @@ def get_avbin_lib():
         raise RuntimeError('Avbin plugin is not supported on platform %s' % 
                            platform)
     
-    return get_remote_file('avbin/' + lib)
-    
+    try:
+        return get_remote_file('avbin/' + lib)
+    except InternetNotAllowedError as err:
+        raise IOError('Could not download avbin lib:\n%s' % str(err))
+        raise  # in this case we raise. Can we try finding the system lib?
+
 
 class AvBinFormat(Format):
     """ 
