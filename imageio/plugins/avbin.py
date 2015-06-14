@@ -13,9 +13,11 @@ from __future__ import absolute_import, print_function, division
 import numpy as np
 import ctypes
 import sys
+import os
 
 from .. import formats
-from ..core import Format, get_platform, get_remote_file
+from ..core import (Format, get_platform, get_remote_file, 
+                    InternetNotAllowedError)
 
 
 FNAME_PER_PLATFORM = {
@@ -139,6 +141,10 @@ def get_avbin_lib():
     """ Get avbin .dll/.dylib/.so
     """
     
+    lib = os.getenv('IMAGEIO_AVBIN_LIB', None)
+    if lib:  # pragma: no cover
+        return lib
+    
     platform = get_platform()
     
     try:
@@ -147,8 +153,12 @@ def get_avbin_lib():
         raise RuntimeError('Avbin plugin is not supported on platform %s' % 
                            platform)
     
-    return get_remote_file('avbin/' + lib)
-    
+    try:
+        return get_remote_file('avbin/' + lib)
+    except InternetNotAllowedError as err:
+        raise IOError('Could not download avbin lib:\n%s' % str(err))
+        # in this case we raise. Can we try finding the system lib?
+
 
 class AvBinFormat(Format):
     """ 

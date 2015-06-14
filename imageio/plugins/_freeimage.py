@@ -21,8 +21,9 @@ import ctypes
 import threading
 import numpy
 
-from ..core import get_remote_file, load_lib, Dict, resource_dirs
-from ..core import string_types, binary_type, IS_PYPY, get_platform
+from ..core import (get_remote_file, load_lib, Dict, resource_dirs, 
+                    string_types, binary_type, IS_PYPY, get_platform,
+                    InternetNotAllowedError)
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 
@@ -39,9 +40,10 @@ FNAME_PER_PLATFORM = {
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
-    # todo: maybe use shipped if shipped is downloaded.
-    # download if system lib not found, or ... manually? how?
-    # Maybe place a symlink in place?
+    
+    lib = os.getenv('IMAGEIO_FREEIMAGE_LIB', None)
+    if lib:  # pragma: no cover
+        return lib
     
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
@@ -49,6 +51,8 @@ def get_freeimage_lib():
     if plat:
         try:
             return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
+        except InternetNotAllowedError:
+            pass
         except RuntimeError as e:  # pragma: no cover
             print(str(e))
 
@@ -436,12 +440,8 @@ class Freeimage(object):
         # Load
         try:
             lib, fname = load_lib(exact_lib_names, lib_names, res_dirs)
-        except OSError:  # pragma: no cover
-            # Could not load. Get why
-            e_type, e_value, e_tb = sys.exc_info()
-            del e_tb
-            load_error = str(e_value)
-            err_msg = load_error + '\nPlease install the FreeImage library.'
+        except OSError as err:  # pragma: no cover
+            err_msg = str(err) + '\nPlease install the FreeImage library.'
             raise OSError(err_msg)
         
         # Store
@@ -721,15 +721,11 @@ class FIBaseBitmap(object):
                         lib.FreeImage_SetMetadata(number, self._bitmap, 
                                                   tag_key, tag)
                     
-                    except Exception:  # pragma: no cover
-                        # Could not load. Get why
-                        e_type, e_value, e_tb = sys.exc_info()
-                        del e_tb
-                        load_error = str(e_value)
+                    except Exception as err:  # pragma: no cover
                         print('imagio.freeimage warning: Could not set tag '
                               '%r: %s, %s' % (tag_name, 
                                               self._fi._get_error_message(), 
-                                              load_error))
+                                              str(err)))
                     finally:
                         lib.FreeImage_DeleteTag(tag)
 
@@ -1262,9 +1258,11 @@ class FIMultipageBitmap(FIBaseBitmap):
 # Create instance
 try:
     fi = Freeimage()
-except OSError:  # pragma: no cover
-    print('Warning: the freeimage wrapper of imageio could not be loaded:')
-    e_type, e_value, e_tb = sys.exc_info()
-    del e_tb
-    print(str(e_value))
+except OSError as err:  # pragma: no cover
     fi = None
+    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
+        pass
+        #print('Warning: freeimage not found and not allowed to download.')
+    else:
+        print('Warning: the freeimage wrapper of imageio could not be loaded:')
+        print(str(err))

@@ -183,10 +183,10 @@ class Format:
         """
         return self._can_write(request)
     
-    def _can_read(self, request):
+    def _can_read(self, request):  # pragma: no cover
         return None  # Plugins must implement this
     
-    def _can_write(self, request):
+    def _can_write(self, request):  # pragma: no cover
         return None  # Plugins must implement this
 
     # -----

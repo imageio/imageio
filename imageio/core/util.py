@@ -465,7 +465,7 @@ def resource_dirs():
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))
-    except Exception:
+    except Exception:  # pragma: no cover
         pass  # The home dir may not be writable
     # Directory where the app is located (mainly for frozen apps)
     if sys.path and sys.path[0]:

@@ -176,6 +176,9 @@ def test_reader_and_writer():
     with raises(IndexError):
         [im for im in R]
     
+    # Test writer no format
+    raises(ValueError, imageio.get_writer, 'foo.unknownext')
+    
     # Test streaming reader
     R = F.get_reader(Request(filename1, 'ri'))
     R._stream_mode = True
