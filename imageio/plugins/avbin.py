@@ -140,6 +140,10 @@ def get_avbin_lib():
     """ Get avbin .dll/.dylib/.so
     """
     
+    lib = os.getenv('IMAGEIO_AVBIN_LIB', None)
+    if lib:  # pragma: no cover
+        return lib
+    
     platform = get_platform()
     
     try:

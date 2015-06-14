@@ -40,9 +40,10 @@ FNAME_PER_PLATFORM = {
 def get_freeimage_lib():
     """ Ensure we have our version of the binary freeimage lib.
     """ 
-    # todo: maybe use shipped if shipped is downloaded.
-    # download if system lib not found, or ... manually? how?
-    # Maybe place a symlink in place?
+    
+    lib = os.getenv('IMAGEIO_FREEIMAGE_LIB', None)
+    if lib:  # pragma: no cover
+        return lib
     
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
