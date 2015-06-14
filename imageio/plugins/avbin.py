@@ -13,6 +13,7 @@ from __future__ import absolute_import, print_function, division
 import numpy as np
 import ctypes
 import sys
+import os
 
 from .. import formats
 from ..core import (Format, get_platform, get_remote_file, 
@@ -156,7 +157,7 @@ def get_avbin_lib():
         return get_remote_file('avbin/' + lib)
     except InternetNotAllowedError as err:
         raise IOError('Could not download avbin lib:\n%s' % str(err))
-        raise  # in this case we raise. Can we try finding the system lib?
+        # in this case we raise. Can we try finding the system lib?
 
 
 class AvBinFormat(Format):
