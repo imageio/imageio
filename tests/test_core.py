@@ -425,7 +425,7 @@ def test_request():
     assert R._uri_type == core.request.URI_FILE
     # exapand user dir
     R = Request('~/foo', 'wi')
-    assert R.filename == os.path.expanduser('~/foo')
+    assert R.filename == os.path.expanduser('~/foo').replace('/', os.path.sep)
     # zip file
     R = Request('~/bar.zip/spam.png', 'wi')
     assert R._uri_type == core.request.URI_ZIPPED
