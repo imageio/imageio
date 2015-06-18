@@ -48,7 +48,7 @@ def get_freeimage_lib():
     # Get filename to load
     # If we do not provide a binary, the system may still do ...
     plat = get_platform()
-    if plat:
+    if plat and plat in FNAME_PER_PLATFORM:
         try:
             return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
         except InternetNotAllowedError:
