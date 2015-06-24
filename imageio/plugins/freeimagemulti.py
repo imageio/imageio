@@ -273,7 +273,6 @@ class GifFormat(FreeimageMulti):
                 del meta['ANIMATION']
             # Set meta data and return
             sub2.set_meta_data(meta)
-            print("meta:",meta)
             return sub2
         
         def _get_sub_rectangles(self, prev, im):
