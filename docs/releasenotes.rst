@@ -2,8 +2,8 @@
 Release notes
 -------------
 
-Version 1.3 (to come)
-=====================
+Version 1.3 (02-07-2015)
+========================
 
 This release features several fixes and small improvements, especially
 to the ffmpeg plugin.
