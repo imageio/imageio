@@ -2,6 +2,29 @@
 Release notes
 -------------
 
+Version 1.3 (to come)
+=====================
+
+This release features several fixes and small improvements, especially
+to the ffmpeg plugin.
+
+* Fix 'FrameTime' in first frame of GIF image (#90)
+* Fix that writing video could freeze on Windows (#84)
+* Fix that ffmpeg process was sometimes not closed correctly (#79)
+* Also protect user from clogging the machine for mvolread (#89)
+* Better support for platforms other than Win/Linux/OSX (#87 )
+* Support for reading from webcam on OSX (#83, #85)
+* Support for dpx via the ffmpeg plugin (#81)
+* Support for wmv via the ffmpeg plugin (#83)
+* The ffmpeg plugin allows specifying pixelformat. The new default is
+  more widely supported (#83)
+* Allow passing additional arguments to ffmpeg command (#83)
+* Quality of ffmpeg output now set via quality param instead of bitrate (#83)
+* Imageio now has a few (documented) environment variables to specify
+  the locations of plugin libraries/exes (thus preventing them from
+  being automatically downloaded.
+
+
 Version 1.2 (23-02-2015)
 ========================
 
