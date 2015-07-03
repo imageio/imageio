@@ -56,8 +56,8 @@ def get_exe():
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
             logging.warning("Warning: could not find imageio's "
-                          "ffmpeg executable:\n%s" %
-                  str(err))
+                            "ffmpeg executable:\n%s" %
+                            str(err))
 
     # Fallback, let's hope the system has ffmpeg
     return 'ffmpeg'
@@ -455,8 +455,8 @@ class FfmpegFormat(Format):
             # Check the two sizes
             if self._meta['source_size'] != self._meta['size']:
                 logging.warning('Warning: the frame size for reading %s is '
-                      'different from the source frame size %s.' %
-                      (self._meta['size'], self._meta['source_size'], ))
+                                'different from the source frame size %s.' %
+                                (self._meta['size'], self._meta['source_size']))
 
             # get duration (in seconds)
             line = [l for l in lines if 'Duration: ' in l][0]
@@ -653,7 +653,7 @@ class FfmpegFormat(Format):
                         (self._size[1] % macro_block_size)
                 out_h = self._size[0]
                 if self._size[0] % macro_block_size > 0:
-                    out_h +=  macro_block_size - \
+                    out_h += macro_block_size - \
                         (self._size[0] % macro_block_size)
                 cmd += ['-vf', 'scale={0}:{1}'.format(out_w, out_h)]
                 logging.warning(
@@ -667,8 +667,7 @@ class FfmpegFormat(Format):
                     "speedloss due to "
                     "data not being aligned.".format(macro_block_size,
                                                      self._size[:2],
-                                                     (out_h, out_w)),
-                    )
+                                                     (out_h, out_w)))
 
             if ffmpeg_log_level:
                 # Rather than redirect stderr to a pipe, just set minimal
