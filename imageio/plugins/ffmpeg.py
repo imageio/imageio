@@ -19,6 +19,7 @@ import re
 import time
 import threading
 import subprocess as sp
+import logging
 
 import numpy as np
 
@@ -54,7 +55,8 @@ def get_exe():
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
-            print("Warning: could not find imageio's ffmpeg executable:\n%s" %
+            logging.warning("Warning: could not find imageio's "
+                          "ffmpeg executable:\n%s" %
                   str(err))
 
     # Fallback, let's hope the system has ffmpeg
@@ -141,12 +143,12 @@ class FfmpegFormat(Format):
         "verbose", or "debug". Also prints the FFMPEG command being used by
         imageio if not "quiet" or "warning".
     macro_block_size: int
-        Size constraint for video width and height, must be divisible by this
+        Size constraint for video. Width and height, must be divisible by this
         number. If not divisible by this number imageio will tell ffmpeg to
-        scale the image up to the next closest size in width and height
+        scale the image up to the next closest size
         divisible by this number. Most codecs are compatible with a macroblock
         size of 16 (default), some can go smaller (4, 8). To disable this
-        automatic feature set it to 0, however be warned many players can't
+        automatic feature set it to None, however be warned many players can't
         decode videos that are odd in size and some codecs will produce poor
         results or fail. See https://en.wikipedia.org/wiki/Macroblock.
     """
@@ -452,8 +454,8 @@ class FfmpegFormat(Format):
 
             # Check the two sizes
             if self._meta['source_size'] != self._meta['size']:
-                print('Warning: the frame size for reading %s is different '
-                      'from the source frame size %s.' %
+                logging.warning('Warning: the frame size for reading %s is '
+                      'different from the source frame size %s.' %
                       (self._meta['size'], self._meta['source_size'], ))
 
             # get duration (in seconds)
@@ -642,25 +644,31 @@ class FfmpegFormat(Format):
             # divisible, if not have ffmpeg upsize to nearest size and warn
             # user they should correct input image if this is not desired.
             macro_block_size = self.request.kwargs.get('macro_block_size', 16)
-            if macro_block_size > 1 and \
+            if macro_block_size is not None and macro_block_size > 1 and \
                     (self._size[1] % macro_block_size > 0 or
                         self._size[0] % macro_block_size > 0):
-                out_w = self._size[1] + macro_block_size - \
-                    (self._size[1] % macro_block_size)
-                out_h = self._size[0] + macro_block_size - \
-                    (self._size[0] % macro_block_size)
+                out_w = self._size[1]
+                if self._size[1] % macro_block_size > 0:
+                    out_w += macro_block_size - \
+                        (self._size[1] % macro_block_size)
+                out_h = self._size[0]
+                if self._size[0] % macro_block_size > 0:
+                    out_h +=  macro_block_size - \
+                        (self._size[0] % macro_block_size)
                 cmd += ['-vf', 'scale={0}:{1}'.format(out_w, out_h)]
-                print("IMAGEIO FFMPEG_WRITER WARNING: input image is not "
-                      "divisible by macro_block_size={0}, resizing from {1} "
-                      "to {2} to ensure video compatibility with most codecs "
-                      "and players. To prevent resizing, make your input "
-                      "image divisible by the macro_block_size or set the "
-                      "macro_block_size to 0 (risking compatibility) You "
-                      "may also see a warning concerning speedloss due to "
-                      "data not being aligned.".format(macro_block_size,
-                                                       self._size[:2],
-                                                       (out_h, out_w)),
-                      file=sys.stderr)
+                logging.warning(
+                    "IMAGEIO FFMPEG_WRITER WARNING: input image is not"
+                    " divisible by macro_block_size={0}, resizing from {1} "
+                    "to {2} to ensure video compatibility with most codecs "
+                    "and players. To prevent resizing, make your input "
+                    "image divisible by the macro_block_size or set the "
+                    "macro_block_size to None (risking incompatibility). You "
+                    "may also see a FFMPEG warning concerning "
+                    "speedloss due to "
+                    "data not being aligned.".format(macro_block_size,
+                                                     self._size[:2],
+                                                     (out_h, out_w)),
+                    )
 
             if ffmpeg_log_level:
                 # Rather than redirect stderr to a pipe, just set minimal

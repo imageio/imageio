@@ -192,13 +192,23 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert "yuv420p" in W._stderr_catcher.header
 
     # Now check that macroblock size gets turned off if requested
-    W = imageio.get_writer(str(tmpf), macro_block_size=0,
+    W = imageio.get_writer(str(tmpf), macro_block_size=None,
                            ffmpeg_log_level='debug')
     for i in range(3):
         W.append_data(np.zeros((100, 106, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
     assert "106x100" in W._stderr_catcher.header
+    assert "yuv420p" in W._stderr_catcher.header
+
+    # Now double check values different than default work
+    W = imageio.get_writer(str(tmpf), macro_block_size=4,
+                           ffmpeg_log_level='debug')
+    for i in range(3):
+        W.append_data(np.zeros((64, 65, 3), np.uint8))
+    W.close()
+    W = imageio.get_reader(str(tmpf))
+    assert "68x64" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
 
     # Now check that the macroblock works as expected for the default of 16
