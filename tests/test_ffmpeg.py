@@ -212,7 +212,6 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert "yuv420p" in W._stderr_catcher.header
 
 
-
 def test_writer_ffmpeg_params(tmpdir):
     need_internet()
     # Test optional ffmpeg_params with a valid option

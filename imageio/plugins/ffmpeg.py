@@ -649,10 +649,10 @@ class FfmpegFormat(Format):
                     (self._size[1] % macro_block_size)
                 out_h = self._size[0] + macro_block_size - \
                     (self._size[0] % macro_block_size)
-                cmd += ['-vf', 'scale={}:{}'.format(out_w, out_h)]
+                cmd += ['-vf', 'scale={0}:{1}'.format(out_w, out_h)]
                 print("IMAGEIO FFMPEG_WRITER WARNING: input image is not "
-                      "divisible by macro_block_size={}, resizing from {} "
-                      "to {} to ensure video compatibility with most codecs "
+                      "divisible by macro_block_size={0}, resizing from {1} "
+                      "to {2} to ensure video compatibility with most codecs "
                       "and players. To prevent resizing, make your input "
                       "image divisible by the macro_block_size or set the "
                       "macro_block_size to 0 (risking compatibility) You "
