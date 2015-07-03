@@ -176,6 +176,9 @@ def test_reader_and_writer():
     with raises(IndexError):
         [im for im in R]
     
+    # Test writer no format
+    raises(ValueError, imageio.get_writer, 'foo.unknownext')
+    
     # Test streaming reader
     R = F.get_reader(Request(filename1, 'ri'))
     R._stream_mode = True
@@ -422,7 +425,7 @@ def test_request():
     assert R._uri_type == core.request.URI_FILE
     # exapand user dir
     R = Request('~/foo', 'wi')
-    assert R.filename == os.path.expanduser('~/foo')
+    assert R.filename == os.path.expanduser('~/foo').replace('/', os.path.sep)
     # zip file
     R = Request('~/bar.zip/spam.png', 'wi')
     assert R._uri_type == core.request.URI_ZIPPED

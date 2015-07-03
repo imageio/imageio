@@ -98,6 +98,14 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
     
 
+def test_get_fi_lib():
+    need_internet()
+    
+    from imageio.plugins._freeimage import get_freeimage_lib
+    lib = get_freeimage_lib()
+    assert os.path.isfile(lib)
+
+
 def test_freeimage_format():
     
     # Format

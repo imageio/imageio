@@ -49,7 +49,7 @@ except ImportError:
 
 
 name = 'imageio'
-description = 'Library for reading and writing a wide range of image formats.'
+description = 'Library for reading and writing a wide range of image, video, scientific, and volumetric data formats.'
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -266,7 +266,7 @@ setup(
     
     url = 'http://imageio.github.io/',
     download_url = 'http://pypi.python.org/pypi/imageio',    
-    keywords = "image imread imwrite io animation volume FreeImage ffmpeg",
+    keywords = "image video volume imread imwrite io animation ffmpeg",
     description = description,
     long_description = long_description.replace('__doc__', __doc__),
     

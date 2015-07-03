@@ -140,7 +140,7 @@ class DummyFormat(Format):
 # Register. You register an *instance* of a Format class. Here specify:
 format = DummyFormat('dummy',  # short name
                      'An example format that does nothing.',  # one line descr.
-                     '.png',  # list of extensions as a space separated string
+                     '.foobar .nonexistentext',  # list of extensions
                      'iI'  # modes, characters in iIvV
                      )
 formats.add_format(format)

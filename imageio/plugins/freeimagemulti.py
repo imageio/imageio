@@ -238,6 +238,10 @@ class GifFormat(FreeimageMulti):
             # Prepare meta data
             meta = meta.copy()
             meta_a = meta['ANIMATION'] = {}
+            # If this is the first frame, assign it our "global" meta data
+            if len(self._bm) == 0:
+                meta.update(self._meta)
+                meta_a = meta['ANIMATION']
             # Set frame time
             index = len(self._bm)
             if index < len(self._frametime):
@@ -245,9 +249,6 @@ class GifFormat(FreeimageMulti):
             else:
                 ft = self._frametime[-1]
             meta_a['FrameTime'] = np.array([ft]).astype(np.uint32)
-            # If this is the first frame, assign it our "global" meta data
-            if len(self._bm) == 0:
-                meta.update(self._meta)
                 
             # Check array
             if im.ndim == 3 and im.shape[-1] == 4:

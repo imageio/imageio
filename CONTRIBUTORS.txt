@@ -3,14 +3,17 @@
   Plugin system
   Most plugins so far
 
-- Zulko
-  Various contribution related to the ffmpeg plugin.    
+- Anthony Tanbakuchi
+  Improvements to the ffmpeg plugin
+
+- Anselm Levskaya
+  Fixed bug (causing segfaults) related to freeimiage GIF writing
 
 - Ghis Vaillant
   Debian packaging
 
-- Anselm Levskaya
-  Fixed bug (causing segfaults) related to freeimiage GIF writing
+- legionaryu
+  Fixes for the GIF plugin
 
 - Rob Reilink
   AvBin plugin
@@ -18,3 +21,6 @@
 - Zach Pincus and others from the scikit-image team
   Initial version of freeimage plugin
   Initial code for findlib and lib downloading
+
+- Zulko
+  Various contribution related to the ffmpeg plugin.

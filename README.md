@@ -3,7 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt/branch/master?svg=true)](https://ci.appveyor.com/project/almarklein/imageio/branch/master)
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
-[![Pypi downloads](https://pypip.in/d/imageio/badge.png)](https://pypi.python.org/pypi/imageio)
+[![Pypi downloads](https://img.shields.io/pypi/dm/imageio.svg)](https://pypi.python.org/pypi/imageio)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://readthedocs.org/projects/imageio/?badge=latest)
    
 Website: http://imageio.github.io

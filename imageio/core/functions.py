@@ -413,8 +413,20 @@ def mvolread(uri, format=None, **kwargs):
     
     # Get reader and read all
     reader = read(uri, format, 'V', **kwargs)
-    with reader:
-        return [im for im in reader]
+    
+    ims = []
+    nbytes = 0
+    for im in reader:
+        ims.append(im)
+        # Memory check
+        nbytes += im.nbytes
+        if nbytes > 1024 * 1024 * 1024:  # pragma: no cover
+            ims[:] = []  # clear to free the memory
+            raise RuntimeError('imageio.mvolread() has read over 1 GiB of '
+                               'image data.\nStopped to avoid memory problems.'
+                               ' Use imageio.get_reader() instead.')
+    
+    return ims
 
 
 def mvolwrite(uri, ims, format=None, **kwargs):

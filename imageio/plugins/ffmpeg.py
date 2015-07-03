@@ -24,11 +24,11 @@ import numpy as np
 
 from .. import formats
 from ..core import (Format, get_remote_file, string_types, read_n_bytes,
-                    image_as_uint8, get_platform)
+                    image_as_uint8, get_platform, InternetNotAllowedError)
 
 FNAME_PER_PLATFORM = {
-    'osx32': 'ffmpeg.osx.snowleopardandabove',
-    'osx64': 'ffmpeg.osx.snowleopardandabove',
+    'osx32': 'ffmpeg.osx',
+    'osx64': 'ffmpeg.osx',
     'win32': 'ffmpeg.win32.exe',
     'win64': 'ffmpeg.win32.exe',
     'linux32': 'ffmpeg.linux32',
@@ -51,11 +51,11 @@ def get_exe():
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
             os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
             return exe
-        except OSError:  # pragma: no cover
-            print("Warning: could not load imageio's ffmpeg library.")
-            e_type, e_value, e_tb = sys.exc_info()
-            del e_tb
-            print(str(e_value))
+        except InternetNotAllowedError:
+            pass  # explicitly disallowed by user
+        except OSError as err:  # pragma: no cover
+            print("Warning: could not find imageio's ffmpeg executable:\n%s" %
+                  str(err))
 
     # Fallback, let's hope the system has ffmpeg
     return 'ffmpeg'
