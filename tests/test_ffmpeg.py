@@ -174,25 +174,50 @@ def test_writer_file_properly_closed(tmpdir):
     assert "Duration: N/A" not in W._stderr_catcher.header
 
 
-def test_writer_pixelformat_verbose(tmpdir):
+def test_writer_pixelformat_size_verbose(tmpdir):
+    # Check that video pixel format and size get written as expected.
     need_internet()
     # Make sure verbose option works and that default pixelformat is yuv420p
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
-    for i in range(10):
-        W.append_data(np.zeros((100, 100, 3), np.uint8))
+    for i in range(3):
+        # Use size divisible by 16 or it gets changed.
+        W.append_data(np.zeros((64, 64, 3), np.uint8))
     W.close()
 
     # Check that video is correct size & default output video pixel format
     # is correct
     W = imageio.get_reader(str(tmpf))
-    assert "100x100" in W._stderr_catcher.header
+    assert "64x64" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
+
+    # Now check that macroblock size gets turned off if requested
+    W = imageio.get_writer(str(tmpf), macro_block_size=0,
+                           ffmpeg_log_level='debug')
+    for i in range(3):
+        W.append_data(np.zeros((100, 106, 3), np.uint8))
+    W.close()
+    W = imageio.get_reader(str(tmpf))
+    assert "106x100" in W._stderr_catcher.header
+    assert "yuv420p" in W._stderr_catcher.header
+
+    # Now check that the macroblock works as expected for the default of 16
+    W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
+    for i in range(3):
+        W.append_data(np.zeros((111, 140, 3), np.uint8))
+    W.close()
+    W = imageio.get_reader(str(tmpf))
+    # Check for warning message with macroblock
+    assert "144x112" in W._stderr_catcher.header
+    assert "yuv420p" in W._stderr_catcher.header
+
 
 
 def test_writer_ffmpeg_params(tmpdir):
     need_internet()
     # Test optional ffmpeg_params with a valid option
+    # Also putting in an image size that is not divisible by macroblock size
+    # To check that the -vf scale overwrites what it does.
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf), ffmpeg_params=['-vf', 'scale=320:240'])
     for i in range(10):

@@ -140,6 +140,15 @@ class FfmpegFormat(Format):
         Values can be "quiet", "panic", "fatal", "error", "warning", "info"
         "verbose", or "debug". Also prints the FFMPEG command being used by
         imageio if not "quiet" or "warning".
+    macro_block_size: int
+        Size constraint for video width and height, must be divisible by this
+        number. If not divisible by this number imageio will tell ffmpeg to
+        scale the image up to the next closest size in width and height
+        divisible by this number. Most codecs are compatible with a macroblock
+        size of 16 (default), some can go smaller (4, 8). To disable this
+        automatic feature set it to 0, however be warned many players can't
+        decode videos that are odd in size and some codecs will produce poor
+        results or fail. See https://en.wikipedia.org/wiki/Macroblock.
     """
 
     def _can_read(self, request):
@@ -505,7 +514,8 @@ class FfmpegFormat(Format):
 
         def _open(self, fps=10, codec='libx264', bitrate=None,
                   pixelformat='yuv420p', ffmpeg_params=None,
-                  ffmpeg_log_level="quiet", quality=5):
+                  ffmpeg_log_level="quiet", quality=5,
+                  macro_block_size=16):
             self._exe = get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
@@ -610,7 +620,7 @@ class FfmpegFormat(Format):
             # Add fixed bitrate or variable bitrate compression flags
             if bitrate is not None:
                 cmd += ['-b:v', str(bitrate)]
-            elif quality is not None:  # If < 0, then we don't add anything
+            elif quality is not None:  # If None, then we don't add anything
                 if quality < 0 or quality > 10:
                     raise ValueError("ffpmeg writer quality parameter out of"
                                      "range. Expected range 0 to 10.")
@@ -626,6 +636,32 @@ class FfmpegFormat(Format):
                     quality = int(quality*30)+1
                     cmd += ['-qscale:v', str(quality)]  # for others
             cmd += ['-r', "%d" % fps]
+
+            # Note, for most codecs, the image dimensions must be divisible by
+            # 16 the default for the macro_block_size is 16. Check if image is
+            # divisible, if not have ffmpeg upsize to nearest size and warn
+            # user they should correct input image if this is not desired.
+            macro_block_size = self.request.kwargs.get('macro_block_size', 16)
+            if macro_block_size > 1 and \
+                    (self._size[1] % macro_block_size > 0 or
+                        self._size[0] % macro_block_size > 0):
+                out_w = self._size[1] + macro_block_size - \
+                    (self._size[1] % macro_block_size)
+                out_h = self._size[0] + macro_block_size - \
+                    (self._size[0] % macro_block_size)
+                cmd += ['-vf', 'scale={}:{}'.format(out_w, out_h)]
+                print("IMAGEIO FFMPEG_WRITER WARNING: input image is not "
+                      "divisible by macro_block_size={}, resizing from {} "
+                      "to {} to ensure video compatibility with most codecs "
+                      "and players. To prevent resizing, make your input "
+                      "image divisible by the macro_block_size or set the "
+                      "macro_block_size to 0 (risking compatibility) You "
+                      "may also see a warning concerning speedloss due to "
+                      "data not being aligned.".format(macro_block_size,
+                                                       self._size[:2],
+                                                       (out_h, out_w)),
+                      file=sys.stderr)
+
             if ffmpeg_log_level:
                 # Rather than redirect stderr to a pipe, just set minimal
                 # output from ffmpeg by default. That way if there are warnings
@@ -636,7 +672,7 @@ class FfmpegFormat(Format):
             self._cmd = " ".join(cmd)  # For showing command if needed
             if ('warning' not in ffmpeg_log_level) and \
                     ('quiet' not in ffmpeg_log_level):
-                print("RUNNING FFMPEG COMMAND:", self._cmd)
+                print("RUNNING FFMPEG COMMAND:", self._cmd, file=sys.stderr)
 
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
