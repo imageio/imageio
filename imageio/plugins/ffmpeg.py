@@ -456,7 +456,8 @@ class FfmpegFormat(Format):
             if self._meta['source_size'] != self._meta['size']:
                 logging.warning('Warning: the frame size for reading %s is '
                                 'different from the source frame size %s.' %
-                                (self._meta['size'], self._meta['source_size']))
+                                (self._meta['size'],
+                                 self._meta['source_size']))
 
             # get duration (in seconds)
             line = [l for l in lines if 'Duration: ' in l][0]
