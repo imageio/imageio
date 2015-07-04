@@ -16,9 +16,9 @@ test_dir = get_test_dir()
 def test_tifffile_format():
     
     # Test selection
-    for name in ['tifffile', '.tif']:
-        format = imageio.formats['tifffile']
-        assert format.name == 'TIFFFILE'
+    for name in ['tiff', '.tif']:
+        format = imageio.formats['tiff']
+        assert format.name == 'TIFF'
 
 
 def test_tifffile_reading_writing():
@@ -43,14 +43,14 @@ def test_tifffile_reading_writing():
 
     # Mixed
     W = imageio.save(filename1)
-    assert W.format.name == 'TIFFFILE'
+    assert W.format.name == 'TIFF'
     W.append_data(im2)
     W.append_data(im2)
     raises(RuntimeError, W.set_meta_data, {})  # no meta data support
     W.close()
     #
     R = imageio.read(filename1)
-    assert R.format.name == 'TIFFFILE'
+    assert R.format.name == 'TIFF'
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
     # Fail
