@@ -35,5 +35,7 @@ from .core.functions import imsave, mimsave, volsave, mvolsave  # noqa
 # Load all the plugins
 from . import plugins  # noqa
 
+available_plugins = [f.name for f in formats._formats]
+
 # Clean up some names
 del FormatManager
