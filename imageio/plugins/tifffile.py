@@ -15,7 +15,7 @@ import numpy as np
 try:
     import tifffile as _tifffile
 except ImportError:
-    import _tifffile
+    from . import _tifffile
 
 
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
