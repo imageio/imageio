@@ -23,11 +23,8 @@ def test_tifffile_format():
 
 def test_tifffile_reading_writing():
     """ Test reading and saveing tiff """
-    
     im2 = np.ones((10, 10), np.uint8) * 2
-    im3 = np.ones((10, 10, 10), np.uint8) * 3
-    im4 = np.ones((10, 10, 10, 10), np.uint8) * 4
-    
+
     filename1 = os.path.join(test_dir, 'test_tiff.tiff')
 
     # One image
@@ -36,7 +33,7 @@ def test_tifffile_reading_writing():
     ims = imageio.mimread(filename1)
     assert (im == im2).all()
     assert len(ims) == 1
-    
+
     # Multiple images
     imageio.mimsave(filename1, [im2, im2, im2])
     im = imageio.imread(filename1)

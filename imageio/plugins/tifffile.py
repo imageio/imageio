@@ -115,7 +115,7 @@ class TiffFormat(Format):
             return im, {}
 
         def _get_meta_data(self, index):
-            raise RuntimeError('The tifffile format does not support meta data.')
+            raise RuntimeError('The tiff format does not support meta data.')
 
     # -- writer
 
@@ -135,9 +135,9 @@ class TiffFormat(Format):
             self._tf.save(np.asanyarray(im), **self._parameters)
 
         def set_meta_data(self, meta):
-            raise RuntimeError('The tifffile format does not support meta data.')
+            raise RuntimeError('The tiff format does not support meta data.')
 
 
 # Register
-format = TiffFormat('tifffile', "TIFF format", 'tif tiff stk lsm', 'iIvV')
+format = TiffFormat('tiff', "TIFF format", 'tif tiff stk lsm', 'iIvV')
 formats.add_format(format)
