@@ -78,7 +78,7 @@ For the Format.Writer class:
 
 """
 
-from . import tifffile # noqa
+from . import tifffile  # noqa
 from . import freeimage  # noqa
 from . import freeimagemulti  # noqa
 from . import example  # noqa
