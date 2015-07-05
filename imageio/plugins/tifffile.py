@@ -12,10 +12,18 @@ from ..core import Format
 
 import numpy as np
 
-try:
-    import tifffile as _tifffile
-except ImportError:
-    from . import _tifffile
+tifffile = None
+
+
+def load_tifffile():
+    """ Defer loading of the tifffile module.
+    """
+    global tifffile
+    try:
+        import tifffile as _tifffile
+    except ImportError:
+        from . import _tifffile
+    tifffile = _tifffile
 
 
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
@@ -95,13 +103,14 @@ class TiffFormat(Format):
     class Reader(Format.Reader):
 
         def _open(self):
-            self._tf = _tifffile.TiffFile(self.request.filename)
+            if not tifffile:
+                load_tifffile()
+            self._tf = tifffile.TiffFile(self.request.filename)
 
         def _close(self):
             self._tf.close()
 
         def _get_length(self):
-            print('get length', len(self._tf))
             print(len(self._tf.series), len(self._tf.pages))
             return len(self._tf)
 
@@ -124,8 +133,10 @@ class TiffFormat(Format):
         def _open(self, bigtiff=None, byteorder=None, software=None,
                   **kwargs):
             self._parameters = kwargs
-            self._tf = _tifffile.TiffWriter(self.request.filename,
-                                            bigtiff, byteorder, software)
+            if not tifffile:
+                load_tifffile()
+            self._tf = tifffile.TiffWriter(self.request.filename,
+                                           bigtiff, byteorder, software)
 
         def _close(self):
             self._tf.close()
