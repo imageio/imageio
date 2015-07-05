@@ -29,6 +29,7 @@ def import_dicom():
     global dicom
     from . import _dicom
     dicom = _dicom
+    return dicom
 
 
 # Determine endianity of system
@@ -87,7 +88,8 @@ class DicomFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self, progress=True):
-            
+            if not dcm:
+                dcm = import_dicom()
             if os.path.isdir(self.request.filename):
                 # A dir can be given if the user used the format explicitly
                 self._info = {}
