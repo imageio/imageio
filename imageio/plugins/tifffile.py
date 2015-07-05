@@ -111,7 +111,6 @@ class TiffFormat(Format):
             self._tf.close()
 
         def _get_length(self):
-            print(len(self._tf.series), len(self._tf.pages))
             return len(self._tf)
 
         def _get_data(self, index):
