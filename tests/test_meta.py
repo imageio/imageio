@@ -84,7 +84,7 @@ def test_namespace():
     # Check that there are no extra names
     extra_names = has_names.difference(need_names)
     extra_names.discard('testing')  # can be there during testing
-    assert extra_names == set(['core', 'plugins'])
+    assert extra_names == set(['core', 'plugins', 'show_formats'])
 
 
 def test_import_nothing():
