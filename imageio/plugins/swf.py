@@ -26,6 +26,7 @@ def load_swf():
     global swf
     from . import _swf
     swf = _swf
+    return swf
 
 
 class SWFFormat(Format):
@@ -222,7 +223,8 @@ class SWFFormat(Format):
     class Writer(Format.Writer):
         
         def _open(self, fps=12, loop=True, html=False, compress=False): 
-            
+            if not swf:
+                load_swf()
             self._arg_fps = int(fps)
             self._arg_loop = bool(loop)
             self._arg_html = bool(html)
