@@ -27,6 +27,15 @@ def load_tifffile():
 
 
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
+WRITE_METADATA_KEYS = ('photometric', 'planarconfig', 'resolution',
+                       'description', 'compress', 'volume', 'writeshape',
+                       'extratags')
+READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
+                      'is_contiguous', 'is_micromanager', 'is_ome',
+                      'is_palette', 'is_reduced', 'is_rgb', 'is_sgi',
+                      'is_shaped', 'is_stk', 'is_tiled',
+                      'resolution_unit', 'compression',
+                      'fill_order', 'orientation', 'predictor')
 
 
 class TiffFormat(Format):
@@ -47,56 +56,15 @@ class TiffFormat(Format):
     software : str
         Name of the software used to create the image.
         Saved with the first page only.
-    photometric : {'minisblack', 'miniswhite', 'rgb'}
-            The color space of the image data.
-            By default this setting is inferred from the data shape.
-    planarconfig : {'contig', 'planar'}
-        Specifies if samples are stored contiguous or in separate planes.
-        By default this setting is inferred from the data shape.
-        'contig': last dimension contains samples.
-        'planar': third last dimension contains samples.
-    resolution : (float, float) or ((int, int), (int, int))
-        X and Y resolution in dots per inch as float or rational numbers.
-    description : str
-        The subject of the image. Saved with the first page only.
-    compress : int
-        Values from 0 to 9 controlling the level of zlib compression.
-        If 0, data are written uncompressed (default).
-    volume : bool
-        If True, volume data are stored in one tile (if applicable) using
-        the SGI image_depth and tile_depth tags.
-        Image width and depth must be multiple of 16.
-        Few software can read this format, e.g. MeVisLab.
-    writeshape : bool
-        If True, write the data shape to the image_description tag
-        if necessary and no other description is given.
-    extratags: sequence of tuples
-        Additional tags as [(code, dtype, count, value, writeonce)].
-
-        code : int
-            The TIFF tag Id.
-        dtype : str
-            Data type of items in 'value' in Python struct format.
-            One of B, s, H, I, 2I, b, h, i, f, d, Q, or q.
-        count : int
-            Number of data values. Not used for string values.
-        value : sequence
-            'Count' values compatible with 'dtype'.
-        writeonce : bool
-            If True, the tag is written to the first page only.
     """
 
     def _can_read(self, request):
-        if request.filename.lower().endswith(TIFF_FORMATS):
-            return True  # We support any kind of image data
-        else:
-            return False
+        # We support any kind of image data
+        return request.filename.lower().endswith(TIFF_FORMATS)
 
     def _can_write(self, request):
-        if request.filename.lower().endswith(TIFF_FORMATS):
-            return True  # We support any kind of image data
-        else:
-            return False
+        # We support any kind of image data
+        return request.filename.lower().endswith(TIFF_FORMATS)
 
     # -- reader
 
@@ -105,7 +73,9 @@ class TiffFormat(Format):
         def _open(self):
             if not tifffile:
                 load_tifffile()
-            self._tf = tifffile.TiffFile(self.request.get_local_filename())
+            self._tf = tifffile.TiffFile(self.request.get_file())
+            # metadata is the same for all images
+            self._meta = {}
 
         def _close(self):
             self._tf.close()
@@ -119,34 +89,42 @@ class TiffFormat(Format):
                 raise IndexError(
                     'Index out of range while reading from tiff file')
             im = self._tf[index].asarray()
+            meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
-            return im, {}
+            return im, meta
 
         def _get_meta_data(self, index):
-            raise RuntimeError('The tiff format does not support meta data.')
+            page = self._tf[index or 0]
+            for key in READ_METADATA_KEYS:
+                try:
+                    self._meta[key] = getattr(page, key)
+                except:
+                    pass
+            return self._meta
 
     # -- writer
-
     class Writer(Format.Writer):
 
-        def _open(self, bigtiff=None, byteorder=None, software=None,
-                  **kwargs):
-            self._parameters = kwargs
+        def _open(self, bigtiff=None, byteorder=None, software=None):
+            self._meta = {}
             if not tifffile:
                 load_tifffile()
-            self._tf = tifffile.TiffWriter(self.request.filename,
+            self._tf = tifffile.TiffWriter(self.request.get_local_filename(),
                                            bigtiff, byteorder, software)
 
         def _close(self):
             self._tf.close()
 
         def _append_data(self, im, meta):
-            # ignore metadata
-            self._tf.save(np.asanyarray(im), **self._parameters)
+            meta = meta or self._meta
+            print(meta)
+            self._tf.save(np.asanyarray(im), **meta)
 
         def set_meta_data(self, meta):
-            raise RuntimeError('The tiff format does not support meta data.')
-
+            self._meta = {}
+            for (key, value) in meta.items():
+                if key in WRITE_METADATA_KEYS:
+                    self._meta[key] = value
 
 # Register
 format = TiffFormat('tiff', "TIFF format", 'tif tiff stk lsm', 'iIvV')
