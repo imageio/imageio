@@ -7,6 +7,7 @@ Imageio's user API
 ----
 
 .. autofunction:: imageio.help
+.. autofuncion :: imageio.show_formats
 
 ----
     

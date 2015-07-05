@@ -596,3 +596,8 @@ class FormatManager:
             if select_mode in format.modes:
                 if format.can_write(request):
                     return format
+
+    def show(self):
+        """ Show a nicely formatted list of available formats
+        """
+        print(self)
