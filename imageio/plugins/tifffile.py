@@ -105,7 +105,7 @@ class TiffFormat(Format):
         def _open(self):
             if not tifffile:
                 load_tifffile()
-            self._tf = tifffile.TiffFile(self.request.filename)
+            self._tf = tifffile.TiffFile(self.request.get_local_filename())
 
         def _close(self):
             self._tf.close()
