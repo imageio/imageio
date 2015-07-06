@@ -81,7 +81,7 @@ class FitsFormat(Format):
         def _open(self, cache=False, **kwargs):
             if not _fits:
                 load_lib()
-            hdulist = _fits.open(self.get_open_file(),
+            hdulist = _fits.open(self.request.get_file(),
                                  cache=cache, **kwargs)
 
             self._index = []
