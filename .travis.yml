@@ -89,7 +89,7 @@ script:
     # test with optional dependencies
     - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
         pip install -q astropy;
-        python make test unit
+        python make test unit;
       fi;
 
 after_success:
