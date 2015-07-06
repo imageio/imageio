@@ -1,9 +1,5 @@
 """ Test fits plugin functionality.
 """
-
-import os
-
-import numpy as np
 from numpy.testing.decorators import skipif
 
 from pytest import raises
