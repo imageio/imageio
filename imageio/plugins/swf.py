@@ -16,7 +16,14 @@ import numpy as np
 from .. import formats
 from ..core import Format, read_n_bytes, image_as_uint8
 
-from . import _swf
+
+_swf = None  # lazily loaded in lib()
+
+
+def load_lib():
+    global _swf
+    from . import _swf
+    return _swf
 
 
 class SWFFormat(Format):
@@ -73,7 +80,9 @@ class SWFFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self, loop=False):
-            
+            if not _swf:
+                load_lib()
+
             self._arg_loop = bool(loop)
             
             self._fp = self.request.get_file()
@@ -214,6 +223,9 @@ class SWFFormat(Format):
     class Writer(Format.Writer):
         
         def _open(self, fps=12, loop=True, html=False, compress=False): 
+            if not _swf:
+                load_lib()
+
             self._arg_fps = int(fps)
             self._arg_loop = bool(loop)
             self._arg_html = bool(html)
@@ -264,7 +276,7 @@ class SWFFormat(Format):
             bb += 'WS'.encode('ascii')  # signature bytes
             bb += _swf.int2uint8(8)  # version
             bb += '0000'.encode('ascii')  # FileLength (leave open for now)
-            bb += _swf.Tag().make_rect_record(0, framesize[0], 0, 
+            bb += _swf.Tag().make_rect_record(0, framesize[0], 0,
                                               framesize[1]).tobytes()
             bb += _swf.int2uint8(0) + _swf.int2uint8(fps)  # FrameRate
             self._location_to_save_nframes = len(bb)
