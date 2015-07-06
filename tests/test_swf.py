@@ -85,8 +85,8 @@ def test_reading_saving():
         assert (im1 == im3).all()
     
     # Test conventional, Bonus, we don't officially support this.
-    imageio.plugins._swf.write_swf(fname4, ims1)
-    ims4 = imageio.plugins._swf.read_swf(fname4)
+    imageio.plugins.swf.lib().write_swf(fname4, ims1)
+    ims4 = imageio.plugins.swf.lib().read_swf(fname4)
     assert len(ims1) == len(ims4)
     for im1, im4 in zip(ims1, ims4):
         assert (im1 == im4).all()
@@ -145,18 +145,18 @@ def test_invalid():
 def test_lowlevel():
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
-    
-    tag = imageio.plugins._swf.Tag()
+    _swf = imageio.plugins.swf.lib()
+    tag = _swf.Tag()
     raises(NotImplementedError, tag.process_tag)
     assert tag.make_matrix_record() == '00000000'
     assert tag.make_matrix_record(scale_xy=(1, 1))
     assert tag.make_matrix_record(rot_xy=(1, 1))
     assert tag.make_matrix_record(trans_xy=(1, 1))
     
-    SetBackgroundTag = imageio.plugins._swf.SetBackgroundTag
+    SetBackgroundTag = _swf.SetBackgroundTag
     assert SetBackgroundTag(1, 2, 3).rgb == SetBackgroundTag((1, 2, 3)).rgb
     
-    tag = imageio.plugins._swf.ShapeTag(0, (0, 0), (1, 1))
+    tag = _swf.ShapeTag(0, (0, 0), (1, 1))
     assert tag.make_style_change_record(1, 1, (1, 1))
     assert tag.make_style_change_record()
     assert (tag.make_straight_edge_record(2, 3).tobytes() == 
