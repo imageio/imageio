@@ -21,6 +21,7 @@ def load_lib():
         import tifffile as _tifffile
     except ImportError:
         from . import _tifffile
+    return _tifffile
 
 
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
