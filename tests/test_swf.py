@@ -85,8 +85,9 @@ def test_reading_saving():
         assert (im1 == im3).all()
     
     # Test conventional, Bonus, we don't officially support this.
-    imageio.plugins.swf.lib().write_swf(fname4, ims1)
-    ims4 = imageio.plugins.swf.lib().read_swf(fname4)
+    _swf = imageio.plugins.swf.load_lib()
+    _swf.write_swf(fname4, ims1)
+    ims4 = _swf.read_swf(fname4)
     assert len(ims1) == len(ims4)
     for im1, im4 in zip(ims1, ims4):
         assert (im1 == im4).all()
@@ -145,7 +146,7 @@ def test_invalid():
 def test_lowlevel():
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
-    _swf = imageio.plugins.swf.lib()
+    _swf = imageio.plugins.swf.load_lib()
     tag = _swf.Tag()
     raises(NotImplementedError, tag.process_tag)
     assert tag.make_matrix_record() == '00000000'

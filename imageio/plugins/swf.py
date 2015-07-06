@@ -20,7 +20,7 @@ from ..core import Format, read_n_bytes, image_as_uint8
 _swf = None  # lazily loaded in lib()
 
 
-def lib():
+def load_lib():
     global _swf
     from . import _swf
     return _swf
@@ -80,6 +80,9 @@ class SWFFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self, loop=False):
+            if not _swf:
+                load_lib()
+
             self._arg_loop = bool(loop)
             
             self._fp = self.request.get_file()
@@ -109,7 +112,7 @@ class SWFFormat(Format):
             # Note that the number of frames is there, which we could
             # potentially use, but the number of frames does not necessarily
             # correspond to the number of images.
-            nbits = lib().bits2int(self._fp_read(1), 5)
+            nbits = _swf.bits2int(self._fp_read(1), 5)
             nbits = 5 + nbits * 4
             Lrect = nbits / 8.0
             if Lrect % 1:
@@ -163,7 +166,7 @@ class SWFFormat(Format):
                     isimage, sze, T, L1 = self._read_one_tag()
                     bb = self._fp_read(sze)  # always read data
                     if isimage:
-                        im = lib().read_pixels(bb, 0, T, L1)  # can be None
+                        im = _swf.read_pixels(bb, 0, T, L1)  # can be None
                         if im is not None:
                             return im, {}
             
@@ -173,7 +176,7 @@ class SWFFormat(Format):
                 self._fp.seek(loc)
                 bb = self._fp_read(sze)
                 # Read_pixels should return ndarry, since we checked format
-                im = lib().read_pixels(bb, 0, T, L1) 
+                im = _swf.read_pixels(bb, 0, T, L1) 
                 return im, {}
         
         def _read_one_tag(self):
@@ -188,7 +191,7 @@ class SWFFormat(Format):
                 raise IndexError('Reached end of swf movie')
             
             # Determine type and length
-            T, L1, L2 = lib().get_type_and_len(head)
+            T, L1, L2 = _swf.get_type_and_len(head)
             if not L2:  # pragma: no cover
                 raise RuntimeError('Invalid tag length, could not proceed')
             
@@ -202,7 +205,7 @@ class SWFFormat(Format):
                 raise IndexError('Reached end of swf movie')
             elif T in [20, 36]:
                 isimage = True
-                #im = lib().read_pixels(bb, 0, T, L1)  # can be None
+                #im = _swf.read_pixels(bb, 0, T, L1)  # can be None
             elif T in [6, 21, 35, 90]:  # pragma: no cover
                 print('Ignoring JPEG image: cannot read JPEG.')
             else:
@@ -220,8 +223,9 @@ class SWFFormat(Format):
     class Writer(Format.Writer):
         
         def _open(self, fps=12, loop=True, html=False, compress=False): 
-            if not swf:
-                load_swf()
+            if not _swf:
+                load_lib()
+
             self._arg_fps = int(fps)
             self._arg_loop = bool(loop)
             self._arg_html = bool(html)
@@ -242,7 +246,7 @@ class SWFFormat(Format):
             sze = self._fp.tell()
             # set nframes, this is in the potentially compressed region
             self._fp.seek(self._location_to_save_nframes)
-            self._fp.write(lib().int2uint16(self._framecounter))
+            self._fp.write(_swf.int2uint16(self._framecounter))
             # Compress body?
             if self._arg_compress:
                 bb = self._fp.getvalue()
@@ -252,7 +256,7 @@ class SWFFormat(Format):
                 sze = self._fp.tell()  # renew sze value
             # set size
             self._fp.seek(4)
-            self._fp.write(lib().int2uint32(sze))
+            self._fp.write(_swf.int2uint32(sze))
             self._fp = None  # Disable
             
             # Write html?
@@ -265,23 +269,22 @@ class SWFFormat(Format):
                     f.write(html.encode('utf-8'))
             
         def _write_header(self, framesize, fps):
-            swf = lib()
             self._framesize = framesize
             # Called as soon as we know framesize; when we get first frame
             bb = b''
             bb += 'FC'[self._arg_compress].encode('ascii')
             bb += 'WS'.encode('ascii')  # signature bytes
-            bb += swf.int2uint8(8)  # version
+            bb += _swf.int2uint8(8)  # version
             bb += '0000'.encode('ascii')  # FileLength (leave open for now)
-            bb += swf.Tag().make_rect_record(0, framesize[0], 0, 
+            bb += _swf.Tag().make_rect_record(0, framesize[0], 0,
                                               framesize[1]).tobytes()
-            bb += swf.int2uint8(0) + lib().int2uint8(fps)  # FrameRate
+            bb += _swf.int2uint8(0) + _swf.int2uint8(fps)  # FrameRate
             self._location_to_save_nframes = len(bb)
             bb += '00'.encode('ascii')  # nframes (leave open for now)
             self._fp.write(bb)
             
             # Write some initial tags
-            taglist = swf.FileAttributesTag(), swf.SetBackgroundTag(0, 0, 0)
+            taglist = _swf.FileAttributesTag(), _swf.SetBackgroundTag(0, 0, 0)
             for tag in taglist:
                 self._fp.write(tag.get_tag())
         
@@ -291,12 +294,11 @@ class SWFFormat(Format):
                 self._write_header((10, 10), self._arg_fps)
             # Write stop tag if we do not loop
             if not self._arg_loop:
-                self._fp.write(lib().DoActionTag('stop').get_tag())
+                self._fp.write(_swf.DoActionTag('stop').get_tag())
             # finish with end tag
             self._fp.write('\x00\x00'.encode('ascii'))
         
         def _append_data(self, im, meta):
-            swf = lib()
             # Correct shape and type
             if im.ndim == 3 and im.shape[-1] == 1:
                 im = im[:, :, 0]
@@ -309,10 +311,10 @@ class SWFFormat(Format):
                 isfirstframe = True
                 self._write_header(wh, self._arg_fps)
             # Create tags
-            bm = swf.BitmapTag(im)
-            sh = swf.ShapeTag(bm.id, (0, 0), wh)
-            po = swf.PlaceObjectTag(1, sh.id, move=(not isfirstframe))
-            sf = swf.ShowFrameTag()
+            bm = _swf.BitmapTag(im)
+            sh = _swf.ShapeTag(bm.id, (0, 0), wh)
+            po = _swf.PlaceObjectTag(1, sh.id, move=(not isfirstframe))
+            sf = _swf.ShowFrameTag()
             # Write tags
             for tag in [bm, sh, po, sf]:
                 self._fp.write(tag.get_tag())
