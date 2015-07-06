@@ -122,8 +122,8 @@ class DicomFormat(Format):
         @property
         def series(self):
             if self._series is None:
-                self._series = _dicom.process_directory(self.request,
-                                                       self._progressIndicator)
+                pi = self._progressIndicator
+                self._series = _dicom.process_directory(self.request, pi)
             return self._series
         
         def _get_length(self):
