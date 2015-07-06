@@ -12,18 +12,16 @@ from ..core import Format
 
 import numpy as np
 
-tifffile = None
+tifffile = None  # Defer loading to lib() function.
 
 
-def load_tifffile():
-    """ Defer loading of the tifffile module.
-    """
+def lib():
     global tifffile
     try:
-        import tifffile as _tifffile
+        import tifffile
     except ImportError:
-        from . import _tifffile
-    tifffile = _tifffile
+        from . import _tifffile as tifffile
+    return tifffile
 
 
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
@@ -71,9 +69,7 @@ class TiffFormat(Format):
     class Reader(Format.Reader):
 
         def _open(self):
-            if not tifffile:
-                load_tifffile()
-            self._tf = tifffile.TiffFile(self.request.get_file())
+            self._tf = lib().TiffFile(self.request.get_file())
             # metadata is the same for all images
             self._meta = {}
 
@@ -107,10 +103,8 @@ class TiffFormat(Format):
 
         def _open(self, bigtiff=None, byteorder=None, software=None):
             self._meta = {}
-            if not tifffile:
-                load_tifffile()
-            self._tf = tifffile.TiffWriter(self.request.get_local_filename(),
-                                           bigtiff, byteorder, software)
+            self._tf = lib().TiffWriter(self.request.get_local_filename(),
+                                        bigtiff, byteorder, software)
 
         def _close(self):
             self._tf.close()
