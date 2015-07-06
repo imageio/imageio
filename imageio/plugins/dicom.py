@@ -22,10 +22,10 @@ from .. import formats
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from ..core import read_n_bytes
 
-_dicom = None  # lazily loaded in lib()
+_dicom = None  # lazily loaded in load_lib()
 
 
-def lib():
+def load_lib():
     global _dicom
     from . import _dicom
     return _dicom
@@ -87,13 +87,15 @@ class DicomFormat(Format):
     class Reader(Format.Reader):
     
         def _open(self, progress=True):
+            if not _dicom:
+                load_lib()
             if os.path.isdir(self.request.filename):
                 # A dir can be given if the user used the format explicitly
                 self._info = {}
                 self._data = None
             else:
                 # Read the given dataset now ...
-                dcm = lib().SimpleDicomReader(self.request.get_file())
+                dcm = _dicom.SimpleDicomReader(self.request.get_file())
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
             
@@ -120,7 +122,7 @@ class DicomFormat(Format):
         @property
         def series(self):
             if self._series is None:
-                self._series = lib().process_directory(self.request,
+                self._series = _dicom.process_directory(self.request,
                                                        self._progressIndicator)
             return self._series
         
