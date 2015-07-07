@@ -10,13 +10,13 @@ from __future__ import absolute_import, print_function, division
 from .. import formats
 from ..core import Format
 
-_sitk = None  # Defer loading to load_lib() function.
+_itk = None  # Defer loading to load_lib() function.
 
 
 def load_lib():
-    global _sitk
+    global _itk
     try:
-        import SimpleITK as _sitk
+        import SimpleITK as _itk
     except ImportError:
         raise ImportError("SimpleITK could not be found. "
                           "Please try "
@@ -24,14 +24,14 @@ def load_lib():
                           "or refer to "
                           "  http://simpleitk.org/ "
                           "for further instructions.")
-    return _sitk
+    return _itk
 
 
-SITK_FORMATS = ('bmp', 'dicom', 'gdcm', 'gipl', 'ipl', 'jpeg', 'jpg',
+ITK_FORMATS = ('bmp', 'dicom', 'gdcm', 'gipl', 'ipl', 'jpeg', 'jpg',
                 'mhd', 'nhdr', 'nrrd', 'png', 'tiff', 'tif', 'vtk')
 
 
-class SitkFormat(Format):
+class ItkFormat(Format):
 
     """
 
@@ -47,20 +47,20 @@ class SitkFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(SITK_FORMATS)
+        return request.filename.lower().endswith(ITK_FORMATS)
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(SITK_FORMATS)
+        return request.filename.lower().endswith(ITK_FORMATS)
 
     # -- reader
 
     class Reader(Format.Reader):
 
         def _open(self, **kwargs):
-            if not _sitk:
+            if not _itk:
                 load_lib()
-            self._img = _sitk.ReadImage(self.request.get_local_filename())
+            self._img = _itk.ReadImage(self.request.get_local_filename())
 
         def _get_length(self):
             return 1
@@ -69,34 +69,34 @@ class SitkFormat(Format):
             # Get data
             if index != 0:
                 raise IndexError(
-                    'Index out of range while reading from simpleitk file')
+                    'Index out of range while reading from itk file')
 
             # Return array and empty meta data
             meta = self._get_meta_data(index)
-            return _sitk.GetArrayFromImage(self._img), meta
+            return _itk.GetArrayFromImage(self._img), meta
 
         def _get_meta_data(self, index):
-            _sitk.GetMetaData(self._img)
+            _itk.GetMetaData(self._img)
 
     # -- writer
     class Writer(Format.Writer):
 
         def _open(self):
-            if not _sitk:
+            if not _itk:
                 load_lib()
 
         def _close(self):
             pass
 
         def _append_data(self, im, meta):
-            _sitk_img = _sitk.GetImageFromArray(im, isVector=True)
-            _sitk.WriteImage(_sitk_img, self.request.get_local_filename())
+            _itk_img = _itk.GetImageFromArray(im, isVector=True)
+            _itk.WriteImage(_itk_img, self.request.get_local_filename())
 
         def set_meta_data(self, meta):
-            raise RuntimeError('The simpleitk format does not support '
+            raise RuntimeError('The itk format does not support '
                                ' meta data.')
 
 # Register
 title = "Insight Segmentation and Registration Toolkit (ITK) format"
-format = SitkFormat('simpleitk', title, ' '.join(SITK_FORMATS), 'iIvV')
+format = ItkFormat('itk', title, ' '.join(ITK_FORMATS), 'iIvV')
 formats.add_format(format)
