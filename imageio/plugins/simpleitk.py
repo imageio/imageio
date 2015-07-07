@@ -65,6 +65,9 @@ class ItkFormat(Format):
         def _get_length(self):
             return 1
 
+        def _close(self):
+            pass
+
         def _get_data(self, index):
             # Get data
             if index != 0:
