@@ -10,8 +10,6 @@ from __future__ import absolute_import, print_function, division
 from .. import formats
 from ..core import Format
 
-import numpy as np
-
 _sitk = None  # Defer loading to load_lib() function.
 
 
@@ -21,15 +19,16 @@ def load_lib():
         import SimpleITK as _sitk
     except ImportError:
         raise ImportError("SimpleITK could not be found. "
-                      "Please try "
-                      "  easy_install SimpleITK "
-                      "or refer to "
-                      "  http://simpleitk.org/ "
-                      "for further instructions.")
+                          "Please try "
+                          "  easy_install SimpleITK "
+                          "or refer to "
+                          "  http://simpleitk.org/ "
+                          "for further instructions.")
     return _sitk
 
 
-SITK_FORMATS = ()
+SITK_FORMATS = ('bmp', 'dicom', 'gdcm', 'gipl', 'ipl', 'jpeg', 'jpg',
+                'mhd', 'nhdr', 'nrrd', 'png', 'tiff', 'tif', 'vtk')
 
 
 class SitkFormat(Format):
@@ -61,6 +60,7 @@ class SitkFormat(Format):
         def _open(self, **kwargs):
             if not _sitk:
                 load_lib()
+            self._img = _sitk.ReadImage(self.request.get_file())
 
         def _get_length(self):
             return 1
@@ -70,13 +70,13 @@ class SitkFormat(Format):
             if index != 0:
                 raise IndexError(
                     'Index out of range while reading from simpleitk file')
-            sitk_img = _sitk.ReadImage(self.request.get_file())
+
             # Return array and empty meta data
-            return _sitk.GetArrayFromImage(sitk_img), {}
+            meta = self._get_meta_data(index)
+            return _sitk.GetArrayFromImage(self._img), meta
 
         def _get_meta_data(self, index):
-            raise RuntimeError('The simpleitk format does not support '
-                               ' meta data.')
+            _sitk.GetMetaData(self._img)
 
     # -- writer
     class Writer(Format.Writer):
@@ -97,5 +97,6 @@ class SitkFormat(Format):
                                ' meta data.')
 
 # Register
-format = SitkFormat('simpleitk', "TIFF format", 'tif tiff stk lsm', 'iIvV')
+title = "Insight Segmentation and Registration Toolkit (ITK) format"
+format = SitkFormat('simpleitk', title, ' '.join(SITK_FORMATS), 'iIvV')
 formats.add_format(format)
