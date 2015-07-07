@@ -72,11 +72,11 @@ class ItkFormat(Format):
                     'Index out of range while reading from itk file')
 
             # Return array and empty meta data
-            meta = self._get_meta_data(index)
-            return _itk.GetArrayFromImage(self._img), meta
+            return _itk.GetArrayFromImage(self._img), {}
 
         def _get_meta_data(self, index):
-            self._img.GetMetaData()
+            raise RuntimeError('The itk format does not support '
+                               ' meta data.')
 
     # -- writer
     class Writer(Format.Writer):
