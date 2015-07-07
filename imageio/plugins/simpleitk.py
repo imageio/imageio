@@ -28,7 +28,7 @@ def load_lib():
 
 
 ITK_FORMATS = ('bmp', 'dicom', 'gdcm', 'gipl', 'ipl', 'jpeg', 'jpg',
-                'mhd', 'nhdr', 'nrrd', 'png', 'tiff', 'tif', 'vtk')
+               'mhd', 'nhdr', 'nrrd', 'png', 'tiff', 'tif', 'vtk')
 
 
 class ItkFormat(Format):
