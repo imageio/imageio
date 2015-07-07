@@ -7,6 +7,7 @@ import numpy as np
 
 from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.core import get_remote_file
 
 import imageio
 
@@ -39,6 +40,12 @@ def test_tifffile_reading_writing():
     ims = imageio.mimread(filename1)
     assert (im == im2).all()
     assert len(ims) == 3, ims[0].shape
+
+    # remote multipage rgb file
+    filename2 = get_remote_file('images/multipage_rgb.tif')
+    img = imageio.mimread(filename2)
+    assert len(img) == 2
+    assert img[0].shape == (3, 10, 10)
 
     # Mixed
     W = imageio.save(filename1)
