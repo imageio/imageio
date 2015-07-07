@@ -1,10 +1,11 @@
-""" Test tifffile plugin functionality.
+""" Test simpleitk plugin functionality.
 """
 
 import os
 
 import numpy as np
 
+import pytest
 from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir
 
@@ -13,6 +14,13 @@ import imageio
 test_dir = get_test_dir()
 
 
+try:
+    import SimpleITK as sitk
+except ImportError:
+    sitk = None
+
+
+@pytest.mark.skipif('sitk is None')
 def test_simpleitk_reading_writing():
     """ Test reading and saveing tiff """
     im2 = np.ones((10, 10, 3), np.uint8) * 2
