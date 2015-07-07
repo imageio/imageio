@@ -34,7 +34,9 @@ def init():
 
 def clean(app, *args):
     for fname in files_to_remove:
-        os.remove(os.path.join(DOC_DIR, fname))
+        filename = os.path.join(DOC_DIR, fname)
+        if os.path.isfile(filename):
+            os.remove(filename)
 
 
 def _write(fname, text):

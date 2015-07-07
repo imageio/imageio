@@ -1,9 +1,10 @@
 [report]
 
-# Do not test our testing file
+# Do not test our testing file and a few modules tested elsewhere
 omit = 
     imageio/testing.py
     imageio/freeze.py
+    imageio/plugins/_tifffile.py
 
 exclude_lines =
     # Remember that these are reg exp
