@@ -49,6 +49,12 @@ except ImportError:
     from distutils.core import setup  # Supports anything else
 
 
+try:
+    from wheel.bdist_wheel import bdist_wheel
+except ImportError:
+    bdist_wheel = object
+
+
 name = 'imageio'
 description = 'Library for reading and writing a wide range of image, video, scientific, and volumetric data formats.'
 
@@ -179,21 +185,23 @@ class build_with_fi(build_py):
         build_py.run(self)
 
 
-class sdist_all(sdist):
+class bdist_wheel_all(bdist_wheel):
     """ Build all platform specific dist files, that contain
     a few images and the freeimage lib of the platform.
     """
 
     def run(self):
-        sdist.run(self)
+        self.universal = True
+        bdist_wheel.run(self)
         
         import imageio
         
-        # Get base tarbal
-        import tarfile
+        # Get base zipfile
+        import zipfile
         distdir = op.join(THIS_DIR, 'dist')
-        tarfilename = op.join(distdir, 'imageio-%s.tar.gz' % __version__)
-        assert op.isfile(tarfilename)
+        basename = 'imageio-%s-py2.py3-none-any.whl' % __version__
+        zipfilename = op.join(distdir, basename)
+        assert op.isfile(zipfilename)
         
         # Create/clean build dir
         build_dir = op.join(distdir, 'temp')
@@ -202,11 +210,10 @@ class sdist_all(sdist):
         os.mkdir(build_dir)
         
         # Extract, get resource dir
-        with tarfile.open(tarfilename, 'r:gz') as tf:
+        with zipfile.ZipFile(zipfilename, 'r') as tf:
             tf.extractall(build_dir)
-        resource_dir = op.join(build_dir, 'imageio-%s' % __version__, 
-                               'imageio', 'resources')
-        assert os.path.isdir(resource_dir)
+        resource_dir = op.join(build_dir, 'imageio', 'resources')
+        assert os.path.isdir(resource_dir), build_dir
         
         # Prepare the libs resource directory with cross-platform
         # resources, so we can copy these for each platform
@@ -214,12 +221,13 @@ class sdist_all(sdist):
         
         # Create archives
         dist_files = self.distribution.dist_files
-        for plat in ['', 'linux64', 'linux32', 'win64', 'win32', 'osx64']:
+        for plat in ['linux64', 'linux32', 'win64', 'win32', 'osx64']:
             fname = self._create_dists_for_platform(resource_dir, plat)
-            dist_files.append(('sdist', 'any', 'dist/'+fname))
+            dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
         
         # Clean up
         shutil.rmtree(build_dir)
+        os.remove('dist/' + basename)
     
     
     def _create_dists_for_platform(self, resource_dir, plat):
@@ -240,7 +248,15 @@ class sdist_all(sdist):
         build_dir = op.join(distdir, 'temp')
         zipfname = 'imageio-%s.zip' % __version__
         if plat:
-            zipfname = 'imageio-%s-%s.zip' % (__version__, plat)
+            if plat == 'win64':
+                plat = 'win_amd64'
+            elif plat == 'osx64':
+                plat = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
+            elif plat == 'linux32':
+                plat = 'linux_i386'
+            elif plat == 'linux64':
+                plat = 'linux_x86_64'
+            zipfname = 'imageio-%s-py2.py3-%s.whl' % (__version__, plat)
         zipfilename = op.join(distdir, zipfname)
         zf = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
         for root, dirs, files in os.walk(build_dir):
@@ -264,7 +280,7 @@ if 'bdist_wheel' in sys.argv:
 
 
 setup(
-    cmdclass={'sdist_all': sdist_all, 
+    cmdclass={'bdist_wheel_all': bdist_wheel_all, 
               'build_with_fi': build_with_fi,
               'test': test_command},
     
