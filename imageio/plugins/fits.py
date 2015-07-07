@@ -15,7 +15,12 @@ _fits = None  # lazily loaded
 
 def load_lib():
     global _fits
-    from astropy.io import fits as _fits
+    try:
+        from astropy.io import fits as _fits
+    except ImportError:
+        raise ImportError("The FITS format relies on the astropy package."
+                          "Please refer to http://www.astropy.org/ "
+                          "for further instructions.")
     return _fits
 
 
@@ -110,7 +115,7 @@ class FitsFormat(Format):
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index
-            raise RuntimeError('The npz format does not support meta data.')
+            raise RuntimeError('The fits format does not support meta data.')
 
 
 # Register
