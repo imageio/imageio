@@ -67,6 +67,10 @@ install:
         pip install -q pytest pytest-cov;
         pip install -q coveralls;
       fi;
+    # Install optional dependencies
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+       pip install -q astropy;
+      fi;
     # Install imageio, use installed version on only one machine
     - python setup.py build_with_fi install > ${REDIRECT_TO}
 
@@ -82,8 +86,6 @@ script:
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;
       elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
-        echo "Install optional dependencies";
-        pip install -q astropy;
         python make test installed;
       else
         python make test unit;
