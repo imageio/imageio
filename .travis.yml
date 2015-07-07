@@ -62,7 +62,7 @@ install:
     # Install dependencies (also for testing)
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         pip install -q flake8;
-        pip install -q sphinx
+        pip install -q sphinx;
       else
         travis_retry sudo apt-get install libfreeimage3;
         pip install -q pytest pytest-cov;
