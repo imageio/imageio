@@ -36,7 +36,7 @@ def test_simpleitk_reading_writing():
 
     # Mixed
     W = imageio.save(filename1, 'itk')
-    raises(RuntimeError, W.set_metadata, 1)
+    raises(RuntimeError, W.set_meta_data, 1)
     assert W.format.name == 'ITK'
     W.append_data(im2)
     W.append_data(im2)
