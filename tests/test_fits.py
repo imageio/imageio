@@ -1,6 +1,6 @@
 """ Test fits plugin functionality.
 """
-from numpy.testing.decorators import skipif
+from pytest.mark import skipif
 
 from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir
