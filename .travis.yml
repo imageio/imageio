@@ -67,6 +67,10 @@ install:
         pip install -q pytest pytest-cov;
         pip install -q coveralls;
       fi;
+    # Install optional dependencies
+    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+       pip install -q astropy;
+      fi;
     # Install imageio, use installed version on only one machine
     - python setup.py build_with_fi install > ${REDIRECT_TO}
 
