@@ -350,6 +350,8 @@ SPECIAL_CLASSES = {'jpeg': FreeimageJpegFormat,
                    'mng': None,  # defined in freeimagemulti
                    }
 
+# rename TIFF to make way for the tiffile plugin
+NAME_MAP = {'TIFF': 'FI_TIFF'}
 
 def create_freeimage_formats():
     
@@ -367,6 +369,7 @@ def create_freeimage_formats():
             name = lib.FreeImage_GetFormatFromFIF(i).decode('ascii')
             des = lib.FreeImage_GetFIFDescription(i).decode('ascii')
             ext = lib.FreeImage_GetFIFExtensionList(i).decode('ascii')
+            name = NAME_MAP.get(name, name)
             # Get class for format
             FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
             if FormatClass:
