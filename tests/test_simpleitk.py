@@ -34,13 +34,6 @@ def test_simpleitk_reading_writing():
     assert (im == im2).all()
     assert len(ims) == 1
 
-    # Multiple images
-    imageio.mimsave(filename1, [im2, im2, im2], 'simpleitk')
-    im = imageio.imread(filename1, 'simpleitk')
-    ims = imageio.mimread(filename1, 'simpleitk')
-    assert (im == im2).all()
-    assert len(ims) == 3, ims[0].shape
-
     # Mixed
     W = imageio.save(filename1, 'simpleitk')
     raises(RuntimeError, W.set_metadata, 1)
