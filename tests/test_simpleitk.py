@@ -46,10 +46,9 @@ def test_simpleitk_reading_writing():
     assert R.format.name == 'ITK'
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
-    meta = R.get_meta_data()
-    assert meta['is_rgb']
     # Fail
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
+    raises(RuntimeError, R.get_meta_data)
 
 run_tests_if_main()
