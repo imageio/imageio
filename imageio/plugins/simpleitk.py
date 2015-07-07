@@ -76,7 +76,7 @@ class ItkFormat(Format):
             return _itk.GetArrayFromImage(self._img), meta
 
         def _get_meta_data(self, index):
-            _itk.GetMetaData(self._img)
+            self._img.GetMetaData()
 
     # -- writer
     class Writer(Format.Writer):
