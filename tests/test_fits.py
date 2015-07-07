@@ -1,7 +1,7 @@
 """ Test fits plugin functionality.
 """
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio.core import get_remote_file, Request, IS_PYPY
@@ -12,6 +12,10 @@ try:
     import astropy
 except ImportError:
     astropy = None
+
+
+# We keep the fits files in the imageio-binary repo 
+need_internet()
 
 
 @pytest.mark.skipif('astropy is None')
