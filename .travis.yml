@@ -82,13 +82,10 @@ script:
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
         python make test style;
       elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+        echo "Install optional dependencies";
+        pip install -q astropy;
         python make test installed;
       else
-        python make test unit;
-      fi;
-    # test with optional dependencies
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
-        pip install -q astropy;
         python make test unit;
       fi;
 
