@@ -269,16 +269,6 @@ class bdist_wheel_all(bdist_wheel):
         zf.close()
         return zipfname
 
-
-if 'bdist_wheel' in sys.argv:
-    # 'linux64', 'linux32', 'win64', 'win32', 'osx64']:
-    import imageio
-    import os
-    resource_dir = imageio.core.resource_dirs()[0]
-    _set_crossplatform_resources(resource_dir)
-    _set_platform_resources(resource_dir, os.environ['IMAGEIO_PLAT'])
-
-
 setup(
     cmdclass={'bdist_wheel_all': bdist_wheel_all, 
               'build_with_fi': build_with_fi,
