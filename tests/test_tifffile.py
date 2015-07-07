@@ -6,12 +6,15 @@ import os
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
+from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 from imageio.core import get_remote_file
 
 import imageio
 
 test_dir = get_test_dir()
+
+# We keep a test image in the imageio-binary repo
+need_internet()
 
 
 def test_tifffile_format():
