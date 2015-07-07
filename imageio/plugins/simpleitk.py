@@ -60,7 +60,7 @@ class SitkFormat(Format):
         def _open(self, **kwargs):
             if not _sitk:
                 load_lib()
-            self._img = _sitk.ReadImage(self.request.get_file())
+            self._img = _sitk.ReadImage(self.request.get_local_filename())
 
         def _get_length(self):
             return 1
