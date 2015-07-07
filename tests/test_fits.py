@@ -1,8 +1,6 @@
 """ Test fits plugin functionality.
 """
-from pytest.mark import skipif
-
-from pytest import raises
+import pytest
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
@@ -16,7 +14,7 @@ except ImportError:
     astropy = None
 
 
-@skipif(astropy is None)
+@pytest.mark.skipif(astropy is None)
 def test_fits_format():
 
     # Test selection
@@ -31,7 +29,7 @@ def test_fits_format():
     assert not format.can_write(Request(png, 'wi'))
 
 
-@skipif(astropy is None)
+@pytest.mark.skipif(astropy is None)
 def test_fits_reading():
     """ Test reading fits """
 
@@ -57,6 +55,7 @@ def test_fits_reading():
     assert len(ims) == 3
 
     # Fail
+    raises = pytest.raises
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data, None)  # no meta data support

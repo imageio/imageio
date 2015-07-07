@@ -24,7 +24,7 @@ class FitsFormat(Format):
     """ Flexible Image Transport System (FITS) is an open standard defining a
     digital file format useful for storage, transmission and processing of
     scientific and other images. FITS is the most commonly used digital
-    file format in astronomy.
+    file format in astronomy.  Requires the ``astropy`` package.
 
     Parameters for reading
     ----------------------
