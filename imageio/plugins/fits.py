@@ -87,7 +87,7 @@ class FitsFormat(Format):
             self._index = []
             for n, hdu in zip(range(len(hdulist)), hdulist):
                 if (isinstance(hdu, _fits.ImageHDU) or
-                    isinstance(hdu, _fits.PrimaryHDU)):
+                        isinstance(hdu, _fits.PrimaryHDU)):
                     # Ignore (primary) header units with no data (use '.size'
                     # rather than '.data' to avoid actually loading the image):
                     if hdu.size > 0:

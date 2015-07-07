@@ -14,7 +14,7 @@ except ImportError:
     astropy = None
 
 
-@pytest.mark.skipif(astropy is None)
+@pytest.mark.skipif('astropy is None')
 def test_fits_format():
 
     # Test selection
@@ -29,7 +29,7 @@ def test_fits_format():
     assert not format.can_write(Request(png, 'wi'))
 
 
-@pytest.mark.skipif(astropy is None)
+@pytest.mark.skipif('astropy is None')
 def test_fits_reading():
     """ Test reading fits """
 
