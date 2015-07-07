@@ -42,6 +42,7 @@ from distutils.core import Command
 from distutils.command.sdist import sdist
 from distutils.command.build_py import build_py
 
+
 try:
     from setuptools import setup  # Supports wheels
 except ImportError:
@@ -251,6 +252,15 @@ class sdist_all(sdist):
                 zf.write(filename, relpath)
         zf.close()
         return zipfname
+
+
+if 'bdist_wheel' in sys.argv:
+    # 'linux64', 'linux32', 'win64', 'win32', 'osx64']:
+    import imageio
+    import os
+    resource_dir = imageio.core.resource_dirs()[0]
+    _set_crossplatform_resources(resource_dir)
+    _set_platform_resources(resource_dir, os.environ['IMAGEIO_PLAT'])
 
 
 setup(
