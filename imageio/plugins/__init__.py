@@ -88,3 +88,4 @@ from . import avbin  # noqa
 from . import npz  # noqa
 from . import swf  # noqa
 from . import fits  # noqa
+from . import simpleitk  # noqa
