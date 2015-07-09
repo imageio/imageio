@@ -290,11 +290,22 @@ def test_format_manager():
     raises(ValueError, formats.add_format, 678)  # must be Format
     raises(ValueError, formats.add_format, myformat)  # cannot add twice
     
+    # Adding a format with the same name
+    myformat2 = Format('test', 'other description', 'foo bar')
+    raises(ValueError, formats.add_format, myformat2)  # same name
+    formats.add_format(myformat2, True)  # overwrite
+    assert formats['test'] is not myformat
+    assert formats['test'] is myformat2
+    
     # Test searchinhg for read / write format
     F = formats.search_read_format(Request(fname, 'ri'))
     assert F is formats['PNG']
     F = formats.search_write_format(Request(fname, 'wi'))
     assert F is formats['PNG']
+    
+    # Test show (we assume it shows correctly)
+    formats.show()
+    
 #   # Potential
 #   bytes = b'x' * 300
 #   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))

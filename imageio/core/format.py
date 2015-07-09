@@ -90,7 +90,8 @@ class Format:
             extensions = extensions.replace(',', ' ').split(' ')
         #
         if isinstance(extensions, (tuple, list)):
-            self._extensions = [e.strip('.').lower() for e in extensions if e]
+            self._extensions = tuple([e.strip('.').lower() 
+                                      for e in extensions if e])
         else:
             raise ValueError('Invalid value for extensions given.')
         
@@ -561,17 +562,24 @@ class FormatManager:
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)
     
-    def add_format(self, format):
-        """ add_formar(format)
+    def add_format(self, format, overwrite=False):
+        """ add_formar(format, overwrite=False)
         
-        Register a format, so that imageio can use it.
+        Register a format, so that imageio can use it. If a format with the
+        same name already exists, an error is raised, unless overwrite is True,
+        in which case it is replaced.
         """
         if not isinstance(format, Format):
             raise ValueError('add_format needs argument to be a Format object')
         elif format in self._formats:
             raise ValueError('Given Format instance is already registered')
-        else:
-            self._formats.append(format)
+        elif format.name in self.get_format_names():
+            if overwrite:
+                self._formats.remove(self[format.name])
+            else:
+                raise ValueError('A Format named %r is already registered, use'
+                                 ' overwrite=True to replace.' % format.name)
+        self._formats.append(format)
     
     def search_read_format(self, request):
         """ search_read_format(request)
@@ -596,7 +604,12 @@ class FormatManager:
             if select_mode in format.modes:
                 if format.can_write(request):
                     return format
-
+    
+    def get_format_names(self):
+        """ Get the names of all registered formats.
+        """
+        return [f.name for f in self._formats]
+    
     def show(self):
         """ Show a nicely formatted list of available formats
         """

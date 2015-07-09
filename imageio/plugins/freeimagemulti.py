@@ -124,6 +124,8 @@ class IcoFormat(FreeimageMulti):
     
     _fif = 1
     
+    _CAN_WRITE = True
+    
     class Reader(FreeimageMulti.Reader):
         def _open(self, flags=0, makealpha=False):
             # Build flags from kwargs
@@ -175,6 +177,8 @@ class GifFormat(FreeimageMulti):
     """
     
     _fif = 25
+    
+    _CAN_WRITE = True
     
     class Reader(FreeimageMulti.Reader):
         
