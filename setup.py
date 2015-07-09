@@ -221,16 +221,17 @@ class bdist_wheel_all(bdist_wheel):
         
         # Create archives
         dist_files = self.distribution.dist_files
-        for plat in ['linux64', 'linux32', 'win64', 'win32', 'osx64']:
-            fname = self._create_dists_for_platform(resource_dir, plat)
-            dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
+        for plat in ['win64', 'osx64']:
+            for pyver in ['27', '34']:
+                fname = self._create_wheels_for_platform(resource_dir,
+                                                         plat, pyver)
+                dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
         
         # Clean up
         shutil.rmtree(build_dir)
         os.remove('dist/' + basename)
-    
-    
-    def _create_dists_for_platform(self, resource_dir, plat):
+
+    def _create_wheels_for_platform(self, resource_dir, plat, pyver):
         import zipfile
         import imageio
         
@@ -251,12 +252,9 @@ class bdist_wheel_all(bdist_wheel):
             if plat == 'win64':
                 plat = 'win_amd64'
             elif plat == 'osx64':
-                plat = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
-            elif plat == 'linux32':
-                plat = 'linux_i386'
-            elif plat == 'linux64':
-                plat = 'linux_x86_64'
-            zipfname = 'imageio-%s-py2.py3-%s.whl' % (__version__, plat)
+                plat = 'macosx_10_5_x86_64'
+            zipfname = 'imageio-%s-cp%s-none-%s.whl' % (__version__, pyver,
+                                                        plat)
         zipfilename = op.join(distdir, zipfname)
         zf = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
         for root, dirs, files in os.walk(build_dir):
@@ -269,8 +267,84 @@ class bdist_wheel_all(bdist_wheel):
         zf.close()
         return zipfname
 
+
+class sdist_all(sdist):
+    """ Build all platform specific dist files, that contain
+    a few images and the freeimage lib of the platform.
+    """
+
+    def run(self):
+        sdist.run(self)
+        
+        import imageio
+        
+        # Get base tarbal
+        import tarfile
+        distdir = op.join(THIS_DIR, 'dist')
+        tarfilename = op.join(distdir, 'imageio-%s.tar.gz' % __version__)
+        assert op.isfile(tarfilename)
+        
+        # Create/clean build dir
+        build_dir = op.join(distdir, 'temp')
+        if op.isdir(build_dir):
+            shutil.rmtree(build_dir)
+        os.mkdir(build_dir)
+        
+        # Extract, get resource dir
+        with tarfile.open(tarfilename, 'r:gz') as tf:
+            tf.extractall(build_dir)
+        resource_dir = op.join(build_dir, 'imageio-%s' % __version__, 
+                               'imageio', 'resources')
+        assert os.path.isdir(resource_dir)
+        
+        # Prepare the libs resource directory with cross-platform
+        # resources, so we can copy these for each platform
+        _set_crossplatform_resources(imageio.core.resource_dirs()[0])
+        
+        # Create archives
+        dist_files = self.distribution.dist_files
+        for plat in ['', 'linux64', 'linux32', 'win64', 'win32', 'osx64']:
+            fname = self._create_dists_for_platform(resource_dir, plat)
+            dist_files.append(('sdist', 'any', 'dist/'+fname))
+        
+        # Clean up
+        shutil.rmtree(build_dir)
+
+    def _create_dists_for_platform(self, resource_dir, plat):
+        import zipfile
+        import imageio
+        
+        # Copy over crossplatform resources and add platform specifics
+        shutil.rmtree(resource_dir)
+        if plat:
+            shutil.copytree(imageio.core.resource_dirs()[0], resource_dir)
+            _set_platform_resources(resource_dir, plat)
+        else:
+            os.mkdir(resource_dir)
+            open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
+        
+        # Zip it
+        distdir = op.join(THIS_DIR, 'dist')
+        build_dir = op.join(distdir, 'temp')
+        zipfname = 'imageio-%s.zip' % __version__
+        if plat:
+            zipfname = 'imageio-%s-%s.zip' % (__version__, plat)
+        zipfilename = op.join(distdir, zipfname)
+        zf = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
+        for root, dirs, files in os.walk(build_dir):
+            for fname in files:
+                filename = op.join(root, fname)
+                relpath = op.relpath(filename, build_dir)
+                relpath = relpath.replace('imageio-%s' % __version__,
+                                          zipfname[:-4])
+                zf.write(filename, relpath)
+        zf.close()
+        return zipfname
+
+
 setup(
-    cmdclass={'bdist_wheel_all': bdist_wheel_all, 
+    cmdclass={'bdist_wheel_all': bdist_wheel_all,
+              'sdist_all': sdist_all,
               'build_with_fi': build_with_fi,
               'test': test_command},
     
