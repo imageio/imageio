@@ -71,9 +71,8 @@ class SWFFormat(Format):
     
     def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
-            for ext in self.extensions:
-                if request.filename.endswith('.' + ext):
-                    return True
+            if request.filename.lower().endswith(self.extensions):
+                return True
     
     # -- reader
     

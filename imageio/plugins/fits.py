@@ -74,7 +74,7 @@ class FitsFormat(Format):
     """
 
     def _can_read(self, request):
-        return request.filename.lower().endswith(('.fits', '.fit', '.fts'))
+        return request.filename.lower().endswith(self.extensions)
 
     def _can_write(self, request):
         return False

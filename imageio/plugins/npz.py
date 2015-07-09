@@ -37,16 +37,12 @@ class NpzFormat(Format):
     """
     
     def _can_read(self, request):
-        if request.filename.lower().endswith('.npz'):
-            return True  # We support any kind of image data
-        else:
-            return False
+        # We support any kind of image data
+        return request.filename.lower().endswith(self.extensions)
     
     def _can_write(self, request):
-        if request.filename.lower().endswith('.npz'):
-            return True  # We support any kind of image data
-        else:
-            return False
+        # We support any kind of image data
+        return request.filename.lower().endswith(self.extensions)
     
     # -- reader
     

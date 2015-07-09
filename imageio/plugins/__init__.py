@@ -78,18 +78,16 @@ For the Format.Writer class:
 
 """
 
-# First import plugins that we want to take precedence over freeimage,
-# also for checking read/write, so we can use these without triggering
-# a freeimage download.
+# First import plugins that we want to take precedence over freeimage
 from . import tifffile  # noqa
-from . import ffmpeg  # noqa
 
-# Load freeimage, note it will load the lib when checking if it can read/write
 from . import freeimage  # noqa
 from . import freeimagemulti  # noqa
 
-from . import dicom  # noqa
+from . import ffmpeg  # noqa
 from . import avbin  # noqa
+
+from . import dicom  # noqa
 from . import npz  # noqa
 from . import swf  # noqa
 from . import fits  # noqa

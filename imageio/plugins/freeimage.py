@@ -39,19 +39,13 @@ class FreeimageFormat(Format):
     """
     
     _modes = 'i'
-    _CAN_WRITE = None  # not sure
     
     @property
     def fif(self):
         return self._fif  # Set when format is created
     
     def _can_read(self, request):
-        if request.mode[1] not in (self._modes + '?'):
-            return False
-        # We know from meta-info that we can
-        if (request.filename.lower().endswith(self.extensions)):
-            return True
-        # But we also ask freeimage if it can read it, maybe ext missing
+        # Ask freeimage if it can read it, maybe ext missing
         if fi.has_lib():
             if not hasattr(request, '_fif'):
                 try:
@@ -63,13 +57,7 @@ class FreeimageFormat(Format):
                 return True
     
     def _can_write(self, request):
-        if request.mode[1] not in (self._modes + '?'):
-            return False
-        # Of some formats we know we can write
-        exts = self.extensions
-        if request.filename.lower().endswith(exts) and self._CAN_WRITE:
-            return True
-        # But we also ask freeimage, because we are not aware of all formats
+        # Ask freeimage, because we are not aware of all formats
         if fi.has_lib():
             if not hasattr(request, '_fif'):
                 try:
@@ -165,8 +153,6 @@ class FreeimageBmpFormat(FreeimageFormat):
     
     """
     
-    _CAN_WRITE = True
-    
     class Writer(FreeimageFormat.Writer):
         def _open(self, flags=0, compression=False):
             # Build flags from kwargs
@@ -206,8 +192,6 @@ class FreeimagePngFormat(FreeimageFormat):
     interlaced : bool
         Save using Adam7 interlacing. Default False.
     """
-    
-    _CAN_WRITE = True
     
     class Reader(FreeimageFormat.Reader):
         def _open(self, flags=0, ignoregamma=False):
@@ -284,8 +268,6 @@ class FreeimageJpegFormat(FreeimageFormat):
         Save basic JPEG, without metadata or any markers. Default False.
     
     """
-    
-    _CAN_WRITE = True
     
     class Reader(FreeimageFormat.Reader):
         def _open(self, flags=0, exifrotate=True, quickread=False):

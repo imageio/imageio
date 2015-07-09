@@ -27,8 +27,12 @@ def load_lib():
     return _itk
 
 
-ITK_FORMATS = ('.bmp', '.dicom', '.gdcm', '.gipl', '.ipl', '.jpeg', '.jpg',
-               '.mhd', '.nhdr', '.nrrd', '.png', '.tiff', '.tif', '.vtk')
+# Split up in real ITK and all supported formats. Right now we say we
+# can do all. But we could also only publish the ITK_FORMATS, yet check
+# on ALL_FORMATS in _can_read.
+ITK_FORMATS = ('.gipl', '.ipl', '.mhd', '.nhdr', '.nrrd', '.vtk', 
+               '.dicom', '.gdcm')
+ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif')
 
 
 class ItkFormat(Format):
@@ -47,11 +51,11 @@ class ItkFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(ITK_FORMATS)
+        return request.filename.lower().endswith(ALL_FORMATS)
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(ITK_FORMATS)
+        return request.filename.lower().endswith(ALL_FORMATS)
 
     # -- reader
 
@@ -101,5 +105,5 @@ class ItkFormat(Format):
 
 # Register
 title = "Insight Segmentation and Registration Toolkit (ITK) format"
-format = ItkFormat('itk', title, ' '.join(ITK_FORMATS), 'iIvV')
+format = ItkFormat('itk', title, ' '.join(ALL_FORMATS), 'iIvV')
 formats.add_format(format)

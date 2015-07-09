@@ -37,10 +37,16 @@ class DummyFormat(Format):
         # can do it.
         #
         # The format manager is aware of the extensions and the modes
-        # that each format can handle. However, the ability to read a
-        # format could be more subtle. Also, the format would ideally
-        # check the request.firstbytes and look for a header of some
-        # kind. Further, the extension might not always be known.
+        # that each format can handle. It will first ask all formats
+        # that seem* to be able to read it whether they can. If none
+        # can, it will ask the remaining formats if they can: the
+        # extension might be missing, and this allows formats to provide
+        # functionality for certain extensions, while giving preference
+        # to other plugins.
+        #
+        # If a format says it can, it should live up to it. The format
+        # would ideally check the request.firstbytes and look for a
+        # header of some kind.
         #
         # The request object has:
         # request.filename: a representation of the source (only for reporting)
@@ -49,21 +55,21 @@ class DummyFormat(Format):
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
         
         if request.mode[1] in (self.modes + '?'):
-            for ext in self.extensions:
-                if request.filename.endswith('.' + ext):
-                    return True
+            if request.filename.lower().endswith(self.extensions):
+                return True
     
     def _can_write(self, request):
         # This method is called when the format manager is searching
-        # for a format to write a certain image. Return True if the
-        # format can do it.
+        # for a format to write a certain image. It will first ask all
+        # formats that seem* to be able to write it whether they can.
+        # If none can, it will ask the remaining formats if they can.
         #
-        # In most cases, the code does suffice.
+        # Return True if the format can do it.
         
+        # In most cases, this code does suffice:
         if request.mode[1] in (self.modes + '?'):
-            for ext in self.extensions:
-                if request.filename.endswith('.' + ext):
-                    return True
+            if request.filename.lower().endswith(self.extensions):
+                return True
     
     # -- reader
     
