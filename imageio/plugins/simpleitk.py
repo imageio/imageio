@@ -36,11 +36,13 @@ def has_lib():
         if sys.version_info > (3, ):
             import importlib
             return importlib.find_loader('SimpleITK') is not None
-        try:
-            load_lib()
-        except ImportError:
-            return False
-        return True
+        else:
+            import imp
+            try:
+                imp.find_module('SimpleITK')
+            except ImportError:
+                return False
+            return True
 
 
 # Split up in real ITK and all supported formats.
