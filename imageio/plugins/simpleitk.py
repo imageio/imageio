@@ -7,6 +7,8 @@
 
 from __future__ import absolute_import, print_function, division
 
+import sys
+
 from .. import formats
 from ..core import Format
 
@@ -27,17 +29,32 @@ def load_lib():
     return _itk
 
 
-# Split up in real ITK and all supported formats. Right now we say we
-# can do all. But we could also only publish the ITK_FORMATS, yet check
-# on ALL_FORMATS in _can_read.
-ITK_FORMATS = ('.gipl', '.ipl', '.mhd', '.nhdr', '.nrrd', '.vtk', 
-               '.dicom', '.gdcm')
-ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif')
+def has_lib():
+    if _itk is not None:
+        return True
+    else:
+        if sys.version_info > (3, ):
+            import importlib
+            return importlib.find_loader('SimpleITK') is not None
+        try:
+            load_lib()
+        except ImportError:
+            return False
+        return True
+
+
+# Split up in real ITK and all supported formats.
+ITK_FORMATS = ('.gipl', '.ipl', '.mhd', '.nhdr', '.nrrd', '.vtk')
+ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif',
+                             '.dicom', '.gdcm')
 
 
 class ItkFormat(Format):
-
-    """
+    """ The ItkFormat uses the simpleITK library to support a range of
+    ITK-related formats. It also supports a few common formats that are
+    also supported by the freeimage plugin (e.g. PNG and JPEG).
+    
+    This format requires the ``simpleITK`` package.
 
     Parameters for reading
     ----------------------
@@ -50,12 +67,20 @@ class ItkFormat(Format):
     """
 
     def _can_read(self, request):
-        # We support any kind of image data
-        return request.filename.lower().endswith(ALL_FORMATS)
+        # If the request is a format that only this plugin can handle,
+        # we report that we can do it; a useful error will be raised
+        # when simpleitk is not installed. For the more common formats
+        # we only report that we can read if the library is installed.
+        if request.filename.lower().endswith(ITK_FORMATS):
+            return True
+        if has_lib():
+            return request.filename.lower().endswith(ALL_FORMATS)
 
     def _can_write(self, request):
-        # We support any kind of image data
-        return request.filename.lower().endswith(ALL_FORMATS)
+        if request.filename.lower().endswith(ITK_FORMATS):
+            return True
+        if has_lib():
+            return request.filename.lower().endswith(ALL_FORMATS)
 
     # -- reader
 
