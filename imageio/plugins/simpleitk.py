@@ -7,10 +7,8 @@
 
 from __future__ import absolute_import, print_function, division
 
-import sys
-
 from .. import formats
-from ..core import Format
+from ..core import Format, has_module
 
 _itk = None  # Defer loading to load_lib() function.
 
@@ -27,22 +25,6 @@ def load_lib():
                           "  http://simpleitk.org/ "
                           "for further instructions.")
     return _itk
-
-
-def has_lib():
-    if _itk is not None:
-        return True
-    else:
-        if sys.version_info > (3, ):
-            import importlib
-            return importlib.find_loader('SimpleITK') is not None
-        else:
-            import imp
-            try:
-                imp.find_module('SimpleITK')
-            except ImportError:
-                return False
-            return True
 
 
 # Split up in real ITK and all supported formats.
@@ -75,13 +57,13 @@ class ItkFormat(Format):
         # we only report that we can read if the library is installed.
         if request.filename.lower().endswith(ITK_FORMATS):
             return True
-        if has_lib():
+        if has_module('SimpleITK'):
             return request.filename.lower().endswith(ALL_FORMATS)
 
     def _can_write(self, request):
         if request.filename.lower().endswith(ITK_FORMATS):
             return True
-        if has_lib():
+        if has_module('SimpleITK'):
             return request.filename.lower().endswith(ALL_FORMATS)
 
     # -- reader

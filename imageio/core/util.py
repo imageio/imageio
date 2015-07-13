@@ -496,3 +496,18 @@ def get_platform():
         return None
     
     return plat % (struct.calcsize('P') * 8)  # 32 or 64 bits
+
+
+def has_module(module_name):
+    """Check to see if a python module is available.
+    """
+    if sys.version_info > (3, ):
+        import importlib
+        return importlib.find_loader(module_name) is not None
+    else:  # pragma: no cover
+        import imp
+        try:
+            imp.find_module(module_name)
+        except ImportError:
+            return False
+        return True

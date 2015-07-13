@@ -768,6 +768,12 @@ def test_util_image_as_uint8():
     assert res[0] == 0 and res[1] == 255
 
 
+def test_util_has_has_module():
+    
+    assert not core.has_module('this_module_does_not_exist')
+    assert core.has_module('sys')
+
+
 def test_functions():
     """ Test the user-facing API functions """
     
