@@ -412,7 +412,7 @@ def _create_predefined_freeimage_formats():
 
 
 def create_freeimage_formats():
-    """ By default, imageio registeres a list of predefined formats
+    """ By default, imageio registers a list of predefined formats
     that freeimage can handle. If your version of imageio can handle
     more formats, you can call this function to register them.
     """

@@ -38,7 +38,7 @@ class DummyFormat(Format):
         #
         # The format manager is aware of the extensions and the modes
         # that each format can handle. It will first ask all formats
-        # that seem* to be able to read it whether they can. If none
+        # that *seem* to be able to read it whether they can. If none
         # can, it will ask the remaining formats if they can: the
         # extension might be missing, and this allows formats to provide
         # functionality for certain extensions, while giving preference
@@ -61,7 +61,7 @@ class DummyFormat(Format):
     def _can_write(self, request):
         # This method is called when the format manager is searching
         # for a format to write a certain image. It will first ask all
-        # formats that seem* to be able to write it whether they can.
+        # formats that *seem* to be able to write it whether they can.
         # If none can, it will ask the remaining formats if they can.
         #
         # Return True if the format can do it.
