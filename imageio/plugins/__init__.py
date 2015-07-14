@@ -78,14 +78,19 @@ For the Format.Writer class:
 
 """
 
+# First import plugins that we want to take precedence over freeimage
 from . import tifffile  # noqa
+
 from . import freeimage  # noqa
 from . import freeimagemulti  # noqa
-from . import example  # noqa
-from . import dicom  # noqa
+
 from . import ffmpeg  # noqa
 from . import avbin  # noqa
+
+from . import dicom  # noqa
 from . import npz  # noqa
 from . import swf  # noqa
 from . import fits  # noqa
 from . import simpleitk  # noqa
+
+from . import example  # noqa

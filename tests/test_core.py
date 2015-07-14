@@ -27,6 +27,12 @@ class MyFormat(Format):
     """ TEST DOCS """
     _closed = []
     
+    def _can_read(self, request):
+        return request.filename.lower().endswith(self.extensions + ('.haha', ))
+    
+    def _can_write(self, request):
+        return request.filename.lower().endswith(self.extensions + ('.haha', ))
+    
     class Reader(Format.Reader):
         _failmode = False
         _stream_mode = False
@@ -89,7 +95,7 @@ def test_format():
     assert F.name in repr(F)
     assert F.name in F.doc
     assert str(F) == F.doc
-    assert set(F.extensions) == set(['foo', 'bar', 'spam'])
+    assert set(F.extensions) == set(['.foo', '.bar', '.spam'])
     
     # Test setting extensions
     F1 = Format('test', '', 'foo bar spam')
@@ -97,7 +103,7 @@ def test_format():
     F3 = Format('test', '', ['foo', 'bar', 'spam'])
     F4 = Format('test', '', '.foo .bar .spam')
     for F in (F1, F2, F3, F4):
-        assert set(F.extensions) == set(['foo', 'bar', 'spam'])
+        assert set(F.extensions) == set(['.foo', '.bar', '.spam'])
     # Fail
     raises(ValueError, Format, 'test', '', 3)  # not valid ext
     raises(ValueError, Format, 'test', '', '', 3)  # not valid mode
@@ -238,6 +244,40 @@ def test_default_can_read_and_can_write():
     assert not F.can_write(Request(filename1 + '.foo', 'wi'))
 
 
+def test_format_selection():
+    
+    formats = imageio.formats
+    fname1 = get_remote_file('images/chelsea.png', test_dir)
+    fname2 = os.path.join(test_dir, 'test.selectext1')
+    fname3 = os.path.join(test_dir, 'test.haha')
+    open(fname2, 'wb')
+    open(fname3, 'wb')
+    
+    # Test searchinhg for read / write format
+    F = formats.search_read_format(Request(fname1, 'ri'))
+    assert F is formats['PNG']
+    F = formats.search_write_format(Request(fname1, 'wi'))
+    assert F is formats['PNG']
+    
+    # Now with custom format
+    format = MyFormat('test_selection', 'xx', 'selectext1', 'i')
+    formats.add_format(format)
+    
+    # Select this format for files it said it could handle in extensions
+    assert '.selectext1' in fname2
+    F = formats.search_read_format(Request(fname2, 'ri'))
+    assert F is format
+    F = formats.search_write_format(Request(fname2, 'ri'))
+    assert F is format
+    
+    # But this custom format also can deal with .haha files
+    assert '.haha' in fname3
+    F = formats.search_read_format(Request(fname3, 'ri'))
+    assert F is format
+    F = formats.search_write_format(Request(fname3, 'ri'))
+    assert F is format
+
+
 def test_format_manager():
     """ Test working of the format manager """
     
@@ -290,11 +330,16 @@ def test_format_manager():
     raises(ValueError, formats.add_format, 678)  # must be Format
     raises(ValueError, formats.add_format, myformat)  # cannot add twice
     
-    # Test searchinhg for read / write format
-    F = formats.search_read_format(Request(fname, 'ri'))
-    assert F is formats['PNG']
-    F = formats.search_write_format(Request(fname, 'wi'))
-    assert F is formats['PNG']
+    # Adding a format with the same name
+    myformat2 = Format('test', 'other description', 'foo bar')
+    raises(ValueError, formats.add_format, myformat2)  # same name
+    formats.add_format(myformat2, True)  # overwrite
+    assert formats['test'] is not myformat
+    assert formats['test'] is myformat2
+    
+    # Test show (we assume it shows correctly)
+    formats.show()
+    
 #   # Potential
 #   bytes = b'x' * 300
 #   F = formats.search_read_format(Request(bytes, 'r?', dummy_potential=1))
@@ -721,6 +766,12 @@ def test_util_image_as_uint8():
     assert res[0] == 25 and res[1] == 200
     res = core.image_as_uint8(np.array([4, 200], 'float32'))
     assert res[0] == 0 and res[1] == 255
+
+
+def test_util_has_has_module():
+    
+    assert not core.has_module('this_module_does_not_exist')
+    assert core.has_module('sys')
 
 
 def test_functions():

@@ -29,7 +29,9 @@ class FitsFormat(Format):
     """ Flexible Image Transport System (FITS) is an open standard defining a
     digital file format useful for storage, transmission and processing of
     scientific and other images. FITS is the most commonly used digital
-    file format in astronomy.  Requires the ``astropy`` package.
+    file format in astronomy.
+    
+    This format requires the ``astropy`` package.
 
     Parameters for reading
     ----------------------
@@ -74,9 +76,12 @@ class FitsFormat(Format):
     """
 
     def _can_read(self, request):
-        return request.filename.lower().endswith(('.fits', '.fit', '.fts'))
+        # We return True if ext matches, because this is the only plugin
+        # that can. If astropy is not installed, a useful error follows.
+        return request.filename.lower().endswith(self.extensions)
 
     def _can_write(self, request):
+        # No write support
         return False
 
     # -- reader

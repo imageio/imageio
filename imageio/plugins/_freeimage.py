@@ -19,6 +19,7 @@ import os
 import sys
 import ctypes
 import threading
+from logging import warn
 import numpy
 
 from ..core import (get_remote_file, load_lib, Dict, resource_dirs, 
@@ -54,7 +55,7 @@ def get_freeimage_lib():
         except InternetNotAllowedError:
             pass
         except RuntimeError as e:  # pragma: no cover
-            print(str(e))
+            warn(str(e))
 
 
 # Define function to encode a filename to bytes (for the current system)
@@ -399,7 +400,30 @@ class Freeimage(object):
         
         # Make sure to keep a ref to function
         self._error_handler = error_handler
-        
+    
+    @property
+    def lib(self):
+        if self._lib is None:
+            try:
+                self.load_freeimage()
+            except OSError as err:
+                self._lib = 'The freeimage library could not be loaded: '
+                self._lib += str(err)
+        if isinstance(self._lib, str):
+            raise RuntimeError(self._lib)
+        return self._lib
+    
+    def has_lib(self):
+        try:
+            self.lib
+        except Exception:
+            return False
+        return True
+    
+    def load_freeimage(self):
+        """ Try to load the freeimage lib from the system. If not successful,
+        try to download the imageio version and try again.
+        """
         # Load library and register API
         success = False
         try:
@@ -407,7 +431,7 @@ class Freeimage(object):
             # to the imageio-provided lib (if previously downloaded)
             self._load_freeimage()
             self._register_api()
-            if self._lib.FreeImage_GetVersion().decode('utf-8') >= '3.15':
+            if self.lib.FreeImage_GetVersion().decode('utf-8') >= '3.15':
                 success = True
         except OSError:
             pass
@@ -419,8 +443,8 @@ class Freeimage(object):
             self._register_api()
         
         # Wrap up
-        self._lib.FreeImage_SetOutputMessage(self._error_handler)
-        self._lib_version = self._lib.FreeImage_GetVersion().decode('utf-8')
+        self.lib.FreeImage_SetOutputMessage(self._error_handler)
+        self.lib_version = self.lib.FreeImage_GetVersion().decode('utf-8')
     
     def _load_freeimage(self):
         
@@ -446,12 +470,12 @@ class Freeimage(object):
         
         # Store
         self._lib = lib
-        self._lib_fname = fname
+        self.lib_fname = fname
     
     def _register_api(self):
         # Albert's ctypes pattern    
         for f, (restype, argtypes) in self._API.items():
-            func = getattr(self._lib, f)
+            func = getattr(self.lib, f)
             func.restype = restype
             func.argtypes = argtypes
     
@@ -459,7 +483,7 @@ class Freeimage(object):
     
     def __enter__(self):
         self._lock.acquire()
-        return self._lib
+        return self.lib
     
     def __exit__(self, *args):
         self._show_any_warnings()
@@ -488,7 +512,7 @@ class Freeimage(object):
         as a warning. Otherwise do nothing. Also resets the messages.
         """ 
         if self._messages:
-            print('imageio.freeimage warning: ' + self._get_error_message())
+            warn('imageio.freeimage warning: ' + self._get_error_message())
             self._reset_log()
     
     def get_output_log(self):
@@ -584,7 +608,7 @@ class FIBaseBitmap(object):
         if self._bitmap is not None:
             pass  # bitmap is converted
         if close_func is None:
-            close_func = self._fi._lib.FreeImage_Unload, bitmap
+            close_func = self._fi.lib.FreeImage_Unload, bitmap
         
         self._bitmap = bitmap
         if close_func:
@@ -705,8 +729,8 @@ class FIBaseBitmap(object):
                                 tag_val = numpy.array([tag_val])
                             tag_type = get_tag_type_number(tag_val.dtype)
                             if tag_type is None:
-                                print('imageio.freeimage warning: Could not '
-                                      'determine tag type of %r.' % tag_name)
+                                warn('imageio.freeimage warning: Could not '
+                                     'determine tag type of %r.' % tag_name)
                                 continue
                             tag_bytes = tag_val.tostring()
                             tag_count = tag_val.size
@@ -722,10 +746,10 @@ class FIBaseBitmap(object):
                                                   tag_key, tag)
                     
                     except Exception as err:  # pragma: no cover
-                        print('imagio.freeimage warning: Could not set tag '
-                              '%r: %s, %s' % (tag_name, 
-                                              self._fi._get_error_message(), 
-                                              str(err)))
+                        warn('imagio.freeimage warning: Could not set tag '
+                             '%r: %s, %s' % (tag_name, 
+                                             self._fi._get_error_message(), 
+                                             str(err)))
                     finally:
                         lib.FreeImage_DeleteTag(tag)
 
@@ -1256,13 +1280,4 @@ class FIMultipageBitmap(FIBaseBitmap):
 
 
 # Create instance
-try:
-    fi = Freeimage()
-except OSError as err:  # pragma: no cover
-    fi = None
-    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
-        pass
-        #print('Warning: freeimage not found and not allowed to download.')
-    else:
-        print('Warning: the freeimage wrapper of imageio could not be loaded:')
-        print(str(err))
+fi = Freeimage()

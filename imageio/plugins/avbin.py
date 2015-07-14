@@ -200,26 +200,9 @@ class AvBinFormat(Format):
         Format.__init__(self, *args, **kwargs)
     
     def _can_read(self, request):
-        # This method is called when the format manager is searching
-        # for a format to read a certain image. Return True if this format
-        # can do it.
-        #
-        # The format manager is aware of the extensions and the modes
-        # that each format can handle. However, the ability to read a
-        # format could be more subtle. Also, the format would ideally
-        # check the request.firstbytes and look for a header of some
-        # kind. Further, the extension might not always be known.
-        #
-        # The request object has:
-        # request.filename: a representation of the source (only for reporing)
-        # request.firstbytes: the first 256 bytes of the file.
-        # request.mode[0]: read or write mode
-        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-        
         if request.mode[1] in (self.modes + '?'):
-            for ext in self.extensions:
-                if request.filename.endswith('.' + ext):
-                    return True
+            if request.filename.lower().endswith(self.extensions):
+                return True
     
     def _can_write(self, request):
         return False  # AvBin does not support writing videos

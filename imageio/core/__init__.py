@@ -9,7 +9,7 @@
 from .util import Image, Dict, asarray, image_as_uint8, urlopen  # noqa
 from .util import BaseProgressIndicator, StdoutProgressIndicator  # noqa
 from .util import string_types, text_type, binary_type, IS_PYPY  # noqa
-from .util import get_platform, appdata_dir, resource_dirs  # noqa
+from .util import get_platform, appdata_dir, resource_dirs, has_module  # noqa
 from .findlib import load_lib  # noqa
 from .fetching import get_remote_file, InternetNotAllowedError  # noqa
 from .request import Request, read_n_bytes, RETURN_BYTES  # noqa

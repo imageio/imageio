@@ -157,11 +157,11 @@ class TiffFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(TIFF_FORMATS)
+        return request.filename.lower().endswith(self.extensions)
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(TIFF_FORMATS)
+        return request.filename.lower().endswith(self.extensions)
 
     # -- reader
 
@@ -225,5 +225,5 @@ class TiffFormat(Format):
                     self._meta[key] = value
 
 # Register
-format = TiffFormat('tiff', "TIFF format", 'tif tiff stk lsm', 'iIvV')
+format = TiffFormat('tiff', "TIFF format", TIFF_FORMATS, 'iIvV')
 formats.add_format(format)

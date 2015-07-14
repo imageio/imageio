@@ -90,7 +90,8 @@ class Format:
             extensions = extensions.replace(',', ' ').split(' ')
         #
         if isinstance(extensions, (tuple, list)):
-            self._extensions = [e.strip('.').lower() for e in extensions if e]
+            self._extensions = tuple(['.' + e.strip('.').lower() 
+                                      for e in extensions if e])
         else:
             raise ValueError('Invalid value for extensions given.')
         
@@ -133,7 +134,7 @@ class Format:
     @property
     def extensions(self):
         """ A list of file extensions supported by this plugin.
-        These are all lowercase without a leading dot.
+        These are all lowercase with a leading dot.
         """
         return self._extensions
     
@@ -541,10 +542,9 @@ class FormatManager:
         
         if '.' in name:
             # Look for extension
-            e1, e2 = os.path.splitext(name)
+            e1, e2 = os.path.splitext(name.lower())
             name = e2 or e1
             # Search for format that supports this extension
-            name = name.lower()[1:]
             for format in self._formats:
                 if name in format.extensions:
                     return format
@@ -561,17 +561,24 @@ class FormatManager:
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)
     
-    def add_format(self, format):
-        """ add_formar(format)
+    def add_format(self, format, overwrite=False):
+        """ add_format(format, overwrite=False)
         
-        Register a format, so that imageio can use it.
+        Register a format, so that imageio can use it. If a format with the
+        same name already exists, an error is raised, unless overwrite is True,
+        in which case the current format is replaced.
         """
         if not isinstance(format, Format):
             raise ValueError('add_format needs argument to be a Format object')
         elif format in self._formats:
             raise ValueError('Given Format instance is already registered')
-        else:
-            self._formats.append(format)
+        elif format.name in self.get_format_names():
+            if overwrite:
+                self._formats.remove(self[format.name])
+            else:
+                raise ValueError('A Format named %r is already registered, use'
+                                 ' overwrite=True to replace.' % format.name)
+        self._formats.append(format)
     
     def search_read_format(self, request):
         """ search_read_format(request)
@@ -580,8 +587,24 @@ class FormatManager:
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        select_ext = request.filename.lower()
+        
+        # Select formats that seem to be able to read it
+        selected_formats = []
         for format in self._formats:
             if select_mode in format.modes:
+                if select_ext.endswith(format.extensions):
+                    selected_formats.append(format)
+        
+        # Select the first that can
+        for format in selected_formats:
+            if format.can_read(request):
+                return format
+        
+        # If no format could read it, it could be that file has no or
+        # the wrong extension. We ask all formats again.
+        for format in self._formats:
+            if format not in selected_formats:
                 if format.can_read(request):
                     return format
     
@@ -592,11 +615,33 @@ class FormatManager:
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        select_ext = request.filename.lower()
+        
+        # Select formats that seem to be able to write it
+        selected_formats = []
         for format in self._formats:
             if select_mode in format.modes:
+                if select_ext.endswith(format.extensions):
+                    selected_formats.append(format)
+        
+        # Select the first that can
+        for format in selected_formats:
+            if format.can_write(request):
+                return format
+        
+        # If none of the selected formats could write it, maybe another
+        # format can still write it. It might prefer a different mode,
+        # or be able to handle more formats than it says by its extensions.
+        for format in self._formats:
+            if format not in selected_formats:
                 if format.can_write(request):
                     return format
-
+    
+    def get_format_names(self):
+        """ Get the names of all registered formats.
+        """
+        return [f.name for f in self._formats]
+    
     def show(self):
         """ Show a nicely formatted list of available formats
         """

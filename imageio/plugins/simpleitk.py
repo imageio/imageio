@@ -8,7 +8,7 @@
 from __future__ import absolute_import, print_function, division
 
 from .. import formats
-from ..core import Format
+from ..core import Format, has_module
 
 _itk = None  # Defer loading to load_lib() function.
 
@@ -27,13 +27,18 @@ def load_lib():
     return _itk
 
 
-ITK_FORMATS = ('.bmp', '.dicom', '.gdcm', '.gipl', '.ipl', '.jpeg', '.jpg',
-               '.mhd', '.nhdr', '.nrrd', '.png', '.tiff', '.tif', '.vtk')
+# Split up in real ITK and all supported formats.
+ITK_FORMATS = ('.gipl', '.ipl', '.mhd', '.nhdr', '.nrrd', '.vtk')
+ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif',
+                             '.dicom', '.gdcm')
 
 
 class ItkFormat(Format):
-
-    """
+    """ The ItkFormat uses the simpleITK library to support a range of
+    ITK-related formats. It also supports a few common formats that are
+    also supported by the freeimage plugin (e.g. PNG and JPEG).
+    
+    This format requires the ``simpleITK`` package.
 
     Parameters for reading
     ----------------------
@@ -46,12 +51,20 @@ class ItkFormat(Format):
     """
 
     def _can_read(self, request):
-        # We support any kind of image data
-        return request.filename.lower().endswith(ITK_FORMATS)
+        # If the request is a format that only this plugin can handle,
+        # we report that we can do it; a useful error will be raised
+        # when simpleitk is not installed. For the more common formats
+        # we only report that we can read if the library is installed.
+        if request.filename.lower().endswith(ITK_FORMATS):
+            return True
+        if has_module('SimpleITK'):
+            return request.filename.lower().endswith(ALL_FORMATS)
 
     def _can_write(self, request):
-        # We support any kind of image data
-        return request.filename.lower().endswith(ITK_FORMATS)
+        if request.filename.lower().endswith(ITK_FORMATS):
+            return True
+        if has_module('SimpleITK'):
+            return request.filename.lower().endswith(ALL_FORMATS)
 
     # -- reader
 
@@ -101,5 +114,5 @@ class ItkFormat(Format):
 
 # Register
 title = "Insight Segmentation and Registration Toolkit (ITK) format"
-format = ItkFormat('itk', title, ' '.join(ITK_FORMATS), 'iIvV')
+format = ItkFormat('itk', title, ' '.join(ALL_FORMATS), 'iIvV')
 formats.add_format(format)
