@@ -7,7 +7,7 @@
 from __future__ import absolute_import, print_function, division
 
 from .. import formats
-from ..core import Format
+from ..core import Format, has_module
 
 _gdal = None  # lazily loaded in load_lib()
 
@@ -37,7 +37,10 @@ class GdalFormat(Format):
     """
 
     def _can_read(self, request):
-        return request.filename.lower().endswith(GDAL_FORMATS)
+        if request.filename.lower().endswith('.ecw'):
+            return True
+        if has_module('osgeo.gdal'):
+            return request.filename.lower().endswith(self.extensions)
 
     def _can_write(self, request):
         return False
