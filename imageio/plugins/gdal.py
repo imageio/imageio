@@ -23,6 +23,9 @@ def load_lib():
     return _gdal
 
 
+GDAL_FORMATS = ('.tiff', ' .tif', '.img', '.ecw', '.jpg', '.jpeg')
+
+
 class GdalFormat(Format):
 
     """
@@ -34,7 +37,7 @@ class GdalFormat(Format):
     """
 
     def _can_read(self, request):
-        pass
+        return request.filename.lower().endswith(GDAL_FORMATS)
 
     def _can_write(self, request):
         return False
@@ -64,6 +67,5 @@ class GdalFormat(Format):
 
 # Add this format
 formats.add_format(GdalFormat(
-    'gdal',
-    'Geospatial Data Abstraction Library',
-    '.tiff .tif .img .ecw .jpg .jpeg', 'iIvV'))
+    'gdal', 'Geospatial Data Abstraction Library',
+    ' '.join(GDAL_FORMATS), 'iIvV'))
