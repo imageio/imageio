@@ -71,8 +71,7 @@ install:
     # Install optional dependencies
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
        easy_install -q simpleitk; true;
-       pip install -q astropy;
-       conda install gdal;
+       conda install gdal astripy;
       fi;
     # Install imageio, use installed version on only one machine
     - python setup.py build_with_fi install > ${REDIRECT_TO}
