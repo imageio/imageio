@@ -70,7 +70,6 @@ install:
       fi;
     # Install optional dependencies
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
-       pip install -q astropy;
        easy_install -q simpleitk; true;
       fi;
     # Install imageio, use installed version on only one machine
