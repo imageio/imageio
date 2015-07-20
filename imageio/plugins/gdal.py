@@ -6,210 +6,64 @@
 """
 from __future__ import absolute_import, print_function, division
 
-import sys
-import os
-
 from .. import formats
-from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
-from ..core import read_n_bytes
+from ..core import Format
 
 _gdal = None  # lazily loaded in load_lib()
 
 
 def load_lib():
+    global _gdal
     try:
         import osgeo.gdal as _gdal
     except ImportError:
-        _gdal = None
+        raise ImportError("The GDAL format relies on the GDAL package."
+                          "Please refer to http://www.gdal.org/"
+                          "for further instructions.")
     return _gdal
 
 
-def imread(fname, dtype=None):
-    """Load an image from file.
+class GdalFormat(Format):
 
     """
-    ds = gdal.Open(fname)
 
-    return ds.ReadAsArray().astype(dtype)
-
-
-
-class GdalFormat(Format):
-    """ 
-    
     Parameters for reading
     ----------------------
-    progress : {True, False, BaseProgressIndicator}
-        Whether to show progress when reading from multiple files.
-        Default True. By passing an object that inherits from
-        BaseProgressIndicator, the way in which progress is reported
-        can be costumized.
-    
-    """
-    
-    def _can_read(self, request):
-        # If user URI was a directory, we check whether it has a DICOM file
-        if os.path.isdir(request.filename):
-            files = os.listdir(request.filename)
-            files.sort()  # Make it consistent
-            if files:
-                with open(os.path.join(request.filename, files[0]), 'rb') as f:
-                    first_bytes = read_n_bytes(f, 140)
-                return first_bytes[128:132] == b'DICM'
-            else:
-                return False
-        # Check
-        return request.firstbytes[128:132] == b'DICM'
-    
-    def _can_write(self, request):
-        # We cannot save yet. May be possible if we will used pydicom as
-        # a backend.
-        return False
-    
-    # --
-    
-    class Reader(Format.Reader):
-    
-        def _open(self, progress=True):
-            if not _dicom:
-                load_lib()
-            if os.path.isdir(self.request.filename):
-                # A dir can be given if the user used the format explicitly
-                self._info = {}
-                self._data = None
-            else:
-                # Read the given dataset now ...
-                dcm = _dicom.SimpleDicomReader(self.request.get_file())
-                self._info = dcm._info
-                self._data = dcm.get_numpy_array()
-            
-            # Initialize series, list of DicomSeries objects
-            self._series = None  # only created if needed
-            
-            # Set progress indicator
-            if isinstance(progress, BaseProgressIndicator):
-                self._progressIndicator = progress
-            elif progress is True:
-                p = StdoutProgressIndicator('Reading DICOM')
-                self._progressIndicator = p
-            elif progress in (None, False):
-                self._progressIndicator = BaseProgressIndicator('Dummy')
-            else:
-                raise ValueError('Invalid value for progress.')
-        
-        def _close(self):
-            # Clean up
-            self._info = None
-            self._data = None 
-            self._series = None
-        
-        @property
-        def series(self):
-            if self._series is None:
-                pi = self._progressIndicator
-                self._series = _dicom.process_directory(self.request, pi)
-            return self._series
-        
-        def _get_length(self):
-            if self._data is None:
-                dcm = self.series[0][0]
-                self._info = dcm._info
-                self._data = dcm.get_numpy_array()
-            
-            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
-            
-            if self.request.mode[1] == 'i':
-                # User expects one, but lets be honest about this file
-                return nslices
-            elif self.request.mode[1] == 'I':
-                # User expects multiple, if this file has multiple slices, ok.
-                # Otherwise we have to check the series.
-                if nslices > 1:
-                    return nslices
-                else:
-                    return sum([len(serie) for serie in self.series])
-            elif self.request.mode[1] == 'v':
-                # User expects a volume, if this file has one, ok.
-                # Otherwise we have to check the series
-                if nslices > 1:
-                    return 1
-                else:
-                    return len(self.series)  # We assume one volume per series
-            elif self.request.mode[1] == 'V':
-                # User expects multiple volumes. We have to check the series
-                return len(self.series)  # We assume one volume per series
-            else:
-                raise RuntimeError('DICOM plugin should know what to expect.')
-        
-        def _get_data(self, index):
-            if self._data is None:
-                dcm = self.series[0][0]
-                self._info = dcm._info
-                self._data = dcm.get_numpy_array()
-            
-            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
-            
-            if self.request.mode[1] == 'i':
-                # Allow index >1 only if this file contains >1
-                if nslices > 1:
-                    return self._data[index], self._info
-                elif index == 0:
-                    return self._data, self._info
-                else:
-                    raise IndexError('Dicom file contains only one slice.')
-            elif self.request.mode[1] == 'I':
-                # Return slice from volume, or return item from series
-                if index == 0 and nslices > 1:
-                    return self._data[index], self._info
-                else:
-                    L = []
-                    for serie in self.series:
-                        L.extend([dcm_ for dcm_ in serie])
-                    return L[index].get_numpy_array(), L[index].info
-            elif self.request.mode[1] in 'vV':
-                # Return volume or series
-                if index == 0 and nslices > 1:
-                    return self._data, self._info
-                else:
-                    return (self.series[index].get_numpy_array(),
-                            self.series[index].info)
-            else:  # pragma: no cover
-                raise ValueError('DICOM plugin should know what to expect.')
-        
-        def _get_meta_data(self, index):
-            if self._data is None:
-                dcm = self.series[0][0]
-                self._info = dcm._info
-                self._data = dcm.get_numpy_array()
-            
-            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
-            
-            # Default is the meta data of the given file, or the "first" file.
-            if index is None:
-                return self._info
+    None
 
-            if self.request.mode[1] == 'i':
-                return self._info
-            elif self.request.mode[1] == 'I':
-                # Return slice from volume, or return item from series
-                if index == 0 and nslices > 1:
-                    return self._info
-                else:
-                    L = []
-                    for serie in self.series:
-                        L.extend([dcm_ for dcm_ in serie])
-                    return L[index].info
-            elif self.request.mode[1] in 'vV':
-                # Return volume or series
-                if index == 0 and nslices > 1:
-                    return self._info
-                else:
-                    return self.series[index].info
-            else:  # pragma: no cover
-                raise ValueError('DICOM plugin should know what to expect.')
+    """
+
+    def _can_read(self, request):
+        pass
+
+    def _can_write(self, request):
+        return False
+
+    # --
+
+    class Reader(Format.Reader):
+
+        def _open(self):
+            if not _gdal:
+                load_lib()
+            self._ds = _gdal.Open(self.request.get_local_filename())
+
+        def _close(self):
+            del self._ds
+
+        def _get_length(self):
+            return 1
+
+        def _get_data(self, index):
+            if index != 0:
+                raise IndexError('Gdal file contains only one dataset')
+            return self._ds.ReadAsArray(), self._get_meta_data(index)
+
+        def _get_meta_data(self, index):
+            return self._ds.GetMetadata()
 
 # Add this format
 formats.add_format(GdalFormat(
-    'gdal', 
-    'Digital Imaging and Communications in Medicine', 
-    '.dcm .ct .mri', 'iIvV'))  # Often DICOM files have weird or no extensions
+    'gdal',
+    'Geospatial Data Abstraction Library',
+    '.tiff .tif .img .ecw .jpg .jpeg', 'iIvV'))

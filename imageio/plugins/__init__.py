@@ -92,5 +92,6 @@ from . import npz  # noqa
 from . import swf  # noqa
 from . import fits  # noqa
 from . import simpleitk  # noqa
+from . import gdal  # noqa
 
 from . import example  # noqa
