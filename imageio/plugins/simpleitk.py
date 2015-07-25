@@ -28,7 +28,7 @@ def load_lib():
 
 
 # Split up in real ITK and all supported formats.
-ITK_FORMATS = ('.gipl', '.ipl', '.mhd', '.nhdr', '.nrrd', '.vtk')
+ITK_FORMATS = ('.gipl', '.ipl', '.mha', '.mhd', '.nhdr', '.nii', '.nrrd', '.vtk')
 ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif',
                              '.dicom', '.gdcm')
 
