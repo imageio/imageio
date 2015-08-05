@@ -2,6 +2,11 @@
 # Validate this at http://lint.travis-ci.org/
 
 language: python
+sudo: false
+addons:
+  apt:
+    packages:
+    - libfreeimage3
 
 python:
     # - We do unit tests in all envs
@@ -16,7 +21,6 @@ python:
 
 before_install:
     - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
-    - sudo apt-get update -qq;
     # Install miniconda
     - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
         wget -q http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
@@ -64,14 +68,13 @@ install:
         pip install -q flake8;
         pip install -q sphinx;
       else
-        travis_retry sudo apt-get install libfreeimage3;
         pip install -q pytest pytest-cov;
         pip install -q coveralls;
       fi;
     # Install optional dependencies
     - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
-       pip install -q astropy;
        easy_install -q simpleitk; true;
+       conda install -y gdal astropy;
       fi;
     # Install imageio, use installed version on only one machine
     - python setup.py build_with_fi install > ${REDIRECT_TO}
