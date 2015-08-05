@@ -59,7 +59,7 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
                     '/opt/local/lib', ]
     
     # Get Python dirs to search (shared if for Pyzo)
-    py_sub_dirs = ['lib', 'DLLs', 'shared']    
+    py_sub_dirs = ['lib', 'DLLs', 'Library/bin', 'shared']    
     py_lib_dirs = [os.path.join(sys.prefix, d) for d in py_sub_dirs]
     if hasattr(sys, 'base_prefix'):
         py_lib_dirs += [os.path.join(sys.base_prefix, d) for d in py_sub_dirs]
