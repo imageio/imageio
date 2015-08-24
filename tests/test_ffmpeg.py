@@ -178,9 +178,10 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     # Check that video pixel format and size get written as expected.
     need_internet()
     # Make sure verbose option works and that default pixelformat is yuv420p
-    tmpf = tmpdir.join('test.mp4')
+    tmpf = tmpdir.join('test.mp4', fps=30)
     W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
-    for i in range(3):
+    nframes = 4
+    for i in range(nframes):
         # Use size divisible by 16 or it gets changed.
         W.append_data(np.zeros((64, 64, 3), np.uint8))
     W.close()
@@ -188,35 +189,39 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     # Check that video is correct size & default output video pixel format
     # is correct
     W = imageio.get_reader(str(tmpf))
+    assert len(W) == nframes
     assert "64x64" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
 
     # Now check that macroblock size gets turned off if requested
     W = imageio.get_writer(str(tmpf), macro_block_size=None,
                            ffmpeg_log_level='debug')
-    for i in range(3):
+    for i in range(nframes):
         W.append_data(np.zeros((100, 106, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
+    assert len(W) == nframes
     assert "106x100" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
 
     # Now double check values different than default work
     W = imageio.get_writer(str(tmpf), macro_block_size=4,
                            ffmpeg_log_level='debug')
-    for i in range(3):
+    for i in range(nframes):
         W.append_data(np.zeros((64, 65, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
+    assert len(W) == nframes
     assert "68x64" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
 
     # Now check that the macroblock works as expected for the default of 16
     W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
-    for i in range(3):
+    for i in range(nframes):
         W.append_data(np.zeros((111, 140, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
+    assert len(W) == nframes
     # Check for warning message with macroblock
     assert "144x112" in W._stderr_catcher.header
     assert "yuv420p" in W._stderr_catcher.header
