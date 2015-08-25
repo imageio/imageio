@@ -464,7 +464,7 @@ class FfmpegFormat(Format):
             if match is not None:
                 hms = map(float, line[match.start()+1:match.end()].split(':'))
                 self._meta['duration'] = duration = cvsecs(*hms)
-                self._meta['nframes'] = int(duration*fps)
+                self._meta['nframes'] = int(round(duration*fps))
 
         def _read_frame_data(self):
             # Init and check
