@@ -123,7 +123,7 @@ def test_import_dependencies():
     extra_modules = modnames_new.difference(modnames_ref)
 
     known_modules = ['zipfile', 'importlib', 'logging', 'json', 'decimal',
-                     'fractions']  # discard these
+                     'fractions', 'tempfile']  # discard these
 
     # Remove modules in standard library
     stdloc = os.path.dirname(os.__file__)
