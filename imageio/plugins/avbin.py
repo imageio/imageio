@@ -21,7 +21,7 @@ from ..core import (Format, get_platform, get_remote_file,
 
 
 FNAME_PER_PLATFORM = {
-    'osx64': 'libavbin-11alpha4-osx.dylib',
+    'osx64': 'libavbin-10-osx.dylib',
     'win32': 'avbin-10-win32.dll',
     'win64': 'avbin-10-win64.dll',
     'linux32': 'libavbin-10-linux32.so',
