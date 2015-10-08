@@ -214,19 +214,19 @@ class bdist_wheel_all(bdist_wheel):
             tf.extractall(build_dir)
         resource_dir = op.join(build_dir, 'imageio', 'resources')
         assert os.path.isdir(resource_dir), build_dir
-        
+
         # Prepare the libs resource directory with cross-platform
         # resources, so we can copy these for each platform
         _set_crossplatform_resources(imageio.core.resource_dirs()[0])
         
         # Create archives
         dist_files = self.distribution.dist_files
+        pyver = 'cp26.cp27.cp33.cp34.cp35'
         for plat in ['win64', 'osx64']:
-            for pyver in ['27', '34']:
-                fname = self._create_wheels_for_platform(resource_dir,
-                                                         plat, pyver)
-                dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
-        
+            fname = self._create_wheels_for_platform(resource_dir,
+                                                     plat, pyver)
+        dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
+
         # Clean up
         shutil.rmtree(build_dir)
         os.remove('dist/' + basename)
@@ -234,7 +234,7 @@ class bdist_wheel_all(bdist_wheel):
     def _create_wheels_for_platform(self, resource_dir, plat, pyver):
         import zipfile
         import imageio
-        
+
         # Copy over crossplatform resources and add platform specifics
         shutil.rmtree(resource_dir)
         if plat:
@@ -243,18 +243,19 @@ class bdist_wheel_all(bdist_wheel):
         else:
             os.mkdir(resource_dir)
             open(op.join(resource_dir, 'shipped_resources_go_here'), 'wb')
-        
+
         # Zip it
         distdir = op.join(THIS_DIR, 'dist')
         build_dir = op.join(distdir, 'temp')
         zipfname = 'imageio-%s.zip' % __version__
+
         if plat:
             if plat == 'win64':
                 plat = 'win_amd64'
             elif plat == 'osx64':
-                plat = 'macosx_10_5_x86_64'
-            zipfname = 'imageio-%s-cp%s-none-%s.whl' % (__version__, pyver,
-                                                        plat)
+                plat = 'macosx_10_5_x86_64.macosx_10_6_intel'
+            zipfname = 'imageio-%s-%s-none-%s.whl' % (__version__, pyver,
+                                                      plat)
         zipfilename = op.join(distdir, zipfname)
         zf = zipfile.ZipFile(zipfilename, 'w', zipfile.ZIP_DEFLATED)
         for root, dirs, files in os.walk(build_dir):
