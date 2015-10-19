@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Pypi downloads](https://img.shields.io/pypi/dm/imageio.svg)](https://pypi.python.org/pypi/imageio)
-[![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://readthedocs.org/projects/imageio/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.org)
    
 Website: http://imageio.github.io
 
