@@ -280,7 +280,7 @@ class TiffWriter(object):
 
     def save(self, data, photometric=None, planarconfig=None, resolution=None,
              description=None, volume=False, writeshape=False, compress=0,
-             extratags=()):
+             extratags=(), **kwargs):
         """Write image data to TIFF file.
 
         Image data are written in one stripe per plane.

@@ -68,4 +68,11 @@ def test_tifffile_reading_writing():
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
 
+    # Ensure imwrite write works round trip
+    filename3 = os.path.join(test_dir, 'test_tiff2.tiff')
+    R = imageio.imread(filename1)
+    imageio.imwrite(filename3, R)
+    R2 = imageio.imread(filename3)
+    assert (R == R2).all()
+
 run_tests_if_main()
