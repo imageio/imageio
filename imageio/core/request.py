@@ -350,7 +350,8 @@ class Request(object):
         
         # Collect bytes from temp file
         if self.mode[0] == 'w' and self._filename_local:
-            bytes = open(self._filename_local, 'rb').read()
+            with open(self._filename_local, 'rb') as file:
+                bytes = file.read()
         
         # Collect bytes from BytesIO file object.
         written = (self.mode[0] == 'w') and self._file
