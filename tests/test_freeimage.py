@@ -417,6 +417,9 @@ def test_animated_gif():
 
 def test_ico():
     
+    if os.getenv('TRAVIS', '') == 'true' and sys.version_info >= (3, 4):
+        skip('Freeimage ico is unstable for this Travis build')
+    
     for float in (False, True):
         for crop in (0, ):
             for colors in (1, 3, 4):
