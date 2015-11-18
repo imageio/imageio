@@ -24,7 +24,7 @@ Release:
   * git tag the release
   * Upload to Pypi:
     * python setup.py register
-    * python setup.py sdist_all upload
+    * python setup.py sdist bdist_wheel_all upload
   * Update, build and upload conda package
 
 After release:
@@ -221,11 +221,13 @@ class bdist_wheel_all(bdist_wheel):
         
         # Create archives
         dist_files = self.distribution.dist_files
+        while dist_files:
+            dist_files.pop()
         pyver = 'cp26.cp27.cp33.cp34.cp35'
         for plat in ['win64', 'osx64']:
             fname = self._create_wheels_for_platform(resource_dir,
                                                      plat, pyver)
-        dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
+            dist_files.append(('bdist_wheel', 'any', 'dist/'+fname))
 
         # Clean up
         shutil.rmtree(build_dir)
