@@ -2,6 +2,20 @@
 Release notes
 -------------
 
+Version 1.4 (18-11-2015)
+========================
+
+* Various improvements to the ffmpeg plugin.
+* New tiffile plugin that should support most scientific formats.
+* New simpleITK wrapper plugin.
+* New gdal plugin.
+* Freeimage plugin can load freeimage lib provided by conda.
+* Dicom plugin improved handling of compressed files.
+* Most plugins adopt lazy loading to keep imageio lean, fast, and scalable.
+* We now build wheels for Pypi.
+* Travis also tests Python 3.5.
+
+
 Version 1.3 (02-07-2015)
 ========================
 
