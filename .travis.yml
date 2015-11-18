@@ -2,27 +2,38 @@
 # Validate this at http://lint.travis-ci.org/
 
 language: python
+
 sudo: false
+
 addons:
   apt:
     packages:
     - libfreeimage3
 
-python:
-    # - We do unit tests in all envs
-    # - Style tests only in 2.7
-    # - Image test (todo)
-    
-    #- "pypy3"  numpy support is really bad right now
-    - "2.6"  # lowest that we want to support
-    - "2.7"  # native Python, has numpy, runs unit tests of installed imageio
-    - "3.4"  # coverage is produced here
-    - "3.3"  # Test only style on this machine
+# Only run travis build on push for master branch
+branches:
+  only:
+    - master
+
+matrix:
+    include:
+        - python: "3.5"
+          env: TEST_UNIT=0 TEST_STYLE=1
+        #
+        - python: "2.6"
+          env: TEST_UNIT=1
+        - python: "2.7"
+          env: TEST_UNIT=1 TEST_INSTALL=1
+        - python: "3.4"
+          env: TEST_UNIT=1 TEST_FULL=1 TEST_COVER=1
+        - python: "3.5"
+          env: TEST_UNIT=1
+
 
 before_install:
     - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
     # Install miniconda
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TEST_UNIT}" == "1" ]; then
         wget -q http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -O miniconda.sh;
         chmod +x miniconda.sh;
         ./miniconda.sh -b -p ~/anaconda &> ${REDIRECT_TO};
@@ -31,7 +42,7 @@ before_install:
       fi;
     - SRC_DIR=$(pwd)
     # file size checks
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
+    - if [ "${TEST_STYLE}" == "1" ]; then
         if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
           GIT_TARGET_EXTRA="+refs/heads/${TRAVIS_BRANCH}";
           GIT_SOURCE_EXTRA="+refs/pull/${TRAVIS_PULL_REQUEST}/merge";
@@ -58,13 +69,13 @@ before_install:
 
 install:
     # Install Python with numpy
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "2.6" ] || [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TEST_UNIT}" == "1" ]; then
         conda create -n testenv --yes --quiet pip python=$TRAVIS_PYTHON_VERSION > ${REDIRECT_TO};
         source activate testenv > ${REDIRECT_TO};
         conda install --yes --quiet numpy > ${REDIRECT_TO};
       fi;
     # Install dependencies (also for testing)
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
+    - if [ "${TEST_STYLE}" == "1" ]; then
         pip install -q flake8;
         pip install -q sphinx;
       else
@@ -72,24 +83,26 @@ install:
         pip install -q coveralls;
       fi;
     # Install optional dependencies
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TEST_FULL}" == "1" ]; then
        easy_install -q simpleitk; true;
        conda install -y gdal astropy;
       fi;
     # Install imageio, use installed version on only one machine
-    - python setup.py build_with_fi install > ${REDIRECT_TO}
+    - if [ "${TEST_INSTALL}" == 1" ]; then
+       python setup.py build_with_fi install > ${REDIRECT_TO};
+      fi;
 
 before_script:
 
 script: 
     - python -c "import sys; print(sys.version, '\n', sys.prefix)";
     # Run unit tests or style test
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.3" ]; then
+    - if [ "${TEST_STYLE}" == "1" ]; then
         echo "Size difference ${SIZE_DIFF} kB";
         test ${SIZE_DIFF} -lt 100;
         python make test style;
         python make doc html;
-      elif [ "${TRAVIS_PYTHON_VERSION}" == "2.7" ]; then
+      elif [ "${TEST_INSTALL}" == "1" ]; then
         python make test installed;
       else
         python make test unit;
@@ -97,7 +110,7 @@ script:
 
 after_success:
     - echo == ALL TESTS PASS ==
-    - if [ "${TRAVIS_PYTHON_VERSION}" == "3.4" ]; then
+    - if [ "${TEST_COVER}" == "1" ]; then
         coveralls;
       fi;
 
