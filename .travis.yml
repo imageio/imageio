@@ -88,7 +88,7 @@ install:
        conda install -y gdal astropy;
       fi;
     # Install imageio, use installed version on only one machine
-    - if [ "${TEST_INSTALL}" == 1" ]; then
+    - if [ "${TEST_INSTALL}" == "1" ]; then
        python setup.py build_with_fi install > ${REDIRECT_TO};
       fi;
 
