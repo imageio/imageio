@@ -15,8 +15,9 @@
 
 from __future__ import absolute_import, print_function, division
 
-import sys
 import os
+import sys
+import subprocess
 
 from .. import formats
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
@@ -33,6 +34,23 @@ def load_lib():
 
 # Determine endianity of system
 sys_is_little_endian = (sys.byteorder == 'little')
+
+
+def get_dcmdjpeg_exe():
+    fname = 'dcmdjpeg' + '.exe' * sys.platform.startswith('win')
+    for dir in ('c:\\dcmtk',
+                'c:\\Program Files', 'c:\\Program Files\\dcmtk',
+                'c:\\Program Files (x86)\\dcmtk'
+                ):
+        filename = os.path.join(dir, fname)
+        if os.path.isfile(filename):
+            return filename
+    
+    try:
+        subprocess.check_call([fname, '--version'], shell=True)
+        return fname
+    except Exception:
+        return None
 
 
 class DicomFormat(Format):
@@ -95,7 +113,23 @@ class DicomFormat(Format):
                 self._data = None
             else:
                 # Read the given dataset now ...
-                dcm = _dicom.SimpleDicomReader(self.request.get_file())
+                try:
+                    dcm = _dicom.SimpleDicomReader(self.request.get_file())
+                except _dicom.CompressedDicom as err:
+                    if 'JPEG' in str(err):
+                        exe = get_dcmdjpeg_exe()
+                        if not exe:
+                            raise
+                        print('DICOM file contained compressed data. '
+                              'Attempting to use dcmtk to convert it.')
+                        fname1 = self.request.get_local_filename()
+                        fname2 = fname1 + '.raw'
+                        subprocess.check_call([exe, fname1, fname2], shell=1)
+                        dcm = _dicom.SimpleDicomReader(fname2)
+                        print('Success')
+                    else:
+                        raise
+                
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
             

@@ -180,7 +180,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     # Make sure verbose option works and that default pixelformat is yuv420p
     tmpf = tmpdir.join('test.mp4', fps=30)
     W = imageio.get_writer(str(tmpf), ffmpeg_log_level='debug')
-    nframes = 4 # Number of frames in video
+    nframes = 4  # Number of frames in video
     for i in range(nframes):
         # Use size divisible by 16 or it gets changed.
         W.append_data(np.zeros((64, 64, 3), np.uint8))
@@ -327,6 +327,12 @@ def test_framecatcher():
     # Close
     file.close()
 
+
+def test_dcmtk():
+    # This should not crach, we make no assumptions on whether its
+    # available or not
+    imageio.plugins.dicom.get_dcmdjpeg_exe()
+    
 
 def test_webcam():
     need_internet()
