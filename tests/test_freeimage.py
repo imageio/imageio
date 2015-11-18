@@ -417,6 +417,9 @@ def test_animated_gif():
 
 def test_ico():
     
+    if sys.version_info >= (3, 5):
+        skip('On 3.5 freeimage ico is unstable')
+    
     for float in (False, True):
         for crop in (0, ):
             for colors in (1, 3, 4):
