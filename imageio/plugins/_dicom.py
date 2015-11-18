@@ -106,6 +106,10 @@ class NotADicomFile(Exception):
     pass
 
 
+class CompressedDicom(RuntimeError):
+    pass
+
+
 class SimpleDicomReader(object):
     """ 
     This class provides reading of pixel data from DICOM files. It is 
@@ -331,13 +335,22 @@ class SimpleDicomReader(object):
             # DeflatedExplicitVRLittleEndian:
             is_implicit_VR, is_little_endian = False, True
             self._inflate()
-        elif TransferSyntaxUID == '1.2.840.10008.1.2.4.70': 
-            is_implicit_VR, is_little_endian = False, True
         else:
-            raise RuntimeError('The simple dicom reader can only read files '
-                               'with uncompressed image data '
-                               '(not %r)' % TransferSyntaxUID)
-                        
+            # http://www.dicomlibrary.com/dicom/transfer-syntax/
+            t, extra_info = TransferSyntaxUID, ''
+            if t >= '1.2.840.10008.1.2.4.50' and t < '1.2.840.10008.1.2.4.99':
+                extra_info = ' (JPEG)'
+            if t >= '1.2.840.10008.1.2.4.90' and t < '1.2.840.10008.1.2.4.99':
+                extra_info = ' (JPEG 2000)'
+            if t == '1.2.840.10008.1.2.5':
+                extra_info = ' (RLE)'
+            if t == '1.2.840.10008.1.2.6.1':
+                extra_info = ' (RFC 2557)'
+            raise CompressedDicom('The dicom reader can only read files with '
+                                  'uncompressed image data - not %r%s. You '
+                                  'can try using dcmtk or gdcm to convert the '
+                                  'image.' % (t, extra_info))
+        
         # From hereon, use implicit/explicit big/little endian
         self.is_implicit_VR = is_implicit_VR
         self.is_little_endian = is_little_endian
