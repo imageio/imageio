@@ -819,7 +819,8 @@ class StreamCatcher(threading.Thread):
                     header = b'\n'.join(self._lines)
                     self._header += header.decode('utf-8', 'ignore')
                     self._lines = []
-            self._lines = limit_lines(self._lines)
+            if self._header:
+                self._lines = limit_lines(self._lines)
 
 
 # Register. You register an *instance* of a Format class.
