@@ -18,7 +18,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 import imageio
 from imageio import core
 from imageio.core import Format, FormatManager, Request
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import get_remote_file, IS_PYPY, resource_dirs
 
 test_dir = get_test_dir()
 
@@ -776,6 +776,14 @@ def test_util_has_has_module():
 
 def test_functions():
     """ Test the user-facing API functions """
+    
+    # Clear cache
+    for dir in resource_dirs():
+        for fname in os.listdir(dir):
+            filename = os.path.join(dir, fname)
+            if os.path.isfile(filename) and not fname.endswith('.py'):
+                os.remove(filename)
+                print('removed ', filename)
     
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
