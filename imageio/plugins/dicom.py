@@ -120,13 +120,15 @@ class DicomFormat(Format):
                         exe = get_dcmdjpeg_exe()
                         if not exe:
                             raise
-                        print('DICOM file contained compressed data. '
-                              'Attempting to use dcmtk to convert it.')
                         fname1 = self.request.get_local_filename()
                         fname2 = fname1 + '.raw'
-                        subprocess.check_call([exe, fname1, fname2], shell=1)
+                        try:
+                            subprocess.check_call([exe, fname1, fname2], shell=1)
+                        except Exception:
+                            raise err
+                        print('DICOM file contained compressed data. '
+                              'Used dcmtk to convert it.')
                         dcm = _dicom.SimpleDicomReader(fname2)
-                        print('Success')
                     else:
                         raise
                 
