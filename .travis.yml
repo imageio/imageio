@@ -83,9 +83,10 @@ install:
         pip install -q coveralls;
       fi;
     # Install optional dependencies
+    # We do NOT conda install gdal, because it causes segfaults
     - if [ "${TEST_FULL}" == "1" ]; then
        easy_install -q simpleitk; true;
-       conda install -y gdal astropy;
+       conda install -y astropy;
       fi;
     # Install imageio, use installed version on only one machine
     - if [ "${TEST_INSTALL}" == "1" ]; then
