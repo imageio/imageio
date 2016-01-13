@@ -84,7 +84,6 @@ install:
       fi;
     # Install optional dependencies
     - if [ "${TEST_FULL}" == "1" ]; then
-       easy_install -q simpleitk; true;
        conda install -y gdal astropy;
       fi;
     # Install imageio, use installed version on only one machine

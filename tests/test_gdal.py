@@ -19,9 +19,6 @@ except ImportError:
 def test_gdal_reading():
     """ Test reading gdal"""
 
-    if os.getenv('TRAVIS', '') == 'true':
-        pytest.skip('GDAL is unstable for this Travis build')
-
     filename = get_remote_file('images/geotiff.tif')
 
     im = imageio.imread(filename, 'gdal')
