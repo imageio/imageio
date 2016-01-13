@@ -160,6 +160,9 @@ def imread(uri, format=None, **kwargs):
     Reads an image from the specified file. Returns a numpy array, which
     comes with a dict of meta data at its 'meta' attribute.
     
+    Note that the image data is returned as-is, and may not always have
+    a dtype of uint8 (and thus may differ from what e.g. PIL returns).
+    
     Parameters
     ----------
     uri : {str, bytes, file}
