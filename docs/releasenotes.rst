@@ -2,6 +2,16 @@
 Release notes
 -------------
 
+Version 1.5 (31-01-2015)
+========================
+
+* Freeimage conda package (in main channel) is updated and works on all
+  major OS's.
+* Conda install imageio!
+* Fix bug where the ffmpeg plugin fails on certain video files (#131).
+* Fix how dicom uses dcmtk for JPEG compressed files.
+
+
 Version 1.4 (18-11-2015)
 ========================
 
