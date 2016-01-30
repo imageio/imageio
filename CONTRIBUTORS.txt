@@ -12,6 +12,9 @@
 - Ghis Vaillant
   Debian packaging
 
+- jackwalker64
+  Fixes for ffmpeg plugin
+
 - legionaryu
   Fixes for the GIF plugin
 
