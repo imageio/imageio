@@ -45,6 +45,16 @@ def get_exe():
     if exe:  # pragma: no cover
         return exe
 
+    # Check if ffmpeg is in PATH
+    try:
+        with open(os.devnull, "w") as null:
+            sp.check_call(["ffmpeg", "-version"], stdout=null, stderr=sp.STDOUT)
+            return "ffmpeg"
+    # ValueError is raised on failure on OS X through Python 2.7.11
+    # https://bugs.python.org/issue26083
+    except (OSError, ValueError, sp.CalledProcessError):
+        pass
+
     plat = get_platform()
 
     if plat and plat in FNAME_PER_PLATFORM:
@@ -176,6 +186,13 @@ class FfmpegFormat(Format):
 
     class Reader(Format.Reader):
 
+        _exe = None
+
+        @classmethod
+        def _get_exe(cls):
+            cls._exe = cls._exe or get_exe()
+            return cls._exe
+
         def _get_cam_inputname(self, index):
             if sys.platform.startswith('linux'):
                 return '/dev/' + self.request._video[1:-1]
@@ -221,7 +238,7 @@ class FfmpegFormat(Format):
         def _open(self, loop=False, size=None, pixelformat=None,
                   print_info=False):
             # Get exe
-            self._exe = get_exe()
+            self._exe = self._get_exe()
             # Process input args
             self._arg_loop = bool(loop)
             if size is None:
@@ -513,11 +530,18 @@ class FfmpegFormat(Format):
 
     class Writer(Format.Writer):
 
+        _exe = None
+
+        @classmethod
+        def _get_exe(cls):
+            cls._exe = cls._exe or get_exe()
+            return cls._exe
+
         def _open(self, fps=10, codec='libx264', bitrate=None,
                   pixelformat='yuv420p', ffmpeg_params=None,
                   ffmpeg_log_level="quiet", quality=5,
                   macro_block_size=16):
-            self._exe = get_exe()
+            self._exe = self._get_exe()
             # Get local filename
             self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
