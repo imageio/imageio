@@ -141,7 +141,7 @@ class FfmpegFormat(Format):
         Sets ffmpeg output log level.  Default is "warning".
         Values can be "quiet", "panic", "fatal", "error", "warning", "info"
         "verbose", or "debug". Also prints the FFMPEG command being used by
-        imageio if not "quiet" or "warning".
+        imageio if "info", "verbose", or "debug".
     macro_block_size: int
         Size constraint for video. Width and height, must be divisible by this
         number. If not divisible by this number imageio will tell ffmpeg to
@@ -676,8 +676,8 @@ class FfmpegFormat(Format):
             cmd += extra_ffmpeg_params
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
-            if ('warning' not in ffmpeg_log_level) and \
-                    ('quiet' not in ffmpeg_log_level):
+            if any([level in ffmpeg_log_level for level in
+                    ("info", "verbose", "debug", "trace")]):
                 print("RUNNING FFMPEG COMMAND:", self._cmd, file=sys.stderr)
 
             # Launch process
