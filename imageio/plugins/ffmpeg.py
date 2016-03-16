@@ -45,6 +45,16 @@ def get_exe():
     if exe:  # pragma: no cover
         return exe
 
+    # Check if ffmpeg is in PATH
+    try:
+        with open(os.devnull, "w") as null:
+            sp.check_call(["ffmpeg", "-version"], stdout=null, stderr=sp.STDOUT)
+            return "ffmpeg"
+    # ValueError is raised on failure on OS X through Python 2.7.11
+    # https://bugs.python.org/issue26083
+    except (OSError, ValueError, sp.CalledProcessError):
+        pass
+
     plat = get_platform()
 
     if plat and plat in FNAME_PER_PLATFORM:
