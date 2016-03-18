@@ -460,6 +460,11 @@ class Freeimage(object):
             for dir in res_dirs:
                 exact_lib_names.insert(0, 
                                        os.path.join(dir, 'freeimage', fname))
+
+        # Add the path specified with IMAGEIO_FREEIMAGE_LIB:
+        lib = os.getenv('IMAGEIO_FREEIMAGE_LIB', None)
+        if lib is not None:
+            exact_lib_names.insert(0, lib)
         
         # Load
         try:
