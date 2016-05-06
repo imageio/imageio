@@ -123,7 +123,8 @@ class DicomFormat(Format):
                         fname1 = self.request.get_local_filename()
                         fname2 = fname1 + '.raw'
                         try:
-                            subprocess.check_call([exe, fname1, fname2], shell=1)
+                            subprocess.check_call([exe, fname1, fname2],
+                                                  shell=True)
                         except Exception:
                             raise err
                         print('DICOM file contained compressed data. '
