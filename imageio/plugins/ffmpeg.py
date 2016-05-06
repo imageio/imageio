@@ -37,6 +37,14 @@ FNAME_PER_PLATFORM = {
 }
 
 
+def limit_lines(lines, N=32):
+    """ When number of lines > 2*N, reduce to N.
+    """
+    if len(lines) > 2*N:
+        lines = [b'... showing only last few lines ...'] + lines[-N:]
+    return lines
+
+
 def get_exe():
     """ Get ffmpeg exe
     """
@@ -48,7 +56,8 @@ def get_exe():
     # Check if ffmpeg is in PATH
     try:
         with open(os.devnull, "w") as null:
-            sp.check_call(["ffmpeg", "-version"], stdout=null, stderr=sp.STDOUT)
+            sp.check_call(["ffmpeg", "-version"], stdout=null,
+                          stderr=sp.STDOUT)
             return "ffmpeg"
     # ValueError is raised on failure on OS X through Python 2.7.11
     # https://bugs.python.org/issue26083
@@ -387,21 +396,19 @@ class FfmpegFormat(Format):
                 return  # process already dead
             # Terminate process
             self._proc.terminate()
+            # Close streams
+            for p in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
+                try:
+                    p.close()
+                except Exception:  # pragma: no cover
+                    pass
             # Wait for it to close (but do not get stuck)
             etime = time.time() + timeout
             while time.time() < etime:
                 time.sleep(0.01)
                 if self._proc.poll() is not None:
-                    break
-
-#         def _close_streams(self):
-#             for std in (self._proc.stdin,
-#                         self._proc.stdout,
-#                         self._proc.stderr):
-#                 try:
-#                     std.close()
-#                 except Exception:  # pragma: no cover
-#                     pass
+                    return
+            # self._proc.kill()  # probably not needed ...
 
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
@@ -724,14 +731,6 @@ def cvsecs(*args):
         return 3600*args[0] + 60*args[1] + args[2]
 
 
-def limit_lines(lines, N=32):
-    """ When number of lines > 2*N, reduce to N.
-    """
-    if len(lines) > 2*N:
-        lines = [b'... showing only last few lines ...'] + lines[-N:]
-    return lines
-
-
 class FrameCatcher(threading.Thread):
     """ Thread to keep reading the frame data from stdout. This is
     useful when streaming from a webcam. Otherwise, if the user code
@@ -822,6 +821,10 @@ class StreamCatcher(threading.Thread):
         return self._header + '\n' + lines.decode('utf-8', 'ignore')
 
     def run(self):
+        
+        # Create ref here so it still exists even if Py is shutting down
+        limit_lines_local = limit_lines
+        
         while True:
             time.sleep(0.001)
             # Read one line. Detect when closed, and exit
@@ -843,8 +846,8 @@ class StreamCatcher(threading.Thread):
                     header = b'\n'.join(self._lines)
                     self._header += header.decode('utf-8', 'ignore')
                     self._lines = []
-            if self._header:
-                self._lines = limit_lines(self._lines)
+            if self._header and self._lines:
+                self._lines = limit_lines_local(self._lines)
 
 
 # Register. You register an *instance* of a Format class.

@@ -32,6 +32,7 @@ STYLE_IGNORES = ['E226',
                  'E731',  # do not assign a lambda expression, use a def
                  'W291', 
                  'W293',
+                 'W503',  # line break before binary operator
                  ]
 
 
