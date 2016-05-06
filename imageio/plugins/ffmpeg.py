@@ -392,7 +392,8 @@ class FfmpegFormat(Format):
             while time.time() < etime:
                 time.sleep(0.01)
                 if self._proc.poll() is not None:
-                    break
+                    return
+            self._proc.kill()
 
 #         def _close_streams(self):
 #             for std in (self._proc.stdin,
