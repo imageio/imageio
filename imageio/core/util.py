@@ -13,6 +13,7 @@ import os
 import sys
 import time
 import struct
+from warnings import warn
 
 import numpy as np
 
@@ -46,39 +47,69 @@ def urlopen(*args, **kwargs):
     return urlopen(*args, **kwargs)
 
 
-def image_as_uint8(im):
-    """ Convert the given image to uint8
+def image_as_uint(img_in, bitdepth=None):
+    """ Convert the given image to uint (default: uint8)
     
-    If the dtype is already uint8, it is returned as-is. If the image
-    is float, and all values are between 0 and 1, the values are
-    multiplied by 255. In all other situations, the values are scaled
-    such that the minimum value becomes 0 and the maximum value becomes
-    255.
+    If the dtype already matches the desired format, it is returned
+    as-is. If the image is float, and all values are between 0 and 1,
+    the values are multiplied by np.power(2.0, bitdepth). In all other
+    situations, the values are scaled such that the minimum value
+    becomes 0 and the maximum value becomes np.power(2.0, bitdepth)-1
+    (255 for 8-bit and 65535 for 16-bit).
     """
-    if not isinstance(im, np.ndarray):
-        raise ValueError('image must be a numpy array')
+    if not bitdepth:
+        bitdepth = 8
+    if not isinstance(img_in, np.ndarray):
+        raise ValueError('Image must be a numpy array')
+    if bitdepth == 8:
+        out_type = np.uint8
+    elif bitdepth == 16:
+        out_type = np.uint16
+    else:
+        raise ValueError('Bitdepth must be either 8 or 16')
+    im = img_in.copy()
     dtype_str = str(im.dtype)
-    # Already uint8?
-    if dtype_str == 'uint8':
+    if ((im.dtype == np.uint8 and bitdepth == 8) or
+       (im.dtype == np.uint16 and bitdepth == 16)):
+        # Already the correct format? Return as-is
         return im
-    # Handle float
-    mi, ma = np.nanmin(im), np.nanmax(im)
-    if dtype_str.startswith('float'):
-        if mi >= 0 and ma <= 1:
-            mi, ma = 0, 1
-    # Now make float copy before we scale
-    im = im.astype('float32')
-    # Scale the values between 0 and 255
-    if np.isfinite(mi) and np.isfinite(ma):
-        if mi:
-            im -= mi
-        if ma != 255:
-            im *= 255.0 / (ma - mi)
-        assert np.nanmax(im) < 256
-    return im.astype(np.uint8)
+    if (dtype_str.startswith('float') and
+       np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
+        warn('Lossy conversion from {} to {}, range [0, 1]'.format(
+             dtype_str, out_type.__name__))
+        im *= np.power(2.0, bitdepth)-1
+    elif im.dtype == np.uint32:
+        warn('Lossy conversion from uint32 to {}, '
+             'loosing {} bits of resolution'.format(out_type.__name__,
+                                                    32-bitdepth))
+        im = np.right_shift(im, 32-bitdepth)
+    elif im.dtype == np.uint64:
+        warn('Lossy conversion from uint64 to {}, '
+             'loosing {} bits of resolution'.format(out_type.__name__,
+                                                    64-bitdepth))
+        im = np.right_shift(im, 64-bitdepth)
+    else:
+        mi = np.nanmin(im)
+        ma = np.nanmax(im)
+        warn('Lossy conversion from {} to {}, '
+             'range [{}, {}]'.format(dtype_str, out_type.__name__, mi, ma))
+        if np.isfinite(mi) and np.isfinite(ma):
+            if ma == mi:
+                raise warn('Max value equals min value, ambiguous given dtype')
+            # Now make float copy before we scale
+            im = im.astype('float64')
+            # Scale the values between 0 and 1 then multiply by the max value
+            im = (im - mi) / (ma - mi) * (np.power(2.0, bitdepth)-1)
+        elif not np.isfinite(mi):
+            warn('Minimum image value is not finite')
+        elif not np.isfinite(ma):
+            warn('Maximum image value is not finite')
+    assert np.nanmin(im) >= 0
+    assert np.nanmax(im) < np.power(2.0, bitdepth)
+    return im.astype(out_type)
 
 
-# currently not used ... the only use it to easly provide the global meta info
+# currently not used ... the only use it to easily provide the global meta info
 class ImageList(list):
     def __init__(self, meta=None):
         list.__init__(self)

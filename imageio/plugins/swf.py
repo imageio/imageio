@@ -14,7 +14,7 @@ from io import BytesIO
 import numpy as np
 
 from .. import formats
-from ..core import Format, read_n_bytes, image_as_uint8
+from ..core import Format, read_n_bytes, image_as_uint
 
 
 _swf = None  # lazily loaded in lib()
@@ -301,7 +301,7 @@ class SWFFormat(Format):
             # Correct shape and type
             if im.ndim == 3 and im.shape[-1] == 1:
                 im = im[:, :, 0]
-            im = image_as_uint8(im)
+            im = image_as_uint(im, bitdepth=8)
             # Get frame size
             wh = im.shape[1], im.shape[0]
             # Write header on first frame

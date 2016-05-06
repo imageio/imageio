@@ -37,7 +37,7 @@ im4[20:, :, 3] = 120
 fnamebase = os.path.join(test_dir, 'test')
 
 
-def get_ref_im(colors, crop, float):
+def get_ref_im(colors, crop, isfloat):
     """ Get reference image with
     * colors: 0, 1, 3, 4
     * cropping: 0-> none, 1-> crop, 2-> crop with non-contiguous data
@@ -45,9 +45,9 @@ def get_ref_im(colors, crop, float):
     """
     assert colors in (0, 1, 3, 4)
     assert crop in (0, 1, 2)
-    assert float in (False, True)
+    assert isfloat in (False, True)
     rim = [im0, im1, None, im3, im4][colors]
-    if float:
+    if isfloat:
         rim = rim.astype(np.float32) / 255.0
     if crop == 1:
         rim = rim[:-1, :-1].copy()
@@ -144,27 +144,27 @@ def test_freeimage_lib():
     
 def test_png():
     
-    for float in (False, True):
+    for isfloat in (False, True):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3, 4):
-                fname = fnamebase + '%i.%i.%i.png' % (float, crop, colors)
-                rim = get_ref_im(colors, crop, float)
+                fname = fnamebase+'%i.%i.%i.png' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
-                mul = 255 if float else 1
+                mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
     
     # Run exact same test, but now in pypy backup mode
     try:
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = True
-        for float in (False, True):
+        for isfloat in (False, True):
             for crop in (0, 1, 2):
                 for colors in (0, 1, 3, 4):
-                    fname = fnamebase + '%i.%i.%i.png' % (float, crop, colors)
-                    rim = get_ref_im(colors, crop, float)
+                    fname = fnamebase+'%i.%i.%i.png' % (isfloat, crop, colors)
+                    rim = get_ref_im(colors, crop, isfloat)
                     imageio.imsave(fname, rim)
                     im = imageio.imread(fname)
-                    mul = 255 if float else 1
+                    mul = 255 if isfloat else 1
                     assert_close(rim * mul, im, 0.1)  # lossless
     finally:
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
@@ -240,14 +240,14 @@ def test_png_dtypes():
 
 def test_jpg():
     
-    for float in (False, True):
+    for isfloat in (False, True):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3):
-                fname = fnamebase + '%i.%i.%i.jpg' % (float, crop, colors)
-                rim = get_ref_im(colors, crop, float)
+                fname = fnamebase + '%i.%i.%i.jpg' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
-                mul = 255 if float else 1
+                mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 1.1)  # lossy
     
     # No alpha in JPEG
@@ -303,14 +303,14 @@ def test_jpg_more():
 
 def test_bmp():
     
-    for float in (False, True):
+    for isfloat in (False, True):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3, 4):
-                fname = fnamebase + '%i.%i.%i.bmp' % (float, crop, colors)
-                rim = get_ref_im(colors, crop, float)
+                fname = fnamebase + '%i.%i.%i.bmp' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
-                mul = 255 if float else 1
+                mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
     
     # Compression
@@ -328,16 +328,16 @@ def test_bmp():
 def test_gif():
     # The not-animated gif
     
-    for float in (False, True):
+    for isfloat in (False, True):
         for crop in (0, 1, 2):
             for colors in (0, 3, 4):
                 if colors > 1 and sys.platform.startswith('darwin'):
                     continue  # quantize fails, see also png
-                fname = fnamebase + '%i.%i.%i.gif' % (float, crop, colors)
-                rim = get_ref_im(colors, crop, float)
+                fname = fnamebase + '%i.%i.%i.gif' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
-                mul = 255 if float else 1
+                mul = 255 if isfloat else 1
                 if colors in (0, 1):
                     im = im[:, :, 0]
                 else:
@@ -364,10 +364,10 @@ def test_animated_gif():
         ims.append(im)
     
     # Store - animated GIF always poops out RGB
-    for float in (False, True):
+    for isfloat in (False, True):
         for colors in (3, 4):
             ims1 = ims[:]
-            if float:
+            if isfloat:
                 ims1 = [x.astype(np.float32) / 256 for x in ims1]
             ims1 = [x[:, :, :colors] for x in ims1]
             fname = fnamebase + '.animated.%i.gif' % colors
@@ -420,15 +420,15 @@ def test_ico():
     if os.getenv('TRAVIS', '') == 'true' and sys.version_info >= (3, 4):
         skip('Freeimage ico is unstable for this Travis build')
     
-    for float in (False, True):
+    for isfloat in (False, True):
         for crop in (0, ):
             for colors in (1, 3, 4):
-                fname = fnamebase + '%i.%i.%i.ico' % (float, crop, colors)
-                rim = get_ref_im(colors, crop, float)
+                fname = fnamebase + '%i.%i.%i.ico' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
                 rim = rim[:32, :32]  # ico needs nice size
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
-                mul = 255 if float else 1
+                mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
     
     # Meta data

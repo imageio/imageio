@@ -738,34 +738,59 @@ def test_util_progres_bar(sleep=0):
             return
 
 
-def test_util_image_as_uint8():
+def test_util_image_as_uint():
     
-    raises(ValueError, core.image_as_uint8, 4)
-    raises(ValueError, core.image_as_uint8, "not an image")
+    raises(ValueError, core.image_as_uint, 4)
+    raises(ValueError, core.image_as_uint, "not an image")
+    raises(ValueError, core.image_as_uint, np.array([0, 1]), bitdepth=13)
     
-    res = core.image_as_uint8(np.array([0, 1], 'uint8'))
+    res = core.image_as_uint(np.array([0, 1], 'uint8'))
     assert res[0] == 0 and res[1] == 1
-    res = core.image_as_uint8(np.array([4, 255], 'uint8'))
-    assert res[0] == 4 and res[1] == 255
+    res = core.image_as_uint(np.array([4, 251], 'uint8'))
+    assert res[0] == 4 and res[1] == 251
     
-    res = core.image_as_uint8(np.array([0, 1], 'int8'))
+    res = core.image_as_uint(np.array([0, 1], 'int8'))
     assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-4, 100], 'int8'))
-    assert res[0] == 0 and res[1] == 255
-    
-    res = core.image_as_uint8(np.array([0, 1], 'int16'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-4, 100], 'int16'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-1000, 8000], 'int16'))
+    res = core.image_as_uint(np.array([-4, 100], 'int8'))
     assert res[0] == 0 and res[1] == 255
     
-    res = core.image_as_uint8(np.array([0, 1], 'float32'))
+    res = core.image_as_uint(np.array([0, 1], 'int16'))
     assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([0.099, 0.785], 'float32'))
+    res = core.image_as_uint(np.array([-4, 100], 'int16'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint(np.array([-1000, 8000], 'int16'))
+    assert res[0] == 0 and res[1] == 255
+    
+    res = core.image_as_uint(np.array([0, 1], 'float32'))
+    assert res[0] == 0 and res[1] == 255
+    res = core.image_as_uint(np.array([0.099, 0.785], 'float32'))
     assert res[0] == 25 and res[1] == 200
-    res = core.image_as_uint8(np.array([4, 200], 'float32'))
+    res = core.image_as_uint(np.array([4, 200], 'float32'))
     assert res[0] == 0 and res[1] == 255
+
+    res = core.image_as_uint(np.array([0, 1], 'uint16'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 1
+    res = core.image_as_uint(np.array([4, 65531], 'uint16'), bitdepth=16)
+    assert res[0] == 4 and res[1] == 65531
+
+    res = core.image_as_uint(np.array([0, 1], 'int8'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+    res = core.image_as_uint(np.array([-4, 100], 'int8'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+
+    res = core.image_as_uint(np.array([0, 1], 'int16'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+    res = core.image_as_uint(np.array([-4, 100], 'int16'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+    res = core.image_as_uint(np.array([-1000, 8000], 'int16'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+
+    res = core.image_as_uint(np.array([0, 1], 'float32'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
+    res = core.image_as_uint(np.array([0.099, 0.785], 'float32'), bitdepth=16)
+    assert res[0] == 6487 and res[1] == 51444
+    res = core.image_as_uint(np.array([4, 200], 'float32'), bitdepth=16)
+    assert res[0] == 0 and res[1] == 65535
 
 
 def test_util_has_has_module():
