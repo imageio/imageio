@@ -75,24 +75,24 @@ def image_as_uint(img_in, bitdepth=None):
         return im
     if (dtype_str.startswith('float') and
        np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
-        warn('Lossy conversion from {} to {}, range [0, 1]'.format(
+        warn('Lossy conversion from {0} to {1}, range [0, 1]'.format(
              dtype_str, out_type.__name__))
         im *= np.power(2.0, bitdepth)-1
     elif im.dtype == np.uint32:
-        warn('Lossy conversion from uint32 to {}, '
-             'loosing {} bits of resolution'.format(out_type.__name__,
+        warn('Lossy conversion from uint32 to {0}, '
+             'loosing {1} bits of resolution'.format(out_type.__name__,
                                                     32-bitdepth))
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
-        warn('Lossy conversion from uint64 to {}, '
-             'loosing {} bits of resolution'.format(out_type.__name__,
+        warn('Lossy conversion from uint64 to {0}, '
+             'loosing {1} bits of resolution'.format(out_type.__name__,
                                                     64-bitdepth))
         im = np.right_shift(im, 64-bitdepth)
     else:
         mi = np.nanmin(im)
         ma = np.nanmax(im)
-        warn('Lossy conversion from {} to {}, '
-             'range [{}, {}]'.format(dtype_str, out_type.__name__, mi, ma))
+        warn('Lossy conversion from {0} to {1}, '
+             'range [{2}, {3}]'.format(dtype_str, out_type.__name__, mi, ma))
         if np.isfinite(mi) and np.isfinite(ma):
             if ma == mi:
                 raise warn('Max value equals min value, ambiguous given dtype')
