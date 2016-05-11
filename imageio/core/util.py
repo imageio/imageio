@@ -47,7 +47,7 @@ def urlopen(*args, **kwargs):
     return urlopen(*args, **kwargs)
 
 
-def image_as_uint(img_in, bitdepth=None):
+def image_as_uint(im, bitdepth=None):
     """ Convert the given image to uint (default: uint8)
     
     If the dtype already matches the desired format, it is returned
@@ -59,7 +59,7 @@ def image_as_uint(img_in, bitdepth=None):
     """
     if not bitdepth:
         bitdepth = 8
-    if not isinstance(img_in, np.ndarray):
+    if not isinstance(im, np.ndarray):
         raise ValueError('Image must be a numpy array')
     if bitdepth == 8:
         out_type = np.uint8
@@ -67,7 +67,6 @@ def image_as_uint(img_in, bitdepth=None):
         out_type = np.uint16
     else:
         raise ValueError('Bitdepth must be either 8 or 16')
-    im = img_in.copy()
     dtype_str = str(im.dtype)
     if ((im.dtype == np.uint8 and bitdepth == 8) or
        (im.dtype == np.uint16 and bitdepth == 16)):
@@ -77,16 +76,16 @@ def image_as_uint(img_in, bitdepth=None):
        np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
         warn('Lossy conversion from {0} to {1}, range [0, 1]'.format(
              dtype_str, out_type.__name__))
-        im *= np.power(2.0, bitdepth)-1
+        im = im * (np.power(2.0, bitdepth)-1)
     elif im.dtype == np.uint32:
         warn('Lossy conversion from uint32 to {0}, '
              'loosing {1} bits of resolution'.format(out_type.__name__,
-                                                    32-bitdepth))
+                                                     32-bitdepth))
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
         warn('Lossy conversion from uint64 to {0}, '
              'loosing {1} bits of resolution'.format(out_type.__name__,
-                                                    64-bitdepth))
+                                                     64-bitdepth))
         im = np.right_shift(im, 64-bitdepth)
     else:
         mi = np.nanmin(im)
