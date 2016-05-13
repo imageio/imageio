@@ -738,34 +738,65 @@ def test_util_progres_bar(sleep=0):
             return
 
 
-def test_util_image_as_uint8():
-    
-    raises(ValueError, core.image_as_uint8, 4)
-    raises(ValueError, core.image_as_uint8, "not an image")
-    
-    res = core.image_as_uint8(np.array([0, 1], 'uint8'))
-    assert res[0] == 0 and res[1] == 1
-    res = core.image_as_uint8(np.array([4, 255], 'uint8'))
-    assert res[0] == 4 and res[1] == 255
-    
-    res = core.image_as_uint8(np.array([0, 1], 'int8'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-4, 100], 'int8'))
-    assert res[0] == 0 and res[1] == 255
-    
-    res = core.image_as_uint8(np.array([0, 1], 'int16'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-4, 100], 'int16'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([-1000, 8000], 'int16'))
-    assert res[0] == 0 and res[1] == 255
-    
-    res = core.image_as_uint8(np.array([0, 1], 'float32'))
-    assert res[0] == 0 and res[1] == 255
-    res = core.image_as_uint8(np.array([0.099, 0.785], 'float32'))
-    assert res[0] == 25 and res[1] == 200
-    res = core.image_as_uint8(np.array([4, 200], 'float32'))
-    assert res[0] == 0 and res[1] == 255
+def test_util_image_as_uint():
+    ''' Tests the various type conversions when writing to uint'''
+    raises(ValueError, core.image_as_uint, 4)
+    raises(ValueError, core.image_as_uint, "not an image")
+    raises(ValueError, core.image_as_uint, np.array([0, 1]), bitdepth=13)
+    raises(ValueError, core.image_as_uint, np.array([2.0, 2.0], 'float32'))
+    raises(ValueError, core.image_as_uint, np.array([0.0, np.inf], 'float32'))
+    raises(ValueError, core.image_as_uint, np.array([-np.inf, 0.0], 'float32'))
+
+    test_arrays = (  # (input, output bitdepth, expected output)
+        # No bitdepth specified, assumed to be 8-bit
+        (np.array([0, 2 ** 8 - 1], 'uint8'), None, np.uint8([0, 255])),
+        (np.array([0, 2 ** 16 - 1], 'uint16'), None, np.uint8([0, 255])),
+        (np.array([0, 2 ** 32 - 1], 'uint32'), None, np.uint8([0, 255])),
+        (np.array([0, 2 ** 64 - 1], 'uint64'), None, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int8'), None, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int16'), None, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int32'), None, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int64'), None, np.uint8([0, 255])),
+        (np.array([0, 1], 'float16'), None, np.uint8([0, 255])),
+        (np.array([0, 1], 'float32'), None, np.uint8([0, 255])),
+        (np.array([0, 1], 'float64'), None, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float16'), None, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float32'), None, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float64'), None, np.uint8([0, 255])),
+        # 8-bit output
+        (np.array([0, 2 ** 8 - 1], 'uint8'), 8, np.uint8([0, 255])),
+        (np.array([0, 2 ** 16 - 1], 'uint16'), 8, np.uint8([0, 255])),
+        (np.array([0, 2 ** 32 - 1], 'uint32'), 8, np.uint8([0, 255])),
+        (np.array([0, 2 ** 64 - 1], 'uint64'), 8, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int8'), 8, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int16'), 8, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int32'), 8, np.uint8([0, 255])),
+        (np.array([-2, 2], 'int64'), 8, np.uint8([0, 255])),
+        (np.array([0, 1], 'float16'), 8, np.uint8([0, 255])),
+        (np.array([0, 1], 'float32'), 8, np.uint8([0, 255])),
+        (np.array([0, 1], 'float64'), 8, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float16'), 8, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float32'), 8, np.uint8([0, 255])),
+        (np.array([-1.0, 1.0], 'float64'), 8, np.uint8([0, 255])),
+        # 16-bit output
+        (np.array([0, 2 ** 8 - 1], 'uint8'), 16, np.uint16([0, 65535])),
+        (np.array([0, 2 ** 16 - 1], 'uint16'), 16, np.uint16([0, 65535])),
+        (np.array([0, 2 ** 32 - 1], 'uint32'), 16, np.uint16([0, 65535])),
+        (np.array([0, 2 ** 64 - 1], 'uint64'), 16, np.uint16([0, 65535])),
+        (np.array([-2, 2], 'int8'), 16, np.uint16([0, 65535])),
+        (np.array([-2, 2], 'int16'), 16, np.uint16([0, 65535])),
+        (np.array([-2, 2], 'int32'), 16, np.uint16([0, 65535])),
+        (np.array([-2, 2], 'int64'), 16, np.uint16([0, 65535])),
+        (np.array([0, 1], 'float16'), 16, np.uint16([0, 65535])),
+        (np.array([0, 1], 'float32'), 16, np.uint16([0, 65535])),
+        (np.array([0, 1], 'float64'), 16, np.uint16([0, 65535])),
+        (np.array([-1.0, 1.0], 'float16'), 16, np.uint16([0, 65535])),
+        (np.array([-1.0, 1.0], 'float32'), 16, np.uint16([0, 65535])),
+        (np.array([-1.0, 1.0], 'float64'), 16, np.uint16([0, 65535])),)
+
+    for tup in test_arrays:
+        res = core.image_as_uint(tup[0], bitdepth=tup[1])
+        assert res[0] == tup[2][0] and res[1] == tup[2][1]
 
 
 def test_util_has_has_module():

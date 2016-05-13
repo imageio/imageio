@@ -6,7 +6,7 @@
 (everything but the plugins).
 """
 
-from .util import Image, Dict, asarray, image_as_uint8, urlopen  # noqa
+from .util import Image, Dict, asarray, image_as_uint, urlopen  # noqa
 from .util import BaseProgressIndicator, StdoutProgressIndicator  # noqa
 from .util import string_types, text_type, binary_type, IS_PYPY  # noqa
 from .util import get_platform, appdata_dir, resource_dirs, has_module  # noqa

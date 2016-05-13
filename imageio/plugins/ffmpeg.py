@@ -25,7 +25,7 @@ import numpy as np
 
 from .. import formats
 from ..core import (Format, get_remote_file, string_types, read_n_bytes,
-                    image_as_uint8, get_platform, InternetNotAllowedError)
+                    image_as_uint, get_platform, InternetNotAllowedError)
 
 FNAME_PER_PLATFORM = {
     'osx32': 'ffmpeg.osx',
@@ -575,7 +575,7 @@ class FfmpegFormat(Format):
             depth = 1 if im.ndim == 2 else im.shape[2]
 
             # Ensure that image is in uint8
-            im = image_as_uint8(im)
+            im = image_as_uint(im, bitdepth=8)
 
             # Set size and initialize if not initialized yet
             if self._size is None:

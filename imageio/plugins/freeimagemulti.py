@@ -10,7 +10,7 @@ from __future__ import absolute_import, print_function, division
 import numpy as np
 
 from .. import formats
-from ..core import Format, image_as_uint8
+from ..core import Format, image_as_uint
 from ._freeimage import fi, IO_FLAGS
 from .freeimage import FreeimageFormat
 
@@ -73,7 +73,7 @@ class FreeimageMulti(FreeimageFormat):
             # Prepare data
             if im.ndim == 3 and im.shape[-1] == 1:
                 im = im[:, :, 0]
-            im = image_as_uint8(im)
+            im = image_as_uint(im, bitdepth=8)
             # Create sub bitmap
             sub1 = fi.create_bitmap(self._bm._filename, self.format.fif)
             # Let subclass add data to bitmap, optionally return new

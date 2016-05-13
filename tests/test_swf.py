@@ -168,9 +168,12 @@ def test_types():
     fname1 = get_remote_file('images/stent.swf', test_dir)
     fname2 = fname1[:-4] + '.out3.swf'
     
-    for dtype in [np.uint8, np.float32]:
-        for shape in [(100, 100), (100, 100, 1), (100, 100, 3)]:
-            im1 = np.empty(shape, dtype)  # empty is nice for testing nan
+    for dtype in [np.uint8, np.uint16, np.uint32, np.uint64,
+                  np.int8, np.int16, np.int32, np.int64,
+                  np.float16, np.float32, np.float64]:
+        for shape in [(100, 1), (100, 3)]:
+            # Repeats an identity matrix, just for testing
+            im1 = np.dstack((np.identity(shape[0], dtype=dtype), )*shape[1])
             imageio.mimsave(fname2, [im1], 'swf')
             im2 = imageio.mimread(fname2, 'swf')[0]
             assert im2.shape == (100, 100, 4)

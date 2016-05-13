@@ -559,16 +559,15 @@ class Freeimage(object):
             
             # Test if ok
             if ftype == -1:
-                raise ValueError('Cannot determine format of file "%s"' % 
+                raise ValueError('Cannot determine format of file "%s"' %
                                  filename)
             elif mode == 'w' and not lib.FreeImage_FIFSupportsWriting(ftype):
-                raise ValueError('Cannot write the format of file "%s"' % 
+                raise ValueError('Cannot write the format of file "%s"' %
                                  filename)
             elif mode == 'r' and not lib.FreeImage_FIFSupportsReading(ftype):
-                raise ValueError('Cannot read the format of file "%s"' % 
+                raise ValueError('Cannot read the format of file "%s"' %
                                  filename)
-            else:
-                return ftype
+            return ftype
     
     def create_bitmap(self, filename, ftype, flags=0):
         """ create_bitmap(filename, ftype, flags=0)
@@ -796,8 +795,7 @@ class FIBitmap(FIBaseBitmap):
             if not bitmap:  # pragma: no cover
                 raise RuntimeError('Could not allocate bitmap for storage: %s'
                                    % self._fi._get_error_message())
-            else:
-                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+            self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
     def load_from_filename(self, filename=None):
         if filename is None:
@@ -814,8 +812,7 @@ class FIBitmap(FIBaseBitmap):
                 raise ValueError('Could not load bitmap "%s": %s' % 
                                  (self._filename, 
                                   self._fi._get_error_message()))
-            else:
-                self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+            self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
     
 # def load_from_bytes(self, bytes):
 #     with self._fi as lib: 
@@ -1144,12 +1141,12 @@ class FIBitmap(FIBaseBitmap):
                 raise ValueError('Could not quantize bitmap "%s": %s' % 
                                  (self._filename, 
                                   self._fi._get_error_message()))
-            else:
-                new = FIBitmap(self._fi, self._filename, self._ftype, 
-                               self._flags)
-                new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
-                new._fi_type = self._fi_type
-                return new
+
+            new = FIBitmap(self._fi, self._filename, self._ftype,
+                           self._flags)
+            new._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
+            new._fi_type = self._fi_type
+            return new
     
 # def convert_to_32bit(self):
 #     """ Convert to 32bit image.
@@ -1201,9 +1198,8 @@ class FIMultipageBitmap(FIBaseBitmap):
                 err = self._fi._get_error_message()
                 raise ValueError('Could not open file "%s" as multi-image: %s'
                                  % (self._filename, err))
-            else:
-                self._set_bitmap(multibitmap, 
-                                 (lib.FreeImage_CloseMultiBitmap, multibitmap))
+            self._set_bitmap(multibitmap,
+                             (lib.FreeImage_CloseMultiBitmap, multibitmap))
 
 # def load_from_bytes(self, bytes):
 #     with self._fi as lib:
@@ -1248,9 +1244,8 @@ class FIMultipageBitmap(FIBaseBitmap):
                 msg = ('Could not open file "%s" for writing multi-image: %s' 
                        % (self._filename, self._fi._get_error_message()))
                 raise ValueError(msg)
-            else:
-                self._set_bitmap(multibitmap, 
-                                 (lib.FreeImage_CloseMultiBitmap, multibitmap))
+            self._set_bitmap(multibitmap,
+                             (lib.FreeImage_CloseMultiBitmap, multibitmap))
     
     def __len__(self):
         with self._fi as lib:
