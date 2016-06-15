@@ -74,6 +74,31 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 </p>
 
 
+<h2>Dependencies</h2>
+
+Minimal requirements:
+<ul>
+    <li>Python 2.6, 2.7 or 3.x</li>
+    <li>Numpy</li>
+</ul>
+
+Optional Python packages:
+<ul>
+    <li>SimpleITK (for ITK formats)</li>
+    <li>astropy (for FITS plugin)</li>
+    
+    <li>osgeo (for GDAL plugin)</li>
+</ul>  
+
+
+Optional libraries and executables (get automatically downloaded when not available):
+<ul>
+    <li>freeimage (library)</li>
+    <li>ffmpeg (executable)</li>
+    <li>avbin (library)</li>
+</ul>
+
+
 <h2>Origin and outlook</h2>
 <p>
 Imageio was based out of the frustration that many libraries that needed
