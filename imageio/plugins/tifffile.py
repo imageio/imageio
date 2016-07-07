@@ -214,8 +214,9 @@ class TiffFormat(Format):
             self._tf.close()
 
         def _append_data(self, im, meta):
-            meta = meta or self._meta
-            self._tf.save(np.asanyarray(im), **meta)
+            if meta:
+                self.set_meta_data(meta)
+            self._tf.save(np.asanyarray(im), **self._meta)
 
         def set_meta_data(self, meta):
             self._meta = {}
