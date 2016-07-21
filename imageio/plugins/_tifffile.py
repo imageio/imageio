@@ -263,9 +263,9 @@ except ImportError:
 
 try:
     if __package__:
-        from . import _tifffile
+        from . import _tifffile  # noqa
     else:
-        import _tifffile
+        import _tifffile  # noqa
 except ImportError:
     warnings.warn(
         "failed to import the optional _tifffile C extension module.\n"
@@ -5976,7 +5976,7 @@ def main(argv=None):
     print("\nTIFF file:", tif)
     print()
     for i, s in enumerate(tif.series):
-        print ("Series %i" % i)
+        print("Series %i" % i)
         print(s)
         print()
     for i, page in images:

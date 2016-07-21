@@ -46,7 +46,7 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-from . import Request
+from . import Request, RETURN_BYTES
 from .. import formats
 
 
@@ -135,6 +135,10 @@ def get_writer(uri, format=None, mode='?', **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """ 
+    
+    # Signal extension when returning as bytes, needed by e.g. ffmpeg
+    if uri == RETURN_BYTES and isinstance(format, str):
+        uri = RETURN_BYTES + '.' + format.strip('. ')
     
     # Create request object
     request = Request(uri, 'w' + mode, **kwargs)
