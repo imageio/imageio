@@ -46,7 +46,7 @@ from __future__ import absolute_import, print_function, division
 
 import numpy as np
 
-from . import Request
+from . import Request, RETURN_BYTES
 from .. import formats
 
 
@@ -135,6 +135,10 @@ def get_writer(uri, format=None, mode='?', **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """ 
+    
+    # Signal extension when returning as bytes, needed by e.g. ffmpeg
+    if uri == RETURN_BYTES and isinstance(format, str):
+        uri = RETURN_BYTES + '.' + format.strip('. ')
     
     # Create request object
     request = Request(uri, 'w' + mode, **kwargs)
@@ -227,8 +231,8 @@ def imwrite(uri, im, format=None, **kwargs):
 
 ## Multiple images
 
-def mimread(uri, format=None, **kwargs):
-    """ mimread(uri, format=None, **kwargs)
+def mimread(uri, format=None, memtest=True, **kwargs):
+    """ mimread(uri, format=None, memtest=True, **kwargs)
     
     Reads multiple images from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
@@ -242,16 +246,15 @@ def mimread(uri, format=None, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
+    memtest : bool
+        If True (default), this function will raise an error if the
+        resulting list of images consumes over 256 MB of memory. This
+        is to protect the system using so much memory that it needs to
+        resort to swapping, and thereby stall the computer. E.g.
+        ``mimread('hunger_games.avi')``.
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    
-    Memory consumption
-    ------------------
-    This function will raise a RuntimeError when the read data consumes
-    over 256 MB of memory. This is to protect the system using so much
-    memory that it needs to resort to swapping, and thereby stall the
-    computer. E.g. ``mimread('hunger_games.avi')``.
     """ 
     
     # Get reader
@@ -264,11 +267,11 @@ def mimread(uri, format=None, **kwargs):
         ims.append(im)
         # Memory check
         nbytes += im.nbytes
-        if nbytes > 256 * 1024 * 1024:
+        if memtest and nbytes > 256 * 1024 * 1024:
             ims[:] = []  # clear to free the memory
             raise RuntimeError('imageio.mimread() has read over 256 MiB of '
                                'image data.\nStopped to avoid memory problems.'
-                               ' Use imageio.get_reader() instead.')
+                               ' Use imageio.get_reader() or memtest=False.')
     
     return ims
 
@@ -394,8 +397,8 @@ def volwrite(uri, im, format=None, **kwargs):
 
 ## Multiple volumes
 
-def mvolread(uri, format=None, **kwargs):
-    """ mvolread(uri, format=None, **kwargs)
+def mvolread(uri, format=None, memtest=True, **kwargs):
+    """ mvolread(uri, format=None, memtest=True, **kwargs)
     
     Reads multiple volumes from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
@@ -409,6 +412,12 @@ def mvolread(uri, format=None, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
+    memtest : bool
+        If True (default), this function will raise an error if the
+        resulting list of images consumes over 1 GB of memory. This
+        is to protect the system using so much memory that it needs to
+        resort to swapping, and thereby stall the computer. E.g.
+        ``mimread('hunger_games.avi')``.
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
@@ -423,11 +432,11 @@ def mvolread(uri, format=None, **kwargs):
         ims.append(im)
         # Memory check
         nbytes += im.nbytes
-        if nbytes > 1024 * 1024 * 1024:  # pragma: no cover
+        if memtest and nbytes > 1024 * 1024 * 1024:  # pragma: no cover
             ims[:] = []  # clear to free the memory
             raise RuntimeError('imageio.mvolread() has read over 1 GiB of '
                                'image data.\nStopped to avoid memory problems.'
-                               ' Use imageio.get_reader() instead.')
+                               ' Use imageio.get_reader() or memtest=False.')
     
     return ims
 

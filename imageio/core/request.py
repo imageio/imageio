@@ -139,9 +139,9 @@ class Request(object):
             elif uri.startswith('<video') and is_read_request:
                 self._uri_type = URI_BYTES
                 self._filename = uri
-            elif uri == RETURN_BYTES and is_write_request:
+            elif uri.startswith(RETURN_BYTES) and is_write_request:
                 self._uri_type = URI_BYTES
-                self._filename = '<bytes>'
+                self._filename = uri
             # Less explicit (particularly on py 2.x)
             elif py3k:
                 self._uri_type = URI_FILENAME
