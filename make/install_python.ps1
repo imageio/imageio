@@ -96,10 +96,10 @@ function InstallPip ($python_home) {
 
 function DownloadMiniconda ($python_version, $platform_suffix) {
     $webclient = New-Object System.Net.WebClient
-    if ($python_version -eq "3.4") {
-        $filename = "Miniconda3-3.5.5-Windows-" + $platform_suffix + ".exe"
+    if ($python_version -eq "3.5") {
+        $filename = "Miniconda3-4.0.5-Windows-" + $platform_suffix + ".exe"
     } else {
-        $filename = "Miniconda-3.5.5-Windows-" + $platform_suffix + ".exe"
+        $filename = "Miniconda2-4.0.5-Windows-" + $platform_suffix + ".exe"
     }
     $url = $MINICONDA_URL + $filename
 
@@ -176,7 +176,7 @@ function InstallMinicondaPip ($python_home) {
 function InstallMinicondaNumpy ($python_home) {
     $conda_path = $python_home + "\Scripts\conda.exe"
     Write-Host "Installing numpy..."
-    $args = "install --yes numpy"
+    $args = "install --yes numpy msvc_runtime"
     Write-Host $conda_path $args
     Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
 }
