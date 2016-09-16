@@ -457,8 +457,10 @@ class TiffWriter(object):
             By default this setting is inferred from the data shape.
             'contig': last dimension contains samples.
             'planar': third last dimension contains samples.
-        resolution : (float, float) or ((int, int), (int, int))
+        resolution : (float, float, [str]) or ((int, int), (int, int), [str])
             X and Y resolution in dots per inch as float or rational numbers.
+            The resolution unit defaults to 'inch' but can also be set to
+            'none' or 'cm'.
         compress : int or 'lzma'
             Values from 0 to 9 controlling the level of zlib compression.
             If 0, data are written uncompressed (default).
@@ -836,7 +838,10 @@ class TiffWriter(object):
         if resolution:
             addtag('x_resolution', '2I', 1, rational(resolution[0]))
             addtag('y_resolution', '2I', 1, rational(resolution[1]))
-            addtag('resolution_unit', 'H', 1, 2)
+            resolution_unit = ({'none': 1, 'inch': 2, 'cm': 3}[resolution[2]]
+                               if len(resolution) == 3
+                               else 2)
+            addtag('resolution_unit', 'H', 1, resolution_unit)
         if not tile:
             addtag('rows_per_strip', 'I', 1, shape[-3])  # * shape[-4]
 
