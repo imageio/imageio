@@ -2,7 +2,21 @@
 Release notes
 -------------
 
-Version 1.5 (31-01-2015)
+
+Version 1.6 (19-09-2016)
+========================
+
+* Got rid of Lena image because it can be regarded offensive and is not (explicitly) publicly licensed.
+* Fix issue with ffmpeg reader being slow on particular systems (#152).
+* Tiff plugin updated.
+* Add Tiff resolution support (Antony Lee).
+* Support for 16bit PNG's (#150, by OrganicIrradiation).
+* Fixes to ffmpeg plugin (#149, #145, #129).
+* Fix in using IMAGEIO_FREEIMAGE_LIB (#141, by Radomirs Cirskis)
+* Better ffmpeg verbosity and exe detection ( #138, #139, by Tim D. Smith).
+
+
+Version 1.5 (31-01-2016)
 ========================
 
 * Freeimage conda package (in main channel) is updated and works on all
