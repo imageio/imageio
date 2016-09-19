@@ -13,9 +13,6 @@ import imageio
 
 test_dir = get_test_dir()
 
-# We keep a test image in the imageio-binary repo
-need_internet()
-
 
 def test_tifffile_format():
     # Test selection
@@ -26,6 +23,9 @@ def test_tifffile_format():
 
 def test_tifffile_reading_writing():
     """ Test reading and saveing tiff """
+    
+    need_internet()  # We keep a test image in the imageio-binary repo
+    
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
     filename1 = os.path.join(test_dir, 'test_tiff.tiff')

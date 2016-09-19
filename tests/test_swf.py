@@ -18,11 +18,12 @@ test_dir = get_test_dir()
 mean = lambda x: x.sum() / x.size  # pypy-compat mean
 
 
-# We don't shipt the swf: its rather big and a rather specific format
-need_internet()
+# We use need_internet; don't shipt the swf: its rather big and a rather specific format
 
 
 def test_format_selection():
+    
+    need_internet()
     
     fname1 = get_remote_file('images/stent.swf', test_dir)
     fname2 = fname1[:-4] + '.out.swf'
@@ -36,6 +37,8 @@ def test_format_selection():
 
 
 def test_reading_saving():
+    
+    need_internet()
     
     fname1 = get_remote_file('images/stent.swf', test_dir)
     fname2 = fname1[:-4] + '.out.swf'
@@ -119,6 +122,9 @@ def test_reading_saving():
 
 
 def test_read_from_url():
+    
+    need_internet()
+    
     burl = 'https://raw.githubusercontent.com/imageio/imageio-binaries/master/'
     url = burl + 'images/stent.swf'
     
@@ -127,6 +133,9 @@ def test_read_from_url():
 
 
 def test_invalid():
+    
+    need_internet()
+    
     fname1 = get_remote_file('images/stent.swf', test_dir)
     fname2 = fname1[:-4] + '.invalid.swf'
     
@@ -144,6 +153,9 @@ def test_invalid():
     
 
 def test_lowlevel():
+    
+    need_internet()
+    
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
     _swf = imageio.plugins.swf.load_lib()
@@ -165,6 +177,9 @@ def test_lowlevel():
 
 
 def test_types():
+    
+    need_internet()
+    
     fname1 = get_remote_file('images/stent.swf', test_dir)
     fname2 = fname1[:-4] + '.out3.swf'
     
