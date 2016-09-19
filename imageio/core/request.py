@@ -44,7 +44,6 @@ EXAMPLE_IMAGES = {
     'horse.png': 'Image showing the silhouette of a horse (Andreas Preuss)',
     'hubble_deep_field.png': 'Photograph taken by Hubble telescope (NASA)',
     'immunohistochemistry.png': 'Immunohistochemical (IHC) staining',
-    'lena.png': 'Classic but sometimes controversioal Lena test image', 
     'moon.png': 'Image showing a portion of the surface of the moon',
     'page.png': 'A scanned page of text',
     'text.png': 'A photograph of handdrawn text',
