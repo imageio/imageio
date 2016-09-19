@@ -26,4 +26,4 @@ __pychache__
 *.pyo
 *.dll
 *.dylib
-
+.*.swp
