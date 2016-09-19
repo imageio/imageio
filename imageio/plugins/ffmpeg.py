@@ -826,7 +826,7 @@ class StreamCatcher(threading.Thread):
         limit_lines_local = limit_lines
         
         while True:
-            time.sleep(0)  # Give control to other threads
+            time.sleep(0.001)
             # Read one line. Detect when closed, and exit
             try:
                 line = self._file.read(20)
