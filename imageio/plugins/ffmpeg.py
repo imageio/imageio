@@ -764,7 +764,7 @@ class FrameCatcher(threading.Thread):
         framesize = self._framesize
 
         while True:
-            time.sleep(0.001)
+            time.sleep(0)  # give control to other threads
             s = self._read(framesize)
             while len(s) < framesize:
                 need = framesize - len(s)
@@ -815,7 +815,7 @@ class StreamCatcher(threading.Thread):
         if timeout > 0:
             etime = time.time() + timeout
             while self.isAlive() and time.time() < etime:  # pragma: no cover
-                time.sleep(0.025)
+                time.sleep(0.01)
         # Return str
         lines = b'\n'.join(self._lines)
         return self._header + '\n' + lines.decode('utf-8', 'ignore')
@@ -826,7 +826,7 @@ class StreamCatcher(threading.Thread):
         limit_lines_local = limit_lines
         
         while True:
-            time.sleep(0.001)
+            time.sleep(0)  # Give control to other threads
             # Read one line. Detect when closed, and exit
             try:
                 line = self._file.read(20)
