@@ -14,12 +14,9 @@ except ImportError:
     astropy = None
 
 
-# We keep the fits files in the imageio-binary repo 
-need_internet()
-
-
 @pytest.mark.skipif('astropy is None')
 def test_fits_format():
+    need_internet()  # We keep the fits files in the imageio-binary repo 
 
     # Test selection
     for name in ['fits', '.fits']:
@@ -36,7 +33,9 @@ def test_fits_format():
 @pytest.mark.skipif('astropy is None')
 def test_fits_reading():
     """ Test reading fits """
-
+    
+    need_internet()  # We keep the fits files in the imageio-binary repo 
+    
     if IS_PYPY:
         return  # no support for fits format :(
 
