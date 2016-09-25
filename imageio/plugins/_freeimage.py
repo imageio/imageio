@@ -953,7 +953,7 @@ class FIBitmap(FIBaseBitmap):
             n_channels = shape[0]
         
         def n(arr):  # normalise to freeimage's in-memory format
-            return arr.T[:, ::-1]
+            return arr[::-1].T
         wrapped_array = self._wrap_bitmap_bits_in_array(w_shape, dtype, True)
         # swizzle the color components and flip the scanlines to go to
         # FreeImage's BGR[A] and upside-down internal memory format
