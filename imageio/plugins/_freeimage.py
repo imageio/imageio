@@ -957,6 +957,9 @@ class FIBitmap(FIBaseBitmap):
         wrapped_array = self._wrap_bitmap_bits_in_array(w_shape, dtype, True)
         # swizzle the color components and flip the scanlines to go to
         # FreeImage's BGR[A] and upside-down internal memory format
+        # The BGR[A] order is only used for 8bits per channel images
+        # on little endian machines. For everything else RGB[A] is
+        # used.
         if len(shape) == 3 and isle and dtype.type == numpy.uint8:
             R = array[:, :, 0]
             G = array[:, :, 1]
