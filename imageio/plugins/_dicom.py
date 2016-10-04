@@ -172,13 +172,13 @@ class SimpleDicomReader(object):
             'DS': lambda x: self._splitValues(x, float, '\\'),
             'IS': lambda x: self._splitValues(x, int, '\\'),
             # strings
-            'AS': lambda x: x.decode('ascii').strip('\x00'),
-            'DA': lambda x: x.decode('ascii').strip('\x00'),                
-            'TM': lambda x: x.decode('ascii').strip('\x00'),
-            'UI': lambda x: x.decode('ascii').strip('\x00'),
-            'LO': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
+            'AS': lambda x: x.decode('ascii', 'ignore').strip('\x00'),
+            'DA': lambda x: x.decode('ascii', 'ignore').strip('\x00'),
+            'TM': lambda x: x.decode('ascii', 'ignore').strip('\x00'),
+            'UI': lambda x: x.decode('ascii', 'ignore').strip('\x00'),
+            'LO': lambda x: x.decode('utf-8', 'ignore').strip('\x00').rstrip(),
             'CS': lambda x: self._splitValues(x, float, '\\'),
-            'PN': lambda x: x.decode('utf-8').strip('\x00').rstrip(),
+            'PN': lambda x: x.decode('utf-8', 'ignore').strip('\x00').rstrip(),
         }
         
         # Initiate reading
