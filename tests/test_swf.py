@@ -18,7 +18,8 @@ test_dir = get_test_dir()
 mean = lambda x: x.sum() / x.size  # pypy-compat mean
 
 
-# We use need_internet; don't shipt the swf: its rather big and a rather specific format
+# We use need_internet; don't ship the swf image: its rather big and a
+# rather specific format
 
 
 def test_format_selection():

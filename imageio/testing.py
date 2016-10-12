@@ -116,8 +116,8 @@ def test_style():
     """
     # Test if flake is there
     try:
-        from flake8.main import main  # noqa
-    except ImportError:
+        import flake8  # noqa
+    except ImportError as err:
         print('Skipping flake8 test, flake8 not installed')
         return
     
@@ -238,8 +238,11 @@ def _test_style(filename, ignore):
     sys.argv[1:] = [filename]
     sys.argv.append('--ignore=' + ignore)
     try:
-        from flake8.main import main
-        main()
+        import flake8  # noqa
+        from flake8.main.application import Application
+        app = Application()
+        app.run()
+        app.exit()
     except SystemExit as ex:
         if ex.code in (None, 0):
             return False

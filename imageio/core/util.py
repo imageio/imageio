@@ -457,7 +457,7 @@ def appdata_dir(appname=None, roaming=False):
     # portable distro or a frozen application that wants to be portable)
     prefix = sys.prefix
     if getattr(sys, 'frozen', None):
-        prefix = os.path.abspath(os.path.dirname(sys.path[0]))
+        prefix = os.path.abspath(os.path.dirname(sys.executable))
     for reldir in ('settings', '../settings'):
         localpath = os.path.abspath(os.path.join(prefix, reldir))
         if os.path.isdir(localpath):  # pragma: no cover
@@ -501,13 +501,10 @@ def resource_dirs():
     except Exception:  # pragma: no cover
         pass  # The home dir may not be writable
     # Directory where the app is located (mainly for frozen apps)
-    if sys.path and sys.path[0]:
-        # Get the path. If frozen, sys.path[0] is the name of the executable,
-        # otherwise it is the path to the directory that contains the script.
-        thepath = sys.path[0]
-        if getattr(sys, 'frozen', None):
-            thepath = os.path.dirname(thepath)
-        dirs.append(os.path.abspath(thepath))
+    if getattr(sys, 'frozen', None):
+        dirs.append(os.path.abspath(os.path.dirname(sys.executable)))
+    elif sys.path and sys.path[0]:
+        dirs.append(os.path.abspath(sys.path[0]))
     return dirs
 
 
