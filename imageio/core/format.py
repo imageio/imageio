@@ -532,6 +532,8 @@ class FormatManager:
         if not isinstance(name, string_types):
             raise ValueError('Looking up a format should be done by name '
                              'or by extension.')
+        if not name:
+            raise ValueError('No format matches the empty string.')
         
         # Test if name is existing file
         if os.path.isfile(name):
@@ -553,6 +555,9 @@ class FormatManager:
             name = name.upper()
             for format in self._formats:
                 if name == format.name:
+                    return format
+            for format in self._formats:
+                if name == format.name.rsplit('-', 1)[0]:
                     return format
             else:
                 # Maybe the user meant to specify an extension

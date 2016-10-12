@@ -403,12 +403,12 @@ fiformats = [
 def _create_predefined_freeimage_formats():
     
     for name, i, des, ext in fiformats:
-        name = NAME_MAP.get(name, name)
+        # name = NAME_MAP.get(name, name)
         # Get class for format
         FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
         if FormatClass:
             # Create Format and add
-            format = FormatClass(name, des, ext, FormatClass._modes)
+            format = FormatClass(name + '-FI', des, ext, FormatClass._modes)
             format._fif = i
             formats.add_format(format) 
 
@@ -435,12 +435,12 @@ def create_freeimage_formats():
             des = lib.FreeImage_GetFIFDescription(i).decode('ascii')
             ext = lib.FreeImage_GetFIFExtensionList(i).decode('ascii')
             fiformats.append((name, i, des, ext))
-            name = NAME_MAP.get(name, name)
+            # name = NAME_MAP.get(name, name)
             # Get class for format
             FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
             if FormatClass:
                 # Create Format and add
-                format = FormatClass(name, des, ext, FormatClass._modes)
+                format = FormatClass(name + '-FI', des, ext, FormatClass._modes)
                 format._fif = i
                 formats.add_format(format, overwrite=True)
 
