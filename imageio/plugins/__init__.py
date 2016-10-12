@@ -80,6 +80,7 @@ For the Format.Writer class:
 
 # First import plugins that we want to take precedence over freeimage
 from . import tifffile  # noqa
+from . import pillow  # noqa
 
 from . import freeimage  # noqa
 from . import freeimagemulti  # noqa
