@@ -79,7 +79,12 @@ class PillowFormat(Format):
             self._im = factory(self.request.get_file(), '')
             if hasattr(Image, '_decompression_bomb_check'):
                 Image._decompression_bomb_check(self._im.size)
-            self._length = 1  # todo: overload in GIF format
+            pil_try_read(self._im)
+            self._grayscale = _palette_is_grayscale(self._im)
+            # Set length
+            self._length = 1
+            if hasattr(self._im, 'n_frames'):
+                self._length = self._im.n_frames
         
         def _close(self):
             self._im.close()
@@ -87,10 +92,24 @@ class PillowFormat(Format):
         def _get_length(self):
             return self._length
         
+        def _seek(self, index):
+            try:
+                self._im.seek(index)
+            except EOFError:
+                raise IndexError('Could not seek to index %i' % index)
+        
         def _get_data(self, index):
             if index >= self._length:
                 raise IndexError('Image index %i > %i' % (index, self._length))
-            im = np.asarray(self._im)
+            i = self._im.tell()
+            if i > index:
+                self._seek(index)  # just try
+            else:
+                while i < index:  # some formats need to be read in sequence
+                    i += 1
+                    self._seek(i)
+            self._im.getdata()[0]
+            im = pil_get_frame(self._im, self._grayscale)
             return im, self._im.info
         
         def _get_meta_data(self, index):
@@ -127,6 +146,83 @@ class PillowFormat(Format):
         
         def set_meta_data(self, meta):
             self._meta.update(meta)
+
+
+## Func from skimage
+
+# This cells contains code from scikit-image, in particular from
+# http://github.com/scikit-image/scikit-image/blob/master/
+# skimage/io/_plugins/pil_plugin.py 
+# The scikit-image license applies.
+
+
+def pil_try_read(im):
+    try:
+        # this will raise an IOError if the file is not readable
+        im.getdata()[0]
+    except IOError as e:
+        site = "http://pillow.readthedocs.org/en/latest/installation.html#external-libraries"
+        pillow_error_message = str(e)
+        error_message = ('Could not load "%s" \n'
+                         'Reason: "%s"\n'
+                         'Please see documentation at: %s'
+                         % (im.filename, pillow_error_message, site))
+        raise ValueError(error_message)
+
+
+def _palette_is_grayscale(pil_image):
+    assert pil_image.mode == 'P'
+    # get palette as an array with R, G, B columns
+    palette = np.asarray(pil_image.getpalette()).reshape((256, 3))
+    # Not all palette colors are used; unused colors have junk values.
+    start, stop = pil_image.getextrema()
+    valid_palette = palette[start:stop]
+    # Image is grayscale if channel differences (R - G and G - B)
+    # are all zero.
+    return np.allclose(np.diff(valid_palette), 0)
+
+    
+def pil_get_frame(im, grayscale, dtype=None):
+    
+    if im.format == 'PNG' and im.mode == 'I' and dtype is None:
+        dtype = 'uint16'
+
+    if im.mode == 'P':
+        if grayscale is None:
+            grayscale = _palette_is_grayscale(im)
+
+        if grayscale:
+            frame = im.convert('L')
+        else:
+            if im.format == 'PNG' and 'transparency' in im.info:
+                frame = im.convert('RGBA')
+            else:
+                frame = im.convert('RGB')
+
+    elif im.mode == '1':
+        frame = im.convert('L')
+
+    elif 'A' in im.mode:
+        frame = im.convert('RGBA')
+
+    elif im.mode == 'CMYK':
+        frame = im.convert('RGB')
+
+    if im.mode.startswith('I;16'):
+        shape = im.size
+        dtype = '>u2' if im.mode.endswith('B') else '<u2'
+        if 'S' in im.mode:
+            dtype = dtype.replace('u', 'i')
+        frame = np.fromstring(frame.tobytes(), dtype)
+        frame.shape = shape[::-1]
+
+    else:
+        frame = np.array(frame, dtype=dtype)
+
+    return frame
+
+
+## End of code from scikit-image
 
 
 def register_pillow_formats():
