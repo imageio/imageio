@@ -286,10 +286,6 @@ class Request(object):
         # Either _uri_type == URI_FILE, or we already opened the file, 
         # e.g. by using firstbytes
         if self._file is not None:
-            try:
-                self._file.seek(0)
-            except OSError:  # UnsupportedOperation derives from OSError
-                pass  # ah well, let's assume that the it's in the correct pos
             return self._file
         
         if self._uri_type == URI_BYTES:
