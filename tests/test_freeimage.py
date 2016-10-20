@@ -36,6 +36,7 @@ im4[20:, :, 3] = 120
 
 fnamebase = os.path.join(test_dir, 'test')
 
+# todo: make FI plugin the default during this test
 
 def get_ref_im(colors, crop, isfloat):
     """ Get reference image with
@@ -109,7 +110,8 @@ def test_get_fi_lib():
 def test_freeimage_format():
     
     # Format
-    F = imageio.formats['PNG']
+    F = imageio.formats['PNG-FI']
+    assert F.name == 'PNG-FI'
     
     # Reader
     R = F.get_reader(core.Request('chelsea.png', 'ri'))

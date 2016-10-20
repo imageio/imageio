@@ -113,12 +113,14 @@ class PillowFormat(Format):
             return im, self._im.info
         
         def _get_meta_data(self, index):
+            if not (index is None or index == 0):
+                raise IndexError()
             return self._im.info
     
     
     class Writer(Format.Writer):
         
-        def _open(self, **kwargs):   
+        def _open(self, **kwargs):
             Image = self.format._init_pillow()
             try:
                 self._save_func = Image.SAVE[self.format.plugin_id]
@@ -137,16 +139,131 @@ class PillowFormat(Format):
             if self._written:
                 raise RuntimeError('Format %s only supports single images.' %
                                    self.format.name)
+            # Pop unit dimension for grayscale images
+            if im.ndim == 3 and im.shape[-1] == 1:
+                im = im[:, :, 0]
             self._written = True
             self._meta.update(meta)
-            im = self.format._Image.fromarray(im)
-            im.encoderinfo = self._meta
-            self._save_func(im, self._fp, '')
-            im.close()
+            img = ndarray_to_pil(im, self.format.plugin_id)
+            if 'bits' in self._meta:
+                img = img.quantize()  # Make it a P image, so bits arg is used
+            img.save(self._fp, format=self.format.plugin_id, **self._meta)
+            img.close()
         
         def set_meta_data(self, meta):
             self._meta.update(meta)
 
+
+class PNGFormat(PillowFormat):
+    """A PNG format based on Pillow.
+    
+    This format supports grayscale, RGB and RGBA images.
+    
+    Parameters for reading
+    ----------------------
+    ignoregamma : bool
+        Avoid gamma correction. Default False.
+    
+    Parameters for saving
+    ---------------------
+    optimize : bool
+        If present and true, instructs the PNG writer to make the output file as
+        small as possible. This includes extra processing in order to find optimal
+        encoder settings.
+    transparency: 
+        This option controls what color image to mark as transparent.
+    dpi: tuple of two scalars
+        The desired dpi in each direction.
+    pnginfo: PIL.PngImagePlugin.PngInfo
+        Object containing text tags.
+    compress_level: int
+        ZLIB compression level, a number between 0 and 9: 1 gives best speed,
+        9 gives best compression, 0 gives no compression at all. Default is 9.
+        When ``optimize`` option is True ``compress_level`` has no effect
+        (it is set to 9 regardless of a value passed).
+    compression: int
+        Compatibility with the freeimage PNG format. If given, it overrides
+        compress_level.
+    icc_profile:
+        The ICC Profile to include in the saved file.
+    bits (experimental): int
+        This option controls how many bits to store. If omitted,
+        the PNG writer uses 8 bits (256 colors).
+    quantize: 
+        Compatibility with the freeimage PNG format. If given, it overrides
+        bits. In this case, given as a number between 1-256.
+    dictionary (experimental): dict
+        Set the ZLIB encoder dictionary.
+    
+    """
+    
+    class Reader(PillowFormat.Reader):
+        def _open(self, ignoregamma=False):
+            return PillowFormat.Reader._open(self)
+        
+        def _get_data(self, index):
+            im, info = PillowFormat.Reader._get_data(self, index)
+            if not self.request.kwargs.get('ignoregamma', False):
+                try:
+                    gamma = float(info['gamma'])
+                except (KeyError, ValueError):
+                    pass
+                else:
+                    scale = float(65536 if im.dtype == np.uint16 else 255)
+                    gain = 1.0
+                    im = ((im / scale) ** gamma) * scale * gain
+            return im, info
+                    
+    # -- 
+    
+    class Writer(PillowFormat.Writer):
+        def _open(self, compression=None, quantize=None, interlaced=False, **kwargs):
+            
+            kwargs['compress_level'] = kwargs.get('compress_level', 9)  # Better default
+            
+            if compression is not None:
+                if compression < 0 or compression > 9:
+                    raise ValueError('Invalid PNG compression level: %r' % compression)
+                kwargs['compress_level'] = compression
+            if quantize is not None:
+                for bits in range(1, 9):
+                    if 2**bits == quantize:
+                        break
+                else:
+                    raise ValueError('PNG quantize must be power of two, not %r' % quantize)
+                kwargs['bits'] = bits
+            if interlaced:
+                print('Warning: PIL PNG writer cannot produce interlaced images.')
+            
+            ok_keys = ('optimize', 'transparency', 'dpi', 'pnginfo', 'bits',
+                       'compress_level', 'icc_profile', 'dictionary')
+            for key in kwargs:
+                if key not in ok_keys:
+                    raise TypeError('Invalid argument for PNG writer: %r' % key)
+            
+            return PillowFormat.Writer._open(self, **kwargs)
+        
+        def _append_data(self, im, meta):
+            if str(im.dtype) == 'uint16' and (im.ndim == 2 or im.shape[-1] == 1):
+                im = image_as_uint(im, bitdepth=16)
+            else:
+                im = image_as_uint(im, bitdepth=8)
+            PillowFormat.Writer._append_data(self, im, meta)
+            
+            
+            return
+            # Quantize?
+            q = int(self.request.kwargs.get('quantize', False))
+            if not q:
+                pass
+            elif not (im.ndim == 3 and im.shape[-1] == 3):
+                raise ValueError('Can only quantize RGB images')
+            elif q < 2 or q > 256:
+                raise ValueError('PNG quantize param must be 2..256')
+            else:
+                bm = self._bm.quantize(0, q)
+                self._bm.close()
+                self._bm = bm
 
 ## Func from skimage
 
@@ -171,7 +288,8 @@ def pil_try_read(im):
 
 
 def _palette_is_grayscale(pil_image):
-    assert pil_image.mode == 'P'
+    if pil_image.mode != 'P':
+        return False
     # get palette as an array with R, G, B columns
     palette = np.asarray(pil_image.getpalette()).reshape((256, 3))
     # Not all palette colors are used; unused colors have junk values.
@@ -183,6 +301,7 @@ def _palette_is_grayscale(pil_image):
 
     
 def pil_get_frame(im, grayscale, dtype=None):
+    frame = im
     
     if im.format == 'PNG' and im.mode == 'I' and dtype is None:
         dtype = 'uint16'
@@ -222,13 +341,55 @@ def pil_get_frame(im, grayscale, dtype=None):
     return frame
 
 
+def ndarray_to_pil(arr, format_str=None):
+    
+    from PIL import Image
+    
+    if arr.ndim == 3:
+        arr = image_as_uint(arr, bitdepth=8)
+        mode = {3: 'RGB', 4: 'RGBA'}[arr.shape[2]]
+
+    elif format_str in ['png', 'PNG']:
+        mode = 'I;16'
+        mode_base = 'I'
+
+        if arr.dtype.kind == 'f':
+            arr = image_as_uint(arr)
+
+        elif arr.max() < 256 and arr.min() >= 0:
+            arr = arr.astype(np.uint8)
+            mode = mode_base = 'L'
+
+        else:
+            arr = image_as_uint(arr, bitdepth=16)
+
+    else:
+        arr = image_as_uint(arr, bitdepth=8)
+        mode = 'L'
+        mode_base = 'L'
+
+    array_buffer = arr.tobytes()
+    
+    if arr.ndim == 2:
+        im = Image.new(mode_base, arr.T.shape)
+        im.frombytes(array_buffer, 'raw', mode)
+    else:
+        image_shape = (arr.shape[1], arr.shape[0])
+        im = Image.frombytes(mode, image_shape, array_buffer)
+    
+    return im
+
+
 ## End of code from scikit-image
 
+
+SPECIAL_FORMATS = dict(PNG=PNGFormat)
 
 def register_pillow_formats():
     
     for id, summary, ext in pillow_formats:
-        format = PillowFormat(id + '-PIL', summary, ext, 'i')
+        FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
+        format = FormatCls(id + '-PIL', summary, ext, 'i')
         format._plugin_id = id
         format.__doc__ = pillow_docs[id]
         formats.add_format(format)
