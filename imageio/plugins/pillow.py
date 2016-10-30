@@ -40,6 +40,7 @@ class PillowFormat(Format):
             if not hasattr(PIL, 'PILLOW_VERSION'):
                 raise ImportError('Imageio Pillow plugin needs Pillow, not PIL!')
             from PIL import Image
+            from PIL.ExifTags import TAGS
             self._Image = Image
         elif self._Image is None:
             raise RuntimeError('Imageio Pillow plugin cannot work without Pillow.')
@@ -249,21 +250,108 @@ class PNGFormat(PillowFormat):
             else:
                 im = image_as_uint(im, bitdepth=8)
             PillowFormat.Writer._append_data(self, im, meta)
+
+
+class JPEGFormat(PillowFormat):
+    """A JPEG format based on Pillow.
+    
+    This format supports grayscale, RGB and RGBA images.
+    
+    Parameters for reading
+    ----------------------
+    exifrotate : bool
+        Automatically rotate the image according to the exif flag. Default True.
+    
+    Parameters for saving
+    ---------------------
+    quality : scalar
+        The compression factor of the saved image (1..100), higher
+        numbers result in higher quality but larger file size. Default 75.
+    progressive : bool
+        Save as a progressive JPEG file (e.g. for images on the web).
+        Default False.
+    optimize : bool
+        On saving, compute optimal Huffman coding tables (can reduce a few
+        percent of file size). Default False.
+    dpi : tuplw of int
+        The pixel density, ``(x,y)``.
+    icc_profile : object
+        If present and true, the image is stored with the provided ICC profile.
+        If this parameter is not provided, the image will be saved with no profile
+        attached.
+    exif : dict
+        If present, the image will be stored with the provided raw EXIF data.
+    subsampling : str
+        Sets the subsampling for the encoder. See Pillow docs for details.
+    qtables : object
+        Set the qtables for the encoder. See Pillow docs for details.
+    """
+    
+    class Reader(PillowFormat.Reader):
+        def _open(self, exifrotate=True):
+            return PillowFormat.Reader._open(self)
+        
+        def _get_data(self, index):
+            im, info = PillowFormat.Reader._get_data(self, index)
             
+            # Handle exif
+            if 'exif' in info:
+                from PIL.ExifTags import TAGS
+                info['EXIF_MAIN'] = {}
+                for tag, value in self._im._getexif().items():
+                    decoded = TAGS.get(tag, tag)
+                    info['EXIF_MAIN'][decoded] = value
             
+            im = self._rotate(im, info)
+            return im, info
+        
+        def _rotate(self, im, meta):
+            """ Use Orientation information from EXIF meta data to 
+            orient the image correctly. Similar code as in FreeImage plugin.
+            """
+            if self.request.kwargs.get('exifrotate', True):
+                try:
+                    ori = meta['EXIF_MAIN']['Orientation']
+                except KeyError:  # pragma: no cover
+                    pass  # Orientation not available
+                else:  # pragma: no cover - we cannot touch all cases
+                    # www.impulseadventure.com/photo/exif-orientation.html
+                    if ori in [1, 2]:
+                        pass
+                    if ori in [3, 4]:
+                        im = np.rot90(im, 2)
+                    if ori in [5, 6]:
+                        im = np.rot90(im, 3)
+                    if ori in [7, 8]:
+                        im = np.rot90(im)
+                    if ori in [2, 4, 5, 7]:  # Flipped cases (rare)
+                        im = np.fliplr(im)
+            return im
+                    
+    # -- 
+    
+    class Writer(PillowFormat.Writer):
+        def _open(self, quality=75, progressive=False, optimize=False, **kwargs):
+            
+            # Check quality - in Pillow it should be no higher than 95
+            quality = int(quality)
+            if quality < 1 or quality > 100:
+                raise ValueError('JPEG quality should be between 1 and 100.')
+            quality = min(95, max(1, quality))
+            
+            kwargs['quality'] = quality
+            kwargs['progressive'] = bool(progressive)
+            kwargs['optimize'] = bool(progressive)
+            
+            return PillowFormat.Writer._open(self, **kwargs)
+        
+        def _append_data(self, im, meta):
+            if im.ndim == 3 and im.shape[-1] == 4:
+                raise IOError('JPEG does not support alpha channel.')
+            im = image_as_uint(im, bitdepth=8)
+            PillowFormat.Writer._append_data(self, im, meta)
             return
-            # Quantize?
-            q = int(self.request.kwargs.get('quantize', False))
-            if not q:
-                pass
-            elif not (im.ndim == 3 and im.shape[-1] == 3):
-                raise ValueError('Can only quantize RGB images')
-            elif q < 2 or q > 256:
-                raise ValueError('PNG quantize param must be 2..256')
-            else:
-                bm = self._bm.quantize(0, q)
-                self._bm.close()
-                self._bm = bm
+
 
 ## Func from skimage
 
@@ -383,7 +471,7 @@ def ndarray_to_pil(arr, format_str=None):
 ## End of code from scikit-image
 
 
-SPECIAL_FORMATS = dict(PNG=PNGFormat)
+SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat)
 
 def register_pillow_formats():
     
@@ -391,7 +479,8 @@ def register_pillow_formats():
         FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
         format = FormatCls(id + '-PIL', summary, ext, 'i')
         format._plugin_id = id
-        format.__doc__ = pillow_docs[id]
+        if FormatCls is PillowFormat:
+            format.__doc__ = pillow_docs[id]
         formats.add_format(format)
 
 

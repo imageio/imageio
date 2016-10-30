@@ -145,6 +145,70 @@ def test_png():
     assert im2.dtype == np.uint16
     
 
+def test_jpg():
+    
+    for isfloat in (False, True):
+        for crop in (0, 1, 2):
+            for colors in (0, 1, 3):
+                fname = fnamebase + '%i.%i.%i.jpg' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
+                imageio.imsave(fname, rim)
+                im = imageio.imread(fname)
+                mul = 255 if isfloat else 1
+                assert_close(rim * mul, im, 1.1)  # lossy
+    
+    # No alpha in JPEG
+    fname = fnamebase + '.jpg'
+    raises(Exception, imageio.imsave, fname, im4)
+    
+    # Parameters
+    imageio.imsave(fnamebase + '.jpg', im3, progressive=True, optimize=True, 
+                   baseline=True)
+    
+    # Parameter fail - We let Pillow kwargs thorugh
+    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=True)
+    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=True)
+    
+    # Compression
+    imageio.imsave(fnamebase + '1.jpg', im3, quality=10)
+    imageio.imsave(fnamebase + '2.jpg', im3, quality=90)
+    s1 = os.stat(fnamebase + '1.jpg').st_size
+    s2 = os.stat(fnamebase + '2.jpg').st_size
+    assert s2 > s1 
+    raises(ValueError, imageio.imsave, fnamebase + '.jpg', im, quality=120)
+
+
+def test_jpg_more():
+    need_internet()
+    
+    # Test broken JPEG
+    fname = fnamebase + '_broken.jpg'
+    open(fname, 'wb').write(b'this is not an image')
+    raises(Exception, imageio.imread, fname)
+    #
+    bb = imageio.imsave(imageio.RETURN_BYTES, get_ref_im(3, 0, 0), 'JPEG')
+    with open(fname, 'wb') as f:
+        f.write(bb[:400])
+        f.write(b' ')
+        f.write(bb[400:])
+    raises(Exception, imageio.imread, fname)
+    
+    # Test EXIF stuff
+    fname = get_remote_file('images/rommel.jpg')
+    im = imageio.imread(fname)
+    assert im.shape[0] > im.shape[1]
+    im = imageio.imread(fname, exifrotate=False)
+    assert im.shape[0] < im.shape[1]
+    im = imageio.imread(fname, exifrotate=2)  # Rotation in Python
+    assert im.shape[0] > im.shape[1]
+    # Write the jpg and check that exif data is maintained
+    if sys.platform.startswith('darwin'):
+        return  # segfaults on my osx VM, why?
+    imageio.imsave(fnamebase + 'rommel.jpg', im)
+    im = imageio.imread(fname)
+    assert im.meta.EXIF_MAIN
+
+
 if __name__ == '__main__':
     test_png()
     run_tests_if_main()
