@@ -16,7 +16,6 @@ from ..core import Format, image_as_uint
 from .pillow_info import pillow_formats, pillow_docs
 
 # todo: Pillow ImageGrab module supports grabbing the screen on Win and OSX.
-# todo: also ImageSequence module -> GIF
 
 
 class PillowFormat(Format):
@@ -26,6 +25,8 @@ class PillowFormat(Format):
     
     _pillow_imported = False
     _Image = None
+    _modes = 'i'
+    _description = ''
     
     @property
     def plugin_id(self):
@@ -353,6 +354,7 @@ class JPEGFormat(PillowFormat):
             return
 
 
+
 ## Func from skimage
 
 # This cells contains code from scikit-image, in particular from
@@ -401,10 +403,25 @@ def pil_get_frame(im, grayscale, dtype=None):
         if grayscale:
             frame = im.convert('L')
         else:
-            if im.format == 'PNG' and 'transparency' in im.info:
-                frame = im.convert('RGBA')
+            
+            if im.palette.mode in ('RGB', 'RGBA'):
+                # We can do this ourselves. Pillow seems to sometimes screw this
+                # up if a  multi-gif has a pallete for each frame ...
+                # Create palette array
+                p = np.frombuffer(im.palette.getdata()[1], np.uint8)
+                p.shape = -1, len(im.palette.mode)
+                if p.shape[1] == 3:
+                    p = np.column_stack((p, 255*np.ones(p.shape[0], p.dtype)))
+                # Apply palette
+                frame_paletted = np.array(im, np.uint8)
+                frame = p[frame_paletted]
             else:
-                frame = im.convert('RGB')
+                # Let Pillow do it. Unlinke skimage, we always convert
+                # to RGBA; palettes can be RGBA.
+                if True:  # im.format == 'PNG' and 'transparency' in im.info:
+                    frame = im.convert('RGBA')
+                else:
+                    frame = im.convert('RGB')
 
     elif im.mode == '1':
         frame = im.convert('L')
@@ -471,15 +488,22 @@ def ndarray_to_pil(arr, format_str=None):
 ## End of code from scikit-image
 
 
-SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat)
+from .pillowmulti import GIFFormat
+
+IGNORE_FORMATS = 'MPEG'
+
+SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat, GIF=GIFFormat)
 
 def register_pillow_formats():
     
     for id, summary, ext in pillow_formats:
+        if id in IGNORE_FORMATS:
+            continue
         FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
-        format = FormatCls(id + '-PIL', summary, ext, 'i')
+        summary = FormatCls._description or summary
+        format = FormatCls(id + '-PIL', summary, ext, FormatCls._modes)
         format._plugin_id = id
-        if FormatCls is PillowFormat:
+        if FormatCls is PillowFormat or not FormatCls.__doc__:
             format.__doc__ = pillow_docs[id]
         formats.add_format(format)
 

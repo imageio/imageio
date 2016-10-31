@@ -167,7 +167,7 @@ class GifFormat(FreeimageMulti):
             * nq (neuqant) - Dekker A. H., Kohonen neural networks for
               optimal color quantization
     subrectangles : bool
-        If True, will try and optimize the GIG by storing only the
+        If True, will try and optimize the GIF by storing only the
         rectangular parts of each frame that change with respect to the
         previous. Unfortunately, this option seems currently broken
         because FreeImage does not handle DisposalMethod correctly.
@@ -201,7 +201,7 @@ class GifFormat(FreeimageMulti):
                   palettesize=256, quantizer='Wu', subrectangles=False):
             # Check palettesize
             if palettesize < 2 or palettesize > 256:
-                raise ValueError('PNG quantize param must be 2..256')
+                raise ValueError('GIF quantize param must be 2..256')
             if palettesize not in [2, 4, 8, 16, 32, 64, 128, 256]:
                 palettesize = 2 ** int(np.log2(128) + 0.999)
                 print('Warning: palettesize (%r) modified to a factor of '
@@ -301,7 +301,7 @@ class GifFormat(FreeimageMulti):
 
 # formats.add_format(MngFormat('MNG', 'Multiple network graphics', 
 #                                    '.mng', 'iI'))
-formats.add_format(IcoFormat('ICO', 'Windows icon', 
+formats.add_format(IcoFormat('ICO-FI', 'Windows icon', 
                              '.ico', 'iI'))
-formats.add_format(GifFormat('GIF', 'Static and animated gif', 
+formats.add_format(GifFormat('GIF-FI', 'Static and animated gif (FreeImage)', 
                              '.gif', 'iI'))

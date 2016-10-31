@@ -82,14 +82,14 @@ def test_pillow_format():
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
-    raises(IndexError, R.get_data, 2)
-    raises(IndexError, R.get_meta_data, 2)
+    assert raises(IndexError, R.get_data, 2)
+    assert raises(IndexError, R.get_meta_data, 2)
     
     # Writer
     W = F.get_writer(core.Request(fnamebase + '.png', 'wi'))
     W.append_data(im0)
     W.set_meta_data({'foo': 3})
-    raises(RuntimeError, W.append_data, im0)
+    assert raises(RuntimeError, W.append_data, im0)
 
 
 def test_png():
@@ -207,6 +207,92 @@ def test_jpg_more():
     imageio.imsave(fnamebase + 'rommel.jpg', im)
     im = imageio.imread(fname)
     assert im.meta.EXIF_MAIN
+
+
+def test_gif():
+    # The not-animated gif
+    
+    for isfloat in (False, True):
+        for crop in (0, 1, 2):
+            for colors in (0, 3, 4):
+                if colors > 1 and sys.platform.startswith('darwin'):
+                    continue  # quantize fails, see also png
+                fname = fnamebase + '%i.%i.%i.gif' % (isfloat, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat)
+                imageio.imsave(fname, rim)
+                im = imageio.imread(fname)
+                mul = 255 if isfloat else 1
+                if colors not in (0, 1):
+                    im = im[:, :, :3]
+                    rim = rim[:, :, :3]
+                assert_close(rim * mul, im, 1.1)  # lossless
+    
+    # Parameter fail
+    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
+    raises(TypeError, imageio.imsave, fnamebase + '1.gif', im, notavalidk=True)
+
+
+def test_animated_gif():
+    
+    # Get images
+    im = get_ref_im(4, 0, 0)
+    ims = []
+    for i in range(10):
+        im = im.copy()
+        im[:, -5:, 0] = i * 20
+        ims.append(im)
+    
+    # Store - animated GIF always poops out RGB
+    for isfloat in (False, True):
+        for colors in (3, 4):
+            ims1 = ims[:]
+            if isfloat:
+                ims1 = [x.astype(np.float32) / 256 for x in ims1]
+            ims1 = [x[:, :, :colors] for x in ims1]
+            fname = fnamebase + '.animated.%i.gif' % colors
+            imageio.mimsave(fname, ims1, duration=0.2)
+            # Retrieve
+            ims2 = imageio.mimread(fname)
+            ims1 = [x[:, :, :3] for x in ims]  # fresh ref
+            ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
+            for im1, im2 in zip(ims1, ims2):
+                assert_close(im1, im2, 1.1)
+    
+    # We can also store grayscale
+    fname = fnamebase + '.animated.%i.gif' % 1
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
+    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2)
+    
+    # Irragular duration. You probably want to check this manually (I did)
+    duration = [0.1 for i in ims]
+    for i in [2, 5, 7]:
+        duration[i] = 0.5
+    imageio.mimsave(fnamebase + '.animated_irr.gif', ims, duration=duration)
+    
+    # Other parameters
+    imageio.mimsave(fnamebase + '.animated.loop2.gif', ims, loop=2, fps=20)
+    R = imageio.read(fnamebase + '.animated.loop2.gif')
+    W = imageio.save(fnamebase + '.animated.palettes100.gif', palettesize=100)
+    assert W._writer.opt_palette_size == 128
+    # Fail
+    assert raises(IndexError, R.get_meta_data, -1)
+    assert raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
+    assert raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
+    assert raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
+    
+    # Add one duplicate image to ims to touch subractangle with not change
+    ims.append(ims[-1])
+    
+    # Test subrectangles
+    imageio.mimsave(fnamebase + '.subno.gif', ims, subrectangles=False)
+    imageio.mimsave(fnamebase + '.subyes.gif', ims, subrectangles=True)
+    s1 = os.stat(fnamebase + '.subno.gif').st_size
+    s2 = os.stat(fnamebase + '.subyes.gif').st_size
+    assert s2 < s1
+    
+    # Meta (dummy, because always {}
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
+    assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
 if __name__ == '__main__':
