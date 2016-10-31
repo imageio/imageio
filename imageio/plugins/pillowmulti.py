@@ -7,6 +7,12 @@ import numpy as np
 from .pillow import PillowFormat, ndarray_to_pil, image_as_uint
 
 
+class TIFFFormat(PillowFormat):
+    _modes = 'i'  # arg, why bother; people should use the tiffile version
+    _description = 'TIFF format (Pillow)'
+
+
+
 class GIFFormat(PillowFormat):
     """ A format for reading and writing static and animated GIF, based
     on Pillow.

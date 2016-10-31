@@ -488,11 +488,12 @@ def ndarray_to_pil(arr, format_str=None):
 ## End of code from scikit-image
 
 
-from .pillowmulti import GIFFormat
+from .pillowmulti import GIFFormat, TIFFFormat
 
 IGNORE_FORMATS = 'MPEG'
 
-SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat, GIF=GIFFormat)
+SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat,
+                       GIF=GIFFormat, TIFF=TIFFFormat)
 
 def register_pillow_formats():
     
