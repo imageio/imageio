@@ -19,3 +19,6 @@ for the current Python process use
 * ``IMAGEIO_FREEIMAGE_LIB``: Set the path to the freeimage library. If
   not given, will try to download the freeimage library that imageio
   provides.
+* ``IMAGEIO_FORMAT_ORDER``: Determine format preference. E.g. setting this
+  to ``"TIFF, -FI"`` will prefer the FreeImage plugin over the Pillow plugin,
+  but still prefer TIFF over that. Also see the ``formats.sort()`` method.

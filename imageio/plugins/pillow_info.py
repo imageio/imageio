@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2015, imageio contributors
 """
 Module that contain info about the Pillow formats. The first part of
 this module generates this info and writes it to its own bottom half

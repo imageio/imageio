@@ -58,7 +58,7 @@ class PillowFormat(Format):
         if request.mode[1] in (self.modes + '?'):
             if self.plugin_id in Image.OPEN:
                 factory, accept = Image.OPEN[self.plugin_id]
-                if not accept or accept(request.firstbytes):
+                if accept and request.firstbytes and accept(request.firstbytes):
                     return True
     
     def _can_write(self, request):
@@ -78,7 +78,8 @@ class PillowFormat(Format):
             except KeyError:
                 raise RuntimeError('Format %s cannot read images.' %
                                    self.format.name)
-            self._im = factory(self.request.get_file(), '')
+            self._fp = self.request.get_file()
+            self._im = factory(self._fp, '')
             if hasattr(Image, '_decompression_bomb_check'):
                 Image._decompression_bomb_check(self._im.size)
             pil_try_read(self._im)
@@ -90,6 +91,7 @@ class PillowFormat(Format):
         
         def _close(self):
             self._im.close()
+            # request object handled closing the _fp
         
         def _get_length(self):
             return self._length
@@ -135,7 +137,7 @@ class PillowFormat(Format):
             self._written = False
         
         def _close(self):
-            pass
+            pass  # request object handled closing _fp
         
         def _append_data(self, im, meta):
             if self._written:
