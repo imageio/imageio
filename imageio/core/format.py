@@ -598,7 +598,7 @@ class FormatManager:
         self._formats_sorted = list(self._formats)
         # Sort
         for name in reversed(names):
-            sorter = lambda f: - ((f.name==name) + (f.name.endswith(name)))
+            sorter = lambda f: - ((f.name == name) + (f.name.endswith(name)))
             self._formats_sorted.sort(key=sorter)
     
     def add_format(self, format, overwrite=False):

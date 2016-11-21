@@ -238,6 +238,14 @@ def test_gif():
 
 def test_animated_gif():
     
+    # Read newton's cradle
+    ims = imageio.mimread('newtonscradle.gif')
+    assert len(ims) == 36
+    for im in ims:
+        assert im.shape == (150, 200, 4)
+        assert im.min() > 0
+        assert im.max() <= 255
+    
     # Get images
     im = get_ref_im(4, 0, 0)
     ims = []
@@ -256,6 +264,7 @@ def test_animated_gif():
             fname = fnamebase + '.animated.%i.gif' % colors
             imageio.mimsave(fname, ims1, duration=0.2)
             # Retrieve
+            print('fooo', fname, isfloat, colors)
             ims2 = imageio.mimread(fname)
             ims1 = [x[:, :, :3] for x in ims]  # fresh ref
             ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
@@ -294,11 +303,12 @@ def test_animated_gif():
     s2 = os.stat(fnamebase + '.subyes.gif').st_size
     assert s2 < s1
     
-    # Meta (dummy, because always {}
+    # Meta (dummy, because always {})
     imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
 if __name__ == '__main__':
-    test_png()
+    # test_png()
+    # test_animated_gif()
     run_tests_if_main()

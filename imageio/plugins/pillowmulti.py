@@ -2,6 +2,7 @@
 PIL formats for multiple images.
 """
 
+import sys
 import numpy as np
 
 from .pillow import PillowFormat, ndarray_to_pil, image_as_uint
@@ -102,7 +103,15 @@ class GIFFormat(PillowFormat):
             return
 
 
-intToBin = lambda i: i.to_bytes(2, byteorder='little')
+if sys.version_info >= (3, ):
+    intToBin = lambda i: i.to_bytes(2, byteorder='little')
+else:
+    def intToBin(i):
+        """Integer to two bytes"""
+        # No int.to_bytes() in Legacy Python
+        i1 = i % 256
+        i2 = int(i / 256)
+        return chr(i1) + chr(i2)  # little endian
 
 
 class GifWriter:
@@ -170,7 +179,7 @@ class GifWriter:
         
         # Gather info
         data = self.getdata(im)
-        imdes, data = data[0], data[1:]
+        imdes, data = b''.join(data[:-2]), data[-2:]
         graphext = self.getGraphicsControlExt(duration, dispose)
         # Make image descriptor suitable for using 256 local color palette
         lid = self.getImageDescriptor(im, rect)

@@ -185,7 +185,7 @@ function InstallMinicondaNumpy ($python_home) {
 function InstallMinicondaPillow ($python_home) {
     $conda_path = $python_home + "\Scripts\conda.exe"
     Write-Host "Installing Pillow..."
-    $args = "install --yes pillow"
+    $args = "install --yes pillow -c conda-forge"
     Write-Host $conda_path $args
     Start-Process -FilePath "$conda_path" -ArgumentList $args -Wait -Passthru
 }
