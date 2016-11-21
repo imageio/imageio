@@ -365,7 +365,7 @@ setup(
     
     platforms = 'any',
     provides = ['imageio'],
-    requires = ['numpy'],
+    requires = ['numpy', 'pillow'],
     
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
@@ -388,5 +388,6 @@ setup(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
         ],
     )
