@@ -16,6 +16,16 @@ from imageio.core import get_remote_file, IS_PYPY
 test_dir = get_test_dir()
 
 
+def setup_module():
+    # During this test, pretend that FI is the default format
+    imageio.formats.sort('-FI')
+
+
+def teardown_module():
+    # Set back to normal
+    imageio.formats.sort()
+
+
 # Create test images LUMINANCE
 im0 = np.zeros((42, 32), np.uint8)
 im0[:16, :] = 200
@@ -35,8 +45,6 @@ im4[:, :, 3] = 255
 im4[20:, :, 3] = 120
 
 fnamebase = os.path.join(test_dir, 'test')
-
-# todo: make FI plugin the default during this test
 
 
 def get_ref_im(colors, crop, isfloat):

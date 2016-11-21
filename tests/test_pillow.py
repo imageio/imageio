@@ -15,7 +15,11 @@ from imageio.core import get_remote_file
 
 test_dir = get_test_dir()
 
-# todo: make sure the default plugin preference is used during this test
+
+def setup_module():
+    # Make sure format order is the default
+    imageio.formats.sort()
+
 
 # Create test images LUMINANCE
 im0 = np.zeros((42, 32), np.uint8)

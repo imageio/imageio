@@ -101,8 +101,12 @@ script:
     - if [ "${TEST_STYLE}" == "1" ]; then
         echo "Size difference ${SIZE_DIFF} kB";
         test ${SIZE_DIFF} -lt 100;
-        python make test style;
+      fi;
+    - if [ "${TEST_STYLE}" == "1" ]; then
         python make doc html;
+      fi;
+    - if [ "${TEST_STYLE}" == "1" ]; then
+        python make test style;
       elif [ "${TEST_INSTALL}" == "1" ]; then
         python make test installed;
       else

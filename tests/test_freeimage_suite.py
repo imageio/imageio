@@ -14,6 +14,9 @@ from imageio.core import get_remote_file, IS_PYPY, urlopen  # noqa
 
 test_dir = get_test_dir()
 
+# During this test, pretend that FI is the default format?
+# imageio.formats.sort('-FI')
+
 
 # Url to download images from
 ulr = ("http://sourceforge.net/projects/freeimage/files/"

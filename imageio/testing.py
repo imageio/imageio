@@ -237,17 +237,16 @@ def _test_style(filename, ignore):
     os.chdir(ROOT_DIR)
     sys.argv[1:] = [filename]
     sys.argv.append('--ignore=' + ignore)
+    nerrors = 1
     try:
         import flake8  # noqa
         from flake8.main.application import Application
         app = Application()
         app.run()
+        nerrors = app.result_count
         app.exit()
     except SystemExit as ex:
-        if ex.code in (None, 0):
-            return False
-        else:
-            return True
+        return nerrors
     finally:
         os.chdir(orig_dir)
         sys.argv[:] = orig_argv
