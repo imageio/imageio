@@ -73,6 +73,7 @@ install:
         conda create -n testenv --yes --quiet pip python=$TRAVIS_PYTHON_VERSION > ${REDIRECT_TO};
         source activate testenv > ${REDIRECT_TO};
         conda install --yes --quiet numpy > ${REDIRECT_TO};
+        conda install --yes --quiet pillow > ${REDIRECT_TO};
       fi;
     # Install dependencies (also for testing)
     - if [ "${TEST_STYLE}" == "1" ]; then
