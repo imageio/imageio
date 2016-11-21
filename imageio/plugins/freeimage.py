@@ -438,11 +438,12 @@ def create_freeimage_formats():
             # name = NAME_MAP.get(name, name)
             # Get class for format
             FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
-            if FormatClass:
-                # Create Format and add
-                format = FormatClass(name + '-FI', des, ext, FormatClass._modes)
-                format._fif = i
-                formats.add_format(format, overwrite=True)
+            if not FormatClass:
+                continue
+            # Create Format and add
+            format = FormatClass(name + '-FI', des, ext, FormatClass._modes)
+            format._fif = i
+            formats.add_format(format, overwrite=True)
 
 
 _create_predefined_freeimage_formats()

@@ -224,6 +224,7 @@ class TiffFormat(Format):
                 if key in WRITE_METADATA_KEYS:
                     self._meta[key] = value
 
+
 # Register
 format = TiffFormat('tiff', "TIFF format", TIFF_FORMATS, 'iIvV')
 formats.add_format(format)

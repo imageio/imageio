@@ -4,7 +4,6 @@
 import time
 import sys
 import os
-import gc
 import shutil
 import ctypes.util
 from zipfile import ZipFile
@@ -17,7 +16,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
-from imageio.core import Format, FormatManager, Request
+from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
 
 test_dir = get_test_dir()

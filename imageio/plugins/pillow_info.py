@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, imageio contributors
+
+# styletest: ignore E122 E123 E501
+
 """
 Module that contain info about the Pillow formats. The first part of
 this module generates this info and writes it to its own bottom half
 if run as a script.
 """
+
 
 def generate_info():
     from urllib.request import urlopen

@@ -7,10 +7,12 @@ import numpy as np
 from .pillow import PillowFormat, ndarray_to_pil, image_as_uint
 
 
+NeuQuant = None  # we can implement this when we need it
+
+
 class TIFFFormat(PillowFormat):
     _modes = 'i'  # arg, why bother; people should use the tiffile version
     _description = 'TIFF format (Pillow)'
-
 
 
 class GIFFormat(PillowFormat):
@@ -131,7 +133,8 @@ class GifWriter:
         im_rect, rect = im, (0, 0)
         if self.opt_subrectangle:
             im_rect, rect = self.getSubRectangle(im)
-        im_pil = self.converToPIL(im_rect, self.opt_quantizer, self.opt_palette_size)
+        im_pil = self.converToPIL(im_rect, self.opt_quantizer,
+                                  self.opt_palette_size)
         
         # Get pallette - apparently, this is the 3d element of the header
         # (but it has not always been). Best we've got. Its not the same
@@ -159,7 +162,7 @@ class GifWriter:
         self.fp.write(appext)
     
     def close(self):
-        self.fp.write(";".encode('utf-8')) # end gif
+        self.fp.write(";".encode('utf-8'))  # end gif
     
     def write_image(self, im, palette, rect, duration, dispose):
         
@@ -176,13 +179,13 @@ class GifWriter:
         if (palette != self._global_palette) or (dispose != 2):
             # Use local color palette
             fp.write(graphext)
-            fp.write(lid) # write suitable image descriptor
-            fp.write(palette) # write local color table
-            fp.write(b'\x08') # LZW minimum size code
+            fp.write(lid)  # write suitable image descriptor
+            fp.write(palette)  # write local color table
+            fp.write(b'\x08')  # LZW minimum size code
         else:
             # Use global color palette
             fp.write(graphext)
-            fp.write(imdes) # write suitable image descriptor
+            fp.write(imdes)  # write suitable image descriptor
 
         # Write image data
         for d in data:
@@ -224,7 +227,7 @@ class GifWriter:
         # reserved00, lct size111=7=2^(7 + 1)=256.
         bb += b'\x87'
 
-        # LZW minimum size code now comes later, begining of [image data] blocks
+        # LZW minimum size code now comes later, begining of [imagedata] blocks
         return bb
 
     def getAppExt(self, loop):
@@ -260,7 +263,8 @@ class GifWriter:
         """
 
         bb = b'\x21\xF9\x04'
-        bb += chr((dispose & 3) << 2).encode('utf-8')  # low bit 1 == transparency,
+        bb += chr((dispose & 3) << 2).encode('utf-8')
+        # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,
         # are dispose.
         bb += intToBin(int(duration * 100))  # in 100th of seconds
@@ -314,7 +318,7 @@ class GifWriter:
             # NeuQuant algorithm
             nq_samplefac = 10  # 10 seems good in general
             im_pil = im_pil.convert("RGBA")  # NQ assumes RGBA
-            nqInstance = NeuQuant(im_pil, nq_samplefac)  # Learn colors from image
+            nqInstance = NeuQuant(im_pil, nq_samplefac)  # Learn colors
             im_pil = nqInstance.quantize(im_pil, colors=palette_size)
         elif quantizer in (0, 1, 2):
             # Adaptive PIL algorithm
@@ -326,5 +330,3 @@ class GifWriter:
         else:
             raise ValueError('Invalid value for quantizer: %r' % quantizer)
         return im_pil
-
-  

@@ -6,12 +6,12 @@ import sys
 
 import numpy as np
 
-from pytest import raises, skip
+from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import get_remote_file
 
 test_dir = get_test_dir()
 
@@ -135,7 +135,7 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
     
     # 16b bit images
-    im = imageio.imread('chelsea.png')[:,:,0]
+    im = imageio.imread('chelsea.png')[:, :, 0]
     imageio.imsave(fnamebase + '1.png', im.astype('uint16')*2)
     imageio.imsave(fnamebase + '2.png', im)
     s1 = os.stat(fnamebase + '1.png').st_size
@@ -166,8 +166,8 @@ def test_jpg():
                    baseline=True)
     
     # Parameter fail - We let Pillow kwargs thorugh
-    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=True)
-    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=True)
+    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
+    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
     
     # Compression
     imageio.imsave(fnamebase + '1.jpg', im3, quality=10)
@@ -298,4 +298,3 @@ def test_animated_gif():
 if __name__ == '__main__':
     test_png()
     run_tests_if_main()
-    

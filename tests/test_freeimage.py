@@ -38,6 +38,7 @@ fnamebase = os.path.join(test_dir, 'test')
 
 # todo: make FI plugin the default during this test
 
+
 def get_ref_im(colors, crop, isfloat):
     """ Get reference image with
     * colors: 0, 1, 3, 4
@@ -473,6 +474,7 @@ def test_other():
     # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + '.jng', im, 'JNG')
+
 
 if __name__ == '__main__':
     #test_animated_gif()

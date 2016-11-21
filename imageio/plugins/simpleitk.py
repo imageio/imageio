@@ -113,6 +113,7 @@ class ItkFormat(Format):
             raise RuntimeError('The itk format does not support '
                                ' meta data.')
 
+
 # Register
 title = "Insight Segmentation and Registration Toolkit (ITK) format"
 format = ItkFormat('itk', title, ' '.join(ALL_FORMATS), 'iIvV')

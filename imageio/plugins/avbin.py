@@ -39,6 +39,7 @@ def AVbinResult(x):
         raise RuntimeError('AVBin returned error code %i' % x)
     return x
 
+
 AVBIN_STREAM_TYPE_UNKNOWN = 0
 AVBIN_STREAM_TYPE_VIDEO = 1
 AVBIN_STREAM_TYPE_AUDIO = 2

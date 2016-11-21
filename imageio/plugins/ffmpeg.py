@@ -279,8 +279,7 @@ class FfmpegFormat(Format):
             # Initialize parameters
             self._proc = None
             self._pos = -1
-            self._meta = {'plugin': 'ffmpeg',
-                          'nframes': float('inf'), 'nframes': float('inf')}
+            self._meta = {'plugin': 'ffmpeg', 'nframes': float('inf')}
             self._lastread = None
             # Start ffmpeg subprocess and get meta information
             self._initialize()

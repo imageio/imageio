@@ -51,4 +51,5 @@ def test_simpleitk_reading_writing():
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data)
 
+
 run_tests_if_main()

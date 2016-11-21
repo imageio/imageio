@@ -7,6 +7,7 @@
 
 from __future__ import absolute_import, print_function, division
 
+from warnings import warn
 import numpy as np
 
 from .. import formats
@@ -39,12 +40,11 @@ class PillowFormat(Format):
             self._pillow_imported = True  # more like tried to import
             import PIL
             if not hasattr(PIL, 'PILLOW_VERSION'):
-                raise ImportError('Imageio Pillow plugin needs Pillow, not PIL!')
+                raise ImportError('Imageio Pillow requires Pillow, not PIL!')
             from PIL import Image
-            from PIL.ExifTags import TAGS
             self._Image = Image
         elif self._Image is None:
-            raise RuntimeError('Imageio Pillow plugin cannot work without Pillow.')
+            raise RuntimeError('Imageio Pillow plugin requires Pillow lib.')
         
         Image = self._Image
         if self.plugin_id in ('PNG', 'JPEG', 'BMP', 'GIF', 'PPM'):
@@ -58,8 +58,9 @@ class PillowFormat(Format):
         if request.mode[1] in (self.modes + '?'):
             if self.plugin_id in Image.OPEN:
                 factory, accept = Image.OPEN[self.plugin_id]
-                if accept and request.firstbytes and accept(request.firstbytes):
-                    return True
+                if accept:
+                    if request.firstbytes and accept(request.firstbytes):
+                        return True
     
     def _can_write(self, request):
         Image = self._init_pillow()
@@ -67,7 +68,6 @@ class PillowFormat(Format):
             if request.filename.lower().endswith(self.extensions):
                 if self.plugin_id in Image.SAVE:
                     return True
-    
     
     class Reader(Format.Reader):
     
@@ -121,7 +121,6 @@ class PillowFormat(Format):
                 raise IndexError()
             return self._im.info
     
-    
     class Writer(Format.Writer):
         
         def _open(self, **kwargs):
@@ -171,9 +170,9 @@ class PNGFormat(PillowFormat):
     Parameters for saving
     ---------------------
     optimize : bool
-        If present and true, instructs the PNG writer to make the output file as
-        small as possible. This includes extra processing in order to find optimal
-        encoder settings.
+        If present and true, instructs the PNG writer to make the output file
+        as small as possible. This includes extra processing in order to find
+        optimal encoder settings.
     transparency: 
         This option controls what color image to mark as transparent.
     dpi: tuple of two scalars
@@ -221,34 +220,39 @@ class PNGFormat(PillowFormat):
     # -- 
     
     class Writer(PillowFormat.Writer):
-        def _open(self, compression=None, quantize=None, interlaced=False, **kwargs):
+        def _open(self, compression=None, quantize=None, interlaced=False,
+                  **kwargs):
             
-            kwargs['compress_level'] = kwargs.get('compress_level', 9)  # Better default
+            # Better default for compression
+            kwargs['compress_level'] = kwargs.get('compress_level', 9)
             
             if compression is not None:
                 if compression < 0 or compression > 9:
-                    raise ValueError('Invalid PNG compression level: %r' % compression)
+                    raise ValueError('Invalid PNG compression level: %r' %
+                                     compression)
                 kwargs['compress_level'] = compression
             if quantize is not None:
                 for bits in range(1, 9):
                     if 2**bits == quantize:
                         break
                 else:
-                    raise ValueError('PNG quantize must be power of two, not %r' % quantize)
+                    raise ValueError('PNG quantize must be power of two, '
+                                     'not %r' % quantize)
                 kwargs['bits'] = bits
             if interlaced:
-                print('Warning: PIL PNG writer cannot produce interlaced images.')
+                warn('PIL PNG writer cannot produce interlaced images.')
             
             ok_keys = ('optimize', 'transparency', 'dpi', 'pnginfo', 'bits',
                        'compress_level', 'icc_profile', 'dictionary')
             for key in kwargs:
                 if key not in ok_keys:
-                    raise TypeError('Invalid argument for PNG writer: %r' % key)
+                    raise TypeError('Invalid arg for PNG writer: %r' % key)
             
             return PillowFormat.Writer._open(self, **kwargs)
         
         def _append_data(self, im, meta):
-            if str(im.dtype) == 'uint16' and (im.ndim == 2 or im.shape[-1] == 1):
+            if str(im.dtype) == 'uint16' and (im.ndim == 2 or
+                                              im.shape[-1] == 1):
                 im = image_as_uint(im, bitdepth=16)
             else:
                 im = image_as_uint(im, bitdepth=8)
@@ -263,7 +267,7 @@ class JPEGFormat(PillowFormat):
     Parameters for reading
     ----------------------
     exifrotate : bool
-        Automatically rotate the image according to the exif flag. Default True.
+        Automatically rotate the image according to exif flag. Default True.
     
     Parameters for saving
     ---------------------
@@ -280,8 +284,8 @@ class JPEGFormat(PillowFormat):
         The pixel density, ``(x,y)``.
     icc_profile : object
         If present and true, the image is stored with the provided ICC profile.
-        If this parameter is not provided, the image will be saved with no profile
-        attached.
+        If this parameter is not provided, the image will be saved with no
+        profile attached.
     exif : dict
         If present, the image will be stored with the provided raw EXIF data.
     subsampling : str
@@ -334,7 +338,8 @@ class JPEGFormat(PillowFormat):
     # -- 
     
     class Writer(PillowFormat.Writer):
-        def _open(self, quality=75, progressive=False, optimize=False, **kwargs):
+        def _open(self, quality=75, progressive=False, optimize=False,
+                  **kwargs):
             
             # Check quality - in Pillow it should be no higher than 95
             quality = int(quality)
@@ -356,7 +361,6 @@ class JPEGFormat(PillowFormat):
             return
 
 
-
 ## Func from skimage
 
 # This cells contains code from scikit-image, in particular from
@@ -370,7 +374,8 @@ def pil_try_read(im):
         # this will raise an IOError if the file is not readable
         im.getdata()[0]
     except IOError as e:
-        site = "http://pillow.readthedocs.org/en/latest/installation.html#external-libraries"
+        site = "http://pillow.readthedocs.org/en/latest/installation.html"
+        site += "#external-libraries"
         pillow_error_message = str(e)
         error_message = ('Could not load "%s" \n'
                          'Reason: "%s"\n'
@@ -407,8 +412,8 @@ def pil_get_frame(im, grayscale, dtype=None):
         else:
             
             if im.palette.mode in ('RGB', 'RGBA'):
-                # We can do this ourselves. Pillow seems to sometimes screw this
-                # up if a  multi-gif has a pallete for each frame ...
+                # We can do this ourselves. Pillow seems to sometimes screw
+                # this up if a  multi-gif has a pallete for each frame ...
                 # Create palette array
                 p = np.frombuffer(im.palette.getdata()[1], np.uint8)
                 p.shape = -1, len(im.palette.mode)
@@ -496,6 +501,7 @@ IGNORE_FORMATS = 'MPEG'
 
 SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat,
                        GIF=GIFFormat, TIFF=TIFFFormat)
+
 
 def register_pillow_formats():
     

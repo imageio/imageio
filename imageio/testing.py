@@ -204,7 +204,7 @@ class FileForTesting(object):
 
 
 def _get_style_test_options(filename):
-    """ Returns (skip, ignores) for the specifies source file.
+    """ Returns (skip, ignores) for the specified source file.
     """
     skip = False
     ignores = []

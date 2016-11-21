@@ -1,5 +1,5 @@
-from pytest import raises, skip
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+from pytest import raises
+from imageio.testing import run_tests_if_main, get_test_dir
 
 import os
 import gc
@@ -9,7 +9,7 @@ import numpy as np
 
 import imageio
 from imageio.core import Format, FormatManager, Request
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import get_remote_file
 
 
 test_dir = get_test_dir()
