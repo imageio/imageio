@@ -426,9 +426,8 @@ class Request(object):
                 # Prevent get_file() from reusing the file
                 self._file = None
                 # If the given URI was a file object, we have a problem,
-                # but that should be tested in get_file(), because we
-                # seek() there.
-                assert self._uri_type != URI_FILE
+                if self._uri_type == URI_FILE:
+                    raise IOError('Cannot seek back after getting firstbytes!')
 
 
 def read_n_bytes(f, N):
