@@ -14,26 +14,28 @@ and 3.x, and is easy to install.
 Main website: http://imageio.github.io
 """
 
+# flake8: noqa
+
 __version__ = '1.6' 
 
 # Load some bits from core
-from .core import FormatManager, RETURN_BYTES  # noqa
+from .core import FormatManager, RETURN_BYTES
 
 # Instantiate format manager
 formats = FormatManager()
 
 # Load the functions
-from .core.functions import help  # noqa
-from .core.functions import get_reader, get_writer  # noqa
-from .core.functions import imread, mimread, volread, mvolread  # noqa
-from .core.functions import imwrite, mimwrite, volwrite, mvolwrite  # noqa
+from .core.functions import help
+from .core.functions import get_reader, get_writer
+from .core.functions import imread, mimread, volread, mvolread
+from .core.functions import imwrite, mimwrite, volwrite, mvolwrite
 
 # Load function aliases
-from .core.functions import read, save  # noqa
-from .core.functions import imsave, mimsave, volsave, mvolsave  # noqa
+from .core.functions import read, save
+from .core.functions import imsave, mimsave, volsave, mvolsave
 
 # Load all the plugins
-from . import plugins  # noqa
+from . import plugins
 
 # expose the show method of formats
 show_formats = formats.show

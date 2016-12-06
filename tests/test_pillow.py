@@ -1,4 +1,4 @@
-""" Tests for imageio's freeimage plugin
+""" Tests for imageio's pillow plugin
 """
 
 import os
@@ -6,27 +6,18 @@ import sys
 
 import numpy as np
 
-from pytest import raises, skip
+from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import get_remote_file
 
 test_dir = get_test_dir()
 
 
 def setup_module():
-    # During this test, pretend that FI is the default format
-    imageio.formats.sort('-FI')
-    try:
-        imageio.plugins.freeimage.download()
-    except imageio.core.InternetNotAllowedError:
-        pass
-
-
-def teardown_module():
-    # Set back to normal
+    # Make sure format order is the default
     imageio.formats.sort()
 
 
@@ -84,79 +75,27 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-def test_get_ref_im():
-    """ A test for our function to get test images """
+def test_pillow_format():
     
-    crop = 0
-    for f in (False, True):
-        for colors in (0, 1, 3, 4):
-            rim = get_ref_im(0, crop, f)
-            assert rim.flags.c_contiguous is True
-            assert rim.shape[:2] == (42, 32)
-    
-    crop = 1
-    for f in (False, True):
-        for colors in (0, 1, 3, 4):
-            rim = get_ref_im(0, crop, f)
-            assert rim.flags.c_contiguous is True
-            assert rim.shape[:2] == (41, 31)
-    
-    if IS_PYPY:
-        return 'PYPY cannot have non-contiguous data'
-    
-    crop = 2
-    for f in (False, True):
-        for colors in (0, 1, 3, 4):
-            rim = get_ref_im(0, crop, f)
-            assert rim.flags.c_contiguous is False
-            assert rim.shape[:2] == (41, 31)
-    
-
-def test_get_fi_lib():
-    need_internet()
-    
-    from imageio.plugins._freeimage import get_freeimage_lib
-    lib = get_freeimage_lib()
-    assert os.path.isfile(lib)
-
-
-def test_freeimage_format():
-    
-    # Format
-    F = imageio.formats['PNG-FI']
-    assert F.name == 'PNG-FI'
+    # Format - Pillow is the default!
+    F = imageio.formats['PNG']
+    assert F.name == 'PNG-PIL'
     
     # Reader
     R = F.get_reader(core.Request('chelsea.png', 'ri'))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
-    raises(IndexError, R.get_data, 2)
-    raises(IndexError, R.get_meta_data, 2)
+    assert raises(IndexError, R.get_data, 2)
+    assert raises(IndexError, R.get_meta_data, 2)
     
     # Writer
     W = F.get_writer(core.Request(fnamebase + '.png', 'wi'))
     W.append_data(im0)
     W.set_meta_data({'foo': 3})
-    raises(RuntimeError, W.append_data, im0)
+    assert raises(RuntimeError, W.append_data, im0)
 
 
-def test_freeimage_lib():
-    
-    fi = imageio.plugins.freeimage.fi
-    
-    # Error messages
-    imageio.plugins._freeimage.fi._messages.append('this is a test')
-    assert imageio.plugins._freeimage.fi.get_output_log()
-    imageio.plugins._freeimage.fi._show_any_warnings()
-    imageio.plugins._freeimage.fi._get_error_message()
-    
-    # Test getfif
-    raises(ValueError, fi.getFIF, 'foo.png', 'x')  # mode must be r or w
-    raises(ValueError, fi.getFIF, 'foo.notvalid', 'w')  # invalid ext
-    raises(ValueError, fi.getFIF, 'foo.iff', 'w')  # We cannot write iff
-
-    
 def test_png():
     
     for isfloat in (False, True):
@@ -168,21 +107,6 @@ def test_png():
                 im = imageio.imread(fname)
                 mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
-    
-    # Run exact same test, but now in pypy backup mode
-    try:
-        imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = True
-        for isfloat in (False, True):
-            for crop in (0, 1, 2):
-                for colors in (0, 1, 3, 4):
-                    fname = fnamebase+'%i.%i.%i.png' % (isfloat, crop, colors)
-                    rim = get_ref_im(colors, crop, isfloat)
-                    imageio.imsave(fname, rim)
-                    im = imageio.imread(fname)
-                    mul = 255 if isfloat else 1
-                    assert_close(rim * mul, im, 0.1)  # lossless
-    finally:
-        imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
     
     # Parameters
     im = imageio.imread('chelsea.png', ignoregamma=True)
@@ -202,8 +126,6 @@ def test_png():
     raises(ValueError, imageio.imsave, fnamebase + '.png', im, compression=12)
     
     # Quantize
-    if sys.platform.startswith('darwin'):
-        return  # quantization segfaults on my osx VM
     imageio.imsave(fnamebase + '1.png', im, quantize=256)
     imageio.imsave(fnamebase + '2.png', im, quantize=4)
     
@@ -215,43 +137,17 @@ def test_png():
     fname = fnamebase + '1.png'
     raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
-
-
-def test_png_dtypes():
-    # See issue #44
     
-    # Two images, one 0-255, one 0-200
-    im1 = np.zeros((100, 100, 3), dtype='uint8')
-    im2 = np.zeros((100, 100, 3), dtype='uint8')
-    im1[20:80, 20:80, :] = 255
-    im2[20:80, 20:80, :] = 200
+    # 16b bit images
+    im = imageio.imread('chelsea.png')[:, :, 0]
+    imageio.imsave(fnamebase + '1.png', im.astype('uint16')*2)
+    imageio.imsave(fnamebase + '2.png', im)
+    s1 = os.stat(fnamebase + '1.png').st_size
+    s2 = os.stat(fnamebase + '2.png').st_size
+    assert s2 < s1
+    im2 = imageio.imread(fnamebase + '1.png')
+    assert im2.dtype == np.uint16
     
-    fname = fnamebase + '.dtype.png'
-    
-    # uint8
-    imageio.imsave(fname, im1)
-    assert_close(im1, imageio.imread(fname))
-    imageio.imsave(fname, im2)
-    assert_close(im2, imageio.imread(fname))
-    
-    # float scaled
-    imageio.imsave(fname, im1 / 255.0)
-    assert_close(im1, imageio.imread(fname))
-    imageio.imsave(fname, im2 / 255.0)
-    assert_close(im2, imageio.imread(fname))
-    
-    # float not scaled
-    imageio.imsave(fname, im1 * 1.0)
-    assert_close(im1, imageio.imread(fname))
-    imageio.imsave(fname, im2 * 1.0)
-    assert_close(im1, imageio.imread(fname))  # scaled
-    
-    # int16
-    imageio.imsave(fname, im1.astype('int16'))
-    assert_close(im1, imageio.imread(fname))
-    imageio.imsave(fname, im2.astype('int16'))
-    assert_close(im1, imageio.imread(fname))  # scaled
-
 
 def test_jpg():
     
@@ -266,15 +162,16 @@ def test_jpg():
                 assert_close(rim * mul, im, 1.1)  # lossy
     
     # No alpha in JPEG
+    fname = fnamebase + '.jpg'
     raises(Exception, imageio.imsave, fname, im4)
     
     # Parameters
     imageio.imsave(fnamebase + '.jpg', im3, progressive=True, optimize=True, 
                    baseline=True)
     
-    # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=True)
+    # Parameter fail - We let Pillow kwargs thorugh
+    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
+    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
     
     # Compression
     imageio.imsave(fnamebase + '1.jpg', im3, quality=10)
@@ -316,30 +213,6 @@ def test_jpg_more():
     assert im.meta.EXIF_MAIN
 
 
-def test_bmp():
-    
-    for isfloat in (False, True):
-        for crop in (0, 1, 2):
-            for colors in (0, 1, 3, 4):
-                fname = fnamebase + '%i.%i.%i.bmp' % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                assert_close(rim * mul, im, 0.1)  # lossless
-    
-    # Compression
-    imageio.imsave(fnamebase + '1.bmp', im3, compression=False)
-    imageio.imsave(fnamebase + '2.bmp', im3, compression=True)
-    s1 = os.stat(fnamebase + '1.bmp').st_size
-    s2 = os.stat(fnamebase + '2.bmp').st_size
-    assert s1 + s2  # todo: bug in FreeImage? assert s1 < s2
-    
-    # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + '1.bmp', notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + '1.bmp', im, notavalidk=True)
-
-
 def test_gif():
     # The not-animated gif
     
@@ -353,9 +226,7 @@ def test_gif():
                 imageio.imsave(fname, rim)
                 im = imageio.imread(fname)
                 mul = 255 if isfloat else 1
-                if colors in (0, 1):
-                    im = im[:, :, 0]
-                else:
+                if colors not in (0, 1):
                     im = im[:, :, :3]
                     rim = rim[:, :, :3]
                 assert_close(rim * mul, im, 1.1)  # lossless
@@ -367,8 +238,13 @@ def test_gif():
 
 def test_animated_gif():
     
-    if sys.platform.startswith('darwin'):
-        skip('On OSX quantization of freeimage is unstable')
+    # Read newton's cradle
+    ims = imageio.mimread('newtonscradle.gif')
+    assert len(ims) == 36
+    for im in ims:
+        assert im.shape == (150, 200, 4)
+        assert im.min() > 0
+        assert im.max() <= 255
     
     # Get images
     im = get_ref_im(4, 0, 0)
@@ -388,6 +264,7 @@ def test_animated_gif():
             fname = fnamebase + '.animated.%i.gif' % colors
             imageio.mimsave(fname, ims1, duration=0.2)
             # Retrieve
+            print('fooo', fname, isfloat, colors)
             ims2 = imageio.mimread(fname)
             ims1 = [x[:, :, :3] for x in ims]  # fresh ref
             ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
@@ -409,12 +286,12 @@ def test_animated_gif():
     imageio.mimsave(fnamebase + '.animated.loop2.gif', ims, loop=2, fps=20)
     R = imageio.read(fnamebase + '.animated.loop2.gif')
     W = imageio.save(fnamebase + '.animated.palettes100.gif', palettesize=100)
-    assert W._palettesize == 128
+    assert W._writer.opt_palette_size == 128
     # Fail
-    raises(IndexError, R.get_meta_data, -1)
-    raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
-    raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
+    assert raises(IndexError, R.get_meta_data, -1)
+    assert raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
+    assert raises(ValueError, imageio.mimsave, fname, ims, quantizer='foo')
+    assert raises(ValueError, imageio.mimsave, fname, ims, duration='foo')
     
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
@@ -426,68 +303,12 @@ def test_animated_gif():
     s2 = os.stat(fnamebase + '.subyes.gif').st_size
     assert s2 < s1
     
-    # Meta (dummy, because always {}
+    # Meta (dummy, because always {})
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_ico():
-    
-    if os.getenv('TRAVIS', '') == 'true' and sys.version_info >= (3, 4):
-        skip('Freeimage ico is unstable for this Travis build')
-    
-    for isfloat in (False, True):
-        for crop in (0, ):
-            for colors in (1, 3, 4):
-                fname = fnamebase + '%i.%i.%i.ico' % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                rim = rim[:32, :32]  # ico needs nice size
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                assert_close(rim * mul, im, 0.1)  # lossless
-    
-    # Meta data
-    R = imageio.read(fnamebase + '0.0.1.ico')
-    assert isinstance(R.get_meta_data(0), dict)
-    assert isinstance(R.get_meta_data(None), dict)  # But this print warning
-    R.close()
-    writer = imageio.save(fnamebase + 'I.ico')
-    writer.set_meta_data({})
-    writer.close()
-    
-    # Parameters. Note that with makealpha, RGBA images are read in incorrectly
-    im = imageio.imread(fnamebase + '0.0.1.ico', makealpha=True)
-    assert im.ndim == 3 and im.shape[-1] == 4
-    
-    # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + '1.gif', im, notavalidk=True)
-
-    if sys.platform.startswith('win'):  # issue #21
-        skip('Windows has a known issue with multi-icon files')
-    
-    # Multiple images
-    im = get_ref_im(4, 0, 0)[:32, :32]
-    ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
-    ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
-    imageio.mimsave(fnamebase + 'I2.ico', ims)
-    ims2 = imageio.mimread(fnamebase + 'I2.ico')
-    for im1, im2 in zip(ims, ims2):
-        assert_close(im1, im2, 0.1)
-
-
-def test_mng():
-    pass  # MNG seems broken in FreeImage
-    #ims = imageio.imread(get_remote_file('images/mngexample.mng'))
-
-
-def test_other():
-    
-    # Cannot save float
-    im = get_ref_im(3, 0, 1)
-    raises(Exception, imageio.imsave, fnamebase + '.jng', im, 'JNG')
-
-
 if __name__ == '__main__':
-    #test_animated_gif()
+    # test_png()
+    # test_animated_gif()
     run_tests_if_main()

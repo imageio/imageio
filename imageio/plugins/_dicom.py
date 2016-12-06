@@ -47,8 +47,8 @@ MINIDICT = {
     (0x0008, 0x1030): ('StudyDescription',      'LO'),
     (0x0008, 0x103E): ('SeriesDescription',     'LO'),
     # UID's                
-    (0x0020, 0x0016): ('SOPClassUID',           'UI'),
-    (0x0020, 0x0018): ('SOPInstanceUID',        'UI'),
+    (0x0008, 0x0016): ('SOPClassUID',           'UI'),
+    (0x0008, 0x0018): ('SOPInstanceUID',        'UI'),
     (0x0020, 0x000D): ('StudyInstanceUID',      'UI'),
     (0x0020, 0x000E): ('SeriesInstanceUID',     'UI'),
     (0x0008, 0x0117): ('ContextUID',            'UI'),
@@ -67,7 +67,7 @@ MINIDICT = {
     (0x0020, 0x0032): ('ImagePositionPatient',  'CS'),
     (0x0020, 0x0035): ('ImageOrientation',      'CS'),
     (0x0020, 0x0037): ('ImageOrientationPatient', 'CS'),
-    # Patient infotmation
+    # Patient information
     (0x0010, 0x0010): ('PatientName',           'PN'),
     (0x0010, 0x0020): ('PatientID',             'LO'),
     (0x0010, 0x0030): ('PatientBirthDate',      'DA'),

@@ -162,7 +162,8 @@ class Maker:
             try:
                 testing.test_style()
             except RuntimeError as err:
-                sys.exit(str(err))
+                print(str(err))
+                sys.exit(1)
         
         elif arg == 'unit':
             sys.exit(testing.test_unit())

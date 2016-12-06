@@ -14,6 +14,16 @@ except ImportError:
     astropy = None
 
 
+def setup_module():
+    # During this test, pretend that FITS is the default format
+    imageio.formats.sort('FITS')
+
+
+def teardown_module():
+    # Set back to normal
+    imageio.formats.sort()
+
+
 @pytest.mark.skipif('astropy is None')
 def test_fits_format():
     need_internet()  # We keep the fits files in the imageio-binary repo 
@@ -63,5 +73,6 @@ def test_fits_reading():
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data, None)  # no meta data support
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
+
 
 run_tests_if_main()

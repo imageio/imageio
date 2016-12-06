@@ -18,6 +18,13 @@ from imageio.core import get_remote_file, IS_PYPY
 test_dir = get_test_dir()
 
 
+def setup_module():
+    try:
+        imageio.plugins.ffmpeg.download()
+    except imageio.core.InternetNotAllowedError:
+        pass
+
+
 def test_select():
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)

@@ -24,7 +24,7 @@ import numpy
 
 from ..core import (get_remote_file, load_lib, Dict, resource_dirs, 
                     string_types, binary_type, IS_PYPY, get_platform,
-                    InternetNotAllowedError)
+                    InternetNotAllowedError, NeedDownloadError)
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 
@@ -36,6 +36,14 @@ FNAME_PER_PLATFORM = {
     'linux32': 'libfreeimage-3.16.0-linux32.so',
     'linux64': 'libfreeimage-3.16.0-linux64.so',
 }
+
+
+def download():
+    """ Download the FreeImage library to your computer.
+    """
+    plat = get_platform()
+    if plat and plat in FNAME_PER_PLATFORM:
+        get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
 
 
 def get_freeimage_lib():
@@ -51,9 +59,14 @@ def get_freeimage_lib():
     plat = get_platform()
     if plat and plat in FNAME_PER_PLATFORM:
         try:
-            return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
+            return get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat],
+                                   auto=False)
         except InternetNotAllowedError:
             pass
+        except NeedDownloadError:
+            raise NeedDownloadError('Need FreeImage library. '
+                                    'You can download it by calling:\n'
+                                    '  imageio.plugins.freeimage.download()')
         except RuntimeError as e:  # pragma: no cover
             warn(str(e))
 

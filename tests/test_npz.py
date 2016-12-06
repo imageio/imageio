@@ -82,4 +82,5 @@ def test_npz_reading_writing():
     raises(RuntimeError, R.get_meta_data, None)  # no meta data support
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
 
+
 run_tests_if_main()

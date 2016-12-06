@@ -16,6 +16,13 @@ test_dir = get_test_dir()
 mean = lambda x: x.sum() / x.size  # pypy-compat mean
 
 
+def setup_module():
+    try:
+        imageio.plugins.avbin.download()
+    except imageio.core.InternetNotAllowedError:
+        pass
+
+
 def test_select():
     
     fname1 = get_remote_file('images/cockatoo.mp4', test_dir)

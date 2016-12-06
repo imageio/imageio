@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # tifffile.py
+# styletest: skip
 
 # Copyright (c) 2008-2016, Christoph Gohlke
 # Copyright (c) 2008-2016, The Regents of the University of California

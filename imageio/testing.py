@@ -53,8 +53,8 @@ def run_tests_if_main(show_coverage=False):
     fname = str(local_vars['__file__'])
     _clear_imageio()
     _enable_faulthandler()
-    pytest.main('-v -x --color=yes --cov imageio '
-                '--cov-config .coveragerc --cov-report html %s' % repr(fname))
+    pytest.main(['-v', '-x', '--color=yes', '--cov', 'imageio',
+                 '--cov-config', '.coveragerc', '--cov-report', 'html', fname])
     if show_coverage:
         import webbrowser
         fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
@@ -103,8 +103,9 @@ def test_unit(cov_report='term'):
     try:
         _clear_imageio()
         _enable_faulthandler()
-        return pytest.main('-v --cov imageio --cov-config .coveragerc '
-                           '--cov-report %s tests' % cov_report)
+        return pytest.main(['-v', '--cov', 'imageio', '--cov-config',
+                            '.coveragerc', '--cov-report', cov_report,
+                            'tests'])
     finally:
         os.chdir(orig_dir)
         import imageio
@@ -204,7 +205,7 @@ class FileForTesting(object):
 
 
 def _get_style_test_options(filename):
-    """ Returns (skip, ignores) for the specifies source file.
+    """ Returns (skip, ignores) for the specified source file.
     """
     skip = False
     ignores = []
@@ -237,17 +238,16 @@ def _test_style(filename, ignore):
     os.chdir(ROOT_DIR)
     sys.argv[1:] = [filename]
     sys.argv.append('--ignore=' + ignore)
+    nerrors = 1
     try:
         import flake8  # noqa
         from flake8.main.application import Application
         app = Application()
         app.run()
+        nerrors = app.result_count
         app.exit()
     except SystemExit as ex:
-        if ex.code in (None, 0):
-            return False
-        else:
-            return True
+        return nerrors
     finally:
         os.chdir(orig_dir)
         sys.argv[:] = orig_argv

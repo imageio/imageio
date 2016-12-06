@@ -53,7 +53,7 @@ def test_read_empty_dir():
     if not os.path.isdir(empty):
         os.mkdir(empty)
     
-    # Tes that no format is found, but no error is raised
+    # Test that no format is found, but no error is raised
     request = core.Request(empty, 'ri')
     assert imageio.formats.search_read_format(request) is None
     

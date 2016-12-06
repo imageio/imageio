@@ -405,7 +405,13 @@ class Request(object):
             self._firstbytes = self._bytes[:N]
         else:
             # Prepare
-            f = self.get_file()
+            try:
+                f = self.get_file()
+            except IOError:
+                if os.path.isdir(self.filename):  # A directory, e.g. for DICOM
+                    self._firstbytes = binary_type()
+                    return
+                raise
             try:
                 i = f.tell()
             except Exception:

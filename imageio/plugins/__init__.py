@@ -2,6 +2,8 @@
 # Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
+# flake8: noqa
+
 """
 
 Imagio is plugin-based. Every supported format is provided with a
@@ -79,19 +81,27 @@ For the Format.Writer class:
 """
 
 # First import plugins that we want to take precedence over freeimage
-from . import tifffile  # noqa
+from . import tifffile
+from . import pillow
 
-from . import freeimage  # noqa
-from . import freeimagemulti  # noqa
+from . import freeimage
+from . import freeimagemulti
 
-from . import ffmpeg  # noqa
-from . import avbin  # noqa
+from . import ffmpeg
+from . import avbin
 
-from . import dicom  # noqa
-from . import npz  # noqa
-from . import swf  # noqa
-from . import fits  # noqa
-from . import simpleitk  # noqa
-from . import gdal  # noqa
+from . import dicom
+from . import npz
+from . import swf
+from . import fits
+from . import simpleitk
+from . import gdal
 
-from . import example  # noqa
+from . import example
+
+# Sort
+import os
+from .. import formats
+formats.sort(*os.getenv('IMAGEIO_FORMAT_ORDER', '').split(','))
+del os, formats
+

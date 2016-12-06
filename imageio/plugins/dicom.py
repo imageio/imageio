@@ -261,6 +261,7 @@ class DicomFormat(Format):
             else:  # pragma: no cover
                 raise ValueError('DICOM plugin should know what to expect.')
 
+
 # Add this format
 formats.add_format(DicomFormat(
     'DICOM', 

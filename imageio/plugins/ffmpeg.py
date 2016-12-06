@@ -25,7 +25,8 @@ import numpy as np
 
 from .. import formats
 from ..core import (Format, get_remote_file, string_types, read_n_bytes,
-                    image_as_uint, get_platform, InternetNotAllowedError)
+                    image_as_uint, get_platform,
+                    InternetNotAllowedError, NeedDownloadError)
 
 FNAME_PER_PLATFORM = {
     'osx32': 'ffmpeg.osx',
@@ -43,6 +44,15 @@ def limit_lines(lines, N=32):
     if len(lines) > 2*N:
         lines = [b'... showing only last few lines ...'] + lines[-N:]
     return lines
+
+
+def download():
+    """ Download the ffmpeg exe to your computer.
+    """
+    plat = get_platform()
+    if not (plat and plat in FNAME_PER_PLATFORM):
+        raise RuntimeError("FFMPEG exe isn't available for platform %s" % plat)
+    get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
 
 
 def get_exe():
@@ -68,9 +78,14 @@ def get_exe():
 
     if plat and plat in FNAME_PER_PLATFORM:
         try:
-            exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
+            exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat],
+                                  auto=False)
             os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
             return exe
+        except NeedDownloadError:
+            raise NeedDownloadError('Need ffmpeg exe. '
+                                    'You can download it by calling:\n'
+                                    '  imageio.plugins.ffmpeg.download()')
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
@@ -279,8 +294,7 @@ class FfmpegFormat(Format):
             # Initialize parameters
             self._proc = None
             self._pos = -1
-            self._meta = {'plugin': 'ffmpeg',
-                          'nframes': float('inf'), 'nframes': float('inf')}
+            self._meta = {'plugin': 'ffmpeg', 'nframes': float('inf')}
             self._lastread = None
             # Start ffmpeg subprocess and get meta information
             self._initialize()

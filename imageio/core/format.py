@@ -509,19 +509,20 @@ class FormatManager:
     
     def __init__(self):
         self._formats = []
+        self._formats_sorted = []
     
     def __repr__(self):
         return '<imageio.FormatManager with %i registered formats>' % len(self)
     
     def __iter__(self):
-        return iter(self._formats)
+        return iter(self._formats_sorted)
     
     def __len__(self):
         return len(self._formats)
     
     def __str__(self):
         ss = []
-        for format in self._formats: 
+        for format in self: 
             ext = ', '.join(format.extensions)
             s = '%s - %s [%s]' % (format.name, format.description, ext)
             ss.append(s)
@@ -532,6 +533,8 @@ class FormatManager:
         if not isinstance(name, string_types):
             raise ValueError('Looking up a format should be done by name '
                              'or by extension.')
+        if not name:
+            raise ValueError('No format matches the empty string.')
         
         # Test if name is existing file
         if os.path.isfile(name):
@@ -545,14 +548,17 @@ class FormatManager:
             e1, e2 = os.path.splitext(name.lower())
             name = e2 or e1
             # Search for format that supports this extension
-            for format in self._formats:
+            for format in self:
                 if name in format.extensions:
                     return format
         else:
             # Look for name
             name = name.upper()
-            for format in self._formats:
+            for format in self:
                 if name == format.name:
+                    return format
+            for format in self:
+                if name == format.name.rsplit('-', 1)[0]:
                     return format
             else:
                 # Maybe the user meant to specify an extension
@@ -560,6 +566,40 @@ class FormatManager:
         
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)
+    
+    def sort(self, *names):
+        """ sort(name1, name2, name3, ...)
+        
+        Sort the formats based on zero or more given names; a format with
+        a name that matches one of the given names will take precedence
+        over other formats. A match means an equal name, or ending with
+        that name (though the former counts higher). Case insensitive.
+        
+        Format preference will match the order of the given names: using
+        ``sort('TIFF', '-FI', '-PIL')`` would prefer the FreeImage formats
+        over the Pillow formats, but prefer TIFF even more. Each time
+        this is called, the starting point is the default format order,
+        and calling ``sort()`` with no arguments will reset the order.
+        
+        Be aware that using the function can affect the behavior of
+        other code that makes use of imageio.
+        
+        Also see the ``IMAGEIO_FORMAT_ORDER`` environment variable.
+        """
+        # Check and sanitize imput
+        for name in names:
+            if not isinstance(name, string_types):
+                raise TypeError('formats.sort() accepts only string names.')
+            if any(c in name for c in '.,'):
+                raise ValueError('Names given to formats.sort() should not '
+                                 'contain dots or commas.')
+        names = [name.strip().upper() for name in names]
+        # Reset
+        self._formats_sorted = list(self._formats)
+        # Sort
+        for name in reversed(names):
+            sorter = lambda f: - ((f.name == name) + (f.name.endswith(name)))
+            self._formats_sorted.sort(key=sorter)
     
     def add_format(self, format, overwrite=False):
         """ add_format(format, overwrite=False)
@@ -574,11 +614,15 @@ class FormatManager:
             raise ValueError('Given Format instance is already registered')
         elif format.name in self.get_format_names():
             if overwrite:
-                self._formats.remove(self[format.name])
+                old_format = self[format.name]
+                self._formats.remove(old_format)
+                if old_format in self._formats_sorted:
+                    self._formats_sorted.remove(old_format)
             else:
                 raise ValueError('A Format named %r is already registered, use'
                                  ' overwrite=True to replace.' % format.name)
         self._formats.append(format)
+        self._formats_sorted.append(format)
     
     def search_read_format(self, request):
         """ search_read_format(request)
@@ -591,7 +635,7 @@ class FormatManager:
         
         # Select formats that seem to be able to read it
         selected_formats = []
-        for format in self._formats:
+        for format in self:
             if select_mode in format.modes:
                 if select_ext.endswith(format.extensions):
                     selected_formats.append(format)
@@ -603,7 +647,7 @@ class FormatManager:
         
         # If no format could read it, it could be that file has no or
         # the wrong extension. We ask all formats again.
-        for format in self._formats:
+        for format in self:
             if format not in selected_formats:
                 if format.can_read(request):
                     return format
@@ -619,7 +663,7 @@ class FormatManager:
         
         # Select formats that seem to be able to write it
         selected_formats = []
-        for format in self._formats:
+        for format in self:
             if select_mode in format.modes:
                 if select_ext.endswith(format.extensions):
                     selected_formats.append(format)
@@ -632,7 +676,7 @@ class FormatManager:
         # If none of the selected formats could write it, maybe another
         # format can still write it. It might prefer a different mode,
         # or be able to handle more formats than it says by its extensions.
-        for format in self._formats:
+        for format in self:
             if format not in selected_formats:
                 if format.can_write(request):
                     return format
@@ -640,7 +684,7 @@ class FormatManager:
     def get_format_names(self):
         """ Get the names of all registered formats.
         """
-        return [f.name for f in self._formats]
+        return [f.name for f in self]
     
     def show(self):
         """ Show a nicely formatted list of available formats
