@@ -85,7 +85,7 @@ def get_exe():
         except NeedDownloadError:
             raise NeedDownloadError('Need ffmpeg exe. '
                                     'You can download it by calling:\n'
-                               '  imageio.plugins.ffmpeg.download()')
+                                    '  imageio.plugins.ffmpeg.download()')
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover

@@ -103,8 +103,9 @@ def test_unit(cov_report='term'):
     try:
         _clear_imageio()
         _enable_faulthandler()
-        return pytest.main('-v --cov imageio --cov-config .coveragerc '
-                           '--cov-report %s tests' % cov_report)
+        return pytest.main(['-v', '--cov', 'imageio', '--cov-config',
+                            '.coveragerc', '--cov-report', cov_report,
+                            'tests'])
     finally:
         os.chdir(orig_dir)
         import imageio
