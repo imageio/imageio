@@ -153,7 +153,7 @@ def create_format_docs():
                'v': 'Single volumes', 'V': 'Multiple volumes', }
     for mode in 'iIvV-':
         subtitle = modemap.get(mode, 'Unsorted')
-        ss.append('%s\n%s\n' % (subtitle, '^' * len(subtitle)))
+        subs = []
         for format in imageio.formats: 
             if ((mode in format.modes) or 
                 (mode == '-' and format not in covered_formats)):
@@ -161,7 +161,12 @@ def create_format_docs():
                 s = '  * :ref:`%s <%s>` - %s' % (format.name, 
                                                  format.name, 
                                                  format.description)
-                ss.append(s)
+                subs.append(s)
+        if subs:
+            ss.append('%s\n%s\n' % (subtitle, '^' * len(subtitle)))
+            ss.extend(subs)
+            ss.append('')
+    
     text += '\n'.join(ss) + '\n\n'
     _write('formats.rst', text)
     
