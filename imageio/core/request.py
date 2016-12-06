@@ -286,7 +286,6 @@ class Request(object):
         # Either _uri_type == URI_FILE, or we already opened the file, 
         # e.g. by using firstbytes
         if self._file is not None:
-            self._file.seek(0)
             return self._file
         
         if self._uri_type == URI_BYTES:
@@ -427,9 +426,8 @@ class Request(object):
                 # Prevent get_file() from reusing the file
                 self._file = None
                 # If the given URI was a file object, we have a problem,
-                # but that should be tested in get_file(), because we
-                # seek() there.
-                assert self._uri_type != URI_FILE
+                if self._uri_type == URI_FILE:
+                    raise IOError('Cannot seek back after getting firstbytes!')
 
 
 def read_n_bytes(f, N):

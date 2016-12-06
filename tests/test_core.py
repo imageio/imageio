@@ -187,40 +187,27 @@ def test_request_read_sources():
     z = ZipFile(os.path.join(test_dir, 'test.zip'), 'w')
     z.writestr(fname, bytes)
     z.close()
-    file = open(filename, 'rb')
     
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
-    for uri in (filename, 
-                os.path.join(test_dir, 'test.zip', fname),
-                bytes,
-                file,
-                burl + fname):
-        # Init
-        firsbytes_list, bytes_list = [], []
-        # Via file
-        R = Request(uri, 'ri')
-        firsbytes_list.append(R.firstbytes)
-        bytes_list.append(R.get_file().read())
-        R.finish()
-        # Via local filename
-        R = Request(uri, 'ri')
-        firsbytes_list.append(R.firstbytes)
-        f = open(R.get_local_filename(), 'rb')
-        bytes_list.append(f.read())
-        R.finish()
-        # Test repeated
-        if uri == filename:
-            bytes_list.append(R.get_file().read())
-            f = open(R.get_local_filename(), 'rb')
-            bytes_list.append(f.read())
+    for X in range(2):
+        for uri in (filename,
+                    os.path.join(test_dir, 'test.zip', fname),
+                    bytes,
+                    open(filename, 'rb'),
+                    burl + fname):
+            R = Request(uri, 'ri')
+            first_bytes = R.firstbytes
+            if X == 0:
+                all_bytes = R.get_file().read()
+            else:
+                f = open(R.get_local_filename(), 'rb')
+                all_bytes = f.read()
             R.finish()
-        # Test
-        for i in range(len(firsbytes_list)):
-            assert len(firsbytes_list[i]) > 0
-            assert bytes.startswith(firsbytes_list[i])
-        for i in range(len(bytes_list)):
-            assert bytes == bytes_list[i]
+            # Test
+            assert len(first_bytes) > 0
+            assert all_bytes.startswith(first_bytes)
+            assert bytes == all_bytes
 
 
 def test_request_save_sources():
