@@ -26,7 +26,13 @@ class InternetNotAllowedError(IOError):
     pass
 
 
-def get_remote_file(fname, directory=None, force_download=False):
+class NeedDownloadError(IOError):
+    """ Is raised when a remote file is requested that is not locally
+    available, but which needs to be explicitly downloaded by the user.
+    """
+
+
+def get_remote_file(fname, directory=None, force_download=False, auto=True):
     """ Get a the filename for the local version of a file from the web
 
     Parameters
@@ -45,6 +51,9 @@ def get_remote_file(fname, directory=None, force_download=False):
         (and this copy will be overwritten). Can also be a YYYY-MM-DD date
         to ensure a file is up-to-date (modified date of a file on disk,
         if present, is checked).
+    auto : bool
+        Whether to auto-download the file if its not present locally. Default
+        True. If False and a download is needed, raises NeedDownloadError.
 
     Returns
     -------
@@ -53,14 +62,14 @@ def get_remote_file(fname, directory=None, force_download=False):
     """
     _url_root = 'https://github.com/imageio/imageio-binaries/raw/master/'
     url = _url_root + fname
-    fname = op.normcase(fname)  # convert to native
+    nfname = op.normcase(fname)  # convert to native
     # Get dirs to look for the resource
     directory = directory or appdata_dir('imageio')
     dirs = resource_dirs()
     dirs.insert(0, directory)  # Given dir has preference
     # Try to find the resource locally
     for dir in dirs:
-        filename = op.join(dir, fname)
+        filename = op.join(dir, nfname)
         if op.isfile(filename):
             if not force_download:  # we're done
                 return filename
@@ -73,13 +82,17 @@ def get_remote_file(fname, directory=None, force_download=False):
                     print('File older than %s, updating...' % force_download)
                     break
     
+    # Can we proceed with auto-download?
+    if not auto:
+        raise NeedDownloadError()
+    
     # If we get here, we're going to try to download the file
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
         raise InternetNotAllowedError('Will not download resource from the '
                                       'internet because enironment variable '
                                       'IMAGEIO_NO_INTERNET is set.')
     # Get filename to store to and make sure the dir exists
-    filename = op.join(directory, fname)
+    filename = op.join(directory, nfname)
     if not op.isdir(op.dirname(filename)):
         os.makedirs(op.abspath(op.dirname(filename)))
     # let's go get the file

@@ -17,7 +17,7 @@ import os
 
 from .. import formats
 from ..core import (Format, get_platform, get_remote_file, 
-                    InternetNotAllowedError)
+                    InternetNotAllowedError, NeedDownloadError)
 
 
 FNAME_PER_PLATFORM = {
@@ -138,6 +138,15 @@ def timestamp_from_avbin(timestamp):
     return float(timestamp) / 1000000
 
 
+def download():
+    """ Download the avbin library to your computer.
+    """
+    plat = get_platform()
+    if not (plat and plat in FNAME_PER_PLATFORM):
+        raise RuntimeError('AVBIN lib is not available for platform %s' % plat)
+    get_remote_file('avbin/' + FNAME_PER_PLATFORM[plat])
+
+
 def get_avbin_lib():
     """ Get avbin .dll/.dylib/.so
     """
@@ -155,7 +164,11 @@ def get_avbin_lib():
                            platform)
     
     try:
-        return get_remote_file('avbin/' + lib)
+        return get_remote_file('avbin/' + lib, auto=False)
+    except NeedDownloadError:
+        raise RuntimeError('Need avbin library. You can download it by '
+                           'calling:\n'
+                           '  imageio.plugins.avbin.download()')
     except InternetNotAllowedError as err:
         raise IOError('Could not download avbin lib:\n%s' % str(err))
         # in this case we raise. Can we try finding the system lib?
