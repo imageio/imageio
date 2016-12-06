@@ -83,8 +83,8 @@ def get_exe():
             os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
             return exe
         except NeedDownloadError:
-            raise RuntimeError('Need ffmpeg exe. You can download it by '
-                               'calling:\n'
+            raise NeedDownloadError('Need ffmpeg exe. '
+                                    'You can download it by calling:\n'
                                '  imageio.plugins.ffmpeg.download()')
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user

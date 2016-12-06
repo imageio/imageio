@@ -166,9 +166,9 @@ def get_avbin_lib():
     try:
         return get_remote_file('avbin/' + lib, auto=False)
     except NeedDownloadError:
-        raise RuntimeError('Need avbin library. You can download it by '
-                           'calling:\n'
-                           '  imageio.plugins.avbin.download()')
+            raise NeedDownloadError('Need avbin library. '
+                                    'You can download it by calling:\n'
+                                    '  imageio.plugins.avbin.download()')
     except InternetNotAllowedError as err:
         raise IOError('Could not download avbin lib:\n%s' % str(err))
         # in this case we raise. Can we try finding the system lib?

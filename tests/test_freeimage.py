@@ -24,6 +24,7 @@ def setup_module():
     except imageio.core.InternetNotAllowedError:
         pass
 
+
 def teardown_module():
     # Set back to normal
     imageio.formats.sort()

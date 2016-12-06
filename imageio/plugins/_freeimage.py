@@ -64,9 +64,9 @@ def get_freeimage_lib():
         except InternetNotAllowedError:
             pass
         except NeedDownloadError:
-            raise RuntimeError('Need FreeImage library. You can download it by'
-                               ' calling:\n'
-                               '  imageio.plugins.freeimage.download()')
+            raise NeedDownloadError('Need FreeImage library. '
+                                    'You can download it by calling:\n'
+                                    '  imageio.plugins.freeimage.download()')
         except RuntimeError as e:  # pragma: no cover
             warn(str(e))
 
