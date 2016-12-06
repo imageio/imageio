@@ -82,15 +82,16 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                     print('File older than %s, updating...' % force_download)
                     break
     
-    # Can we proceed with auto-download?
-    if not auto:
-        raise NeedDownloadError()
-    
     # If we get here, we're going to try to download the file
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
         raise InternetNotAllowedError('Will not download resource from the '
                                       'internet because enironment variable '
                                       'IMAGEIO_NO_INTERNET is set.')
+    
+    # Can we proceed with auto-download?
+    if not auto:
+        raise NeedDownloadError()
+    
     # Get filename to store to and make sure the dir exists
     filename = op.join(directory, nfname)
     if not op.isdir(op.dirname(filename)):

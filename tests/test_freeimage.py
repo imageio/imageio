@@ -19,7 +19,10 @@ test_dir = get_test_dir()
 def setup_module():
     # During this test, pretend that FI is the default format
     imageio.formats.sort('-FI')
-
+    try:
+        imageio.plugins.freeimage.download()
+    except imageio.core.InternetNotAllowedError:
+        pass
 
 def teardown_module():
     # Set back to normal

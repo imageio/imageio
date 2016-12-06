@@ -53,8 +53,8 @@ def run_tests_if_main(show_coverage=False):
     fname = str(local_vars['__file__'])
     _clear_imageio()
     _enable_faulthandler()
-    pytest.main('-v -x --color=yes --cov imageio '
-                '--cov-config .coveragerc --cov-report html %s' % repr(fname))
+    pytest.main(['-v', '-x', '--color=yes', '--cov', 'imageio',
+                 '--cov-config', '.coveragerc', '--cov-report', 'html', fname])
     if show_coverage:
         import webbrowser
         fname = os.path.join(ROOT_DIR, 'htmlcov', 'index.html')
