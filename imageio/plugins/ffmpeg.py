@@ -410,7 +410,13 @@ class FfmpegFormat(Format):
                 return  # process already dead
             # Terminate process
             self._proc.terminate()
-            # Close streams
+            # Close streams, and threads that read from them
+            if self._stderr_catcher:
+                self._stderr_catcher.stop_me()  # Hopefully prevents issue #174
+                self._stderr_catcher = None
+            if self._frame_catcher:
+                self._frame_catcher.stop_me()
+                self._frame_catcher = None
             for p in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
                 try:
                     p.close()
@@ -761,8 +767,12 @@ class FrameCatcher(threading.Thread):
         # self._lock = threading.RLock()
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self._should_stop = False
         self.start()
-
+    
+    def stop_me(self):
+        self._should_stop = True
+    
     def get_frame(self):
         while self._frame is None:  # pragma: no cover - an init thing
             time.sleep(0.001)
@@ -777,7 +787,7 @@ class FrameCatcher(threading.Thread):
     def run(self):
         framesize = self._framesize
 
-        while True:
+        while not self._should_stop:
             time.sleep(0)  # give control to other threads
             s = self._read(framesize)
             while len(s) < framesize:
@@ -808,8 +818,12 @@ class StreamCatcher(threading.Thread):
         self._remainder = b''
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self._should_stop = False
         self.start()
 
+    def stop_me(self):
+        self._should_stop = True
+    
     @property
     def header(self):
         """ Get header text. Empty string if the header is not yet parsed.
@@ -839,7 +853,7 @@ class StreamCatcher(threading.Thread):
         # Create ref here so it still exists even if Py is shutting down
         limit_lines_local = limit_lines
         
-        while True:
+        while not self._should_stop:
             time.sleep(0.001)
             # Read one line. Detect when closed, and exit
             try:
