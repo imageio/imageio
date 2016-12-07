@@ -16,7 +16,7 @@ import imageio
 
 def test_fei_file_reading():
     need_internet()  # We keep a test image in the imageio-binaries repo
-    fei_filename =  get_remote_file('images/fei-sem-rbc.tif')
+    fei_filename = get_remote_file('images/fei-sem-rbc.tif')
     reader = imageio.get_reader(fei_filename, format='fei')
     image = reader.get_data(0)  # imageio.Image object
     assert image.shape == (1024, 1536)
