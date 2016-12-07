@@ -44,6 +44,7 @@ def download():
     plat = get_platform()
     if plat and plat in FNAME_PER_PLATFORM:
         get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
+        fi._lib = None  # allow trying again (needed to make tests work)
 
 
 def get_freeimage_lib():
