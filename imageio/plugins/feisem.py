@@ -54,5 +54,6 @@ class FEISEMFormat(TiffFormat):
 
 # Register plugin
 format = FEISEMFormat('fei', 'FEI-SEM TIFF format',
-                      extensions=['.tif', '.tiff'])
+                      extensions=['.tif', '.tiff'],
+                      modes='iv')
 formats.add_format(format)
