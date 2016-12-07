@@ -10,7 +10,21 @@ from .. import formats
 
 
 class FEISEMFormat(TiffFormat):
-    """Provide read support for TIFFs produced by an FEI SEM microscope."""
+    """Provide read support for TIFFs produced by an FEI SEM microscope.
+
+    This format is based on TIFF, and supports the same parameters.
+
+    FEI microscopes append metadata as ASCII text at the end of the file,
+    which this reader correctly extracts.
+
+    Parameters for get_data
+    -----------------------
+    discard_watermark : bool
+        If True (default), discard the bottom rows of the image, which
+        contain no image data, only a watermark with metadata.
+    watermark_height : int
+        The height in pixels of the FEI watermark. The default is 70.
+    """
 
     class Reader(TiffFormat.Reader):
         def _get_data(self, index=0, discard_watermark=True,
