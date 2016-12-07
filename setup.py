@@ -24,8 +24,8 @@ Release:
   * git tag the release
   * Upload to Pypi:
     * python setup.py register
-    * python setup.py sdist bdist_wheel_all upload
-  * Update, build and upload conda package
+    * python setup.py build_with_images upload
+  * Update conda recipe on conda-forge feedstock
 
 After release:
 
@@ -102,12 +102,6 @@ Example:
 See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
 or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
 for more information.
-
-All distribution files are independent of the Python version. The
-platform-specific archives contain a few images and the freeimage
-library for that platform. These are recommended if you do not want to
-rely on an internet connection at runtime / install-time.
-
 """
 
 # Prepare resources dir
@@ -185,9 +179,20 @@ class build_with_fi(build_py):
         build_py.run(self)
 
 
+class build_with_images(sdist):
+    def run(self):
+        # Download images
+        import imageio
+        resource_dir = imageio.core.resource_dirs()[0]
+        _set_crossplatform_resources(resource_dir)
+        # Build as  normal
+        sdist.run(self)
+
+
 setup(
     cmdclass={#'bdist_wheel_all': bdist_wheel_all,
               #'sdist_all': sdist_all,
+              'build_with_images': build_with_images,
               'build_with_fi': build_with_fi,
               'test': test_command},
     

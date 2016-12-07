@@ -21,7 +21,7 @@ GIF images, we obtain better quality (24 bit colors + alpha channel)
 while still producesing smaller files (a test showed ~75%). Although
 SWF also allows for JPEG compression, doing so would probably require
 a third party library for the JPEG encoding/decoding, we could
-potentially do this via freeimage.
+perhaps do this via Pillow or freeimage.
 
 This module requires Python 2.x / 3,x and numpy.
 
@@ -49,7 +49,7 @@ from ..core import string_types, binary_type
 
 PY3 = sys.version_info >= (3, )
 
-# todo: use FreeImage to support reading JPEG images from SWF?
+# todo: use Pillow to support reading JPEG images from SWF?
 
 
 ## Base functions and classes

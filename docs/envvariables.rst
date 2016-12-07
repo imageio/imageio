@@ -13,12 +13,11 @@ for the current Python process use
   freeimage and ffmpeg) will try to use the system version in this case.
 * ``IMAGEIO_FFMPEG_EXE``: Set the path to the ffmpeg executable. Set
   to simply "ffmpeg" to use your system ffmpeg executable. If not given,
-  will try to download the ffmpeg exe that imageio provides.
-* ``IMAGEIO_AVBIN_LIB``: Set the path to the avbin library. If not
-  given, will try to download the avbin library that imageio provides.
+  will prompt the user to download the ffmpeg exe that imageio provides.
+* ``IMAGEIO_AVBIN_LIB``: Set the path to the avbin library. If not given,
+  will prompt the user to download the avbin library that imageio provides.
 * ``IMAGEIO_FREEIMAGE_LIB``: Set the path to the freeimage library. If
-  not given, will try to download the freeimage library that imageio
-  provides.
+  not given, will prompt user to download the freeimage library.
 * ``IMAGEIO_FORMAT_ORDER``: Determine format preference. E.g. setting this
   to ``"TIFF, -FI"`` will prefer the FreeImage plugin over the Pillow plugin,
   but still prefer TIFF over that. Also see the ``formats.sort()`` method.
