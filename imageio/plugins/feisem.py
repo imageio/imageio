@@ -26,6 +26,9 @@ class FEISEMFormat(TiffFormat):
         The height in pixels of the FEI watermark. The default is 70.
     """
 
+    def _can_write(self, request):
+        return False  # FEI-SEM only supports reading
+
     class Reader(TiffFormat.Reader):
         def _get_data(self, index=0, discard_watermark=True,
                       watermark_height=70):
