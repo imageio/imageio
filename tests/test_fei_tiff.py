@@ -20,9 +20,13 @@ def test_fei_file_reading():
     reader = imageio.get_reader(fei_filename, format='fei')
     image = reader.get_data(0)  # imageio.Image object
     assert image.shape == (1024, 1536)
-    assert np.round(np.mean(image)) == 137
+    assert np.round(np.mean(image)) == 142
     assert len(image.meta) == 18
     assert image.meta['EScan']['PixelHeight'] == '7.70833e-009'
+
+    image_with_watermark = reader.get_data(0, discard_watermark=False)
+    assert image_with_watermark.shape == (1094, 1536)
+    assert np.round(np.mean(image_with_watermark)) == 137
 
     assert reader.get_data(0, discard_watermark=False).shape == (1094, 1536)
 
