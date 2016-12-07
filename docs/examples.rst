@@ -6,8 +6,8 @@ should soon be replaced with Vispy. One can also use Matplotlib to show
 the images.
 
 Imageio provides a range of :doc:`example images <standardimages>`, 
-which are automatically downloaded. Therefore most examples below should
-just work.
+which are automatically downloaded if not already present on your system.
+Therefore most examples below should just work.
 
 
 Read an image of a cat

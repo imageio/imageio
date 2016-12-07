@@ -413,10 +413,8 @@ class FfmpegFormat(Format):
             # Close streams, and threads that read from them
             if self._stderr_catcher:
                 self._stderr_catcher.stop_me()  # Hopefully prevents issue #174
-                self._stderr_catcher = None
             if self._frame_catcher:
                 self._frame_catcher.stop_me()
-                self._frame_catcher = None
             for p in (self._proc.stdin, self._proc.stdout, self._proc.stderr):
                 try:
                     p.close()

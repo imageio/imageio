@@ -62,9 +62,10 @@ sources (like http), and exposes a simple API for the plugins to access
 the raw data. All file formats are implemented in plugins. Additional
 plugins can easily be registered.
 </p><p>
-Some plugins rely on external libraries (e.g. freeimage). These are
-automatically downloaded when needed and cached in your appdata
-directory. This keeps imageio light and scalable.
+Some plugins rely on external libraries (e.g. ffmpeg). Imageio provides
+a way to download these with one function call, and prompts the user to do
+so when needed. The download is cached in your appdata
+directory, this keeps imageio light and scalable.
 </p><p>
 We plan to provide a wide range of image formats. Also scientific
 formats. Any help in implementing more formats is very welcome!
@@ -80,18 +81,19 @@ Minimal requirements:
 <ul>
     <li>Python 2.6, 2.7 or 3.x</li>
     <li>Numpy</li>
+    <li>Pillow</li>
 </ul>
 
 Optional Python packages:
 <ul>
     <li>SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
-    
     <li>osgeo (for GDAL plugin)</li>
 </ul>  
 
 
-Optional libraries and executables (get automatically downloaded when not available):
+Optional libraries and executables that Imageio provides and can be downloaded
+with one function call:
 <ul>
     <li>freeimage (library)</li>
     <li>ffmpeg (executable)</li>
@@ -108,7 +110,7 @@ need to be able to deal with scientific formats. I felt there was a
 need for a good image io library, which is an easy dependency, easy to
 maintain, and scalable to exotic file formats.
 </p><p>
-Imageio started out with the FreeImage plugin of the scikit-image
+Imageio started out as component of the scikit-image
 project, through which it was able to support a lot of common formats.
 We created a simple but powerful core, a clean user API, and a proper
 plugin system.

@@ -15,6 +15,9 @@
 - jackwalker64
   Fixes for ffmpeg plugin
 
+- Joel Nises
+  Improvements and fixes for the FreeImage plugin
+
 - legionaryu
   Fixes for the GIF plugin
 
