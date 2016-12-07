@@ -29,3 +29,6 @@ def test_fei_file_fail():
     normal_tif = os.path.join(get_test_dir(), 'test_tiff.tiff')
     bad_reader = imageio.get_reader(normal_tif, format='fei')
     np.testing.assert_raises(ValueError, bad_reader._get_meta_data)
+
+
+run_tests_if_main()
