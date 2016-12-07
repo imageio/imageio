@@ -39,7 +39,7 @@ class FEISEMFormat(TiffFormat):
             default as it does not contain any information not present
             in the metadata.
             """
-            im, meta = super()._get_data(index)
+            im, meta = super(FEISEMFormat.Reader, self)._get_data(index)
             if discard_watermark:
                 im = im[:-watermark_height]
             return im, meta
