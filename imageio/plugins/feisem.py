@@ -13,6 +13,19 @@ class FEISEMFormat(TiffFormat):
     """Provide read support for TIFFs produced by an FEI SEM microscope."""
 
     class Reader(TiffFormat.Reader):
+        def _get_data(self, index=0, discard_watermark=True,
+                      watermark_height=70):
+            """Get image and metadata from given index.
+
+            FEI images usually (always?) contain a watermark at the
+            bottom of the image, 70 pixels high. We discard this by
+            default as it does not contain any information not present
+            in the metadata.
+            """
+            im, meta = super()._get_data(self, index)
+            if discard_watermark:
+                im = im[:-watermark_height]
+            return im, meta
 
         def _get_meta_data(self, index=None):
             """Read the metadata from an FEI SEM TIFF.

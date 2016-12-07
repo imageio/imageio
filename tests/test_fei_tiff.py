@@ -19,10 +19,12 @@ def test_fei_file_reading():
     fei_filename =  get_remote_file('images/fei-sem-rbc.tif')
     reader = imageio.get_reader(fei_filename, format='fei')
     image = reader.get_data(0)  # imageio.Image object
-    assert image.shape == (1094, 1536)
+    assert image.shape == (1024, 1536)
     assert np.round(np.mean(image)) == 137
     assert len(image.meta) == 18
     assert image.meta['EScan']['PixelHeight'] == '7.70833e-009'
+
+    assert reader.get_data(0, discard_watermark=False).shape == (1094, 1536)
 
 
 def test_fei_file_fail():
