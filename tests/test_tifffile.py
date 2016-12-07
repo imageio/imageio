@@ -17,7 +17,7 @@ test_dir = get_test_dir()
 def test_tifffile_format():
     # Test selection
     for name in ['tiff', '.tif']:
-        format = imageio.formats['tiff']
+        format = imageio.formats[name]
         assert format.name == 'TIFF'
 
 
