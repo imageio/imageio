@@ -6,6 +6,8 @@ from __future__ import absolute_import, unicode_literals
 
 from .tifffile import TiffFormat
 
+from .. import formats
+
 
 class FEISEMFormat(TiffFormat):
     """Provide read support for TIFFs produced by an FEI SEM microscope."""
@@ -48,3 +50,9 @@ class FEISEMFormat(TiffFormat):
                     'Input file %s contains no FEI metadata.' % filename)
             self._meta.update(md)
             return md
+
+
+# Register plugin
+format = FEISEMFormat('fei', 'FEI-SEM TIFF format',
+                      extensions=['.tif', '.tiff'])
+formats.add_format(format)
