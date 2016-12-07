@@ -3,6 +3,25 @@ Release notes
 -------------
 
 
+Version 2.0 (07-12-2016)
+========================
+
+This release introduces a new plugin based on Pillow, which will take care of
+the "common formats" like PNG and JPEG, which was previously the role of the
+FreeImage plugin. The latter is still available but the FreeImage library
+is no longer distributed by default.
+
+* New Pillow plugin to privide the common formats.
+* FreeImage plugin gets lower priority w.r.t. resolving a format.
+* No more automatic downloading of libraries and executable (for
+  FreeImage, FFMPEG and AVBIN plugins).
+* Pillow plugin comes with a format to read/write animated GIF to supersede
+  the one provided by FreeImage.
+* Various improvements/fixes to the ffmpeg plugin.
+* Fixes and improvements of the DICOM plugin.
+* Better support of exr images via FreeImage (by Joel Nises).
+
+
 Version 1.6 (19-09-2016)
 ========================
 
