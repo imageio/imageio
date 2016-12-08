@@ -5,9 +5,8 @@ FEI TIFFs contain metadata as ASCII plaintext at the end of the file.
 from __future__ import unicode_literals
 
 import os
-
+from pytest import raises
 import numpy as np
-
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 from imageio.core import get_remote_file
 
@@ -35,7 +34,7 @@ def test_fei_file_fail():
     normal_tif = os.path.join(get_test_dir(), 'test_tiff.tiff')
     imageio.imsave(normal_tif, np.zeros((5, 5), dtype=np.uint8))
     bad_reader = imageio.get_reader(normal_tif, format='fei')
-    np.testing.assert_raises(ValueError, bad_reader._get_meta_data)
+    assert raises(ValueError, bad_reader._get_meta_data)
 
 
 run_tests_if_main()
