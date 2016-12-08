@@ -21,7 +21,8 @@ def test_fei_file_reading():
     assert image.shape == (1024, 1536)
     assert np.round(np.mean(image)) == 142
     assert len(image.meta) == 18
-    assert image.meta['EScan']['PixelHeight'] == '7.70833e-009'
+    assert image.meta['EScan']['PixelHeight'] == 7.70833e-009
+    assert isinstance(image.meta['Image']['ResolutionX'], int)
 
     image_with_watermark = reader.get_data(0, discard_watermark=False)
     assert image_with_watermark.shape == (1094, 1536)

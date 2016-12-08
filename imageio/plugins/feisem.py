@@ -74,6 +74,13 @@ class FEISEMFormat(TiffFormat):
                     else:
                         if line and line != '\x00':  # ignore blank lines
                             key, val = line.split('=')
+                            for tag_type in (int, float):
+                                try:
+                                    val = tag_type(val)
+                                except ValueError:
+                                    continue
+                                else:
+                                    break
                             md[current_tag][key] = val
             if not md['root'] and len(md) == 1:
                 raise ValueError(
