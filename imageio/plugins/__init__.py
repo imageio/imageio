@@ -82,7 +82,6 @@ For the Format.Writer class:
 
 # First import plugins that we want to take precedence over freeimage
 from . import tifffile
-from . import feisem
 from . import pillow
 
 from . import freeimage
@@ -94,9 +93,11 @@ from . import avbin
 from . import dicom
 from . import npz
 from . import swf
-from . import fits
-from . import simpleitk
-from . import gdal
+from . import feisem  # special kind of tiff, uses _tiffile
+
+from . import fits  # depends on astropy
+from . import simpleitk  # depends on SimpleITK
+from . import gdal  # depends on gdal
 
 from . import example
 

@@ -136,6 +136,7 @@ class Maker:
             if 'clean' == a:
                 sphinx_clean(build_dir)
             elif 'html' == a:
+                sphinx_clean(build_dir)
                 sphinx_build(DOC_DIR, build_dir)
             elif 'show' == a:
                 index_html = op.join(build_dir, 'html', 'index.html')

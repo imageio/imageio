@@ -55,20 +55,20 @@ def prepare_reader_and_witer():
     # Create Reader and Writer subclasses that are going to be placed
     # in the format module so that autoclass can find them. They need
     # to be new classes, otherwise sphinx considers them aliases.
-    class Reader(imageio.core.format.Format.Reader):
-        pass
-    class Writer(imageio.core.format.Format.Writer):
-        pass
+    # We create the class using type() so that we can copy the __doc__.
+    Reader = type('Reader', (imageio.core.format.Format.Reader, ),
+                  {__doc__:imageio.core.format.Format.Reader.__doc__ })
+    Writer = type('Writer', (imageio.core.format.Format.Writer, ),
+                  {__doc__:imageio.core.format.Format.Writer.__doc__ })
+    
     imageio.core.format.Reader = Reader
     imageio.core.format.Writer = Writer
     
-    # We set the docs of the original classes, and remove the docstring
-    # from the original classes so that Reader and Writer do not show
-    # up in the docs of the Format class.
-    Reader.__doc__ = imageio.core.format.Format.Reader.__doc__
-    Writer.__doc__ = imageio.core.format.Format.Writer.__doc__
-    imageio.core.format.Format.Reader.__doc__ = ''
-    imageio.core.format.Format.Writer.__doc__ = ''
+    # We set the docs of the original classes, and remove the original
+    # classes so that Reader and Writer do not show up in the docs of
+    # the Format class.
+    imageio.core.format.Format.Reader = None  # .__doc__ = ''
+    imageio.core.format.Format.Writer = None  # .__doc__ = ''
 
 
 def prepare_core_docs():
@@ -79,11 +79,13 @@ def prepare_core_docs():
     
     D = imageio.core.__dict__
     
+    excludes = 'binary_type', 'text_type'
+    
     # Collect functions and classes in imageio.core
     functions, classes = [], []
+    func_type = type(prepare_core_docs)
     for name in D:
-        func_type = type(prepare_core_docs)
-        if name.startswith('_'):
+        if name.startswith('_') or name in excludes:
             continue
         ob = D[name]
         if isinstance(ob, type):
@@ -119,7 +121,7 @@ def create_plugin_docs():
     # Insert code from example plugin
     text += 'Example / template plugin\n-------------------------\n\n'
     text += ".. code-block:: python\n    :linenos:\n\n"
-    filename = imageio.plugins.example.__file__
+    filename = imageio.plugins.example.__file__.replace('.pyc', '.py')
     code = open(filename, 'rb').read().decode('utf-8')
     code = '\n'.join(['    ' + line.rstrip() for line in code.splitlines()])
     text += code
@@ -191,7 +193,6 @@ def create_format_docs():
         #members = '\n  :members:\n\n'
         #text += '.. autoclass:: %s.Reader%s' % (format.__module__, members)
         #text += '.. autoclass:: %s.Writer%s' % (format.__module__, members)
-        
         _write('format_%s.rst' % format.name.lower(), text)
 
 
