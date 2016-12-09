@@ -211,6 +211,11 @@ setup(
     platforms = 'any',
     provides = ['imageio'],
     requires = ['numpy', 'pillow'],
+    extra_require = {'fits': ['astropy'],
+                     'gdal': ['gdal'],
+                     'simpleitk': ['SimpleITK'],
+                     'full': ['astropy', 'gdal', 'SimpleITK'],
+                     },
     
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 

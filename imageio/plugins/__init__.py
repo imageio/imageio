@@ -97,7 +97,7 @@ from . import feisem  # special kind of tiff, uses _tiffile
 
 from . import fits  # depends on astropy
 from . import simpleitk  # depends on SimpleITK
-from . import gdal  # depends on osgeo.gdal
+from . import gdal  # depends on gdal
 
 from . import example
 
