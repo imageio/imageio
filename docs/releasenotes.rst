@@ -3,7 +3,7 @@ Release notes
 -------------
 
 
-Version 2.0 (07-12-2016)
+Version 2.0 (10-12-2016)
 ========================
 
 This release introduces a new plugin based on Pillow, which will take care of
@@ -20,6 +20,7 @@ is no longer distributed by default.
 * Various improvements/fixes to the ffmpeg plugin.
 * Fixes and improvements of the DICOM plugin.
 * Better support of exr images via FreeImage (by Joel Nises).
+* New FEI format (for images produced by the FEI SEM microscope).
 
 
 Version 1.6 (19-09-2016)

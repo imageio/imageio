@@ -18,6 +18,9 @@
 - Joel Nises
   Improvements and fixes for the FreeImage plugin
 
+- Juan Nunez-Iglesias
+  FEI plugin
+
 - legionaryu
   Fixes for the GIF plugin
 
