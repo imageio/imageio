@@ -71,7 +71,9 @@ class Format:
         select a format by file extension. It is not used to determine
         what format to use for reading/saving a file.
     modes : str
-        A string containing the modes that this format can handle ('iIvV').
+        A string containing the modes that this format can handle ('iIvV'),
+        “i” for an image, “I” for multiple images, “v” for a volume,
+        “V” for multiple volumes.
         This attribute is used in the documentation and to select the
         formats when reading/saving a file.
     """

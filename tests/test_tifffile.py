@@ -17,12 +17,12 @@ test_dir = get_test_dir()
 def test_tifffile_format():
     # Test selection
     for name in ['tiff', '.tif']:
-        format = imageio.formats['tiff']
+        format = imageio.formats[name]
         assert format.name == 'TIFF'
 
 
 def test_tifffile_reading_writing():
-    """ Test reading and saveing tiff """
+    """ Test reading and saving tiff """
     
     need_internet()  # We keep a test image in the imageio-binary repo
     
