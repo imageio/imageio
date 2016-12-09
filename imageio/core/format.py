@@ -42,7 +42,7 @@ from . import Image, asarray
 from . import string_types, text_type, binary_type  # noqa
 
 
-class Format:
+class Format(object):
     """ Represents an implementation to read/write a particular file format
     
     A format instance is responsible for 1) providing information about
@@ -497,7 +497,7 @@ class Format:
             raise NotImplementedError() 
 
 
-class FormatManager:
+class FormatManager(object):
     """ 
     There is exactly one FormatManager object in imageio: ``imageio.formats``.
     Its purpose it to keep track of the registered formats.

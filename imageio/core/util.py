@@ -248,7 +248,7 @@ class Dict(_dict):
         return Dict.__reserved_names__ + names
 
     
-class BaseProgressIndicator:
+class BaseProgressIndicator(object):
     """ BaseProgressIndicator(name)
     
     A progress indicator helps display the progres of a task to the
