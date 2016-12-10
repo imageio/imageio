@@ -188,6 +188,8 @@ def test_request_read_sources():
     z.writestr(fname, bytes)
     z.close()
     
+    has_inet = os.getenv('IMAGEIO_NO_INTERNET', '') not in ('1', 'yes', 'true')
+    
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
     for X in range(2):
@@ -197,7 +199,7 @@ def test_request_read_sources():
                 os.path.join(test_dir, 'test.zip', fname),
                 bytes,
                 open(filename, 'rb'))
-        if os.environ.get('IMAGEIO_NO_INTERNET', '').lower() not in '1 yes true':
+        if has_inet:
             uris.append(burl + fname)
         
         for uri in uris:
