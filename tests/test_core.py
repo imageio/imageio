@@ -191,11 +191,16 @@ def test_request_read_sources():
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
     for X in range(2):
-        for uri in (filename,
-                    os.path.join(test_dir, 'test.zip', fname),
-                    bytes,
-                    open(filename, 'rb'),
-                    burl + fname):
+        
+        # Define uris to test. Define inside loop, since we need fresh files
+        uris = (filename,
+                os.path.join(test_dir, 'test.zip', fname),
+                bytes,
+                open(filename, 'rb'))
+        if os.environ.get('IMAGEIO_NO_INTERNET', '').lower() not in '1 yes true':
+            uris.append(burl + fname)
+        
+        for uri in uris:
             R = Request(uri, 'ri')
             first_bytes = R.firstbytes
             if X == 0:
@@ -545,7 +550,7 @@ def test_functions():
     
     # Test volsave()
     volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
-    fname6 = fname4[:-4] + '2.npz'
+    fname6 = os.path.join(test_dir, 'images', 'stent2.npz')
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
@@ -572,10 +577,10 @@ def test_functions():
     raises(ValueError, imageio.imsave, fname2, 42)
     raises(ValueError, imageio.mimsave, fname5, [np.zeros((100, 100, 5))])
     raises(ValueError, imageio.mimsave, fname5, [42])
-    raises(ValueError, imageio.volsave, fname4, np.zeros((100, 100, 100, 40)))
-    raises(ValueError, imageio.volsave, fname4, 42)
-    raises(ValueError, imageio.mvolsave, fname4, [np.zeros((90, 90, 90, 40))])
-    raises(ValueError, imageio.mvolsave, fname4, [42])
+    raises(ValueError, imageio.volsave, fname6, np.zeros((100, 100, 100, 40)))
+    raises(ValueError, imageio.volsave, fname6, 42)
+    raises(ValueError, imageio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
+    raises(ValueError, imageio.mvolsave, fname6, [42])
 
 
 def test_example_plugin():
