@@ -210,7 +210,7 @@ setup(
     
     platforms = 'any',
     provides = ['imageio'],
-    requires = ['numpy', 'pillow'],
+    install_requires = ['numpy', 'pillow'],
     extra_require = {'fits': ['astropy'],
                      'gdal': ['gdal'],
                      'simpleitk': ['SimpleITK'],
