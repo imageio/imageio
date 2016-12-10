@@ -1,6 +1,10 @@
-global-exclude .git*
 include LICENSE README.md CONTRIBUTORS.txt
 recursive-include docs *
 prune docs/_build
 prune docs/ext/__pycache__
+
 include tests/*.py tests/*.md
+
+global-exclude .git*
+global-exclude *.pyo
+global-exclude *.pyc
