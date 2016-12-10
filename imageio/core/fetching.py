@@ -64,7 +64,8 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
     url = _url_root + fname
     nfname = op.normcase(fname)  # convert to native
     # Get dirs to look for the resource
-    directory = directory or appdata_dir('imageio')
+    given_directory = directory
+    directory = given_directory or appdata_dir('imageio')
     dirs = resource_dirs()
     dirs.insert(0, directory)  # Given dir has preference
     # Try to find the resource locally
@@ -72,11 +73,19 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
         filename = op.join(dir, nfname)
         if op.isfile(filename):
             if not force_download:  # we're done
+                if given_directory and given_directory != dir:
+                    filename2 = os.path.join(given_directory, nfname)
+                    shutil.copy(filename, filename2)
+                    return filename2
                 return filename
             if isinstance(force_download, string_types):
                 ntime = time.strptime(force_download, '%Y-%m-%d')
                 ftime = time.gmtime(op.getctime(filename))
                 if ftime >= ntime:
+                    if given_directory and given_directory != dir:
+                        filename2 = os.path.join(given_directory, nfname)
+                        shutil.copy(filename, filename2)
+                        return filename2
                     return filename
                 else:
                     print('File older than %s, updating...' % force_download)
