@@ -20,17 +20,12 @@ def setup_module():
     # During this test, pretend that FI is the default format
     imageio.formats.sort('-FI')
     
+    # This tests requires our version of the FI lib
     try:
-        imageio.plugins.freeimage.fi.lib
-    except RuntimeError:
-        
-        # No freeimage lib, try downloading ...
-        try:
-            imageio.plugins.freeimage.download()
-        except imageio.core.InternetNotAllowedError:
-            
-            # We cannot download; skip all freeimage tests
-            need_internet()
+        imageio.plugins.freeimage.download()
+    except imageio.core.InternetNotAllowedError:
+        # We cannot download; skip all freeimage tests
+        need_internet()
 
 
 def teardown_module():
