@@ -37,7 +37,8 @@ def loaded_modules(import_module, depth=None, all_modules=False):
     module level (i.e. depth=1 will only yield 'X.Y' but not 'X.Y.Z').
     """
 
-    imageio_dir = os.path.dirname(os.path.dirname(imageio.__file__))
+    imageio_dir = os.path.dirname(os.path.dirname(
+                                  os.path.abspath(imageio.__file__)))
 
     # Get the loaded modules in a clean interpreter
     code = "import sys, %s; print(', '.join(sys.modules))" % import_module
