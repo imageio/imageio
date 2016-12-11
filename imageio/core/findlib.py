@@ -51,10 +51,13 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
     """
     lib_dirs = lib_dirs or []
     
+    # Multiarch triplet as defined in https://wiki.debian.org/Python/MultiArch
+    triplet = getattr(sys, 'implementation', sys)._multiarch
+    
     # Get system dirs to search
     sys_lib_dirs = ['/lib', 
                     '/usr/lib', 
-                    '/usr/lib/x86_64-linux-gnu',
+                    '/usr/lib/{}'.format(triplet),
                     '/usr/local/lib', 
                     '/opt/local/lib', ]
     
