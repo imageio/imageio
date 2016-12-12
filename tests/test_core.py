@@ -92,8 +92,8 @@ def test_findlib():
     if not sys.platform.startswith('linux'):
         return
     
-    # Candidate libs for common lib
-    dirs, paths = core.findlib.generate_candidate_libs(['libpython'])
+    # Candidate libs for common lib (note, this runs only on linux)
+    dirs, paths = core.findlib.generate_candidate_libs(['libc'])
     assert paths
     
     # Candidate libs for common freeimage
