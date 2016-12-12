@@ -14,21 +14,8 @@ import ctypes
 
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
-
-# More generic:
-# def get_local_lib_dirs(*libdirs):
-#     """ Get a list of existing directories that end with one of the given
-#     subdirs, and that are in the (sub)package that this modules is part of.
-#     """
-#     dirs = []
-#     parts = __name__.split('.')
-#     for i in reversed(range(len(parts))):
-#         package_name = '.'.join(parts[:i])
-#         package = sys.modules.get(package_name, None)
-#         if package:
-#             dirs.append(os.path.abspath(os.path.dirname(package.__file__)))
-#     dirs = [os.path.join(d, sub) for sub in libdirs for d in dirs]
-#     return [d for d in dirs if os.path.isdir(d)]
+# Flag that can be patched / set to True to disable loading non-system libs
+SYSTEM_LIBS_ONLY = False
 
 
 def looks_lib(fname):
@@ -127,7 +114,10 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
     # Collect filenames of potential libraries
     # First try a few bare library names that ctypes might be able to find
     # in the default locations for each platform. 
-    lib_dirs, lib_paths = generate_candidate_libs(lib_names, lib_dirs)
+    if SYSTEM_LIBS_ONLY:
+        lib_dirs, lib_paths = [], []
+    else:
+        lib_dirs, lib_paths = generate_candidate_libs(lib_names, lib_dirs)
     lib_paths = exact_lib_names + lib_paths
     
     # Select loader 
