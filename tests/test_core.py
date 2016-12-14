@@ -86,8 +86,7 @@ def test_fetching():
     assert '0 bytes' == core.fetching._sizeof_fmt(0)
 
 
-def test_findlib():
-    """ Test finding of libs """
+def test_findlib1():
     
     if not sys.platform.startswith('linux'):
         return
@@ -95,6 +94,14 @@ def test_findlib():
     # Candidate libs for common lib (note, this runs only on linux)
     dirs, paths = core.findlib.generate_candidate_libs(['libc'])
     assert paths
+
+
+def test_findlib2():
+    
+    if not sys.platform.startswith('linux'):
+        return
+    
+    need_internet()  # need our own version of FI to test this bit
     
     # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir('imageio'), 'freeimage')
