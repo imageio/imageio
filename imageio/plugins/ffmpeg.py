@@ -687,7 +687,6 @@ class FfmpegFormat(Format):
                     # May need a way to find range for any codec.
                     quality = int(quality*30)+1
                     cmd += ['-qscale:v', str(quality)]  # for others
-            cmd += ['-r', "%d" % fps]
 
             # Note, for most codecs, the image dimensions must be divisible by
             # 16 the default for the macro_block_size is 16. Check if image is
