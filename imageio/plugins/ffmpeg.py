@@ -382,7 +382,10 @@ class FfmpegFormat(Format):
                 # Create input args -> start time
                 # Need minimum 6 significant digits accurate frame seeking
                 # and to support higher fps videos
-                iargs = ['-ss', "%.06f" % (starttime),
+                # Also appears this epsilon below is needed to ensure frame
+                # accurate seeking in some cases
+                epsilon = -1/self._meta['fps']*0.1
+                iargs = ['-ss', "%.06f" % (starttime+epsilon),
                          '-i', self._filename,
                          ]
 
