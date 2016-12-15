@@ -381,7 +381,8 @@ class FfmpegFormat(Format):
                 offset = min(1, starttime)
 
                 # Create input args -> start time
-                # Need minimum 6 significant digits for high fps videos
+                # Need minimum 6 significant digits accurate frame seeking
+                # and to support higher fps videos
                 iargs = ['-ss', "%.06f" % (starttime),
                          '-i', self._filename,
                          ]
@@ -395,7 +396,6 @@ class FfmpegFormat(Format):
                 # Create process
                 cmd = [self._exe]
                 cmd += iargs + oargs + ['-']
-                print(cmd)
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
 
