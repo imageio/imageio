@@ -333,7 +333,7 @@ class FfmpegFormat(Format):
             elif index >= self._meta['nframes']:
                 raise IndexError('Reached end of video')
             else:
-                if (index < self._pos) or (index > self._pos+100): # May want to reduce from 100
+                if (index < self._pos) or (index > self._pos+100):
                     self._reinitialize(index)
                 else:
                     self._skip_frames(index-self._pos-1)
