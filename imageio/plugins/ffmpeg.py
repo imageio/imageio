@@ -333,7 +333,7 @@ class FfmpegFormat(Format):
             elif index >= self._meta['nframes']:
                 raise IndexError('Reached end of video')
             else:
-                if (index < self._pos) or (index > self._pos+100):
+                if (index < self._pos) or (index > self._pos+100): # May want to reduce from 100
                     self._reinitialize(index)
                 else:
                     self._skip_frames(index-self._pos-1)
@@ -381,9 +381,10 @@ class FfmpegFormat(Format):
                 offset = min(1, starttime)
 
                 # Create input args -> start time
-                iargs = ['-ss', "%.03f" % (starttime-offset),
+                # Need minimum 6 significant digits for high fps videos
+                iargs = ['-ss', "%.06f" % (starttime),
                          '-i', self._filename,
-                         '-ss', "%.03f" % offset]
+                         ]
 
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
@@ -394,6 +395,7 @@ class FfmpegFormat(Format):
                 # Create process
                 cmd = [self._exe]
                 cmd += iargs + oargs + ['-']
+                print(cmd)
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
 
