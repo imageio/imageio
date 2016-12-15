@@ -378,7 +378,6 @@ class FfmpegFormat(Format):
                 self._initialize()
             else:
                 starttime = index / self._meta['fps']
-                offset = min(1, starttime)
 
                 # Create input args -> start time
                 # Need minimum 6 significant digits accurate frame seeking
