@@ -208,11 +208,10 @@ def create_standard_images_docs():
         2D images, as well as animated and volumetric images. To the best
         of our knowledge, all the listed images are in public domain.
         
-        The image names can simply be used as a URI 
-        (e.g. ``imread('astronaut.png')``.
+        The image names can be loaded by using a special URI,
+        e.g. ``imread('imageio:astronaut.png')``.
         The images are automatically downloaded (and cached in your appdata
-        directory). If 'astronaut.png' happens to be a valid filename in the
-        current directory, that file is used instead.
+        directory).
         """
     text += '\n'.join([line.strip() for line in docs.splitlines()])
     text += '\n\n'

@@ -175,10 +175,10 @@ def test_request():
     raises(IOError, Request, '/does/not/exist.png', 'wi')  # write dir nonexist
     
     # Test auto-download
-    R = Request('chelsea.png', 'ri')
+    R = Request('imageio:chelsea.png', 'ri')
     assert R.filename == get_remote_file('images/chelsea.png')
     #
-    R = Request('chelsea.zip/chelsea.png', 'ri')
+    R = Request('imageio:chelsea.zip/chelsea.png', 'ri')
     assert R._filename_zip[0] == get_remote_file('images/chelsea.zip')
     assert R.filename == get_remote_file('images/chelsea.zip') + '/chelsea.png'
 
@@ -535,7 +535,7 @@ def test_functions():
     assert ims[0].shape[2] in (1, 3, 4)
     # Test protection
     with raises(RuntimeError):
-        imageio.mimread('chelsea.png', 'dummy', length=np.inf)
+        imageio.mimread('imageio:chelsea.png', 'dummy', length=np.inf)
     
     if IS_PYPY:
         return  # no support for npz format :(
@@ -596,7 +596,8 @@ def test_example_plugin():
     """ Test the example plugin """
     
     fname = os.path.join(test_dir, 'out.png')
-    R = imageio.formats['dummy'].get_reader(Request('chelsea.png', 'r?'))
+    r = Request('imageio:chelsea.png', 'r?')
+    R = imageio.formats['dummy'].get_reader(r)
     W = imageio.formats['dummy'].get_writer(Request(fname, 'w?'))
     #
     assert len(R) == 1

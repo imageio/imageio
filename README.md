@@ -3,7 +3,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt/branch/master?svg=true)](https://ci.appveyor.com/project/almarklein/imageio/branch/master)
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
-[![Pypi downloads](https://img.shields.io/pypi/dm/imageio.svg)](https://pypi.python.org/pypi/imageio)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.org)
    
 Website: http://imageio.github.io
@@ -22,10 +21,10 @@ Here's a minimal example of how to use imageio. See the docs for
 <a href='http://imageio.readthedocs.org/en/latest/examples.html'>more examples</a>.
 <pre>
 >>> import imageio
->>> im = imageio.imread('chelsea.png')
+>>> im = imageio.imread('imageio:chelsea.png')  # read a standard image
 >>> im.shape  # im is a numpy array
 (300, 451, 3)
->>> imageio.imwrite('chelsea-gray.jpg', im[:, :, 0])
+>>> imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
 </pre>
 
 <h2>API in a nutshell</h2>
@@ -79,7 +78,7 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 Minimal requirements:
 <ul>
-    <li>Python 2.6, 2.7 or 3.x</li>
+    <li>Python 3.x, 2.7 or 2.6</li>
     <li>Numpy</li>
     <li>Pillow</li>
 </ul>
