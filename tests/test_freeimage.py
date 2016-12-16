@@ -130,7 +130,7 @@ def test_freeimage_format():
     assert F.name == 'PNG-FI'
     
     # Reader
-    R = F.get_reader(core.Request('chelsea.png', 'ri'))
+    R = F.get_reader(core.Request('imageio:chelsea.png', 'ri'))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -188,11 +188,11 @@ def test_png():
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
     
     # Parameters
-    im = imageio.imread('chelsea.png', ignoregamma=True)
+    im = imageio.imread('imageio:chelsea.png', ignoregamma=True)
     imageio.imsave(fnamebase + '.png', im, interlaced=True)
     
     # Parameter fail
-    raises(TypeError, imageio.imread, 'chelsea.png', notavalidkwarg=True)
+    raises(TypeError, imageio.imread, 'imageio:chelsea.png', notavalidkwarg=True)
     raises(TypeError, imageio.imsave, fnamebase + '.png', im, notavalidk=True)
     
     # Compression

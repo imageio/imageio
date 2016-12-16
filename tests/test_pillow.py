@@ -82,7 +82,7 @@ def test_pillow_format():
     assert F.name == 'PNG-PIL'
     
     # Reader
-    R = F.get_reader(core.Request('chelsea.png', 'ri'))
+    R = F.get_reader(core.Request('imageio:chelsea.png', 'ri'))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -109,11 +109,11 @@ def test_png():
                 assert_close(rim * mul, im, 0.1)  # lossless
     
     # Parameters
-    im = imageio.imread('chelsea.png', ignoregamma=True)
+    im = imageio.imread('imageio:chelsea.png', ignoregamma=True)
     imageio.imsave(fnamebase + '.png', im, interlaced=True)
     
     # Parameter fail
-    raises(TypeError, imageio.imread, 'chelsea.png', notavalidkwarg=True)
+    raises(TypeError, imageio.imread, 'imageio:chelsea.png', notavalidkwarg=True)
     raises(TypeError, imageio.imsave, fnamebase + '.png', im, notavalidk=True)
     
     # Compression
@@ -139,7 +139,7 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
     
     # 16b bit images
-    im = imageio.imread('chelsea.png')[:, :, 0]
+    im = imageio.imread('imageio:chelsea.png')[:, :, 0]
     imageio.imsave(fnamebase + '1.png', im.astype('uint16')*2)
     imageio.imsave(fnamebase + '2.png', im)
     s1 = os.stat(fnamebase + '1.png').st_size
@@ -239,7 +239,7 @@ def test_gif():
 def test_animated_gif():
     
     # Read newton's cradle
-    ims = imageio.mimread('newtonscradle.gif')
+    ims = imageio.mimread('imageio:newtonscradle.gif')
     assert len(ims) == 36
     for im in ims:
         assert im.shape == (150, 200, 4)

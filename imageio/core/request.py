@@ -130,10 +130,15 @@ class Request(object):
                 if is_write_request:
                     raise RuntimeError('Cannot write to the standard images.')
                 fn = uri.split(':', 1)[-1].lower()
+                fn, _, zip_part = fn.partition('.zip/')
+                if zip_part:
+                    fn += '.zip'
                 if fn not in EXAMPLE_IMAGES:
                     raise ValueError('Unknown standard image %r.' % fn)
                 self._uri_type = URI_FILENAME
                 self._filename = get_remote_file('images/' + fn, auto=True)
+                if zip_part:
+                    self._filename += '/' + zip_part
             elif uri.startswith('http://') or uri.startswith('https://'):
                 self._uri_type = URI_HTTP
                 self._filename = uri
