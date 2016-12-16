@@ -192,7 +192,7 @@ def test_png():
     imageio.imsave(fnamebase + '.png', im, interlaced=True)
     
     # Parameter fail
-    raises(TypeError, imageio.imread, 'imageio:chelsea.png', notavalidkwarg=True)
+    raises(TypeError, imageio.imread, 'imageio:chelsea.png', notavalidk=True)
     raises(TypeError, imageio.imsave, fnamebase + '.png', im, notavalidk=True)
     
     # Compression

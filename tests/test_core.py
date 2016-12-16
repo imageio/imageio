@@ -596,7 +596,8 @@ def test_example_plugin():
     """ Test the example plugin """
     
     fname = os.path.join(test_dir, 'out.png')
-    R = imageio.formats['dummy'].get_reader(Request('imageio:chelsea.png', 'r?'))
+    r = Request('imageio:chelsea.png', 'r?')
+    R = imageio.formats['dummy'].get_reader(r)
     W = imageio.formats['dummy'].get_writer(Request(fname, 'w?'))
     #
     assert len(R) == 1
