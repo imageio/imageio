@@ -1,12 +1,12 @@
 Imageio usage examples
 ======================
 
-Some of these examples use Visvis to visualize the image data. This
-should soon be replaced with Vispy. One can also use Matplotlib to show
-the images.
+Some of these examples use Visvis to visualize the image data,
+but one can also use Matplotlib to show the images.
 
 Imageio provides a range of :doc:`example images <standardimages>`, 
-which are automatically downloaded if not already present on your system.
+which can be used by using a URI like ``'imageio:chelsea.png'``. The images
+are automatically downloaded if not already present on your system.
 Therefore most examples below should just work.
 
 
@@ -19,7 +19,7 @@ Probably the most important thing you ever need.
 
     import imageio
     
-    im = imageio.imread('chelsea.png')
+    im = imageio.imread('imageio:chelsea.png')
     print(im.shape)
 
 
@@ -44,7 +44,7 @@ Iterate over frames in a movie
 
     import imageio
     
-    reader = imageio.get_reader('cockatoo.mp4')
+    reader = imageio.get_reader('imageio:cockatoo.mp4')
     for i, im in enumerate(reader):
         print('Mean of frame %i is %1.1f' % (i, im.mean()))
 
@@ -78,7 +78,7 @@ can apply any kind of (image) processing to the image here ...
 
     import imageio
     
-    reader = imageio.get_reader('cockatoo.mp4')
+    reader = imageio.get_reader('imageio:cockatoo.mp4')
     fps = reader.get_meta_data()['fps']
     
     writer = imageio.get_writer('~/cockatoo_gray.mp4', fps=fps)
@@ -113,5 +113,5 @@ Volume data
     import imageio
     import visvis as vv
     
-    vol = imageio.volread('stent.npz')
+    vol = imageio.volread('imageio:stent.npz')
     vv.volshow(vol)
