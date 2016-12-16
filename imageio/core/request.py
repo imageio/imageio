@@ -126,7 +126,15 @@ class Request(object):
         
         if isinstance(uri, string_types):
             # Explicit
-            if uri.startswith('http://') or uri.startswith('https://'):
+            if uri.startswith('imageio:'):
+                if is_write_request:
+                    raise RuntimeError('Cannot write to the standard images.')
+                fn = uri.split(':', 1)[-1].lower()
+                if fn not in EXAMPLE_IMAGES:
+                    raise ValueError('Unknown standard image %r.' % fn)
+                self._uri_type = URI_FILENAME
+                self._filename = get_remote_file('images/' + fn, auto=True)
+            elif uri.startswith('http://') or uri.startswith('https://'):
                 self._uri_type = URI_HTTP
                 self._filename = uri
             elif uri.startswith('ftp://') or uri.startswith('ftps://'):
@@ -207,17 +215,16 @@ class Request(object):
         if is_write_request and self._uri_type in noWriting:
             raise IOError('imageio does not support writing to http/ftp.')
         
-        # Check if an example image
+        # Deprecated way to load standard images, give a sensible error message
         if is_read_request and self._uri_type in [URI_FILENAME, URI_ZIPPED]:
             fn = self._filename
             if self._filename_zip:
                 fn = self._filename_zip[0]
             if (not os.path.exists(fn)) and (fn in EXAMPLE_IMAGES):
-                fn = get_remote_file('images/' + fn)
-                self._filename = fn
-                if self._filename_zip:
-                    self._filename_zip = fn, self._filename_zip[1]
-                    self._filename = fn + '/' + self._filename_zip[1]
+                raise IOError('No such file: %r. This file looks like one of '
+                              'the standard images, but from imageio 2.1, '
+                              'standard images have to be specified using '
+                              '"imageio:%s".' % (fn, fn)) 
         
         # Make filename absolute 
         if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
@@ -227,7 +234,7 @@ class Request(object):
             else:
                 self._filename = os.path.abspath(self._filename)
         
-        # Check wether file name is valid
+        # Check whether file name is valid
         if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
             fn = self._filename
             if self._filename_zip:
