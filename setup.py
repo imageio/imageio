@@ -22,9 +22,7 @@ Release:
 
   * Increase __version__
   * git tag the release
-  * Upload to Pypi:
-    * python setup.py register
-    * python setup.py build_with_images upload
+  * Upload to Pypi: python setup.py sdist upload
   * Update conda recipe on conda-forge feedstock
 
 After release:
@@ -194,6 +192,7 @@ setup(
               #'sdist_all': sdist_all,
               'build_with_images': build_with_images,
               'build_with_fi': build_with_fi,
+              'sdist': build_with_images,
               'test': test_command},
     
     name = name,
