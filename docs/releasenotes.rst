@@ -2,6 +2,16 @@
 Release notes
 -------------
 
+Version 2.1 (22-12-2016)
+========================
+
+* Standard images now have to be specified using e.g.
+  ``imageio.imread('imageio:chelsea.png')`` to be more explicit about being
+  a special case and potentially involving a download.
+* Improvements and fixes for the ffmpeg plugin (including improved seeking).
+* Several tweaks to the tests and setup script to make it pass the Debian
+  build system.
+
 
 Version 2.0 (10-12-2016)
 ========================
