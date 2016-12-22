@@ -95,7 +95,7 @@ Example:
     >>> im = imageio.imread('astronaut.png')
     >>> im.shape  # im is a numpy array
     (512, 512, 3)
-    >>> imageio.imwrite('astronaut-gray.jpg', im[:, :, 0])
+    >>> imageio.imwrite('imageio:astronaut-gray.jpg', im[:, :, 0])
 
 See the `user API <http://imageio.readthedocs.org/en/latest/userapi.html>`_
 or `examples <http://imageio.readthedocs.org/en/latest/examples.html>`_
