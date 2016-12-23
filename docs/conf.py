@@ -31,6 +31,11 @@ extensions = ['sphinx.ext.autodoc',
               'numpydoc',
               'imageio_ext', ]
 
+# Monkey-patch numpydoc to don't do the autosummary thing
+import docscrape_sphinx
+assert docscrape_sphinx.SphinxDocString._str_member_list
+docscrape_sphinx.SphinxDocString._str_member_list = lambda self, name: []
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
