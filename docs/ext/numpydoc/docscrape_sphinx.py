@@ -8,7 +8,7 @@ import pydoc
 import sphinx
 import collections
 
-from docscrape import NumpyDocString, FunctionDoc, ClassDoc
+from .docscrape import NumpyDocString, FunctionDoc, ClassDoc
 
 if sys.version_info[0] >= 3:
     sixu = lambda s: s
