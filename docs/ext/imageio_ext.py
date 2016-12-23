@@ -57,9 +57,9 @@ def prepare_reader_and_witer():
     # to be new classes, otherwise sphinx considers them aliases.
     # We create the class using type() so that we can copy the __doc__.
     Reader = type('Reader', (imageio.core.format.Format.Reader, ),
-                  {__doc__:imageio.core.format.Format.Reader.__doc__ })
+                  {'__doc__':imageio.core.format.Format.Reader.__doc__ })
     Writer = type('Writer', (imageio.core.format.Format.Writer, ),
-                  {__doc__:imageio.core.format.Format.Writer.__doc__ })
+                  {'__doc__':imageio.core.format.Format.Writer.__doc__ })
     
     imageio.core.format.Reader = Reader
     imageio.core.format.Writer = Writer
