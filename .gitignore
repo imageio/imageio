@@ -11,6 +11,7 @@ imageio.egg-info
 # Files in root folder
 MANIFEST
 .coverage
+.cache
 
 # Specific folders
 imageio/lib
