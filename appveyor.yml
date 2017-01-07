@@ -19,7 +19,7 @@ install:
 
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
-  - "powershell ./make/install_python.ps1"
+  - "powershell ./invoke/install_python.ps1"
 
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
@@ -32,6 +32,7 @@ install:
 
   # Install the build dependencies of the project. 
   #- "%CMD_IN_ENV% pip install -r dev-requirements.txt"
+  - "python -m pip install invoke"
   - "python -m pip install pytest pytest-cov"
   - "python -m pip install wheel"
 
@@ -39,7 +40,7 @@ build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:
   # Run the project tests
-  - python make test unit"
+  - invoke test --unit"
 
 after_test:
   # If tests are successful, create a whl package for the project.
