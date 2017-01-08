@@ -76,6 +76,7 @@ install:
         conda install --yes --quiet pillow -c conda-forge > ${REDIRECT_TO};
       fi;
     # Install dependencies (also for testing)
+    - pip install invoke
     - if [ "${TEST_STYLE}" == "1" ]; then
         pip install -q flake8;
         pip install -q sphinx;
@@ -104,14 +105,14 @@ script:
         test ${SIZE_DIFF} -lt 100;
       fi;
     - if [ "${TEST_STYLE}" == "1" ]; then
-        python make doc html;
+        invoke docs --clean --build;
       fi;
     - if [ "${TEST_STYLE}" == "1" ]; then
-        python make test style;
+        invoke test --style;
       elif [ "${TEST_INSTALL}" == "1" ]; then
-        python make test installed;
+        invoke test --installed;
       else
-        python make test unit;
+        invoke test --unit;
       fi;
 
 after_success:
