@@ -35,6 +35,7 @@ from __future__ import absolute_import, print_function, division
 from __future__ import with_statement
 
 import os
+from warnings import warn
 
 import numpy as np
 
@@ -377,6 +378,15 @@ class Format(object):
                     im, meta = self._get_data(i)
                 except IndexError:
                     if n == float('inf'):
+                        return
+                    raise
+                except Exception:
+                    # Some plugins (e.g. FFMPEG) sometimes have data that
+                    # reports an incorrect length. The 3 is rather arbitrary.
+                    missing = n - i
+                    if self._format.name in ['FFMPEG'] and missing < 3:
+                        warn('Could not read last %i frames of %s.' %
+                             (missing, self.request.filename))
                         return
                     raise
                 yield Image(im, meta)
