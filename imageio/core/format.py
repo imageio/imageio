@@ -43,6 +43,14 @@ from . import Image, asarray
 from . import string_types, text_type, binary_type  # noqa
 
 
+class CannotReadFrameError(RuntimeError):
+    """ Exception to be used by plugins to indicate that a frame could not
+    be read, even though it should be a valid index. The length could be
+    inf, or e.g. video sometimes reports a wrong length.
+    """
+    pass
+
+
 class Format(object):
     """ Represents an implementation to read/write a particular file format
     
@@ -376,17 +384,12 @@ class Format(object):
             while i < n:
                 try:
                     im, meta = self._get_data(i)
-                except IndexError:
+                except (IndexError, CannotReadFrameError):
                     if n == float('inf'):
                         return
-                    raise
-                except Exception:
-                    # Some plugins (e.g. FFMPEG) sometimes have data that
-                    # reports an incorrect length. The 3 is rather arbitrary.
-                    missing = n - i
-                    if self._format.name in ['FFMPEG'] and missing < 3:
-                        warn('Could not read last %i frames of %s.' %
-                             (missing, self.request.filename))
+                    elif n - i == 1:
+                        uri = self.request.filename
+                        warn('Could not read last frame of %s.' % uri)
                         return
                     raise
                 yield Image(im, meta)

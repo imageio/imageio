@@ -15,4 +15,4 @@ from .util import get_platform, appdata_dir, resource_dirs, has_module
 from .findlib import load_lib
 from .fetching import get_remote_file, InternetNotAllowedError, NeedDownloadError
 from .request import Request, read_n_bytes, RETURN_BYTES
-from .format import Format, FormatManager
+from .format import Format, FormatManager, CannotReadFrameError
