@@ -35,11 +35,20 @@ from __future__ import absolute_import, print_function, division
 from __future__ import with_statement
 
 import os
+from warnings import warn
 
 import numpy as np
 
 from . import Image, asarray
 from . import string_types, text_type, binary_type  # noqa
+
+
+class CannotReadFrameError(RuntimeError):
+    """ Exception to be used by plugins to indicate that a frame could not
+    be read, even though it should be a valid index. The length could be
+    inf, or e.g. video sometimes reports a wrong length.
+    """
+    pass
 
 
 class Format(object):
@@ -375,8 +384,12 @@ class Format(object):
             while i < n:
                 try:
                     im, meta = self._get_data(i)
-                except IndexError:
+                except (IndexError, CannotReadFrameError):
                     if n == float('inf'):
+                        return
+                    elif n - i == 1:
+                        uri = self.request.filename
+                        warn('Could not read last frame of %s.' % uri)
                         return
                     raise
                 yield Image(im, meta)

@@ -340,7 +340,10 @@ class Request(object):
             return self._filename
         else:
             # Get filename
-            ext = os.path.splitext(self._filename)[1]
+            if self._uri_type in (URI_HTTP, URI_FTP):
+                ext = os.path.splitext(self._filename.split('?')[0])[1]
+            else:
+                ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, 'imageio_')
             # Write stuff to it?
             if self.mode[0] == 'r':

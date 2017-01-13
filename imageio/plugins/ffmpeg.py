@@ -25,7 +25,7 @@ import numpy as np
 
 from .. import formats
 from ..core import (Format, get_remote_file, string_types, read_n_bytes,
-                    image_as_uint, get_platform,
+                    image_as_uint, get_platform, CannotReadFrameError,
                     InternetNotAllowedError, NeedDownloadError)
 
 FNAME_PER_PLATFORM = {
@@ -481,10 +481,12 @@ class FfmpegFormat(Format):
             # get the output line that speaks about video
             videolines = [l for l in lines if ' Video: ' in l]
             line = videolines[0]
-
+            
             # get the frame rate
             match = re.search("( [0-9]*.| )[0-9]* (tbr|fps)", line)
-            fps = float(line[match.start():match.end()].split(' ')[1])
+            fps = 0
+            if match is not None:  # Can happen, see #171, assume nframes = inf
+                fps = float(line[match.start():match.end()].split(' ')[1])
             self._meta['fps'] = fps
 
             # get the size of the original stream, of the form 460x320 (w x h)
@@ -512,7 +514,8 @@ class FfmpegFormat(Format):
             if match is not None:
                 hms = map(float, line[match.start()+1:match.end()].split(':'))
                 self._meta['duration'] = duration = cvsecs(*hms)
-                self._meta['nframes'] = int(round(duration*fps))
+                if fps:
+                    self._meta['nframes'] = int(round(duration*fps))
 
         def _read_frame_data(self):
             # Init and check
@@ -533,7 +536,7 @@ class FfmpegFormat(Format):
                 err1 = str(err)
                 err2 = self._stderr_catcher.get_text(0.4)
                 fmt = 'Could not read frame:\n%s\n=== stderr ===\n%s'
-                raise RuntimeError(fmt % (err1, err2))
+                raise CannotReadFrameError(fmt % (err1, err2))
             return s
 
         def _skip_frames(self, n=1):
