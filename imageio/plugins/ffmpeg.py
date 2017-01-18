@@ -483,10 +483,10 @@ class FfmpegFormat(Format):
             line = videolines[0]
             
             # get the frame rate
-            match = re.search("( [0-9]*.| )[0-9]* (tbr|fps)", line)
+            matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
             fps = 0
-            if match is not None:  # Can happen, see #171, assume nframes = inf
-                fps = float(line[match.start():match.end()].split(' ')[1])
+            if matches:  # Can be empty, see #171, assume nframes = inf
+                fps = float(matches[0][0].strip())
             self._meta['fps'] = fps
 
             # get the size of the original stream, of the form 460x320 (w x h)
