@@ -326,6 +326,7 @@ class Request(object):
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
+            fix_HTTPResponse(self._file)
         
         return self._file
     
@@ -458,3 +459,27 @@ def read_n_bytes(f, N):
             break
         bb += extra_bytes
     return bb
+
+
+def fix_HTTPResponse(f):
+    """This fixes up an HTTPResponse object so that it can tell(), and also
+    seek() will work if its effectively a no-op. This allows tools like Pillow
+    to use the file object.
+    """
+    count = [0]
+    
+    def read(n=None):
+        res = f.__class__.read(f, n)
+        count[0] += len(res)
+        return res
+    
+    def tell():
+        return count[0]
+    
+    def seek(i, mode=0):
+        if not (mode == 0 and i == count[0]):
+            f.__class__.seek(f, i, mode)
+    
+    f.read = read
+    f.tell = tell
+    f.seek = seek
