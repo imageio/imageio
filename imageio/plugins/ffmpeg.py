@@ -414,25 +414,10 @@ class FfmpegFormat(Format):
                 return  # process already dead
             # Terminate process
             self._proc.terminate()
-            # Tell threads to stop when they have a chance. They are probably
-            # blocked on reading from their file, but let's play it safe.
-            if self._stderr_catcher:
-                self._stderr_catcher.stop_me()
-            if self._frame_catcher:
-                self._frame_catcher.stop_me()
-            # Close stdin as another way to tell ffmpeg that we're done. Don't
-            # close other streams, because it causes issue #174
-            try:
-                self._proc.stdin.close()
-            except Exception:  # pragma: no cover
-                pass
-            # Wait for it to close (but do not get stuck)
-            etime = time.time() + timeout
-            while time.time() < etime:
-                time.sleep(0.01)
-                if self._proc.poll() is not None:
-                    return
-            # self._proc.kill()  # probably not needed ...
+            # Terminate process
+            # Using kill since self._proc.terminate() does not seem
+            # to work for ffmpeg, leaves processes hanging
+            self._proc.kill()
 
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
