@@ -376,20 +376,19 @@ def show_in_visvis():
 
 def test_reverse_read(tmpdir):
     # Ensure we can read a file in reverse without error.
-    # This can catch a bug if ffmpeg is not closed properly since
-    # reading in reverse required closing & opening with seeking.
-    # Note that before the bug was fixes this would just hang
-    # after having too many ffmpeg processes left open.
 
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf))
-    for i in range(300):
+    # May need to set this to 300 to check for hanging ffmpeg
+    # processes, but it can take a while and might cause problems
+    # for CI testing.
+    for i in range(20):
         W.append_data(np.zeros((16, 16, 3), np.uint8))
     W.close()
 
     W = imageio.get_reader(str(tmpf))
     for i in range(len(W)-1, 0, -1):
-        print "reading", i
+        print("reading", i)
         W.get_data(i)
     W.close()
 
