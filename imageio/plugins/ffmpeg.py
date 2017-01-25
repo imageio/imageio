@@ -309,7 +309,7 @@ class FfmpegFormat(Format):
                                                    framesize)
 
         def _close(self):
-            self._terminate(0.05)  # Short timeout
+            self._terminate()  # Short timeout
             self._proc = None
 
         def _get_length(self):
@@ -404,7 +404,7 @@ class FfmpegFormat(Format):
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
 
-        def _terminate(self, timeout=1.0):
+        def _terminate(self):
             """ Terminate the sub process.
             """
             # Check
@@ -416,6 +416,15 @@ class FfmpegFormat(Format):
             # Using kill since self._proc.terminate() does not seem
             # to work for ffmpeg, leaves processes hanging
             self._proc.kill()
+
+            # Tell threads to stop when they have a chance. They are probably
+            # blocked on reading from their file, but let's play it safe.
+            if self._stderr_catcher:
+                self._stderr_catcher.stop_me()
+            if self._frame_catcher:
+                self._frame_catcher.stop_me()
+
+
 
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
