@@ -413,8 +413,6 @@ class FfmpegFormat(Format):
             if self._proc.poll() is not None:
                 return  # process already dead
             # Terminate process
-            self._proc.terminate()
-            # Terminate process
             # Using kill since self._proc.terminate() does not seem
             # to work for ffmpeg, leaves processes hanging
             self._proc.kill()
