@@ -374,6 +374,7 @@ def show_in_visvis():
         t.SetData(reader.get_next_data())
         vv.processEvents()
 
+
 def test_reverse_read(tmpdir):
     # Ensure we can read a file in reverse without error.
 
@@ -391,6 +392,7 @@ def test_reverse_read(tmpdir):
         print("reading", i)
         W.get_data(i)
     W.close()
+
 
 if __name__ == '__main__':
     run_tests_if_main()
