@@ -384,7 +384,7 @@ def test_reverse_read(tmpdir):
     tmpf = tmpdir.join('test.mp4')
     W = imageio.get_writer(str(tmpf))
     for i in range(300):
-        W.append_data(np.zeros((10, 10, 3), np.uint8))
+        W.append_data(np.zeros((16, 16, 3), np.uint8))
     W.close()
 
     W = imageio.get_reader(str(tmpf))
