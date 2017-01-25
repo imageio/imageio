@@ -425,7 +425,6 @@ class FfmpegFormat(Format):
                 self._frame_catcher.stop_me()
 
 
-
         def _load_infos(self):
             """ reads the FFMPEG info on the file and sets size fps
             duration and nframes. """
