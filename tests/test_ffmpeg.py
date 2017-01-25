@@ -376,6 +376,7 @@ def show_in_visvis():
 
 
 def test_reverse_read(tmpdir):
+    need_internet()
     # Ensure we can read a file in reverse without error.
 
     tmpf = tmpdir.join('test_vid.mp4')
