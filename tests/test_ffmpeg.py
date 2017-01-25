@@ -377,13 +377,13 @@ def show_in_visvis():
 def test_reverse_read(tmpdir):
     # Ensure we can read a file in reverse without error.
 
-    tmpf = tmpdir.join('test.mp4')
+    tmpf = tmpdir.join('test_vid.mp4')
     W = imageio.get_writer(str(tmpf))
     # May need to set this to 300 to check for hanging ffmpeg
     # processes, but it can take a while and might cause problems
     # for CI testing.
     for i in range(20):
-        W.append_data(np.zeros((16, 16, 3), np.uint8))
+        W.append_data(np.zeros((64, 64, 3), np.uint8))
     W.close()
 
     W = imageio.get_reader(str(tmpf))
