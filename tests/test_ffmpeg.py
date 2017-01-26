@@ -375,6 +375,23 @@ def show_in_visvis():
         vv.processEvents()
 
 
+def test_reverse_read(tmpdir):
+    need_internet()
+    # Ensure we can read a file in reverse without error.
+
+    tmpf = tmpdir.join('test_vid.mp4')
+    W = imageio.get_writer(str(tmpf))
+    for i in range(300):
+        W.append_data(np.zeros((64, 64, 3), np.uint8))
+    W.close()
+
+    W = imageio.get_reader(str(tmpf))
+    for i in range(len(W)-1, 0, -1):
+        print("reading", i)
+        W.get_data(i)
+    W.close()
+
+
 if __name__ == '__main__':
     run_tests_if_main()
     #reader = imageio.read('cockatoo.mp4', 'ffmpeg')
