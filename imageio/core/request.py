@@ -480,10 +480,13 @@ def fix_HTTPResponse(f):
         if not (mode == 0 and i == count[0]):
             ori_seek(i, mode)
     
+    def fail_seek(i, mode=0):
+        raise RuntimeError('No seeking allowed!')
+    
     # Note, there is currently no protection from wrapping an object more than
     # once, it will (probably) work though, because closures.
     ori_read = f.read
-    ori_seek = f.seek
+    ori_seek = f.seek if hasattr(f, 'seek') else fail_seek
     
     f.read = read
     f.tell = tell
