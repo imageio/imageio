@@ -147,7 +147,15 @@ def test_png():
     assert s2 < s1
     im2 = imageio.imread(fnamebase + '1.png')
     assert im2.dtype == np.uint16
-    
+
+
+def test_png_remote():
+    # issue #202
+    need_internet()
+    im = imageio.imread('https://raw.githubusercontent.com/imageio/' +
+                        'imageio-binaries/master/images/astronaut.png')
+    assert im.shape == (512, 512, 3)
+
 
 def test_jpg():
     

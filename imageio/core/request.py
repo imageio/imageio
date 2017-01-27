@@ -326,6 +326,7 @@ class Request(object):
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
+            fix_HTTPResponse(self._file)
         
         return self._file
     
@@ -458,3 +459,35 @@ def read_n_bytes(f, N):
             break
         bb += extra_bytes
     return bb
+
+
+def fix_HTTPResponse(f):
+    """This fixes up an HTTPResponse object so that it can tell(), and also
+    seek() will work if its effectively a no-op. This allows tools like Pillow
+    to use the file object.
+    """
+    count = [0]
+    
+    def read(n=None):
+        res = ori_read(n)
+        count[0] += len(res)
+        return res
+    
+    def tell():
+        return count[0]
+    
+    def seek(i, mode=0):
+        if not (mode == 0 and i == count[0]):
+            ori_seek(i, mode)
+    
+    def fail_seek(i, mode=0):
+        raise RuntimeError('No seeking allowed!')
+    
+    # Note, there is currently no protection from wrapping an object more than
+    # once, it will (probably) work though, because closures.
+    ori_read = f.read
+    ori_seek = f.seek if hasattr(f, 'seek') else fail_seek
+    
+    f.read = read
+    f.tell = tell
+    f.seek = seek
