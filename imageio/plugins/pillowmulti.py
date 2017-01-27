@@ -156,6 +156,7 @@ class GifWriter:
             self.write_header(im_pil, palette, self.opt_loop)
             self._global_palette = palette
         self.write_image(im_pil, palette, rect, duration, dispose)
+        # assert len(palette) == len(self._global_palette)
         
         # Bookkeeping
         self._previous_image = im
@@ -177,12 +178,19 @@ class GifWriter:
         
         fp = self.fp
         
-        # Gather info
+        # Gather local image header and data, using PIL's getdata. That
+        # function returns a list of bytes objects, but which parts are
+        # what has changed multiple times, so we put together the first
+        # parts until we have enough to form the image header.
         data = self.getdata(im)
-        imdes, data = b''.join(data[:-2]), data[-2:]
-        graphext = self.getGraphicsControlExt(duration, dispose)
+        imdes = b''
+        while data and len(imdes) < 11:
+            imdes += data.pop(0)
+        assert len(imdes) == 11
+        
         # Make image descriptor suitable for using 256 local color palette
         lid = self.getImageDescriptor(im, rect)
+        graphext = self.getGraphicsControlExt(duration, dispose)
 
         # Write local header
         if (palette != self._global_palette) or (dispose != 2):
