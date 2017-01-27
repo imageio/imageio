@@ -469,7 +469,7 @@ def fix_HTTPResponse(f):
     count = [0]
     
     def read(n=None):
-        res = f.__class__.read(f, n)
+        res = ori_read(n)
         count[0] += len(res)
         return res
     
@@ -478,7 +478,12 @@ def fix_HTTPResponse(f):
     
     def seek(i, mode=0):
         if not (mode == 0 and i == count[0]):
-            f.__class__.seek(f, i, mode)
+            ori_seek(i, mode)
+    
+    # Note, there is currently no protection from wrapping an object more than
+    # once, it will (probably) work though, because closures.
+    ori_read = f.read
+    ori_seek = f.seek
     
     f.read = read
     f.tell = tell
