@@ -2,6 +2,27 @@
 Release notes
 -------------
 
+
+Version 2.1.2 (02-02-2017)
+==========================
+
+A bugfix release:
+
+* Fix animated gif writer that was broken in newer Pillow version.
+* FFMPEG plugin improvements: more reliable fps detection, can deal
+  with missing FPS, more reliable subprocess termination,
+* Mimread allows a few missing frames to better deal with certain video files.
+* Allow question marks in url's.
+* Allow Pillow plugin to read remote files by "enabling" ``seek()`` and ``tell()``.
+* Use invoke to run development tasks instead of custom "make" module.
+
+
+Version 2.1.1 (24-12-2016)
+=========================
+
+Minor improvements related to Debian packaging.
+
+
 Version 2.1 (22-12-2016)
 ========================
 
