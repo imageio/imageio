@@ -416,12 +416,22 @@ def pil_get_frame(im, grayscale, dtype=None):
                 # this up if a  multi-gif has a pallete for each frame ...
                 # Create palette array
                 p = np.frombuffer(im.palette.getdata()[1], np.uint8)
-                p.shape = -1, len(im.palette.mode)
+                # Shape it. Sometimes mode is RGBA, even though the alpha
+                # channel is missing in the palette data (issue #210).
+                # We can detect this. If is unlikely that a palette of
+                # 768 elements is RGBA, since 192 is not a power of 2.
+                nchannels = len(im.palette.mode)
+                if nchannels == 4 and p.size == 3 * 256:
+                    nchannels = 3
+                p.shape = -1, nchannels
                 if p.shape[1] == 3:
                     p = np.column_stack((p, 255*np.ones(p.shape[0], p.dtype)))
                 # Apply palette
                 frame_paletted = np.array(im, np.uint8)
-                frame = p[frame_paletted]
+                try:
+                    frame = p[frame_paletted]
+                except Exception:
+                    frame = im.convert('RGBA')  # ok, let PIL do it
             else:
                 # Let Pillow do it. Unlinke skimage, we always convert
                 # to RGBA; palettes can be RGBA.
