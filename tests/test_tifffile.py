@@ -63,6 +63,7 @@ def test_tifffile_reading_writing():
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
     meta = R.get_meta_data()
+    print(meta)
     assert meta['is_rgb']
     # Fail
     raises(IndexError, R.get_data, -1)
