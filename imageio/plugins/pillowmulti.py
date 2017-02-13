@@ -32,7 +32,6 @@ class GIFFormat(PillowFormat):
     ---------------------
     loop : int
         The number of iterations. Default 0 (meaning loop indefinitely).
-        A loop of -1 disables looping.
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
@@ -76,7 +75,7 @@ class GIFFormat(PillowFormat):
                 self._duration = float(duration)
             # loop
             loop = float(loop)
-            if loop < -1 or loop == float('inf'):
+            if loop <= 0 or loop == float('inf'):
                 loop = 0
             loop = int(loop)
             # Subrectangles / dispose
@@ -250,9 +249,9 @@ class GifWriter:
 
     def getAppExt(self, loop):
         """ Application extention. This part specifies the amount of loops.
-        If loop is 0 or inf, it goes on infinitely and if loop is -1 it does not loop.
+        If loop is 0 or inf, it goes on infinitely.
         """
-        if loop == -1:
+        if loop == 1:
             return b""
         if loop == 0:
             loop = 2 ** 16 - 1
