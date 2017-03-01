@@ -288,18 +288,6 @@ except ImportError:
     except ImportError:
         lzma = None
 
-try:
-    if __package__:
-        from . import _tifffile
-    else:
-        import _tifffile
-except ImportError:
-    warnings.warn(
-        "ImportError: No module named '_tifffile'. "
-        "Loading of some compressed images will be very slow. "
-        "Tifffile.c can be obtained at http://www.lfd.uci.edu/~gohlke/")
-
-
 __version__ = '2017.01.12'
 __docformat__ = 'restructuredtext en'
 __all__ = (
@@ -1883,7 +1871,7 @@ class TiffFile(object):
         result.extend((attr for attr in (
             'mdgel', 'mediacy', 'stk', 'lsm', 'vista', 'imagej', 'fluoview',
             'micromanager', 'nih', 'ome', 'scn', 'tvips', 'fei', 'sem')
-                       if getattr(self, 'is_'+attr)))
+                if getattr(self, 'is_'+attr)))
         if len(self.pages) > 1:
             result.append("%i pages" % len(self.pages))
         if len(self.series) > 1:
