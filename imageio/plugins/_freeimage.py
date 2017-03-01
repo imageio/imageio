@@ -1044,7 +1044,7 @@ class FIBitmap(FIBaseBitmap):
                 array = numpy.fromstring(bytes, dtype=dtype)
                 # Deal with strides
                 if len(shape) == 3:
-                    array.shape = shape[2], strides[-1]/shape[0], shape[0]
+                    array.shape = shape[2], strides[-1]//shape[0], shape[0]
                     array2 = array[:shape[2], :shape[1], :shape[0]]
                     array = numpy.zeros(shape, dtype=array.dtype)
                     for i in range(shape[0]):
