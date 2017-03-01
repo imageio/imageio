@@ -17,7 +17,7 @@ branches:
 
 matrix:
     include:
-        - python: "3.5"
+        - python: "3.6"
           env: TEST_UNIT=0 TEST_STYLE=1
         #
         - python: "2.6"
@@ -25,9 +25,11 @@ matrix:
         - python: "2.7"
           env: TEST_UNIT=1 TEST_INSTALL=1
         - python: "3.4"
-          env: TEST_UNIT=1 TEST_FULL=1 TEST_COVER=1
+          env: TEST_UNIT=1 TEST_FULL=1
         - python: "3.5"
           env: TEST_UNIT=1
+        - python: "3.6"
+          env: TEST_UNIT=1 TEST_COVER=1
 
 
 before_install:
