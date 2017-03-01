@@ -82,7 +82,7 @@ def get_reader(uri, format=None, mode='?', **kwargs):
     uri : {str, bytes, file}
         The resource to load the image from. This can be a normal
         filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes.
+        object, or the raw bytes of an image file.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
