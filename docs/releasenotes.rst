@@ -18,7 +18,7 @@ A bugfix release:
 
 
 Version 2.1.1 (24-12-2016)
-=========================
+==========================
 
 Minor improvements related to Debian packaging.
 
