@@ -141,6 +141,10 @@ class FfmpegFormat(Format):
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
         reader are always rgb8.
+    ffmpeg_params: list
+        List additional arguments to ffmpeg for input file options.
+        Example ffmpeg arguments to use aggressive error handling:
+        ['-err_detect', 'aggressive']
     print_info : bool
         Print information about the video file as reported by ffmpeg.
     
@@ -260,7 +264,7 @@ class FfmpegFormat(Format):
                 return '??'
 
         def _open(self, loop=False, size=None, pixelformat=None,
-                  print_info=False):
+                  ffmpeg_params=None, print_info=False):
             # Get exe
             self._exe = self._get_exe()
             # Process input args
@@ -278,6 +282,7 @@ class FfmpegFormat(Format):
             elif not isinstance(pixelformat, string_types):
                 raise ValueError('FFMPEG pixelformat must be str')
             self._arg_pixelformat = pixelformat
+            self._arg_ffmpeg_params = ffmpeg_params if ffmpeg_params else []
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -361,7 +366,8 @@ class FfmpegFormat(Format):
                      '-vcodec', 'rawvideo']
             oargs.extend(['-s', self._arg_size] if self._arg_size else [])
             # Create process
-            cmd = [self._exe] + iargs + ['-i', self._filename] + oargs + ['-']
+            cmd = [self._exe] + self._arg_ffmpeg_params
+            cmd += iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE)
 
@@ -396,7 +402,7 @@ class FfmpegFormat(Format):
                 oargs.extend(['-s', self._arg_size] if self._arg_size else [])
 
                 # Create process
-                cmd = [self._exe]
+                cmd = [self._exe] + self._arg_ffmpeg_params
                 cmd += iargs + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE)
