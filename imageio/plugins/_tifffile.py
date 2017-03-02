@@ -1868,10 +1868,10 @@ class TiffFile(object):
             {'<': 'little endian', '>': 'big endian'}[self.byteorder]]
         if self.is_bigtiff:
             result.append("bigtiff")
-        result.extend((attr for attr in (
-            'mdgel', 'mediacy', 'stk', 'lsm', 'vista', 'imagej', 'fluoview',
-            'micromanager', 'nih', 'ome', 'scn', 'tvips', 'fei', 'sem')
-                if getattr(self, 'is_'+attr)))
+        attrs = ['mdgel', 'mediacy', 'stk', 'lsm', 'vista', 'imagej',
+                 'fluoview', 'micromanager', 'nih', 'ome', 'scn', 'tvips',
+                 'fei', 'sem']
+        result.extend((attr for attr in attrs if getattr(self, 'is_' + attr)))
         if len(self.pages) > 1:
             result.append("%i pages" % len(self.pages))
         if len(self.series) > 1:
