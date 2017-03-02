@@ -63,7 +63,7 @@ def test_tifffile_reading_writing():
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
     meta = R.get_meta_data()
-    assert meta['is_rgb']
+    assert meta['orientation'] == 'top_left'
     # Fail
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
