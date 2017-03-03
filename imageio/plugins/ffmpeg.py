@@ -211,6 +211,7 @@ class FfmpegFormat(Format):
     class Reader(Format.Reader):
 
         _exe = None
+        _frame_catcher = None
 
         @classmethod
         def _get_exe(cls):
@@ -301,7 +302,6 @@ class FfmpegFormat(Format):
             self._load_infos()
 
             # For cameras, create thread that keeps reading the images
-            self._frame_catcher = None
             if self.request._video:
                 w, h = self._meta['size']
                 framesize = self._depth * w * h
