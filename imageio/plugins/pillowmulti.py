@@ -31,7 +31,7 @@ class GIFFormat(PillowFormat):
     Parameters for saving
     ---------------------
     loop : int
-        The number of iterations. Default 0 (meaning loop indefinitely)
+        The number of iterations. Default 0 (meaning loop indefinitely).
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
@@ -251,7 +251,8 @@ class GifWriter:
         """ Application extention. This part specifies the amount of loops.
         If loop is 0 or inf, it goes on infinitely.
         """
-
+        if loop == 1:
+            return b""
         if loop == 0:
             loop = 2 ** 16 - 1
         bb = b""
