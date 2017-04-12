@@ -298,6 +298,10 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """ 
     
+    #Ensure non empty sequence
+    if len(ims) == 0:
+        raise ValueError('Numpy sequence must not be empty.')
+    
     # Get writer
     writer = get_writer(uri, format, 'I', **kwargs)
     with writer:
