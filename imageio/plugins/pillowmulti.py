@@ -35,6 +35,8 @@ class GIFFormat(PillowFormat):
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
+        Note that in the GIF format the duration/delay is expressed in
+        hundredths of a second, which limits the precision of the duration.
     fps : float
         The number of frames per second. If duration is not given, the
         duration for each frame is set to 1/fps. Default 10.
@@ -285,7 +287,7 @@ class GifWriter:
         # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,
         # are dispose.
-        bb += intToBin(int(duration * 100))  # in 100th of seconds
+        bb += intToBin(int(duration * 100 + 0.5))  # in 100th of seconds
         bb += b'\x00'  # no transparant color
         bb += b'\x00'  # end
         return bb
