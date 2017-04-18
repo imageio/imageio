@@ -32,7 +32,8 @@ class PillowFormat(Format):
 
     def __init__(self, *args, **kwargs):
         super(PillowFormat, self).__init__(*args, **kwargs)
-        self._lock = threading.RLock()  # Used to synchronize _init_pillow(), see #244
+        # Used to synchronize _init_pillow(), see #244
+        self._lock = threading.RLock()
 
     @property
     def plugin_id(self):
@@ -46,11 +47,13 @@ class PillowFormat(Format):
                 self._pillow_imported = True  # more like tried to import
                 import PIL
                 if not hasattr(PIL, 'PILLOW_VERSION'):
-                    raise ImportError('Imageio Pillow requires Pillow, not PIL!')
+                    raise ImportError('Imageio Pillow requires '
+                                      'Pillow, not PIL!')
                 from PIL import Image
                 self._Image = Image
             elif self._Image is None:
-                raise RuntimeError('Imageio Pillow plugin requires Pillow lib.')
+                raise RuntimeError('Imageio Pillow plugin requires '
+                                   'Pillow lib.')
             Image = self._Image
 
         if self.plugin_id in ('PNG', 'JPEG', 'BMP', 'GIF', 'PPM'):
