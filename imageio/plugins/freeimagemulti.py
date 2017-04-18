@@ -154,6 +154,8 @@ class GifFormat(FreeimageMulti):
     duration : {float, list}
         The duration (in seconds) of each frame. Either specify one value
         that is used for all frames, or one value for each frame.
+        Note that in the GIF format the duration/delay is expressed in
+        hundredths of a second, which limits the precision of the duration.
     fps : float
         The number of frames per second. If duration is not given, the
         duration for each frame is set to 1/fps. Default 10.
@@ -213,7 +215,7 @@ class GifFormat(FreeimageMulti):
                 raise ValueError('Invalid quantizer, must be "wu" or "nq".')
             # Check frametime
             if duration is None:
-                self._frametime = [int(1000 / float(fps))]
+                self._frametime = [int(1000 / float(fps) + 0.5)]
             elif isinstance(duration, list):
                 self._frametime = [int(1000 * d) for d in duration]
             elif isinstance(duration, (float, int)):
@@ -249,7 +251,6 @@ class GifFormat(FreeimageMulti):
             else:
                 ft = self._frametime[-1]
             meta_a['FrameTime'] = np.array([ft]).astype(np.uint32)
-                
             # Check array
             if im.ndim == 3 and im.shape[-1] == 4:
                 im = im[:, :, :3]
