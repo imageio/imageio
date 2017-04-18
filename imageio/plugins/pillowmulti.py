@@ -287,7 +287,7 @@ class GifWriter:
         # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,
         # are dispose.
-        bb += intToBin(int(duration * 100) + 0.5)  # in 100th of seconds
+        bb += intToBin(int(duration * 100 + 0.5))  # in 100th of seconds
         bb += b'\x00'  # no transparant color
         bb += b'\x00'  # end
         return bb
