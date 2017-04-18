@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function, division
 
 from warnings import warn
 import numpy as np
+import threading
 
 from .. import formats
 from ..core import Format, image_as_uint
@@ -28,7 +29,12 @@ class PillowFormat(Format):
     _Image = None
     _modes = 'i'
     _description = ''
-    
+
+    def __init__(self, *args, **kwargs):
+        super(PillowFormat, self).__init__(*args, **kwargs)
+        # Used to synchronize _init_pillow(), see #244
+        self._lock = threading.RLock()
+
     @property
     def plugin_id(self):
         """ The PIL plugin id.
@@ -36,17 +42,20 @@ class PillowFormat(Format):
         return self._plugin_id  # Set when format is created
     
     def _init_pillow(self):
-        if not self._pillow_imported:
-            self._pillow_imported = True  # more like tried to import
-            import PIL
-            if not hasattr(PIL, 'PILLOW_VERSION'):
-                raise ImportError('Imageio Pillow requires Pillow, not PIL!')
-            from PIL import Image
-            self._Image = Image
-        elif self._Image is None:
-            raise RuntimeError('Imageio Pillow plugin requires Pillow lib.')
-        
-        Image = self._Image
+        with self._lock:
+            if not self._pillow_imported:
+                self._pillow_imported = True  # more like tried to import
+                import PIL
+                if not hasattr(PIL, 'PILLOW_VERSION'):
+                    raise ImportError('Imageio Pillow requires '
+                                      'Pillow, not PIL!')
+                from PIL import Image
+                self._Image = Image
+            elif self._Image is None:
+                raise RuntimeError('Imageio Pillow plugin requires '
+                                   'Pillow lib.')
+            Image = self._Image
+
         if self.plugin_id in ('PNG', 'JPEG', 'BMP', 'GIF', 'PPM'):
             Image.preinit()
         else:
