@@ -411,18 +411,16 @@ def pil_get_frame(im, grayscale, dtype=None):
             frame = im.convert('L')
         else:
             
-            if im.palette.mode in ('RGB', 'RGBA'):
+            if im.info.get('transparency', None) is not None:
+                # Let Pillow apply the transparency, see issue #210 and #246
+                frame = im.convert('RGBA')
+            elif im.palette.mode in ('RGB', 'RGBA'):
                 # We can do this ourselves. Pillow seems to sometimes screw
                 # this up if a  multi-gif has a pallete for each frame ...
                 # Create palette array
                 p = np.frombuffer(im.palette.getdata()[1], np.uint8)
-                # Shape it. Sometimes mode is RGBA, even though the alpha
-                # channel is missing in the palette data (issue #210).
-                # We can detect this. If is unlikely that a palette of
-                # 768 elements is RGBA, since 192 is not a power of 2.
+                # Shape it.
                 nchannels = len(im.palette.mode)
-                if nchannels == 4 and p.size == 3 * 256:
-                    nchannels = 3
                 p.shape = -1, nchannels
                 if p.shape[1] == 3:
                     p = np.column_stack((p, 255*np.ones(p.shape[0], p.dtype)))
@@ -431,7 +429,10 @@ def pil_get_frame(im, grayscale, dtype=None):
                 try:
                     frame = p[frame_paletted]
                 except Exception:
-                    frame = im.convert('RGBA')  # ok, let PIL do it
+                    # Ok, let PIL do it. The introduction of the branch that
+                    # tests `im.info['transparency']` should make this happen
+                    # much less often, but let's keep it, to be safe.
+                    frame = im.convert('RGBA')
             else:
                 # Let Pillow do it. Unlinke skimage, we always convert
                 # to RGBA; palettes can be RGBA.
