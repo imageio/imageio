@@ -316,6 +316,19 @@ def test_animated_gif():
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
+def test_images_with_transparency():
+    # Not alpha channel, but transparent pixels, see issue #245 and #246
+    need_internet()
+    
+    fname = get_remote_file('images/imageio_issue245.gif')
+    im = imageio.imread(fname)
+    assert im.shape == (24, 30, 4)
+    
+    fname = get_remote_file('images/imageio_issue246.png')
+    im = imageio.imread(fname)
+    assert im.shape == (24, 30, 4)
+
+
 if __name__ == '__main__':
     # test_png()
     # test_animated_gif()
