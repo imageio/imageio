@@ -29,12 +29,12 @@ from ..core import (Format, get_remote_file, string_types, read_n_bytes,
                     InternetNotAllowedError, NeedDownloadError)
 
 FNAME_PER_PLATFORM = {
-    'osx32': 'ffmpeg.osx',
-    'osx64': 'ffmpeg.osx',
-    'win32': 'ffmpeg.win32.exe',
-    'win64': 'ffmpeg.win32.exe',
-    'linux32': 'ffmpeg.linux32',
-    'linux64': 'ffmpeg.linux64',
+    'osx32': 'ffmpeg-osx-v3.3.1',
+    'osx64': 'ffmpeg-osx-v3.3.1',
+    'win32': 'ffmpeg-win32-v3.2.4.exe',
+    'win64': 'ffmpeg-win32-v3.2.4.exe',
+    'linux32': 'ffmpeg-linux32-v3.3.1',
+    'linux64': 'ffmpeg-linux64-v3.3.1',
 }
 
 
@@ -73,9 +73,26 @@ def get_exe():
     # https://bugs.python.org/issue26083
     except (OSError, ValueError, sp.CalledProcessError):
         pass
-
+    
     plat = get_platform()
-
+    
+    # Check if ffmpeg is installed in Python environment
+    # (e.g. via conda install ffmpeg -c conda-forge)
+    exe = None
+    if plat.startswith('win'):
+        exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
+    else:
+        exe = os.path.join(sys.prefix, 'bin', 'ffmpeg')
+    # Does the found Python-ffmpeg work?
+    if exe and os.path.isfile(exe):
+        try:
+            with open(os.devnull, "w") as null:
+                sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
+                return exe
+        except (OSError, ValueError, sp.CalledProcessError):
+            pass
+    
+    # Finally, try and use the executable that we provide
     if plat and plat in FNAME_PER_PLATFORM:
         try:
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat],
@@ -84,8 +101,11 @@ def get_exe():
             return exe
         except NeedDownloadError:
             raise NeedDownloadError('Need ffmpeg exe. '
-                                    'You can download it by calling:\n'
-                                    '  imageio.plugins.ffmpeg.download()')
+                                    'You can obtain it with either:\n'
+                                    '  - install using conda: '
+                                    'conda install ffmpeg -c conda-forge\n'
+                                    '  - download by calling: '
+                                    'imageio.plugins.ffmpeg.download()')
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
@@ -475,7 +495,8 @@ class FfmpegFormat(Format):
             self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
 
             # get the output line that speaks about video
-            videolines = [l for l in lines if ' Video: ' in l]
+            videolines = [l for l in lines if l.lstrip().startswith('Stream ')
+                          and ' Video: ' in l]
             line = videolines[0]
             
             # get the frame rate
@@ -526,13 +547,15 @@ class FfmpegFormat(Format):
                 else:
                     s = read_n_bytes(self._proc.stdout, framesize)
                 # Check
-                assert len(s) == framesize
+                if len(s) != framesize:
+                    raise RuntimeError('Frame is %i bytes, but expected %i.' %
+                                       (len(s), framesize))
             except Exception as err:
                 self._terminate()
                 err1 = str(err)
                 err2 = self._stderr_catcher.get_text(0.4)
-                fmt = 'Could not read frame:\n%s\n=== stderr ===\n%s'
-                raise CannotReadFrameError(fmt % (err1, err2))
+                fmt = 'Could not read frame %i:\n%s\n=== stderr ===\n%s'
+                raise CannotReadFrameError(fmt % (self._pos, err1, err2))
             return s
 
         def _skip_frames(self, n=1):
@@ -870,14 +893,27 @@ class StreamCatcher(threading.Thread):
             lines[0] = self._remainder + lines[0]
             self._remainder = lines.pop(-1)
             # Process each line
-            for line in lines:
-                self._lines.append(line)
-                if line.startswith(b'Stream mapping'):
+            self._lines.extend(lines)
+            if not self._header:
+                if get_output_video_line(self._lines):
                     header = b'\n'.join(self._lines)
                     self._header += header.decode('utf-8', 'ignore')
-                    self._lines = []
-            if self._header and self._lines:
+            elif self._lines:
                 self._lines = limit_lines_local(self._lines)
+
+
+def get_output_video_line(lines):
+    """Get the line that defines the video stream that ffmpeg outputs,
+    and which we read.
+    """
+    in_output = False
+    for line in lines:
+        sline = line.lstrip()
+        if sline.startswith(b'Output '):
+            in_output = True
+        elif in_output:
+            if sline.startswith(b'Stream ') and b' Video:' in sline:
+                return line
 
 
 # Register. You register an *instance* of a Format class.
