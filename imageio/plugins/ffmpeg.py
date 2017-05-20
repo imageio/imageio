@@ -496,7 +496,7 @@ class FfmpegFormat(Format):
 
             # get the output line that speaks about video
             videolines = [l for l in lines if l.lstrip().startswith('Stream ')
-                                           and ' Video: ' in l]
+                          and ' Video: ' in l]
             line = videolines[0]
             
             # get the frame rate
@@ -548,7 +548,8 @@ class FfmpegFormat(Format):
                     s = read_n_bytes(self._proc.stdout, framesize)
                 # Check
                 if len(s) != framesize:
-                    raise RuntimeError('Frame is %i bytes, but expected %i.' % (len(s), framesize))
+                    raise RuntimeError('Frame is %i bytes, but expected %i.' %
+                                       (len(s), framesize))
             except Exception as err:
                 self._terminate()
                 err1 = str(err)
@@ -908,10 +909,8 @@ def get_output_video_line(lines):
     in_output = False
     for line in lines:
         sline = line.lstrip()
-        if line.startswith(b'Output '):
+        if sline.startswith(b'Output '):
             in_output = True
-        elif len(sline) == len(line):
-            in_output = False
         elif in_output:
             if sline.startswith(b'Stream ') and b' Video:' in sline:
                 return line
