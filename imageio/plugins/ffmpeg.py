@@ -81,6 +81,8 @@ def get_exe():
     exe = None
     if plat.startswith('win'):
         exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
+    else:
+        exe = os.path.join(sys.prefix, 'bin', 'ffmpeg')
     # Does the found Python-ffmpeg work?
     if exe and os.path.isfile(exe):
         try:
