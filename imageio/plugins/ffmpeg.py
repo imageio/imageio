@@ -73,9 +73,24 @@ def get_exe():
     # https://bugs.python.org/issue26083
     except (OSError, ValueError, sp.CalledProcessError):
         pass
-
+    
     plat = get_platform()
-
+    
+    # Check if ffmpeg is installed in Python environment
+    # (e.g. via conda install ffmpeg -c conda-forge)
+    exe = None
+    if plat.startswith('win'):
+        exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
+    # Does the found Python-ffmpeg work?
+    if exe and os.path.isfile(exe):
+        try:
+            with open(os.devnull, "w") as null:
+                sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
+                return exe
+        except (OSError, ValueError, sp.CalledProcessError):
+            pass
+    
+    # Finally, try and use the executable that we provide
     if plat and plat in FNAME_PER_PLATFORM:
         try:
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat],
@@ -84,8 +99,11 @@ def get_exe():
             return exe
         except NeedDownloadError:
             raise NeedDownloadError('Need ffmpeg exe. '
-                                    'You can download it by calling:\n'
-                                    '  imageio.plugins.ffmpeg.download()')
+                                    'You can obtain it with either:\n'
+                                    '  - install using conda: '
+                                    'conda install ffmpeg -c conda-forge\n'
+                                    '  - download by calling: '
+                                    'imageio.plugins.ffmpeg.download()')
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
