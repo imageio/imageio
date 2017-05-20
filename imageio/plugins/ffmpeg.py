@@ -495,7 +495,8 @@ class FfmpegFormat(Format):
             self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
 
             # get the output line that speaks about video
-            videolines = [l for l in lines if ' Video: ' in l]
+            videolines = [l for l in lines if l.lstrip().startswith('Stream ')
+                                           and ' Video: ' in l]
             line = videolines[0]
             
             # get the frame rate
@@ -891,14 +892,29 @@ class StreamCatcher(threading.Thread):
             lines[0] = self._remainder + lines[0]
             self._remainder = lines.pop(-1)
             # Process each line
-            for line in lines:
-                self._lines.append(line)
-                if line.startswith(b'Stream mapping'):
+            self._lines.extend(lines)
+            if not self._header:
+                if get_output_video_line(self._lines):
                     header = b'\n'.join(self._lines)
                     self._header += header.decode('utf-8', 'ignore')
-                    self._lines = []
-            if self._header and self._lines:
+            elif self._lines:
                 self._lines = limit_lines_local(self._lines)
+
+
+def get_output_video_line(lines):
+    """Get the line that defines the video stream that ffmpeg outputs,
+    and which we read.
+    """
+    in_output = False
+    for line in lines:
+        sline = line.lstrip()
+        if line.startswith(b'Output '):
+            in_output = True
+        elif len(sline) == len(line):
+            in_output = False
+        elif in_output:
+            if sline.startswith(b'Stream ') and b' Video:' in sline:
+                return line
 
 
 # Register. You register an *instance* of a Format class.
