@@ -544,13 +544,14 @@ class FfmpegFormat(Format):
                 else:
                     s = read_n_bytes(self._proc.stdout, framesize)
                 # Check
-                assert len(s) == framesize
+                if len(s) != framesize:
+                    raise RuntimeError('Frame is %i bytes, but expected %i.' % (len(s), framesize))
             except Exception as err:
                 self._terminate()
                 err1 = str(err)
                 err2 = self._stderr_catcher.get_text(0.4)
-                fmt = 'Could not read frame:\n%s\n=== stderr ===\n%s'
-                raise CannotReadFrameError(fmt % (err1, err2))
+                fmt = 'Could not read frame %i:\n%s\n=== stderr ===\n%s'
+                raise CannotReadFrameError(fmt % (self._pos, err1, err2))
             return s
 
         def _skip_frames(self, n=1):
