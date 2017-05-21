@@ -120,7 +120,7 @@ class ClipboardGrabFormat(BaseGrabFormat):
         pil_im = ImageGrab.grabclipboard()
         if pil_im is None:
             raise RuntimeError('There seems to be no image data on the '
-                                'clipboard now.')
+                               'clipboard now.')
         im = np.asarray(pil_im)
         return im, {}
 
