@@ -177,20 +177,28 @@ class TiffFormat(Format):
 
         def _close(self):
             self._tf.close()
-
+        
         def _get_length(self):
-            return len(self._tf)
-
-        def _get_data(self, index):
-            # Get data
-            if index < 0 or index >= len(self._tf):
-                raise IndexError(
-                    'Index out of range while reading from tiff file')
-            if index == 0 and 'i' in self.request.mode:
-                im = self._tf.asarray()  # request as singleton image
+            if self.request.mode[1] in 'vV':
+                return 1  # or can there be pages in pages or something?
             else:
+                return len(self._tf)
+        
+        def _get_data(self, index):
+            if self.request.mode[1] in 'vV':
+                # Read data as single 3D (+ color channels) array
+                if index != 0:
+                    raise IndexError(
+                        'Tiff support no more than 1 "volume" per file')
+                im = self._tf.asarray()  # request as singleton image
+                meta = self._meta
+            else:
+                # Read as 2D image
+                if index < 0 or index >= len(self._tf):
+                    raise IndexError(
+                        'Index out of range while reading from tiff file')
                 im = self._tf[index].asarray()
-            meta = self._meta or self._get_meta_data(index)
+                meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
             return im, meta
 
@@ -219,6 +227,8 @@ class TiffFormat(Format):
         def _append_data(self, im, meta):
             if meta:
                 self.set_meta_data(meta)
+            # No need to check self.request.mode; tiffile figures out whether
+            # this is a single page, or all page data at once.
             self._tf.save(np.asanyarray(im), **self._meta)
 
         def set_meta_data(self, meta):
