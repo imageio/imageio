@@ -10,7 +10,7 @@ if run as a script.
 """
 
 
-def generate_info():
+def generate_info():  # pragma: no cover
     from urllib.request import urlopen
     import PIL
     from PIL import Image
@@ -124,8 +124,8 @@ pillow_formats = [
     ('IM', 'IFUNC Image Memory', '.im'),
     ('IMT', 'IM Tools', ''),
     ('IPTC', 'IPTC/NAA', '.iim'),
-    ('JPEG', 'JPEG (ISO 10918)', '.jfif .jpeg .jpg .jpe'),
-    ('JPEG2000', 'JPEG 2000 (ISO 15444)', '.jpf .j2c .jpc .jp2 .j2k .jpx'),
+    ('JPEG', 'JPEG (ISO 10918)', '.jfif .jpe .jpg .jpeg'),
+    ('JPEG2000', 'JPEG 2000 (ISO 15444)', '.jp2 .j2k .jpc .jpf .jpx .j2c'),
     ('MCIDAS', 'McIdas area file', ''),
     ('MIC', 'Microsoft Image Composer', '.mic'),
     ('MPEG', 'MPEG', '.mpg .mpeg'),
@@ -135,14 +135,13 @@ pillow_formats = [
     ('PCX', 'Paintbrush', '.pcx'),
     ('PIXAR', 'PIXAR raster image', '.pxr'),
     ('PNG', 'Portable network graphics', '.png'),
-    ('PPM', 'Pbmplus image', '.ppm .pgm .pbm'),
+    ('PPM', 'Pbmplus image', '.pbm .pgm .ppm'),
     ('PSD', 'Adobe Photoshop', '.psd'),
-    ('SGI', 'SGI Image File Format', '.rgb .sgi .bw .rgba'),
+    ('SGI', 'SGI Image File Format', '.bw .rgb .rgba .sgi'),
     ('SPIDER', 'Spider 2D image', ''),
     ('SUN', 'Sun Raster File', '.ras'),
     ('TGA', 'Targa', '.tga'),
     ('TIFF', 'Adobe TIFF', '.tif .tiff'),
-    ('WEBP', 'WebP image', '.webp'),
     ('WMF', 'Windows Metafile', '.wmf .emf'),
     ('XBM', 'X11 Bitmap', '.xbm'),
     ('XPM', 'X11 Pixel Map', '.xpm'),
@@ -317,9 +316,6 @@ u"""*This is a copy from the Pillow docs.*
     **background**
         Default background color (a palette color index).
     
-    **duration**
-        Time between frames in an animation (in milliseconds).
-    
     **transparency**
         Transparency color index. This key is omitted if the image is not
         transparent.
@@ -328,8 +324,8 @@ u"""*This is a copy from the Pillow docs.*
         Version (either ``GIF87a`` or ``GIF89a``).
     
     **duration**
-        May not be present. The time to display each frame of the GIF, in
-        milliseconds.
+        May not be present. The time to display the current frame
+        of the GIF, in milliseconds.
     
     **loop**
         May not be present. The number of times the GIF should loop.
@@ -343,20 +339,41 @@ u"""*This is a copy from the Pillow docs.*
     
     ``im.seek()`` raises an ``EOFError`` if you try to seek after the last frame.
     
-    Saving sequences
-    ~~~~~~~~~~~~~~~~
+    Saving
+    ~~~~~~
     
-    When calling :py:meth:`~PIL.Image.Image.save`, if a multiframe image is used,
-    by default only the first frame will be saved. To save all frames, the
-    ``save_all`` parameter must be present and set to ``True``. To append
-    additional frames when saving, the ``append_images`` parameter works with
-    ``save_all`` to append a list of images containing the extra frames::
+    When calling :py:meth:`~PIL.Image.Image.save`, the following options
+    are available::
     
         im.save(out, save_all=True, append_images=[im1, im2, ...])
     
-    If present, the ``loop`` parameter can be used to set the number of times
-    the GIF should loop, and the ``duration`` parameter can set the number of
-    milliseconds between each frame.
+    **save_all**
+        If present and true, all frames of the image will be saved. If
+        not, then only the first frame of a multiframe image will be saved.
+    
+    **append_images**
+        A list of images to append as additional frames. Each of the
+        images in the list can be single or multiframe images.
+    
+    **duration**
+        The display duration of each frame of the multiframe gif, in
+        milliseconds. Pass a single integer for a constant duration, or a
+        list or tuple to set the duration for each frame separately.
+    
+    **loop**
+        Integer number of times the GIF should loop.
+    
+    **optimize**
+        If present and true, attempt to compress the palette by
+        eliminating unused colors. This is only useful if the palette can
+        be compressed to the next smaller power of 2 elements.
+    
+    **palette** 
+        Use the specified palette for the saved image. The palette should
+        be a bytes or bytearray object containing the palette entries in
+        RGBRGB... form. It should be no more than 768 bytes. Alternately,
+        the palette can be passed in as an
+        :py:class:`PIL.ImagePalette.ImagePalette` object.
     
     Reading local images
     ~~~~~~~~~~~~~~~~~~~~
@@ -797,12 +814,14 @@ u"""*This is a copy from the Pillow docs.*
 
     
     PIL identifies and reads PSD files written by Adobe Photoshop 2.5 and 3.0.
+    
     """,
 'SGI':
 u"""*This is a copy from the Pillow docs.*
 
     
-    PIL reads uncompressed ``L``, ``RGB``, and ``RGBA`` files.
+    Pillow reads and writes uncompressed ``L``, ``RGB``, and ``RGBA`` files.
+    
     """,
 'SPIDER':
 u"""*This is a copy from the Pillow docs.*
@@ -842,8 +861,8 @@ u"""*This is a copy from the Pillow docs.*
     For more information about the SPIDER image processing package, see the
     `SPIDER homepage`_ at `Wadsworth Center`_.
     
-    .. _SPIDER homepage: http://spider.wadsworth.org/spider_doc/spider/docs/spider.html
-    .. _Wadsworth Center: http://www.wadsworth.org/
+    .. _SPIDER homepage: https://spider.wadsworth.org/spider_doc/spider/docs/spider.html
+    .. _Wadsworth Center: https://www.wadsworth.org/
     """,
 'SUN':
 u"""No docs for SUN.""",
@@ -980,30 +999,6 @@ u"""*This is a copy from the Pillow docs.*
         :py:class:`~PIL.TiffImagePlugin.IFDRational`. Resolution implies
         an equal x and y resolution, dpi also implies a unit of inches.
     
-    """,
-'WEBP':
-u"""*This is a copy from the Pillow docs.*
-
-    
-    PIL reads and writes WebP files. The specifics of PIL's capabilities with this
-    format are currently undocumented.
-    
-    The :py:meth:`~PIL.Image.Image.save` method supports the following options:
-    
-    **lossless**
-        If present and true, instructs the WEBP writer to use lossless compression.
-    
-    **quality**
-        Integer, 1-100, Defaults to 80. Sets the quality level for
-        lossy compression.
-    
-    **icc_procfile**
-        The ICC Profile to include in the saved file. Only supported if
-        the system webp library was built with webpmux support.
-    
-    **exif**
-        The exif data to include in the saved file. Only supported if
-        the system webp library was built with webpmux support.
     """,
 'WMF':
 u"""*This is a copy from the Pillow docs.*
