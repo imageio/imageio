@@ -37,8 +37,11 @@ READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
 
 
 class TiffFormat(Format):
-
     """ Provides support for a wide range of Tiff images.
+    
+    Images that contain multiple pages can be read using ``imageio.mimread()``
+    to read the individual pages, or ``imageio.volread()`` to obtain a
+    single (higher dimensional) array.
 
     Parameters for reading
     ----------------------
