@@ -186,7 +186,10 @@ class TiffFormat(Format):
             if index < 0 or index >= len(self._tf):
                 raise IndexError(
                     'Index out of range while reading from tiff file')
-            im = self._tf[index].asarray()
+            if index == 0 and 'i' in self.request.mode:
+                im = self._tf.asarray()  # request as singleton image
+            else:
+                im = self._tf[index].asarray()
             meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
             return im, meta
