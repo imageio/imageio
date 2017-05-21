@@ -32,12 +32,12 @@ class BaseGrabFormat(Format):
             if not self._pillow_imported:
                 self._pillow_imported = True  # more like tried to import
                 import PIL
-                if not hasattr(PIL, 'PILLOW_VERSION'):
+                if not hasattr(PIL, 'PILLOW_VERSION'):  # pragma: no cover
                     raise ImportError('Imageio Pillow requires '
                                       'Pillow, not PIL!')
                 from PIL import ImageGrab
                 self._ImageGrab = ImageGrab
-            elif self._ImageGrab is None:
+            elif self._ImageGrab is None:  # pragma: no cover
                 raise RuntimeError('Imageio grab plugin requires Pillow lib.')
             ImageGrab = self._ImageGrab
         return ImageGrab
