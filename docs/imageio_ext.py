@@ -7,7 +7,7 @@ import sys
 import imageio
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DOC_DIR = os.path.dirname(THIS_DIR)
+DOC_DIR = THIS_DIR
 
 
 files_to_remove = []
