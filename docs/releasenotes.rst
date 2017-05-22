@@ -2,6 +2,23 @@
 Release notes
 -------------
 
+Version 2.2.0 (xx-05-2017)
+==========================
+
+* New format for grabbing screenshots (for Windows and OS X).
+* New format for grabbing image data from clipboard (Window only).
+* Multipage Tiff files can now be read using ``volread()`` to obtain the image
+  data as one array.
+* Updated the ffmpeg executables that imageio provides.
+* The ffmpeg format can now also use the ffmpeg exe provided by the ffmpeg
+  conda package (``conda install ffmpeg -c conda-forge``).
+* Improve docs and rounding in animated GIF duration.
+* Fix for setting number of loops in animated GIF.
+* Fixes for transparent images in Pillow.
+* Fixes to ffmpeg format in general.
+* Fixes for float indexing that is disallowed in new Numpy (Freeimage plugin).
+* Updated version of tiffile plugin.
+
 
 Version 2.1.2 (02-02-2017)
 ==========================

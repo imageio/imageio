@@ -4,10 +4,16 @@
   Most plugins so far
 
 - Anthony Tanbakuchi
-  Improvements to the ffmpeg plugin
+  Many improvements to the ffmpeg plugin
 
 - Anselm Levskaya
   Fixed bug (causing segfaults) related to freeimiage GIF writing
+
+- Arash Rai
+  Animated GIF looping
+
+- Felix Kohlgrüber
+  FFMPEG improvements
 
 - Ghis Vaillant
   Debian packaging
@@ -24,8 +30,18 @@
 - legionaryu
   Fixes for the GIF plugin
 
+- Niklas Rosenstein
+  Fixes for using Pillow plugin in threads
+
+- Peter Lee
+  Fixes to animated GIF
+
 - Rob Reilink
   AvBin plugin
+
+- Steven Silvester
+  Tiffile plugin
+  GDal, simpleitk, and fits plugins
 
 - Zach Pincus and others from the scikit-image team
   Initial version of freeimage plugin
