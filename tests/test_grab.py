@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 
 from pytest import raises
@@ -27,9 +29,11 @@ def test_grab_simulated():
     
     _grab = getattr(ImageGrab, 'grab', None)
     _grabclipboard = getattr(ImageGrab, '_grabclipboard', None)
+    _plat = sys.platform
     
     ImageGrab.grab = lambda: np.zeros((8, 8, 3), np.uint8)
     ImageGrab.grabclipboard = lambda: np.zeros((9, 9, 3), np.uint8)
+    sys.platform = 'win32'
     
     try:
         
@@ -63,6 +67,6 @@ def test_grab_simulated():
     finally:
         ImageGrab.grab = _grab
         ImageGrab.grabclipboard = _grabclipboard
-
+        sys.platform = _plat
 
 run_tests_if_main()
