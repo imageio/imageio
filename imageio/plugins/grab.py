@@ -4,7 +4,6 @@ PIL-based formats to take screenshots and grab from the clipboard.
 
 from __future__ import absolute_import, print_function, division
 
-import sys
 import threading
 
 import numpy as np
@@ -35,12 +34,12 @@ class BaseGrabFormat(Format):
                 if not hasattr(PIL, 'PILLOW_VERSION'):  # pragma: no cover
                     raise ImportError('Imageio Pillow requires '
                                       'Pillow, not PIL!')
-                from PIL import ImageGrab
+                try:
+                    from PIL import ImageGrab
+                except ImportError:
+                    return None
                 self._ImageGrab = ImageGrab
-            elif self._ImageGrab is None:  # pragma: no cover
-                raise RuntimeError('Imageio grab plugin requires Pillow lib.')
-            ImageGrab = self._ImageGrab
-        return ImageGrab
+        return self._ImageGrab
     
     class Reader(Format.Reader):
         
@@ -69,20 +68,14 @@ class ScreenGrabFormat(BaseGrabFormat):
     def _can_read(self, request):
         if request.mode[1] not in 'i?':
             return False
-
-        if not (sys.platform.startswith('win') or
-                sys.platform.startswith('darwin')):
-            return False  # not supported on Linux by Pillow
-        
         if request.filename != '<screen>':
             return False
-        
-        self._init_pillow()
-        return True
+        return bool(self._init_pillow())
     
     def _get_data(self, index):
         ImageGrab = self._init_pillow()
-        
+        assert ImageGrab
+         
         pil_im = ImageGrab.grab()
         assert pil_im is not None
         im = np.asarray(pil_im)
@@ -104,18 +97,13 @@ class ClipboardGrabFormat(BaseGrabFormat):
     def _can_read(self, request):
         if request.mode[1] not in 'i?':
             return False
-
-        if not sys.platform.startswith('win'):
-            return False  # not supported on Linux or OS X by Pillow
-        
         if request.filename != '<clipboard>':
             return False
-        
-        self._init_pillow()
-        return True
+        return bool(self._init_pillow())
     
     def _get_data(self, index):
         ImageGrab = self._init_pillow()
+        assert ImageGrab
         
         pil_im = ImageGrab.grabclipboard()
         if pil_im is None:

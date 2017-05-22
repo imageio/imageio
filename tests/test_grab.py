@@ -10,29 +10,53 @@ import imageio
 
 def test_grab_plugin_load():
     
-    reader = imageio.get_reader('<screen>')
-    assert reader.format.name == 'SCREENGRAB'
+    imageio.plugins.grab.BaseGrabFormat._ImageGrab = FakeImageGrab
+    imageio.plugins.grab.BaseGrabFormat._pillow_imported = True
+    _plat = sys.platform
+    sys.platform = 'win32'
     
-    reader = imageio.get_reader('<clipboard>')
-    assert reader.format.name == 'CLIPBOARDGRAB'
+    try:
+        
+        reader = imageio.get_reader('<screen>')
+        assert reader.format.name == 'SCREENGRAB'
+        
+        reader = imageio.get_reader('<clipboard>')
+        assert reader.format.name == 'CLIPBOARDGRAB'
+    
+        with raises(ValueError):
+            imageio.get_writer('<clipboard>')
+        with raises(ValueError):
+            imageio.get_writer('<screen>')
+    
+    finally:
+        sys.platform = _plat
+        imageio.plugins.grab.BaseGrabFormat._ImageGrab = None
+        imageio.plugins.grab.BaseGrabFormat._pillow_imported = False
 
-    with raises(ValueError):
-        imageio.get_writer('<clipboard>')
-    with raises(ValueError):
-        imageio.get_writer('<screen>')
+
+class FakeImageGrab:
     
+    has_clipboard = True
+    
+    @classmethod
+    def grab(cls):
+        return np.zeros((8, 8, 3), np.uint8)
+    
+    @classmethod
+    def grabclipboard(cls):
+        if cls.has_clipboard:
+            return np.zeros((9, 9, 3), np.uint8)
+        else:
+            return None
+
 
 def test_grab_simulated():
     # Hard to test for real, if only because its only fully suppored on
     # Windows, but we can monkey patch so we can test all the imageio bits.
-    from PIL import ImageGrab
     
-    _grab = getattr(ImageGrab, 'grab', None)
-    _grabclipboard = getattr(ImageGrab, '_grabclipboard', None)
+    imageio.plugins.grab.BaseGrabFormat._ImageGrab = FakeImageGrab
+    imageio.plugins.grab.BaseGrabFormat._pillow_imported = True
     _plat = sys.platform
-    
-    ImageGrab.grab = lambda: np.zeros((8, 8, 3), np.uint8)
-    ImageGrab.grabclipboard = lambda: np.zeros((9, 9, 3), np.uint8)
     sys.platform = 'win32'
     
     try:
@@ -60,13 +84,15 @@ def test_grab_simulated():
         assert im3.shape == (9, 9, 3)
         
         # Grabbing from clipboard can fail if there is no image data to grab
-        ImageGrab.grabclipboard = lambda: None
+        FakeImageGrab.has_clipboard = False
         with raises(RuntimeError):
             im = imageio.imread('<clipboard>')
     
     finally:
-        ImageGrab.grab = _grab
-        ImageGrab.grabclipboard = _grabclipboard
         sys.platform = _plat
+        imageio.plugins.grab.BaseGrabFormat._ImageGrab = None
+        imageio.plugins.grab.BaseGrabFormat._pillow_imported = False
+        FakeImageGrab.has_clipboard = True
+
 
 run_tests_if_main()
