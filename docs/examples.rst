@@ -49,6 +49,19 @@ Iterate over frames in a movie
         print('Mean of frame %i is %1.1f' % (i, im.mean()))
 
 
+Grab screenshot or image from the clipboard
+-------------------------------------------
+
+(Screenshots are supported on Windows and OS X, clipboard on Windows only.)
+
+.. code-block:: python
+    
+    import imageio
+    
+    im_screen = imageio.imread('<screen>')
+    im_clipboard = imageio.imread('<clipboard>')
+
+
 Grab frames from your webcam
 ----------------------------
 

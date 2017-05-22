@@ -26,6 +26,8 @@ URI_ZIPPED = 4
 URI_HTTP = 5
 URI_FTP = 6
 
+SPECIAL_READ_URIS = '<video', '<screen>', '<clipboard>'
+
 # The user can use this string in a write call to get the data back as bytes.
 RETURN_BYTES = '<bytes>'
 
@@ -148,7 +150,7 @@ class Request(object):
             elif uri.startswith('file://'):
                 self._uri_type = URI_FILENAME
                 self._filename = uri[7:]
-            elif uri.startswith('<video') and is_read_request:
+            elif uri.startswith(SPECIAL_READ_URIS) and is_read_request:
                 self._uri_type = URI_BYTES
                 self._filename = uri
             elif uri.startswith(RETURN_BYTES) and is_write_request:
