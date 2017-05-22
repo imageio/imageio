@@ -33,12 +33,31 @@ be used to read/write data and meta data in a more controlled manner.
 This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
 
+----
 
-.. note::
-    
-    Some of these functions were renamed in v1.1 to realize a more clear
-    and consistent API. The old functions are still available for
-    backward compatibility (and will be in the foreseeable future).
+Supported resource URI's:
+
+All functions described here accept a URI to describe the resource to
+read from or write to. These can be a wide range of things. (Imageio
+takes care of handling the URI so that plugins can access the data in
+an easy way.)
+
+For reading and writing:
+
+* a normal filename, e.g. ``'c:\\foo\\bar.png'``
+* a file in a zipfile, e.g. ``'c:\\foo\\bar.zip\\eggs.png'``
+* a file object with a ``read()`` / ``write()`` method.
+
+For reading:
+
+* an http/ftp address, e.g. ``'http://example.com/foo.png'``
+* the raw bytes of an image file
+* ``get_reader("<video0>")`` to grab images from a (web) camera.
+* ``imread("<screen>")`` to grab a screenshot (on Windows or OS X).
+* ``imread("<clipboard>")`` to grab an image from the clipboard (on Windows).
+
+For writing one can also use ``'<bytes>'`` or ``imageio.RETURN_BYTES`` to
+make a write function return the bytes instead of writing to a file.
 
 """
 
@@ -80,9 +99,8 @@ def get_reader(uri, format=None, mode='?', **kwargs):
     Parameters
     ----------
     uri : {str, bytes, file}
-        The resource to load the image from. This can be a normal
-        filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes of an image file.
+        The resource to load the image from, e.g. a filename, http address or
+        file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -120,10 +138,8 @@ def get_writer(uri, format=None, mode='?', **kwargs):
     Parameters
     ----------
     uri : {str, file}
-        The resource to write the image to. This can be a normal
-        filename, a file in a zipfile, a file object, or
-        ``imageio.RETURN_BYTES``, in which case the raw bytes are
-        returned.
+        The resource to write the image to, e.g. a filename or file object,
+        see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename.
@@ -170,9 +186,8 @@ def imread(uri, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, bytes, file}
-        The resource to load the image from. This can be a normal
-        filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes.
+        The resource to load the image from, e.g. a filename, http address or
+        file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -195,10 +210,8 @@ def imwrite(uri, im, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, file}
-        The resource to write the image to. This can be a normal
-        filename, a file in a zipfile, a file object, or
-        ``imageio.RETURN_BYTES``, in which case the raw bytes are
-        returned.
+        The resource to write the image to, e.g. a filename or file object,
+        see the docs for more info.
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
     format : str
@@ -240,9 +253,8 @@ def mimread(uri, format=None, memtest=True, **kwargs):
     Parameters
     ----------
     uri : {str, bytes, file}
-        The resource to load the images from. This can be a normal
-        filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes.
+        The resource to load the images from, e.g. a filename, http address or
+        file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -284,10 +296,8 @@ def mimwrite(uri, ims, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, file}
-        The resource to write the images to. This can be a normal
-        filename, a file in a zipfile, a file object, or
-        ``imageio.RETURN_BYTES``, in which case the raw bytes are
-        returned.
+        The resource to write the images to, e.g. a filename or file object,
+        see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxM, NxMx3 or NxMx4.
     format : str
@@ -339,9 +349,8 @@ def volread(uri, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, bytes, file}
-        The resource to load the volume from. This can be a normal
-        filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes.
+        The resource to load the volume from, e.g. a filename, http address or
+        file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -364,10 +373,8 @@ def volwrite(uri, im, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, file}
-        The resource to write the image to. This can be a normal
-        filename, a file in a zipfile, a file object, or
-        ``imageio.RETURN_BYTES``, in which case the raw bytes are
-        returned.
+        The resource to write the image to, e.g. a filename or file object,
+        see the docs for more info.
     vol : numpy.ndarray
         The image data. Must be NxMxL (or NxMxLxK if each voxel is a tuple).
     format : str
@@ -410,9 +417,8 @@ def mvolread(uri, format=None, memtest=True, **kwargs):
     Parameters
     ----------
     uri : {str, bytes, file}
-        The resource to load the volumes from. This can be a normal
-        filename, a file in a zipfile, an http/ftp address, a file
-        object, or the raw bytes.
+        The resource to load the volumes from, e.g. a filename, http address or
+        file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -453,10 +459,8 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     Parameters
     ----------
     uri : {str, file}
-        The resource to write the volumes to. This can be a normal
-        filename, a file in a zipfile, a file object, or
-        ``imageio.RETURN_BYTES``, in which case the raw bytes are
-        returned.
+        The resource to write the volumes to, e.g. a filename or file object,
+        see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxMxL (or NxMxLxK if each
         voxel is a tuple).
