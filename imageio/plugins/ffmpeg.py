@@ -29,8 +29,8 @@ from ..core import (Format, get_remote_file, string_types, read_n_bytes,
                     InternetNotAllowedError, NeedDownloadError)
 
 FNAME_PER_PLATFORM = {
-    'osx32': 'ffmpeg-osx-v3.3.1',
-    'osx64': 'ffmpeg-osx-v3.3.1',
+    'osx32': 'ffmpeg-osx-v3.2.4',
+    'osx64': 'ffmpeg-osx-v3.2.4',
     'win32': 'ffmpeg-win32-v3.2.4.exe',
     'win64': 'ffmpeg-win32-v3.2.4.exe',
     'linux32': 'ffmpeg-linux32-v3.3.1',
