@@ -21,7 +21,7 @@ Before release:
 Release:
 
   * Increase __version__
-  * git tag the release
+  * git tag the release (and push the tag to Github)
   * Upload to Pypi: python setup.py sdist upload
   * Update conda recipe on conda-forge feedstock
 
