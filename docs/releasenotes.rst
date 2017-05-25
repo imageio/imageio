@@ -2,7 +2,7 @@
 Release notes
 -------------
 
-Version 2.2.0 (xx-05-2017)
+Version 2.2.0 (25-05-2017)
 ==========================
 
 * New format for grabbing screenshots (for Windows and OS X).
@@ -12,11 +12,12 @@ Version 2.2.0 (xx-05-2017)
 * Updated the ffmpeg executables that imageio provides.
 * The ffmpeg format can now also use the ffmpeg exe provided by the ffmpeg
   conda package (``conda install ffmpeg -c conda-forge``).
+* Fixes to ffmpeg format in general.
 * Improve docs and rounding in animated GIF duration.
 * Fix for setting number of loops in animated GIF.
 * Fixes for transparent images in Pillow.
-* Fixes to ffmpeg format in general.
 * Fixes for float indexing that is disallowed in new Numpy (Freeimage plugin).
+* Fix for using missing ``close()`` on Pillow images.
 * Updated version of tiffile plugin.
 
 
