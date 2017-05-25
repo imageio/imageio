@@ -16,7 +16,7 @@ Main website: http://imageio.github.io
 
 # flake8: noqa
 
-__version__ = '2.1.2dev'
+__version__ = '2.2.0'
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
