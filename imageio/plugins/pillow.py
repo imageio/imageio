@@ -99,7 +99,8 @@ class PillowFormat(Format):
                 self._length = self._im.n_frames
         
         def _close(self):
-            self._im.close()
+            if hasattr(self._im, 'close'):  # see issue #216
+                self._im.close()
             # request object handled closing the _fp
         
         def _get_length(self):
