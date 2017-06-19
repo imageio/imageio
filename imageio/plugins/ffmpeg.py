@@ -251,7 +251,7 @@ class FfmpegFormat(Format):
                 cmd = [self._exe, '-list_devices', 'true',
                        '-f', CAM_FORMAT, '-i', 'dummy']
                 proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE,
-                                stderr=sp.PIPE)
+                                stderr=sp.PIPE, shell=True)
                 proc.stdout.readline()
                 proc.terminate()
                 infos = proc.stderr.read().decode('utf-8')
@@ -389,7 +389,8 @@ class FfmpegFormat(Format):
             cmd = [self._exe] + self._arg_ffmpeg_params
             cmd += iargs + ['-i', self._filename] + oargs + ['-']
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                  stdout=sp.PIPE, stderr=sp.PIPE)
+                                  stdout=sp.PIPE, stderr=sp.PIPE,
+                                  shell=True)
 
             # Create thread that keeps reading from stderr
             self._stderr_catcher = StreamCatcher(self._proc.stderr)
@@ -425,7 +426,8 @@ class FfmpegFormat(Format):
                 cmd = [self._exe] + self._arg_ffmpeg_params
                 cmd += iargs + oargs + ['-']
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                      stdout=sp.PIPE, stderr=sp.PIPE)
+                                      stdout=sp.PIPE, stderr=sp.PIPE,
+                                      shell=True)
 
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
@@ -758,7 +760,8 @@ class FfmpegFormat(Format):
 
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
-                                  stdout=sp.PIPE, stderr=None)
+                                  stdout=sp.PIPE, stderr=None,
+                                  shell=True)
             # Warning, directing stderr to a pipe on windows will cause ffmpeg
             # to hang if the buffer is not periodically cleared using
             # StreamCatcher or other means.
