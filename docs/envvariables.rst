@@ -21,3 +21,5 @@ for the current Python process use
 * ``IMAGEIO_FORMAT_ORDER``: Determine format preference. E.g. setting this
   to ``"TIFF, -FI"`` will prefer the FreeImage plugin over the Pillow plugin,
   but still prefer TIFF over that. Also see the ``formats.sort()`` method.
+* ``IMAGEIO_USERDIR``: Set the path to the default user directory. If not
+  given, imageio will try ``~`` and if that's not available ``/var/tmp``.
