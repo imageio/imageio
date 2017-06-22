@@ -250,6 +250,8 @@ class FfmpegFormat(Format):
                 # Ask ffmpeg for list of dshow device names
                 cmd = [self._exe, '-list_devices', 'true',
                        '-f', CAM_FORMAT, '-i', 'dummy']
+                # Set `shell=True` in sp.Popen to prevent popup of a command
+                # line window in frozen applications (Windows only).
                 proc = sp.Popen(cmd, stdin=sp.PIPE, stdout=sp.PIPE,
                                 stderr=sp.PIPE, shell=True)
                 proc.stdout.readline()
@@ -388,9 +390,12 @@ class FfmpegFormat(Format):
             # Create process
             cmd = [self._exe] + self._arg_ffmpeg_params
             cmd += iargs + ['-i', self._filename] + oargs + ['-']
+            # Set `shell=True` in sp.Popen to prevent popup of a command
+            # line window in frozen applications (Windows only).
+            is_win = sys.platform.startswith('win')
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=sp.PIPE,
-                                  shell=True)
+                                  shell=is_win)
 
             # Create thread that keeps reading from stderr
             self._stderr_catcher = StreamCatcher(self._proc.stderr)
@@ -425,9 +430,12 @@ class FfmpegFormat(Format):
                 # Create process
                 cmd = [self._exe] + self._arg_ffmpeg_params
                 cmd += iargs + oargs + ['-']
+                # Set `shell=True` in sp.Popen to prevent popup of a command
+                # line window in frozen applications (Windows only).
+                is_win = sys.platform.startswith('win')
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                       stdout=sp.PIPE, stderr=sp.PIPE,
-                                      shell=True)
+                                      shell=is_win)
 
                 # Create thread that keeps reading from stderr
                 self._stderr_catcher = StreamCatcher(self._proc.stderr)
@@ -758,10 +766,13 @@ class FfmpegFormat(Format):
                     ("info", "verbose", "debug", "trace")]):
                 print("RUNNING FFMPEG COMMAND:", self._cmd, file=sys.stderr)
 
+            # Set `shell=True` in sp.Popen to prevent popup of a command
+            # line window in frozen application (Windows only).
+            is_win = sys.platform.startswith('win')
             # Launch process
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
                                   stdout=sp.PIPE, stderr=None,
-                                  shell=True)
+                                  shell=is_win)
             # Warning, directing stderr to a pipe on windows will cause ffmpeg
             # to hang if the buffer is not periodically cleared using
             # StreamCatcher or other means.
