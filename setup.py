@@ -222,6 +222,11 @@ setup(
     # Data in the package
     package_data = {'imageio': package_data},
     
+    entry_points = {
+        'console_scripts':
+            ['imageio_download_bin=imageio.scripts:download_bin_main'],
+        },
+    
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
