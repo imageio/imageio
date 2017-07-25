@@ -138,13 +138,29 @@ def timestamp_from_avbin(timestamp):
     return float(timestamp) / 1000000
 
 
-def download():
+def download(directory=None, force_download=False):
     """ Download the avbin library to your computer.
+
+    Parameters
+    ----------
+    directory : str | None
+        The directory where the file will be cached if a download was
+        required to obtain the file. By default, the appdata directory
+        is used. This is also the first directory that is checked for
+        a local version of the file.
+    force_download : bool | str
+        If True, the file will be downloaded even if a local copy exists
+        (and this copy will be overwritten). Can also be a YYYY-MM-DD date
+        to ensure a file is up-to-date (modified date of a file on disk,
+        if present, is checked).
     """
     plat = get_platform()
     if not (plat and plat in FNAME_PER_PLATFORM):
         raise RuntimeError('AVBIN lib is not available for platform %s' % plat)
-    get_remote_file('avbin/' + FNAME_PER_PLATFORM[plat])
+    fname = 'avbin/' + FNAME_PER_PLATFORM[plat]
+    get_remote_file(fname=fname,
+                    directory=directory,
+                    force_download=force_download)
 
 
 def get_avbin_lib():
@@ -167,8 +183,11 @@ def get_avbin_lib():
         return get_remote_file('avbin/' + lib, auto=False)
     except NeedDownloadError:
             raise NeedDownloadError('Need avbin library. '
-                                    'You can download it by calling:\n'
-                                    '  imageio.plugins.avbin.download()')
+                                    'You can obtain it with either:\n'
+                                    '  - download using the command: '
+                                    'imageio_download_bin avbin\n'
+                                    '  - download by calling (in Python): '
+                                    'imageio.plugins.avbin.download()\n')
     except InternetNotAllowedError as err:
         raise IOError('Could not download avbin lib:\n%s' % str(err))
         # in this case we raise. Can we try finding the system lib?

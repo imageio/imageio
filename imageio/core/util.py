@@ -8,11 +8,13 @@ Various utilities for imageio
 
 from __future__ import absolute_import, print_function, division
 
-import re
+
 import os
+import pkg_resources
+import re
+import struct
 import sys
 import time
-import struct
 from warnings import warn
 
 import numpy as np
@@ -495,8 +497,10 @@ def resource_dirs():
     in the future.
     """
     dirs = []
-    # Resource dir baked in the package
-    dirs.append(os.path.abspath(os.path.join(THIS_DIR, '..', 'resources')))
+    # Resource dir baked in the package.
+    # (The directory returned by `pkg_resources.resource_filename`
+    # also works with eggs.)
+    dirs.append(pkg_resources.resource_filename("imageio", "resources"))
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))

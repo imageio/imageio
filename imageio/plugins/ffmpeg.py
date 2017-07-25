@@ -49,13 +49,29 @@ def limit_lines(lines, N=32):
     return lines
 
 
-def download():
+def download(directory=None, force_download=False):
     """ Download the ffmpeg exe to your computer.
+
+    Parameters
+    ----------
+    directory : str | None
+        The directory where the file will be cached if a download was
+        required to obtain the file. By default, the appdata directory
+        is used. This is also the first directory that is checked for
+        a local version of the file.
+    force_download : bool | str
+        If True, the file will be downloaded even if a local copy exists
+        (and this copy will be overwritten). Can also be a YYYY-MM-DD date
+        to ensure a file is up-to-date (modified date of a file on disk,
+        if present, is checked).
     """
     plat = get_platform()
     if not (plat and plat in FNAME_PER_PLATFORM):
         raise RuntimeError("FFMPEG exe isn't available for platform %s" % plat)
-    get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat])
+    fname = 'ffmpeg/' + FNAME_PER_PLATFORM[plat]
+    get_remote_file(fname=fname,
+                    directory=directory,
+                    force_download=force_download)
 
 
 def get_exe():
@@ -66,22 +82,30 @@ def get_exe():
     if exe:  # pragma: no cover
         return exe
 
+    plat = get_platform()
+
+    # To give the executable provided by imageio highest priority,
+    # generate a list of executables and allow to add executables 
+    # to the beginning or the end according to priority.
+    # The initial string "ffmpeg" is a fallback in case nothing is found.
+    exes = ["ffmpeg"]
+
+    # TODO:
+    # - as we have a fallback to "ffmpeg", the following
+    #   try-except case is actually not required.
     # Check if ffmpeg is in PATH
     try:
         with open(os.devnull, "w") as null:
             sp.check_call(["ffmpeg", "-version"], stdout=null,
                           stderr=sp.STDOUT)
-            return "ffmpeg"
+            exes.append("ffmpeg")
     # ValueError is raised on failure on OS X through Python 2.7.11
     # https://bugs.python.org/issue26083
     except (OSError, ValueError, sp.CalledProcessError):
         pass
     
-    plat = get_platform()
-    
     # Check if ffmpeg is installed in Python environment
     # (e.g. via conda install ffmpeg -c conda-forge)
-    exe = None
     if plat.startswith('win'):
         exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
     else:
@@ -91,33 +115,39 @@ def get_exe():
         try:
             with open(os.devnull, "w") as null:
                 sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
-                return exe
+                exes.append(exe)
         except (OSError, ValueError, sp.CalledProcessError):
             pass
     
-    # Finally, try and use the executable that we provide
+    # Check if imageio can provide the binary
     if plat and plat in FNAME_PER_PLATFORM:
         try:
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat],
                                   auto=False)
             os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
-            return exe
+            exes.insert(0, exe)
         except NeedDownloadError:
-            raise NeedDownloadError('Need ffmpeg exe. '
+            if not exes:
+                raise NeedDownloadError(
+                                    'Need ffmpeg exe. '
                                     'You can obtain it with either:\n'
                                     '  - install using conda: '
                                     'conda install ffmpeg -c conda-forge\n'
-                                    '  - download by calling: '
-                                    'imageio.plugins.ffmpeg.download()')
+                                    '  - download using the command: '
+                                    'imageio_download_bin ffmpeg\n'
+                                    '  - download by calling (in Python): '
+                                    'imageio.plugins.ffmpeg.download()\n'
+                                    )
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
-            logging.warning("Warning: could not find imageio's "
-                            "ffmpeg executable:\n%s" %
-                            str(err))
+            if not exes:
+                logging.warning("Warning: could not find imageio's "
+                                "ffmpeg executable:\n%s" %
+                                str(err))
 
-    # Fallback, let's hope the system has ffmpeg
-    return 'ffmpeg'
+    # Return the first item in exes
+    return exes[0]
 
 
 # Get camera format

@@ -224,7 +224,7 @@ setup(
     
     entry_points = {
         'console_scripts':
-            ['imageio_download_bin=imageio.scripts:download_bin_main'],
+            ['imageio_download_bin=imageio.__main__:download_bin_main'],
         },
     
     classifiers = [
