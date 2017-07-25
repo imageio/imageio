@@ -45,7 +45,8 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
         The directory where the file will be cached if a download was
         required to obtain the file. By default, the appdata directory
         is used. This is also the first directory that is checked for
-        a local version of the file.
+        a local version of the file. If the directory does not exist,
+        it will be created.
     force_download : bool | str
         If True, the file will be downloaded even if a local copy exists
         (and this copy will be overwritten). Can also be a YYYY-MM-DD date
@@ -75,6 +76,9 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
             if not force_download:  # we're done
                 if given_directory and given_directory != dir:
                     filename2 = os.path.join(given_directory, nfname)
+                    # Make sure the output directory exists
+                    if not op.isdir(op.dirname(filename2)):
+                        os.makedirs(op.abspath(op.dirname(filename2)))
                     shutil.copy(filename, filename2)
                     return filename2
                 return filename
@@ -84,6 +88,9 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                 if ftime >= ntime:
                     if given_directory and given_directory != dir:
                         filename2 = os.path.join(given_directory, nfname)
+                        # Make sure the output directory exists
+                        if not op.isdir(op.dirname(filename2)):
+                            os.makedirs(op.abspath(op.dirname(filename2)))
                         shutil.copy(filename, filename2)
                         return filename2
                     return filename
