@@ -73,7 +73,7 @@ def download_bin_main():
                 formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("plugin", type=str, nargs="*", default="all",
                         help=phelp)
-    parser.add_argument("--package_dir", dest="package_dir", action="store_true",
+    parser.add_argument("--package-dir", dest="package_dir", action="store_true",
                         default=False, help=dhelp)
     args = parser.parse_args()
     download_bin(plugin_names=args.plugin, package_dir=args.package_dir)
