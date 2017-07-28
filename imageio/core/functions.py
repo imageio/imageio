@@ -141,7 +141,7 @@ def get_writer(uri, format=None, mode='?', **kwargs):
         The resource to write the image to, e.g. a filename or file object,
         see the docs for more info.
     format : str
-        The format to use to read the file. By default imageio selects
+        The format to use to write the file. By default imageio selects
         the appropriate for you based on the filename.
     mode : {'i', 'I', 'v', 'V', '?'}
         Used to give the writer a hint on what the user expects (default '?'):
