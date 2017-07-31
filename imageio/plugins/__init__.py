@@ -78,6 +78,12 @@ For the Format.Writer class:
   * Implement ``_append_data(im, meta)`` to add data (and meta-data).
   * Implement ``_set_meta_data(meta)`` to set the global meta-data.
 
+If the plugin requires a binary download from the imageio-binaries
+repository, implement the ``download`` method (see e.g. the ffmpeg
+plugin). Make sure that the download directory base name matches the
+plugin name. Otherwise, the download and removal command line scripts
+(see `__main__.py`) might not work.
+
 """
 
 # First import plugins that we want to take precedence over freeimage
