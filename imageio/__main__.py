@@ -4,9 +4,9 @@ Console scripts and associated helper methods for imageio.
 from __future__ import print_function
 
 import argparse
-import pkg_resources
 
 from . import plugins
+from .core import util
 
 # A list of plugins that require binaries from the imageio-binaries
 # repository. These plugins must implement the `download` method.
@@ -42,9 +42,10 @@ def download_bin(plugin_names=["all"], package_dir=False):
     if package_dir:
         # Download the binaries to the `resources` directory
         # of imageio. If imageio comes as an .egg, then a cache
-        # directory will be created by pkg_resources.
+        # directory will be created by pkg_resources (requires setuptools).
         # see `imageio.core.util.resource_dirs`
-        directory = pkg_resources.resource_filename("imageio", "resources")
+        # and `imageio.core.utilresource_package_dir`
+        directory = util.resource_package_dir()
     else:
         directory = None
     
