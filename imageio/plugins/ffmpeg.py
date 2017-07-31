@@ -89,20 +89,6 @@ def get_exe():
     # to the beginning or the end according to priority.
     # The initial string "ffmpeg" is a fallback in case nothing is found.
     exes = ["ffmpeg"]
-
-    # TODO:
-    # - as we have a fallback to "ffmpeg", the following
-    #   try-except case is actually not required.
-    # Check if ffmpeg is in PATH
-    try:
-        with open(os.devnull, "w") as null:
-            sp.check_call(["ffmpeg", "-version"], stdout=null,
-                          stderr=sp.STDOUT)
-            exes.append("ffmpeg")
-    # ValueError is raised on failure on OS X through Python 2.7.11
-    # https://bugs.python.org/issue26083
-    except (OSError, ValueError, sp.CalledProcessError):
-        pass
     
     # Check if ffmpeg is installed in Python environment
     # (e.g. via conda install ffmpeg -c conda-forge)
