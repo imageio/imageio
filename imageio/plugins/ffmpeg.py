@@ -114,16 +114,15 @@ def get_exe():
             exes.insert(0, exe)
         except NeedDownloadError:
             if not exes:
-                raise NeedDownloadError(
-                                    'Need ffmpeg exe. '
-                                    'You can obtain it with either:\n'
-                                    '  - install using conda: '
-                                    'conda install ffmpeg -c conda-forge\n'
-                                    '  - download using the command: '
-                                    'imageio_download_bin ffmpeg\n'
-                                    '  - download by calling (in Python): '
-                                    'imageio.plugins.ffmpeg.download()\n'
-                                    )
+                raise NeedDownloadError('Need ffmpeg exe. '
+                                        'You can obtain it with either:\n'
+                                        '  - install using conda: '
+                                        'conda install ffmpeg -c conda-forge\n'
+                                        '  - download using the command: '
+                                        'imageio_download_bin ffmpeg\n'
+                                        '  - download by calling (in Python): '
+                                        'imageio.plugins.ffmpeg.download()\n'
+                                        )
         except InternetNotAllowedError:
             pass  # explicitly disallowed by user
         except OSError as err:  # pragma: no cover
