@@ -204,7 +204,13 @@ class AvBinFormat(Format):
     
     The limitations of this plugin are that seeking, writing and camera
     feeds are not supported. See the ffmpeg format for these features.
+
+    The avbin plugin requires an `avbin` binary. If this binary is
+    not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin avbin``
+    - the Python method ``imageio.plugins.avbin.download()``.
+
     Parameters for reading
     ----------------------
     loop : bool

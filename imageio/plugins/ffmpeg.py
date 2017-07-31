@@ -159,11 +159,15 @@ class FfmpegFormat(Format):
     Note that for reading regular video files, the avbin plugin is more
     efficient.
     
+    The ffmpeg plugin requires an `ffmpeg` binary. If this binary is
+    not available on the system, it can be downloaded by either
+    
+    - the command line script ``imageio_download_bin ffmpeg``
+    - the Python method ``imageio.plugins.ffmpeg.download()``.
+
     By setting the environment variable 'IMAGEIO_FFMPEG_EXE' the
     ffmpeg executable to use can be overridden. 
     E.g. ``os.environ['IMAGEIO_FFMPEG_EXE'] = '/path/to/my/ffmpeg'``
-    Otherwise, imageio will look for ffmpeg on the system path and then
-    download ffmpeg if not found.
     
     Parameters for reading
     ----------------------

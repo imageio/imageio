@@ -23,7 +23,13 @@ class FreeimageFormat(Format):
     """ This is the default format used for FreeImage. Each Freeimage
     format has the 'flags' keyword argument. See the Freeimage
     documentation for more information.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for reading
     ----------------------
     flags : int
@@ -142,7 +148,13 @@ class FreeimageBmpFormat(FreeimageFormat):
     """ A BMP format based on the Freeimage library.
     
     This format supports grayscale, RGB and RGBA images.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for saving
     ---------------------
     compression : bool
@@ -172,7 +184,13 @@ class FreeimagePngFormat(FreeimageFormat):
     """ A PNG format based on the Freeimage library.
     
     This format supports grayscale, RGB and RGBA images.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for reading
     ----------------------
     ignoregamma : bool
@@ -244,7 +262,13 @@ class FreeimageJpegFormat(FreeimageFormat):
     """ A JPEG format based on the Freeimage library.
     
     This format supports grayscale and RGB images.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for reading
     ----------------------
     exifrotate : bool
