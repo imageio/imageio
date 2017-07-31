@@ -4,6 +4,10 @@ Console scripts and associated helper methods for imageio.
 from __future__ import print_function
 
 import argparse
+import os
+from os import path as op
+import shutil
+
 
 from . import plugins
 from .core import util
@@ -78,6 +82,56 @@ def download_bin_main():
                         default=False, help=dhelp)
     args = parser.parse_args()
     download_bin(plugin_names=args.plugin, package_dir=args.package_dir)
+
+
+def remove_bin(plugin_names=["all"]):
+    """ Remove binary dependencies of plugins
+    
+    This is a convenience method that removes all binaries
+    dependencies for plugins downloaded by imageio.
+    
+    Notes
+    -----
+    It only makes sense to use this method if the binaries
+    are corrupt.
+    """
+    if plugin_names.count("all"):
+        # Use all plugins
+        plugin_names = PLUGINS_WITH_BINARIES
+
+    print("Removing binaries for: {}.".format(", ".join(plugin_names)))
+
+    rdirs = util.resource_dirs()
+
+    for plg in plugin_names:
+        msg = "Plugin {} is not registered for binary download!".format(plg)
+        assert plg in PLUGINS_WITH_BINARIES, msg
+    
+    for rd in rdirs:
+        # plugin name is in subdirectories
+        for rsub in os.listdir(rd):
+            if rsub in plugin_names:
+                shutil.rmtree(op.join(rd, rsub))
+
+
+def remove_bin_main():
+    """ Argument-parsing wrapper for `remove_bin` """
+    description = "Remove plugin binary dependencies"
+    phelp = "Plugin name for which to remove the binary. "\
+          +"If no argument is given, all binaries are removed."
+    example_text = "examples:\n"\
+                  +"  imageio_remove_bin all\n"\
+                  +"  imageio_remove_bin ffmpeg\n"\
+                  +"  imageio_remove_bin avbin ffmpeg\n"
+    parser = argparse.ArgumentParser(
+                description=description,
+                epilog=example_text,
+                formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("plugin", type=str, nargs="*", default="all",
+                        help=phelp)
+    args = parser.parse_args()
+    remove_bin(plugin_names=args.plugin)
+
 
 
 if __name__ == "__main__":

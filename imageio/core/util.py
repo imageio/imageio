@@ -503,7 +503,7 @@ def resource_dirs():
     """
     dirs = []
     # Resource dir baked in the package.
-    dirs.append(resource_package_dir)
+    dirs.append(resource_package_dir())
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))
