@@ -125,7 +125,7 @@ def test_import_dependencies():
 
     known_modules = ['zipfile', 'importlib', 'logging', 'json', 'decimal',
                      'fractions', 'pkg_resources', 'email', 'tempfile',
-                     'distutils']  # discard these
+                     'distutils', 'urllib']  # discard these
 
     # Remove modules in standard library
     stdloc = os.path.dirname(os.__file__)
