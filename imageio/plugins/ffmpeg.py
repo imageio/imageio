@@ -101,7 +101,7 @@ def get_exe():
         try:
             with open(os.devnull, "w") as null:
                 sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
-                exes.append(exe)
+                exes.insert(0, exe)
         except (OSError, ValueError, sp.CalledProcessError):
             pass
     
