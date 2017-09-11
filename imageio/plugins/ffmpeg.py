@@ -80,7 +80,7 @@ def get_exe():
     # Try ffmpeg exe in order of priority.
     # 1. Try environment variable.
     exe = os.getenv('IMAGEIO_FFMPEG_EXE', None)
-    if exe:  # pragma: no cover
+    if exe:
         return exe
 
     plat = get_platform()

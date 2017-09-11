@@ -27,7 +27,12 @@ def setup_module():
 
 
 def test_get_exe_env():
-    # get initial 
+    # backup any user-defined path
+    if 'IMAGEIO_FFMPEG_EXE' in os.environ:
+        oldpath = os.environ['IMAGEIO_FFMPEG_EXE']
+    else:
+        oldpath = ""
+    # set manual path
     path = 'invalid/path/to/my/ffmpeg'
     os.environ['IMAGEIO_FFMPEG_EXE'] = path
     try:
@@ -37,6 +42,8 @@ def test_get_exe_env():
         pass
     # cleanup
     os.environ.pop('IMAGEIO_FFMPEG_EXE')
+    if oldpath:
+        os.environ['IMAGEIO_FFMPEG_EXE'] = oldpath
     assert path == path2
 
 
