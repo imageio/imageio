@@ -2,6 +2,7 @@
 """
 import os
 import shutil
+import sys
 
 import pytest
 
@@ -10,9 +11,13 @@ import imageio
 import imageio.__main__
 from imageio.core import get_remote_file, NeedDownloadError, util
 
+
 NOINET = os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes')
 
 
+PY26 = sys.version_info[0] < 3 and sys.version_info[1] < 7
+
+@pytest.mark.xfail(PY26, reason="Python version below 2.7")
 @pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_download_ffmpeg():
     # 1st remove ffmpeg binary
@@ -38,6 +43,7 @@ def test_download_ffmpeg():
         raise Exception("Binary should have been downloaded.")
 
 
+@pytest.mark.xfail(PY26, reason="Python version below 2.7")
 @pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_remove_ffmpeg():
     # 1st download it
@@ -63,6 +69,7 @@ def test_remove_ffmpeg():
     imageio.__main__.download_bin(["ffmpeg"])
 
 
+@pytest.mark.xfail(PY26, reason="Python version below 2.7")
 @pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_download_package_dir():
     # test for downloading a binary
