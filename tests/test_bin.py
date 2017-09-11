@@ -10,10 +10,10 @@ import imageio
 import imageio.__main__
 from imageio.core import get_remote_file, NeedDownloadError, util
 
-NOINTERNET = os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes')
+NOINET = os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes')
 
 
-@pytest.mark.xfail(NOINTERNET, reason="Internet not allowed")
+@pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_download_ffmpeg():
     # 1st remove ffmpeg binary
     imageio.__main__.remove_bin(["ffmpeg"])
@@ -22,7 +22,7 @@ def test_download_ffmpeg():
     plat = util.get_platform()
     fname = 'ffmpeg/' + imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[plat]
     try:
-        _exe = get_remote_file(fname=fname, auto=False)
+        get_remote_file(fname=fname, auto=False)
     except NeedDownloadError:
         pass
     else:
@@ -33,12 +33,12 @@ def test_download_ffmpeg():
     
     # 4th check if download succeeded
     try:
-        _exe = get_remote_file(fname=fname, auto=False)
+        get_remote_file(fname=fname, auto=False)
     except:
         raise Exception("Binary should have been downloaded.")
 
 
-@pytest.mark.xfail(NOINTERNET, reason="Internet not allowed")
+@pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_remove_ffmpeg():
     # 1st download it
     imageio.__main__.download_bin(["ffmpeg"])
@@ -46,14 +46,14 @@ def test_remove_ffmpeg():
     # 2nd Make sure binary is there
     plat = util.get_platform()
     fname = 'ffmpeg/' + imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[plat]
-    _exe = get_remote_file(fname=fname, auto=False)
+    get_remote_file(fname=fname, auto=False)
 
     # 3rd Remove binary
     imageio.__main__.remove_bin(["ffmpeg"])
 
     # 4th check if removal worked
     try:
-        _exe = get_remote_file(fname=fname, auto=False)
+        get_remote_file(fname=fname, auto=False)
     except NeedDownloadError:
         pass
     else:
@@ -63,7 +63,7 @@ def test_remove_ffmpeg():
     imageio.__main__.download_bin(["ffmpeg"])
 
 
-@pytest.mark.xfail(NOINTERNET, reason="Internet not allowed")
+@pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_download_package_dir():
     # test for downloading a binary
     # to the package "resources" directory.
@@ -73,7 +73,8 @@ def test_download_package_dir():
     # check if ffmpeg is there and remove it
     # (this should not conflict with any other tests)
     shutil.rmtree(res_ffmpeg, ignore_errors=True)
-    assert not os.path.isdir(res_ffmpeg), "deleting ffmpeg from resources failed!"
+    msg = "deleting ffmpeg from resources failed!"
+    assert not os.path.isdir(res_ffmpeg), msg
     
     # Download to resources
     imageio.__main__.download_bin(["ffmpeg"], package_dir=True)
