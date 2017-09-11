@@ -13,9 +13,8 @@ from imageio.core import get_remote_file, NeedDownloadError, util
 
 
 NOINET = os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes')
-
-
 PY26 = sys.version_info[0] < 3 and sys.version_info[1] < 7
+
 
 @pytest.mark.xfail(PY26, reason="Python version below 2.7")
 @pytest.mark.xfail(NOINET, reason="Internet not allowed")
