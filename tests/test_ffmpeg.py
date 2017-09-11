@@ -3,6 +3,7 @@
 """
 
 from io import BytesIO
+import os
 import time
 import threading
 
@@ -23,6 +24,20 @@ def setup_module():
         imageio.plugins.ffmpeg.download()
     except imageio.core.InternetNotAllowedError:
         pass
+
+
+def test_get_exe_env():
+    # get initial 
+    path = 'invalid/path/to/my/ffmpeg'
+    os.environ['IMAGEIO_FFMPEG_EXE'] = path
+    try:
+        path2 = imageio.plugins.ffmpeg.get_exe()
+    except:
+        path2 = "none"
+        pass
+    # cleanup
+    os.environ.pop('IMAGEIO_FFMPEG_EXE')
+    assert path == path2
 
 
 def test_select():
