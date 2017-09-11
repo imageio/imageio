@@ -77,62 +77,57 @@ def download(directory=None, force_download=False):
 def get_exe():
     """ Get ffmpeg exe
     """
-    # Is the ffmpeg exe overridden?
+    # Try ffmpeg exe in order of priority.
+    # 1. Try environment variable.
     exe = os.getenv('IMAGEIO_FFMPEG_EXE', None)
     if exe:  # pragma: no cover
         return exe
 
     plat = get_platform()
 
-    # To give the executable provided by imageio highest priority,
-    # generate a list of executables and allow to add executables 
-    # to the beginning or the end according to priority.
-    # The initial string "ffmpeg" is a fallback in case nothing is found.
-    exes = ["ffmpeg"]
-    
-    # Check if ffmpeg is installed in Python environment
-    # (e.g. via conda install ffmpeg -c conda-forge)
-    if plat.startswith('win'):
-        exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
-    else:
-        exe = os.path.join(sys.prefix, 'bin', 'ffmpeg')
-    # Does the found Python-ffmpeg work?
-    if exe and os.path.isfile(exe):
-        try:
-            with open(os.devnull, "w") as null:
-                sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
-                exes.insert(0, exe)
-        except (OSError, ValueError, sp.CalledProcessError):
-            pass
-    
-    # Check if imageio can provide the binary
+    # 2. Try our own version from the imageio-binaries repository
     if plat and plat in FNAME_PER_PLATFORM:
         try:
             exe = get_remote_file('ffmpeg/' + FNAME_PER_PLATFORM[plat],
                                   auto=False)
             os.chmod(exe, os.stat(exe).st_mode | stat.S_IEXEC)  # executable
-            exes.insert(0, exe)
-        except NeedDownloadError:
-            if not exes:
-                raise NeedDownloadError('Need ffmpeg exe. '
-                                        'You can obtain it with either:\n'
-                                        '  - install using conda: '
-                                        'conda install ffmpeg -c conda-forge\n'
-                                        '  - download using the command: '
-                                        'imageio_download_bin ffmpeg\n'
-                                        '  - download by calling (in Python): '
-                                        'imageio.plugins.ffmpeg.download()\n'
-                                        )
-        except InternetNotAllowedError:
-            pass  # explicitly disallowed by user
-        except OSError as err:  # pragma: no cover
-            if not exes:
-                logging.warning("Warning: could not find imageio's "
-                                "ffmpeg executable:\n%s" %
-                                str(err))
+            return exe
+        except (NeedDownloadError, InternetNotAllowedError):
+            pass
+            
+    # 3. Try binary from conda package
+    # (installed e.g. via `conda install ffmpeg -c conda-forge`)
+    if plat.startswith('win'):
+        exe = os.path.join(sys.prefix, 'Library', 'bin', 'ffmpeg.exe')
+    else:
+        exe = os.path.join(sys.prefix, 'bin', 'ffmpeg')
+    if exe and os.path.isfile(exe):
+        try:
+            with open(os.devnull, "w") as null:
+                sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
+                return exe
+        except (OSError, ValueError, sp.CalledProcessError):
+            pass
+    
+    # 4. Try system ffmpeg command
+    exe = "ffmpeg"
+    try:
+        with open(os.devnull, "w") as null:
+            sp.check_call([exe, "-version"], stdout=null, stderr=sp.STDOUT)
+            return exe
+    except (OSError, ValueError, sp.CalledProcessError):
+        pass
 
-    # Return the first item in exes
-    return exes[0]
+    # Nothing was found so far
+    raise NeedDownloadError('Need ffmpeg exe. '
+                            'You can obtain it with either:\n'
+                            '  - install using conda: '
+                            'conda install ffmpeg -c conda-forge\n'
+                            '  - download using the command: '
+                            'imageio_download_bin ffmpeg\n'
+                            '  - download by calling (in Python): '
+                            'imageio.plugins.ffmpeg.download()\n'
+                            )
 
 
 # Get camera format
@@ -158,15 +153,25 @@ class FfmpegFormat(Format):
     Note that for reading regular video files, the avbin plugin is more
     efficient.
     
-    The ffmpeg plugin requires an `ffmpeg` binary. If this binary is
-    not available on the system, it can be downloaded by either
+    The ffmpeg plugin requires an ``ffmpeg`` binary. Imageio searches
+    this binary in the following locations (order of priority):
     
-    - the command line script ``imageio_download_bin ffmpeg``
-    - the Python method ``imageio.plugins.ffmpeg.download()``.
-
-    By setting the environment variable 'IMAGEIO_FFMPEG_EXE' the
-    ffmpeg executable to use can be overridden. 
-    E.g. ``os.environ['IMAGEIO_FFMPEG_EXE'] = '/path/to/my/ffmpeg'``
+    - The path stored in the ``IMAGEIO_FFMPEG_EXE`` environment
+      variable, which can be set using e.g.
+      ``os.environ['IMAGEIO_FFMPEG_EXE'] = '/path/to/my/ffmpeg'``
+    - The binary downloaded from the "imageio-binaries" repository
+      (see below) which is stored either in the "imageio/resources"
+      directory or in the user directory.
+    - A binary installed as an anaconda package (see below).
+    - The system ``ffmpeg`` command.
+    
+    If the binary is not available on the system, it can be downloaded
+    manually from <https://github.com/imageio/imageio-binaries> by
+    either
+    
+    - the command line script ``imageio_download_bin ffmpeg``,
+    - the Python method ``imageio.plugins.ffmpeg.download()``, or
+    - anaconda: ``conda install ffmpeg -c conda-forge``.
     
     Parameters for reading
     ----------------------

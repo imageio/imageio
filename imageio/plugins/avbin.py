@@ -206,7 +206,8 @@ class AvBinFormat(Format):
     feeds are not supported. See the ffmpeg format for these features.
 
     The avbin plugin requires an `avbin` binary. If this binary is
-    not available on the system, it can be downloaded by either
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
     
     - the command line script ``imageio_download_bin avbin``
     - the Python method ``imageio.plugins.avbin.download()``.

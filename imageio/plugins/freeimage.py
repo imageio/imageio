@@ -25,7 +25,8 @@ class FreeimageFormat(Format):
     documentation for more information.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
-    is not available on the system, it can be downloaded by either
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
     
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
@@ -150,7 +151,8 @@ class FreeimageBmpFormat(FreeimageFormat):
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
-    is not available on the system, it can be downloaded by either
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
     
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
@@ -186,7 +188,8 @@ class FreeimagePngFormat(FreeimageFormat):
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
-    is not available on the system, it can be downloaded by either
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
     
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
@@ -264,7 +267,8 @@ class FreeimageJpegFormat(FreeimageFormat):
     This format supports grayscale and RGB images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
-    is not available on the system, it can be downloaded by either
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
     
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
