@@ -109,11 +109,21 @@ def remove_bin(plugin_names=["all"]):
             msg = "Plugin {} not registered for binary download!".format(plg)
             raise Exception(msg)
     
+    not_removed = []
     for rd in rdirs:
         # plugin name is in subdirectories
         for rsub in os.listdir(rd):
             if rsub in plugin_names:
-                shutil.rmtree(op.join(rd, rsub))
+                plgdir = op.join(rd, rsub)
+                try:
+                    shutil.rmtree(plgdir)
+                except:
+                    not_removed.append(plgdir)
+    if not_removed:
+        nrs = ",".join(not_removed)
+        msg2 = "These plugins files could not be removed: {}\n".format(nrs) \
+               + "Make sure they are not used by any program and try again."
+        raise Exception(msg2)
 
 
 def remove_bin_main():
