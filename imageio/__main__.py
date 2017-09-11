@@ -7,6 +7,7 @@ import argparse
 import os
 from os import path as op
 import shutil
+import sys
 
 
 from . import plugins
@@ -146,4 +147,9 @@ def remove_bin_main():
 
 
 if __name__ == "__main__":
-    download_bin_main()
+    if len(sys.argv) > 1 and sys.argv[1] == 'download_bin':
+        download_bin_main()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'remove_bin':
+        remove_bin_main()
+    else:
+        raise RuntimeError('Invalid use of the imageio CLI')
