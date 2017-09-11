@@ -54,8 +54,9 @@ def download_bin(plugin_names=["all"], package_dir=False):
         directory = None
     
     for plg in plugin_names:
-        msg = "Plugin {} is not registered for binary download!".format(plg)
-        assert plg in PLUGINS_WITH_BINARIES, msg
+        if plg not in PLUGINS_WITH_BINARIES:
+            msg = "Plugin {} not registered for binary download!".format(plg)
+            raise Exception(msg)
         mod = getattr(plugins, plg)
         mod.download(directory=directory)
 
