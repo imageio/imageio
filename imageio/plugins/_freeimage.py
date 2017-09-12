@@ -38,12 +38,28 @@ FNAME_PER_PLATFORM = {
 }
 
 
-def download():
+def download(directory=None, force_download=False):
     """ Download the FreeImage library to your computer.
+
+    Parameters
+    ----------
+    directory : str | None
+        The directory where the file will be cached if a download was
+        required to obtain the file. By default, the appdata directory
+        is used. This is also the first directory that is checked for
+        a local version of the file.
+    force_download : bool | str
+        If True, the file will be downloaded even if a local copy exists
+        (and this copy will be overwritten). Can also be a YYYY-MM-DD date
+        to ensure a file is up-to-date (modified date of a file on disk,
+        if present, is checked).
     """
     plat = get_platform()
     if plat and plat in FNAME_PER_PLATFORM:
-        get_remote_file('freeimage/' + FNAME_PER_PLATFORM[plat])
+        fname = 'freeimage/' + FNAME_PER_PLATFORM[plat]
+        get_remote_file(fname=fname,
+                        directory=directory,
+                        force_download=force_download)
         fi._lib = None  # allow trying again (needed to make tests work)
 
 
@@ -66,8 +82,11 @@ def get_freeimage_lib():
             pass
         except NeedDownloadError:
             raise NeedDownloadError('Need FreeImage library. '
-                                    'You can download it by calling:\n'
-                                    '  imageio.plugins.freeimage.download()')
+                                    'You can obtain it with either:\n'
+                                    '  - download using the command: '
+                                    'imageio_download_bin freeimage\n'
+                                    '  - download by calling (in Python): '
+                                    'imageio.plugins.freeimage.download()\n')
         except RuntimeError as e:  # pragma: no cover
             warn(str(e))
 

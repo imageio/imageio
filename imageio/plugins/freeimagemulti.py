@@ -112,7 +112,13 @@ class IcoFormat(FreeimageMulti):
     """ An ICO format based on the Freeimage library.
     
     This format supports grayscale, RGB and RGBA images.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for reading
     ----------------------
     makealpha : bool
@@ -140,7 +146,13 @@ class GifFormat(FreeimageMulti):
     Images read with this format are always RGBA. Currently,
     the alpha channel is ignored when saving RGB images with this
     format.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    is not available on the system, it can be downloaded by either
     
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
     Parameters for reading
     ----------------------
     playback : bool

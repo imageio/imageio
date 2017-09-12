@@ -8,12 +8,19 @@ Various utilities for imageio
 
 from __future__ import absolute_import, print_function, division
 
-import re
+
 import os
+import re
+import struct
 import sys
 import time
-import struct
 from warnings import warn
+
+# Make pkg_resources optional if setuptools is not available
+try:
+    import pkg_resources
+except ImportError:
+    pkg_resources = None
 
 import numpy as np
 
@@ -495,8 +502,8 @@ def resource_dirs():
     in the future.
     """
     dirs = []
-    # Resource dir baked in the package
-    dirs.append(os.path.abspath(os.path.join(THIS_DIR, '..', 'resources')))
+    # Resource dir baked in the package.
+    dirs.append(resource_package_dir())
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))
@@ -508,6 +515,27 @@ def resource_dirs():
     elif sys.path and sys.path[0]:
         dirs.append(os.path.abspath(sys.path[0]))
     return dirs
+
+
+def resource_package_dir():
+    """ package_dir
+    
+    Get the resources directory in the imageio package installation
+    directory.
+    
+    Notes
+    -----
+    This is a convenience method that is used by `resource_dirs` and
+    imageio entry point scripts.
+    """
+    if pkg_resources:
+        # The directory returned by `pkg_resources.resource_filename`
+        # also works with eggs.
+        pdir = pkg_resources.resource_filename("imageio", "resources")
+    else:
+        # If setuptools is not available, use fallback 
+        pdir = os.path.abspath(os.path.join(THIS_DIR, '..', 'resources'))
+    return pdir
 
 
 def get_platform():
