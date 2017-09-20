@@ -494,7 +494,7 @@ class FfmpegFormat(Format):
             duration and nframes. """
 
             # Wait for the catcher to get the meta information
-            etime = time.time() + 4.0
+            etime = time.time() + 10.0
             while (not self._stderr_catcher.header) and time.time() < etime:
                 time.sleep(0.01)
 
