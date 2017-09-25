@@ -371,13 +371,40 @@ def test_webcam():
     except Exception:
         skip('no web cam')
 
+
+# Sample from ffmpeg -device-list (distilled down to two lines per section)
+ffmpeg_output_sample = \
+    u'ffmpeg version 3.2.4 Copyright (c) 2000-2017 the FFmpeg developers\r\n' \
+    u'  built with gcc 6.3.0 (GCC)\r\n' \
+    u'  configuration: --enable-gpl --enable-version3 --enable-d3d11va' \
+    u' --enable-dxva2 --enable-libmfx --enable-nvenc --enable-avisynth' \
+    u'libswresample   2.  3.100 /  2.  3.100\r\n  ' \
+    u'libpostproc    54.  1.100 / 54.  1.100\r\n' \
+    u'[dshow @ 039a7e20] DirectShow video devices (some may be both video ' \
+    u'and audio devices)\r\n' \
+    u'[dshow @ 039a7e20]  "AVerMedia USB Polaris Analog Capture"\r\n' \
+    u'[dshow @ 039a7e20]     Alternative name "@device_pnp_\\\\?\\usb#vid_0' \
+    u'7ca&pid_c039&mi_01#8&55f1102&0&0001#{65e8773d-8f56-11d0-a3b9-00a0c922' \
+    u'3196}\\{9b365890-165f-11d0-a195-0020afd156e4}"\r\n' \
+    u'[dshow @ 039a7e20]  "Lenovo EasyCamera"\r\n' \
+    u'[dshow @ 039a7e20]     Alternative name "@device_pnp_\\\\?\\usb#vid_0' \
+    u'4f2&pid_b50f&mi_00#6&bbc4ae1&1&0000#{65e8773d-8f56-11d0-a3b9-00a0c922' \
+    u'3196}\\global"\r\n' \
+    u'[dshow @ 039a7e20] DirectShow audio devices\r\n' \
+    u'[dshow @ 039a7e20]  "Microphone (2- USB Multimedia Audio Device)"\r\n' \
+    u'[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D' \
+    u'0-BD43-00A0C911CE86}\\wave_{73C17834-AA57-4CA1-847A-6BBEB1E0F2E6}"\r\n' \
+    u'[dshow @ 039a7e20]  "SPDIF Interface (Multimedia Audio Device)"\r\n' \
+    u'[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D' \
+    u'0-BD43-00A0C911CE86}\\wave_{617B63FB-CFC0-4D10-AE30-42A66CAF6A4E}"\r\n' \
+    u'dummy: Immediate exit requested\r\n'
+
+
 def test_webcam_parse_device_names():
     # Ensure that the device list parser returns all video devices (issue #283)
 
     # Specify test parameters
-    # TODO: get ffmpeg_output_sample from external file
-    ffmpeg_output_sample = u'ffmpeg version 3.2.4 Copyright (c) 2000-2017 the FFmpeg developers\r\n  built with gcc 6.3.0 (GCC)\r\n  configuration: --enable-gpl --enable-version3 --enable-d3d11va --enable-dxva2 --enable-libmfx --enable-nvenc --enable-avisynth --enable-bzlib --enable-fontconfig --enable-frei0r --enable-gnutls --enable-iconv --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libfreetype --enable-libgme --enable-libgsm --enable-libilbc --enable-libmodplug --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopus --enable-librtmp --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvo-amrwbenc --enable-libvorbis --enable-libvpx --enable-libwavpack --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs --enable-libxvid --enable-libzimg --enable-lzma --enable-zlib\r\n  libavutil      55. 34.101 / 55. 34.101\r\n  libavcodec     57. 64.101 / 57. 64.101\r\n  libavformat    57. 56.101 / 57. 56.101\r\n  libavdevice    57.  1.100 / 57.  1.100\r\n  libavfilter     6. 65.100 /  6. 65.100\r\n  libswscale      4.  2.100 /  4.  2.100\r\n  libswresample   2.  3.100 /  2.  3.100\r\n  libpostproc    54.  1.100 / 54.  1.100\r\n[dshow @ 039a7e20] DirectShow video devices (some may be both video and audio devices)\r\n[dshow @ 039a7e20]  "AVerMedia USB Polaris Analog Capture"\r\n[dshow @ 039a7e20]     Alternative name "@device_pnp_\\\\?\\usb#vid_07ca&pid_c039&mi_01#8&55f1102&0&0001#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\{9b365890-165f-11d0-a195-0020afd156e4}"\r\n[dshow @ 039a7e20]  "Lenovo EasyCamera"\r\n[dshow @ 039a7e20]     Alternative name "@device_pnp_\\\\?\\usb#vid_04f2&pid_b50f&mi_00#6&bbc4ae1&1&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global"\r\n[dshow @ 039a7e20] DirectShow audio devices\r\n[dshow @ 039a7e20]  "Microphone (2- USB Multimedia Audio Device)"\r\n[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{73C17834-AA57-4CA1-847A-6BBEB1E0F2E6}"\r\n[dshow @ 039a7e20]  "SPDIF Interface (2- USB Multimedia Audio Device)"\r\n[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{617B63FB-CFC0-4D10-AE30-42A66CAF6A4E}"\r\n[dshow @ 039a7e20]  "Microphone Array (Realtek High Definition Audio)"\r\n[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{8A2CC322-DC22-4F8B-BC5A-DB8AF5DB844C}"\r\n[dshow @ 039a7e20]  "Analog Audio In (AVerMedia C039 USB Capture Card)"\r\n[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{C160E7BB-863A-4C5E-81D7-C8B68627D6CD}"\r\n[dshow @ 039a7e20]  "Line (2- USB Multimedia Audio Device)"\r\n[dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\\wave_{F80C3538-68FA-4816-B400-44CB19336269}"\r\ndummy: Immediate exit requested\r\n'
-    number_of_video_devices_in_sample = 2
+    number_of_video_devices_in_sample = 2  # see ffmpeg_output_sample above
 
     # Parse the sample
     device_names = \
