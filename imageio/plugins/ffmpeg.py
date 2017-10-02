@@ -284,22 +284,9 @@ class FfmpegFormat(Format):
                 proc.stdout.readline()
                 proc.terminate()
                 infos = proc.stderr.read().decode('utf-8')
-                # Parse the result
-                device_names = []
-                in_video_devices = False
-                for line in infos.splitlines():
-                    if line.startswith('[dshow'):
-                        line = line.split(']', 1)[1].strip()
-                        if line.startswith('"'):
-                            if in_video_devices:
-                                device_names.append(line[1:-1])
-                        elif 'video devices' in line:
-                            in_video_devices = True
-                        else:
-                            in_video_devices = False
                 # Return device name at index
                 try:
-                    name = device_names[index]
+                    name = self._parse_device_names(infos)[index]
                 except IndexError:
                     raise IndexError('No ffdshow camera at index %i.' % index)
                 return 'video=%s' % name
@@ -312,6 +299,24 @@ class FfmpegFormat(Format):
 
             else:  # pragma: no cover
                 return '??'
+
+        @staticmethod
+        def _parse_device_names(ffmpeg_output):
+            """ Parse the output of the ffmpeg -list-devices command"""
+            device_names = []
+            in_video_devices = False
+            for line in ffmpeg_output.splitlines():
+                if line.startswith('[dshow'):
+                    logging.debug(line)
+                    line = line.split(']', 1)[1].strip()
+                    if in_video_devices and line.startswith('"'):
+                        device_names.append(line[1:-1])
+                    elif 'video devices' in line:
+                        in_video_devices = True
+                    elif 'devices' in line:
+                        # set False for subsequent "devices" sections
+                        in_video_devices = False
+            return device_names
 
         def _open(self, loop=False, size=None, pixelformat=None,
                   ffmpeg_params=None, print_info=False):
