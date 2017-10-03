@@ -84,9 +84,15 @@ def test_read_and_write():
             assert (im.sum() / im.size) > 0  # pypy mean is broken
         assert im.sum() > 0
     
-        # Seek
+        # Get arbitrary data
         im = R.get_data(120)
         assert im.shape == (720, 1280, 3)
+        
+        # Set image index
+        R.set_image_index(2)
+        im = R.get_next_data()
+        assert im.shape == (720, 1280, 3)
+        
     
     # Save
     with imageio.save(fname2, 'ffmpeg') as W:
@@ -146,6 +152,17 @@ def test_reader_more():
     with raises(RuntimeError):
         R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
         R._read_frame()
+    
+    # Test setting image index
+    R.set_image_index(0)
+    R.get_next_data()
+    R.set_image_index(R.get_length())
+    try:
+        R.get_next_data()
+    except IndexError:
+        pass
+    else:
+         assert False
     
     # Test  loop
     R = imageio.read(get_remote_file('images/realshort.mp4'), 'ffmpeg', loop=1)
