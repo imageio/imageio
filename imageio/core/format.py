@@ -350,6 +350,17 @@ class Format(object):
             listed in the documentation of those formats.
             """
             return self.get_data(self._BaseReaderWriter_last_index+1, **kwargs)
+
+        def set_image_index(self, index, **kwargs):
+            """ set_image_index(index)
+
+            Set the pointer to the last read index such that the next call to
+            get_next_data() returns the image specified by the index
+            """
+            self._checkClosed()
+            n = self.get_length()
+            if index <= n:
+                self._BaseReaderWriter_last_index = index-1
         
         def get_meta_data(self, index=None):
             """ get_meta_data(index=None)
@@ -378,9 +389,10 @@ class Format(object):
             Iterate over all images in the series. (Note: you can also
             iterate over the reader object.)
             
-            """ 
+            """
             self._checkClosed()
-            i, n = 0, self.get_length()
+            n = self.get_length()
+            i = 0
             while i < n:
                 try:
                     im, meta = self._get_data(i)
@@ -412,7 +424,7 @@ class Format(object):
             
             The retured scalar specifies the number of images in the series.
             See Reader.get_length for more information.
-            """ 
+            """
             raise NotImplementedError() 
         
         def _get_data(self, index):
@@ -422,7 +434,7 @@ class Format(object):
             case the plugin does not support random access.
             
             It should return the image and meta data: (ndarray, dict).
-            """ 
+            """
             raise NotImplementedError() 
         
         def _get_meta_data(self, index):
