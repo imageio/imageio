@@ -85,14 +85,19 @@ def test_read_and_write():
         assert im.sum() > 0
     
         # Get arbitrary data
-        im = R.get_data(120)
-        assert im.shape == (720, 1280, 3)
+        im1 = R.get_data(120)
+        assert im1.shape == (720, 1280, 3)
         
         # Set image index
-        R.set_image_index(2)
-        im = R.get_next_data()
-        assert im.shape == (720, 1280, 3)
-        
+        R.set_image_index(42)
+        im2 = R.get_next_data()
+        assert im2.shape == (720, 1280, 3)
+
+        R.set_image_index(120)
+        im3 = R.get_next_data()
+        assert im3.shape == (720, 1280, 3)
+        assert (im1 == im3).all()
+        assert not (im1 == im2).all()
     
     # Save
     with imageio.save(fname2, 'ffmpeg') as W:
@@ -146,32 +151,34 @@ def test_reader_more():
             count += 1
     assert count == len(R)
     assert count in (35, 36)  # allow one frame off size that we know
-    # Test index error -1
-    raises(IndexError, R.get_data, -1)
+    raises(IndexError, R.get_data, -1) # Test index error -1
+    
     # Now read beyond (simulate broken file)
     with raises(RuntimeError):
-        R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
+        R._read_frame() # ffmpeg seems to have an extra frame, avbin not?
         R._read_frame()
-    
-    # Test setting image index
+
+    # Set the image index to 0 and go again
     R.set_image_index(0)
-    R.get_next_data()
-    R.set_image_index(R.get_length())
-    try:
-        R.get_next_data()
-    except IndexError:
-        pass
-    else:
-         assert False
-    
-    # Test  loop
+    count2 = 0
+    while True:
+        try:
+            R.get_next_data()
+        except IndexError:
+            break
+        else:
+            count2 += 1
+    assert count2 == count
+    raises(IndexError, R.get_data, -1) # Test index error -1
+
+    # Test loop
     R = imageio.read(get_remote_file('images/realshort.mp4'), 'ffmpeg', loop=1)
     im1 = R.get_next_data()
     for i in range(1, len(R)):
         R.get_next_data()
     im2 = R.get_next_data()
     im3 = R.get_data(0)
-    im4 = R.get_data(2)  # touch skipping frames
+    im4 = R.get_data(2) # touch skipping frames
     assert (im1 == im2).all()
     assert (im1 == im3).all()
     assert not (im1 == im4).all()
