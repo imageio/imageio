@@ -151,11 +151,11 @@ def test_reader_more():
             count += 1
     assert count == len(R)
     assert count in (35, 36)  # allow one frame off size that we know
-    raises(IndexError, R.get_data, -1) # Test index error -1
+    raises(IndexError, R.get_data, -1)  # Test index error -1
     
     # Now read beyond (simulate broken file)
     with raises(RuntimeError):
-        R._read_frame() # ffmpeg seems to have an extra frame, avbin not?
+        R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
         R._read_frame()
 
     # Set the image index to 0 and go again
@@ -169,7 +169,7 @@ def test_reader_more():
         else:
             count2 += 1
     assert count2 == count
-    raises(IndexError, R.get_data, -1) # Test index error -1
+    raises(IndexError, R.get_data, -1)  # Test index error -1
 
     # Test loop
     R = imageio.read(get_remote_file('images/realshort.mp4'), 'ffmpeg', loop=1)
@@ -178,7 +178,7 @@ def test_reader_more():
         R.get_next_data()
     im2 = R.get_next_data()
     im3 = R.get_data(0)
-    im4 = R.get_data(2) # touch skipping frames
+    im4 = R.get_data(2)  # touch skipping frames
     assert (im1 == im2).all()
     assert (im1 == im3).all()
     assert not (im1 == im4).all()

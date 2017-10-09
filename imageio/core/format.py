@@ -354,7 +354,7 @@ class Format(object):
         def set_image_index(self, index, **kwargs):
             """ set_image_index(index)
 
-            Set the pointer to the last read index such that the next call to
+            Set the internal pointer such that the next call to
             get_next_data() returns the image specified by the index
             """
             self._checkClosed()
