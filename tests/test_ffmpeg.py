@@ -37,7 +37,7 @@ def test_get_exe_env():
     os.environ['IMAGEIO_FFMPEG_EXE'] = path
     try:
         path2 = imageio.plugins.ffmpeg.get_exe()
-    except:
+    except Exception:
         path2 = "none"
         pass
     # cleanup

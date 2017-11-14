@@ -38,7 +38,7 @@ def test_download_ffmpeg():
     # 4th check if download succeeded
     try:
         get_remote_file(fname=fname, auto=False)
-    except:
+    except Exception:
         raise Exception("Binary should have been downloaded.")
 
 

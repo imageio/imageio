@@ -30,6 +30,7 @@ STYLE_IGNORES = ['E226',
                  'E266',  # too many leading '#' for block comment
                  'E402',  # module level import not at top of file
                  'E731',  # do not assign a lambda expression, use a def
+                 'E741',
                  'W291', 
                  'W293',
                  'W503',  # line break before binary operator
