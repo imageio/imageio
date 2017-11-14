@@ -37,7 +37,7 @@ def test_get_exe_env():
     os.environ['IMAGEIO_FFMPEG_EXE'] = path
     try:
         path2 = imageio.plugins.ffmpeg.get_exe()
-    except:
+    except Exception:
         path2 = "none"
         pass
     # cleanup
@@ -372,11 +372,23 @@ def test_framecatcher():
     assert T._frame is None  # get_frame() would stall
     file.write_and_rewind(b'x' * 20)
     time.sleep(0.2)  # Let it read the rest
-    assert T.get_frame() == b'x' * N
+    frame, is_new = T.get_frame()
+    assert frame == b'x' * N
+    assert is_new, 'is_new should be True the first time a frame is retrieved'
+
+    # Read frame that has not been updated
+    frame, is_new = T.get_frame()
+    assert frame == b'x' * N, 'frame content should be the same as before'
+    assert not is_new, (
+        'is_new should be False if the frame has already been retrieved')
+
     # Read frame when we pass plenty of data
     file.write_and_rewind(b'y' * N * 3)
     time.sleep(0.2)
-    assert T.get_frame() == b'y' * N
+    frame, is_new = T.get_frame()
+    assert frame == b'y' * N
+    assert is_new, 'is_new should be True again if the frame has been updated'
+
     # Close
     file.close()
 
@@ -437,6 +449,27 @@ def test_webcam_parse_device_names():
 
     # Assert that the device_names list has the correct length
     assert len(device_names) == number_of_video_devices_in_sample
+
+
+def test_webcam_get_next_data():
+    need_internet()
+
+    try:
+        reader = imageio.get_reader('<video0>')
+    except IndexError:
+        skip('no webcam')
+
+    # Get a number of frames and check for if they are new
+    counter_new_frames = 0
+    number_of_iterations = 100
+    for i in range(number_of_iterations):
+        frame = reader.get_next_data()
+        if frame.meta['new']:
+            counter_new_frames += 1
+
+    assert counter_new_frames < number_of_iterations, (
+        'assuming the loop is faster than the webcam, the number of unique '
+        'frames should be smaller than the number of iterations')
 
 
 def show_in_console():

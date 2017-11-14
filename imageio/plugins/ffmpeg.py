@@ -383,10 +383,10 @@ class FfmpegFormat(Format):
             # Modulo index (for looping)
             if self._meta['nframes'] and self._meta['nframes'] < float('inf'):
                 if self._arg_loop:
-                    index = index % self._meta['nframes']
+                    index %= self._meta['nframes']
 
             if index == self._pos:
-                return self._lastread, {}
+                return self._lastread, dict(new=False)
             elif index < 0:
                 raise IndexError('Frame index must be > 0')
             elif index >= self._meta['nframes']:
@@ -396,9 +396,9 @@ class FfmpegFormat(Format):
                     self._reinitialize(index)
                 else:
                     self._skip_frames(index-self._pos-1)
-                result = self._read_frame()
+                result, is_new = self._read_frame()
                 self._pos = index
-                return result, {}
+                return result, dict(new=is_new)
 
         def _get_meta_data(self, index):
             return self._meta
@@ -583,9 +583,10 @@ class FfmpegFormat(Format):
             try:
                 # Read framesize bytes
                 if self._frame_catcher:  # pragma: no cover - camera thing
-                    s = self._frame_catcher.get_frame()
+                    s, is_new = self._frame_catcher.get_frame()
                 else:
                     s = read_n_bytes(self._proc.stdout, framesize)
+                    is_new = True
                 # Check
                 if len(s) != framesize:
                     raise RuntimeError('Frame is %i bytes, but expected %i.' %
@@ -596,7 +597,7 @@ class FfmpegFormat(Format):
                 err2 = self._stderr_catcher.get_text(0.4)
                 fmt = 'Could not read frame %i:\n%s\n=== stderr ===\n%s'
                 raise CannotReadFrameError(fmt % (self._pos, err1, err2))
-            return s
+            return s, is_new
 
         def _skip_frames(self, n=1):
             """ Reads and throws away n frames """
@@ -609,7 +610,7 @@ class FfmpegFormat(Format):
             # Read and convert to numpy array
             w, h = self._meta['size']
             # t0 = time.time()
-            s = self._read_frame_data()
+            s, is_new = self._read_frame_data()
             result = np.fromstring(s, dtype='uint8')
             result = result.reshape((h, w, self._depth))
             # t1 = time.time()
@@ -617,7 +618,7 @@ class FfmpegFormat(Format):
 
             # Store and return
             self._lastread = result
-            return result
+            return result, is_new
 
     # --
 
@@ -831,8 +832,9 @@ class FrameCatcher(threading.Thread):
         self._file = file
         self._framesize = framesize
         self._frame = None
+        self._frame_is_new = False
         self._bytes_read = 0
-        # self._lock = threading.RLock()
+        self._lock = threading.RLock()
         threading.Thread.__init__(self)
         self.setDaemon(True)  # do not let this thread hold up Python shutdown
         self._should_stop = False
@@ -842,17 +844,23 @@ class FrameCatcher(threading.Thread):
         self._should_stop = True
     
     def get_frame(self):
+        # This runs in the main thread
         while self._frame is None:  # pragma: no cover - an init thing
             time.sleep(0.001)
-        return self._frame
+        with self._lock:
+            is_new = self._frame_is_new
+            self._frame_is_new = False  # reset
+            return self._frame, is_new
 
     def _read(self, n):
+        # This runs in the worker thread
         try:
             return self._file.read(n)
         except ValueError:
             return b''
 
     def run(self):
+        # This runs in the worker thread
         framesize = self._framesize
 
         while not self._should_stop:
@@ -869,7 +877,11 @@ class FrameCatcher(threading.Thread):
             if not s:
                 return
             # Store frame
-            self._frame = s
+            with self._lock:
+                # Lock ensures that _frame and frame_is_new remain consistent
+                self._frame = s
+                self._frame_is_new = True
+            # NOTE: could add a threading.Condition to facilitate blocking
 
 
 class StreamCatcher(threading.Thread):

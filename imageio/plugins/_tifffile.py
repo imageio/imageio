@@ -4049,7 +4049,7 @@ def read_sem_metadata(fh, byteorder, dtype, count):
                 if number != v:
                     value = number
                     unit = u
-            except:
+            except Exception:
                 number = astype(value, (int, float))
                 if number != value:
                     value = number

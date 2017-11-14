@@ -118,7 +118,7 @@ def remove_bin(plugin_names=["all"]):
                 plgdir = op.join(rd, rsub)
                 try:
                     shutil.rmtree(plgdir)
-                except:
+                except Exception:
                     not_removed.append(plgdir)
     if not_removed:
         nrs = ",".join(not_removed)
