@@ -428,10 +428,12 @@ def test_webcam_parse_device_names():
 
 
 def test_webcam_get_next_data():
+    need_internet()
+
     try:
         reader = imageio.get_reader('<video0>')
     except IndexError:
-        skip('no web cam')
+        skip('no webcam')
 
     # Get a number of frames and check for if they are new
     counter_new_frames = 0
@@ -442,8 +444,8 @@ def test_webcam_get_next_data():
             counter_new_frames += 1
 
     assert counter_new_frames < number_of_iterations, (
-        'assuming the loop is faster than the webcam, '
-        'not all frames can be new')
+        'assuming the loop is faster than the webcam, the number of unique '
+        'frames should be smaller than the number of iterations')
 
 
 def show_in_console():
