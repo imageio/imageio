@@ -20,8 +20,6 @@ matrix:
         - python: "3.6"
           env: TEST_UNIT=0 TEST_STYLE=1
         #
-        - python: "2.6"
-          env: TEST_UNIT=1
         - python: "2.7"
           env: TEST_UNIT=1 TEST_INSTALL=1
         - python: "3.4"

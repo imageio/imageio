@@ -208,13 +208,10 @@ def asarray(a):
     return np.asarray(a)
 
 
-try:
-    from collections import OrderedDict as _dict
-except ImportError:
-    _dict = dict
+from collections import OrderedDict
 
 
-class Dict(_dict):
+class Dict(OrderedDict):
     """ A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
     
@@ -224,7 +221,7 @@ class Dict(_dict):
     class (such as 'items' and 'copy') cannot be get/set as attributes.
     """
     
-    __reserved_names__ = dir(_dict())  # Also from OrderedDict
+    __reserved_names__ = dir(OrderedDict())  # Also from OrderedDict
     __pure_names__ = dir(dict())
     
     def __getattribute__(self, key):
@@ -240,7 +237,7 @@ class Dict(_dict):
         if key in Dict.__reserved_names__:
             # Either let OrderedDict do its work, or disallow
             if key not in Dict.__pure_names__:
-                return _dict.__setattr__(self, key, val)
+                return OrderedDict.__setattr__(self, key, val)
             else:
                 raise AttributeError('Reserved name, this key can only ' +
                                      'be set via ``d[%r] = X``' % key)
