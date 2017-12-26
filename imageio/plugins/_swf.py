@@ -722,7 +722,7 @@ def checkImages(images):  # pragma: no cover
                 images2.append(im) # Ok
             elif im.dtype in [np.float32, np.float64]:
                 theMax = im.max()
-                if theMax > 128 and theMax < 300:
+                if 128 < theMax < 300:
                     pass # assume 0:255
                 else:
                     im = im.copy()

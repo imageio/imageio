@@ -2676,7 +2676,7 @@ class TiffPage(object):
                     byte_counts[j] = b
                     offsets[j] = o
                 j += 1
-            elif b > 0 and o <= 0:
+            elif b > 0 >= o:
                 raise ValueError("invalid offset")
             else:
                 warnings.warn("empty byte count")
