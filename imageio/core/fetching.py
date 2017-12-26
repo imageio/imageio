@@ -238,6 +238,6 @@ def _sizeof_fmt(num):
         quotient = float(num) / 1024 ** exponent
         unit = units[exponent]
         num_decimals = decimals[exponent]
-        format_string = '{0:.%sf} {1}' % (num_decimals)
+        format_string = '{0:.%sf} {1}' % num_decimals
         return format_string.format(quotient, unit)
     return '0 bytes' if num == 0 else '1 byte'

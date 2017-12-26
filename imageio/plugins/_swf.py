@@ -195,7 +195,7 @@ def bits2int(bb, n=8):
         value = tmp.rjust(8, '0') + value
 
     # Make decimal
-    return(int(value[:n], 2))
+    return int(value[:n], 2)
 
 
 def get_type_and_len(bb):

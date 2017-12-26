@@ -4946,7 +4946,7 @@ def sequence(value):
         len(value)
         return value
     except TypeError:
-        return (value,)
+        return value,
 
 
 def product(iterable):

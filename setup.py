@@ -64,7 +64,7 @@ __doc__ = ''
 docStatus = 0 # Not started, in progress, done
 initFile = os.path.join(THIS_DIR, 'imageio',  '__init__.py')
 for line in open(initFile).readlines():
-    if (line.startswith('__version__')):
+    if line.startswith('__version__'):
         exec(line.strip())
     elif line.startswith('"""'):
         if docStatus == 0:

@@ -268,7 +268,7 @@ def test_request_save_sources():
 
 def test_request_file_no_seek():
     
-    class File():
+    class File:
         
         def read(self, n):
             return b'\x00' * n
