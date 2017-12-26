@@ -103,13 +103,12 @@ for more information.
 """
 
 # Prepare resources dir
-package_data = []
-package_data.append('resources/shipped_resources_go_here')
-package_data.append('resources/*.*')
-package_data.append('resources/images/*.*')
-package_data.append('resources/freeimage/*.*')
-package_data.append('resources/ffmpeg/*.*')
-package_data.append('resources/avbin/*.*')
+package_data = ['resources/shipped_resources_go_here',
+                'resources/*.*',
+                'resources/images/*.*',
+                'resources/freeimage/*.*',
+                'resources/ffmpeg/*.*',
+                'resources/avbin/*.*']
 
 
 def _set_crossplatform_resources(resource_dir):

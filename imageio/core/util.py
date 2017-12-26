@@ -498,9 +498,8 @@ def resource_dirs():
     directory (for frozen apps), and may include additional directories
     in the future.
     """
-    dirs = []
+    dirs = [resource_package_dir()]
     # Resource dir baked in the package.
-    dirs.append(resource_package_dir())
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))
