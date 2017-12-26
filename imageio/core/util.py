@@ -86,17 +86,17 @@ def image_as_uint(im, bitdepth=None):
         im = im.astype(np.float64) * (np.power(2.0, bitdepth)-1)
     elif im.dtype == np.uint16 and bitdepth == 8:
         warn('Lossy conversion from uint16 to uint8, '
-             'loosing 8 bits of resolution')
+             'losing 8 bits of resolution')
         im = np.right_shift(im, 8)
     elif im.dtype == np.uint32:
         warn('Lossy conversion from uint32 to {}, '
-             'loosing {} bits of resolution'.format(out_type.__name__,
-                                                    32-bitdepth))
+             'losing {} bits of resolution'.format(out_type.__name__,
+                                                   32-bitdepth))
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
         warn('Lossy conversion from uint64 to {}, '
-             'loosing {} bits of resolution'.format(out_type.__name__,
-                                                    64-bitdepth))
+             'looing {} bits of resolution'.format(out_type.__name__,
+                                                   64-bitdepth))
         im = np.right_shift(im, 64-bitdepth)
     else:
         mi = np.nanmin(im)
