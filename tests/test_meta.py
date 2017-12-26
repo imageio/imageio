@@ -85,7 +85,7 @@ def test_namespace():
     # Check that there are no extra names
     extra_names = has_names.difference(need_names)
     extra_names.discard('testing')  # can be there during testing
-    assert extra_names == set(['core', 'plugins', 'show_formats'])
+    assert extra_names == {'core', 'plugins', 'show_formats'}
 
 
 def test_import_nothing():
@@ -144,7 +144,7 @@ def test_import_dependencies():
             print(modname, mod.__file__)
     
     # Check that only imageio is left
-    assert extra_modules == set(['imageio'])
+    assert extra_modules == {'imageio'}
 
 
 run_tests_if_main()
