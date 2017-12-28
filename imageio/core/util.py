@@ -95,7 +95,7 @@ def image_as_uint(im, bitdepth=None):
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
         warn('Lossy conversion from uint64 to {}, '
-             'looing {} bits of resolution'.format(out_type.__name__,
+             'losing {} bits of resolution'.format(out_type.__name__,
                                                    64-bitdepth))
         im = np.right_shift(im, 64-bitdepth)
     else:
