@@ -775,7 +775,7 @@ class FfmpegFormat(Format):
                 logging.warning(
                     "IMAGEIO FFMPEG_WRITER WARNING: input image is not"
                     " divisible by macro_block_size={}, resizing from {} "
-                    "to {2} to ensure video compatibility with most codecs "
+                    "to {} to ensure video compatibility with most codecs "
                     "and players. To prevent resizing, make your input "
                     "image divisible by the macro_block_size or set the "
                     "macro_block_size to None (risking incompatibility). You "
