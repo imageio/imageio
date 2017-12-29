@@ -1086,7 +1086,7 @@ class FIBitmap(FIBaseBitmap):
         realwidth = pitch // nchannels
         # Apply padding for pitch if necessary
         extra = realwidth - array.shape[-2]
-        assert extra >= 0 and extra < 10
+        assert 0 <= extra < 10
         # Make sort of Fortran, also take padding (i.e. pitch) into account
         newshape = array.shape[-1], realwidth, nchannels
         array2 = numpy.zeros(newshape, array.dtype)

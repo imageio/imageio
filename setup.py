@@ -64,7 +64,7 @@ __doc__ = ''
 docStatus = 0 # Not started, in progress, done
 initFile = os.path.join(THIS_DIR, 'imageio',  '__init__.py')
 for line in open(initFile).readlines():
-    if (line.startswith('__version__')):
+    if line.startswith('__version__'):
         exec(line.strip())
     elif line.startswith('"""'):
         if docStatus == 0:
@@ -103,13 +103,12 @@ for more information.
 """
 
 # Prepare resources dir
-package_data = []
-package_data.append('resources/shipped_resources_go_here')
-package_data.append('resources/*.*')
-package_data.append('resources/images/*.*')
-package_data.append('resources/freeimage/*.*')
-package_data.append('resources/ffmpeg/*.*')
-package_data.append('resources/avbin/*.*')
+package_data = ['resources/shipped_resources_go_here',
+                'resources/*.*',
+                'resources/images/*.*',
+                'resources/freeimage/*.*',
+                'resources/ffmpeg/*.*',
+                'resources/avbin/*.*']
 
 
 def _set_crossplatform_resources(resource_dir):
@@ -209,6 +208,7 @@ setup(
     
     platforms = 'any',
     provides = ['imageio'],
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires = ['numpy', 'pillow'],
     extras_require = {'fits': ['astropy'],
                       'gdal': ['gdal'],
@@ -239,11 +239,11 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         ],
     )

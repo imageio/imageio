@@ -195,7 +195,7 @@ def bits2int(bb, n=8):
         value = tmp.rjust(8, '0') + value
 
     # Make decimal
-    return(int(value[:n], 2))
+    return int(value[:n], 2)
 
 
 def get_type_and_len(bb):
@@ -722,7 +722,7 @@ def checkImages(images):  # pragma: no cover
                 images2.append(im) # Ok
             elif im.dtype in [np.float32, np.float64]:
                 theMax = im.max()
-                if theMax > 128 and theMax < 300:
+                if 128 < theMax < 300:
                     pass # assume 0:255
                 else:
                     im = im.copy()

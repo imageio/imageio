@@ -136,7 +136,7 @@ def test_style():
     for dir, dirnames, filenames in os.walk(ROOT_DIR):
         dir = os.path.relpath(dir, ROOT_DIR)
         # Skip this dir?
-        exclude_dirs = set(['.git', 'docs', 'build', 'dist', '__pycache__'])
+        exclude_dirs = {'.git', 'docs', 'build', 'dist', '__pycache__'}
         if exclude_dirs.intersection(dir.split(os.path.sep)):
             continue
         # Check all files ...

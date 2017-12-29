@@ -81,22 +81,22 @@ def image_as_uint(im, bitdepth=None):
         return im
     if (dtype_str.startswith('float') and
        np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
-        warn('Lossy conversion from {0} to {1}, range [0, 1]'.format(
+        warn('Lossy conversion from {} to {}, range [0, 1]'.format(
              dtype_str, out_type.__name__))
         im = im.astype(np.float64) * (np.power(2.0, bitdepth)-1)
     elif im.dtype == np.uint16 and bitdepth == 8:
         warn('Lossy conversion from uint16 to uint8, '
-             'loosing 8 bits of resolution')
+             'losing 8 bits of resolution')
         im = np.right_shift(im, 8)
     elif im.dtype == np.uint32:
-        warn('Lossy conversion from uint32 to {0}, '
-             'loosing {1} bits of resolution'.format(out_type.__name__,
-                                                     32-bitdepth))
+        warn('Lossy conversion from uint32 to {}, '
+             'losing {} bits of resolution'.format(out_type.__name__,
+                                                   32-bitdepth))
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
-        warn('Lossy conversion from uint64 to {0}, '
-             'loosing {1} bits of resolution'.format(out_type.__name__,
-                                                     64-bitdepth))
+        warn('Lossy conversion from uint64 to {}, '
+             'losing {} bits of resolution'.format(out_type.__name__,
+                                                   64-bitdepth))
         im = np.right_shift(im, 64-bitdepth)
     else:
         mi = np.nanmin(im)
@@ -107,8 +107,8 @@ def image_as_uint(im, bitdepth=None):
             raise ValueError('Maximum image value is not finite')
         if ma == mi:
             raise ValueError('Max value == min value, ambiguous given dtype')
-        warn('Conversion from {0} to {1}, '
-             'range [{2}, {3}]'.format(dtype_str, out_type.__name__, mi, ma))
+        warn('Conversion from {} to {}, '
+             'range [{}, {}]'.format(dtype_str, out_type.__name__, mi, ma))
         # Now make float copy before we scale
         im = im.astype('float64')
         # Scale the values between 0 and 1 then multiply by the max value
@@ -208,13 +208,10 @@ def asarray(a):
     return np.asarray(a)
 
 
-try:
-    from collections import OrderedDict as _dict
-except ImportError:
-    _dict = dict
+from collections import OrderedDict
 
 
-class Dict(_dict):
+class Dict(OrderedDict):
     """ A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
     
@@ -224,7 +221,7 @@ class Dict(_dict):
     class (such as 'items' and 'copy') cannot be get/set as attributes.
     """
     
-    __reserved_names__ = dir(_dict())  # Also from OrderedDict
+    __reserved_names__ = dir(OrderedDict())  # Also from OrderedDict
     __pure_names__ = dir(dict())
     
     def __getattribute__(self, key):
@@ -240,7 +237,7 @@ class Dict(_dict):
         if key in Dict.__reserved_names__:
             # Either let OrderedDict do its work, or disallow
             if key not in Dict.__pure_names__:
-                return _dict.__setattr__(self, key, val)
+                return OrderedDict.__setattr__(self, key, val)
             else:
                 raise AttributeError('Reserved name, this key can only ' +
                                      'be set via ``d[%r] = X``' % key)
@@ -501,9 +498,8 @@ def resource_dirs():
     directory (for frozen apps), and may include additional directories
     in the future.
     """
-    dirs = []
+    dirs = [resource_package_dir()]
     # Resource dir baked in the package.
-    dirs.append(resource_package_dir())
     # Appdata directory
     try:
         dirs.append(appdata_dir('imageio'))

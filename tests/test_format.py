@@ -95,7 +95,7 @@ def test_format():
     assert F.name in repr(F)
     assert F.name in F.doc
     assert str(F) == F.doc
-    assert set(F.extensions) == set(['.foo', '.bar', '.spam'])
+    assert set(F.extensions) == {'.foo', '.bar', '.spam'}
     
     # Test setting extensions
     F1 = Format('test', '', 'foo bar spam')
@@ -103,7 +103,7 @@ def test_format():
     F3 = Format('test', '', ['foo', 'bar', 'spam'])
     F4 = Format('test', '', '.foo .bar .spam')
     for F in (F1, F2, F3, F4):
-        assert set(F.extensions) == set(['.foo', '.bar', '.spam'])
+        assert set(F.extensions) == {'.foo', '.bar', '.spam'}
     # Fail
     raises(ValueError, Format, 'test', '', 3)  # not valid ext
     raises(ValueError, Format, 'test', '', '', 3)  # not valid mode

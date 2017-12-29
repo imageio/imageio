@@ -1,6 +1,8 @@
 # IMAGEIO
 
-[![Build status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt/branch/master?svg=true)](https://ci.appveyor.com/project/almarklein/imageio/branch/master)
+[![PyPI Version](https://img.shields.io/pypi/v/imageio.svg)](https://pypi.python.org/pypi/imageio/)
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/imageio.svg)](https://pypi.python.org/pypi/imageio/)
+[![Build Status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt/branch/master?svg=true)](https://ci.appveyor.com/project/almarklein/imageio/branch/master)
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.org)
@@ -13,7 +15,7 @@ Website: http://imageio.github.io
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, video,
 volumetric data, and scientific formats. It is cross-platform, runs on
-Python 2.x and 3.x, and is easy to install.
+Python 2.7 and 3.4+, and is easy to install.
 </p>
 
 <h2>Example</h2>
@@ -44,7 +46,7 @@ As a user, you just have to remember a handfull of functions:
     <li>Simple interface via a consise set of functions.</li>
     <li>Easy to <a href='http://imageio.readthedocs.org/en/latest/installation.html'>install</a> using conda or pip.</li>    
     <li>Few dependencies (only Numpy).</li>
-    <li>Pure Python, runs on Python 2.6+, 3.x, and Pypy</li>
+    <li>Pure Python, runs on Python 2.7, 3.4+, and Pypy</li>
     <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>
     <li>Lots of supported <a href='http://imageio.readthedocs.org/en/latest/formats.html'>formats</a>.</li>
     <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
@@ -78,7 +80,7 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 Minimal requirements:
 <ul>
-    <li>Python 3.x, 2.7 or 2.6</li>
+    <li>Python 3.4+, 2.7</li>
     <li>Numpy</li>
     <li>Pillow</li>
 </ul>

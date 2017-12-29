@@ -136,7 +136,7 @@ def test_read_format():
     for i in range(10):
         im = reader.get_next_data()
         assert im.shape == (720, 1280, 3)
-        assert mean(im) > 100 and mean(im) < 115
+        assert 100 < mean(im) < 115
 
 
 def test_stream():

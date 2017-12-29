@@ -338,9 +338,9 @@ class SimpleDicomReader(object):
         else:
             # http://www.dicomlibrary.com/dicom/transfer-syntax/
             t, extra_info = TransferSyntaxUID, ''
-            if t >= '1.2.840.10008.1.2.4.50' and t < '1.2.840.10008.1.2.4.99':
+            if '1.2.840.10008.1.2.4.50' <= t < '1.2.840.10008.1.2.4.99':
                 extra_info = ' (JPEG)'
-            if t >= '1.2.840.10008.1.2.4.90' and t < '1.2.840.10008.1.2.4.99':
+            if '1.2.840.10008.1.2.4.90' <= t < '1.2.840.10008.1.2.4.99':
                 extra_info = ' (JPEG 2000)'
             if t == '1.2.840.10008.1.2.5':
                 extra_info = ' (RLE)'

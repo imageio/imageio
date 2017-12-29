@@ -268,7 +268,7 @@ def test_request_save_sources():
 
 def test_request_file_no_seek():
     
-    class File():
+    class File:
         
         def read(self, n):
             return b'\x00' * n
@@ -420,7 +420,7 @@ def test_util_progres_bar(sleep=0):
 
 
 def test_util_image_as_uint():
-    ''' Tests the various type conversions when writing to uint'''
+    """ Tests the various type conversions when writing to uint"""
     raises(ValueError, core.image_as_uint, 4)
     raises(ValueError, core.image_as_uint, "not an image")
     raises(ValueError, core.image_as_uint, np.array([0, 1]), bitdepth=13)

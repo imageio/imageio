@@ -2676,7 +2676,7 @@ class TiffPage(object):
                     byte_counts[j] = b
                     offsets[j] = o
                 j += 1
-            elif b > 0 and o <= 0:
+            elif b > 0 >= o:
                 raise ValueError("invalid offset")
             else:
                 warnings.warn("empty byte count")
@@ -4946,7 +4946,7 @@ def sequence(value):
         len(value)
         return value
     except TypeError:
-        return (value,)
+        return value,
 
 
 def product(iterable):
@@ -6249,10 +6249,6 @@ def askopenfilename(**kwargs):
 
 def main(argv=None):
     """Command line usage main function."""
-    if float(sys.version[0:3]) < 2.7:
-        print("This script requires Python version 2.7 or better.")
-        print("This is Python version %s" % sys.version)
-        return 0
     if argv is None:
         argv = sys.argv
 
