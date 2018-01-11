@@ -1,11 +1,20 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
+#
 
 """ Lytro Illum Plugin.
     Plugin to read Lytro Illum .lfr and .raw files as produced
     by the Lytro Illum light field camera.
 """
+#
+#
+# This code is based on work by
+# David Uhlig and his lfr_reader (https://www.iiit.kit.edu/uhlig.php)
+# Donald Dansereau and his Matlab LF Toolbox (http://dgd.vision/Tools/LFToolbox/)
+# and Behnam Esfahbod and his Python LFP-Reader (https://github.com/behnam/python-lfp-reader/)
+
+
 
 from __future__ import absolute_import, print_function, division
 import os
@@ -134,6 +143,38 @@ class LytroRawFormat(LytroFormat):
 
     """
 
+    @staticmethod
+    def _rearrange_bits(array):
+        # Do bit rearrangement for the 10-bit lytro raw format
+        # Normalize output to 1.0 as float64
+        t0 = array[0::5]
+        t1 = array[1::5]
+        t2 = array[2::5]
+        t3 = array[3::5]
+        lsb = array[4::5]
+
+        t0 = np.left_shift(t0, 2) + np.bitwise_and(lsb, 3)
+        t1 = np.left_shift(t1, 2) \
+             + np.right_shift(np.bitwise_and(lsb, 12), 2)
+        t2 = np.left_shift(t2, 2) \
+             + np.right_shift(np.bitwise_and(lsb, 48), 4)
+        t3 = np.left_shift(t3, 2) \
+             + np.right_shift(np.bitwise_and(lsb, 192), 6)
+
+        image = np.zeros(LYTRO_IMAGE_SIZE, dtype=np.uint16)
+        image[:, 0::4] = t0.reshape(
+            (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
+        image[:, 1::4] = t1.reshape(
+            (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
+        image[:, 2::4] = t2.reshape(
+            (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
+        image[:, 3::4] = t3.reshape(
+            (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
+
+        # Normalize data to 1.0 as 64-bit float.
+        # Division is by 1023 as the Lytro saves 10-bit raw data.
+        return np.divide(image, 1023).astype(np.float64)
+
     # -- reader
 
     class Reader(Format.Reader):
@@ -159,38 +200,6 @@ class LytroRawFormat(LytroFormat):
             # Return the number of images. Can be np.inf
             return 1
 
-        @staticmethod
-        def _rearrange_bits(array):
-            # Do bit rearrangement for the 10-bit lytro raw format
-            # Normalize output to 1.0 as float64
-            t0 = array[0::5]
-            t1 = array[1::5]
-            t2 = array[2::5]
-            t3 = array[3::5]
-            lsb = array[4::5]
-
-            t0 = np.left_shift(t0, 2) + np.bitwise_and(lsb, 3)
-            t1 = np.left_shift(t1, 2) \
-                 + np.right_shift(np.bitwise_and(lsb, 12), 2)
-            t2 = np.left_shift(t2, 2) \
-                 + np.right_shift(np.bitwise_and(lsb, 48), 4)
-            t3 = np.left_shift(t3, 2) \
-                 + np.right_shift(np.bitwise_and(lsb, 192), 6)
-
-            image = np.zeros(LYTRO_IMAGE_SIZE, dtype=np.uint16)
-            image[:, 0::4] = t0.reshape(
-                (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
-            image[:, 1::4] = t1.reshape(
-                (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
-            image[:, 2::4] = t2.reshape(
-                (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
-            image[:, 3::4] = t3.reshape(
-                (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
-
-            # Normalize data to 1.0 as 64-bit float.
-            # Division is by 1023 as the Lytro saves 10-bit raw data.
-            return np.divide(image, 1023).astype(np.float64)
-
         def _get_data(self, index):
             # Return the data and meta data for the given index
             if index not in [0, 'None']:
@@ -203,8 +212,11 @@ class LytroRawFormat(LytroFormat):
             # Read bytes from string and convert to uint16
             raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
 
+            # Rearrange bits
+            img = LytroRawFormat._rearrange_bits(raw)
+
             # Return image and meta data
-            return self._rearrange_bits(raw), self._get_meta_data(index=0)
+            return img, self._get_meta_data(index=0)
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None, it
@@ -258,10 +270,42 @@ class LytroLfrFormat(LytroFormat):
             #  - Use request.get_local_filename() for a file on the system
             self._file = open(self.request.get_local_filename(), 'rb')
             self._data = None
+            self._chunks = {}
+            self._content = None
 
             self._find_header()
             self._find_chunks()
             self._find_meta()
+
+            try:
+                # Get sha1 dict and check if it is in dictionary of data chunks
+                chunk_dict = self._content['frames'][0]['frame']
+                if chunk_dict['metadataRef'] in self._chunks and \
+                        chunk_dict['imageRef'] in self._chunks and \
+                        chunk_dict['privateMetadataRef'] in self._chunks:
+
+                    # Read raw image data byte buffer
+                    data_pos, size = self._chunks[chunk_dict['imageRef']]
+                    self._file.seek(data_pos, 0)
+                    self.raw_image_data = self._file.read(size)
+
+                    # Read meta data
+                    data_pos, size = self._chunks[chunk_dict['metadataRef']]
+                    self._file.seek(data_pos, 0)
+                    metadata = self._file.read(size)
+                    self.metadata = json.loads(metadata.decode('ASCII'))
+
+                    # Read private metadata
+                    data_pos, size = self._chunks[
+                        chunk_dict['privateMetadataRef']]
+                    self._file.seek(data_pos, 0)
+                    serial_numbers = self._file.read(size)
+                    self.serial_numbers = json.loads(
+                        serial_numbers.decode('ASCII'))
+
+            except KeyError:
+                raise RuntimeError(
+                    "The specified file is not a valid LFR file.")
 
         def _close(self):
             # Close the reader.
@@ -276,30 +320,33 @@ class LytroLfrFormat(LytroFormat):
             """
             Checks if file has correct header and skips it.
             """
-            FILE_HEADER = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
+            file_header = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
             # Read and check header of file
             header = self._file.read(HEADER_LENGTH)
-            if header != FILE_HEADER:
-                pass
-                # todo: raise Error when wrong header
-            # Read first bytes
+            if header != file_header:
+                raise RuntimeError("The LFR file header is invalid.")
+
+            # Read first bytes to skip header
             self._file.read(SIZE_LENGTH)
 
         def _find_chunks(self):
             """
             Gets start position and size of data chunks in file.
             """
-            CHUNK_HEADER = b'\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
-            for i in range(0, self.data_chunks):
-                data_pos, size, sha1 = self._get_chunk(CHUNK_HEADER)
+            chunk_header = b'\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
+
+            for i in range(0, DATA_CHUNKS):
+                data_pos, size, sha1 = self._get_chunk(chunk_header)
                 self._chunks[sha1] = (data_pos, size)
 
         def _find_meta(self):
             """
-            Gets a data chunk that contains information over content of other data chunks.
+            Gets a data chunk that contains information over content
+            of other data chunks.
             """
-            META_HEADER = b'\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
-            data_pos, size, sha1 = self._get_chunk(META_HEADER)
+            meta_header = b'\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
+            data_pos, size, sha1 = self._get_chunk(meta_header)
+
             # Get content
             self._file.seek(data_pos, 0)
             data = self._file.read(size)
@@ -327,7 +374,7 @@ class LytroLfrFormat(LytroFormat):
 
             """
             # Read and check header of chunk
-            header_chunk = self._file.read(self.header_length)
+            header_chunk = self._file.read(HEADER_LENGTH)
             if header_chunk != header:
                 pass
                 # todo: raise Error when wrong header
@@ -336,12 +383,12 @@ class LytroLfrFormat(LytroFormat):
             sha1 = None
 
             # Read size
-            size = struct.unpack(">i", self._file.read(self.size_length))[0]
+            size = struct.unpack(">i", self._file.read(SIZE_LENGTH))[0]
             if size > 0:
                 # Read sha1
-                sha1 = str(self._file.read(self.sha1_length).decode('ASCII'))
+                sha1 = str(self._file.read(SHA1_LENGTH).decode('ASCII'))
                 # Skip fixed null chars
-                self._file.read(self.padding_length)
+                self._file.read(PADDING_LENGTH)
                 # Find start of data and skip data
                 data_pos = self._file.tell()
                 self._file.seek(size, 1)
@@ -353,68 +400,28 @@ class LytroLfrFormat(LytroFormat):
 
             return data_pos, size, sha1
 
-        def read_chunk(self, chunk_name):
-            """
-            Reads chunk_name that represents specific data chunk and returns raw data.
-
-            Parameters
-            ----------
-            chunk_name: str
-                chunk_name string that identifies the data chunk. \n
-                Chunk names: \n
-                * "aberrationCorrectionMetadataRef", \n
-                * "aberrationCorrectionRef", \n
-                * "exposureHistogramRef", \n
-                * "geometryCorrectionRef", \n
-                * "hotPixelRef", \n
-                * "imageRef", \n
-                * "metadataRef", \n
-                * "privateMetadataRef", \n
-                * "reconstructionFilterMetadataRef", \n
-                * "reconstructionFilterRef"
-            Returns
-            -------
-            chunk : bytes
-                Data chunk as byte string.
-            """
-
-            file = open(self._file_path, 'rb')
-
-            try:
-                # Get sha1 dict and check if it is in dictionary of data chunks
-                chunk_dict = self._content['frames'][0]['frame']
-                chunk_sha1 = chunk_dict[chunk_name]
-                if chunk_sha1 in self._chunks:
-                    # Read data
-                    data_pos, size = self._chunks[chunk_sha1]
-                    file.seek(data_pos, 0)
-                    data = file.read(size)
-                else:
-                    raise KeyError
-            except KeyError:
-                raise KeyError("Specified chunk not found in list of chunks.")
-            finally:
-                file.close()
-
-            return data
-
         def _get_data(self, index):
             # Return the data and meta data for the given index
-            if index >= self._length:
-                raise IndexError('Image index %i > %i' % (index, self._length))
-            # Read all bytes
-            if self._data is None:
-                self._data = self._fp.read()
-            # Put in a numpy array
-            im = np.frombuffer(self._data, 'uint8')
-            im.shape = len(im), 1
+            if index not in [0, None]:
+                raise IndexError(
+                    'Lytro lfr file contains only one dataset')
+
+            # Read bytes from string and convert to uint16
+            raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(
+                np.uint16)
+            im = LytroRawFormat._rearrange_bits(raw)
+
             # Return array and dummy meta data
-            return im, {}
+            return im, self.metadata
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None, it
             # should return the global meta data.
-            return {}  # This format does not support meta data
+            if index not in [0, None]:
+                raise IndexError(
+                    'Lytro meta data file contains only one dataset')
+
+            return self.metadata  # This format does not support meta data
 
 
 
