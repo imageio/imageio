@@ -18,7 +18,7 @@ from ..core import Format
 
 
 
-# Sensor size of Lytro Illum Lightfieldcamera
+# Sensor size of Lytro Illum light field camera sensor
 LYTRO_IMAGE_SIZE = (5368, 7728)
 
 # Parameter of file format
@@ -26,6 +26,7 @@ HEADER_LENGTH = 12
 SIZE_LENGTH = 4  # = 16 - header_length
 SHA1_LENGTH = 45  # = len("sha1-") + (160 / 4)
 PADDING_LENGTH = 35  # = (4 * 16) - header_length - size_length - sha1_length
+DATA_CHUNKS = 11
 
 FILE_HEADER = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
 CHUNK_HEADER = b'\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
@@ -164,24 +165,14 @@ class LytroRawFormat(LytroFormat):
             # Return the number of images. Can be np.inf
             return self._length
 
-        def _get_data(self, index):
-            # Return the data and meta data for the given index
-            if index not in [0, 'None']:
-                raise IndexError('Lytro file contains only one dataset')
-
-            # Read all bytes
-            if self._data is None:
-                self._data = self._fp.read()
-
-            # Read bytes from string and convert to uint16
-            raw = np.fromstring(self._data, dtype=np.uint8).astype(np.uint16)
-
-            # Do bit rearrangement
-            t0 = raw[0::5]
-            t1 = raw[1::5]
-            t2 = raw[2::5]
-            t3 = raw[3::5]
-            lsb = raw[4::5]
+        def _rearrange_bits(self, array):
+            # Do bit rearrangement for the 10-bit lytro raw format
+            # Normalize output to 1.0 as float64
+            t0 = array[0::5]
+            t1 = array[1::5]
+            t2 = array[2::5]
+            t3 = array[3::5]
+            lsb = array[4::5]
 
             t0 = np.left_shift(t0, 2) + np.bitwise_and(lsb, 3)
             t1 = np.left_shift(t1, 2) \
@@ -203,10 +194,22 @@ class LytroRawFormat(LytroFormat):
 
             # Normalize data to 1.0 as 64-bit float.
             # Division is by 1023 as the Lytro saves 10-bit raw data.
-            image = np.divide(image, 1023).astype(np.float64)
+            return np.divide(image, 1023).astype(np.float64)
+
+        def _get_data(self, index):
+            # Return the data and meta data for the given index
+            if index not in [0, 'None']:
+                raise IndexError('Lytro file contains only one dataset')
+
+            # Read all bytes
+            if self._data is None:
+                self._data = self._fp.read()
+
+            # Read bytes from string and convert to uint16
+            raw = np.fromstring(self._data, dtype=np.uint8).astype(np.uint16)
 
             # Return image and meta data
-            return image, self._get_meta_data(index=0)
+            return self._rearrange_bits(raw), self._get_meta_data(index=0)
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None, it
@@ -235,20 +238,14 @@ class LytroRawFormat(LytroFormat):
                 return {}
 
 class LytroLfrFormat(LytroFormat):
-    """ The dummy format is an example format that does nothing.
-    It will never indicate that it can read or write a file. When
-    explicitly asked to read, it will simply read the bytes. When
-    explicitly asked to write, it will raise an error.
-
-    This documentation is shown when the user does ``help('thisformat')``.
+    """ This is the Lytro Illum LFR format.
+    The lfr is a image and meta data container format as used by the
+    Lytro Illum light field camera. The format will read the specified lfr file.
+    This format does not support writing.
 
     Parameters for reading
     ----------------------
-    Specify arguments in numpy doc style here.
-
-    Parameters for saving
-    ---------------------
-    Specify arguments in numpy doc style here.
+    None
 
     """
 
