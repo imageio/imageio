@@ -204,7 +204,11 @@ class LytroRawFormat(LytroFormat):
             image[:, 3::4] = t3.reshape(
                 (LYTRO_IMAGE_SIZE[0], LYTRO_IMAGE_SIZE[1] // 4))
 
-            # Return array and dummy meta data
+            # Normalize data to 1.0 as 64-bit float.
+            # Division is by 1023 as the Lytro saves 10-bit raw data.
+            image = np.divide(image, 1023).astype(np.float64)
+            
+            # Return image and meta data
             return image, self._get_meta_data(index=0)
 
         def _get_meta_data(self, index):
