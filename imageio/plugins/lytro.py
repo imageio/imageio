@@ -10,6 +10,7 @@
 from __future__ import absolute_import, print_function, division
 import os
 import json
+import struct
 
 import numpy as np
 
@@ -27,11 +28,6 @@ SIZE_LENGTH = 4  # = 16 - header_length
 SHA1_LENGTH = 45  # = len("sha1-") + (160 / 4)
 PADDING_LENGTH = 35  # = (4 * 16) - header_length - size_length - sha1_length
 DATA_CHUNKS = 11
-
-FILE_HEADER = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
-CHUNK_HEADER = b'\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
-META_HEADER = b'\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
-
 
 
 class LytroFormat(Format):
@@ -132,7 +128,6 @@ class LytroRawFormat(LytroFormat):
     This format does not support writing.
 
 
-
     Parameters for reading
     ----------------------
     None
@@ -143,7 +138,7 @@ class LytroRawFormat(LytroFormat):
 
     class Reader(Format.Reader):
 
-        def _open(self, some_option=False, length=1):
+        def _open(self):
             # Specify kwargs here. Optionally, the user-specified kwargs
             # can also be accessed via the request.kwargs object.
             #
@@ -152,20 +147,20 @@ class LytroRawFormat(LytroFormat):
             #  - Use request.get_file() for a file object (preferred)
             #  - Use request.get_local_filename() for a file on the system
             # self._fp = self.request.get_file()
-            self._fp = open(self.request.get_local_filename(), 'rb')
-            self._length = length  # passed as an arg in this case for testing
+            self._file = open(self.request.get_local_filename(), 'rb')
             self._data = None
 
         def _close(self):
             # Close the reader.
-            # Note that the request object will close self._fp
-            pass
+            # Note that the request object will close self._file
+            del self._data
 
         def _get_length(self):
             # Return the number of images. Can be np.inf
-            return self._length
+            return 1
 
-        def _rearrange_bits(self, array):
+        @staticmethod
+        def _rearrange_bits(array):
             # Do bit rearrangement for the 10-bit lytro raw format
             # Normalize output to 1.0 as float64
             t0 = array[0::5]
@@ -203,10 +198,10 @@ class LytroRawFormat(LytroFormat):
 
             # Read all bytes
             if self._data is None:
-                self._data = self._fp.read()
+                self._data = self._file.read()
 
             # Read bytes from string and convert to uint16
-            raw = np.fromstring(self._data, dtype=np.uint8).astype(np.uint16)
+            raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
 
             # Return image and meta data
             return self._rearrange_bits(raw), self._get_meta_data(index=0)
@@ -253,7 +248,7 @@ class LytroLfrFormat(LytroFormat):
 
     class Reader(Format.Reader):
 
-        def _open(self, some_option=False, length=1):
+        def _open(self):
             # Specify kwargs here. Optionally, the user-specified kwargs
             # can also be accessed via the request.kwargs object.
             #
@@ -261,18 +256,147 @@ class LytroLfrFormat(LytroFormat):
             # data. Use just one:
             #  - Use request.get_file() for a file object (preferred)
             #  - Use request.get_local_filename() for a file on the system
-            self._fp = self.request.get_file()
-            self._length = length  # passed as an arg in this case for testing
+            self._file = open(self.request.get_local_filename(), 'rb')
             self._data = None
+
+            self._find_header()
+            self._find_chunks()
+            self._find_meta()
 
         def _close(self):
             # Close the reader.
             # Note that the request object will close self._fp
-            pass
+            del self._data
 
         def _get_length(self):
             # Return the number of images. Can be np.inf
-            return self._length
+            return 1
+
+        def _find_header(self):
+            """
+            Checks if file has correct header and skips it.
+            """
+            FILE_HEADER = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
+            # Read and check header of file
+            header = self._file.read(HEADER_LENGTH)
+            if header != FILE_HEADER:
+                pass
+                # todo: raise Error when wrong header
+            # Read first bytes
+            self._file.read(SIZE_LENGTH)
+
+        def _find_chunks(self):
+            """
+            Gets start position and size of data chunks in file.
+            """
+            CHUNK_HEADER = b'\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
+            for i in range(0, self.data_chunks):
+                data_pos, size, sha1 = self._get_chunk(CHUNK_HEADER)
+                self._chunks[sha1] = (data_pos, size)
+
+        def _find_meta(self):
+            """
+            Gets a data chunk that contains information over content of other data chunks.
+            """
+            META_HEADER = b'\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00'
+            data_pos, size, sha1 = self._get_chunk(META_HEADER)
+            # Get content
+            self._file.seek(data_pos, 0)
+            data = self._file.read(size)
+            self._content = json.loads(data.decode('ASCII'))
+
+        def _get_chunk(self, header):
+            """
+            Checks if chunk has correct header and skips it.
+            Finds start position and length of next chunk and reads
+            sha1-string that identifies the following data chunk.
+
+            Parameters
+            ----------
+            header : bytes
+                Byte string that identifies start of chunk.
+
+            Returns
+            -------
+                data_pos : int
+                    Start position of data chunk in file.
+                size : int
+                    Size of data chunk.
+                sha1 : str
+                    Sha1 value of chunk.
+
+            """
+            # Read and check header of chunk
+            header_chunk = self._file.read(self.header_length)
+            if header_chunk != header:
+                pass
+                # todo: raise Error when wrong header
+
+            data_pos = None
+            sha1 = None
+
+            # Read size
+            size = struct.unpack(">i", self._file.read(self.size_length))[0]
+            if size > 0:
+                # Read sha1
+                sha1 = str(self._file.read(self.sha1_length).decode('ASCII'))
+                # Skip fixed null chars
+                self._file.read(self.padding_length)
+                # Find start of data and skip data
+                data_pos = self._file.tell()
+                self._file.seek(size, 1)
+                # Skip extra null chars
+                ch = self._file.read(1)
+                while ch == b'\0':
+                    ch = self._file.read(1)
+                self._file.seek(-1, 1)
+
+            return data_pos, size, sha1
+
+        def read_chunk(self, chunk_name):
+            """
+            Reads chunk_name that represents specific data chunk and returns raw data.
+
+            Parameters
+            ----------
+            chunk_name: str
+                chunk_name string that identifies the data chunk. \n
+                Chunk names: \n
+                * "aberrationCorrectionMetadataRef", \n
+                * "aberrationCorrectionRef", \n
+                * "exposureHistogramRef", \n
+                * "geometryCorrectionRef", \n
+                * "hotPixelRef", \n
+                * "imageRef", \n
+                * "metadataRef", \n
+                * "privateMetadataRef", \n
+                * "reconstructionFilterMetadataRef", \n
+                * "reconstructionFilterRef"
+            Returns
+            -------
+            chunk : bytes
+                Data chunk as byte string.
+            """
+
+            file = open(self._file_path, 'rb')
+
+            try:
+                # Get sha1 dict and check if it is in dictionary of data chunks
+                chunk_dict = self._content['frames'][0]['frame']
+                chunk_sha1 = chunk_dict[chunk_name]
+                if chunk_sha1 in self._chunks:
+                    # Read data
+                    data_pos, size = self._chunks[chunk_sha1]
+                    file.seek(data_pos, 0)
+                    data = file.read(size)
+                else:
+                    raise KeyError
+            except KeyError:
+                raise KeyError("Specified chunk not found in list of chunks.")
+            finally:
+                file.close()
+
+            return data
 
         def _get_data(self, index):
             # Return the data and meta data for the given index
