@@ -124,20 +124,17 @@ class LytroFormat(Format):
             raise RuntimeError('The lytro format cannot write meta data.')
 
 class LytroRawFormat(LytroFormat):
-    """ The dummy format is an example format that does nothing.
-    It will never indicate that it can read or write a file. When
-    explicitly asked to read, it will simply read the bytes. When
-    explicitly asked to write, it will raise an error.
+    """ This is the Lytro Illum RAW format.
+    The raw format is a 10bit image format as used by the Lytro Illum
+    light field camera. The format will read the specified raw file and will
+    try to load a .txt or .json file with the associated meta data.
+    This format does not support writing.
 
-    This documentation is shown when the user does ``help('thisformat')``.
+
 
     Parameters for reading
     ----------------------
-    Specify arguments in numpy doc style here.
-
-    Parameters for saving
-    ---------------------
-    Specify arguments in numpy doc style here.
+    None
 
     """
 
@@ -207,7 +204,7 @@ class LytroRawFormat(LytroFormat):
             # Normalize data to 1.0 as 64-bit float.
             # Division is by 1023 as the Lytro saves 10-bit raw data.
             image = np.divide(image, 1023).astype(np.float64)
-            
+
             # Return image and meta data
             return image, self._get_meta_data(index=0)
 
