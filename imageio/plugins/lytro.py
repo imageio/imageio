@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
+# Copyright (c) 2018, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 #
 
@@ -15,7 +15,6 @@
 # and Behnam Esfahbod and his Python LFP-Reader (https://github.com/behnam/python-lfp-reader/)
 
 
-
 from __future__ import absolute_import, print_function, division
 import os
 import json
@@ -27,33 +26,22 @@ from .. import formats
 from ..core import Format
 
 
-
 # Sensor size of Lytro Illum light field camera sensor
 LYTRO_IMAGE_SIZE = (5368, 7728)
 
-# Parameter of file format
+# Parameter of lfr file format
 HEADER_LENGTH = 12
 SIZE_LENGTH = 4  # = 16 - header_length
 SHA1_LENGTH = 45  # = len("sha1-") + (160 / 4)
-PADDING_LENGTH = 35  # = (4 * 16) - header_length - size_length - sha1_length
+PADDING_LENGTH = 35  # = (4*16) - header_length - size_length - sha1_length
 DATA_CHUNKS = 11
 
 
 class LytroFormat(Format):
-    """ The dummy format is an example format that does nothing.
-    It will never indicate that it can read or write a file. When
-    explicitly asked to read, it will simply read the bytes. When
-    explicitly asked to write, it will raise an error.
-
-    This documentation is shown when the user does ``help('thisformat')``.
-
-    Parameters for reading
-    ----------------------
-    Specify arguments in numpy doc style here.
-
-    Parameters for saving
-    ---------------------
-    Specify arguments in numpy doc style here.
+    """ Base class for Lytro format.
+    The subclasses LytroLfrFormat and LytroRawFormat implement
+    the Lytro-LFR and Lytro-RAW format respectively.
+    Writing is not supported.
 
     """
 
@@ -61,44 +49,13 @@ class LytroFormat(Format):
     _modes = 'i'
 
     def _can_read(self, request):
-        # This method is called when the format manager is searching
-        # for a format to read a certain image. Return True if this format
-        # can do it.
-        #
-        # The format manager is aware of the extensions and the modes
-        # that each format can handle. It will first ask all formats
-        # that *seem* to be able to read it whether they can. If none
-        # can, it will ask the remaining formats if they can: the
-        # extension might be missing, and this allows formats to provide
-        # functionality for certain extensions, while giving preference
-        # to other plugins.
-        #
-        # If a format says it can, it should live up to it. The format
-        # would ideally check the request.firstbytes and look for a
-        # header of some kind.
-        #
-        # The request object has:
-        # request.filename: a representation of the source (only for reporting)
-        # request.firstbytes: the first 256 bytes of the file.
-        # request.mode[0]: read or write mode
-        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
-
+        # Check if mode and extensions are supported by the format
         if request.mode[1] in (self.modes + '?'):
             if request.filename.lower().endswith(self.extensions):
                 return True
 
     def _can_write(self, request):
-        # This method is called when the format manager is searching
-        # for a format to write a certain image. It will first ask all
-        # formats that *seem* to be able to write it whether they can.
-        # If none can, it will ask the remaining formats if they can.
-        #
-        # Return True if the format can do it.
-
-        # In most cases, this code does suffice:
-        # if request.mode[1] in (self.modes + '?'):
-        #     if request.filename.lower().endswith(self.extensions):
-        #         return True
+        # Writing of Lytro RAW and LFR files is not supported
         return False
 
     # -- writer
@@ -124,7 +81,7 @@ class LytroFormat(Format):
             # Process the given data and meta data.
             raise RuntimeError('The lytro format cannot write image data.')
 
-        def set_meta_data(self, meta):
+        def _set_meta_data(self, meta):
             # Process the given meta data (global for all images)
             # It is not mandatory to support this.
             raise RuntimeError('The lytro format cannot write meta data.')
@@ -415,8 +372,8 @@ class LytroLfrFormat(LytroFormat):
             return im, self.metadata
 
         def _get_meta_data(self, index):
-            # Get the meta data for the given index. If index is None, it
-            # should return the global meta data.
+            # Get the meta data for the given index. If index is None,
+            # it should return the global meta data.
             if index not in [0, None]:
                 raise IndexError(
                     'Lytro meta data file contains only one dataset')
@@ -424,10 +381,7 @@ class LytroLfrFormat(LytroFormat):
             return self.metadata  # This format does not support meta data
 
 
-
-
-## Create the formats
-
+# Create the formats
 SPECIAL_CLASSES = {'lytro-raw': LytroRawFormat,
                    'lytro-lfr': LytroLfrFormat
                    }
@@ -438,17 +392,9 @@ file_formats = [
     ('LYTRO-RAW', 'Lytro Illum raw image file', 'raw', 'i'),
     ('LYTRO-LFR', 'Lytro Illum lfr image file', 'lfr', 'i')
 ]
-#
-# fiformats = LytroFormat('lytro-lfr',  # short name
-#                      'Lytro raw lfr data format.',  # one line descr.
-#                      '.lfr .raw',  # list of extensions
-#                      'i'  # modes, characters in iIvV
-#                      )
-
-# formats.add_format(format)
 
 
-def _create_predefined_freeimage_formats():
+def _create_predefined_lytro_formats():
     for name, des, ext, i in file_formats:
         # Get format class for format
         FormatClass = SPECIAL_CLASSES.get(name.lower(), LytroFormat)
@@ -459,4 +405,4 @@ def _create_predefined_freeimage_formats():
 
 
 # Register all created formats.
-_create_predefined_freeimage_formats()
+_create_predefined_lytro_formats()
