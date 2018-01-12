@@ -10,9 +10,12 @@
 #
 #
 # This code is based on work by
-# David Uhlig and his lfr_reader (https://www.iiit.kit.edu/uhlig.php)
-# Donald Dansereau and his Matlab LF Toolbox (http://dgd.vision/Tools/LFToolbox/)
-# and Behnam Esfahbod and his Python LFP-Reader (https://github.com/behnam/python-lfp-reader/)
+# David Uhlig and his lfr_reader
+#   (https://www.iiit.kit.edu/uhlig.php)
+# Donald Dansereau and his Matlab LF Toolbox
+#   (http://dgd.vision/Tools/LFToolbox/)
+# and Behnam Esfahbod and his Python LFP-Reader
+#   (https://github.com/behnam/python-lfp-reader/)
 
 
 from __future__ import absolute_import, print_function, division
@@ -79,6 +82,7 @@ class LytroFormat(Format):
             # It is not mandatory to support this.
             raise RuntimeError('The lytro format cannot write meta data.')
 
+
 class LytroRawFormat(LytroFormat):
     """ This is the Lytro Illum RAW format.
     The raw format is a 10bit image format as used by the Lytro Illum
@@ -104,12 +108,12 @@ class LytroRawFormat(LytroFormat):
         lsb = array[4::5]
 
         t0 = np.left_shift(t0, 2) + np.bitwise_and(lsb, 3)
-        t1 = np.left_shift(t1, 2) \
-             + np.right_shift(np.bitwise_and(lsb, 12), 2)
-        t2 = np.left_shift(t2, 2) \
-             + np.right_shift(np.bitwise_and(lsb, 48), 4)
-        t3 = np.left_shift(t3, 2) \
-             + np.right_shift(np.bitwise_and(lsb, 192), 6)
+        t1 = np.left_shift(t1, 2) + np.right_shift(
+            np.bitwise_and(lsb, 12), 2)
+        t2 = np.left_shift(t2, 2) + np.right_shift(
+            np.bitwise_and(lsb, 48), 4)
+        t3 = np.left_shift(t3, 2) + np.right_shift(
+            np.bitwise_and(lsb, 192), 6)
 
         image = np.zeros(LYTRO_IMAGE_SIZE, dtype=np.uint16)
         image[:, 0::4] = t0.reshape(
