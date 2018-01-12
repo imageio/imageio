@@ -160,7 +160,7 @@ class LytroRawFormat(LytroFormat):
             raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
 
             # Rearrange bits
-            img = LytroRawFormat._rearrange_bits(raw)
+            img = LytroRawFormat.rearrange_bits(raw)
 
             # Return image and meta data
             return img, self._get_meta_data(index=0)
