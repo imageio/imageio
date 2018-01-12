@@ -63,13 +63,6 @@ class LytroFormat(Format):
     class Writer(Format.Writer):
 
         def _open(self, flags=0):
-            # Specify kwargs here. Optionally, the user-specified kwargs
-            # can also be accessed via the request.kwargs object.
-            #
-            # The request object provides two ways to write the data.
-            # Use just one:
-            #  - Use request.get_file() for a file object (preferred)
-            #  - Use request.get_local_filename() for a file on the system
             self._fp = self.request.get_file()
 
         def _close(self):
@@ -101,7 +94,7 @@ class LytroRawFormat(LytroFormat):
     """
 
     @staticmethod
-    def _rearrange_bits(array):
+    def rearrange_bits(array):
         # Do bit rearrangement for the 10-bit lytro raw format
         # Normalize output to 1.0 as float64
         t0 = array[0::5]
@@ -137,15 +130,7 @@ class LytroRawFormat(LytroFormat):
     class Reader(Format.Reader):
 
         def _open(self):
-            # Specify kwargs here. Optionally, the user-specified kwargs
-            # can also be accessed via the request.kwargs object.
-            #
-            # The request object provides two ways to get access to the
-            # data. Use just one:
-            #  - Use request.get_file() for a file object (preferred)
-            #  - Use request.get_local_filename() for a file on the system
-            # self._fp = self.request.get_file()
-            self._file = open(self.request.get_local_filename(), 'rb')
+            self._file = self.request.get_file()
             self._data = None
 
         def _close(self):
@@ -154,11 +139,12 @@ class LytroRawFormat(LytroFormat):
             del self._data
 
         def _get_length(self):
-            # Return the number of images. Can be np.inf
+            # Return the number of images.
             return 1
 
         def _get_data(self, index):
             # Return the data and meta data for the given index
+
             if index not in [0, 'None']:
                 raise IndexError('Lytro file contains only one dataset')
 
@@ -201,6 +187,7 @@ class LytroRawFormat(LytroFormat):
                 print("No metadata file found for provided raw file.")
                 return {}
 
+
 class LytroLfrFormat(LytroFormat):
     """ This is the Lytro Illum LFR format.
     The lfr is a image and meta data container format as used by the
@@ -218,14 +205,7 @@ class LytroLfrFormat(LytroFormat):
     class Reader(Format.Reader):
 
         def _open(self):
-            # Specify kwargs here. Optionally, the user-specified kwargs
-            # can also be accessed via the request.kwargs object.
-            #
-            # The request object provides two ways to get access to the
-            # data. Use just one:
-            #  - Use request.get_file() for a file object (preferred)
-            #  - Use request.get_local_filename() for a file on the system
-            self._file = open(self.request.get_local_filename(), 'rb')
+            self._file = self.request.get_file()
             self._data = None
             self._chunks = {}
             self._content = None
@@ -269,7 +249,7 @@ class LytroLfrFormat(LytroFormat):
 
         def _close(self):
             # Close the reader.
-            # Note that the request object will close self._fp
+            # Note that the request object will close self._file
             del self._data
 
         def _get_length(self):
@@ -278,7 +258,7 @@ class LytroLfrFormat(LytroFormat):
 
         def _find_header(self):
             """
-            Checks if file has correct header and skips it.
+            Checks if file has correct header and skip it.
             """
             file_header = b'\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01'
             # Read and check header of file
@@ -336,8 +316,7 @@ class LytroLfrFormat(LytroFormat):
             # Read and check header of chunk
             header_chunk = self._file.read(HEADER_LENGTH)
             if header_chunk != header:
-                pass
-                # todo: raise Error when wrong header
+                raise RuntimeError("The LFR chunk header is invalid.")
 
             data_pos = None
             sha1 = None
@@ -369,19 +348,19 @@ class LytroLfrFormat(LytroFormat):
             # Read bytes from string and convert to uint16
             raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(
                 np.uint16)
-            im = LytroRawFormat._rearrange_bits(raw)
+            im = LytroRawFormat.rearrange_bits(raw)
 
             # Return array and dummy meta data
             return im, self.metadata
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index. If index is None,
-            # it should return the global meta data.
+            # it returns the global meta data.
             if index not in [0, None]:
                 raise IndexError(
                     'Lytro meta data file contains only one dataset')
 
-            return self.metadata  # This format does not support meta data
+            return self.metadata
 
 
 # Create the formats
