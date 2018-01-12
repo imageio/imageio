@@ -260,6 +260,9 @@ class LytroLfrFormat(LytroFormat):
                     self.serial_numbers = json.loads(
                         serial_numbers.decode('ASCII'))
 
+                    # Add private meta data to meta data dict
+                    self.metadata['privateMetadata'] = self.serial_numbers
+
             except KeyError:
                 raise RuntimeError(
                     "The specified file is not a valid LFR file.")
