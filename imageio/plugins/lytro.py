@@ -195,7 +195,8 @@ class LytroRawFormat(LytroFormat):
 class LytroLfrFormat(LytroFormat):
     """ This is the Lytro Illum LFR format.
     The lfr is a image and meta data container format as used by the
-    Lytro Illum light field camera. The format will read the specified lfr file.
+    Lytro Illum light field camera.
+    The format will read the specified lfr file.
     This format does not support writing.
 
     Parameters for reading
