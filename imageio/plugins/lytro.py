@@ -391,15 +391,15 @@ class LytroLfrFormat(LytroFormat):
 
 
 # Create the formats
-SPECIAL_CLASSES = {'lytro-raw': LytroRawFormat,
-                   'lytro-lfr': LytroLfrFormat
+SPECIAL_CLASSES = {'lytro-lfr': LytroLfrFormat,
+                    'lytro-raw': LytroRawFormat
                    }
 
 # Supported Formats.
 # Only single image files supported.
 file_formats = [
-    ('LYTRO-RAW', 'Lytro Illum raw image file', 'raw', 'i'),
-    ('LYTRO-LFR', 'Lytro Illum lfr image file', 'lfr', 'i')
+    ('LYTRO-LFR', 'Lytro Illum lfr image file', 'lfr', 'i'),
+    ('LYTRO-RAW', 'Lytro Illum raw image file', 'raw', 'i')
 ]
 
 
