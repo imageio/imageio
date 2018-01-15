@@ -23,10 +23,12 @@ import os
 import json
 import struct
 
+
 import numpy as np
 
 from .. import formats
 from ..core import Format
+from .. import imread
 
 
 # Sensor size of Lytro Illum light field camera sensor
@@ -213,6 +215,7 @@ class LytroLfrFormat(LytroFormat):
             self._file = self.request.get_file()
             self._data = None
             self._chunks = {}
+            self.metadata = {}
             self._content = None
 
             self._find_header()
@@ -235,7 +238,9 @@ class LytroLfrFormat(LytroFormat):
                     data_pos, size = self._chunks[chunk_dict['metadataRef']]
                     self._file.seek(data_pos, 0)
                     metadata = self._file.read(size)
-                    self.metadata = json.loads(metadata.decode('ASCII'))
+                    # Add metadata to meta data dict
+                    self.metadata['metadata'] = json.loads(
+                        metadata.decode('ASCII'))
 
                     # Read private metadata
                     data_pos, size = self._chunks[
@@ -244,9 +249,26 @@ class LytroLfrFormat(LytroFormat):
                     serial_numbers = self._file.read(size)
                     self.serial_numbers = json.loads(
                         serial_numbers.decode('ASCII'))
-
-                    # Add private meta data to meta data dict
+                    # Add private metadata to meta data dict
                     self.metadata['privateMetadata'] = self.serial_numbers
+
+                # Read image preview thumbnail
+                chunk_dict = self._content['thumbnails'][0]
+                if chunk_dict['imageRef'] in self._chunks:
+                    # Read thumbnail image from thumbnail chunk
+                    data_pos, size = self._chunks[chunk_dict['imageRef']]
+                    self._file.seek(data_pos, 0)
+                    # Read binary data, read image as jpeg
+                    thumbnail_data = self._file.read(size)
+                    thumbnail_img = imread(thumbnail_data, format='jpeg')
+
+                    thumbnail_height = chunk_dict['height']
+                    thumbnail_width = chunk_dict['width']
+
+                    # Add thumbnail to metadata
+                    self.metadata['thumbnail'] = {'image': thumbnail_img,
+                                                  'height': thumbnail_height,
+                                                  'width': thumbnail_width}
 
             except KeyError:
                 raise RuntimeError(
@@ -384,11 +406,11 @@ file_formats = [
 def _create_predefined_lytro_formats():
     for name, des, ext, i in file_formats:
         # Get format class for format
-        FormatClass = SPECIAL_CLASSES.get(name.lower(), LytroFormat)
-        if FormatClass:
+        format_class = SPECIAL_CLASSES.get(name.lower(), LytroFormat)
+        if format_class:
             # Create Format and add
-            format = FormatClass(name, des, ext, i)
-            formats.add_format(format)
+            format = format_class(name, des, ext, i)
+            formats.add_format(format=format)
 
 
 # Register all created formats.
