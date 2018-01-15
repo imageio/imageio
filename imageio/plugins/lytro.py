@@ -53,12 +53,6 @@ class LytroFormat(Format):
     # Only single images are supported.
     _modes = 'i'
 
-    def _can_read(self, request):
-        # Check if mode and extensions are supported by the format
-        if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
-                return True
-
     def _can_write(self, request):
         # Writing of Lytro RAW and LFR files is not supported
         return False
@@ -98,6 +92,12 @@ class LytroRawFormat(LytroFormat):
     None
 
     """
+
+    def _can_read(self, request):
+        # Check if mode and extensions are supported by the format
+        if request.mode[1] in (self.modes + '?'):
+            if request.filename.lower().endswith('.raw'):
+                return True
 
     @staticmethod
     def rearrange_bits(array):
@@ -206,6 +206,12 @@ class LytroLfrFormat(LytroFormat):
     None
 
     """
+
+    def _can_read(self, request):
+        # Check if mode and extensions are supported by the format
+        if request.mode[1] in (self.modes + '?'):
+            if request.filename.lower().endswith('.lfr'):
+                return True
 
     # -- reader
 
