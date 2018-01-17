@@ -129,7 +129,7 @@ class LytroRawFormat(LytroFormat):
 
         # Normalize data to 1.0 as 64-bit float.
         # Division is by 1023 as the Lytro saves 10-bit raw data.
-        return np.divide(image, 1023).astype(np.float64)
+        return np.divide(image, 1023.0).astype(np.float64)
 
     # -- reader
 
