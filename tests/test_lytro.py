@@ -4,7 +4,6 @@ from __future__ import division
 import numpy as np
 import json
 
-
 from pytest import raises
 from imageio.testing import run_tests_if_main, need_internet
 import imageio

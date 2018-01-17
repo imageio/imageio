@@ -47,7 +47,6 @@ class LytroFormat(Format):
     The subclasses LytroLfrFormat and LytroRawFormat implement
     the Lytro-LFR and Lytro-RAW format respectively.
     Writing is not supported.
-
     """
 
     # Only single images are supported.
@@ -90,7 +89,6 @@ class LytroRawFormat(LytroFormat):
     Parameters for reading
     ----------------------
     None
-
     """
 
     def _can_read(self, request):
@@ -204,7 +202,6 @@ class LytroLfrFormat(LytroFormat):
     Parameters for reading
     ----------------------
     None
-
     """
 
     def _can_read(self, request):
@@ -344,7 +341,6 @@ class LytroLfrFormat(LytroFormat):
                     Size of data chunk.
                 sha1 : str
                     Sha1 value of chunk.
-
             """
             # Read and check header of chunk
             header_chunk = self._file.read(HEADER_LENGTH)
