@@ -397,9 +397,10 @@ class LytroLfrFormat(LytroFormat):
 
 
 # Create the formats
-SPECIAL_CLASSES = {'lytro-lfr': LytroLfrFormat,
-                    'lytro-raw': LytroRawFormat
-                   }
+SPECIAL_CLASSES = {
+    'lytro-lfr': LytroLfrFormat,
+    'lytro-raw': LytroRawFormat
+}
 
 # Supported Formats.
 # Only single image files supported.
