@@ -613,7 +613,7 @@ class LytroLfpFormat(LytroFormat):
             self._file.seek(data_pos, 0)
             data = self._file.read(size)
             self._content = json.loads(data.decode('ASCII'))
-            data = self._file.read(5) # skip 5
+            data = self._file.read(5)  # Skip 5
 
         def _get_chunk(self, header):
             """
