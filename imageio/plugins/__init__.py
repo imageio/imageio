@@ -106,6 +106,8 @@ from . import fits  # depends on astropy
 from . import simpleitk  # depends on SimpleITK
 from . import gdal  # depends on gdal
 
+from . import lytro
+
 from . import example
 
 # Sort
