@@ -2534,7 +2534,7 @@ class TiffPage(object):
                         warnings.warn("unpack: %s" % e)
                         xlen = ((len(x) // (bits_per_sample // 8)) *
                                 (bits_per_sample // 8))
-                        return numpy.fromstring(x[:xlen], typecode)
+                        return numpy.frombuffer(x[:xlen], typecode)
 
             elif isinstance(bits_per_sample, tuple):
                 def unpack(x):
