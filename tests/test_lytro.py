@@ -12,9 +12,12 @@ from imageio.core import get_remote_file, Request
 
 # Set file names for test images in imageio-binaries repo
 LFR_FILENAME = 'images/Ankylosaurus_&_Stegosaurus.LFR'
-THUMB_FILENAME = 'images/Ankylosaurus_&_Stegosaurus_Thumbnail.png'
-RAW_FILENAME = 'images/lenslet_whiteimage.RAW'
-RAW_META_FILENAME = 'images/lenslet_whiteimage.TXT'
+THUMB_FILENAME = 'images/Ankylosaurus_&_Stegosaurus_Thumbnail.jpg'
+RAW_ILLUM_FILENAME = 'images/lenslet_whiteimage.RAW'
+RAW_ILLUM_META_FILENAME = 'images/lenslet_whiteimage.TXT'
+LFP_FILENAME = 'images/Guitar.lfp'
+RAW_F0_FILENAME = 'images/IMG_0001__frame.raw'
+RAW_F0_META_FILENAME = 'images/IMG_0001__frame.json'
 PNG_FILENAME = 'images/chelsea.png'
 
 
@@ -25,7 +28,9 @@ def test_lytro_lfr_format():
     # Get test images
     need_internet()
     lfr_file = get_remote_file(LFR_FILENAME)
-    raw_file = get_remote_file(RAW_FILENAME)
+    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
+    lfp_file = get_remote_file(LFP_FILENAME)
+    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
     png_file = get_remote_file(PNG_FILENAME)
 
     # Test lytro lfr format
@@ -40,41 +45,121 @@ def test_lytro_lfr_format():
     assert not format.can_read(Request(lfr_file, 'rv'))
     assert not format.can_read(Request(lfr_file, 'rI'))
     assert not format.can_read(Request(lfr_file, 'rV'))
-    assert not format.can_read(Request(raw_file, 'ri'))
+    assert not format.can_read(Request(lfp_file, 'ri'))
+    assert not format.can_read(Request(raw_illum_file, 'ri'))
+    assert not format.can_read(Request(raw_f01_file, 'ri'))
     assert not format.can_read(Request(png_file, 'ri'))
 
     assert not format.can_write(Request(lfr_file, 'wi'))
-    assert not format.can_write(Request(raw_file, 'wi'))
+    assert not format.can_write(Request(lfp_file, 'wi'))
+    assert not format.can_write(Request(raw_f01_file, 'wi'))
+    assert not format.can_write(Request(raw_illum_file, 'wi'))
     assert not format.can_write(Request(png_file, 'wi'))
 
 
-def test_lytro_raw_format():
+def test_lytro_illum_raw_format():
     """
     Test basic read/write properties of LytroRawFormat
     """
     # Get test images
     need_internet()
     lfr_file = get_remote_file(LFR_FILENAME)
-    raw_file = get_remote_file(RAW_FILENAME)
+    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
+    lfp_file = get_remote_file(LFP_FILENAME)
+    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
     png_file = get_remote_file(PNG_FILENAME)
 
     # Test lytro raw format
-    format = imageio.formats['lytro-raw']
-    assert format.name == 'LYTRO-RAW'
+    format = imageio.formats['lytro-illum-raw']
+    assert format.name == 'LYTRO-ILLUM-RAW'
     assert format.__module__.endswith('lytro')
 
     # Test can read, cannot write
-    assert format.can_read(Request(raw_file, 'ri'))
+    assert format.can_read(Request(raw_illum_file, 'ri'))
 
     # Test cannot read, cannot write
-    assert not format.can_read(Request(raw_file, 'rv'))
-    assert not format.can_read(Request(raw_file, 'rI'))
-    assert not format.can_read(Request(raw_file, 'rV'))
+    assert not format.can_read(Request(raw_illum_file, 'rv'))
+    assert not format.can_read(Request(raw_illum_file, 'rI'))
+    assert not format.can_read(Request(raw_illum_file, 'rV'))
     assert not format.can_read(Request(lfr_file, 'ri'))
+    assert not format.can_read(Request(lfp_file, 'ri'))
     assert not format.can_read(Request(png_file, 'ri'))
 
-    assert not format.can_write(Request(raw_file, 'wi'))
+    assert not format.can_write(Request(raw_illum_file, 'wi'))
     assert not format.can_write(Request(lfr_file, 'wi'))
+    assert not format.can_write(Request(lfp_file, 'wi'))
+    assert not format.can_write(Request(raw_f01_file, 'wi'))
+    assert not format.can_write(Request(png_file, 'wi'))
+
+
+def test_lytro_f01_raw_format():
+    """
+    Test basic read/write properties of LytroRawFormat
+    """
+    # Get test images
+    need_internet()
+    lfr_file = get_remote_file(LFR_FILENAME)
+    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
+    lfp_file = get_remote_file(LFP_FILENAME)
+    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
+    png_file = get_remote_file(PNG_FILENAME)
+
+    # Test lytro raw format
+    format = imageio.formats['lytro-illum-raw']
+    assert format.name == 'LYTRO-ILLUM-RAW'
+    assert format.__module__.endswith('lytro')
+
+    # Test can read, cannot write
+    assert format.can_read(Request(raw_f01_file, 'ri'))
+
+    # Test cannot read, cannot write
+    assert not format.can_read(Request(raw_f01_file, 'rv'))
+    assert not format.can_read(Request(raw_f01_file, 'rI'))
+    assert not format.can_read(Request(raw_f01_file, 'rV'))
+    assert not format.can_read(Request(lfr_file, 'ri'))
+    assert not format.can_read(Request(lfp_file, 'ri'))
+    assert not format.can_read(Request(png_file, 'ri'))
+
+    assert not format.can_write(Request(raw_f01_file, 'wi'))
+    assert not format.can_write(Request(lfr_file, 'wi'))
+    assert not format.can_write(Request(lfp_file, 'wi'))
+    assert not format.can_write(Request(raw_illum_file, 'wi'))
+    assert not format.can_write(Request(png_file, 'wi'))
+
+
+def test_lytro_lfp_format():
+    """
+    Test basic read/write properties of LytroRawFormat
+    """
+    # Get test images
+    need_internet()
+    lfr_file = get_remote_file(LFR_FILENAME)
+    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
+    lfp_file = get_remote_file(LFP_FILENAME)
+    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
+    png_file = get_remote_file(PNG_FILENAME)
+
+    # Test lytro raw format
+    format = imageio.formats['lytro-lfp']
+    assert format.name == 'LYTRO-LFP'
+    assert format.__module__.endswith('lytro')
+
+    # Test can read, cannot write
+    assert format.can_read(Request(lfp_file, 'ri'))
+
+    # Test cannot read, cannot write
+    assert not format.can_read(Request(lfp_file, 'rv'))
+    assert not format.can_read(Request(lfp_file, 'rI'))
+    assert not format.can_read(Request(lfp_file, 'rV'))
+    assert not format.can_read(Request(lfr_file, 'ri'))
+    assert not format.can_read(Request(raw_f01_file, 'ri'))
+    assert not format.can_read(Request(raw_illum_file, 'ri'))
+    assert not format.can_read(Request(png_file, 'ri'))
+
+    assert not format.can_write(Request(lfp_file, 'wi'))
+    assert not format.can_write(Request(lfr_file, 'wi'))
+    assert not format.can_write(Request(raw_f01_file, 'wi'))
+    assert not format.can_write(Request(raw_illum_file, 'wi'))
     assert not format.can_write(Request(png_file, 'wi'))
 
 
@@ -421,16 +506,216 @@ def test_lytro_lfr_reading():
     raises(IndexError, test_reader.get_data, 3)
 
 
-def test_lytro_raw_reading():
+def test_lytro_lfp_reading():
+    """ Test reading of lytro .lfr file
+    """
+    # Get test images
+    need_internet()
+    lfp_file = get_remote_file(LFP_FILENAME)
+
+    # Read image and thumbnail
+    img = imageio.imread(lfp_file, format='lytro-lfp')
+
+    # Test image shape and some pixel values
+    # Pixel values are extracted from the Matlab reference implementation
+    assert img.shape == (3280, 3280)
+    assert round(img[171, 94], 15) == 0.284249084249084
+    assert round(img[701, 292], 15) == 0.289865689865690
+    assert round(img[1280, 94], 15) == 0.065201465201465
+    assert round(img[2364, 2640], 15) == 0.056166056166056
+    assert round(img[2733, 1549], 15) == 0.100366300366300
+    assert round(img[2739, 2585], 15) == 0.078388278388278
+    assert round(img[1032, 2230], 15) == 0.354578754578755
+    assert round(img[1480, 1758], 15) == 0.098656898656899
+
+    # Test metadata and privateMetadata against ground truth data
+    metadata_gt = {
+        "type": "lightField",
+        "image": {
+            "width": 3280,
+            "height": 3280,
+            "orientation": 1,
+            "representation": "rawPacked",
+            "rawDetails": {
+                "pixelFormat": {
+                    "rightShift": 0,
+                    "black": {
+                        "r": 168,
+                        "gr": 168,
+                        "gb": 168,
+                        "b": 168
+                    },
+                    "white": {
+                        "r": 4095,
+                        "gr": 4095,
+                        "gb": 4095,
+                        "b": 4095
+                    }
+                },
+                "pixelPacking": {
+                    "endianness": "big",
+                    "bitsPerPixel": 12
+                },
+                "mosaic": {
+                    "tile": "r,gr:gb,b",
+                    "upperLeftPixel": "b"
+                }
+            },
+            "color": {
+                "ccmRgbToSrgbArray": [
+                    3.1115827560424805,
+                    -1.9393929243087769,
+                    -0.172189861536026,
+                    -0.3629055917263031,
+                    1.6408803462982178,
+                    -0.27797481417655945,
+                    0.07896701246500015,
+                    -1.1558042764663696,
+                    2.0768373012542725
+                ],
+                "gamma": 0.41666001081466675,
+                "applied": {},
+                "whiteBalanceGain": {
+                    "r": 1,
+                    "gr": 1,
+                    "gb": 1,
+                    "b": 1.2578125
+                }
+            },
+            "modulationExposureBias": -1.1139298677444458,
+            "limitExposureBias": 0
+        },
+        "devices": {
+            "clock": {
+                "zuluTime": "2014-05-16T13:31:21.000Z"
+            },
+            "sensor": {
+                "bitsPerPixel": 12,
+                "mosaic": {
+                    "tile": "r,gr:gb,b",
+                    "upperLeftPixel": "b"
+                },
+                "iso": 207,
+                "analogGain": {
+                    "r": 5.625,
+                    "gr": 4.125,
+                    "gb": 4.125,
+                    "b": 4.75
+                },
+                "pixelPitch": 1.3999999761581417e-06
+            },
+            "lens": {
+                "infinityLambda": 18.033008575439453,
+                "focalLength": 0.006840000152587891,
+                "zoomStep": 943,
+                "focusStep": 672,
+                "fNumber": 1.9199999570846558,
+                "temperature": 23.642822265625,
+                "temperatureAdc": 2896,
+                "zoomStepperOffset": -2,
+                "focusStepperOffset": 25,
+                "exitPupilOffset": {
+                    "z": 0.22357696533203125
+                }
+            },
+            "ndfilter": {
+                "exposureBias": 0
+            },
+            "shutter": {
+                "mechanism": "sensorOpenApertureClose",
+                "frameExposureDuration": 0.016554275527596474,
+                "pixelExposureDuration": 0.016554275527596474
+            },
+            "soc": {
+                "temperature": 27.0545654296875,
+                "temperatureAdc": 3319
+            },
+            "accelerometer": {
+                "sampleArray": [
+                    {
+                        "x": -0.019607843831181526,
+                        "y": 1.015686273574829,
+                        "z": 0.03529411926865578,
+                        "time": 0
+                    }
+                ]
+            },
+            "mla": {
+                "tiling": "hexUniformRowMajor",
+                "lensPitch": 1.3999999999999998e-05,
+                "rotation": -0.0008588103810325265,
+                "defectArray": [],
+                "config": "com.lytro.mla.11",
+                "scaleFactor": {
+                    "x": 1,
+                    "y": 1.0003734827041626
+                },
+                "sensorOffset": {
+                    "x": -8.177771568298344e-06,
+                    "y": 8.002278804779054e-07,
+                    "z": 2.5e-05
+                }
+            }
+        },
+        "modes": {
+            "creative": "tap",
+            "regionOfInterestArray": [
+                {
+                    "type": "exposure",
+                    "x": 0.5125047564506531,
+                    "y": 0.723964273929596
+                },
+                {
+                    "type": "creative",
+                    "x": 0.5125047564506531,
+                    "y": 0.723964273929596
+                }
+            ],
+            "manualControls": False,
+            "exposureDurationMode": "auto",
+            "isoMode": "auto",
+            "ndFilterMode": "auto",
+            "exposureLock": False,
+            "overscan": 1.0526316165924072
+        },
+        "camera": {
+            "make": "Lytro, Inc.",
+            "model": "F01",
+            "firmware": "v1.0a208, vv1.2.2, Wed Sep  4 14:43:36 PDT 2013, "
+                        "fec5f2a239a2823b391a385b94ec6fc8c56bb5b1, "
+                        "mods=0, ofw=0"
+        }
+    }
+    private_metadata_gt = {
+        "devices": {
+            "sensor": {
+                "sensorSerial": "0x408F1FB8B3515D9A"
+            }
+        },
+        "camera": {
+            "serialNumber": "A303134643"
+        }
+    }
+
+    assert img._meta['metadata'] == metadata_gt
+    assert img._meta['privateMetadata'] == private_metadata_gt
+
+    # Test fail
+    test_reader = imageio.read(lfp_file, 'lytro-lfp')
+    raises(IndexError, test_reader.get_data, -1)
+    raises(IndexError, test_reader.get_data, 3)
+
+
+def test_lytro_raw_illum_reading():
     """ Test reading of lytro .raw file
     """
     # Get test images
     need_internet()
-    raw_file = get_remote_file(RAW_FILENAME)
-    raw_meta_file = get_remote_file(RAW_META_FILENAME)
+    raw_file = get_remote_file(RAW_ILLUM_FILENAME)
+    raw_meta_file = get_remote_file(RAW_ILLUM_META_FILENAME)
 
     # Read image and metadata file
-    img = imageio.imread(raw_file, format='lytro-raw')
+    img = imageio.imread(raw_file, format='lytro-illum-raw')
     meta_gt = json.load(open(raw_meta_file))
 
     # Test image shape and some pixel values
@@ -450,7 +735,41 @@ def test_lytro_raw_reading():
     assert img._meta == meta_gt
 
     # Test fail
-    test_reader = imageio.read(raw_file, 'lytro-raw')
+    test_reader = imageio.read(raw_file, 'lytro-illum-raw')
+    raises(IndexError, test_reader.get_data, -1)
+    raises(IndexError, test_reader.get_data, 3)
+
+
+def test_lytro_raw_f0_reading():
+    """ Test reading of lytro .raw file
+    """
+    # Get test images
+    need_internet()
+    raw_file = get_remote_file(RAW_F0_FILENAME)
+    raw_meta_file = get_remote_file(RAW_F0_META_FILENAME)
+
+    # Read image and metadata file
+    img = imageio.imread(raw_file, format='lytro-f01-raw')
+    meta_gt = json.load(open(raw_meta_file))
+
+    # Test image shape and some pixel values
+    # Pixel values are extracted from the Matlab reference implementation
+    assert img.shape == (3280, 3280)
+    assert round(img[16, 7], 15) == 0.044688644688645
+    assert round(img[803, 74], 15) == 0.064713064713065
+    assert round(img[599, 321], 15) == 0.059340659340659
+    assert round(img[1630, 665], 15) == 0.198046398046398
+    assert round(img[940, 2030], 15) == 0.130647130647131
+    assert round(img[3164, 2031], 15) == 0.129914529914530
+    assert round(img[3235, 3250], 15) == 0.136019536019536
+    assert round(img[2954, 889], 15) == 0.159706959706960
+    assert round(img[1546, 1243], 15) == 0.227350427350427
+
+    # Test extracted metadata against extracted metadata from .txt file
+    assert img._meta == meta_gt
+
+    # Test fail
+    test_reader = imageio.read(raw_file, 'lytro-f01-raw')
     raises(IndexError, test_reader.get_data, -1)
     raises(IndexError, test_reader.get_data, 3)
 
