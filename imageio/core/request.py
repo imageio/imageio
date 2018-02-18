@@ -264,7 +264,8 @@ class Request(object):
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
-                    raise FileNotFoundError("The directory %r does not exist" % dn)
+                    raise FileNotFoundError("The directory %r does not exist"
+                                            % dn)
 
     @property
     def filename(self):
