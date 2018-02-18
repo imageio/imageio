@@ -22,6 +22,11 @@ from imageio.core import get_remote_file, IS_PYPY
 if sys.version_info < (3,):
     FileNotFoundError = OSError
 
+try:
+    from pathlib import Path
+except ImportError:
+    Path = None
+
 test_dir = get_test_dir()
 
 
@@ -176,12 +181,16 @@ def test_request():
     #
     raises(IOError, Request, ['invalid', 'uri'] * 10, 'ri')  # invalid uri
     raises(IOError, Request, 4, 'ri')  # invalid uri
-     # nonexistent reads
+    # nonexistent reads
     raises(FileNotFoundError, Request, '/does/not/exist', 'ri')
     raises(FileNotFoundError, Request, '/does/not/exist.zip/spam.png', 'ri')
+    if Path is not None:
+        raises(FileNotFoundError, Request, Path('/does/not/exist'), 'ri')
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
     # write dir nonexist
     raises(FileNotFoundError, Request, '/does/not/exist.png', 'wi')
+    if Path is not None:
+        raises(FileNotFoundError, Request, Path('/does/not/exist.png'), 'wi')
 
     # Test auto-download
     R = Request('imageio:chelsea.png', 'ri')
