@@ -20,6 +20,11 @@ from ..core import string_types, binary_type, urlopen, get_remote_file
 
 if sys.version_info < (3,):
     FileNotFoundError = OSError
+try:
+    from pathlib import Path
+except ImportError:
+    Path = None
+
 # URI types
 URI_BYTES = 1
 URI_FILE = 2
@@ -184,6 +189,9 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = '<bytes>'
             self._bytes = uri
+        elif Path is not None:
+            self._uri_type = URI_FILENAME
+            self._filename = str(uri)
         # Files
         elif is_read_request:
             if hasattr(uri, 'read') and hasattr(uri, 'close'):
