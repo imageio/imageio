@@ -176,10 +176,12 @@ def test_request():
     #
     raises(IOError, Request, ['invalid', 'uri'] * 10, 'ri')  # invalid uri
     raises(IOError, Request, 4, 'ri')  # invalid uri
-    raises(FileNotFoundError, Request, '/does/not/exist', 'ri')  # reading nonexistent
-    raises(FileNotFoundError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
+     # nonexistent reads
+    raises(FileNotFoundError, Request, '/does/not/exist', 'ri')
+    raises(FileNotFoundError, Request, '/does/not/exist.zip/spam.png', 'ri')
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
-    raises(FileNotFoundError, Request, '/does/not/exist.png', 'wi')  # write dir nonexist
+    # write dir nonexist
+    raises(FileNotFoundError, Request, '/does/not/exist.png', 'wi')
 
     # Test auto-download
     R = Request('imageio:chelsea.png', 'ri')
@@ -517,7 +519,8 @@ def test_functions():
     W2.close()
     assert W1.format is W2.format
     # Fail
-    raises(FileNotFoundError, imageio.save, '~/dirdoesnotexist/wtf.notexistingfile')
+    raises(FileNotFoundError, imageio.save,
+           '~/dirdoesnotexist/wtf.notexistingfile')
 
     # Test imread()
     im1 = imageio.imread(fname1)
