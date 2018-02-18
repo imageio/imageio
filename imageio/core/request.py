@@ -189,7 +189,7 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = '<bytes>'
             self._bytes = uri
-        elif Path is not None:
+        elif Path is not None and isinstance(uri, Path):
             self._uri_type = URI_FILENAME
             self._filename = str(uri)
         # Files
