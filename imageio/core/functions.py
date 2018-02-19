@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" 
+"""
 These functions represent imageio's main interface for the user. They
 provide a common API to read and write image data for a large
 variety of formats. All read and write functions accept keyword
@@ -70,10 +70,10 @@ from .. import formats
 
 def help(name=None):
     """ help(name=None)
-    
+
     Print the documentation of the format specified by name, or a list
-    of supported formats if name is omitted. 
-    
+    of supported formats if name is omitted.
+
     Parameters
     ----------
     name : str
@@ -91,14 +91,15 @@ def help(name=None):
 
 def get_reader(uri, format=None, mode='?', **kwargs):
     """ get_reader(uri, format=None, mode='?', **kwargs)
-    
+
     Returns a :class:`.Reader` object which can be used to read data
     and meta data from the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, bytes, file}
-        The resource to load the image from, e.g. a filename, http address or
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path,
+        http address or
         file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
@@ -110,11 +111,11 @@ def get_reader(uri, format=None, mode='?', **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Create request object
     request = Request(uri, 'r' + mode, **kwargs)
-    
+
     # Get format
     if format is not None:
         format = formats[format]
@@ -123,21 +124,22 @@ def get_reader(uri, format=None, mode='?', **kwargs):
     if format is None:
         raise ValueError('Could not find a format to read the specified file '
                          'in mode %r' % mode)
-    
+
     # Return its reader object
     return format.get_reader(request)
 
 
 def get_writer(uri, format=None, mode='?', **kwargs):
     """ get_writer(uri, format=None, mode='?', **kwargs)
-    
+
     Returns a :class:`.Writer` object which can be used to write data
     and meta data to the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, file}
-        The resource to write the image to, e.g. a filename or file object,
+    uri : {str, pathlib.Path, file}
+        The resource to write the image to, e.g. a filename, pathlib.Path
+        or file object,
         see the docs for more info.
     format : str
         The format to use to write the file. By default imageio selects
@@ -149,15 +151,15 @@ def get_writer(uri, format=None, mode='?', **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Signal extension when returning as bytes, needed by e.g. ffmpeg
     if uri == RETURN_BYTES and isinstance(format, str):
         uri = RETURN_BYTES + '.' + format.strip('. ')
-    
+
     # Create request object
     request = Request(uri, 'w' + mode, **kwargs)
-    
+
     # Get format
     if format is not None:
         format = formats[format]
@@ -166,7 +168,7 @@ def get_writer(uri, format=None, mode='?', **kwargs):
     if format is None:
         raise ValueError('Could not find a format to write the specified file '
                          'in mode %r' % mode)
-    
+
     # Return its writer object
     return format.get_writer(request)
 
@@ -175,17 +177,18 @@ def get_writer(uri, format=None, mode='?', **kwargs):
 
 def imread(uri, format=None, **kwargs):
     """ imread(uri, format=None, **kwargs)
-    
+
     Reads an image from the specified file. Returns a numpy array, which
     comes with a dict of meta data at its 'meta' attribute.
-    
+
     Note that the image data is returned as-is, and may not always have
     a dtype of uint8 (and thus may differ from what e.g. PIL returns).
-    
+
     Parameters
     ----------
-    uri : {str, bytes, file}
-        The resource to load the image from, e.g. a filename, http address or
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path,
+        http address or
         file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
@@ -193,8 +196,8 @@ def imread(uri, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Get reader and read first
     reader = read(uri, format, 'i', **kwargs)
     with reader:
@@ -203,13 +206,14 @@ def imread(uri, format=None, **kwargs):
 
 def imwrite(uri, im, format=None, **kwargs):
     """ imwrite(uri, im, format=None, **kwargs)
-    
+
     Write an image to the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, file}
-        The resource to write the image to, e.g. a filename or file object,
+    uri : {str, pathlib.Path, file}
+        The resource to write the image to, e.g. a filename, pathlib.Path
+        or file object,
         see the docs for more info.
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
@@ -219,8 +223,8 @@ def imwrite(uri, im, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Test image
     if isinstance(im, np.ndarray):
         if im.ndim == 2:
@@ -231,12 +235,12 @@ def imwrite(uri, im, format=None, **kwargs):
             raise ValueError('Image must be 2D (grayscale, RGB, or RGBA).')
     else:
         raise ValueError('Image must be a numpy array.')
-    
+
     # Get writer and write first
     writer = get_writer(uri, format, 'i', **kwargs)
     with writer:
         writer.append_data(im)
-    
+
     # Return a result if there is any
     return writer.request.get_result()
 
@@ -245,14 +249,15 @@ def imwrite(uri, im, format=None, **kwargs):
 
 def mimread(uri, format=None, memtest=True, **kwargs):
     """ mimread(uri, format=None, memtest=True, **kwargs)
-    
+
     Reads multiple images from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
-    
+
     Parameters
     ----------
-    uri : {str, bytes, file}
-        The resource to load the images from, e.g. a filename, http address or
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the images from, e.g. a filename,pathlib.Path,
+        http address or
         file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
@@ -266,11 +271,11 @@ def mimread(uri, format=None, memtest=True, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Get reader
     reader = read(uri, format, 'I', **kwargs)
-    
+
     # Read
     ims = []
     nbytes = 0
@@ -283,19 +288,20 @@ def mimread(uri, format=None, memtest=True, **kwargs):
             raise RuntimeError('imageio.mimread() has read over 256 MiB of '
                                'image data.\nStopped to avoid memory problems.'
                                ' Use imageio.get_reader() or memtest=False.')
-    
+
     return ims
 
 
 def mimwrite(uri, ims, format=None, **kwargs):
     """ mimwrite(uri, ims, format=None, **kwargs)
-    
+
     Write multiple images to the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, file}
-        The resource to write the images to, e.g. a filename or file object,
+    uri : {str, pathlib.Path, file}
+        The resource to write the images to, e.g. a filename, pathlib.Path
+        or file object,
         see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxM, NxMx3 or NxMx4.
@@ -305,17 +311,16 @@ def mimwrite(uri, ims, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
     # Get writer
     writer = get_writer(uri, format, 'I', **kwargs)
     written = 0
     
     with writer:
-        
+
         # Iterate over images (ims may be a generator)
         for im in ims:
-            
+
             # Test image
             if isinstance(im, np.ndarray):
                 if im.ndim == 2:
@@ -327,7 +332,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
                                      '(grayscale, RGB, or RGBA).')
             else:
                 raise ValueError('Image must be a numpy array.')
-            
+
             # Add image
             writer.append_data(im)
             written += 1
@@ -345,14 +350,15 @@ def mimwrite(uri, ims, format=None, **kwargs):
 
 def volread(uri, format=None, **kwargs):
     """ volread(uri, format=None, **kwargs)
-    
+
     Reads a volume from the specified file. Returns a numpy array, which
     comes with a dict of meta data at its 'meta' attribute.
-    
+
     Parameters
     ----------
-    uri : {str, bytes, file}
-        The resource to load the volume from, e.g. a filename, http address or
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the volume from, e.g. a filename, pathlib.Path,
+        http address or
         file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
@@ -360,8 +366,8 @@ def volread(uri, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Get reader and read first
     reader = read(uri, format, 'v', **kwargs)
     with reader:
@@ -370,13 +376,14 @@ def volread(uri, format=None, **kwargs):
 
 def volwrite(uri, im, format=None, **kwargs):
     """ volwrite(uri, vol, format=None, **kwargs)
-    
+
     Write a volume to the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, file}
-        The resource to write the image to, e.g. a filename or file object,
+    uri : {str, pathlib.Path, file}
+        The resource to write the image to, e.g. a filename, pathlib.Path
+        or file object,
         see the docs for more info.
     vol : numpy.ndarray
         The image data. Must be NxMxL (or NxMxLxK if each voxel is a tuple).
@@ -386,8 +393,8 @@ def volwrite(uri, im, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Test image
     if isinstance(im, np.ndarray):
         if im.ndim == 3:
@@ -399,12 +406,12 @@ def volwrite(uri, im, format=None, **kwargs):
                              'a tuple.')
     else:
         raise ValueError('Image must be a numpy array.')
-    
+
     # Get writer and write first
     writer = get_writer(uri, format, 'v', **kwargs)
     with writer:
         writer.append_data(im)
-    
+
     # Return a result if there is any
     return writer.request.get_result()
 
@@ -413,14 +420,15 @@ def volwrite(uri, im, format=None, **kwargs):
 
 def mvolread(uri, format=None, memtest=True, **kwargs):
     """ mvolread(uri, format=None, memtest=True, **kwargs)
-    
+
     Reads multiple volumes from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
-    
+
     Parameters
     ----------
-    uri : {str, bytes, file}
-        The resource to load the volumes from, e.g. a filename, http address or
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the volumes from, e.g. a filename, pathlib.Path,
+        http address or
         file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
@@ -434,11 +442,11 @@ def mvolread(uri, format=None, memtest=True, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Get reader and read all
     reader = read(uri, format, 'V', **kwargs)
-    
+
     ims = []
     nbytes = 0
     for im in reader:
@@ -450,19 +458,20 @@ def mvolread(uri, format=None, memtest=True, **kwargs):
             raise RuntimeError('imageio.mvolread() has read over 1 GiB of '
                                'image data.\nStopped to avoid memory problems.'
                                ' Use imageio.get_reader() or memtest=False.')
-    
+
     return ims
 
 
 def mvolwrite(uri, ims, format=None, **kwargs):
     """ mvolwrite(uri, vols, format=None, **kwargs)
-    
+
     Write multiple volumes to the specified file.
-    
+
     Parameters
     ----------
-    uri : {str, file}
-        The resource to write the volumes to, e.g. a filename or file object,
+    uri : {str, pathlib.Path, file}
+        The resource to write the volumes to, e.g. a filename, pathlib.Path
+        or file object,
         see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxMxL (or NxMxLxK if each
@@ -473,17 +482,17 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
-    """ 
-    
+    """
+
     # Get writer
     writer = get_writer(uri, format, 'V', **kwargs)
     written = 0
     
     with writer:
-        
+
         # Iterate over images (ims may be a generator)
         for im in ims:
-            
+
             # Test image
             if isinstance(im, np.ndarray):
                 if im.ndim == 3:
@@ -495,7 +504,7 @@ def mvolwrite(uri, ims, format=None, **kwargs):
                                      'a tuple.')
             else:
                 raise ValueError('Image must be a numpy array.')
-            
+
             # Add image
             writer.append_data(im)
             written += 1

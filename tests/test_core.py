@@ -19,18 +19,26 @@ from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
 
+if sys.version_info < (3,):
+    FileNotFoundError = OSError
+
+try:
+    from pathlib import Path
+except ImportError:
+    Path = None
+
 test_dir = get_test_dir()
 
 
 def test_fetching():
     """ Test fetching of files """
-    
+
     need_internet()
-    
+
     # Clear image files
     if os.path.isdir(test_dir):
-        shutil.rmtree(test_dir)   
-    
+        shutil.rmtree(test_dir)
+
     # This should download the file (force download, because local cache)
     fname1 = get_remote_file('images/chelsea.png', test_dir, True)
     mtime1 = os.path.getmtime(fname1)
@@ -46,7 +54,7 @@ def test_fetching():
     # This should not
     fname5 = get_remote_file('images/chelsea.png', test_dir, '2014-01-01')
     mtime5 = os.path.getmtime(fname4)
-    # 
+    #
     assert os.path.isfile(fname1)
     assert fname1 == fname2
     assert fname1 == fname3
@@ -56,9 +64,9 @@ def test_fetching():
         # weird, but these often fail on my osx VM
         assert mtime1 == mtime2
         assert mtime1 < mtime3
-        assert mtime3 < mtime4  
+        assert mtime3 < mtime4
         assert mtime4 == mtime5
-    
+
     # Test failures
     _urlopen = core.fetching.urlopen
     _chunk_read = core.fetching._chunk_read
@@ -87,37 +95,37 @@ def test_fetching():
 
 
 def test_findlib1():
-    
+
     # Lib name would need to be "libc.so.5", or "libc.so.6", or ...
     # Meh, just skip
     skip('always skip, is tested implicitly anyway')
-    
+
     if not sys.platform.startswith('linux'):
         skip('test on linux only')
-    
+
     # Candidate libs for common lib (note, this runs only on linux)
     dirs, paths = core.findlib.generate_candidate_libs(['libc'])
     assert paths
 
 
 def test_findlib2():
-    
+
     if not sys.platform.startswith('linux'):
         skip('test on linux only')
-    
+
     need_internet()  # need our own version of FI to test this bit
-    
+
     # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir('imageio'), 'freeimage')
     if not os.path.isdir(fi_dir):
         os.mkdir(fi_dir)
-    dirs, paths = core.findlib.generate_candidate_libs(['libfreeimage'], 
+    dirs, paths = core.findlib.generate_candidate_libs(['libfreeimage'],
                                                        [fi_dir])
     #assert fi_dir in dirs -> Cannot test: lib may not exist
     assert paths
-    
+
     open(os.path.join(fi_dir, 'notalib.test.so'), 'wb')
-    
+
     # Loading libs
     gllib = ctypes.util.find_library('GL')
     core.load_lib([gllib], [])
@@ -131,7 +139,7 @@ def test_findlib2():
 
 def test_request():
     """ Test request object """
-    
+
     # Check uri-type, this is not a public property, so we test the private
     R = Request('http://example.com', 'ri')
     assert R._uri_type == core.request.URI_HTTP
@@ -161,7 +169,7 @@ def test_request():
     # zip file
     R = Request('~/bar.zip/spam.png', 'wi')
     assert R._uri_type == core.request.URI_ZIPPED
-    
+
     # Test failing inits
     raises(ValueError, Request, '/some/file', None)  # mode must be str
     raises(ValueError, Request, '/some/file', 3)  # mode must be str
@@ -173,11 +181,17 @@ def test_request():
     #
     raises(IOError, Request, ['invalid', 'uri'] * 10, 'ri')  # invalid uri
     raises(IOError, Request, 4, 'ri')  # invalid uri
-    raises(IOError, Request, '/does/not/exist', 'ri')  # reading nonexistent
-    raises(IOError, Request, '/does/not/exist.zip/spam.png', 'ri')  # dito
+    # nonexistent reads
+    raises(FileNotFoundError, Request, '/does/not/exist', 'ri')
+    raises(FileNotFoundError, Request, '/does/not/exist.zip/spam.png', 'ri')
+    if Path is not None:
+        raises(FileNotFoundError, Request, Path('/does/not/exist'), 'ri')
     raises(IOError, Request, 'http://example.com', 'wi')  # no writing here
-    raises(IOError, Request, '/does/not/exist.png', 'wi')  # write dir nonexist
-    
+    # write dir nonexist
+    raises(FileNotFoundError, Request, '/does/not/exist.png', 'wi')
+    if Path is not None:
+        raises(FileNotFoundError, Request, Path('/does/not/exist.png'), 'wi')
+
     # Test auto-download
     R = Request('imageio:chelsea.png', 'ri')
     assert R.filename == get_remote_file('images/chelsea.png')
@@ -188,7 +202,7 @@ def test_request():
 
 
 def test_request_read_sources():
-    
+
     # Make an image available in many ways
     fname = 'images/chelsea.png'
     filename = get_remote_file(fname, test_dir)
@@ -198,13 +212,13 @@ def test_request_read_sources():
     z = ZipFile(os.path.join(test_dir, 'test.zip'), 'w')
     z.writestr(fname, bytes)
     z.close()
-    
+
     has_inet = os.getenv('IMAGEIO_NO_INTERNET', '') not in ('1', 'yes', 'true')
-    
+
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
     for X in range(2):
-        
+
         # Define uris to test. Define inside loop, since we need fresh files
         uris = [filename,
                 os.path.join(test_dir, 'test.zip', fname),
@@ -212,7 +226,7 @@ def test_request_read_sources():
                 open(filename, 'rb')]
         if has_inet:
             uris.append(burl + fname)
-        
+
         for uri in uris:
             R = Request(uri, 'ri')
             first_bytes = R.firstbytes
@@ -229,7 +243,7 @@ def test_request_read_sources():
 
 
 def test_request_save_sources():
-    
+
     # Prepare desinations
     fname = 'images/chelsea.png'
     filename = get_remote_file(fname, test_dir)
@@ -239,7 +253,7 @@ def test_request_save_sources():
     filename2 = os.path.join(test_dir, fname2)
     zipfilename2 = os.path.join(test_dir, 'test.zip')
     file2 = BytesIO()
-    
+
     # Write an image into many different destinations
     # Do once via file and ones via local filename
     for i in range(2):
@@ -248,7 +262,7 @@ def test_request_save_sources():
             if os.path.isfile(xx):
                 os.remove(xx)
         # Write to three destinations
-        for uri in (filename2, 
+        for uri in (filename2,
                     os.path.join(zipfilename2, fname2),
                     file2,
                     imageio.RETURN_BYTES  # This one last to fill `res`
@@ -267,21 +281,21 @@ def test_request_save_sources():
 
 
 def test_request_file_no_seek():
-    
+
     class File:
-        
+
         def read(self, n):
             return b'\x00' * n
-            
+
         def seek(self, i):
             raise IOError('Not supported')
-        
+
         def tell(self):
             raise Exception('Not supported')
-        
+
         def close(self):
             pass
-    
+
     R = Request(File(), 'ri')
     with raises(IOError):
         R.firstbytes
@@ -289,7 +303,7 @@ def test_request_file_no_seek():
 
 def test_util_imagelist():
     meta = {'foo': 3, 'bar': {'spam': 1, 'eggs': 2}}
-    
+
     # Image list
     L = core.util.ImageList(meta)
     assert isinstance(L, list)
@@ -300,7 +314,7 @@ def test_util_imagelist():
 
 def test_util_image():
     meta = {'foo': 3, 'bar': {'spam': 1, 'eggs': 2}}
-    # Image 
+    # Image
     a = np.zeros((10, 10))
     im = core.util.Image(a, meta)
     isinstance(im, np.ndarray)
@@ -377,7 +391,7 @@ def test_util_asarray():
 def test_util_progres_bar(sleep=0):
     """ Test the progress bar """
     # This test can also be run on itself to *see* the result
-    
+
     # Progress bar
     for Progress in (core.StdoutProgressIndicator, core.BaseProgressIndicator):
         B = Progress('test')
@@ -391,7 +405,7 @@ def test_util_progres_bar(sleep=0):
             assert B._progress == i
         B.increase_progress(1)
         assert B._progress == i + 1
-        B.finish()  
+        B.finish()
         assert B.status() == 2
         # Without max
         B.start('Run without max int')
@@ -481,32 +495,32 @@ def test_util_image_as_uint():
 
 
 def test_util_has_has_module():
-    
+
     assert not core.has_module('this_module_does_not_exist')
     assert core.has_module('sys')
 
 
 def test_functions():
     """ Test the user-facing API functions """
-    
+
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help('PNG')  # should print about PNG
-    
+
     fname1 = get_remote_file('images/chelsea.png', test_dir)
     fname2 = fname1[:-3] + 'jpg'
     fname3 = fname1[:-3] + 'notavalidext'
     open(fname3, 'wb')
-    
+
     # Test read()
     R1 = imageio.read(fname1)
     R2 = imageio.read(fname1, 'png')
     assert R1.format is R2.format
     # Fail
     raises(ValueError, imageio.read, fname3)  # existing but not readable
-    raises(IOError, imageio.read, 'notexisting.barf')
+    raises(FileNotFoundError, imageio.read, 'notexisting.barf')
     raises(IndexError, imageio.read, fname1, 'notexistingformat')
-    
+
     # Test save()
     W1 = imageio.save(fname2)
     W2 = imageio.save(fname2, 'JPG')
@@ -514,14 +528,15 @@ def test_functions():
     W2.close()
     assert W1.format is W2.format
     # Fail
-    raises(IOError, imageio.save, '~/dirdoesnotexist/wtf.notexistingfile')
-    
+    raises(FileNotFoundError, imageio.save,
+           '~/dirdoesnotexist/wtf.notexistingfile')
+
     # Test imread()
     im1 = imageio.imread(fname1)
     im2 = imageio.imread(fname1, 'png')
     assert im1.shape[2] == 3
     assert np.all(im1 == im2)
-    
+
     # Test imsave()
     if os.path.isfile(fname2):
         os.remove(fname2)
@@ -529,7 +544,7 @@ def test_functions():
     imageio.imsave(fname2, im1[:, :, 0])
     imageio.imsave(fname2, im1)
     assert os.path.isfile(fname2)
-    
+
     # Test mimread()
     fname3 = get_remote_file('images/newtonscradle.gif', test_dir)
     ims = imageio.mimread(fname3)
@@ -540,10 +555,10 @@ def test_functions():
     # Test protection
     with raises(RuntimeError):
         imageio.mimread('imageio:chelsea.png', 'dummy', length=np.inf)
-    
+
     if IS_PYPY:
         return  # no support for npz format :(
-    
+
     # Test mimsave()
     fname5 = fname3[:-4] + '2.npz'
     if os.path.isfile(fname5):
@@ -552,7 +567,7 @@ def test_functions():
     imageio.mimsave(fname5, [im[:, :, 0] for im in ims])
     imageio.mimsave(fname5, ims)
     assert os.path.isfile(fname5)
-    
+
     # Test volread()
     fname4 = get_remote_file('images/stent.npz', test_dir)
     vol = imageio.volread(fname4)
@@ -560,7 +575,7 @@ def test_functions():
     assert vol.shape[0] == 256
     assert vol.shape[1] == 128
     assert vol.shape[2] == 128
-    
+
     # Test volsave()
     volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
     fname6 = os.path.join(test_dir, 'images', 'stent2.npz')
@@ -570,13 +585,13 @@ def test_functions():
     imageio.volsave(fname6, volc)
     imageio.volsave(fname6, vol)
     assert os.path.isfile(fname6)
-    
+
     # Test mvolread()
     vols = imageio.mvolread(fname4)
     assert isinstance(vols, list)
     assert len(vols) == 1
     assert vols[0].shape == vol.shape
-    
+
     # Test mvolsave()
     if os.path.isfile(fname6):
         os.remove(fname6)
@@ -584,7 +599,7 @@ def test_functions():
     imageio.mvolsave(fname6, [volc, volc])
     imageio.mvolsave(fname6, vols)
     assert os.path.isfile(fname6)
-    
+
     # Fail for save functions
     raises(ValueError, imageio.imsave, fname2, np.zeros((100, 100, 5)))
     raises(ValueError, imageio.imsave, fname2, 42)
@@ -598,7 +613,7 @@ def test_functions():
 
 def test_example_plugin():
     """ Test the example plugin """
-    
+
     fname = os.path.join(test_dir, 'out.png')
     r = Request('imageio:chelsea.png', 'r?')
     R = imageio.formats['dummy'].get_reader(r)

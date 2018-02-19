@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" 
+"""
 Definition of the Request object, which acts as a kind of bridge between
 what the user wants and what the plugins can.
 """
@@ -16,6 +16,13 @@ import tempfile
 import shutil
 
 from ..core import string_types, binary_type, urlopen, get_remote_file
+
+if sys.version_info < (3,):
+    FileNotFoundError = OSError
+try:
+    from pathlib import Path
+except ImportError:
+    Path = None
 
 # URI types
 URI_BYTES = 1
@@ -37,10 +44,10 @@ EXAMPLE_IMAGES = {
     'checkerboard.png': 'Black and white image of a chekerboard',
     'clock.png': 'Photo of a clock with motion blur (Stefan van der Walt)',
     'coffee.png': 'Image of a cup of coffee (Rachel Michetti)',
-    
+
     'chelsea.png': 'Image of Stefan\'s cat',
     'wikkie.png': 'Image of Almar\'s cat',
-    
+
     'coins.png': 'Image showing greek coins from Pompeii',
     'horse.png': 'Image showing the silhouette of a horse (Andreas Preuss)',
     'hubble_deep_field.png': 'Photograph taken by Hubble telescope (NASA)',
@@ -48,7 +55,7 @@ EXAMPLE_IMAGES = {
     'moon.png': 'Image showing a portion of the surface of the moon',
     'page.png': 'A scanned page of text',
     'text.png': 'A photograph of handdrawn text',
-    
+
     'chelsea.zip': 'The chelsea.png in a zipfile (for testing)',
     'newtonscradle.gif': 'Animated GIF of a newton\'s cradle',
     'cockatoo.mp4': 'Video file of a cockatoo',
@@ -58,14 +65,14 @@ EXAMPLE_IMAGES = {
 
 class Request(object):
     """ Request(uri, mode, **kwargs)
-    
+
     Represents a request for reading or saving an image resource. This
     object wraps information to that request and acts as an interface
     for the plugins to several resources; it allows the user to read
     from filenames, files, http, zipfiles, raw bytes, etc., but offer
     a simple interface to the plugins via ``get_file()`` and
     ``get_local_filename()``.
-    
+
     For each read/write operation a single Request instance is used and passed
     to the can_read/can_write method of a format, and subsequently to
     the Reader/Writer class. This allows rudimentary passing of
@@ -82,29 +89,29 @@ class Request(object):
         "i" for an image, "I" for multiple images, "v" for a volume,
         "V" for multiple volumes, "?" for don't care.
     """
-    
+
     def __init__(self, uri, mode, **kwargs):
-        
-        # General        
+
+        # General
         self._uri_type = None
         self._filename = None
         self._extension = None
         self._kwargs = kwargs
         self._result = None         # Some write actions may have a result
-        
+
         # To handle the user-side
         self._filename_zip = None   # not None if a zipfile is used
         self._bytes = None          # Incoming bytes
         self._zipfile = None        # To store a zipfile instance (if used)
-        
+
         # To handle the plugin side
         self._file = None               # To store the file instance
         self._filename_local = None     # not None if using tempfile on this FS
         self._firstbytes = None         # For easy header parsing
-        
+
         # To store formats that may be able to fulfil this request
         #self._potential_formats = []
-        
+
         # Check mode
         self._mode = mode
         if not isinstance(mode, string_types):
@@ -115,7 +122,7 @@ class Request(object):
             raise ValueError('Request requires mode[0] to be "r" or "w"')
         if mode[1] not in 'iIvV?':
             raise ValueError('Request requires mode[1] to be in "iIvV?"')
-        
+
         # Parse what was given
         self._parse_uri(uri)
         
@@ -133,7 +140,7 @@ class Request(object):
         py3k = sys.version_info[0] == 3
         is_read_request = self.mode[0] == 'r'
         is_write_request = self.mode[0] == 'w'
-        
+
         if isinstance(uri, string_types):
             # Explicit
             if uri.startswith('imageio:'):
@@ -190,6 +197,9 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = '<bytes>'
             self._bytes = uri
+        elif Path is not None and isinstance(uri, Path):
+            self._uri_type = URI_FILENAME
+            self._filename = str(uri)
         # Files
         elif is_read_request:
             if hasattr(uri, 'read') and hasattr(uri, 'close'):
@@ -201,35 +211,35 @@ class Request(object):
                 self._uri_type = URI_FILE
                 self._filename = '<file>'
                 self._file = uri
-        
+
         # Expand user dir
         if self._uri_type == URI_FILENAME and self._filename.startswith('~'):
             self._filename = os.path.expanduser(self._filename)
-        
+
         # Check if a zipfile
         if self._uri_type == URI_FILENAME:
             # Search for zip extension followed by a path separater
             for needle in ['.zip/', '.zip\\']:
                 zip_i = self._filename.lower().find(needle)
-                if zip_i > 0:                    
+                if zip_i > 0:
                     zip_i += 4
                     self._uri_type = URI_ZIPPED
-                    self._filename_zip = (self._filename[:zip_i], 
+                    self._filename_zip = (self._filename[:zip_i],
                                           self._filename[zip_i:].lstrip('/\\'))
                     break
-        
+
         # Check if we could read it
         if self._uri_type is None:
             uri_r = repr(uri)
             if len(uri_r) > 60:
                 uri_r = uri_r[:57] + '...'
             raise IOError("Cannot understand given URI: %s." % uri_r)
-        
+
         # Check if this is supported
         noWriting = [URI_HTTP, URI_FTP]
         if is_write_request and self._uri_type in noWriting:
             raise IOError('imageio does not support writing to http/ftp.')
-        
+
         # Deprecated way to load standard images, give a sensible error message
         if is_read_request and self._uri_type in [URI_FILENAME, URI_ZIPPED]:
             fn = self._filename
@@ -239,16 +249,16 @@ class Request(object):
                 raise IOError('No such file: %r. This file looks like one of '
                               'the standard images, but from imageio 2.1, '
                               'standard images have to be specified using '
-                              '"imageio:%s".' % (fn, fn)) 
-        
-        # Make filename absolute 
+                              '"imageio:%s".' % (fn, fn))
+
+        # Make filename absolute
         if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
             if self._filename_zip:
                 self._filename_zip = (os.path.abspath(self._filename_zip[0]),
                                       self._filename_zip[1])
             else:
                 self._filename = os.path.abspath(self._filename)
-        
+
         # Check whether file name is valid
         if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
             fn = self._filename
@@ -257,13 +267,14 @@ class Request(object):
             if is_read_request:
                 # Reading: check that the file exists (but is allowed a dir)
                 if not os.path.exists(fn):
-                    raise IOError("No such file: '%s'" % fn)
+                    raise FileNotFoundError("No such file: '%s'" % fn)
             else:
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
-                    raise IOError("The directory %r does not exist" % dn)
-    
+                    raise FileNotFoundError("The directory %r does not exist"
+                                            % dn)
+
     @property
     def filename(self):
         """ The uri for which reading/saving was requested. This
@@ -272,7 +283,7 @@ class Request(object):
         but use ``get_file()`` or ``get_local_filename()`` instead.
         """
         return self._filename
-    
+
     @property
     def extension(self):
         """ The (lowercase) extension of the requested filename.
@@ -290,46 +301,46 @@ class Request(object):
         "V" for multiple volumes, "?" for don't care.
         """
         return self._mode
-    
+
     @property
     def kwargs(self):
         """ The dict of keyword arguments supplied by the user.
         """
         return self._kwargs
-    
+
     ## For obtaining data
-    
+
     def get_file(self):
         """ get_file()
         Get a file object for the resource associated with this request.
         If this is a reading request, the file is in read mode,
         otherwise in write mode. This method is not thread safe. Plugins
         do not need to close the file when done.
-        
+
         This is the preferred way to read/write the data. But if a
         format cannot handle file-like objects, they should use
         ``get_local_filename()``.
         """
         want_to_write = self.mode[0] == 'w'
-        
+
         # Is there already a file?
-        # Either _uri_type == URI_FILE, or we already opened the file, 
+        # Either _uri_type == URI_FILE, or we already opened the file,
         # e.g. by using firstbytes
         if self._file is not None:
             return self._file
-        
+
         if self._uri_type == URI_BYTES:
-            if want_to_write:                          
+            if want_to_write:
                 self._file = BytesIO()
             else:
                 self._file = BytesIO(self._bytes)
-        
+
         elif self._uri_type == URI_FILENAME:
             if want_to_write:
                 self._file = open(self.filename, 'wb')
             else:
                 self._file = open(self.filename, 'rb')
-        
+
         elif self._uri_type == URI_ZIPPED:
             # Get the correct filename
             filename, name = self._filename_zip
@@ -340,21 +351,21 @@ class Request(object):
                 # Open zipfile and open new file object for specific file
                 self._zipfile = zipfile.ZipFile(filename, 'r')
                 self._file = self._zipfile.open(name, 'r')
-        
+
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
             fix_HTTPResponse(self._file)
-        
+
         return self._file
-    
+
     def get_local_filename(self):
         """ get_local_filename()
         If the filename is an existing file on this filesystem, return
         that. Otherwise a temporary file is created on the local file
         system which can be used by the format to read from or write to.
         """
-        
+
         if self._uri_type == URI_FILENAME:
             return self._filename
         else:
@@ -369,27 +380,27 @@ class Request(object):
                 with open(self._filename_local, 'wb') as file:
                     shutil.copyfileobj(self.get_file(), file)
             return self._filename_local
-    
+
     def finish(self):
         """ finish()
         For internal use (called when the context of the reader/writer
         exits). Finishes this request. Close open files and process
         results.
         """
-        
+
         # Init
         bytes = None
-        
+
         # Collect bytes from temp file
         if self.mode[0] == 'w' and self._filename_local:
             with open(self._filename_local, 'rb') as file:
                 bytes = file.read()
-        
+
         # Collect bytes from BytesIO file object.
         written = (self.mode[0] == 'w') and self._file
         if written and self._uri_type in [URI_BYTES, URI_ZIPPED]:
             bytes = self._file.getvalue()
-        
+
         # Close open files that we know of (and are responsible for)
         if self._file and self._uri_type != URI_FILE:
             self._file.close()
@@ -404,7 +415,7 @@ class Request(object):
             except Exception:  # pragma: no cover
                 pass
             self._filename_local = None
-        
+
         # Handle bytes that we collected
         if bytes is not None:
             if self._uri_type == URI_BYTES:
@@ -413,26 +424,26 @@ class Request(object):
                 zf = zipfile.ZipFile(self._filename_zip[0], 'a')
                 zf.writestr(self._filename_zip[1], bytes)
                 zf.close()
-        
+
         # Detach so gc can clean even if a reference of self lingers
         self._bytes = None
-    
+
     def get_result(self):
         """ For internal use. In some situations a write action can have
         a result (bytes data). That is obtained with this function.
         """
         self._result, res = None, self._result
         return res
-    
+
     @property
     def firstbytes(self):
-        """ The first 256 bytes of the file. These can be used to 
+        """ The first 256 bytes of the file. These can be used to
         parse the header to determine the file-format.
         """
         if self._firstbytes is None:
             self._read_first_bytes()
         return self._firstbytes
-    
+
     def _read_first_bytes(self, N=256):
         if self._bytes is not None:
             self._firstbytes = self._bytes[:N]
@@ -466,7 +477,7 @@ class Request(object):
 
 def read_n_bytes(f, N):
     """ read_n_bytes(file, n)
-    
+
     Read n bytes from the given file, or less if the file has less
     bytes. Returns zero bytes if the file is closed.
     """
@@ -485,27 +496,27 @@ def fix_HTTPResponse(f):
     to use the file object.
     """
     count = [0]
-    
+
     def read(n=None):
         res = ori_read(n)
         count[0] += len(res)
         return res
-    
+
     def tell():
         return count[0]
-    
+
     def seek(i, mode=0):
         if not (mode == 0 and i == count[0]):
             ori_seek(i, mode)
-    
+
     def fail_seek(i, mode=0):
         raise RuntimeError('No seeking allowed!')
-    
+
     # Note, there is currently no protection from wrapping an object more than
     # once, it will (probably) work though, because closures.
     ori_read = f.read
     ori_seek = f.seek if hasattr(f, 'seek') else fail_seek
-    
+
     f.read = read
     f.tell = tell
     f.seek = seek
