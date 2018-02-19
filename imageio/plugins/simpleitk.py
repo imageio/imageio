@@ -55,16 +55,16 @@ class ItkFormat(Format):
         # we report that we can do it; a useful error will be raised
         # when simpleitk is not installed. For the more common formats
         # we only report that we can read if the library is installed.
-        if request.extention in ITK_FORMATS:
+        if request.extension in ITK_FORMATS:
             return True
         if has_module('SimpleITK'):
-            return request.extention in ALL_FORMATS
+            return request.extension in ALL_FORMATS
 
     def _can_write(self, request):
-        if request.extention in ITK_FORMATS:
+        if request.extension in ITK_FORMATS:
             return True
         if has_module('SimpleITK'):
-            return request.extention in ALL_FORMATS
+            return request.extension in ALL_FORMATS
 
     # -- reader
 
