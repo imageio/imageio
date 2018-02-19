@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin for reading FITS files.
@@ -78,7 +77,7 @@ class FitsFormat(Format):
     def _can_read(self, request):
         # We return True if ext matches, because this is the only plugin
         # that can. If astropy is not installed, a useful error follows.
-        return request.filename.lower().endswith(self.extensions)
+        return request.extension in self.extensions
 
     def _can_write(self, request):
         # No write support

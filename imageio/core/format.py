@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ 
@@ -658,13 +657,12 @@ class FormatManager(object):
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
-        select_ext = request.filename.lower()
         
         # Select formats that seem to be able to read it
         selected_formats = []
         for format in self:
             if select_mode in format.modes:
-                if select_ext.endswith(format.extensions):
+                if request.extension in format.extensions:
                     selected_formats.append(format)
         
         # Select the first that can
@@ -686,13 +684,12 @@ class FormatManager(object):
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
-        select_ext = request.filename.lower()
         
         # Select formats that seem to be able to write it
         selected_formats = []
         for format in self:
             if select_mode in format.modes:
-                if select_ext.endswith(format.extensions):
+                if request.extension in format.extensions:
                     selected_formats.append(format)
         
         # Select the first that can

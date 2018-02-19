@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin that wraps the the Pillow library.
@@ -74,7 +73,7 @@ class PillowFormat(Format):
     def _can_write(self, request):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 if self.plugin_id in Image.SAVE:
                     return True
     

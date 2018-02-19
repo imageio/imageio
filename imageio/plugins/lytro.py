@@ -97,7 +97,7 @@ class LytroIllumRawFormat(LytroFormat):
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith('.raw'):
+            if request.extension in ('.raw', ):
                 return True
 
     @staticmethod
@@ -210,7 +210,7 @@ class LytroLfrFormat(LytroFormat):
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith('.lfr'):
+            if request.extension in ('.lfr', ):
                 return True
 
     # -- reader
@@ -412,7 +412,7 @@ class LytroF01RawFormat(LytroFormat):
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith('.raw'):
+            if request.extension in ('.raw', ):
                 return True
 
     @staticmethod
@@ -515,7 +515,7 @@ class LytroLfpFormat(LytroFormat):
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith('.lfp'):
+            if request.extension in ('.lfp', ):
                 return True
 
     # -- reader

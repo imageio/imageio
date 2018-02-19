@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin that uses ffmpeg to read and write series of images to
@@ -249,12 +248,12 @@ class FfmpegFormat(Format):
             return True
 
         # Read from file that we know?
-        if request.filename.lower().endswith(self.extensions):
+        if request.extension in self.extensions:
             return True
 
     def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 return True
 
     # --
@@ -495,7 +494,7 @@ class FfmpegFormat(Format):
             duration and nframes. """
 
             # Wait for the catcher to get the meta information
-            etime = time.time() + 4.0
+            etime = time.time() + 10.0
             while (not self._stderr_catcher.header) and time.time() < etime:
                 time.sleep(0.01)
 

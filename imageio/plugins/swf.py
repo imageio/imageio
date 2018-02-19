@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ SWF plugin. Most of the actual work is done in _swf.py.
@@ -71,7 +70,7 @@ class SWFFormat(Format):
     
     def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 return True
     
     # -- reader

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """
@@ -96,6 +95,7 @@ class Request(object):
         # General
         self._uri_type = None
         self._filename = None
+        self._extension = None
         self._kwargs = kwargs
         self._result = None         # Some write actions may have a result
 
@@ -125,7 +125,15 @@ class Request(object):
 
         # Parse what was given
         self._parse_uri(uri)
-
+        
+        # Set extension
+        if self._filename is not None:
+            ext = self._filename
+            if self._filename.startswith(('http://', 'https://',
+                                          'ftp://', 'ftps://')):
+                ext = ext.split('?')[0]
+            self._extension = '.' + ext.split('.')[-1].lower()
+    
     def _parse_uri(self, uri):
         """ Try to figure our what we were given
         """
@@ -276,6 +284,14 @@ class Request(object):
         """
         return self._filename
 
+    @property
+    def extension(self):
+        """ The (lowercase) extension of the requested filename.
+        Suffixes in url's are stripped. Can be None if the request is
+        not based on a filename.
+        """
+        return self._extension
+    
     @property
     def mode(self):
         """ The mode of the request. The first character is "r" or "w",

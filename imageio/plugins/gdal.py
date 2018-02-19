@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin for reading gdal files.
@@ -37,10 +36,10 @@ class GdalFormat(Format):
     """
 
     def _can_read(self, request):
-        if request.filename.lower().endswith('.ecw'):
+        if request.extension in ('.ecw', ):
             return True
         if has_module('osgeo.gdal'):
-            return request.filename.lower().endswith(self.extensions)
+            return request.extension in self.extensions
 
     def _can_write(self, request):
         return False
