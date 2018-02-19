@@ -307,12 +307,10 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """ 
     
-    #Ensure non empty sequence
-    if len(ims) == 0:
-        raise ValueError('Numpy sequence must not be empty.')
-    
     # Get writer
     writer = get_writer(uri, format, 'I', **kwargs)
+    written = 0
+    
     with writer:
         
         # Iterate over images (ims may be a generator)
@@ -332,6 +330,12 @@ def mimwrite(uri, ims, format=None, **kwargs):
             
             # Add image
             writer.append_data(im)
+            written += 1
+    
+    # Check that something was written. Check after writing, because ims might
+    # be a generator. The damage is done, but we want to error when it happens.
+    if not written:
+        raise RuntimeError('Zero images were written.')
     
     # Return a result if there is any
     return writer.request.get_result()
@@ -473,6 +477,8 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     
     # Get writer
     writer = get_writer(uri, format, 'V', **kwargs)
+    written = 0
+    
     with writer:
         
         # Iterate over images (ims may be a generator)
@@ -492,6 +498,12 @@ def mvolwrite(uri, ims, format=None, **kwargs):
             
             # Add image
             writer.append_data(im)
+            written += 1
+    
+    # Check that something was written. Check after writing, because ims might
+    # be a generator. The damage is done, but we want to error when it happens.
+    if not written:
+        raise RuntimeError('Zero volumes were written.')
     
     # Return a result if there is any
     return writer.request.get_result()
