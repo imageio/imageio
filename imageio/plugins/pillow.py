@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin that wraps the the Pillow library.

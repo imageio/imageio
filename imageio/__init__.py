@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
+# Copyright (c) 2014-2018, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 # This docstring is used at the index of the documentation pages, and
