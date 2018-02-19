@@ -37,11 +37,11 @@ def sphinx_clean(build_dir):
 
 def sphinx_build(src_dir, build_dir):
     import sphinx
-    cmd = [ '-b', 'html',
-            '-d', op.join(build_dir, 'doctrees'),
-            src_dir,  # Source
-            op.join(build_dir, 'html'),  # Dest
-            ]
+    cmd = ['-b', 'html',
+           '-d', op.join(build_dir, 'doctrees'),
+           src_dir,  # Source
+           op.join(build_dir, 'html'),  # Dest
+           ]
     
     if sphinx.version_info > (1, 7):
         ret = sphinx.cmd.build.build_main(cmd)
