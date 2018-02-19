@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 
 # styletest: ignore E122 E123 E501
 
