@@ -3483,10 +3483,10 @@ class TiffPage(object):
                 self.planarconfig.name if self.planarconfig != 1 else '',
                 self.predictor.name if self.predictor != 1 else '',
                 self.fillorder.name if self.fillorder != 1 else '')
-                     if i),
+                     if i),  # noqa
             attr,
             '|'.join((f.upper() for f in self.flags))
-            ) if s)
+            ) if s)  # noqa
         info = "TiffPage %i @%i  %s" % (self.index, self.offset, info)
         if detail <= 0:
             return info
@@ -9056,4 +9056,3 @@ else:
 
 if __name__ == "__main__":
     sys.exit(main())
-
