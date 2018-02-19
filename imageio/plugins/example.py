@@ -55,7 +55,7 @@ class DummyFormat(Format):
         # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
         
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 return True
     
     def _can_write(self, request):
@@ -68,7 +68,7 @@ class DummyFormat(Format):
         
         # In most cases, this code does suffice:
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 return True
     
     # -- reader
