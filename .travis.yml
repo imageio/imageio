@@ -91,6 +91,11 @@ install:
        easy_install -q simpleitk; true;
        conda install -y astropy;
       fi;
+    # Install more deps on legacy py
+    - if [ "${PYTHON}" == "2.7" ]; then
+        pip install enum34 futures;
+      fi;
+    
     # Install imageio, use installed version on only one machine
     - if [ "${TEST_INSTALL}" == "1" ]; then
        python setup.py build_with_fi install > ${REDIRECT_TO};
