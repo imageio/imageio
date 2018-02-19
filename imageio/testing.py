@@ -33,7 +33,10 @@ STYLE_IGNORES = ['E226',
                  'W291', 
                  'W293',
                  'W503',  # line break before binary operator
-                 'I', 'D', 'T', 'CG',  # flake8 plugins that we do not follow
+                 
+                 # flake8 plugins that we do not follow
+                 'N',  # Dont be pedantic about names in plugins
+                 'I', 'D', 'T', 'CG',  
                  ]
 
 
