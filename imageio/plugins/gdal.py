@@ -37,10 +37,10 @@ class GdalFormat(Format):
     """
 
     def _can_read(self, request):
-        if request.filename.lower().endswith('.ecw'):
+        if request.extension in ('.ecw', ):
             return True
         if has_module('osgeo.gdal'):
-            return request.filename.lower().endswith(self.extensions)
+            return request.extension in self.extensions
 
     def _can_write(self, request):
         return False

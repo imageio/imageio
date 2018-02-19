@@ -250,7 +250,7 @@ class GifWriter:
         return bb
 
     def getAppExt(self, loop):
-        """ Application extention. This part specifies the amount of loops.
+        """ Application extension. This part specifies the amount of loops.
         If loop is 0 or inf, it goes on infinitely.
         """
         if loop == 1:

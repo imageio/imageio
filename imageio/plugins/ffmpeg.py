@@ -249,12 +249,12 @@ class FfmpegFormat(Format):
             return True
 
         # Read from file that we know?
-        if request.filename.lower().endswith(self.extensions):
+        if request.extension in self.extensions:
             return True
 
     def _can_write(self, request):
         if request.mode[1] in (self.modes + '?'):
-            if request.filename.lower().endswith(self.extensions):
+            if request.extension in self.extensions:
                 return True
 
     # --
