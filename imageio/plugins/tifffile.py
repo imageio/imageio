@@ -16,10 +16,10 @@ _tifffile = None  # Defer loading to lib() function.
 
 def load_lib():
     global _tifffile
-    # try:
-    #     import tifffile as _tifffile
-    # except ImportError:
-    from . import _tifffile
+    try:
+        import tifffile as _tifffile
+    except ImportError:
+        from . import _tifffile
     return _tifffile
 
 
