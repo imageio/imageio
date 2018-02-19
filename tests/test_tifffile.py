@@ -65,7 +65,7 @@ def test_tifffile_reading_writing():
 
     # Mixed
     W = imageio.save(filename1)
-    W.set_meta_data({'planarconfig': 'planar'})
+    W.set_meta_data({'planarconfig': 'SEPARATE'})  # was "planar"
     assert W.format.name == 'TIFF'
     W.append_data(im2)
     W.append_data(im2)
@@ -75,8 +75,8 @@ def test_tifffile_reading_writing():
     assert R.format.name == 'TIFF'
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
-    meta = R.get_meta_data()
-    assert meta['orientation'] == 'top_left'
+    # meta = R.get_meta_data()
+    # assert meta['orientation'] == 'top_left'  # not there in later version
     # Fail
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)

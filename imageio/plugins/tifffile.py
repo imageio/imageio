@@ -172,19 +172,27 @@ class TiffFormat(Format):
         def _open(self, **kwargs):
             if not _tifffile:
                 load_lib()
-            self._tf = _tifffile.TiffFile(self.request.get_file(), **kwargs)
+            # Allow loading from http; tiffile uses seek, so download first
+            if self.request.filename.startswith(('http://', 'https://')):
+                self._f = f = open(self.request.get_local_filename(), 'rb')
+            else:
+                self._f = None
+                f = self.request.get_file()
+            self._tf = _tifffile.TiffFile(f, **kwargs)
 
             # metadata is the same for all images
             self._meta = {}
 
         def _close(self):
             self._tf.close()
+            if self._f is not None:
+                self._f.close()
         
         def _get_length(self):
             if self.request.mode[1] in 'vV':
                 return 1  # or can there be pages in pages or something?
             else:
-                return len(self._tf)
+                return len(self._tf.pages)
         
         def _get_data(self, index):
             if self.request.mode[1] in 'vV':
@@ -196,16 +204,16 @@ class TiffFormat(Format):
                 meta = self._meta
             else:
                 # Read as 2D image
-                if index < 0 or index >= len(self._tf):
+                if index < 0 or index >= self._get_length():
                     raise IndexError(
                         'Index out of range while reading from tiff file')
-                im = self._tf[index].asarray()
+                im = self._tf.pages[index].asarray()
                 meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
             return im, meta
 
         def _get_meta_data(self, index):
-            page = self._tf[index or 0]
+            page = self._tf.pages[index or 0]
             for key in READ_METADATA_KEYS:
                 try:
                     self._meta[key] = getattr(page, key)
