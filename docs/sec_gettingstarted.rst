@@ -7,4 +7,5 @@ Getting started
   
   Installation <installation>
   Usage examples <examples>
+  Transitioning from Scipy <scipy>
   Release notes <releasenotes>

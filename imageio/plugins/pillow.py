@@ -207,6 +207,31 @@ class PNGFormat(PillowFormat):
     ----------------------
     ignoregamma : bool
         Avoid gamma correction. Default False.
+    pilmode : str
+        From the Pillow documentation:
+        
+        * 'L' (8-bit pixels, grayscale)
+        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+        * 'RGB' (3x8-bit pixels, true color)
+        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+        * 'CMYK' (4x8-bit pixels, color separation)
+        * 'YCbCr' (3x8-bit pixels, color video format)
+        * 'I' (32-bit signed integer pixels)
+        * 'F' (32-bit floating point pixels)
+        
+        PIL also provides limited support for a few special modes, including
+        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+        (true color with premultiplied alpha).
+        
+        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+        the library uses the ITU-R 601-2 luma transform::
+        
+            L = R * 299/1000 + G * 587/1000 + B * 114/1000
+    as_gray : bool
+        If True, the image is converted using mode 'F'. When `mode` is
+        not None and `as_gray` is True, the image is first converted
+        according to `mode`, and the result is then "flattened" using
+        mode 'F'.
     
     Parameters for saving
     ---------------------
@@ -238,31 +263,6 @@ class PNGFormat(PillowFormat):
         bits. In this case, given as a number between 1-256.
     dictionary (experimental): dict
         Set the ZLIB encoder dictionary.
-    pilmode : str
-        From the Pillow documentation:
-        
-        * 'L' (8-bit pixels, grayscale)
-        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
-        * 'RGB' (3x8-bit pixels, true color)
-        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
-        * 'CMYK' (4x8-bit pixels, color separation)
-        * 'YCbCr' (3x8-bit pixels, color video format)
-        * 'I' (32-bit signed integer pixels)
-        * 'F' (32-bit floating point pixels)
-        
-        PIL also provides limited support for a few special modes, including
-        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
-        (true color with premultiplied alpha).
-        
-        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
-        the library uses the ITU-R 601-2 luma transform::
-        
-            L = R * 299/1000 + G * 587/1000 + B * 114/1000
-    as_gray : bool
-        If True, the image is converted using mode 'F'. When `mode` is
-        not None and `as_gray` is True, the image is first converted
-        according to `mode`, and the result is then "flattened" using
-        mode 'F'.
     """
     
     class Reader(PillowFormat.Reader):
@@ -335,30 +335,6 @@ class JPEGFormat(PillowFormat):
     ----------------------
     exifrotate : bool
         Automatically rotate the image according to exif flag. Default True.
-    
-    Parameters for saving
-    ---------------------
-    quality : scalar
-        The compression factor of the saved image (1..100), higher
-        numbers result in higher quality but larger file size. Default 75.
-    progressive : bool
-        Save as a progressive JPEG file (e.g. for images on the web).
-        Default False.
-    optimize : bool
-        On saving, compute optimal Huffman coding tables (can reduce a few
-        percent of file size). Default False.
-    dpi : tuple of int
-        The pixel density, ``(x,y)``.
-    icc_profile : object
-        If present and true, the image is stored with the provided ICC profile.
-        If this parameter is not provided, the image will be saved with no
-        profile attached.
-    exif : dict
-        If present, the image will be stored with the provided raw EXIF data.
-    subsampling : str
-        Sets the subsampling for the encoder. See Pillow docs for details.
-    qtables : object
-        Set the qtables for the encoder. See Pillow docs for details.
     pilmode : str
         From the Pillow documentation:
         
@@ -384,6 +360,30 @@ class JPEGFormat(PillowFormat):
         not None and `as_gray` is True, the image is first converted
         according to `mode`, and the result is then "flattened" using
         mode 'F'.
+    
+    Parameters for saving
+    ---------------------
+    quality : scalar
+        The compression factor of the saved image (1..100), higher
+        numbers result in higher quality but larger file size. Default 75.
+    progressive : bool
+        Save as a progressive JPEG file (e.g. for images on the web).
+        Default False.
+    optimize : bool
+        On saving, compute optimal Huffman coding tables (can reduce a few
+        percent of file size). Default False.
+    dpi : tuple of int
+        The pixel density, ``(x,y)``.
+    icc_profile : object
+        If present and true, the image is stored with the provided ICC profile.
+        If this parameter is not provided, the image will be saved with no
+        profile attached.
+    exif : dict
+        If present, the image will be stored with the provided raw EXIF data.
+    subsampling : str
+        Sets the subsampling for the encoder. See Pillow docs for details.
+    qtables : object
+        Set the qtables for the encoder. See Pillow docs for details.
     """
     
     class Reader(PillowFormat.Reader):
