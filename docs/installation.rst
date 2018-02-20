@@ -14,5 +14,8 @@ To install imageio, use one of the following methods:
 * Good old ``python setup.py install``
 
 For developers, we provide a simple mechanism to allow importing 
-imageio from the cloned repository. See the file ``imageio.proxy.io`` for
+imageio from the cloned repository. See the file ``imageio.proxy.py`` for
 details.
+
+After installation, checkout the
+:doc:`examples  <examples>` and :doc:`user api <userapi>`. 
