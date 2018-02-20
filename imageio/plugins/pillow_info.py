@@ -64,7 +64,7 @@ def generate_info():  # pragma: no cover
     # Fill in the blancs
     for id in ids:
         if id in docs:
-            docs[id] = '*This is a copy from the Pillow docs.*\n\n' + docs[id]
+            docs[id] = '*From the Pillow docs:*\n\n' + docs[id]
         else:
             docs[id] = 'No docs for %s.' % id
             print('no docs for', id)
@@ -150,7 +150,7 @@ pillow_formats = [
 
 pillow_docs = {
 'BMP':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and writes Windows and OS/2 BMP files containing ``1``, ``L``, ``P``,
@@ -164,7 +164,7 @@ u"""*This is a copy from the Pillow docs.*
         Set to ``bmp_rle`` if the file is run-length encoded.
     """,
 'BUFR':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  1.1.3
@@ -175,14 +175,14 @@ u"""*This is a copy from the Pillow docs.*
     :py:func:`PIL.BufrStubImagePlugin.register_handler`.
     """,
 'CUR':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     CUR is used to store cursors on Windows. The CUR decoder reads the largest
     available cursor. Animated cursors are not supported.
     """,
 'DCX':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     DCX is a container file format for PCX files, defined by Intel. The DCX format
@@ -194,7 +194,7 @@ u"""*This is a copy from the Pillow docs.*
     
     """,
 'DDS':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     DDS is a popular container texture format used in video games and natively
@@ -207,7 +207,7 @@ u"""*This is a copy from the Pillow docs.*
 'DIB':
 u"""No docs for DIB.""",
 'EPS':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies EPS files containing image data, and can read files that contain
@@ -233,7 +233,7 @@ u"""*This is a copy from the Pillow docs.*
             im.size #(200,200)
     """,
 'FITS':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  1.1.5
@@ -246,7 +246,7 @@ u"""*This is a copy from the Pillow docs.*
 'FLI':
 u"""No docs for FLI.""",
 'FPX':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads Kodak FlashPix files. In the current version, only the highest
@@ -260,7 +260,7 @@ u"""*This is a copy from the Pillow docs.*
         README for details.
     """,
 'FTEX':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  3.2.0
@@ -270,7 +270,7 @@ u"""*This is a copy from the Pillow docs.*
     per file, in the compressed and uncompressed formats.
     """,
 'GBR':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     The GBR decoder reads GIMP brush files, version 1 and 2.
@@ -299,7 +299,7 @@ u"""*This is a copy from the Pillow docs.*
         transparent.
     """,
 'GIF':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads GIF87a and GIF89a versions of the GIF file format. The library writes
@@ -353,6 +353,7 @@ u"""*This is a copy from the Pillow docs.*
     **append_images**
         A list of images to append as additional frames. Each of the
         images in the list can be single or multiframe images.
+        This is currently only supported for GIF, PDF, TIFF, and WebP.
     
     **duration**
         The display duration of each frame of the multiframe gif, in
@@ -367,12 +368,23 @@ u"""*This is a copy from the Pillow docs.*
         eliminating unused colors. This is only useful if the palette can
         be compressed to the next smaller power of 2 elements.
     
-    **palette** 
+    **palette**
         Use the specified palette for the saved image. The palette should
         be a bytes or bytearray object containing the palette entries in
         RGBRGB... form. It should be no more than 768 bytes. Alternately,
         the palette can be passed in as an
         :py:class:`PIL.ImagePalette.ImagePalette` object.
+    
+    **disposal**
+        Indicates the way in which the graphic is to be treated after being displayed.
+    
+        * 0 - No disposal specified.
+        * 1 - Do not dispose.
+        * 2 - Restore to background color.
+        * 3 - Restore to previous content.
+    
+         Pass a single integer for a constant disposal, or a list or tuple
+         to set the disposal for each frame separately.
     
     Reading local images
     ~~~~~~~~~~~~~~~~~~~~
@@ -392,7 +404,7 @@ u"""*This is a copy from the Pillow docs.*
             im.tile = [(tag, (0, 0) + im.size, offset, extra)]
     """,
 'GRIB':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  1.1.5
@@ -407,7 +419,7 @@ u"""*This is a copy from the Pillow docs.*
     :py:func:`PIL.GribStubImagePlugin.register_handler`.
     """,
 'HDF5':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  1.1.5
@@ -418,7 +430,7 @@ u"""*This is a copy from the Pillow docs.*
     :py:func:`PIL.Hdf5StubImagePlugin.register_handler`.
     """,
 'ICNS':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and (macOS only) writes macOS ``.icns`` files.  By default, the
@@ -438,7 +450,7 @@ u"""*This is a copy from the Pillow docs.*
         :py:attr:`~PIL.Image.Image.size` will be ``(1024, 1024)``).
     """,
 'ICO':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     ICO is used to store icons on Windows. The largest available icon is read.
@@ -448,8 +460,8 @@ u"""*This is a copy from the Pillow docs.*
     **sizes**
         A list of sizes including in this ico file; these are a 2-tuple,
         ``(width, height)``; Default to ``[(16, 16), (24, 24), (32, 32), (48, 48),
-        (64, 64), (128, 128), (255, 255)]``. Any sizes bigger than the original
-        size or 255 will be ignored.
+        (64, 64), (128, 128), (256, 256)]``. Any sizes bigger than the original
+        size or 256 will be ignored.
     
     IM
     ^^
@@ -463,7 +475,7 @@ u"""*This is a copy from the Pillow docs.*
 'IM':
 u"""No docs for IM.""",
 'IMT':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads Image Tools images containing ``L`` data.
@@ -471,7 +483,7 @@ u"""*This is a copy from the Pillow docs.*
 'IPTC':
 u"""No docs for IPTC.""",
 'JPEG':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads JPEG, JFIF, and Adobe JPEG files containing ``L``, ``RGB``, or
@@ -556,11 +568,11 @@ u"""*This is a copy from the Pillow docs.*
         If present, sets the subsampling for the encoder.
     
         * ``keep``: Only valid for JPEG files, will retain the original image setting.
-        * ``4:4:4``, ``4:2:2``, ``4:1:1``: Specific sampling values
+        * ``4:4:4``, ``4:2:2``, ``4:2:0``: Specific sampling values
         * ``-1``: equivalent to ``keep``
         * ``0``: equivalent to ``4:4:4``
         * ``1``: equivalent to ``4:2:2``
-        * ``2``: equivalent to ``4:1:1``
+        * ``2``: equivalent to ``4:2:0``
     
     **qtables**
         If present, sets the qtables for the encoder. This is listed as an
@@ -582,7 +594,7 @@ u"""*This is a copy from the Pillow docs.*
         details.
     """,
 'JPEG2000':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     .. versionadded:: Pillow  2.4.0
@@ -671,27 +683,29 @@ u"""*This is a copy from the Pillow docs.*
        ``_imaging`` DLL).
     """,
 'MCIDAS':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies and reads 8-bit McIdas area files.
     """,
 'MIC':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies and reads Microsoft Image Composer (MIC) files. When opened, the
     first sprite in the file is loaded. You can use :py:meth:`~file.seek` and
     :py:meth:`~file.tell` to read other sprites from the file.
+    
+    Note that there may be an embedded gamma of 2.2 in MIC files.
     """,
 'MPEG':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies MPEG files.
     """,
 'MPO':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     Pillow identifies and reads Multi Picture Object (MPO) files, loading the primary
@@ -700,14 +714,14 @@ u"""*This is a copy from the Pillow docs.*
     zero-indexed and random access is supported.
     """,
 'MSP':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies and reads MSP files from Windows 1 and 2. The library writes
     uncompressed (Windows 1) versions of this format.
     """,
 'PCD':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads PhotoCD files containing ``RGB`` data. This only reads the 768x512
@@ -715,13 +729,13 @@ u"""*This is a copy from the Pillow docs.*
     encoding.
     """,
 'PCX':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and writes PCX files containing ``1``, ``L``, ``P``, or ``RGB`` data.
     """,
 'PIXAR':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL provides limited support for PIXAR raster files. The library can identify
@@ -730,7 +744,7 @@ u"""*This is a copy from the Pillow docs.*
     The format code is ``PIXAR``.
     """,
 'PNG':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies, reads, and writes PNG files containing ``1``, ``L``, ``P``,
@@ -739,8 +753,21 @@ u"""*This is a copy from the Pillow docs.*
     The :py:meth:`~PIL.Image.Image.write` method sets the following
     :py:attr:`~PIL.Image.Image.info` properties, when appropriate:
     
+    **chromaticity**
+        The chromaticity points, as an 8 tuple of floats. (``White Point
+        X``, ``White Point Y``, ``Red X``, ``Red Y``, ``Green X``, ``Green
+        Y``, ``Blue X``, ``Blue Y``)
+    
     **gamma**
         Gamma, given as a floating point number.
+    
+    **srgb**
+        The sRGB rendering intent as an integer.
+    
+          * 0 Perceptual
+          * 1 Relative Colorimetric
+          * 2 Saturation
+          * 3 Absolute Colorimetric
     
     **transparency**
         For ``P`` images: Either the palette index for full transparent pixels,
@@ -802,28 +829,28 @@ u"""*This is a copy from the Pillow docs.*
         documentation for details.
     """,
 'PPM':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and writes PBM, PGM and PPM files containing ``1``, ``L`` or ``RGB``
     data.
     """,
 'PSD':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL identifies and reads PSD files written by Adobe Photoshop 2.5 and 3.0.
     
     """,
 'SGI':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     Pillow reads and writes uncompressed ``L``, ``RGB``, and ``RGBA`` files.
     
     """,
 'SPIDER':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and writes SPIDER image files of 32-bit floating point data
@@ -866,22 +893,27 @@ u"""*This is a copy from the Pillow docs.*
 'SUN':
 u"""No docs for SUN.""",
 'TGA':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads 24- and 32-bit uncompressed and run-length encoded TGA files.
     """,
 'TIFF':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
-    PIL reads and writes TIFF files. It can read both striped and tiled images,
-    pixel and plane interleaved multi-band images, and either uncompressed, or
-    Packbits, LZW, or JPEG compressed images.
+    Pillow reads and writes TIFF files. It can read both striped and tiled
+    images, pixel and plane interleaved multi-band images. If you have
+    libtiff and its headers installed, PIL can read and write many kinds
+    of compressed TIFF files. If not, PIL will only read and write
+    uncompressed files.
     
-    If you have libtiff and its headers installed, PIL can read and write many more
-    kinds of compressed TIFF files. If not, PIL will always write uncompressed
-    files.
+    .. note::
+    
+        Beginning in version 5.0.0, Pillow requires libtiff to read or
+        write compressed files. Prior to that release, Pillow had buggy
+        support for reading Packbits, LZW and JPEG compressed TIFFs
+        without using libtiff.
     
     The :py:meth:`~PIL.Image.Image.write` method sets the following
     :py:attr:`~PIL.Image.Image.info` properties:
@@ -1000,7 +1032,7 @@ u"""*This is a copy from the Pillow docs.*
     
     """,
 'WMF':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL can identify playable WMF files.
@@ -1032,13 +1064,13 @@ u"""*This is a copy from the Pillow docs.*
     
         im = Image.open("sample.wmf")""",
 'XBM':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads and writes X bitmap files (mode ``1``).
     """,
 'XPM':
-u"""*This is a copy from the Pillow docs.*
+u"""*From the Pillow docs:*
 
     
     PIL reads X pixmap files (mode ``P``) with 256 colors or less.
