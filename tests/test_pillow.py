@@ -329,6 +329,33 @@ def test_images_with_transparency():
     assert im.shape == (24, 30, 4)
 
 
+def test_scipy_imread_compat():
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
+    # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
+    
+    im = imageio.imread('imageio:chelsea.png')
+    assert im.shape == (300, 451, 3) and im.dtype == 'uint8'
+    
+    # Scipy users may default to using "mode", but our getreader() already has
+    # a "mode" argument, so they should use pilmode instead.
+    try:
+        im = imageio.imread('imageio:chelsea.png', mode='L')
+    except TypeError as err:
+        assert 'pilmode' in str(err)
+    
+    im = imageio.imread('imageio:chelsea.png', pilmode='RGBA')
+    assert im.shape == (300, 451, 4) and im.dtype == 'uint8'
+    
+    im = imageio.imread('imageio:chelsea.png', pilmode='L')
+    assert im.shape == (300, 451) and im.dtype == 'uint8'
+    
+    im = imageio.imread('imageio:chelsea.png', pilmode='F')
+    assert im.shape == (300, 451) and im.dtype == 'float32'
+    
+    im = imageio.imread('imageio:chelsea.png', as_gray=True)
+    assert im.shape == (300, 451) and im.dtype == 'float32'
+
+
 if __name__ == '__main__':
     # test_png()
     # test_animated_gif()
