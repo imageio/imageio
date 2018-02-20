@@ -198,6 +198,10 @@ def imread(uri, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
+    if 'mode' in kwargs:
+        raise TypeError('Invalid keyword argument "mode", '
+                        'perhaps you mean "pilmode"?')
+    
     # Get reader and read first
     reader = read(uri, format, 'i', **kwargs)
     with reader:

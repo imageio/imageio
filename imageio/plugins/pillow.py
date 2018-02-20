@@ -19,6 +19,38 @@ from .pillow_info import pillow_formats, pillow_docs
 # todo: Pillow ImageGrab module supports grabbing the screen on Win and OSX.
 
 
+GENERIC_DOCS = """
+    Parameters for reading
+    ----------------------
+    
+    pilmode : str
+        From the Pillow documentation:
+        
+        * 'L' (8-bit pixels, grayscale)
+        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+        * 'RGB' (3x8-bit pixels, true color)
+        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+        * 'CMYK' (4x8-bit pixels, color separation)
+        * 'YCbCr' (3x8-bit pixels, color video format)
+        * 'I' (32-bit signed integer pixels)
+        * 'F' (32-bit floating point pixels)
+        
+        PIL also provides limited support for a few special modes, including
+        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+        (true color with premultiplied alpha).
+        
+        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+        the library uses the ITU-R 601-2 luma transform::
+        
+            L = R * 299/1000 + G * 587/1000 + B * 114/1000
+    as_gray : bool
+        If True, the image is converted using mode 'F'. When `mode` is
+        not None and `as_gray` is True, the image is first converted
+        according to `mode`, and the result is then "flattened" using
+        mode 'F'.
+"""
+
+
 class PillowFormat(Format):
     """
     Base format class for Pillow formats.
@@ -79,7 +111,7 @@ class PillowFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, **kwargs):
+        def _open(self, pilmode=None, as_gray=False):
             Image = self.format._init_pillow()
             try:
                 factory, accept = Image.OPEN[self.format.plugin_id]
@@ -91,15 +123,16 @@ class PillowFormat(Format):
             if hasattr(Image, '_decompression_bomb_check'):
                 Image._decompression_bomb_check(self._im.size)
             pil_try_read(self._im)
-            self._grayscale = _palette_is_grayscale(self._im)
+            # Store args
+            self._kwargs = dict(mode=pilmode, as_gray=as_gray,
+                                is_gray=_palette_is_grayscale(self._im))
             # Set length
             self._length = 1
             if hasattr(self._im, 'n_frames'):
                 self._length = self._im.n_frames
         
         def _close(self):
-            if hasattr(self._im, 'close'):  # see issue #216
-                self._im.close()
+            save_pillow_close(self._im)
             # request object handled closing the _fp
         
         def _get_length(self):
@@ -122,7 +155,7 @@ class PillowFormat(Format):
                     i += 1
                     self._seek(i)
             self._im.getdata()[0]
-            im = pil_get_frame(self._im, self._grayscale)
+            im = pil_get_frame(self._im, **self._kwargs)
             return im, self._im.info
         
         def _get_meta_data(self, index):
@@ -132,7 +165,7 @@ class PillowFormat(Format):
     
     class Writer(Format.Writer):
         
-        def _open(self, **kwargs):
+        def _open(self):
             Image = self.format._init_pillow()
             try:
                 self._save_func = Image.SAVE[self.format.plugin_id]
@@ -141,7 +174,6 @@ class PillowFormat(Format):
                                    self.format.name)
             self._fp = self.request.get_file()
             self._meta = {}
-            self._meta.update(kwargs)
             self._written = False
         
         def _close(self):
@@ -160,7 +192,7 @@ class PillowFormat(Format):
             if 'bits' in self._meta:
                 img = img.quantize()  # Make it a P image, so bits arg is used
             img.save(self._fp, format=self.format.plugin_id, **self._meta)
-            img.close()
+            save_pillow_close(img)
         
         def set_meta_data(self, meta):
             self._meta.update(meta)
@@ -206,12 +238,37 @@ class PNGFormat(PillowFormat):
         bits. In this case, given as a number between 1-256.
     dictionary (experimental): dict
         Set the ZLIB encoder dictionary.
-    
+    pilmode : str
+        From the Pillow documentation:
+        
+        * 'L' (8-bit pixels, grayscale)
+        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+        * 'RGB' (3x8-bit pixels, true color)
+        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+        * 'CMYK' (4x8-bit pixels, color separation)
+        * 'YCbCr' (3x8-bit pixels, color video format)
+        * 'I' (32-bit signed integer pixels)
+        * 'F' (32-bit floating point pixels)
+        
+        PIL also provides limited support for a few special modes, including
+        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+        (true color with premultiplied alpha).
+        
+        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+        the library uses the ITU-R 601-2 luma transform::
+        
+            L = R * 299/1000 + G * 587/1000 + B * 114/1000
+    as_gray : bool
+        If True, the image is converted using mode 'F'. When `mode` is
+        not None and `as_gray` is True, the image is first converted
+        according to `mode`, and the result is then "flattened" using
+        mode 'F'.
     """
     
     class Reader(PillowFormat.Reader):
-        def _open(self, ignoregamma=False):
-            return PillowFormat.Reader._open(self)
+        def _open(self, pilmode=None, as_gray=False, ignoregamma=False):
+            return PillowFormat.Reader._open(self,
+                                             pilmode=pilmode, as_gray=as_gray)
         
         def _get_data(self, index):
             im, info = PillowFormat.Reader._get_data(self, index)
@@ -257,7 +314,8 @@ class PNGFormat(PillowFormat):
                 if key not in ok_keys:
                     raise TypeError('Invalid arg for PNG writer: %r' % key)
             
-            return PillowFormat.Writer._open(self, **kwargs)
+            PillowFormat.Writer._open(self)
+            self._meta.update(kwargs)
         
         def _append_data(self, im, meta):
             if str(im.dtype) == 'uint16' and (im.ndim == 2 or
@@ -289,7 +347,7 @@ class JPEGFormat(PillowFormat):
     optimize : bool
         On saving, compute optimal Huffman coding tables (can reduce a few
         percent of file size). Default False.
-    dpi : tuplw of int
+    dpi : tuple of int
         The pixel density, ``(x,y)``.
     icc_profile : object
         If present and true, the image is stored with the provided ICC profile.
@@ -301,11 +359,37 @@ class JPEGFormat(PillowFormat):
         Sets the subsampling for the encoder. See Pillow docs for details.
     qtables : object
         Set the qtables for the encoder. See Pillow docs for details.
+    pilmode : str
+        From the Pillow documentation:
+        
+        * 'L' (8-bit pixels, grayscale)
+        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+        * 'RGB' (3x8-bit pixels, true color)
+        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+        * 'CMYK' (4x8-bit pixels, color separation)
+        * 'YCbCr' (3x8-bit pixels, color video format)
+        * 'I' (32-bit signed integer pixels)
+        * 'F' (32-bit floating point pixels)
+        
+        PIL also provides limited support for a few special modes, including
+        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+        (true color with premultiplied alpha).
+        
+        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+        the library uses the ITU-R 601-2 luma transform::
+        
+            L = R * 299/1000 + G * 587/1000 + B * 114/1000
+    as_gray : bool
+        If True, the image is converted using mode 'F'. When `mode` is
+        not None and `as_gray` is True, the image is first converted
+        according to `mode`, and the result is then "flattened" using
+        mode 'F'.
     """
     
     class Reader(PillowFormat.Reader):
-        def _open(self, exifrotate=True):
-            return PillowFormat.Reader._open(self)
+        def _open(self, pilmode=None, as_gray=False, exifrotate=True):
+            return PillowFormat.Reader._open(self,
+                                             pilmode=pilmode, as_gray=as_gray)
         
         def _get_data(self, index):
             im, info = PillowFormat.Reader._get_data(self, index)
@@ -360,7 +444,8 @@ class JPEGFormat(PillowFormat):
             kwargs['progressive'] = bool(progressive)
             kwargs['optimize'] = bool(progressive)
             
-            return PillowFormat.Writer._open(self, **kwargs)
+            PillowFormat.Writer._open(self)
+            self._meta.update(kwargs)
         
         def _append_data(self, im, meta):
             if im.ndim == 3 and im.shape[-1] == 4:
@@ -368,6 +453,13 @@ class JPEGFormat(PillowFormat):
             im = image_as_uint(im, bitdepth=8)
             PillowFormat.Writer._append_data(self, im, meta)
             return
+
+
+def save_pillow_close(im):
+    # see issue #216 and #300
+    if hasattr(im, 'close'):
+        if hasattr(getattr(im, 'fp', None), 'close'):
+            im.close()
 
 
 ## Func from skimage
@@ -406,68 +498,91 @@ def _palette_is_grayscale(pil_image):
     return np.allclose(np.diff(valid_palette), 0)
 
     
-def pil_get_frame(im, grayscale, dtype=None):
+def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
+    """ 
+    is_gray: Whether the image *is* gray (by inspecting its palette).
+    as_gray: Whether the resulting image must be converted to gaey.
+    mode: The mode to convert to.
+    """
+    
+    if is_gray is None:
+        is_gray = _palette_is_grayscale(im)
+    
     frame = im
     
-    if im.format == 'PNG' and im.mode == 'I' and dtype is None:
-        dtype = 'uint16'
-
-    if im.mode == 'P':
-        if grayscale is None:
-            grayscale = _palette_is_grayscale(im)
-
-        if grayscale:
-            frame = im.convert('L')
-        else:
-            
-            if im.info.get('transparency', None) is not None:
-                # Let Pillow apply the transparency, see issue #210 and #246
-                frame = im.convert('RGBA')
-            elif im.palette.mode in ('RGB', 'RGBA'):
-                # We can do this ourselves. Pillow seems to sometimes screw
-                # this up if a  multi-gif has a pallete for each frame ...
-                # Create palette array
-                p = np.frombuffer(im.palette.getdata()[1], np.uint8)
-                # Shape it.
-                nchannels = len(im.palette.mode)
-                p.shape = -1, nchannels
-                if p.shape[1] == 3:
-                    p = np.column_stack((p, 255*np.ones(p.shape[0], p.dtype)))
-                # Apply palette
-                frame_paletted = np.array(im, np.uint8)
-                try:
-                    frame = p[frame_paletted]
-                except Exception:
-                    # Ok, let PIL do it. The introduction of the branch that
-                    # tests `im.info['transparency']` should make this happen
-                    # much less often, but let's keep it, to be safe.
-                    frame = im.convert('RGBA')
-            else:
-                # Let Pillow do it. Unlinke skimage, we always convert
-                # to RGBA; palettes can be RGBA.
-                if True:  # im.format == 'PNG' and 'transparency' in im.info:
-                    frame = im.convert('RGBA')
-                else:
-                    frame = im.convert('RGB')
-
-    elif im.mode == '1':
+    # Convert ...
+    if mode is not None:
+        # Mode is explicitly given ...
+        if mode != im.mode:
+            frame = im.convert(mode)
+    elif as_gray:
+        pass  # don't do any auto-conversions (but do the explit one above)
+    elif im.mode == 'P' and is_gray:
+        # Paletted images that are already gray by their palette
+        # are converted so that the resulting numpy array is 2D.
         frame = im.convert('L')
-
+    elif im.mode == 'P':
+        # Paletted images are converted to RGB/RGBA. We jump some loops to make
+        # this work well.
+        if im.info.get('transparency', None) is not None:
+            # Let Pillow apply the transparency, see issue #210 and #246
+            frame = im.convert('RGBA')
+        elif im.palette.mode in ('RGB', 'RGBA'):
+            # We can do this ourselves. Pillow seems to sometimes screw
+            # this up if a  multi-gif has a pallete for each frame ...
+            # Create palette array
+            p = np.frombuffer(im.palette.getdata()[1], np.uint8)
+            # Shape it.
+            nchannels = len(im.palette.mode)
+            p.shape = -1, nchannels
+            if p.shape[1] == 3:
+                p = np.column_stack((p, 255*np.ones(p.shape[0], p.dtype)))
+            # Apply palette
+            frame_paletted = np.array(im, np.uint8)
+            try:
+                frame = p[frame_paletted]
+            except Exception:
+                # Ok, let PIL do it. The introduction of the branch that
+                # tests `im.info['transparency']` should make this happen
+                # much less often, but let's keep it, to be safe.
+                frame = im.convert('RGBA')
+        else:
+            # Let Pillow do it. Unlinke skimage, we always convert
+            # to RGBA; palettes can be RGBA.
+            if True:  # im.format == 'PNG' and 'transparency' in im.info:
+                frame = im.convert('RGBA')
+            else:
+                frame = im.convert('RGB')
     elif 'A' in im.mode:
         frame = im.convert('RGBA')
-
     elif im.mode == 'CMYK':
         frame = im.convert('RGB')
-
+    
+    # Apply a post-convert if necessary
+    if as_gray:
+        frame = frame.convert('F')  # Scipy compat
+    elif not isinstance(frame, np.ndarray) and frame.mode == '1':
+        # Workaround for crash in PIL. When im is 1-bit, the call array(im)
+        # can cause a segfault, or generate garbage. See
+        # https://github.com/scipy/scipy/issues/2138 and
+        # https://github.com/python-pillow/Pillow/issues/350.
+        #
+        # This converts im from a 1-bit image to an 8-bit image. 
+        frame = frame.convert('L')
+    
+    # Convert to numpy array
     if im.mode.startswith('I;16'):
+        # e.g. in16 PNG's
         shape = im.size
         dtype = '>u2' if im.mode.endswith('B') else '<u2'
         if 'S' in im.mode:
             dtype = dtype.replace('u', 'i')
         frame = np.fromstring(frame.tobytes(), dtype)
         frame.shape = shape[::-1]
-
     else:
+        # Use uint16 for PNG's in mode I
+        if im.format == 'PNG' and im.mode == 'I' and dtype is None:
+            dtype = 'uint16'
         frame = np.array(frame, dtype=dtype)
 
     return frame
@@ -533,7 +648,7 @@ def register_pillow_formats():
         format = FormatCls(id + '-PIL', summary, ext, FormatCls._modes)
         format._plugin_id = id
         if FormatCls is PillowFormat or not FormatCls.__doc__:
-            format.__doc__ = pillow_docs[id]
+            format.__doc__ = pillow_docs[id] + GENERIC_DOCS
         formats.add_format(format)
 
 
