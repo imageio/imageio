@@ -13,7 +13,7 @@ import re
 import struct
 import sys
 import time
-from warnings import warn
+from logging import warning as warn
 
 # Make pkg_resources optional if setuptools is not available
 try:
@@ -53,6 +53,12 @@ def urlopen(*args, **kwargs):
     return urlopen(*args, **kwargs)
 
 
+def _precision_warn(p1, p2, extra=''):
+    t = ('Lossy conversion from {} to {}. {} Convert image to {} prior to '
+         'saving to suppress this warning.')
+    warn(t.format(p1, p2, extra, p2))
+
+
 def image_as_uint(im, bitdepth=None):
     """ Convert the given image to uint (default: uint8)
     
@@ -73,29 +79,26 @@ def image_as_uint(im, bitdepth=None):
         out_type = np.uint16
     else:
         raise ValueError('Bitdepth must be either 8 or 16')
-    dtype_str = str(im.dtype)
+    dtype_str1 = str(im.dtype)
+    dtype_str2 = out_type.__name__
     if ((im.dtype == np.uint8 and bitdepth == 8) or
        (im.dtype == np.uint16 and bitdepth == 16)):
         # Already the correct format? Return as-is
         return im
-    if (dtype_str.startswith('float') and
+    if (dtype_str1.startswith('float') and
        np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
-        warn('Lossy conversion from {} to {}, range [0, 1]'.format(
-             dtype_str, out_type.__name__))
+        _precision_warn(dtype_str1, dtype_str2, 'Range [0, 1].')
         im = im.astype(np.float64) * (np.power(2.0, bitdepth)-1) + 0.499999999
     elif im.dtype == np.uint16 and bitdepth == 8:
-        warn('Lossy conversion from uint16 to uint8, '
-             'losing 8 bits of resolution')
+        _precision_warn(dtype_str1, dtype_str2, 'Losing 8 bits of resolution.')
         im = np.right_shift(im, 8)
     elif im.dtype == np.uint32:
-        warn('Lossy conversion from uint32 to {}, '
-             'losing {} bits of resolution'.format(out_type.__name__,
-                                                   32-bitdepth))
+        _precision_warn(dtype_str1, dtype_str2,
+                        'Losing {} bits of resolution.'.format(32-bitdepth))
         im = np.right_shift(im, 32-bitdepth)
     elif im.dtype == np.uint64:
-        warn('Lossy conversion from uint64 to {}, '
-             'losing {} bits of resolution'.format(out_type.__name__,
-                                                   64-bitdepth))
+        _precision_warn(dtype_str1, dtype_str2,
+                        'Losing {} bits of resolution.'.format(64-bitdepth,))
         im = np.right_shift(im, 64-bitdepth)
     else:
         mi = np.nanmin(im)
@@ -106,8 +109,8 @@ def image_as_uint(im, bitdepth=None):
             raise ValueError('Maximum image value is not finite')
         if ma == mi:
             raise ValueError('Max value == min value, ambiguous given dtype')
-        warn('Conversion from {} to {}, '
-             'range [{}, {}]'.format(dtype_str, out_type.__name__, mi, ma))
+        _precision_warn(dtype_str1, dtype_str2,
+                        'Range [{}, {}].'.format(mi, ma))
         # Now make float copy before we scale
         im = im.astype('float64')
         # Scale the values between 0 and 1 then multiply by the max value
