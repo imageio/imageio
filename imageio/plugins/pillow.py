@@ -280,7 +280,7 @@ class PNGFormat(PillowFormat):
                 else:
                     scale = float(65536 if im.dtype == np.uint16 else 255)
                     gain = 1.0
-                    im = ((im / scale) ** gamma) * scale * gain
+                    im[:] = ((im / scale) ** gamma) * scale * gain + 0.4999
             return im, info
                     
     # -- 

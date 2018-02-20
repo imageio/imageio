@@ -329,6 +329,15 @@ def test_images_with_transparency():
     assert im.shape == (24, 30, 4)
 
 
+def test_regression_302():
+    # When using gamma correction, the result should keep the same dtype
+    need_internet()
+    
+    fname = get_remote_file('images/kodim03.png')
+    im = imageio.imread(fname)
+    assert im.shape == (512, 768, 3) and im.dtype == 'uint8'
+
+    
 def test_scipy_imread_compat():
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
