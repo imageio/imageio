@@ -487,7 +487,14 @@ def test_util_image_as_uint():
         (np.array([0, 1], 'float64'), 16, np.uint16([0, 65535])),
         (np.array([-1.0, 1.0], 'float16'), 16, np.uint16([0, 65535])),
         (np.array([-1.0, 1.0], 'float32'), 16, np.uint16([0, 65535])),
-        (np.array([-1.0, 1.0], 'float64'), 16, np.uint16([0, 65535])),)
+        (np.array([-1.0, 1.0], 'float64'), 16, np.uint16([0, 65535])),
+        # Rounding
+        (np.array([1.4/255, 1.6/255], 'float32'), 8, np.uint8([1, 2])),
+        (np.array([254.4/255, 254.6/255], 'float32'), 8, np.uint8([254, 255])),
+        (np.array([1.4/65535, 1.6/65535], 'float32'), 16, np.uint16([1, 2])),
+        (np.array([65534.4/65535, 65534.6/65535], 'float32'), 16,
+            np.uint16([65534, 65535])),  # noqa
+        )
 
     for tup in test_arrays:
         res = core.image_as_uint(tup[0], bitdepth=tup[1])

@@ -82,7 +82,7 @@ def image_as_uint(im, bitdepth=None):
        np.nanmin(im) >= 0 and np.nanmax(im) <= 1):
         warn('Lossy conversion from {} to {}, range [0, 1]'.format(
              dtype_str, out_type.__name__))
-        im = im.astype(np.float64) * (np.power(2.0, bitdepth)-1)
+        im = im.astype(np.float64) * (np.power(2.0, bitdepth)-1) + 0.499999999
     elif im.dtype == np.uint16 and bitdepth == 8:
         warn('Lossy conversion from uint16 to uint8, '
              'losing 8 bits of resolution')
@@ -111,7 +111,7 @@ def image_as_uint(im, bitdepth=None):
         # Now make float copy before we scale
         im = im.astype('float64')
         # Scale the values between 0 and 1 then multiply by the max value
-        im = (im - mi) / (ma - mi) * (np.power(2.0, bitdepth)-1)
+        im = (im - mi) / (ma - mi) * (np.power(2.0, bitdepth)-1) + 0.499999999
     assert np.nanmin(im) >= 0
     assert np.nanmax(im) < np.power(2.0, bitdepth)
     return im.astype(out_type)
