@@ -588,7 +588,10 @@ class FormatManager(object):
                     return format
             else:
                 # Maybe the user meant to specify an extension
-                return self['.'+name.lower()]
+                try:
+                    return self['.'+name.lower()]
+                except IndexError:
+                    pass  # Fail using original name below
         
         # Nothing found ...
         raise IndexError('No format known by name %s.' % name)

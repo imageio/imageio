@@ -354,6 +354,10 @@ def test_scipy_imread_compat():
     
     im = imageio.imread('imageio:chelsea.png', as_gray=True)
     assert im.shape == (300, 451) and im.dtype == 'float32'
+    
+    # Force using pillow (but really, Pillow's imageio's first choice! Except
+    # for tiff)
+    im = imageio.imread('imageio:chelsea.png', 'PNG-PIL')
 
 
 if __name__ == '__main__':
