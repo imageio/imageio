@@ -18,7 +18,7 @@ import os
 import sys
 import ctypes
 import threading
-from logging import warn
+from logging import warning as warn
 import numpy
 
 from ..core import (get_remote_file, load_lib, Dict, resource_dirs, 
