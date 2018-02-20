@@ -383,7 +383,7 @@ def pil_try_read(im):
         # this will raise an IOError if the file is not readable
         im.getdata()[0]
     except IOError as e:
-        site = "http://pillow.readthedocs.org/en/latest/installation.html"
+        site = "http://pillow.readthedocs.io/en/latest/installation.html"
         site += "#external-libraries"
         pillow_error_message = str(e)
         error_message = ('Could not load "%s" \n'

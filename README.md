@@ -5,7 +5,7 @@
 [![Build Status](https://ci.appveyor.com/api/projects/status/4wjqg4o5r2q53iwt/branch/master?svg=true)](https://ci.appveyor.com/project/almarklein/imageio/branch/master)
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
-[![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.org)
+[![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.io)
    
 Website: http://imageio.github.io
 
@@ -20,7 +20,7 @@ Python 2.7 and 3.4+, and is easy to install.
 
 <h2>Example</h2>
 Here's a minimal example of how to use imageio. See the docs for 
-<a href='http://imageio.readthedocs.org/en/latest/examples.html'>more examples</a>.
+<a href='http://imageio.readthedocs.io/en/latest/examples.html'>more examples</a>.
 <pre>
 >>> import imageio
 >>> im = imageio.imread('imageio:chelsea.png')  # read a standard image
@@ -37,18 +37,18 @@ As a user, you just have to remember a handfull of functions:
     <li>mimread() and mimwrite() - for image series (animations)</li>
     <li>volread() and volwrite() - for volumetric image data</li>
     <li>get_reader() and get_writer() - for more control (e.g. streaming)</li>
-    <li>See the <a href='http://imageio.readthedocs.org/en/latest/userapi.html'>user api</a> for more information</li>
+    <li>See the <a href='http://imageio.readthedocs.io/en/latest/userapi.html'>user api</a> for more information</li>
 </ul>
 
 
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a consise set of functions.</li>
-    <li>Easy to <a href='http://imageio.readthedocs.org/en/latest/installation.html'>install</a> using conda or pip.</li>    
-    <li>Few dependencies (only Numpy).</li>
+    <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>    
+    <li>Few dependencies (only Numpy and Pillow).</li>
     <li>Pure Python, runs on Python 2.7, 3.4+, and Pypy</li>
     <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>
-    <li>Lots of supported <a href='http://imageio.readthedocs.org/en/latest/formats.html'>formats</a>.</li>
+    <li>Lots of supported <a href='http://imageio.readthedocs.io/en/latest/formats.html'>formats</a>.</li>
     <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
     <li>Easy to extend using plugins.</li>
     <li>Code quality is maintained with many tests and continuous integration.</li>
@@ -68,8 +68,8 @@ a way to download these with one function call, and prompts the user to do
 so when needed. The download is cached in your appdata
 directory, this keeps imageio light and scalable.
 </p><p>
-We plan to provide a wide range of image formats. Also scientific
-formats. Any help in implementing more formats is very welcome!
+Imageio provides a wide range of image formats, including scientific
+formats. Any help with implementing more formats is very welcome!
 </p><p>
 The codebase adheres to (a subset of) the PEP8 style guides. We strive
 for maximum test coverage (100% for the core, >95% for each plugin).
@@ -107,7 +107,7 @@ with one function call:
 Imageio was based out of the frustration that many libraries that needed
 to read or write image data produced their own functionality for IO.
 PIL did not meet the needs very well, and libraries like scikit-image
-need to be able to deal with scientific formats. I felt there was a
+need to be able to deal with scientific formats. There was a
 need for a good image io library, which is an easy dependency, easy to
 maintain, and scalable to exotic file formats.
 </p><p>
@@ -117,13 +117,12 @@ We created a simple but powerful core, a clean user API, and a proper
 plugin system.
 </p><p>
 The purpose of imageio is to support reading and writing of image data.
-We're not processing images, you should use scikit-image for that. Imageio
+We're not processing images, you should use e.g. scikit-image for that. Imageio
 should be easy to install and be lightweight. Imageio's plugin system
 makes it possible to scale the number of supported formats and still
-keep a low footprint.
+keep a small footprint.
 </p><p>
-It is impossible for one person to implement and maintain a wide variety
-of formats. My hope is to form a group of developers, who each maintain
+It is our hope to form a group of developers, whom each maintain
 one or more plugins. In that way, the burder of each developer is low,
 and together we can make imageio into a really useful library!
 </p>
