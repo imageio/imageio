@@ -1,6 +1,9 @@
 Transitioning from Scipy's imread
 =================================
 
+Scipy is `deprecating <https://scipy.github.io/devdocs/release.1.0.0.html#backwards-incompatible-changes>`_
+their image I/O functionality.
+
 This document is intended to help people coming from
 `Scipy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html>`_
 to adapt to Imageio's :func:`imread <imageio.imread>` function.
