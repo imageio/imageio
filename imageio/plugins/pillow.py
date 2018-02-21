@@ -110,7 +110,7 @@ class PillowFormat(Format):
                     return True
     
     class Reader(Format.Reader):
-    
+        
         def _open(self, pilmode=None, as_gray=False):
             Image = self.format._init_pillow()
             try:
@@ -118,7 +118,7 @@ class PillowFormat(Format):
             except KeyError:
                 raise RuntimeError('Format %s cannot read images.' %
                                    self.format.name)
-            self._fp = self.request.get_file()
+            self._fp = self._get_file()
             self._im = factory(self._fp, '')
             if hasattr(Image, '_decompression_bomb_check'):
                 Image._decompression_bomb_check(self._im.size)
@@ -131,9 +131,15 @@ class PillowFormat(Format):
             if hasattr(self._im, 'n_frames'):
                 self._length = self._im.n_frames
         
+        def _get_file(self):
+            self._we_own_fp = False
+            return self.request.get_file()
+        
         def _close(self):
             save_pillow_close(self._im)
-            # request object handled closing the _fp
+            if self._we_own_fp:
+                self._fp.close()
+            # else: request object handles closing the _fp
         
         def _get_length(self):
             return self._length
@@ -390,6 +396,15 @@ class JPEGFormat(PillowFormat):
         def _open(self, pilmode=None, as_gray=False, exifrotate=True):
             return PillowFormat.Reader._open(self,
                                              pilmode=pilmode, as_gray=as_gray)
+        
+        def _get_file(self):
+            # Pillow uses seek for JPG, so we cannot directly stream from web
+            if self.request.filename.startswith(('http://', 'https://')):
+                self._we_own_fp = True
+                return open(self.request.get_local_filename(), 'rb')
+            else:
+                self._we_own_fp = False
+                return self.request.get_file()
         
         def _get_data(self, index):
             im, info = PillowFormat.Reader._get_data(self, index)
