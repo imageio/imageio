@@ -73,7 +73,7 @@ for line in open(initFile).readlines():
         elif docStatus == 1:
             docStatus = 2
     if docStatus == 1:
-        __doc__ += line
+        __doc__ += line.rstrip() + '\n'
 
 # Template for long description. __doc__ gets inserted here
 long_description = """
