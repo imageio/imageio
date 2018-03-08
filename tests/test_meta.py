@@ -143,7 +143,8 @@ def test_import_dependencies():
         else:
             print(modname, mod.__file__)
     
-    # Check that only imageio is left
+    # Check that only imageio is left (Windows needs a little help)
+    extra_modules.difference_update(['pythoncom', 'pywintypes', 'win32com'])
     assert extra_modules == {'imageio'}
 
 
