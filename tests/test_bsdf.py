@@ -24,10 +24,12 @@ def setup_module():
 
 def test_select():
     
-    fname1 = get_remote_file('images/chelsea.bsdf', test_dir)
-    
     F = imageio.formats['bsdf']
     assert F.name == 'BSDF'
+    
+    need_internet()
+    
+    fname1 = get_remote_file('images/chelsea.bsdf', test_dir)
     
     assert F.can_read(core.Request(fname1, 'rI'))
     assert F.can_write(core.Request(fname1, 'wI'))
