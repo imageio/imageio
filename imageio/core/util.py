@@ -50,7 +50,12 @@ def urlopen(*args, **kwargs):
             from urllib.request import urlopen  # Py3k
         except ImportError:
             raise RuntimeError('Could not import urlopen.')
-    return urlopen(*args, **kwargs)
+    if sys.platform == 'darwin':
+        import certifi
+        r = urlopen(*args, **kwargs, cafile=certifi.where())
+    else:
+        r = urlopen(*args, **kwargs)
+    return r
 
 
 def _precision_warn(p1, p2, extra=''):
