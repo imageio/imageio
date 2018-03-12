@@ -96,6 +96,7 @@ from . import freeimagemulti
 from . import ffmpeg
 from . import avbin
 
+from . import bsdf
 from . import dicom
 from . import npz
 from . import swf

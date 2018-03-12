@@ -1,4 +1,4 @@
-""" Test imageio core functionality.
+""" Test DICOM functionality.
 """
 
 import os
