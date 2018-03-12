@@ -183,6 +183,7 @@ def test_volume():
 
 
 def test_from_url():
+    
     need_internet()
     
     im = imageio.imread('https://raw.githubusercontent.com/imageio/' +
