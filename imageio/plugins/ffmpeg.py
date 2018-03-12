@@ -187,10 +187,14 @@ class FfmpegFormat(Format):
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
         reader are always rgb8.
-    ffmpeg_params: list
+    input_params : list
         List additional arguments to ffmpeg for input file options.
+        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
         Example ffmpeg arguments to use aggressive error handling:
         ['-err_detect', 'aggressive']
+    output_params : list
+        List additional arguments to ffmpeg for output file options (i.e. the
+        stream being read by imageio).
     print_info : bool
         Print information about the video file as reported by ffmpeg.
     
@@ -205,7 +209,7 @@ class FfmpegFormat(Format):
     quality : float | None
         Video output quality. Default is 5. Uses variable bit rate. Highest
         quality is 10, lowest is 0. Set to None to prevent variable bitrate
-        flags to FFMPEG so you can manually specify them using ffmpeg_params
+        flags to FFMPEG so you can manually specify them using output_params
         instead. Specifying a fixed bitrate using 'bitrate' disables this
         parameter.
     bitrate : int | None
@@ -217,8 +221,12 @@ class FfmpegFormat(Format):
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
-    ffmpeg_params: list
+    input_params : list
+        List additional arguments to ffmpeg for input file options (i.e. the
+        stream that imageio provides).
+    output_params : list
         List additional arguments to ffmpeg for output file options.
+        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
     ffmpeg_log_level: str
@@ -318,7 +326,8 @@ class FfmpegFormat(Format):
             return device_names
 
         def _open(self, loop=False, size=None, pixelformat=None,
-                  ffmpeg_params=None, print_info=False):
+                  print_info=False, ffmpeg_params=None,
+                  input_params=None, output_params=None):
             # Get exe
             self._exe = self._get_exe()
             # Process input args
@@ -336,7 +345,9 @@ class FfmpegFormat(Format):
             elif not isinstance(pixelformat, string_types):
                 raise ValueError('FFMPEG pixelformat must be str')
             self._arg_pixelformat = pixelformat
-            self._arg_ffmpeg_params = ffmpeg_params if ffmpeg_params else []
+            self._arg_input_params = input_params or []
+            self._arg_output_params = output_params or []
+            self._arg_input_params += ffmpeg_params or []  # backward compat
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -419,8 +430,9 @@ class FfmpegFormat(Format):
                      '-vcodec', 'rawvideo']
             oargs.extend(['-s', self._arg_size] if self._arg_size else [])
             # Create process
-            cmd = [self._exe] + self._arg_ffmpeg_params
-            cmd += iargs + ['-i', self._filename] + oargs + ['-']
+            cmd = [self._exe] + self._arg_input_params
+            cmd += iargs + ['-i', self._filename]
+            cmd += oargs + self._arg_output_params + ['-']
             # For Windows, set `shell=True` in sp.Popen to prevent popup
             # of a command line window in frozen applications.
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -458,8 +470,8 @@ class FfmpegFormat(Format):
                 oargs.extend(['-s', self._arg_size] if self._arg_size else [])
 
                 # Create process
-                cmd = [self._exe] + self._arg_ffmpeg_params
-                cmd += iargs + oargs + ['-']
+                cmd = [self._exe] + self._arg_input_params + iargs
+                cmd += oargs + self._arg_output_params + ['-']
                 # For Windows, set `shell=True` in sp.Popen to prevent popup
                 # of a command line window in frozen applications.
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -632,6 +644,7 @@ class FfmpegFormat(Format):
 
         def _open(self, fps=10, codec='libx264', bitrate=None,
                   pixelformat='yuv420p', ffmpeg_params=None,
+                  input_params=None, output_params=None,
                   ffmpeg_log_level="quiet", quality=5,
                   macro_block_size=16):
             self._exe = self._get_exe()
@@ -714,7 +727,9 @@ class FfmpegFormat(Format):
             quality = self.request.kwargs.get('quality', 5)
             ffmpeg_log_level = self.request.kwargs.get('ffmpeg_log_level',
                                                        'warning')
-            extra_ffmpeg_params = self.request.kwargs.get('ffmpeg_params', [])
+            input_params = self.request.kwargs.get('input_params') or []
+            output_params = self.request.kwargs.get('output_params') or []
+            output_params += self.request.kwargs.get('ffmpeg_params') or []
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
             # the YUV planar color space with 4:2:0 chroma subsampling for
@@ -730,11 +745,12 @@ class FfmpegFormat(Format):
                    "-vcodec", "rawvideo",
                    '-s', sizestr,
                    '-pix_fmt', self._pix_fmt,
-                   '-r', "%.02f" % fps,
-                   '-i', '-', '-an',
-                   '-vcodec', codec,
-                   '-pix_fmt', pixelformat,
-                   ]
+                   '-r', "%.02f" % fps] + input_params
+            cmd += ['-i', '-']
+            cmd += ['-an',
+                    '-vcodec', codec,
+                    '-pix_fmt', pixelformat,
+                    ]
             # Add fixed bitrate or variable bitrate compression flags
             if bitrate is not None:
                 cmd += ['-b:v', str(bitrate)]
@@ -789,7 +805,7 @@ class FfmpegFormat(Format):
                 # output from ffmpeg by default. That way if there are warnings
                 # the user will see them.
                 cmd += ['-v', ffmpeg_log_level]
-            cmd += extra_ffmpeg_params
+            cmd += output_params
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
             if any([level in ffmpeg_log_level for level in
