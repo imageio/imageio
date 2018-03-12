@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # This file is distributed under the terms of the 2-clause BSD License.
-# Copyright (c) 2017, Almar Klein
+# Copyright (c) 2017-2018, Almar Klein
 
 """
 Python implementation of the Binary Structured Data Format (BSDF).
