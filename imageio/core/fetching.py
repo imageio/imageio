@@ -100,7 +100,7 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
     # If we get here, we're going to try to download the file
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
         raise InternetNotAllowedError('Will not download resource from the '
-                                      'internet because enironment variable '
+                                      'internet because environment variable '
                                       'IMAGEIO_NO_INTERNET is set.')
     
     # Can we proceed with auto-download?

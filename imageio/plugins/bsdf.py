@@ -51,12 +51,12 @@ def get_bsdf_serializer(options):
     
     class Image2DExtension(ImageExtension):
     
-        name = 'image2D'
+        name = 'image2d'
         cls = Image2D
     
     class Image3DExtension(ImageExtension):
     
-        name = 'image3D'
+        name = 'image3d'
         cls = Image3D
     
     exts = [NDArrayExtension, Image2DExtension, Image3DExtension]

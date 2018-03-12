@@ -57,6 +57,7 @@ EXAMPLE_IMAGES = {
     'text.png': 'A photograph of handdrawn text',
 
     'chelsea.zip': 'The chelsea.png in a zipfile (for testing)',
+    'chelsea.bsdf': 'The chelsea.png in a BSDF file(for testing)',
     'newtonscradle.gif': 'Animated GIF of a newton\'s cradle',
     'cockatoo.mp4': 'Video file of a cockatoo',
     'stent.npz': 'Volumetric image showing a stented abdominal aorta',
