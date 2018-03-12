@@ -26,6 +26,8 @@ class NpzFormat(Format):
     become unreadable on Python 3. Also, this format is not available
     on Pypy.
     
+    See the BSDF format for a similar (but more fully featured) format.
+    
     Parameters for reading
     ----------------------
     None
