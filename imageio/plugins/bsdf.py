@@ -70,7 +70,7 @@ class Image:
         if not isinstance(self.array, np.ndarray):
             v = self.array
             blob = v['data']
-            if not isinstance(blob, bytes):  #then it's a lazy bsdf.Blob
+            if not isinstance(blob, bytes):  # then it's a lazy bsdf.Blob
                 blob = blob.get_bytes()
             self.array = np.frombuffer(blob, dtype=v['dtype'])
             self.array.shape = v['shape']
@@ -89,26 +89,40 @@ class Image3D(Image):
 
 
 class BsdfFormat(Format):
-    """ The BSDF format enabled reading and writing of image data in the
-    BSDF serialization format. BSDF is a simple binary format that provides
-    a few basic data types, and many more via extensions. There are standard
-    extensions for 2D and 3D image data, which provide support for compression, 
-    multiple data types, and meta data. Read more at http://bsdf.io.
+    """ The BSDF format enables reading and writing of image data in the
+    BSDF serialization format. This format allows storage of images, volumes,
+    and series thereof. Data can be of any numeric data type, and can
+    optionally be compressed. Each image/volume can have associated
+    meta data, which can consist of any data type supported by BSDF.
+    
+    By default, image data is lazily loaded; the actual image data is
+    not read until it is requested. This allows storing multiple images
+    in a single file and still have fast access to individual images.
+    Alternatively, a series of images can be read in streaming mode, reading
+    images as they are read (e.g. from http).
+    
+    BSDF is a simple generic binary format. It is easy to extend and there
+    are standard extension definitions for 2D and 3D image data.
+    Read more at http://bsdf.io.
     
     Parameters for reading
     ----------------------
-    streaming (bool) : whether to read the data in streaming mode. If False,
-        the array data is lazily loaded, allowing fast random access in
-        files containing multiple images. Default False, except when reading
-        from http.
+    random_access : bool
+        Whether individual images in the file can be read in random order.
+        Defaults to True for normal files, and to False when reading from HTTP.
+        If False, the file is read in "streaming mode", allowing reading
+        files as they are read, but without support for "rewinding".
+        Note that setting this to True when reading from HTTP, the whole file
+        is read upon opening it (since lazy loading is not possible over HTTP).
     
     Parameters for saving
     ---------------------
-    compression : ``0`` or "no" for no compression, ``1`` or "zlib" for Zlib
+    compression : {0, 1, 2}
+        Use ``0`` or "no" for no compression, ``1`` or "zlib" for Zlib
         compression (same as zip files and PNG), and ``2`` or "bz2" for Bz2
-        compression (more compact but slower). Default 1.
-        Note that some BSDF implementations (e.g. JavaScript) may not support
-        compression.
+        compression (more compact but slower). Default 1 (zlib).
+        Note that some BSDF implementations may not support compression
+        (e.g. JavaScript).
     
     """
     
@@ -128,7 +142,7 @@ class BsdfFormat(Format):
     
     class Reader(Format.Reader):
     
-        def _open(self, streaming=None):
+        def _open(self, random_access=None):
             # Validate - we need a BSDF file consisting of a list of images
             # The list is typically a stream, but does not have to be.
             assert self.request.firstbytes[:4] == b'BSDF', 'Not a BSDF file'
@@ -147,13 +161,13 @@ class BsdfFormat(Format):
             # lazily load blobs, but we can still load streaming from the web.
             options = {}
             if self.request.filename.startswith(('http://', 'https://')):
+                ra = False if random_access is None else bool(random_access)
                 options['lazy_blob'] = False  # Because we cannot seek now
-                options['load_streaming'] = True  # Load as a stream (image for image)
+                options['load_streaming'] = not ra  # Load as a stream?
             else:
-                options['lazy_blob'] = True  # Don't read array data until we need it
-                options['load_streaming'] = False  # Allow random access
-            if streaming is not None:  # pragma: no cover
-                options['load_streaming'] = bool(streaming)
+                ra = True if random_access is None else bool(random_access)
+                options['lazy_blob'] = ra  # Don't read data until needed
+                options['load_streaming'] = not ra
             
             file = self.request.get_file()
             bsdf, self._serializer = get_bsdf_serializer(options)
@@ -161,7 +175,8 @@ class BsdfFormat(Format):
             # Another validation
             if (isinstance(self._stream, dict) and 'meta' in self._stream and
                                                    'array' in self._stream):
-                self._stream = Image(self._stream['array'], self._stream['meta'])
+                self._stream = Image(self._stream['array'],
+                                     self._stream['meta'])
             if not isinstance(self._stream, (Image, list, bsdf.ListStream)):
                 raise RuntimeError('BSDF file does not look seem to have an '
                                    'image container.')
@@ -181,7 +196,8 @@ class BsdfFormat(Format):
         def _get_data(self, index):
             # Validate
             if index < 0 or index >= self.get_length():
-                raise IndexError('Image index %i not in [0 %i].' % (index, self.get_length()))
+                raise IndexError('Image index %i not in [0 %i].' %
+                                 (index, self.get_length()))
             # Get Image object
             if isinstance(self._stream, Image):
                 image_ob = self._stream  # singleton
@@ -192,7 +208,7 @@ class BsdfFormat(Format):
                 # For streaming, we need to skip over frames
                 if index < self._stream.index:
                     raise IndexError('BSDF file is being read in streaming '
-                                     'mode, and thus does not allow rewinding.')
+                                     'mode, thus does not allow rewinding.')
                 while index > self._stream.index:
                     print('skipping one')
                     self._stream.next()
@@ -261,7 +277,7 @@ class BsdfFormat(Format):
                 ob = Image3D(im, meta)
             # Write directly or to stream
             if self._stream is None:
-                assert not self._written, 'Cannot write to singleton image twice'
+                assert not self._written, 'Cannot write singleton image twice'
                 self._written = True
                 file = self.request.get_file()
                 self._serializer.save(file, ob)
@@ -269,11 +285,12 @@ class BsdfFormat(Format):
                 self._stream.append(ob)
         
         def set_meta_data(self, meta):  # pragma: no cover
-            raise RuntimeError('The BSDF format only supports per-image meta data.')
+            raise RuntimeError('The BSDF format only supports '
+                               'per-image meta data.')
 
 
 format = BsdfFormat('bsdf',  # short name
-                    'Format based on the Binary Structured Data Format.',
+                    'Format based on the Binary Structured Data Format',
                     '.bsdf',
                     'iIvV'
                     )

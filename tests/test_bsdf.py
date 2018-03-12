@@ -5,9 +5,10 @@ import os
 
 import numpy as np
 
-from pytest import raises, skip
+from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 from imageio.core import get_remote_file
+from imageio import core
 
 import imageio
 from imageio.plugins import _bsdf as bsdf
@@ -23,19 +24,21 @@ def setup_module():
 
 def test_select():
     
-    # fname1 = get_remote_file('images/chelsea.bsdf', test_dir)
+    fname1 = get_remote_file('images/chelsea.bsdf', test_dir)
     
     F = imageio.formats['bsdf']
     assert F.name == 'BSDF'
     
-    # assert F.can_read(core.Request(fname1, 'rI'))
-    # assert F.can_write(core.Request(fname1, 'wI'))
-    # assert not F.can_read(core.Request(fname1, 'ri'))
-    # assert not F.can_read(core.Request(fname1, 'rv'))
+    assert F.can_read(core.Request(fname1, 'rI'))
+    assert F.can_write(core.Request(fname1, 'wI'))
+    assert F.can_read(core.Request(fname1, 'ri'))
+    assert F.can_read(core.Request(fname1, 'rv'))
 
     assert imageio.formats['.bsdf'] is F
-    # assert imageio.formats.search_write_format(core.Request(fname1, 'wI')) is F
-    # assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
+    assert imageio.formats.search_write_format(core.Request(fname1, 'wi')) is F
+    assert imageio.formats.search_read_format(core.Request(fname1, 'ri')) is F
+    assert imageio.formats.search_write_format(core.Request(fname1, 'wI')) is F
+    assert imageio.formats.search_read_format(core.Request(fname1, 'rI')) is F
 
 
 def test_not_an_image():
@@ -129,7 +132,7 @@ def test_series_unclosed():
     w = imageio.get_writer(fname)
     for im in ims1:
         w.append_data(im)
-    w._close = lambda:None  # nope, leave stream open
+    w._close = lambda: None  # nope, leave stream open
     w.close()
     
     # read non-streaming, reads all frames on opening (but skips over blobs
@@ -137,14 +140,14 @@ def test_series_unclosed():
     assert r.get_length() == 3  # not np.inf because not streaming
     
     # read streaming and get all
-    r = imageio.get_reader(fname, streaming=True)
+    r = imageio.get_reader(fname, random_access=False)
     assert r.get_length() == np.inf
     #
     ims2 = [im for im in r]
     assert len(ims2) == 3 and all(np.all(ims1[i] == ims2[i]) for i in range(3))
     
     # read streaming and read one
-    r = imageio.get_reader(fname, streaming=True)
+    r = imageio.get_reader(fname, random_access=False)
     assert r.get_length() == np.inf
     #
     assert np.all(ims1[2] == r.get_data(2))
@@ -157,7 +160,6 @@ def test_random_access():
     
     fname = os.path.join(test_dir, 'chelseam.bsdf')
     imageio.mimsave(fname, ims1)
-    
     
     r = imageio.get_reader(fname)
     
@@ -186,7 +188,6 @@ def test_from_url():
     im = imageio.imread('https://raw.githubusercontent.com/imageio/' +
                         'imageio-binaries/master/images/chelsea.bsdf')
     assert im.shape == (300, 451, 3)
-    
     
     r = imageio.get_reader('https://raw.githubusercontent.com/imageio/' +
                            'imageio-binaries/master/images/newtonscradle.bsdf')
