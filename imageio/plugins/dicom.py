@@ -85,8 +85,8 @@ class DicomFormat(Format):
         if os.path.isdir(request.filename):
             files = os.listdir(request.filename)
             for fname in sorted(files):  # Sorting make it consistent
-                filename = os.path.join(request.filename,fname)
-                if os.path.isfile(filename) and not "DICOMDIR" in fname:
+                filename = os.path.join(request.filename, fname)
+                if os.path.isfile(filename) and "DICOMDIR" not in fname:
                     with open(filename, 'rb') as f:
                         first_bytes = read_n_bytes(f, 140)
                     return first_bytes[128:132] == b'DICM'
