@@ -53,12 +53,14 @@ __version__ = '.'.join(str(i) for i in VERSION)
 # From six.py
 PY3 = sys.version_info[0] >= 3
 if PY3:
+    text_type = str
     string_types = str
     unicode_types = str
     integer_types = int
     classtypes = type
 else:  # pragma: no cover
     logging.basicConfig()  # avoid "no handlers found" error
+    text_type = unicode  # noqa
     string_types = basestring  # noqa
     unicode_types = unicode  # noqa
     integer_types = (int, long)  # noqa
@@ -107,7 +109,7 @@ def _isidentifier(s):  # pragma: no cover
     """ Use of str.isidentifier() for Legacy Python, but slower.
     """
     # http://stackoverflow.com/questions/2544972/
-    return (isinstance(s, str) and
+    return (isinstance(s, string_types) and
             re.match(r'^\w+$', s, re.UNICODE) and
             re.match(r'^[0-9]', s) is None)
 
@@ -551,7 +553,7 @@ class ListStream(BaseStream):
             raise IOError('This ListStream in not in read mode.')
         if self._f is None:
             raise IOError('ListStream is not associated with a file yet.')
-        if self._f.closed:
+        if getattr(self._f, 'closed', None):  # not present on 2.7 http req :/
             raise IOError('Cannot read a stream from a close file.')
         if self._count >= 0:
             if self._i >= self._count:
@@ -887,7 +889,7 @@ class NDArrayExtension(Extension):
 
     def encode(self, s, v):
         return dict(shape=v.shape,
-                    dtype=str(v.dtype),
+                    dtype=text_type(v.dtype),
                     data=v.tobytes())
 
     def decode(self, s, v):
