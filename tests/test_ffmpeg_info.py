@@ -120,4 +120,44 @@ def test_get_correct_fps2():
     assert info['fps'] == 29.27
 
 
+def test_overload_fps():
+    
+    # Native
+    r = imageio.get_reader('imageio:cockatoo.mp4')
+    assert len(r) == 280  # native
+    ims = [im for im in r]
+    assert len(ims) == 280
+    # imageio.mimwrite('~/parot280.gif', ims[:30])
+    
+    # Less
+    r = imageio.get_reader('imageio:cockatoo.mp4', fps=8)
+    assert len(r) == 112
+    ims = [im for im in r]
+    assert len(ims) == 112
+    # imageio.mimwrite('~/parot112.gif', ims[:30])
+    
+    # More
+    r = imageio.get_reader('imageio:cockatoo.mp4', fps=24)
+    assert len(r) == 336
+    ims = [im for im in r]
+    assert len(ims) == 336
+    # imageio.mimwrite('~/parot336.gif', ims[:30])
+    
+    # Do we calculate nframes correctly? To be fair, the reader wont try to
+    # read beyond what it thinks how many frames it has. But this at least 
+    # makes sure that this works.
+    for fps in (8.0, 8.02, 8.04, 8.06, 8.08):
+        r = imageio.get_reader('imageio:cockatoo.mp4', fps=fps)
+        n = len(r)
+        i = 0
+        try:
+            while True:
+                r.get_next_data()
+                i += 1
+        except (StopIteration, IndexError):
+            pass
+        # print(r._meta['duration'], r._meta['fps'], r._meta['duration'] * fps, r._meta['nframes'], n)
+        assert i == n
+
+
 run_tests_if_main()

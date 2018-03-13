@@ -174,6 +174,11 @@ class FfmpegFormat(Format):
     
     Parameters for reading
     ----------------------
+    fps : scalar
+        The number of frames per second to read the data at. Default None (i.e.
+        read at the file's own fps). One can use this for files with a
+        variable fps, or in cases where imageio is unable to correctly detect
+        the fps.
     loop : bool
         If True, the video will rewind as soon as a frame is requested
         beyond the last frame. Otherwise, IndexError is raised. Default False.
@@ -309,7 +314,7 @@ class FfmpegFormat(Format):
 
         def _open(self, loop=False, size=None, pixelformat=None,
                   print_info=False, ffmpeg_params=None,
-                  input_params=None, output_params=None):
+                  input_params=None, output_params=None, fps=None):
             # Get exe
             self._exe = self._get_exe()
             # Process input args
@@ -411,6 +416,9 @@ class FfmpegFormat(Format):
                      '-pix_fmt', self._pix_fmt,
                      '-vcodec', 'rawvideo']
             oargs.extend(['-s', self._arg_size] if self._arg_size else [])
+            if self.request.kwargs.get('fps', None):
+                fps = float(self.request.kwargs['fps'])
+                oargs += ['-r', "%.02f" % fps]
             # Create process
             cmd = [self._exe] + self._arg_input_params
             cmd += iargs + ['-i', self._filename]
@@ -441,16 +449,18 @@ class FfmpegFormat(Format):
                 # Also appears this epsilon below is needed to ensure frame
                 # accurate seeking in some cases
                 epsilon = -1/self._meta['fps']*0.1
-                iargs = ['-ss', "%.06f" % (starttime+epsilon),
-                         '-i', self._filename,
-                         ]
+                iargs = ['-ss', "%.06f" % (starttime+epsilon)]
+                iargs += ['-i', self._filename]
 
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
                          '-pix_fmt', self._pix_fmt,
                          '-vcodec', 'rawvideo']
                 oargs.extend(['-s', self._arg_size] if self._arg_size else [])
-
+                if self.request.kwargs.get('fps', None):
+                    fps = float(self.request.kwargs['fps'])
+                    oargs += ['-r', "%.02f" % fps]
+                
                 # Create process
                 cmd = [self._exe] + self._arg_input_params + iargs
                 cmd += oargs + self._arg_output_params + ['-']
@@ -525,7 +535,17 @@ class FfmpegFormat(Format):
             
             # Go!
             self._meta.update(parse_ffmpeg_info(lines))
-
+            
+            # Update with fps with user-value?
+            if self.request.kwargs.get('fps', None):
+                self._meta['fps'] = float(self.request.kwargs['fps'])
+            
+            # Estimate nframes
+            self._meta['nframes'] = np.inf
+            if self._meta['fps'] > 0 and 'duration' in self._meta:
+                n = int(round(self._meta['duration'] * self._meta['fps']))
+                self._meta['nframes'] = n
+        
         def _read_frame_data(self):
             # Init and check
             w, h = self._meta['size']
@@ -982,9 +1002,7 @@ def parse_ffmpeg_info(text):
                       line)
     if match is not None:
         hms = map(float, line[match.start()+1:match.end()].split(':'))
-        meta['duration'] = duration = cvsecs(*hms)
-        if fps:
-            meta['nframes'] = int(round(duration*fps))
+        meta['duration'] = cvsecs(*hms)
     
     return meta
 
