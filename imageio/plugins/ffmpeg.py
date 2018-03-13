@@ -174,6 +174,11 @@ class FfmpegFormat(Format):
     
     Parameters for reading
     ----------------------
+    fps : scalar
+        The number of frames per second to read the data at. Default None (i.e.
+        read at the file's own fps). One can use this for files with a
+        variable fps, or in cases where imageio is unable to correctly detect
+        the fps.
     loop : bool
         If True, the video will rewind as soon as a frame is requested
         beyond the last frame. Otherwise, IndexError is raised. Default False.
@@ -187,10 +192,14 @@ class FfmpegFormat(Format):
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
         reader are always rgb8.
-    ffmpeg_params: list
+    input_params : list
         List additional arguments to ffmpeg for input file options.
+        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
         Example ffmpeg arguments to use aggressive error handling:
         ['-err_detect', 'aggressive']
+    output_params : list
+        List additional arguments to ffmpeg for output file options (i.e. the
+        stream being read by imageio).
     print_info : bool
         Print information about the video file as reported by ffmpeg.
     
@@ -205,7 +214,7 @@ class FfmpegFormat(Format):
     quality : float | None
         Video output quality. Default is 5. Uses variable bit rate. Highest
         quality is 10, lowest is 0. Set to None to prevent variable bitrate
-        flags to FFMPEG so you can manually specify them using ffmpeg_params
+        flags to FFMPEG so you can manually specify them using output_params
         instead. Specifying a fixed bitrate using 'bitrate' disables this
         parameter.
     bitrate : int | None
@@ -217,8 +226,12 @@ class FfmpegFormat(Format):
     pixelformat: str
         The output video pixel format. Default is 'yuv420p' which most widely
         supported by video players.
-    ffmpeg_params: list
+    input_params : list
+        List additional arguments to ffmpeg for input file options (i.e. the
+        stream that imageio provides).
+    output_params : list
         List additional arguments to ffmpeg for output file options.
+        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
         Example ffmpeg arguments to use only intra frames and set aspect ratio:
         ['-intra', '-aspect', '16:9']
     ffmpeg_log_level: str
@@ -285,7 +298,7 @@ class FfmpegFormat(Format):
                 infos = proc.stderr.read().decode('utf-8')
                 # Return device name at index
                 try:
-                    name = self._parse_device_names(infos)[index]
+                    name = parse_device_names(infos)[index]
                 except IndexError:
                     raise IndexError('No ffdshow camera at index %i.' % index)
                 return 'video=%s' % name
@@ -299,26 +312,9 @@ class FfmpegFormat(Format):
             else:  # pragma: no cover
                 return '??'
 
-        @staticmethod
-        def _parse_device_names(ffmpeg_output):
-            """ Parse the output of the ffmpeg -list-devices command"""
-            device_names = []
-            in_video_devices = False
-            for line in ffmpeg_output.splitlines():
-                if line.startswith('[dshow'):
-                    logging.debug(line)
-                    line = line.split(']', 1)[1].strip()
-                    if in_video_devices and line.startswith('"'):
-                        device_names.append(line[1:-1])
-                    elif 'video devices' in line:
-                        in_video_devices = True
-                    elif 'devices' in line:
-                        # set False for subsequent "devices" sections
-                        in_video_devices = False
-            return device_names
-
         def _open(self, loop=False, size=None, pixelformat=None,
-                  ffmpeg_params=None, print_info=False):
+                  print_info=False, ffmpeg_params=None,
+                  input_params=None, output_params=None, fps=None):
             # Get exe
             self._exe = self._get_exe()
             # Process input args
@@ -336,7 +332,9 @@ class FfmpegFormat(Format):
             elif not isinstance(pixelformat, string_types):
                 raise ValueError('FFMPEG pixelformat must be str')
             self._arg_pixelformat = pixelformat
-            self._arg_ffmpeg_params = ffmpeg_params if ffmpeg_params else []
+            self._arg_input_params = input_params or []
+            self._arg_output_params = output_params or []
+            self._arg_input_params += ffmpeg_params or []  # backward compat
             # Write "_video"_arg
             self.request._video = None
             if self.request.filename in ['<video%i>' % i for i in range(10)]:
@@ -418,9 +416,13 @@ class FfmpegFormat(Format):
                      '-pix_fmt', self._pix_fmt,
                      '-vcodec', 'rawvideo']
             oargs.extend(['-s', self._arg_size] if self._arg_size else [])
+            if self.request.kwargs.get('fps', None):
+                fps = float(self.request.kwargs['fps'])
+                oargs += ['-r', "%.02f" % fps]
             # Create process
-            cmd = [self._exe] + self._arg_ffmpeg_params
-            cmd += iargs + ['-i', self._filename] + oargs + ['-']
+            cmd = [self._exe] + self._arg_input_params
+            cmd += iargs + ['-i', self._filename]
+            cmd += oargs + self._arg_output_params + ['-']
             # For Windows, set `shell=True` in sp.Popen to prevent popup
             # of a command line window in frozen applications.
             self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -447,19 +449,21 @@ class FfmpegFormat(Format):
                 # Also appears this epsilon below is needed to ensure frame
                 # accurate seeking in some cases
                 epsilon = -1/self._meta['fps']*0.1
-                iargs = ['-ss', "%.06f" % (starttime+epsilon),
-                         '-i', self._filename,
-                         ]
+                iargs = ['-ss', "%.06f" % (starttime+epsilon)]
+                iargs += ['-i', self._filename]
 
                 # Output args, for writing to pipe
                 oargs = ['-f', 'image2pipe',
                          '-pix_fmt', self._pix_fmt,
                          '-vcodec', 'rawvideo']
                 oargs.extend(['-s', self._arg_size] if self._arg_size else [])
-
+                if self.request.kwargs.get('fps', None):
+                    fps = float(self.request.kwargs['fps'])
+                    oargs += ['-r', "%.02f" % fps]
+                
                 # Create process
-                cmd = [self._exe] + self._arg_ffmpeg_params
-                cmd += iargs + oargs + ['-']
+                cmd = [self._exe] + self._arg_input_params + iargs
+                cmd += oargs + self._arg_output_params + ['-']
                 # For Windows, set `shell=True` in sp.Popen to prevent popup
                 # of a command line window in frozen applications.
                 self._proc = sp.Popen(cmd, stdin=sp.PIPE,
@@ -481,7 +485,7 @@ class FfmpegFormat(Format):
             # Using kill since self._proc.terminate() does not seem
             # to work for ffmpeg, leaves processes hanging
             self._proc.kill()
-
+            
             # Tell threads to stop when they have a chance. They are probably
             # blocked on reading from their file, but let's play it safe.
             if self._stderr_catcher:
@@ -528,51 +532,20 @@ class FfmpegFormat(Format):
                     raise IOError("Could not open steam %s." % self._filename)
                 else:  # pragma: no cover - this is checked by Request
                     raise IOError("%s not found! Wrong path?" % self._filename)
-
-            # Get version
-            ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
-            self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
-
-            # get the output line that speaks about video
-            videolines = [l for l in lines if l.lstrip().startswith('Stream ')
-                          and ' Video: ' in l]
-            line = videolines[0]
             
-            # get the frame rate
-            matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
-            fps = 0
-            if matches:  # Can be empty, see #171, assume nframes = inf
-                fps = float(matches[0][0].strip())
-            self._meta['fps'] = fps
-
-            # get the size of the original stream, of the form 460x320 (w x h)
-            match = re.search(" [0-9]*x[0-9]*(,| )", line)
-            parts = line[match.start():match.end()-1].split('x')
-            self._meta['source_size'] = tuple(map(int, parts))
-
-            # get the size of what we receive, of the form 460x320 (w x h)
-            line = videolines[-1]  # Pipe output
-            match = re.search(" [0-9]*x[0-9]*(,| )", line)
-            parts = line[match.start():match.end()-1].split('x')
-            self._meta['size'] = tuple(map(int, parts))
-
-            # Check the two sizes
-            if self._meta['source_size'] != self._meta['size']:
-                logging.warning('Warning: the frame size for reading %s is '
-                                'different from the source frame size %s.' %
-                                (self._meta['size'],
-                                 self._meta['source_size']))
-
-            # get duration (in seconds)
-            line = [l for l in lines if 'Duration: ' in l][0]
-            match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",
-                              line)
-            if match is not None:
-                hms = map(float, line[match.start()+1:match.end()].split(':'))
-                self._meta['duration'] = duration = cvsecs(*hms)
-                if fps:
-                    self._meta['nframes'] = int(round(duration*fps))
-
+            # Go!
+            self._meta.update(parse_ffmpeg_info(lines))
+            
+            # Update with fps with user-value?
+            if self.request.kwargs.get('fps', None):
+                self._meta['fps'] = float(self.request.kwargs['fps'])
+            
+            # Estimate nframes
+            self._meta['nframes'] = np.inf
+            if self._meta['fps'] > 0 and 'duration' in self._meta:
+                n = int(round(self._meta['duration'] * self._meta['fps']))
+                self._meta['nframes'] = n
+        
         def _read_frame_data(self):
             # Init and check
             w, h = self._meta['size']
@@ -632,6 +605,7 @@ class FfmpegFormat(Format):
 
         def _open(self, fps=10, codec='libx264', bitrate=None,
                   pixelformat='yuv420p', ffmpeg_params=None,
+                  input_params=None, output_params=None,
                   ffmpeg_log_level="quiet", quality=5,
                   macro_block_size=16):
             self._exe = self._get_exe()
@@ -714,7 +688,9 @@ class FfmpegFormat(Format):
             quality = self.request.kwargs.get('quality', 5)
             ffmpeg_log_level = self.request.kwargs.get('ffmpeg_log_level',
                                                        'warning')
-            extra_ffmpeg_params = self.request.kwargs.get('ffmpeg_params', [])
+            input_params = self.request.kwargs.get('input_params') or []
+            output_params = self.request.kwargs.get('output_params') or []
+            output_params += self.request.kwargs.get('ffmpeg_params') or []
             # You may need to use -pix_fmt yuv420p for your output to work in
             # QuickTime and most other players. These players only supports
             # the YUV planar color space with 4:2:0 chroma subsampling for
@@ -730,11 +706,12 @@ class FfmpegFormat(Format):
                    "-vcodec", "rawvideo",
                    '-s', sizestr,
                    '-pix_fmt', self._pix_fmt,
-                   '-r', "%.02f" % fps,
-                   '-i', '-', '-an',
-                   '-vcodec', codec,
-                   '-pix_fmt', pixelformat,
-                   ]
+                   '-r', "%.02f" % fps] + input_params
+            cmd += ['-i', '-']
+            cmd += ['-an',
+                    '-vcodec', codec,
+                    '-pix_fmt', pixelformat,
+                    ]
             # Add fixed bitrate or variable bitrate compression flags
             if bitrate is not None:
                 cmd += ['-b:v', str(bitrate)]
@@ -789,7 +766,7 @@ class FfmpegFormat(Format):
                 # output from ffmpeg by default. That way if there are warnings
                 # the user will see them.
                 cmd += ['-v', ffmpeg_log_level]
-            cmd += extra_ffmpeg_params
+            cmd += output_params
             cmd.append(self._filename)
             self._cmd = " ".join(cmd)  # For showing command if needed
             if any([level in ffmpeg_log_level for level in
@@ -954,6 +931,80 @@ class StreamCatcher(threading.Thread):
                     self._header += header.decode('utf-8', 'ignore')
             elif self._lines:
                 self._lines = limit_lines_local(self._lines)
+
+
+def parse_device_names(ffmpeg_output):
+    """ Parse the output of the ffmpeg -list-devices command"""
+    device_names = []
+    in_video_devices = False
+    for line in ffmpeg_output.splitlines():
+        if line.startswith('[dshow'):
+            logging.debug(line)
+            line = line.split(']', 1)[1].strip()
+            if in_video_devices and line.startswith('"'):
+                device_names.append(line[1:-1])
+            elif 'video devices' in line:
+                in_video_devices = True
+            elif 'devices' in line:
+                # set False for subsequent "devices" sections
+                in_video_devices = False
+    return device_names
+
+
+def parse_ffmpeg_info(text):
+    meta = {}
+    
+    if isinstance(text, list):
+        lines = text
+    else:
+        lines = text.splitlines()
+    
+    # Get version
+    ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
+    meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
+
+    # get the output line that speaks about video
+    videolines = [l for l in lines if l.lstrip().startswith('Stream ')
+                  and ' Video: ' in l]
+    line = videolines[0]
+    
+    # get the frame rate.
+    # matches can be empty, see #171, assume nframes = inf
+    # the regexp omits values of "1k tbr" which seems a specific edge-case #262
+    # it seems that tbr is generally to be preferred #262
+    matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
+    fps = 0
+    matches.sort(key=lambda x: x[1] == 'tbr', reverse=True)
+    if matches:
+        fps = float(matches[0][0].strip())
+    meta['fps'] = fps
+
+    # get the size of the original stream, of the form 460x320 (w x h)
+    match = re.search(" [0-9]*x[0-9]*(,| )", line)
+    parts = line[match.start():match.end()-1].split('x')
+    meta['source_size'] = tuple(map(int, parts))
+
+    # get the size of what we receive, of the form 460x320 (w x h)
+    line = videolines[-1]  # Pipe output
+    match = re.search(" [0-9]*x[0-9]*(,| )", line)
+    parts = line[match.start():match.end()-1].split('x')
+    meta['size'] = tuple(map(int, parts))
+
+    # Check the two sizes
+    if meta['source_size'] != meta['size']:
+        logging.warning('Warning: the frame size for reading %s is '
+                        'different from the source frame size %s.' %
+                        (meta['size'], meta['source_size']))
+
+    # get duration (in seconds)
+    line = [l for l in lines if 'Duration: ' in l][0]
+    match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",
+                      line)
+    if match is not None:
+        hms = map(float, line[match.start()+1:match.end()].split(':'))
+        meta['duration'] = cvsecs(*hms)
+    
+    return meta
 
 
 def get_output_video_line(lines):
