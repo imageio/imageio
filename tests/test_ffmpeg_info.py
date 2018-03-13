@@ -122,6 +122,8 @@ def test_get_correct_fps2():
 
 def test_overload_fps():
     
+    need_internet()
+    
     # Native
     r = imageio.get_reader('imageio:cockatoo.mp4')
     assert len(r) == 280  # native
