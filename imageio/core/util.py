@@ -14,7 +14,6 @@ import struct
 import sys
 import time
 from logging import warning as warn
-import ssl
 
 # Make pkg_resources optional if setuptools is not available
 try:
@@ -44,7 +43,7 @@ if sys.platform == 'darwin':
         import certifi
         cafile = certifi.where()
     except ImportError:
-        print("WARNING: certifi not found and strongly recommended on MacOS."
+        warn("certifi package not found and strongly recommended on MacOS."
               " If you have SSL errors then do pip install certifi")
 
 
