@@ -14,6 +14,7 @@ import struct
 import sys
 import time
 from logging import warning as warn
+import ssl
 
 # Make pkg_resources optional if setuptools is not available
 try:
@@ -37,6 +38,15 @@ else:  # pragma: no cover
     text_type = unicode  # noqa
     binary_type = str
 
+cafile = None  # on mac try to upgrade this using certifi package
+if sys.platform == 'darwin':
+    try:
+        import certifi
+        cafile = certifi.where()
+    except ImportError:
+        print("WARNING: certifi not found and strongly recommended on MacOS."
+              " If you have SSL errors then do pip install certifi")
+
 
 def urlopen(*args, **kwargs):
     """ Compatibility function for the urlopen function. Raises an
@@ -50,12 +60,7 @@ def urlopen(*args, **kwargs):
             from urllib.request import urlopen  # Py3k
         except ImportError:
             raise RuntimeError('Could not import urlopen.')
-    if sys.platform == 'darwin':
-        import certifi
-        r = urlopen(*args, **kwargs, cafile=certifi.where())
-    else:
-        r = urlopen(*args, **kwargs)
-    return r
+    return urlopen(cafile=cafile, *args, **kwargs)
 
 
 def _precision_warn(p1, p2, extra=''):
