@@ -58,6 +58,12 @@ def test_read_empty_dir():
     assert imageio.formats.search_read_format(request) is None
     
 
+def test_dcmtk():
+    # This should not crach, we make no assumptions on whether its
+    # available or not
+    imageio.plugins.dicom.get_dcmdjpeg_exe()
+
+
 def test_selection():
     
     dname1, dname2, fname1, fname2 = _prepare()

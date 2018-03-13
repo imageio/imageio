@@ -293,7 +293,7 @@ class FfmpegFormat(Format):
                 infos = proc.stderr.read().decode('utf-8')
                 # Return device name at index
                 try:
-                    name = self._parse_device_names(infos)[index]
+                    name = parse_device_names(infos)[index]
                 except IndexError:
                     raise IndexError('No ffdshow camera at index %i.' % index)
                 return 'video=%s' % name
@@ -306,24 +306,6 @@ class FfmpegFormat(Format):
 
             else:  # pragma: no cover
                 return '??'
-
-        @staticmethod
-        def _parse_device_names(ffmpeg_output):
-            """ Parse the output of the ffmpeg -list-devices command"""
-            device_names = []
-            in_video_devices = False
-            for line in ffmpeg_output.splitlines():
-                if line.startswith('[dshow'):
-                    logging.debug(line)
-                    line = line.split(']', 1)[1].strip()
-                    if in_video_devices and line.startswith('"'):
-                        device_names.append(line[1:-1])
-                    elif 'video devices' in line:
-                        in_video_devices = True
-                    elif 'devices' in line:
-                        # set False for subsequent "devices" sections
-                        in_video_devices = False
-            return device_names
 
         def _open(self, loop=False, size=None, pixelformat=None,
                   print_info=False, ffmpeg_params=None,
@@ -493,7 +475,7 @@ class FfmpegFormat(Format):
             # Using kill since self._proc.terminate() does not seem
             # to work for ffmpeg, leaves processes hanging
             self._proc.kill()
-
+            
             # Tell threads to stop when they have a chance. They are probably
             # blocked on reading from their file, but let's play it safe.
             if self._stderr_catcher:
@@ -540,50 +522,9 @@ class FfmpegFormat(Format):
                     raise IOError("Could not open steam %s." % self._filename)
                 else:  # pragma: no cover - this is checked by Request
                     raise IOError("%s not found! Wrong path?" % self._filename)
-
-            # Get version
-            ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
-            self._meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
-
-            # get the output line that speaks about video
-            videolines = [l for l in lines if l.lstrip().startswith('Stream ')
-                          and ' Video: ' in l]
-            line = videolines[0]
             
-            # get the frame rate
-            matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
-            fps = 0
-            if matches:  # Can be empty, see #171, assume nframes = inf
-                fps = float(matches[0][0].strip())
-            self._meta['fps'] = fps
-
-            # get the size of the original stream, of the form 460x320 (w x h)
-            match = re.search(" [0-9]*x[0-9]*(,| )", line)
-            parts = line[match.start():match.end()-1].split('x')
-            self._meta['source_size'] = tuple(map(int, parts))
-
-            # get the size of what we receive, of the form 460x320 (w x h)
-            line = videolines[-1]  # Pipe output
-            match = re.search(" [0-9]*x[0-9]*(,| )", line)
-            parts = line[match.start():match.end()-1].split('x')
-            self._meta['size'] = tuple(map(int, parts))
-
-            # Check the two sizes
-            if self._meta['source_size'] != self._meta['size']:
-                logging.warning('Warning: the frame size for reading %s is '
-                                'different from the source frame size %s.' %
-                                (self._meta['size'],
-                                 self._meta['source_size']))
-
-            # get duration (in seconds)
-            line = [l for l in lines if 'Duration: ' in l][0]
-            match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",
-                              line)
-            if match is not None:
-                hms = map(float, line[match.start()+1:match.end()].split(':'))
-                self._meta['duration'] = duration = cvsecs(*hms)
-                if fps:
-                    self._meta['nframes'] = int(round(duration*fps))
+            # Go!
+            self._meta.update(parse_ffmpeg_info(lines))
 
         def _read_frame_data(self):
             # Init and check
@@ -970,6 +911,78 @@ class StreamCatcher(threading.Thread):
                     self._header += header.decode('utf-8', 'ignore')
             elif self._lines:
                 self._lines = limit_lines_local(self._lines)
+
+
+def parse_device_names(ffmpeg_output):
+    """ Parse the output of the ffmpeg -list-devices command"""
+    device_names = []
+    in_video_devices = False
+    for line in ffmpeg_output.splitlines():
+        if line.startswith('[dshow'):
+            logging.debug(line)
+            line = line.split(']', 1)[1].strip()
+            if in_video_devices and line.startswith('"'):
+                device_names.append(line[1:-1])
+            elif 'video devices' in line:
+                in_video_devices = True
+            elif 'devices' in line:
+                # set False for subsequent "devices" sections
+                in_video_devices = False
+    return device_names
+
+
+def parse_ffmpeg_info(text):
+    meta = {}
+    
+    if isinstance(text, list):
+        lines = text
+    else:
+        lines = text.splitlines()
+    
+    # Get version
+    ver = lines[0].split('version', 1)[-1].split('Copyright')[0]
+    meta['ffmpeg_version'] = ver.strip() + ' ' + lines[1].strip()
+
+    # get the output line that speaks about video
+    videolines = [l for l in lines if l.lstrip().startswith('Stream ')
+                  and ' Video: ' in l]
+    line = videolines[0]
+    
+    # get the frame rate
+    matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
+    fps = 0
+    if matches:  # Can be empty, see #171, assume nframes = inf
+        fps = float(matches[0][0].strip())
+    meta['fps'] = fps
+
+    # get the size of the original stream, of the form 460x320 (w x h)
+    match = re.search(" [0-9]*x[0-9]*(,| )", line)
+    parts = line[match.start():match.end()-1].split('x')
+    meta['source_size'] = tuple(map(int, parts))
+
+    # get the size of what we receive, of the form 460x320 (w x h)
+    line = videolines[-1]  # Pipe output
+    match = re.search(" [0-9]*x[0-9]*(,| )", line)
+    parts = line[match.start():match.end()-1].split('x')
+    meta['size'] = tuple(map(int, parts))
+
+    # Check the two sizes
+    if meta['source_size'] != meta['size']:
+        logging.warning('Warning: the frame size for reading %s is '
+                        'different from the source frame size %s.' %
+                        (meta['size'], meta['source_size']))
+
+    # get duration (in seconds)
+    line = [l for l in lines if 'Duration: ' in l][0]
+    match = re.search(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9]",
+                      line)
+    if match is not None:
+        hms = map(float, line[match.start()+1:match.end()].split(':'))
+        meta['duration'] = duration = cvsecs(*hms)
+        if fps:
+            meta['nframes'] = int(round(duration*fps))
+    
+    return meta
 
 
 def get_output_video_line(lines):
