@@ -2,7 +2,7 @@
 """ Tests specific to parsing ffmpeg info.
 """
 
-from imageio.testing import run_tests_if_main
+from imageio.testing import run_tests_if_main, need_internet
 
 import imageio
 
