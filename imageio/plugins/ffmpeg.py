@@ -948,10 +948,14 @@ def parse_ffmpeg_info(text):
                   and ' Video: ' in l]
     line = videolines[0]
     
-    # get the frame rate
+    # get the frame rate.
+    # matches can be empty, see #171, assume nframes = inf
+    # the regexp omits values of "1k tbr" which seems a specific edge-case #262
+    # it seems that tbr is generally to be preferred #262
     matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
     fps = 0
-    if matches:  # Can be empty, see #171, assume nframes = inf
+    matches.sort(key=lambda x: x[1] == 'tbr', reverse=True)
+    if matches:
         fps = float(matches[0][0].strip())
     meta['fps'] = fps
 
