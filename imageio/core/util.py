@@ -44,7 +44,7 @@ if sys.platform == 'darwin':
         cafile = certifi.where()
     except ImportError:
         warn("certifi package not found and strongly recommended on MacOS."
-              " If you have SSL errors then do pip install certifi")
+             " If you have SSL errors then do pip install certifi")
 
 
 def urlopen(*args, **kwargs):
