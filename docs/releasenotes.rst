@@ -3,7 +3,7 @@ Release notes
 -------------
 
 
-Version 2.3.0 (1?-03-2018)
+Version 2.3.0 (20-03-2018)
 ==========================
 
 * Console entry points for binary downloads (by Paul Mueller).
@@ -13,7 +13,7 @@ Version 2.3.0 (1?-03-2018)
 * Fix rounding of float data.
 * New Lytro plugin (by Maximilian Schambach).
 * New plugin based on BSDF format (for images/volumes and series thereof,
-  including support for random access and streaming.
+  including support for random access and streaming).
 * TIFFFILE update to latest ``tifffile.py`` implementation.
 * DICOM fix that could fail in the presence of a directory.
 * PILLOW improvements to API to provide same functionality as Scipy's ``imread()``.
