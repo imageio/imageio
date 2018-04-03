@@ -19,8 +19,8 @@ _tifffile = None  # Defer loading to lib() function.
 def load_lib():
     if sys.version_info < (3, ):
         try:
-            import enum  # needs enum34
-            import concurrent.futures  # needs futures
+            import enum  # noqa - needs enum34
+            import concurrent.futures  # noqa - needs futures
         except ImportError:
             raise ImportError('The Imageio TIFF format has extra dependencies '
                               'on Python 2.7. Install these using e.g. '
