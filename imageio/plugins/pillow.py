@@ -77,8 +77,8 @@ class PillowFormat(Format):
             if not self._pillow_imported:
                 self._pillow_imported = True  # more like tried to import
                 import PIL
-                if not hasattr(PIL, 'PILLOW_VERSION'):  # pragma: no cover
-                    raise ImportError('Imageio Pillow requires '
+                if not hasattr(PIL, '__version__'):  # pragma: no cover
+                    raise ImportError('Imageio Pillow plugin requires '
                                       'Pillow, not PIL!')
                 from PIL import Image
                 self._Image = Image
