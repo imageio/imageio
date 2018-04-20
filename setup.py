@@ -39,7 +39,7 @@ import shutil
 from distutils.core import Command
 from distutils.command.sdist import sdist
 from distutils.command.build_py import build_py
-
+from itertools import chain
 
 try:
     from setuptools import setup  # Supports wheels
@@ -186,6 +186,13 @@ class build_with_images(sdist):
         sdist.run(self)
 
 
+extras_require = {
+    'fits': ['astropy'],
+    'gdal': ['gdal'],
+    'simpleitk': ['SimpleITK'],
+}
+extras_require['full'] = sorted(set(chain.from_iterable(extras_require.values())))
+
 setup(
     cmdclass={#'bdist_wheel_all': bdist_wheel_all,
               #'sdist_all': sdist_all,
@@ -209,13 +216,13 @@ setup(
     platforms = 'any',
     provides = ['imageio'],
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
-    install_requires = ['numpy', 'pillow'],
-    extras_require = {'fits': ['astropy'],
-                      'gdal': ['gdal'],
-                      'simpleitk': ['SimpleITK'],
-                      'full': ['astropy', 'gdal', 'SimpleITK'],
-                      },
-    
+    install_requires = [
+        'numpy',
+        'pillow',
+        'enum34; python_version < "3.4"',
+        'futures; python_version < "3.2"'
+    ],
+    extras_require = extras_require,
     packages = ['imageio', 'imageio.core', 'imageio.plugins'],
     package_dir = {'imageio': 'imageio'}, 
     
