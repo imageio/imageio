@@ -187,11 +187,15 @@ class FfmpegFormat(Format):
         (100, 100) or "640x480". For camera streams, this allows setting
         the capture resolution. For normal video data, ffmpeg will
         rescale the data.
+    dtype : str | type
+        The dtype for the output arrays. Determines the bit-depth that
+        is requested from ffmpeg. Supported dtypes: uint8, uint16.
+        Default: uint8.
     pixelformat : str
         The pixel format for the camera to use (e.g. "yuyv422" or
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
-        reader are always rgb8.
+        reader are always RGB.
     input_params : list
         List additional arguments to ffmpeg for input file options.
         (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
