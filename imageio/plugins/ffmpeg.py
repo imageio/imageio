@@ -341,7 +341,8 @@ class FfmpegFormat(Format):
                 self._dtype = np.dtype(dtype)
                 allowed_dtypes = ['uint8', 'uint16']
                 if self._dtype.name not in allowed_dtypes:
-                    raise ValueError('dtype must be one of: {}'.format(', '.join(allowed_dtypes)))
+                    raise ValueError('dtype must be one of: {}'.format(
+                        ', '.join(allowed_dtypes)))
             self._arg_pixelformat = pixelformat
             self._arg_input_params = input_params or []
             self._arg_output_params = output_params or []
