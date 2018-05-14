@@ -187,11 +187,15 @@ class FfmpegFormat(Format):
         (100, 100) or "640x480". For camera streams, this allows setting
         the capture resolution. For normal video data, ffmpeg will
         rescale the data.
+    dtype : str | type
+        The dtype for the output arrays. Determines the bit-depth that
+        is requested from ffmpeg. Supported dtypes: uint8, uint16.
+        Default: uint8.
     pixelformat : str
         The pixel format for the camera to use (e.g. "yuyv422" or
         "gray"). The camera needs to support the format in order for
         this to take effect. Note that the images produced by this
-        reader are always rgb8.
+        reader are always RGB.
     input_params : list
         List additional arguments to ffmpeg for input file options.
         (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
@@ -312,7 +316,7 @@ class FfmpegFormat(Format):
             else:  # pragma: no cover
                 return '??'
 
-        def _open(self, loop=False, size=None, pixelformat=None,
+        def _open(self, loop=False, size=None, dtype=None, pixelformat=None,
                   print_info=False, ffmpeg_params=None,
                   input_params=None, output_params=None, fps=None):
             # Get exe
@@ -331,6 +335,14 @@ class FfmpegFormat(Format):
                 pass
             elif not isinstance(pixelformat, string_types):
                 raise ValueError('FFMPEG pixelformat must be str')
+            if dtype is None:
+                self._dtype = np.dtype('uint8')
+            else:
+                self._dtype = np.dtype(dtype)
+                allowed_dtypes = ['uint8', 'uint16']
+                if self._dtype.name not in allowed_dtypes:
+                    raise ValueError('dtype must be one of: {}'.format(
+                        ', '.join(allowed_dtypes)))
             self._arg_pixelformat = pixelformat
             self._arg_input_params = input_params or []
             self._arg_output_params = output_params or []
@@ -346,8 +358,13 @@ class FfmpegFormat(Format):
             else:
                 self._filename = self.request.get_local_filename()
             # Determine pixel format and depth
-            self._pix_fmt = 'rgb24'
-            self._depth = 4 if self._pix_fmt == "rgba" else 3
+            self._depth = 3
+            if self._dtype.name == 'uint8':
+                self._pix_fmt = 'rgb24'
+                self._bytes_per_channel = 1
+            else:
+                self._pix_fmt = 'rgb48le'
+                self._bytes_per_channel = 2
             # Initialize parameters
             self._proc = None
             self._pos = -1
@@ -549,7 +566,7 @@ class FfmpegFormat(Format):
         def _read_frame_data(self):
             # Init and check
             w, h = self._meta['size']
-            framesize = self._depth * w * h
+            framesize = self._depth * w * h * self._bytes_per_channel
             assert self._proc is not None
 
             try:
@@ -583,7 +600,7 @@ class FfmpegFormat(Format):
             w, h = self._meta['size']
             # t0 = time.time()
             s, is_new = self._read_frame_data()
-            result = np.fromstring(s, dtype='uint8')
+            result = np.fromstring(s, dtype=self._dtype)
             result = result.reshape((h, w, self._depth))
             # t1 = time.time()
             # print('etime', t1-t0)
