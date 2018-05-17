@@ -423,6 +423,37 @@ def test_webcam_get_next_data():
         'frames should be smaller than the number of iterations')
 
 
+def test_webcam_process_termination():
+    import psutil
+
+    def ffmpeg_alive():
+        """ enumerate ffmpeg processes, then wait for them to terminate """
+        ffmpeg_processes = []
+        for process in psutil.process_iter():
+            # NOTE: used list comprehension before, but that caused
+            # NoSuchProcess exception in some cases.
+            try:
+                if 'ffmpeg' in process.name().lower():
+                    ffmpeg_processes.append(process)
+            except psutil.NoSuchProcess as e:
+                print e.message
+        still_alive = False
+        if ffmpeg_processes:
+            __, still_alive = psutil.wait_procs(ffmpeg_processes, timeout=1)
+        return still_alive
+
+    try:
+        with imageio.get_reader('<video0>') as reader:
+            assert reader._proc is not None
+            assert reader._proc.poll() is None, (
+                'ffmpeg process should be active')
+            assert ffmpeg_alive()
+        assert reader._proc is None
+        assert not ffmpeg_alive()
+    except IndexError:
+        skip('no webcam')
+
+
 def show_in_console():
     reader = imageio.read('cockatoo.mp4', 'ffmpeg')
     #reader = imageio.read('<video0>')
