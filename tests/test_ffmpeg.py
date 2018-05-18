@@ -6,6 +6,7 @@ from io import BytesIO
 import os
 import time
 import threading
+import psutil
 
 import numpy as np
 
@@ -424,14 +425,18 @@ def test_webcam_get_next_data():
 
 
 def test_webcam_process_termination():
-    import psutil
+    """
+    Test for issue #343. Ensures that an ffmpeg process streaming from
+    webcam is terminated properly when the reader is closed.
+
+    """
 
     def ffmpeg_alive():
-        """ enumerate ffmpeg processes, then wait for them to terminate """
+        """ Enumerate ffmpeg processes, then wait for them to terminate """
         ffmpeg_processes = []
         for process in psutil.process_iter():
-            # NOTE: used list comprehension before, but that caused
-            # NoSuchProcess exception in some cases.
+            # NOTE: using list comprehension here caused NoSuchProcess
+            # exception in some cases.
             try:
                 if 'ffmpeg' in process.name().lower():
                     ffmpeg_processes.append(process)
@@ -443,11 +448,13 @@ def test_webcam_process_termination():
         return still_alive
 
     try:
+        # Open the first webcam found.
         with imageio.get_reader('<video0>') as reader:
             assert reader._proc is not None
             assert reader._proc.poll() is None, (
                 'ffmpeg process should be active')
             assert ffmpeg_alive()
+        # Ensure that the corresponding ffmpeg process has been terminated.
         assert reader._proc is None
         assert not ffmpeg_alive()
     except IndexError:
