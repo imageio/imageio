@@ -441,7 +441,7 @@ def test_webcam_process_termination():
                 if 'ffmpeg' in process.name().lower():
                     ffmpeg_processes.append(process)
             except psutil.NoSuchProcess as e:
-                print e.message
+                print(e.message)
         still_alive = False
         if ffmpeg_processes:
             __, still_alive = psutil.wait_procs(ffmpeg_processes, timeout=1)
