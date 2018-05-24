@@ -430,6 +430,7 @@ def test_webcam_process_termination():
     webcam is terminated properly when the reader is closed.
 
     """
+    need_internet()
 
     def ffmpeg_alive():
         """ Enumerate ffmpeg processes, then wait for them to terminate """
