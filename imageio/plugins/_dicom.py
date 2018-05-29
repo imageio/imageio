@@ -700,13 +700,16 @@ class DicomSeries(object):
         """
         # Compute the unit normal vector to the slice
         slice_normal = []
-        slice_normal[0] = image_orientation_patient[1] * image_orientation_patient[5] - image_orientation_patient[2] * image_orientation_patient[4];
-        slice_normal[1] = image_orientation_patient[2] * image_orientation_patient[3] - image_orientation_patient[0] * image_orientation_patient[5];
-        slice_normal[2] = image_orientation_patient[0] * image_orientation_patient[4] - image_orientation_patient[1] * image_orientation_patient[3];
+        # x component
+        slice_normal.append(image_orientation_patient[1] * image_orientation_patient[5] - image_orientation_patient[2] * image_orientation_patient[4])
+        # y component
+        slice_normal.append(image_orientation_patient[2] * image_orientation_patient[3] - image_orientation_patient[0] * image_orientation_patient[5])
+        # z component
+        slice_normal.append(image_orientation_patient[0] * image_orientation_patient[4] - image_orientation_patient[1] * image_orientation_patient[3])
         # Compute the distance of the plane from the origin (projection of the IPP along the plane normal vector)
-        dist_from_origin = 0;
+        dist_from_origin = 0
         for x in range(0, 3):
-            dist_from_origin += slice_normal[x] * image_position_patient[x];
+            dist_from_origin += slice_normal[x] * image_position_patient[x]
         return dist_from_origin
 
     def _sort(self):
