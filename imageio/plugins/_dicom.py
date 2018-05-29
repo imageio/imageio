@@ -688,9 +688,32 @@ class DicomSeries(object):
     
     def _append(self, dcm):
         self._entries.append(dcm)
-    
+
+    def _slice_dist_from_origin(self, image_position_patient, image_orientation_patient):
+        """This function computes the distance of the image slice from the origin in the patient co-ordinate system.
+
+        The row and column directional cosines are just the unit vectors along the row and column directions respectively.
+        Hence the unit normal vector to the image slice is computed by taking the cross product between the directional
+        cosines. Further, we know that the image position patient (IPP) is a point on the slice plane. Hence the distance
+        of the plane from the origin is just the projection of the IPP position vector along the plane normal direction,
+        i.e. the dot product between the IPP position vector and slice unit normal vector
+        """
+        # Compute the unit normal vector to the slice
+        slice_normal = []
+        slice_normal[0] = image_orientation_patient[1] * image_orientation_patient[5] - image_orientation_patient[2] * image_orientation_patient[4];
+        slice_normal[1] = image_orientation_patient[2] * image_orientation_patient[3] - image_orientation_patient[0] * image_orientation_patient[5];
+        slice_normal[2] = image_orientation_patient[0] * image_orientation_patient[4] - image_orientation_patient[1] * image_orientation_patient[3];
+        # Compute the distance of the plane from the origin (projection of the IPP along the plane normal vector)
+        dist_from_origin = 0;
+        for x in range(0, 3):
+            dist_from_origin += slice_normal[x] * image_position_patient[x];
+        return dist_from_origin
+
     def _sort(self):
-        self._entries.sort(key=lambda k: k.InstanceNumber)
+        # Sorting the slices of the dicom series according to their position (distance from the origin) in the patient
+        # co-ordinate system.
+        self._entries.sort(key=lambda k: self._slice_dist_from_origin(k.ImagePositionPatient, k.ImageOrientationPatient))
+        # self._entries.sort(key=lambda k: k.InstanceNumber) # InstanceNumber is not a reliable attribute
     
     def _finish(self):
         """
