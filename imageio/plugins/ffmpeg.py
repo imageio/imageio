@@ -501,7 +501,11 @@ class FfmpegFormat(Format):
             # Terminate process
             # Using kill since self._proc.terminate() does not seem
             # to work for ffmpeg, leaves processes hanging
-            self._proc.kill()
+            if self.request._video:
+                # When streaming from webcam, quit by sending 'q' to ffmpeg
+                self._proc.communicate('q')
+            else:
+                self._proc.kill()
             
             # Tell threads to stop when they have a chance. They are probably
             # blocked on reading from their file, but let's play it safe.
