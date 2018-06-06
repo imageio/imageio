@@ -6,6 +6,7 @@
 [![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
 [![Coverage Status](https://coveralls.io/repos/imageio/imageio/badge.png?branch=master)](https://coveralls.io/r/imageio/imageio?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.io)
+[![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
    
 Website: http://imageio.github.io
 
