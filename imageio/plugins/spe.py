@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+# imageio is distributed under the terms of the (new) BSD License.
+
+""" SPE file reader
+"""
+
+from __future__ import absolute_import, print_function, division
+
 import os
 import warnings
 import numpy as np
@@ -111,6 +119,108 @@ class Spec:
 
 
 class SpeFormat(Format):
+    """ Some CCD camera software produces images in the Princeton Instruments
+    SPE file format. This plugin supports reading such files.
+
+    Parameters for reading
+    ----------------------
+    char_encoding : str
+        Character encoding used to decode strings in the metadata. Defaults
+        to "latin1".
+    check_filesize : bool
+        The number of frames in the file is stored in the file header. However,
+        this number may be wrong for certain software. If this is `True`
+        (default), derive the number of frames also from the file size and
+        raise a warning if the two values do not match.
+
+    Metadata for reading
+    --------------------
+    ROIs : list of dict
+        Regions of interest used for recording images. Each dict has the
+        "top_left" key containing x and y coordinates of the top left corner,
+        the "bottom_right" key with x and y coordinates of the bottom right
+        corner, and the "bin" key with number of binned pixels in x and y
+        directions.
+    comments : list of str
+        The SPE format allows for 5 comment strings of 80 characters each.
+    ControllerVersion : int
+        Hardware version
+    LogicOutput : int
+        Definition of output BNC
+    AmpHiCapLowNoise : int
+        Amp switching mode
+    mode : int
+        Timing mode
+    exp_sec : float
+        Alternative exposure in seconds
+    date : str
+        Date string
+    DetTemperature : float
+        Detector temperature
+    stdiode : int
+        Trigger diode
+    DelayTime : float
+        Used with async mode
+    ShutterControl : int
+        Normal, disabled open, or disabled closed
+    AbsorbLive : bool
+        on / off
+    AbsorbMode : int
+        Reference strip or file
+    CanDoVirtualChipFlag : bool
+        True or False whether chip can do virtual chip
+    ThresholdMinLive : bool
+        on / off
+    ThresholdMinVal : float
+        Threshold minimum value
+    ThresholdMaxLive : bool
+        on / off
+    ThresholdMaxVal : float
+        Threshold maximum value
+    ExperimentTimeLocal : str
+        Experiment local time
+    ExperimentTimeUTC : str
+        Experiment UTC time
+    ADCoffset : int
+        ADC offset
+    ADCrate : int
+        ADC rate
+    ADCtype : int
+        ADC type
+    ADCresolution : int
+        ADC resolution
+    ADCbitAdjust : int
+        ADC bit adjust
+    gain : int
+        gain
+    sw_version : str
+        Version of software which created this file
+    spare4 : bytes
+        Reserved space
+    ReadoutTime : float
+        Experiment readout time
+    type : str
+        Controller type
+    clkspd_us : float
+        Vertical clock speed in microseconds
+    readoutMode : {"full frame", "frame transfer", "kinetics", ""}
+        Readout mode. Empty string means that this was not set by the
+        Software.
+    WindowSize : int
+        Window size for Kinetics mode
+    file_header_ver : float
+        File header version
+    ChipSize : [int, int]
+        x and y dimensions of the camera chip
+    VirtChipSize : [int, int]
+        Virtual chip x and y dimensions
+    PrePixels : [int, int]
+        Pre pixels in x and y dimensions
+    PostPixels : [int, int],
+        Post pixels in x and y dimensions
+    geometric : list of {"rotate", "reverse", "flip"}
+        Geometric operations
+    """
     def _can_read(self, request):
         return (request.mode[1] in self.modes + "?" and
                 request.extension in self.extensions)
