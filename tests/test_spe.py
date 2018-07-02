@@ -55,6 +55,7 @@ def test_spe_reading():
            "                                                                                ",
            "ACCI2xSEQU-1---10000010001600300EA                              SW0218COMVER0500"]
     assert(md["comments"] == cmt)
+    np.testing.assert_equal(md["frame_shape"], fr1.shape)
 
 
 run_tests_if_main()

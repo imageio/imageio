@@ -55,46 +55,46 @@ class Spec:
         "VChipYdim": (16, "<h"),
 
         # other stuff
-        "ControllerVersion": (0, "<h"),
-        "LogicOutput": (2, "<h"),
-        "AmpHiCapLowNoise": (4, "<H"), # enum?
+        "controller_version": (0, "<h"),
+        "logic_output": (2, "<h"),
+        "amp_high_cap_low_noise": (4, "<H"), # enum?
         "mode": (8, "<h"), # enum?
-        "exp_sec": (10, "<f"),
+        "exposure_sec": (10, "<f"),
         "date": (20, "<10S"),
-        "DetTemperature": (36, "<f"),
-        "DetType": (40, "<h"),
-        "stdiode": (44, "<h"),
-        "DelayTime": (46, "<f"),
-        "ShutterControl": (50, "<H"), # normal, disabled open, disabled closed
-                                      # but which one is which?
-        "AbsorbLive": (52, "<h"), # bool?
-        "AbsorbMode": (54, "<H"),
-        "CanDoVirtualChipFlag": (56, "<h"), # bool?
-        "ThresholdMinLive": (58, "<h"), # bool?
-        "ThresholdMinVal": (60, "<f"),
-        "ThresholdMinLive": (64, "<h"), # bool?
-        "ThresholdMinVal": (66, "<f"),
-        "ExperimentTimeLocal": (172, "<7S"),
-        "ExperimentTimeUTC": (179, "<7S"),
-        "ADCoffset": (188, "<H"),
-        "ADCrate": (190, "<H"),
-        "ADCtype": (192, "<H"),
-        "ADCresolution": (194, "<H"),
-        "ADCbitAdjust": (196, "<H"),
+        "detector_temp": (36, "<f"),
+        "detector_type": (40, "<h"),
+        "st_diode": (44, "<h"),
+        "delay_time": (46, "<f"),
+        "shutter_control": (50, "<H"), # normal, disabled open, disabled closed
+                                       # but which one is which?
+        "absorb_live": (52, "<h"),
+        "absorb_mode": (54, "<H"),
+        "can_do_virtual_chip": (56, "<h"),
+        "threshold_min_live": (58, "<h"),
+        "threshold_min_val": (60, "<f"),
+        "threshold_max_live": (64, "<h"),
+        "threshold_max_val": (66, "<f"),
+        "time_local": (172, "<7S"),
+        "time_utc": (179, "<7S"),
+        "adc_offset": (188, "<H"),
+        "adc_rate": (190, "<H"),
+        "adc_type": (192, "<H"),
+        "adc_resolution": (194, "<H"),
+        "adc_bit_adjust": (196, "<H"),
         "gain": (198, "<H"),
         "comments": (200, "<80S", 5),
         "geometric": (600, "<H"), # flags
-        "swversion": (688, "<16S"),
-        "spare4": (742, "<436S"),
+        "sw_version": (688, "<16S"),
+        "spare_4": (742, "<436S"),
         "XPrePixels": (98, "<h"),
         "XPostPixels": (100, "<h"),
         "YPrePixels": (102, "<h"),
         "YPostPixels": (104, "<h"),
-        "ReadoutTime": (672, "<f"),
+        "readout_time": (672, "<f"),
         "type": (704, "<h"), # controllers
-        "clkspd_us": (1428, "<f"),
-        "readoutMode": (1480, "<H"), # readout_modes
-        "WindowSize": (1482, "<H"),
+        "clockspeed_us": (1428, "<f"),
+        "readout_mode": (1480, "<H"), # readout_modes
+        "window_size": (1482, "<H"),
         "file_header_ver": (1992, "<f")
     }
 
@@ -115,7 +115,7 @@ class Spec:
 
     # Do not decode the following metadata keys into strings, but leave them
     # as byte arrays
-    no_decode = ["spare4"]
+    no_decode = ["spare_4"]
 
 
 class SpeFormat(Format):
@@ -143,11 +143,11 @@ class SpeFormat(Format):
         directions.
     comments : list of str
         The SPE format allows for 5 comment strings of 80 characters each.
-    ControllerVersion : int
+    controller_version : int
         Hardware version
-    LogicOutput : int
+    logic_output : int
         Definition of output BNC
-    AmpHiCapLowNoise : int
+    amp_hi_cap_low_noise : int
         Amp switching mode
     mode : int
         Timing mode
@@ -155,68 +155,70 @@ class SpeFormat(Format):
         Alternative exposure in seconds
     date : str
         Date string
-    DetTemperature : float
+    detector_temp : float
         Detector temperature
-    stdiode : int
+    detector_type : int
+        CCD / diode array type
+    st_diode : int
         Trigger diode
-    DelayTime : float
+    delay_time : float
         Used with async mode
-    ShutterControl : int
+    shutter_control : int
         Normal, disabled open, or disabled closed
-    AbsorbLive : bool
+    absorb_live : bool
         on / off
-    AbsorbMode : int
+    absorb_mode : int
         Reference strip or file
-    CanDoVirtualChipFlag : bool
+    can_do_virtual_chip : bool
         True or False whether chip can do virtual chip
-    ThresholdMinLive : bool
+    threshold_min_live : bool
         on / off
-    ThresholdMinVal : float
+    threshold_min_val : float
         Threshold minimum value
-    ThresholdMaxLive : bool
+    threshold_max_live : bool
         on / off
-    ThresholdMaxVal : float
+    threshold_max_val : float
         Threshold maximum value
-    ExperimentTimeLocal : str
+    time_local : str
         Experiment local time
-    ExperimentTimeUTC : str
+    time_utc : str
         Experiment UTC time
-    ADCoffset : int
+    adc_offset : int
         ADC offset
-    ADCrate : int
+    adc_rate : int
         ADC rate
-    ADCtype : int
+    adc_type : int
         ADC type
-    ADCresolution : int
+    adc_resolution : int
         ADC resolution
-    ADCbitAdjust : int
+    adc_bit_adjust : int
         ADC bit adjust
     gain : int
         gain
     sw_version : str
         Version of software which created this file
-    spare4 : bytes
+    spare_4 : bytes
         Reserved space
-    ReadoutTime : float
+    readout_time : float
         Experiment readout time
     type : str
         Controller type
-    clkspd_us : float
+    clockspeed_us : float
         Vertical clock speed in microseconds
-    readoutMode : {"full frame", "frame transfer", "kinetics", ""}
+    readout_mode : {"full frame", "frame transfer", "kinetics", ""}
         Readout mode. Empty string means that this was not set by the
         Software.
-    WindowSize : int
+    window_size : int
         Window size for Kinetics mode
     file_header_ver : float
         File header version
-    ChipSize : [int, int]
+    chip_size : [int, int]
         x and y dimensions of the camera chip
-    VirtChipSize : [int, int]
+    virt_chip_size : [int, int]
         Virtual chip x and y dimensions
-    PrePixels : [int, int]
+    pre_pixels : [int, int]
         Pre pixels in x and y dimensions
-    PostPixels : [int, int],
+    post_pixels : [int, int],
         Post pixels in x and y dimensions
     geometric : list of {"rotate", "reverse", "flip"}
         Geometric operations
@@ -261,14 +263,14 @@ class SpeFormat(Format):
                 self._meta["ROIs"] = roi_array_to_dict(self._meta["ROIs"][:nr])
 
                 # chip sizes
-                self._meta["ChipSize"] = [self._meta.pop("xDimDet", None),
-                                          self._meta.pop("yDimDet", None)]
-                self._meta["VirtChipSize"] = [
+                self._meta["chip_size"] = [self._meta.pop("xDimDet", None),
+                                           self._meta.pop("yDimDet", None)]
+                self._meta["virt_chip_size"] = [
                     self._meta.pop("VChipXdim", None),
                     self._meta.pop("VChipYdim", None)]
-                self._meta["PrePixels"] = [self._meta.pop("XPrePixels", None),
-                                           self._meta.pop("YPrePixels", None)]
-                self._meta["PostPixels"] = [
+                self._meta["pre_pixels"] = [self._meta.pop("XPrePixels", None),
+                                            self._meta.pop("YPrePixels", None)]
+                self._meta["post_pixels"] = [
                     self._meta.pop("XPostPixels", None),
                     self._meta.pop("YPostPixels", None)]
 
@@ -287,17 +289,25 @@ class SpeFormat(Format):
                     g.append("flip")
                 self._meta["geometric"] = g
 
-                #Make some additional information more human-readable
+                # Make some additional information more human-readable
                 t = self._meta["type"]
                 if 1 <= t <= len(Spec.controllers):
                     self._meta["type"] = Spec.controllers[t - 1]
                 else:
-                    self._meta.pop("type", None)
-                m = self._meta["readoutMode"]
+                    self._meta["type"] = ""
+                m = self._meta["readout_mode"]
                 if 1 <= m <= len(Spec.readout_modes):
-                    self._meta["readoutMode"] = Spec.readout_modes[m - 1]
+                    self._meta["readout_mode"] = Spec.readout_modes[m - 1]
                 else:
-                    self._meta.pop("readoutMode", None)
+                    self._meta["readout_mode"] = ""
+
+                # bools
+                for k in ("absorb_live", "can_do_virtual_chip",
+                          "threshold_min_live", "threshold_max_live"):
+                    self._meta[k] = bool(self._meta[k])
+
+                # frame shape
+                self._meta["frame_shape"] = self._shape
             return self._meta
 
         def _close(self):
@@ -327,7 +337,7 @@ class SpeFormat(Format):
                     # entry, return this entry itself.
                     v = np.asscalar(v)
                 except ValueError:
-                    v = np.ravel(v)
+                    v = np.squeeze(v)
                 ret[name] = v
             return ret
 
