@@ -49,11 +49,16 @@ def test_spe_reading():
     md = r.get_meta_data()
     assert(md["ROIs"] == [{"top_left": [238, 187], "bottom_right": [269, 218],
                            "bin": [1, 1]}])
-    cmt = ["OD 1.0 in r, g                                                                  ",
-           "0002000000000000048000000000000000000000000000000000000000000000000002000001000X",
-           "                                                                                ",
-           "                                                                                ",
-           "ACCI2xSEQU-1---10000010001600300EA                              SW0218COMVER0500"]
+    cmt = ["OD 1.0 in r, g                                                    "
+           "              ",
+           "000200000000000004800000000000000000000000000000000000000000000000"
+           "0002000001000X",
+           "                                                                  "
+           "              ",
+           "                                                                  "
+           "              ",
+           "ACCI2xSEQU-1---10000010001600300EA                              SW"
+           "0218COMVER0500"]
     assert(md["comments"] == cmt)
     np.testing.assert_equal(md["frame_shape"], fr1.shape)
 

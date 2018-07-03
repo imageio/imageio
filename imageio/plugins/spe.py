@@ -32,7 +32,7 @@ class Spec:
     to be found.
     """
     basic = {
-        "datatype": (108, "<h"), #dtypes
+        "datatype": (108, "<h"),  # dtypes
         "xdim": (42, "<H"),
         "ydim": (656, "<H"),
         "NumFrames": (1446, "<i"),
@@ -57,16 +57,17 @@ class Spec:
         # other stuff
         "controller_version": (0, "<h"),
         "logic_output": (2, "<h"),
-        "amp_high_cap_low_noise": (4, "<H"), # enum?
-        "mode": (8, "<h"), # enum?
+        "amp_high_cap_low_noise": (4, "<H"),  # enum?
+        "mode": (8, "<h"),  # enum?
         "exposure_sec": (10, "<f"),
         "date": (20, "<10S"),
         "detector_temp": (36, "<f"),
         "detector_type": (40, "<h"),
         "st_diode": (44, "<h"),
         "delay_time": (46, "<f"),
-        "shutter_control": (50, "<H"), # normal, disabled open, disabled closed
-                                       # but which one is which?
+        # shutter_control: normal, disabled open, disabled closed
+        # But which one is which?
+        "shutter_control": (50, "<H"),
         "absorb_live": (52, "<h"),
         "absorb_mode": (54, "<H"),
         "can_do_virtual_chip": (56, "<h"),
@@ -83,7 +84,7 @@ class Spec:
         "adc_bit_adjust": (196, "<H"),
         "gain": (198, "<H"),
         "comments": (200, "<80S", 5),
-        "geometric": (600, "<H"), # flags
+        "geometric": (600, "<H"),  # flags
         "sw_version": (688, "<16S"),
         "spare_4": (742, "<436S"),
         "XPrePixels": (98, "<h"),
@@ -91,9 +92,9 @@ class Spec:
         "YPrePixels": (102, "<h"),
         "YPostPixels": (104, "<h"),
         "readout_time": (672, "<f"),
-        "type": (704, "<h"), # controllers
+        "type": (704, "<h"),  # controllers
         "clockspeed_us": (1428, "<f"),
-        "readout_mode": (1480, "<H"), # readout_modes
+        "readout_mode": (1480, "<H"),  # readout_modes
         "window_size": (1482, "<H"),
         "file_header_ver": (1992, "<f")
     }
@@ -248,8 +249,8 @@ class SpeFormat(Format):
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
                     warnings.warn("Number of frames according to file header "
-                                  "does not match the size of file " +
-                                  filename + ".")
+                                  "does not match the size of file %s." %
+                                  self.request.filename)
                     self._len = min(l, self._len)
 
             self._meta = None
@@ -327,7 +328,7 @@ class SpeFormat(Format):
                     # Silently ignore string decoding failures
                     try:
                         v = decode(v)
-                    except:
+                    except Exception:
                         warnings.warn("Failed to decode \"{}\" metadata "
                                       "string. Check `char_encoding` "
                                       "parameter.".format(name))
