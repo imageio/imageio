@@ -129,7 +129,7 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True, prox
         return filename
 
 
-def _fetch_file(url, file_name, print_destination=True, proxy_address=False):
+def _fetch_file(url, file_name, proxy_address=False, print_destination=True):
     """Load requested file, downloading it if needed or requested
 
     Parameters
