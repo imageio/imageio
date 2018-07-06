@@ -13,6 +13,7 @@ from os import path as op
 import sys
 import shutil
 import time
+import urllib
 
 from . import appdata_dir, resource_dirs
 from . import StdoutProgressIndicator, string_types, urlopen
@@ -31,7 +32,7 @@ class NeedDownloadError(IOError):
     """
 
 
-def get_remote_file(fname, directory=None, force_download=False, auto=True):
+def get_remote_file(fname, directory=None, force_download=False, auto=True, proxy_address=False):
     """ Get a the filename for the local version of a file from the web
 
     Parameters
@@ -96,17 +97,17 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                 else:
                     print('File older than %s, updating...' % force_download)
                     break
-    
+
     # If we get here, we're going to try to download the file
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
         raise InternetNotAllowedError('Will not download resource from the '
                                       'internet because environment variable '
                                       'IMAGEIO_NO_INTERNET is set.')
-    
+
     # Can we proceed with auto-download?
     if not auto:
         raise NeedDownloadError()
-    
+
     # Get filename to store to and make sure the dir exists
     filename = op.join(directory, nfname)
     if not op.isdir(op.dirname(filename)):
@@ -116,19 +117,19 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
         # On Travis, we retry a few times ...
         for i in range(2):
             try:
-                _fetch_file(url, filename)
+                _fetch_file(url, filename, proxy_address)
                 return filename
             except IOError:
                 time.sleep(0.5)
         else:
-            _fetch_file(url, filename)
+            _fetch_file(url, filename, proxy_address)
             return filename
     else:  # pragma: no cover
-        _fetch_file(url, filename)
+        _fetch_file(url, filename, proxy_address)
         return filename
 
 
-def _fetch_file(url, file_name, print_destination=True):
+def _fetch_file(url, file_name, print_destination=True, proxy_address=False):
     """Load requested file, downloading it if needed or requested
 
     Parameters
@@ -140,26 +141,36 @@ def _fetch_file(url, file_name, print_destination=True):
     print_destination: bool, optional
         If true, destination of where file was saved will be printed after
         download finishes.
+    proxy_address: bool, optional
+        If false, no proxy employed; if ,
     resume: bool, optional
         If true, try to resume partially downloaded files.
     """
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
-    
+
     print('Imageio: %r was not found on your computer; '
           'downloading it now.' % os.path.basename(file_name))
-    
+
     temp_file_name = file_name + ".part"
     local_file = None
     initial_size = 0
     errors = []
     for tries in range(4):
         try:
-            # Checking file size and displaying it alongside the download url
-            remote_file = urlopen(url, timeout=5.)
+            if proxy_address:
+                authinfo = urllib.request.HTTPBasicAuthHandler()
+                proxy_support = urllib.request.ProxyHandler({'https': proxy_address})
+                opener = urllib.request.build_opener(proxy_support, authinfo, urllib.request.CacheFTPHandler)
+                urllib.request.install_opener(opener)
+                remote_file = urllib.request.urlopen(url, timeout=25.)
+            else:
+                # Checking file size and displaying it alongside the download url
+                remote_file = urlopen(url, timeout=5.)
+
             file_size = int(remote_file.headers['Content-Length'].strip())
             size_str = _sizeof_fmt(file_size)
-            print('Try %i. Download from %s (%s)' % (tries+1, url, size_str))
+            print('Try %i. Download from %s (%s)' % (tries + 1, url, size_str))
             # Downloading data (can be extended to resume if need be)
             local_file = open(temp_file_name, "wb")
             _chunk_read(remote_file, local_file, initial_size=initial_size)
@@ -207,10 +218,10 @@ def _chunk_read(response, local_file, chunk_size=8192, initial_size=0):
     # entire file
     total_size = int(response.headers['Content-Length'].strip())
     total_size += initial_size
-    
+
     progress = StdoutProgressIndicator('Downloading')
     progress.start('', 'bytes', total_size)
-    
+
     while True:
         chunk = response.read(chunk_size)
         bytes_so_far += len(chunk)

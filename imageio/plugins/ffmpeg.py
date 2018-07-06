@@ -48,7 +48,7 @@ def limit_lines(lines, N=32):
     return lines
 
 
-def download(directory=None, force_download=False):
+def download(directory=None, force_download=False, proxy_address=False):
     """ Download the ffmpeg exe to your computer.
 
     Parameters
@@ -70,7 +70,8 @@ def download(directory=None, force_download=False):
     fname = 'ffmpeg/' + FNAME_PER_PLATFORM[plat]
     get_remote_file(fname=fname,
                     directory=directory,
-                    force_download=force_download)
+                    force_download=force_download,
+                    proxy_address=proxy_address)
 
 
 def get_exe():

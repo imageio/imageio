@@ -22,21 +22,20 @@ for i in range(9):
     if os.path.isfile(os.path.join(ROOT_DIR, '.gitignore')):
         break
 
-
-STYLE_IGNORES = ['E226', 
-                 'E241', 
-                 'E265', 
+STYLE_IGNORES = ['E226',
+                 'E241',
+                 'E265',
                  'E266',  # too many leading '#' for block comment
                  'E402',  # module level import not at top of file
                  'E731',  # do not assign a lambda expression, use a def
                  'E741',
-                 'W291', 
+                 'W291',
                  'W293',
                  'W503',  # line break before binary operator
-                 
+
                  # flake8 plugins that we do not follow
                  'N',  # Dont be pedantic about names in plugins
-                 'I', 'D', 'T', 'CG',  
+                 'I', 'D', 'T', 'CG',
                  ]
 
 
@@ -89,7 +88,7 @@ def clean_test_dir(strict=False):
         except Exception:
             if strict:
                 raise
-        
+
 
 def need_internet():
     if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
@@ -124,16 +123,16 @@ def test_style():
     except ImportError as err:
         print('Skipping flake8 test, flake8 not installed')
         return
-    
+
     # Reporting
     print('Running flake8 on %s' % ROOT_DIR)
     sys.stdout = FileForTesting(sys.stdout)
-    
+
     # Init
     ignores = STYLE_IGNORES.copy()
     fail = False
     count = 0
-    
+
     # Iterate over files
     for dir, dirnames, filenames in os.walk(ROOT_DIR):
         dir = os.path.relpath(dir, ROOT_DIR)
@@ -156,7 +155,7 @@ def test_style():
                     fail = True
                     print('----')
                 sys.stdout.flush()
-    
+
     # Report result
     sys.stdout.revert()
     if not count:
@@ -191,18 +190,19 @@ def _clear_imageio():
 class FileForTesting(object):
     """ Alternative to stdout that makes path relative to ROOT_DIR
     """
+
     def __init__(self, original):
         self._original = original
-    
+
     def write(self, msg):
         if msg.startswith(ROOT_DIR):
             msg = os.path.relpath(msg, ROOT_DIR)
         self._original.write(msg)
         self._original.flush()
-    
+
     def flush(self):
         self._original.flush()
-    
+
     def revert(self):
         sys.stdout = self._original
 
@@ -223,7 +223,7 @@ def _get_style_test_options(filename):
             elif 'ignore' in line:
                 words = line.replace(',', ' ').split(' ')
                 words = [w.strip() for w in words if w.strip()]
-                words = [w for w in words if 
+                words = [w for w in words if
                          (w[1:].isnumeric() and w[0] in 'EWFCN')]
                 ignores.extend(words)
     return skip, ignores
@@ -234,10 +234,10 @@ def _test_style(filename, ignore):
     """
     if isinstance(ignore, (list, tuple)):
         ignore = ','.join(ignore)
-    
+
     orig_dir = os.getcwd()
     orig_argv = sys.argv
-    
+
     os.chdir(ROOT_DIR)
     sys.argv[1:] = [filename]
     sys.argv.append('--ignore=' + ignore)
