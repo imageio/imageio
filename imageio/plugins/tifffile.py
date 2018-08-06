@@ -38,7 +38,7 @@ def load_lib():
 TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
 WRITE_METADATA_KEYS = ('photometric', 'planarconfig', 'resolution',
                        'description', 'compress', 'volume', 'writeshape',
-                       'extratags')
+                       'extratags', 'datetime')
 READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
                       'is_contig', 'is_micromanager', 'is_ome', 'is_lsm'
                       'is_palette', 'is_reduced', 'is_rgb', 'is_sgi',
