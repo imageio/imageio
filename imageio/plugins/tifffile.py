@@ -260,8 +260,19 @@ class TiffFormat(Format):
         def _open(self, bigtiff=None, byteorder=None, software=None):
             if not _tifffile:
                 load_lib()
-            self._tf = _tifffile.TiffWriter(self.request.get_local_filename(),
-                                            bigtiff, byteorder, software)
+
+            try:
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_local_filename(), bigtiff, byteorder,
+                    software=software)
+                self._software = None
+            except TypeError:
+                # In tifffile >= 0.15, the `software` arg is passed to
+                # TiffWriter.save
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_local_filename(), bigtiff, byteorder)
+                self._software = software
+
             self._meta = {}
 
         def _close(self):
@@ -272,7 +283,12 @@ class TiffFormat(Format):
                 self.set_meta_data(meta)
             # No need to check self.request.mode; tiffile figures out whether
             # this is a single page, or all page data at once.
-            self._tf.save(np.asanyarray(im), **self._meta)
+            if self._software is None:
+                self._tf.save(np.asanyarray(im), **self._meta)
+            else:
+                # tifffile >= 0.15
+                self._tf.save(np.asanyarray(im), software=self._software,
+                              **self._meta)
 
         def set_meta_data(self, meta):
             self._meta = {}
