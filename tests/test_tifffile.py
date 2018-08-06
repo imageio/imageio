@@ -2,6 +2,7 @@
 """
 
 import os
+import datetime
 
 import numpy as np
 
@@ -98,6 +99,14 @@ def test_tifffile_reading_writing():
     assert im1.ndim == 4
     assert im1.shape == im3.shape
     assert (im1 == im3).all()
+
+    # Read metadata
+    md = imageio.get_reader(filename2).get_meta_data()
+    assert md['is_imagej'] is None
+    assert md['description'] == 'shape=(2,3,10,10)'
+    assert md['description1'] == ''
+    assert md['datetime'] == datetime.datetime(2015, 5, 9, 9, 8, 29)
+    assert md['software'] == 'tifffile.py'
 
 
 run_tests_if_main()

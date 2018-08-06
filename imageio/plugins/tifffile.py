@@ -7,6 +7,7 @@
 from __future__ import absolute_import, print_function, division
 
 import sys
+import datetime
 
 from .. import formats
 from ..core import Format
@@ -43,7 +44,8 @@ READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
                       'is_palette', 'is_reduced', 'is_rgb', 'is_sgi',
                       'is_shaped', 'is_stk', 'is_tiled', 'is_mdgel'
                       'resolution_unit', 'compression', 'is_mediacy',
-                      'orientation')
+                      'orientation', 'description', 'description1',
+                      'is_imagej', 'software')
 
 
 class TiffFormat(Format):
@@ -126,6 +128,16 @@ class TiffFormat(Format):
         True if page contains UIC2Tag tag.
     is_lsm : bool
         True if page contains LSM CZ_LSM_INFO tag.
+    description : str
+        Image description
+    description1 : str
+        Additional description
+    is_imagej : None or str
+        ImageJ metadata
+    software : str
+        Software used to create the TIFF file
+    datetime : datetime.datetime
+        Creation date and time
 
     Metadata for writing
     --------------------
@@ -230,6 +242,16 @@ class TiffFormat(Format):
                     self._meta[key] = getattr(page, key)
                 except Exception:
                     pass
+
+            # tifffile <= 0.12.1 use datetime, newer use DateTime
+            for key in ('datetime', 'DateTime'):
+                try:
+                    self._meta['datetime'] = datetime.datetime.strptime(
+                        page.tags[key].value, '%Y:%m:%d %H:%M:%S')
+                    break
+                except Exception:
+                    pass
+
             return self._meta
 
     # -- writer
