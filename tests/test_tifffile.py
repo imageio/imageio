@@ -108,5 +108,20 @@ def test_tifffile_reading_writing():
     assert md['datetime'] == datetime.datetime(2015, 5, 9, 9, 8, 29)
     assert md['software'] == 'tifffile.py'
 
+    # Write metadata
+    dt = datetime.datetime(2018, 8, 6, 15, 35, 5)
+    w = imageio.get_writer(filename1, software='testsoftware')
+    w.append_data(np.zeros((10, 10)), meta={'description': 'test desc',
+                                            'datetime': dt})
+    w.close()
+    r = imageio.get_reader(filename1)
+    md = r.get_meta_data()
+    assert 'datetime' in md
+    assert md['datetime'] == dt
+    assert 'software' in md
+    assert md['software'] == 'testsoftware'
+    assert 'description' in md
+    assert md['description'] == 'test desc'
+
 
 run_tests_if_main()
