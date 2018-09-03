@@ -36,9 +36,9 @@ Imageio can read from filenames, file objects, http, zipfiles and bytes.
     im = imageio.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
     vv.imshow(im)
 
-Note: reading from HTTP works for many formats including png and jpeg, but may not work
-for all formats (some plugins "seek" the file object, which HTTP streams do not support).
-In such a case one can download the file first, or use something like
+Note: reading from HTTP and zipfiles works for many formats including png and jpeg, but may not work
+for all formats (some plugins "seek" the file object, which HTTP/zip streams do not support).
+In such a case one can download/extract the file first. For HTTP one can use something like
 ``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
 
 Iterate over frames in a movie
