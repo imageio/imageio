@@ -99,8 +99,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     ----------
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
-        http address or
-        file object, see the docs for more info.
+        http address or file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -140,8 +139,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     ----------
     uri : {str, pathlib.Path, file}
         The resource to write the image to, e.g. a filename, pathlib.Path
-        or file object,
-        see the docs for more info.
+        or file object, see the docs for more info.
     format : str
         The format to use to write the file. By default imageio selects
         the appropriate for you based on the filename.
@@ -191,8 +189,7 @@ def imread(uri, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
-        http address or
-        file object, see the docs for more info.
+        http address or file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -221,8 +218,7 @@ def imwrite(uri, im, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, file}
         The resource to write the image to, e.g. a filename, pathlib.Path
-        or file object,
-        see the docs for more info.
+        or file object, see the docs for more info.
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
     format : str
@@ -266,8 +262,7 @@ def mimread(uri, format=None, memtest=True, **kwargs):
     ----------
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the images from, e.g. a filename,pathlib.Path,
-        http address or
-        file object, see the docs for more info.
+        http address or file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -312,8 +307,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, file}
         The resource to write the images to, e.g. a filename, pathlib.Path
-        or file object,
-        see the docs for more info.
+        or file object, see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxM, NxMx3 or NxMx4.
     format : str
@@ -369,8 +363,7 @@ def volread(uri, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the volume from, e.g. a filename, pathlib.Path,
-        http address or
-        file object, see the docs for more info.
+        http address or file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -394,8 +387,7 @@ def volwrite(uri, im, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, file}
         The resource to write the image to, e.g. a filename, pathlib.Path
-        or file object,
-        see the docs for more info.
+        or file object, see the docs for more info.
     vol : numpy.ndarray
         The image data. Must be NxMxL (or NxMxLxK if each voxel is a tuple).
     format : str
@@ -439,8 +431,7 @@ def mvolread(uri, format=None, memtest=True, **kwargs):
     ----------
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the volumes from, e.g. a filename, pathlib.Path,
-        http address or
-        file object, see the docs for more info.
+        http address or file object, see the docs for more info.
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
@@ -484,8 +475,7 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     ----------
     uri : {str, pathlib.Path, file}
         The resource to write the volumes to, e.g. a filename, pathlib.Path
-        or file object,
-        see the docs for more info.
+        or file object, see the docs for more info.
     ims : sequence of numpy arrays
         The image data. Each array must be NxMxL (or NxMxLxK if each
         voxel is a tuple).
