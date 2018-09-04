@@ -127,37 +127,21 @@ def image_as_uint(im, bitdepth=None):
     return im.astype(out_type)
 
 
-# currently not used ... the only use it to easily provide the global meta info
-class ImageList(list):
-    def __init__(self, meta=None):
-        list.__init__(self)
-        # Check
-        if not (meta is None or isinstance(meta, dict)):
-            raise ValueError("ImageList expects meta data to be a dict.")
-        # Convert and return
-        self._meta = meta if meta is not None else {}
-
-    @property
-    def meta(self):
-        """ The dict with the meta data of this image.
-        """
-        return self._meta
-
-
-class Image(np.ndarray):
-    """ Image(array, meta=None)
+class Array(np.ndarray):
+    """ Array(array, meta=None)
     
-    A subclass of np.ndarray that has a meta attribute.
-    Following scikit-image, we leave this as a normal numpy array as much 
-    as we can.
+    A subclass of np.ndarray that has a meta attribute. Get the dictionary
+    that contains the meta data using ``im.meta``. Convert to a plain numpy
+    array using ``np.asarray(im)``.
+    
     """
 
     def __new__(cls, array, meta=None):
         # Check
         if not isinstance(array, np.ndarray):
-            raise ValueError("Image expects a numpy array.")
+            raise ValueError("Array expects a numpy array.")
         if not (meta is None or isinstance(meta, dict)):
-            raise ValueError("Image expects meta data to be a dict.")
+            raise ValueError("Array expects meta data to be a dict.")
         # Convert and return
         meta = meta if meta is not None else {}
         try:
@@ -187,7 +171,7 @@ class Image(np.ndarray):
         """ So the meta info is maintained when doing calculations with
         the array. 
         """
-        if isinstance(ob, Image):
+        if isinstance(ob, Array):
             self._copy_meta(ob.meta)
         else:
             self._copy_meta({})
@@ -201,7 +185,10 @@ class Image(np.ndarray):
         elif out.shape != self.shape:
             return out.view(type=np.ndarray)
         else:
-            return out  # Type Image
+            return out  # Type Array
+
+
+Image = Array  # Alias for backwards compatibility
 
 
 def asarray(a):

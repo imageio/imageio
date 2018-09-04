@@ -38,7 +38,7 @@ from warnings import warn
 
 import numpy as np
 
-from . import Image, asarray
+from . import Array, asarray
 from . import string_types, text_type, binary_type  # noqa
 
 
@@ -345,7 +345,7 @@ class Format(object):
             self._checkClosed()
             self._BaseReaderWriter_last_index = index
             im, meta = self._get_data(index, **kwargs)
-            return Image(im, meta)  # Image tests im and meta
+            return Array(im, meta)  # Array tests im and meta
 
         def get_next_data(self, **kwargs):
             """ get_next_data(**kwargs)
@@ -411,7 +411,7 @@ class Format(object):
                         warn("Could not read last frame of %s." % uri)
                         return
                     raise
-                yield Image(im, meta)
+                yield Array(im, meta)
                 i += 1
 
         # Compatibility
