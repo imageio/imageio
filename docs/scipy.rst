@@ -25,4 +25,4 @@ in these cases. But keep in mind:
     * The documentation for the above arguments is not on :func:`imread <imageio.imread>`,
       but on the docs of the individual formats, e.g. :doc:`PNG <format_png-pil>`.
     * Imageio's functions all return numpy arrays, albeit as a subclass (so that
-      meta data can be attached). This subclass is called ``Image``.
+      meta data can be attached).
