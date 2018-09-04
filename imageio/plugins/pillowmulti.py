@@ -12,8 +12,8 @@ NeuQuant = None  # we can implement this when we need it
 
 
 class TIFFFormat(PillowFormat):
-    _modes = 'i'  # arg, why bother; people should use the tiffile version
-    _description = 'TIFF format (Pillow)'
+    _modes = "i"  # arg, why bother; people should use the tiffile version
+    _description = "TIFF format (Pillow)"
 
 
 class GIFFormat(PillowFormat):
@@ -48,26 +48,35 @@ class GIFFormat(PillowFormat):
         rectangular parts of each frame that change with respect to the
         previous. Default False.
     """
-    
-    _modes = 'iI'
-    _description = 'Static and animated gif (Pillow)'
-    
+
+    _modes = "iI"
+    _description = "Static and animated gif (Pillow)"
+
     class Reader(PillowFormat.Reader):
         def _open(self, playback=None):  # compat with FI format
             return PillowFormat.Reader._open(self)
-    
+
     class Writer(PillowFormat.Writer):
-        def _open(self, loop=0, duration=None, fps=10, palettesize=256,
-                  quantizer=0, subrectangles=False):
-            
+        def _open(
+            self,
+            loop=0,
+            duration=None,
+            fps=10,
+            palettesize=256,
+            quantizer=0,
+            subrectangles=False,
+        ):
+
             # Check palettesize
             palettesize = int(palettesize)
             if palettesize < 2 or palettesize > 256:
-                raise ValueError('GIF quantize param must be 2..256')
+                raise ValueError("GIF quantize param must be 2..256")
             if palettesize not in [2, 4, 8, 16, 32, 64, 128, 256]:
                 palettesize = 2 ** int(np.log2(128) + 0.999)
-                print('Warning: palettesize (%r) modified to a factor of '
-                      'two between 2-256.' % palettesize)
+                print(
+                    "Warning: palettesize (%r) modified to a factor of "
+                    "two between 2-256." % palettesize
+                )
             #  Duratrion / fps
             if duration is None:
                 self._duration = 1.0 / float(fps)
@@ -77,37 +86,39 @@ class GIFFormat(PillowFormat):
                 self._duration = float(duration)
             # loop
             loop = float(loop)
-            if loop <= 0 or loop == float('inf'):
+            if loop <= 0 or loop == float("inf"):
                 loop = 0
             loop = int(loop)
             # Subrectangles / dispose
             subrectangles = bool(subrectangles)
             self._dispose = 1 if subrectangles else 2
             # The "0" (median cut) quantizer is by far the best
-            
+
             fp = self.request.get_file()
-            self._writer = GifWriter(fp, subrectangles, loop,
-                                     quantizer, int(palettesize))
-        
+            self._writer = GifWriter(
+                fp, subrectangles, loop, quantizer, int(palettesize)
+            )
+
         def _close(self):
             self._writer.close()
-        
+
         def _append_data(self, im, meta):
             im = image_as_uint(im, bitdepth=8)
             if im.ndim == 3 and im.shape[-1] == 1:
                 im = im[:, :, 0]
             duration = self._duration
             if isinstance(duration, list):
-                duration = duration[min(len(duration)-1, self._writer._count)]
+                duration = duration[min(len(duration) - 1, self._writer._count)]
             dispose = self._dispose
             self._writer.add_image(im, duration, dispose)
-            
+
             return
 
 
-if sys.version_info >= (3, ):
-    intToBin = lambda i: i.to_bytes(2, byteorder='little')
+if sys.version_info >= (3,):
+    intToBin = lambda i: i.to_bytes(2, byteorder="little")
 else:
+
     def intToBin(i):
         """Integer to two bytes"""
         # No int.to_bytes() in Legacy Python
@@ -121,49 +132,56 @@ class GifWriter:
     code from images2gif.py (part of visvis). The version here is modified
     to allow streamed writing.
     """
-    
-    def __init__(self, file, opt_subrectangle=True, opt_loop=0,
-                 opt_quantizer=0, opt_palette_size=256):
+
+    def __init__(
+        self,
+        file,
+        opt_subrectangle=True,
+        opt_loop=0,
+        opt_quantizer=0,
+        opt_palette_size=256,
+    ):
         self.fp = file
-        
+
         self.opt_subrectangle = opt_subrectangle
         self.opt_loop = opt_loop
         self.opt_quantizer = opt_quantizer
         self.opt_palette_size = opt_palette_size
-        
+
         self._previous_image = None  # as np array
         self._global_palette = None  # as bytes
         self._count = 0
-        
+
         from PIL.GifImagePlugin import getdata
+
         self.getdata = getdata
-    
+
     def add_image(self, im, duration, dispose):
-        
+
         # Prepare image
         im_rect, rect = im, (0, 0)
         if self.opt_subrectangle:
             im_rect, rect = self.getSubRectangle(im)
-        im_pil = self.converToPIL(im_rect, self.opt_quantizer,
-                                  self.opt_palette_size)
-        
+        im_pil = self.converToPIL(im_rect, self.opt_quantizer, self.opt_palette_size)
+
         # Get pallette - apparently, this is the 3d element of the header
         # (but it has not always been). Best we've got. Its not the same
         # as im_pil.palette.tobytes().
         from PIL.GifImagePlugin import getheader
+
         palette = getheader(im_pil)[0][3]
-        
+
         # Write image
         if self._count == 0:
             self.write_header(im_pil, palette, self.opt_loop)
             self._global_palette = palette
         self.write_image(im_pil, palette, rect, duration, dispose)
         # assert len(palette) == len(self._global_palette)
-        
+
         # Bookkeeping
         self._previous_image = im
         self._count += 1
-    
+
     def write_header(self, im, globalPalette, loop):
         # Gather info
         header = self.getheaderAnim(im)
@@ -172,24 +190,24 @@ class GifWriter:
         self.fp.write(header)
         self.fp.write(globalPalette)
         self.fp.write(appext)
-    
+
     def close(self):
-        self.fp.write(";".encode('utf-8'))  # end gif
-    
+        self.fp.write(";".encode("utf-8"))  # end gif
+
     def write_image(self, im, palette, rect, duration, dispose):
-        
+
         fp = self.fp
-        
+
         # Gather local image header and data, using PIL's getdata. That
         # function returns a list of bytes objects, but which parts are
         # what has changed multiple times, so we put together the first
         # parts until we have enough to form the image header.
         data = self.getdata(im)
-        imdes = b''
+        imdes = b""
         while data and len(imdes) < 11:
             imdes += data.pop(0)
         assert len(imdes) == 11
-        
+
         # Make image descriptor suitable for using 256 local color palette
         lid = self.getImageDescriptor(im, rect)
         graphext = self.getGraphicsControlExt(duration, dispose)
@@ -200,7 +218,7 @@ class GifWriter:
             fp.write(graphext)
             fp.write(lid)  # write suitable image descriptor
             fp.write(palette)  # write local color table
-            fp.write(b'\x08')  # LZW minimum size code
+            fp.write(b"\x08")  # LZW minimum size code
         else:
             # Use global color palette
             fp.write(graphext)
@@ -209,7 +227,7 @@ class GifWriter:
         # Write image data
         for d in data:
             fp.write(d)
-    
+
     def getheaderAnim(self, im):
         """ Get animation header. To replace PILs getheader()[0]
         """
@@ -234,7 +252,7 @@ class GifWriter:
             xy = (0, 0)
 
         # Image separator,
-        bb = b'\x2C'
+        bb = b"\x2C"
 
         # Image position and size
         bb += intToBin(xy[0])  # Left position
@@ -244,7 +262,7 @@ class GifWriter:
 
         # packed field: local color table flag1, interlace0, sorted table0,
         # reserved00, lct size111=7=2^(7 + 1)=256.
-        bb += b'\x87'
+        bb += b"\x87"
 
         # LZW minimum size code now comes later, begining of [imagedata] blocks
         return bb
@@ -263,7 +281,7 @@ class GifWriter:
             bb += b"NETSCAPE2.0"
             bb += b"\x03\x01"
             bb += intToBin(loop)
-            bb += b'\x00'  # end
+            bb += b"\x00"  # end
         return bb
 
     def getGraphicsControlExt(self, duration=0.1, dispose=2):
@@ -282,16 +300,16 @@ class GifWriter:
           * 4-7 -To be defined.
         """
 
-        bb = b'\x21\xF9\x04'
-        bb += chr((dispose & 3) << 2).encode('utf-8')
+        bb = b"\x21\xF9\x04"
+        bb += chr((dispose & 3) << 2).encode("utf-8")
         # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,
         # are dispose.
         bb += intToBin(int(duration * 100 + 0.5))  # in 100th of seconds
-        bb += b'\x00'  # no transparant color
-        bb += b'\x00'  # end
+        bb += b"\x00"  # no transparant color
+        bb += b"\x00"  # end
         return bb
-    
+
     def getSubRectangle(self, im):
         """ Calculate the minimal rectangle that need updating. Returns
         a two-element tuple containing the cropped image and an x-y tuple.
@@ -300,13 +318,13 @@ class GifWriter:
         if the image sizes were reduced, the actual writing of the GIF
         goes faster. In some cases applying this method produces a GIF faster.
         """
-        
+
         # Cannot do subrectangle for first image
         if self._count == 0:
             return im, (0, 0)
-        
+
         prev = self._previous_image
-        
+
         # Get difference, sum over colors
         diff = np.abs(im - prev)
         if diff.ndim == 3:
@@ -321,9 +339,9 @@ class GifWriter:
         else:  # No change ... make it minimal
             x0, x1 = 0, 2
             y0, y1 = 0, 2
-        
+
         return im[y0:y1, x0:x1], (x0, y0)
-    
+
     def converToPIL(self, im, quantizer, palette_size=256):
         """Convert image to Paletted PIL image.
         
@@ -331,10 +349,10 @@ class GifWriter:
         this has improved a lot (at least in Pillow). I don't think we need
         neuqant (and we can add it later if we really want).
         """
-        
-        im_pil = ndarray_to_pil(im, 'gif')
-        
-        if quantizer in ('nq', 'neuquant'):
+
+        im_pil = ndarray_to_pil(im, "gif")
+
+        if quantizer in ("nq", "neuquant"):
             # NeuQuant algorithm
             nq_samplefac = 10  # 10 seems good in general
             im_pil = im_pil.convert("RGBA")  # NQ assumes RGBA
@@ -348,5 +366,5 @@ class GifWriter:
                 im_pil = im_pil.convert("RGB")
             im_pil = im_pil.quantize(colors=palette_size, method=quantizer)
         else:
-            raise ValueError('Invalid value for quantizer: %r' % quantizer)
+            raise ValueError("Invalid value for quantizer: %r" % quantizer)
         return im_pil

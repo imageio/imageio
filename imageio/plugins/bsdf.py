@@ -23,45 +23,43 @@ else:  # pragma: no cover
 
 def get_bsdf_serializer(options):
     from . import _bsdf as bsdf
-    
+
     class NDArrayExtension(bsdf.Extension):
         """ Copy of BSDF's NDArrayExtension but deal with lazy blobs.
         """
-        
-        name = 'ndarray'
+
+        name = "ndarray"
         cls = np.ndarray
-    
+
         def encode(self, s, v):
-            return dict(shape=v.shape,
-                        dtype=text_type(v.dtype),
-                        data=v.tobytes())
-    
+            return dict(shape=v.shape, dtype=text_type(v.dtype), data=v.tobytes())
+
         def decode(self, s, v):
             return v  # return as dict, because of lazy blobs, decode in Image
-    
+
     class ImageExtension(bsdf.Extension):
         """ We implement two extensions that trigger on the Image classes.
         """
-    
+
         def encode(self, s, v):
             return dict(array=v.array, meta=v.meta)
-    
+
         def decode(self, s, v):
-            return Image(v['array'], v['meta'])
-    
+            return Image(v["array"], v["meta"])
+
     class Image2DExtension(ImageExtension):
-    
-        name = 'image2d'
+
+        name = "image2d"
         cls = Image2D
-    
+
     class Image3DExtension(ImageExtension):
-    
-        name = 'image3d'
+
+        name = "image3d"
         cls = Image3D
-    
+
     exts = [NDArrayExtension, Image2DExtension, Image3DExtension]
     serializer = bsdf.BsdfSerializer(exts, **options)
-    
+
     return bsdf, serializer
 
 
@@ -70,21 +68,21 @@ class Image:
     we can make BSDF trigger on these classes and thus encode the images.
     as actual images.
     """
-    
-    def __init__(self,  array, meta):
+
+    def __init__(self, array, meta):
         self.array = array
         self.meta = meta
-    
+
     def get_array(self):
         if not isinstance(self.array, np.ndarray):
             v = self.array
-            blob = v['data']
+            blob = v["data"]
             if not isinstance(blob, bytes):  # then it's a lazy bsdf.Blob
                 blob = blob.get_bytes()
-            self.array = np.frombuffer(blob, dtype=v['dtype'])
-            self.array.shape = v['shape']
+            self.array = np.frombuffer(blob, dtype=v["dtype"])
+            self.array.shape = v["shape"]
         return self.array
-    
+
     def get_meta(self):
         return self.meta
 
@@ -134,33 +132,34 @@ class BsdfFormat(Format):
         (e.g. JavaScript).
     
     """
-    
+
     def _can_read(self, request):
-        if request.mode[1] in (self.modes + '?'):
+        if request.mode[1] in (self.modes + "?"):
             # if request.extension in self.extensions:
             #     return True
-            if request.firstbytes.startswith(b'BSDF'):
+            if request.firstbytes.startswith(b"BSDF"):
                 return True
-    
+
     def _can_write(self, request):
-        if request.mode[1] in (self.modes + '?'):
+        if request.mode[1] in (self.modes + "?"):
             if request.extension in self.extensions:
                 return True
-    
+
     # -- reader
-    
+
     class Reader(Format.Reader):
-    
         def _open(self, random_access=None):
             # Validate - we need a BSDF file consisting of a list of images
             # The list is typically a stream, but does not have to be.
-            assert self.request.firstbytes[:4] == b'BSDF', 'Not a BSDF file'
+            assert self.request.firstbytes[:4] == b"BSDF", "Not a BSDF file"
             # self.request.firstbytes[5:6] == major and minor version
-            if not (self.request.firstbytes[6:15] == b'M\x07image2D' or
-                    self.request.firstbytes[6:15] == b'M\x07image3D' or 
-                    self.request.firstbytes[6:7] == b'l'):
+            if not (
+                self.request.firstbytes[6:15] == b"M\x07image2D"
+                or self.request.firstbytes[6:15] == b"M\x07image3D"
+                or self.request.firstbytes[6:7] == b"l"
+            ):
                 pass  # Actually, follow a more duck-type approach ...
-                #raise RuntimeError('BSDF file does not look like an '
+                # raise RuntimeError('BSDF file does not look like an '
                 #                   'image container.')
             # Set options. If we think that seeking is allowed, we lazily load
             # blobs, and set streaming to False (i.e. the whole file is read,
@@ -169,30 +168,33 @@ class BsdfFormat(Format):
             # If seeking is not allowed (e.g. with a http request), we cannot
             # lazily load blobs, but we can still load streaming from the web.
             options = {}
-            if self.request.filename.startswith(('http://', 'https://')):
+            if self.request.filename.startswith(("http://", "https://")):
                 ra = False if random_access is None else bool(random_access)
-                options['lazy_blob'] = False  # Because we cannot seek now
-                options['load_streaming'] = not ra  # Load as a stream?
+                options["lazy_blob"] = False  # Because we cannot seek now
+                options["load_streaming"] = not ra  # Load as a stream?
             else:
                 ra = True if random_access is None else bool(random_access)
-                options['lazy_blob'] = ra  # Don't read data until needed
-                options['load_streaming'] = not ra
-            
+                options["lazy_blob"] = ra  # Don't read data until needed
+                options["load_streaming"] = not ra
+
             file = self.request.get_file()
             bsdf, self._serializer = get_bsdf_serializer(options)
             self._stream = self._serializer.load(file)
             # Another validation
-            if (isinstance(self._stream, dict) and 'meta' in self._stream and
-                                                   'array' in self._stream):
-                self._stream = Image(self._stream['array'],
-                                     self._stream['meta'])
+            if (
+                isinstance(self._stream, dict)
+                and "meta" in self._stream
+                and "array" in self._stream
+            ):
+                self._stream = Image(self._stream["array"], self._stream["meta"])
             if not isinstance(self._stream, (Image, list, bsdf.ListStream)):
-                raise RuntimeError('BSDF file does not look seem to have an '
-                                   'image container.')
-        
+                raise RuntimeError(
+                    "BSDF file does not look seem to have an " "image container."
+                )
+
         def _close(self):
             pass
-        
+
         def _get_length(self):
             if isinstance(self._stream, Image):
                 return 1
@@ -201,12 +203,13 @@ class BsdfFormat(Format):
             elif self._stream.count < 0:
                 return np.inf
             return self._stream.count
-        
+
         def _get_data(self, index):
             # Validate
             if index < 0 or index >= self.get_length():
-                raise IndexError('Image index %i not in [0 %i].' %
-                                 (index, self.get_length()))
+                raise IndexError(
+                    "Image index %i not in [0 %i]." % (index, self.get_length())
+                )
             # Get Image object
             if isinstance(self._stream, Image):
                 image_ob = self._stream  # singleton
@@ -216,35 +219,39 @@ class BsdfFormat(Format):
             else:
                 # For streaming, we need to skip over frames
                 if index < self._stream.index:
-                    raise IndexError('BSDF file is being read in streaming '
-                                     'mode, thus does not allow rewinding.')
+                    raise IndexError(
+                        "BSDF file is being read in streaming "
+                        "mode, thus does not allow rewinding."
+                    )
                 while index > self._stream.index:
-                    print('skipping one')
+                    print("skipping one")
                     self._stream.next()
                 image_ob = self._stream.next()
             # Is this an image?
-            if (isinstance(image_ob, dict) and 'meta' in image_ob and
-                                               'array' in image_ob):
-                image_ob = Image(image_ob['array'], image_ob['meta'])
+            if (
+                isinstance(image_ob, dict)
+                and "meta" in image_ob
+                and "array" in image_ob
+            ):
+                image_ob = Image(image_ob["array"], image_ob["meta"])
             if isinstance(image_ob, Image):
                 # Return as array (if we have lazy blobs, they are read now)
                 return image_ob.get_array(), image_ob.get_meta()
             else:
                 r = repr(image_ob)
-                r = r if len(r) < 200 else r[:197] + '...'
-                raise RuntimeError('BSDF file contains non-image ' + r)
-        
+                r = r if len(r) < 200 else r[:197] + "..."
+                raise RuntimeError("BSDF file contains non-image " + r)
+
         def _get_meta_data(self, index):  # pragma: no cover
             return {}  # This format does not support global meta data
-    
+
     # -- writer
-    
+
     class Writer(Format.Writer):
-        
         def _open(self, compression=1):
-            options = {'compression': compression}
+            options = {"compression": compression}
             bsdf, self._serializer = get_bsdf_serializer(options)
-            if self.request.mode[1] in 'iv':
+            if self.request.mode[1] in "iv":
                 self._stream = None  # Singleton image
                 self._written = False
             else:
@@ -252,7 +259,7 @@ class BsdfFormat(Format):
                 file = self.request.get_file()
                 self._stream = bsdf.ListStream()
                 self._serializer.save(file, self._stream)
-        
+
         def _close(self):
             # We close the stream here, which will mark the number of written
             # elements. If we would not close it, the file would be fine, it's
@@ -260,13 +267,13 @@ class BsdfFormat(Format):
             # in there.
             if self._stream is not None:
                 self._stream.close(False)  # False says "keep this a stream"
-        
+
         def _append_data(self, im, meta):
             # Determine dimension
             ndim = None
-            if self.request.mode[1] in 'iI':
+            if self.request.mode[1] in "iI":
                 ndim = 2
-            elif self.request.mode[1] in 'vV':
+            elif self.request.mode[1] in "vV":
                 ndim = 3
             else:
                 ndim = 3  # Make an educated guess
@@ -286,21 +293,21 @@ class BsdfFormat(Format):
                 ob = Image3D(im, meta)
             # Write directly or to stream
             if self._stream is None:
-                assert not self._written, 'Cannot write singleton image twice'
+                assert not self._written, "Cannot write singleton image twice"
                 self._written = True
                 file = self.request.get_file()
                 self._serializer.save(file, ob)
             else:
                 self._stream.append(ob)
-        
+
         def set_meta_data(self, meta):  # pragma: no cover
-            raise RuntimeError('The BSDF format only supports '
-                               'per-image meta data.')
+            raise RuntimeError("The BSDF format only supports " "per-image meta data.")
 
 
-format = BsdfFormat('bsdf',  # short name
-                    'Format based on the Binary Structured Data Format',
-                    '.bsdf',
-                    'iIvV'
-                    )
+format = BsdfFormat(
+    "bsdf",  # short name
+    "Format based on the Binary Structured Data Format",
+    ".bsdf",
+    "iIvV",
+)
 formats.add_format(format)

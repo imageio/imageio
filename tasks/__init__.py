@@ -17,7 +17,7 @@ ns = Collection()
 # Automatically collect tasks from submodules
 for fname in os.listdir(THIS_DIR):
     # Does this look like a module that we want?
-    if fname.startswith('_') or not fname.endswith('.py'):
+    if fname.startswith("_") or not fname.endswith(".py"):
         continue
     modname = fname[:-3]
     # Import it

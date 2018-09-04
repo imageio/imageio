@@ -9,14 +9,15 @@ import imageio
 
 def dedent(text, dedent=8):
     lines = [line[dedent:] for line in text.splitlines()]
-    text = '\n'.join(lines)
-    return text.strip() + '\n'
+    text = "\n".join(lines)
+    return text.strip() + "\n"
 
 
 def test_webcam_parse_device_names():
     # Ensure that the device list parser returns all video devices (issue #283)
-    
-    sample = dedent(r"""
+
+    sample = dedent(
+        r"""
         ffmpeg version 3.2.4 Copyright (c) 2000-2017 the FFmpeg developers
         built with gcc 6.3.0 (GCC)
         configuration: --enable-gpl --enable-version3 --enable-d3d11va --enable-dxva2 --enable-libmfx --enable-nvenc --enable-avisynthlibswresample   2.  3.100 /  2.  3.100
@@ -32,8 +33,9 @@ def test_webcam_parse_device_names():
         [dshow @ 039a7e20]  "SPDIF Interface (Multimedia Audio Device)"
         [dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{617B63FB-CFC0-4D10-AE30-42A66CAF6A4E}"
         dummy: Immediate exit requested
-        """)
-    
+        """
+    )
+
     # Parse the sample
     device_names = imageio.plugins.ffmpeg.parse_device_names(sample)
 
@@ -43,8 +45,9 @@ def test_webcam_parse_device_names():
 
 def test_get_correct_fps1():
     # from issue #262
-    
-    sample = dedent(r"""
+
+    sample = dedent(
+        r"""
         fmpeg version 3.2.2 Copyright (c) 2000-2016 the FFmpeg developers
         built with Apple LLVM version 8.0.0 (clang-800.0.42.1)
         configuration: --prefix=/usr/local/Cellar/ffmpeg/3.2.2 --enable-shared --enable-pthreads --enable-gpl --enable-version3 --enable-hardcoded-tables --enable-avresample --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-frei0r --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libschroedinger --enable-libspeex --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libxvid --enable-opencl --disable-lzma --enable-libopenjpeg --disable-decoder=jpeg2000 --extra-cflags=-I/usr/local/Cellar/openjpeg/2.1.2/include/openjpeg-2.1 --enable-nonfree --enable-vda
@@ -80,16 +83,18 @@ def test_get_correct_fps1():
             handler_name    : vide
             encoder         : Lavc57.64.101 rawvideo
         Stream mapping:
-        """)
-    
+        """
+    )
+
     info = imageio.plugins.ffmpeg.parse_ffmpeg_info(sample)
-    assert info['fps'] == 26.58
+    assert info["fps"] == 26.58
 
 
 def test_get_correct_fps2():
     # from issue #262
-    
-    sample = dedent(r"""
+
+    sample = dedent(
+        r"""
         ffprobe version 3.2.2 Copyright (c) 2007-2016 the FFmpeg developers
         built with Apple LLVM version 8.0.0 (clang-800.0.42.1)
         configuration: --prefix=/usr/local/Cellar/ffmpeg/3.2.2 --enable-shared --enable-pthreads --enable-gpl --enable-version3 --enable-hardcoded-tables --enable-avresample --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-frei0r --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopus --enable-librtmp --enable-libschroedinger --enable-libspeex --enable-libtheora --enable-libvorbis --enable-libvpx --enable-libx264 --enable-libxvid --enable-opencl --disable-lzma --enable-libopenjpeg --disable-decoder=jpeg2000 --extra-cflags=-I/usr/local/Cellar/openjpeg/2.1.2/include/openjpeg-2.1 --enable-nonfree --enable-vda
@@ -114,42 +119,43 @@ def test_get_correct_fps2():
             Stream #0:1(eng): Video: mpeg4 (Simple Profile) (mp4v / 0x7634706D), yuv420p, 640x480 [SAR 1:1 DAR 4:3], 1785 kb/s, 29.27 fps, 1k tbr, 90k tbn, 1k tbc (default)
             Metadata:
             handler_name    : vide
-        """)
-    
+        """
+    )
+
     info = imageio.plugins.ffmpeg.parse_ffmpeg_info(sample)
-    assert info['fps'] == 29.27
+    assert info["fps"] == 29.27
 
 
 def test_overload_fps():
-    
+
     need_internet()
-    
+
     # Native
-    r = imageio.get_reader('imageio:cockatoo.mp4')
+    r = imageio.get_reader("imageio:cockatoo.mp4")
     assert len(r) == 280  # native
     ims = [im for im in r]
     assert len(ims) == 280
     # imageio.mimwrite('~/parot280.gif', ims[:30])
-    
+
     # Less
-    r = imageio.get_reader('imageio:cockatoo.mp4', fps=8)
+    r = imageio.get_reader("imageio:cockatoo.mp4", fps=8)
     assert len(r) == 112
     ims = [im for im in r]
     assert len(ims) == 112
     # imageio.mimwrite('~/parot112.gif', ims[:30])
-    
+
     # More
-    r = imageio.get_reader('imageio:cockatoo.mp4', fps=24)
+    r = imageio.get_reader("imageio:cockatoo.mp4", fps=24)
     assert len(r) == 336
     ims = [im for im in r]
     assert len(ims) == 336
     # imageio.mimwrite('~/parot336.gif', ims[:30])
-    
+
     # Do we calculate nframes correctly? To be fair, the reader wont try to
-    # read beyond what it thinks how many frames it has. But this at least 
+    # read beyond what it thinks how many frames it has. But this at least
     # makes sure that this works.
     for fps in (8.0, 8.02, 8.04, 8.06, 8.08):
-        r = imageio.get_reader('imageio:cockatoo.mp4', fps=fps)
+        r = imageio.get_reader("imageio:cockatoo.mp4", fps=fps)
         n = len(r)
         i = 0
         try:

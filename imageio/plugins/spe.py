@@ -31,6 +31,7 @@ class Spec:
     although this may not be accurate since there is next to no documentation
     to be found.
     """
+
     basic = {
         "datatype": (108, "<h"),  # dtypes
         "xdim": (42, "<H"),
@@ -41,19 +42,25 @@ class Spec:
     metadata = {
         # ROI information
         "NumROI": (1510, "<h"),
-        "ROIs": (1512, np.dtype([("startx", "<H"),
-                                 ("endx", "<H"),
-                                 ("groupx", "<H"),
-                                 ("starty", "<H"),
-                                 ("endy", "<H"),
-                                 ("groupy", "<H")]), 10),
-
+        "ROIs": (
+            1512,
+            np.dtype(
+                [
+                    ("startx", "<H"),
+                    ("endx", "<H"),
+                    ("groupx", "<H"),
+                    ("starty", "<H"),
+                    ("endy", "<H"),
+                    ("groupy", "<H"),
+                ]
+            ),
+            10,
+        ),
         # chip-related sizes
         "xDimDet": (6, "<H"),
         "yDimDet": (18, "<H"),
         "VChipXdim": (14, "<h"),
         "VChipYdim": (16, "<h"),
-
         # other stuff
         "controller_version": (0, "<h"),
         "logic_output": (2, "<h"),
@@ -96,18 +103,32 @@ class Spec:
         "clockspeed_us": (1428, "<f"),
         "readout_mode": (1480, "<H"),  # readout_modes
         "window_size": (1482, "<H"),
-        "file_header_ver": (1992, "<f")
+        "file_header_ver": (1992, "<f"),
     }
 
     data_start = 4100
 
-    dtypes = [np.dtype("<f"), np.dtype("<i"), np.dtype("<h"),
-              np.dtype("<H"), np.dtype("<I")]
+    dtypes = [
+        np.dtype("<f"),
+        np.dtype("<i"),
+        np.dtype("<h"),
+        np.dtype("<H"),
+        np.dtype("<I"),
+    ]
 
     controllers = [
-        "new120 (Type II)", "old120 (Type I)", "ST130", "ST121", "ST138",
-        "DC131 (PentaMax)", "ST133 (MicroMax/Roper)", "ST135 (GPIB)", "VTCCD",
-        "ST116 (GPIB)", "OMA3 (GPIB)", "OMA4"
+        "new120 (Type II)",
+        "old120 (Type I)",
+        "ST130",
+        "ST121",
+        "ST138",
+        "DC131 (PentaMax)",
+        "ST133 (MicroMax/Roper)",
+        "ST135 (GPIB)",
+        "VTCCD",
+        "ST116 (GPIB)",
+        "OMA3 (GPIB)",
+        "OMA4",
     ]
 
     # This was gathered from random places on the internet and own experiments
@@ -224,9 +245,11 @@ class SpeFormat(Format):
     geometric : list of {"rotate", "reverse", "flip"}
         Geometric operations
     """
+
     def _can_read(self, request):
-        return (request.mode[1] in self.modes + "?" and
-                request.extension in self.extensions)
+        return (
+            request.mode[1] in self.modes + "?" and request.extension in self.extensions
+        )
 
     def _can_write(self, request):
         return False
@@ -248,9 +271,10 @@ class SpeFormat(Format):
                 l = fsz - Spec.data_start
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
-                    warnings.warn("Number of frames according to file header "
-                                  "does not match the size of file %s." %
-                                  self.request.filename)
+                    warnings.warn(
+                        "Number of frames according to file header "
+                        "does not match the size of file %s." % self.request.filename
+                    )
                     self._len = min(l, self._len)
 
             self._meta = None
@@ -264,20 +288,25 @@ class SpeFormat(Format):
                 self._meta["ROIs"] = roi_array_to_dict(self._meta["ROIs"][:nr])
 
                 # chip sizes
-                self._meta["chip_size"] = [self._meta.pop("xDimDet", None),
-                                           self._meta.pop("yDimDet", None)]
+                self._meta["chip_size"] = [
+                    self._meta.pop("xDimDet", None),
+                    self._meta.pop("yDimDet", None),
+                ]
                 self._meta["virt_chip_size"] = [
                     self._meta.pop("VChipXdim", None),
-                    self._meta.pop("VChipYdim", None)]
-                self._meta["pre_pixels"] = [self._meta.pop("XPrePixels", None),
-                                            self._meta.pop("YPrePixels", None)]
+                    self._meta.pop("VChipYdim", None),
+                ]
+                self._meta["pre_pixels"] = [
+                    self._meta.pop("XPrePixels", None),
+                    self._meta.pop("YPrePixels", None),
+                ]
                 self._meta["post_pixels"] = [
                     self._meta.pop("XPostPixels", None),
-                    self._meta.pop("YPostPixels", None)]
+                    self._meta.pop("YPostPixels", None),
+                ]
 
                 # comments
-                self._meta["comments"] = [str(c)
-                                          for c in self._meta["comments"]]
+                self._meta["comments"] = [str(c) for c in self._meta["comments"]]
 
                 # geometric operations
                 g = []
@@ -303,8 +332,12 @@ class SpeFormat(Format):
                     self._meta["readout_mode"] = ""
 
                 # bools
-                for k in ("absorb_live", "can_do_virtual_chip",
-                          "threshold_min_live", "threshold_max_live"):
+                for k in (
+                    "absorb_live",
+                    "can_do_virtual_chip",
+                    "threshold_min_live",
+                    "threshold_max_live",
+                ):
                     self._meta[k] = bool(self._meta[k])
 
                 # frame shape
@@ -322,16 +355,18 @@ class SpeFormat(Format):
 
             for name, sp in spec.items():
                 self._file.seek(sp[0])
-                cnt = (1 if len(sp) < 3 else sp[2])
+                cnt = 1 if len(sp) < 3 else sp[2]
                 v = np.fromfile(self._file, dtype=sp[1], count=cnt)
                 if v.dtype.kind == "S" and name not in Spec.no_decode:
                     # Silently ignore string decoding failures
                     try:
                         v = decode(v)
                     except Exception:
-                        warnings.warn("Failed to decode \"{}\" metadata "
-                                      "string. Check `char_encoding` "
-                                      "parameter.".format(name))
+                        warnings.warn(
+                            'Failed to decode "{}" metadata '
+                            "string. Check `char_encoding` "
+                            "parameter.".format(name)
+                        )
 
                 try:
                     # For convenience, if the array contains only one single
@@ -343,7 +378,7 @@ class SpeFormat(Format):
             return ret
 
         def _get_length(self):
-            if self.request.mode[1] in 'vV':
+            if self.request.mode[1] in "vV":
                 return 1
             else:
                 return self._len
@@ -359,16 +394,19 @@ class SpeFormat(Format):
                     raise IndexError("Index has to be 0 in v and V modes")
                 self._file.seek(Spec.data_start)
                 data = np.fromfile(
-                    self._file, dtype=self._dtype,
-                    count=self._shape[0] * self._shape[1] * self._len)
+                    self._file,
+                    dtype=self._dtype,
+                    count=self._shape[0] * self._shape[1] * self._len,
+                )
                 data = data.reshape((self._len,) + self._shape)
             else:
                 self._file.seek(
-                    Spec.data_start + index * self._shape[0] *
-                    self._shape[1] * self._dtype.itemsize)
+                    Spec.data_start
+                    + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
+                )
                 data = np.fromfile(
-                    self._file, dtype=self._dtype,
-                    count=self._shape[0] * self._shape[1])
+                    self._file, dtype=self._dtype, count=self._shape[0] * self._shape[1]
+                )
                 data = data.reshape(self._shape)
             return data, self._get_meta_data(index)
 
@@ -391,9 +429,11 @@ def roi_array_to_dict(a):
     l = []
     a = a[["startx", "starty", "endx", "endy", "groupx", "groupy"]]
     for sx, sy, ex, ey, gx, gy in a:
-        d = {"top_left": [int(sx), int(sy)],
-             "bottom_right": [int(ex), int(ey)],
-             "bin": [int(gx), int(gy)]}
+        d = {
+            "top_left": [int(sx), int(sy)],
+            "bottom_right": [int(ex), int(ey)],
+            "bin": [int(gx), int(gy)],
+        }
         l.append(d)
     return l
 
