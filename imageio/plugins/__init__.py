@@ -107,12 +107,13 @@ from . import simpleitk  # depends on SimpleITK
 from . import gdal  # depends on gdal
 
 from . import lytro
+from . import spe
 
 from . import example
 
 # Sort
 import os
 from .. import formats
-formats.sort(*os.getenv('IMAGEIO_FORMAT_ORDER', '').split(','))
-del os, formats
 
+formats.sort(*os.getenv("IMAGEIO_FORMAT_ORDER", "").split(","))
+del os, formats

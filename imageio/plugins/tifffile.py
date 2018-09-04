@@ -7,6 +7,7 @@
 from __future__ import absolute_import, print_function, division
 
 import sys
+import datetime
 
 from .. import formats
 from ..core import Format
@@ -17,15 +18,17 @@ _tifffile = None  # Defer loading to lib() function.
 
 
 def load_lib():
-    if sys.version_info < (3, ):
+    if sys.version_info < (3,):
         try:
             import enum  # noqa - needs enum34
             import concurrent.futures  # noqa - needs futures
         except ImportError:
-            raise ImportError('The Imageio TIFF format has extra dependencies '
-                              'on Python 2.7. Install these using e.g. '
-                              '"pip install enum34 futures".')
-    
+            raise ImportError(
+                "The Imageio TIFF format has extra dependencies "
+                "on Python 2.7. Install these using e.g. "
+                '"pip install enum34 futures".'
+            )
+
     global _tifffile
     try:
         import tifffile as _tifffile
@@ -34,16 +37,41 @@ def load_lib():
     return _tifffile
 
 
-TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
-WRITE_METADATA_KEYS = ('photometric', 'planarconfig', 'resolution',
-                       'description', 'compress', 'volume', 'writeshape',
-                       'extratags')
-READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
-                      'is_contig', 'is_micromanager', 'is_ome', 'is_lsm'
-                      'is_palette', 'is_reduced', 'is_rgb', 'is_sgi',
-                      'is_shaped', 'is_stk', 'is_tiled', 'is_mdgel'
-                      'resolution_unit', 'compression', 'is_mediacy',
-                      'orientation')
+TIFF_FORMATS = (".tif", ".tiff", ".stk", ".lsm")
+WRITE_METADATA_KEYS = (
+    "photometric",
+    "planarconfig",
+    "resolution",
+    "description",
+    "compress",
+    "volume",
+    "writeshape",
+    "extratags",
+    "datetime",
+)
+READ_METADATA_KEYS = (
+    "planar_configuration",
+    "is_fluoview",
+    "is_nih",
+    "is_contig",
+    "is_micromanager",
+    "is_ome",
+    "is_lsm" "is_palette",
+    "is_reduced",
+    "is_rgb",
+    "is_sgi",
+    "is_shaped",
+    "is_stk",
+    "is_tiled",
+    "is_mdgel" "resolution_unit",
+    "compression",
+    "is_mediacy",
+    "orientation",
+    "description",
+    "description1",
+    "is_imagej",
+    "software",
+)
 
 
 class TiffFormat(Format):
@@ -126,6 +154,16 @@ class TiffFormat(Format):
         True if page contains UIC2Tag tag.
     is_lsm : bool
         True if page contains LSM CZ_LSM_INFO tag.
+    description : str
+        Image description
+    description1 : str
+        Additional description
+    is_imagej : None or str
+        ImageJ metadata
+    software : str
+        Software used to create the TIFF file
+    datetime : datetime.datetime
+        Creation date and time
 
     Metadata for writing
     --------------------
@@ -171,7 +209,7 @@ class TiffFormat(Format):
     def _can_read(self, request):
         # We support any kind of image data
         return request.extension in self.extensions
-    
+
     def _can_write(self, request):
         # We support any kind of image data
         return request.extension in self.extensions
@@ -179,13 +217,12 @@ class TiffFormat(Format):
     # -- reader
 
     class Reader(Format.Reader):
-
         def _open(self, **kwargs):
             if not _tifffile:
                 load_lib()
             # Allow loading from http; tiffile uses seek, so download first
-            if self.request.filename.startswith(('http://', 'https://')):
-                self._f = f = open(self.request.get_local_filename(), 'rb')
+            if self.request.filename.startswith(("http://", "https://")):
+                self._f = f = open(self.request.get_local_filename(), "rb")
             else:
                 self._f = None
                 f = self.request.get_file()
@@ -198,26 +235,24 @@ class TiffFormat(Format):
             self._tf.close()
             if self._f is not None:
                 self._f.close()
-        
+
         def _get_length(self):
-            if self.request.mode[1] in 'vV':
+            if self.request.mode[1] in "vV":
                 return 1  # or can there be pages in pages or something?
             else:
                 return len(self._tf.pages)
-        
+
         def _get_data(self, index):
-            if self.request.mode[1] in 'vV':
+            if self.request.mode[1] in "vV":
                 # Read data as single 3D (+ color channels) array
                 if index != 0:
-                    raise IndexError(
-                        'Tiff support no more than 1 "volume" per file')
+                    raise IndexError('Tiff support no more than 1 "volume" per file')
                 im = self._tf.asarray()  # request as singleton image
                 meta = self._meta
             else:
                 # Read as 2D image
                 if index < 0 or index >= self._get_length():
-                    raise IndexError(
-                        'Index out of range while reading from tiff file')
+                    raise IndexError("Index out of range while reading from tiff file")
                 im = self._tf.pages[index].asarray()
                 meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
@@ -230,16 +265,41 @@ class TiffFormat(Format):
                     self._meta[key] = getattr(page, key)
                 except Exception:
                     pass
+
+            # tifffile <= 0.12.1 use datetime, newer use DateTime
+            for key in ("datetime", "DateTime"):
+                try:
+                    self._meta["datetime"] = datetime.datetime.strptime(
+                        page.tags[key].value, "%Y:%m:%d %H:%M:%S"
+                    )
+                    break
+                except Exception:
+                    pass
+
             return self._meta
 
     # -- writer
     class Writer(Format.Writer):
-
         def _open(self, bigtiff=None, byteorder=None, software=None):
             if not _tifffile:
                 load_lib()
-            self._tf = _tifffile.TiffWriter(self.request.get_local_filename(),
-                                            bigtiff, byteorder, software)
+
+            try:
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_local_filename(),
+                    bigtiff,
+                    byteorder,
+                    software=software,
+                )
+                self._software = None
+            except TypeError:
+                # In tifffile >= 0.15, the `software` arg is passed to
+                # TiffWriter.save
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_local_filename(), bigtiff, byteorder
+                )
+                self._software = software
+
             self._meta = {}
 
         def _close(self):
@@ -250,7 +310,11 @@ class TiffFormat(Format):
                 self.set_meta_data(meta)
             # No need to check self.request.mode; tiffile figures out whether
             # this is a single page, or all page data at once.
-            self._tf.save(np.asanyarray(im), **self._meta)
+            if self._software is None:
+                self._tf.save(np.asanyarray(im), **self._meta)
+            else:
+                # tifffile >= 0.15
+                self._tf.save(np.asanyarray(im), software=self._software, **self._meta)
 
         def set_meta_data(self, meta):
             self._meta = {}
@@ -260,5 +324,5 @@ class TiffFormat(Format):
 
 
 # Register
-format = TiffFormat('tiff', "TIFF format", TIFF_FORMATS, 'iIvV')
+format = TiffFormat("tiff", "TIFF format", TIFF_FORMATS, "iIvV")
 formats.add_format(format)

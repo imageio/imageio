@@ -13,9 +13,17 @@ To install imageio, use one of the following methods:
 * If you have pip: ``pip install imageio``
 * Good old ``python setup.py install``
 
+After installation, checkout the
+:doc:`examples  <examples>` and :doc:`user api <userapi>`. 
+
+
+Developers
+----------
+
 For developers, we provide a simple mechanism to allow importing 
 imageio from the cloned repository. See the file ``imageio.proxy.py`` for
 details.
 
-After installation, checkout the
-:doc:`examples  <examples>` and :doc:`user api <userapi>`. 
+Further imageio has the following dev-dependencies:
+
+``pip install black pytest pytest-cov sphinx numpydoc``

@@ -15,20 +15,20 @@ except ImportError:
     gdal = None
 
 
-@pytest.mark.skipif('gdal is None')
+@pytest.mark.skipif("gdal is None")
 def test_gdal_reading():
     """ Test reading gdal"""
     need_internet()
-    
-    filename = get_remote_file('images/geotiff.tif')
 
-    im = imageio.imread(filename, 'gdal')
+    filename = get_remote_file("images/geotiff.tif")
+
+    im = imageio.imread(filename, "gdal")
     assert im.shape == (929, 699)
 
-    R = imageio.read(filename, 'gdal')
-    assert R.format.name == 'GDAL'
+    R = imageio.read(filename, "gdal")
+    assert R.format.name == "GDAL"
     meta_data = R.get_meta_data()
-    assert 'TIFFTAG_XRESOLUTION' in meta_data
+    assert "TIFFTAG_XRESOLUTION" in meta_data
 
     # Fail
     raises = pytest.raises

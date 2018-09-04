@@ -16,13 +16,15 @@ def load_lib():
     try:
         import osgeo.gdal as _gdal
     except ImportError:
-        raise ImportError("The GDAL format relies on the GDAL package."
-                          "Please refer to http://www.gdal.org/"
-                          "for further instructions.")
+        raise ImportError(
+            "The GDAL format relies on the GDAL package."
+            "Please refer to http://www.gdal.org/"
+            "for further instructions."
+        )
     return _gdal
 
 
-GDAL_FORMATS = ('.tiff', ' .tif', '.img', '.ecw', '.jpg', '.jpeg')
+GDAL_FORMATS = (".tiff", " .tif", ".img", ".ecw", ".jpg", ".jpeg")
 
 
 class GdalFormat(Format):
@@ -36,9 +38,9 @@ class GdalFormat(Format):
     """
 
     def _can_read(self, request):
-        if request.extension in ('.ecw', ):
+        if request.extension in (".ecw",):
             return True
-        if has_module('osgeo.gdal'):
+        if has_module("osgeo.gdal"):
             return request.extension in self.extensions
 
     def _can_write(self, request):
@@ -47,7 +49,6 @@ class GdalFormat(Format):
     # --
 
     class Reader(Format.Reader):
-
         def _open(self):
             if not _gdal:
                 load_lib()
@@ -61,7 +62,7 @@ class GdalFormat(Format):
 
         def _get_data(self, index):
             if index != 0:
-                raise IndexError('Gdal file contains only one dataset')
+                raise IndexError("Gdal file contains only one dataset")
             return self._ds.ReadAsArray(), self._get_meta_data(index)
 
         def _get_meta_data(self, index):
@@ -69,6 +70,8 @@ class GdalFormat(Format):
 
 
 # Add this format
-formats.add_format(GdalFormat(
-    'gdal', 'Geospatial Data Abstraction Library',
-    ' '.join(GDAL_FORMATS), 'iIvV'))
+formats.add_format(
+    GdalFormat(
+        "gdal", "Geospatial Data Abstraction Library", " ".join(GDAL_FORMATS), "iIvV"
+    )
+)
