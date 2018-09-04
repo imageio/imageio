@@ -2,6 +2,30 @@
 Release notes
 -------------
 
+
+Version 2.3.0 (20-03-2018)
+==========================
+
+* Console entry points for binary downloads (by Paul Mueller).
+* Dropped support for Python 2.6, 3.2 and 3.3.
+* Reading images from a url can now also have "suffixes" like "?query=foo".
+* The ``mimwrite()`` and ``mvolwrite()`` functions also work with generators.
+* Fix rounding of float data.
+* New Lytro plugin (by Maximilian Schambach).
+* New plugin based on BSDF format (for images/volumes and series thereof,
+  including support for random access and streaming).
+* TIFFFILE update to latest ``tifffile.py`` implementation.
+* DICOM fix that could fail in the presence of a directory.
+* PILLOW improvements to API to provide same functionality as Scipy's ``imread()``.
+* PILLOW fix for Gamma correction (#302).
+* PILLOW now allows JPEG images to be read from a url.
+* PILLOW fix determining of grayscale in 1 bit paletted images.
+* FFMPEG improved device name parsing (by Dennis van Gerwen).
+* FFMPEG now allows more control of position of extra parameters.
+* FFMPEG improved parsing of fps from ffmpeg info.
+* FFMPEG reader allows has ``fps`` argument to force reading at a specific FPS.
+
+
 Version 2.2.0 (25-05-2017)
 ==========================
 

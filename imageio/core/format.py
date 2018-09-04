@@ -47,6 +47,7 @@ class CannotReadFrameError(RuntimeError):
     be read, even though it should be a valid index. The length could be
     inf, or e.g. video sometimes reports a wrong length.
     """
+
     pass
 
 
@@ -85,75 +86,79 @@ class Format(object):
         This attribute is used in the documentation and to select the
         formats when reading/saving a file.
     """
-    
+
     def __init__(self, name, description, extensions=None, modes=None):
-        
+
         # Store name and description
         self._name = name.upper()
         self._description = description
-        
+
         # Store extensions, do some effort to normalize them.
         # They are stored as a list of lowercase strings without leading dots.
         if extensions is None:
             extensions = []
         elif isinstance(extensions, string_types):
-            extensions = extensions.replace(',', ' ').split(' ')
+            extensions = extensions.replace(",", " ").split(" ")
         #
         if isinstance(extensions, (tuple, list)):
-            self._extensions = tuple(['.' + e.strip('.').lower() 
-                                      for e in extensions if e])
+            self._extensions = tuple(
+                ["." + e.strip(".").lower() for e in extensions if e]
+            )
         else:
-            raise ValueError('Invalid value for extensions given.')
-        
+            raise ValueError("Invalid value for extensions given.")
+
         # Store mode
-        self._modes = modes or ''
+        self._modes = modes or ""
         if not isinstance(self._modes, string_types):
-            raise ValueError('Invalid value for modes given.')
+            raise ValueError("Invalid value for modes given.")
         for m in self._modes:
-            if m not in 'iIvV?':
-                raise ValueError('Invalid value for mode given.')
-    
+            if m not in "iIvV?":
+                raise ValueError("Invalid value for mode given.")
+
     def __repr__(self):
         # Short description
-        return '<Format %s - %s>' % (self.name, self.description)
-    
+        return "<Format %s - %s>" % (self.name, self.description)
+
     def __str__(self):
         return self.doc
-    
+
     @property
     def doc(self):
         """ The documentation for this format (name + description + docstring).
         """
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
-        return '%s - %s\n\n    %s\n' % (self.name, self.description, 
-                                        self.__doc__.strip())
-    
+        return "%s - %s\n\n    %s\n" % (
+            self.name,
+            self.description,
+            self.__doc__.strip(),
+        )
+
     @property
     def name(self):
         """ The name of this format.
         """
         return self._name
-    
+
     @property
     def description(self):
         """ A short description of this format.
-        """ 
+        """
         return self._description
-    
+
     @property
     def extensions(self):
         """ A list of file extensions supported by this plugin.
         These are all lowercase with a leading dot.
         """
         return self._extensions
-    
+
     @property
     def modes(self):
         """ A string specifying the modes that this format can handle.
         """
         return self._modes
-    
+
     def get_reader(self, request):
         """ get_reader(request)
         
@@ -161,12 +166,13 @@ class Format(object):
         from the given file. Users are encouraged to use
         imageio.get_reader() instead.
         """
-        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
-            raise RuntimeError('Format %s cannot read in mode %r' % 
-                               (self.name, select_mode))
+            raise RuntimeError(
+                "Format %s cannot read in mode %r" % (self.name, select_mode)
+            )
         return self.Reader(self, request)
-    
+
     def get_writer(self, request):
         """ get_writer(request)
         
@@ -174,40 +180,41 @@ class Format(object):
         to the given file. Users are encouraged to use
         imageio.get_writer() instead.
         """
-        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
+        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
-            raise RuntimeError('Format %s cannot write in mode %r' % 
-                               (self.name, select_mode))
+            raise RuntimeError(
+                "Format %s cannot write in mode %r" % (self.name, select_mode)
+            )
         return self.Writer(self, request)
-    
+
     def can_read(self, request):
         """ can_read(request)
         
         Get whether this format can read data from the specified uri.
         """
         return self._can_read(request)
-    
+
     def can_write(self, request):
         """ can_write(request)
         
         Get whether this format can write data to the speciefed uri.
         """
         return self._can_write(request)
-    
+
     def _can_read(self, request):  # pragma: no cover
         return None  # Plugins must implement this
-    
+
     def _can_write(self, request):  # pragma: no cover
         return None  # Plugins must implement this
 
     # -----
-    
+
     class _BaseReaderWriter(object):
         """ Base class for the Reader and Writer class to implement common 
         functionality. It implements a similar approach for opening/closing
         and context management as Python's file objects.
         """
-        
+
         def __init__(self, format, request):
             self.__closed = False
             self._BaseReaderWriter_last_index = -1
@@ -215,36 +222,36 @@ class Format(object):
             self._request = request
             # Open the reader/writer
             self._open(**self.request.kwargs.copy())
-        
+
         @property
         def format(self):
             """ The :class:`.Format` object corresponding to the current
             read/write operation.
             """
             return self._format
-        
+
         @property
         def request(self):
             """ The :class:`.Request` object corresponding to the
             current read/write operation.
             """
             return self._request
-        
+
         def __enter__(self):
             self._checkClosed()
             return self
-        
+
         def __exit__(self, type, value, traceback):
             if value is None:
                 # Otherwise error in close hide the real error.
-                self.close() 
-        
+                self.close()
+
         def __del__(self):
             try:
                 self.close()
             except Exception:  # pragma: no cover
                 pass  # Supress noise when called during interpreter shutdown
-        
+
         def close(self):
             """ Flush and close the reader/writer.
             This method has no effect if it is already closed.
@@ -255,13 +262,13 @@ class Format(object):
             self._close()
             # Process results and clean request object
             self.request.finish()
-        
+
         @property
         def closed(self):
             """ Whether the reader/writer is closed.
             """
             return self.__closed
-        
+
         def _checkClosed(self, msg=None):
             """Internal: raise an ValueError if reader/writer is closed
             """
@@ -269,9 +276,9 @@ class Format(object):
                 what = self.__class__.__name__
                 msg = msg or ("I/O operation on closed %s." % what)
                 raise RuntimeError(msg)
-        
+
         # To implement
-        
+
         def _open(self, **kwargs):
             """ _open(**kwargs)
             
@@ -281,9 +288,9 @@ class Format(object):
             plugin can do its initialization. The given keyword arguments
             are those that were given by the user at imageio.read() or
             imageio.write().
-            """ 
+            """
             raise NotImplementedError()
-        
+
         def _close(self):
             """ _close()
             
@@ -292,11 +299,11 @@ class Format(object):
             It is called when the reader/writer is closed. Here the plugin
             can do a cleanup, flush, etc.
             
-            """ 
+            """
             raise NotImplementedError()
-    
+
     # -----
-    
+
     class Reader(_BaseReaderWriter):
         """
         The purpose of a reader object is to read data from an image
@@ -311,7 +318,7 @@ class Format(object):
         plugins may provide additional functionality (beyond what is
         provided by the base reader class).
         """
-        
+
         def get_length(self):
             """ get_length()
             
@@ -323,9 +330,9 @@ class Format(object):
                 * 1 for singleton images (e.g. in PNG, JPEG, etc.)
                 * N for image series
                 * inf for streams (series of unknown length)
-            """ 
+            """
             return self._get_length()
-        
+
         def get_data(self, index, **kwargs):
             """ get_data(index, **kwargs)
             
@@ -338,8 +345,8 @@ class Format(object):
             self._checkClosed()
             self._BaseReaderWriter_last_index = index
             im, meta = self._get_data(index, **kwargs)
-            return Image(im, meta)  # Image tests im and meta 
-        
+            return Image(im, meta)  # Image tests im and meta
+
         def get_next_data(self, **kwargs):
             """ get_next_data(**kwargs)
             
@@ -348,7 +355,7 @@ class Format(object):
             Some formats may support additional keyword arguments. These are
             listed in the documentation of those formats.
             """
-            return self.get_data(self._BaseReaderWriter_last_index+1, **kwargs)
+            return self.get_data(self._BaseReaderWriter_last_index + 1, **kwargs)
 
         def set_image_index(self, index, **kwargs):
             """ set_image_index(index)
@@ -359,8 +366,8 @@ class Format(object):
             self._checkClosed()
             n = self.get_length()
             if index <= n:
-                self._BaseReaderWriter_last_index = index-1
-        
+                self._BaseReaderWriter_last_index = index - 1
+
         def get_meta_data(self, index=None):
             """ get_meta_data(index=None)
             
@@ -378,10 +385,11 @@ class Format(object):
             self._checkClosed()
             meta = self._get_meta_data(index)
             if not isinstance(meta, dict):
-                raise ValueError('Meta data must be a dict, not %r' % 
-                                 meta.__class__.__name__)
+                raise ValueError(
+                    "Meta data must be a dict, not %r" % meta.__class__.__name__
+                )
             return meta
-        
+
         def iter_data(self):
             """ iter_data()
             
@@ -396,26 +404,26 @@ class Format(object):
                 try:
                     im, meta = self._get_data(i)
                 except (IndexError, CannotReadFrameError):
-                    if n == float('inf'):
+                    if n == float("inf"):
                         return
                     elif n - i == 1:
                         uri = self.request.filename
-                        warn('Could not read last frame of %s.' % uri)
+                        warn("Could not read last frame of %s." % uri)
                         return
                     raise
                 yield Image(im, meta)
                 i += 1
-        
+
         # Compatibility
-        
+
         def __iter__(self):
             return self.iter_data()
-        
+
         def __len__(self):
             return self.get_length()
-        
+
         # To implement
-        
+
         def _get_length(self):
             """ _get_length()
             
@@ -424,8 +432,8 @@ class Format(object):
             The retured scalar specifies the number of images in the series.
             See Reader.get_length for more information.
             """
-            raise NotImplementedError() 
-        
+            raise NotImplementedError()
+
         def _get_data(self, index):
             """ _get_data()
             
@@ -434,8 +442,8 @@ class Format(object):
             
             It should return the image and meta data: (ndarray, dict).
             """
-            raise NotImplementedError() 
-        
+            raise NotImplementedError()
+
         def _get_meta_data(self, index):
             """ _get_meta_data(index)
             
@@ -444,11 +452,11 @@ class Format(object):
             It should return the meta data as a dict, corresponding to the
             given index, or to the file's (global) meta data if index is
             None.
-            """ 
-            raise NotImplementedError() 
-    
+            """
+            raise NotImplementedError()
+
     # -----
-    
+
     class Writer(_BaseReaderWriter):
         """ 
         The purpose of a writer object is to write data to an image
@@ -463,34 +471,34 @@ class Format(object):
         plugins may provide additional functionality (beyond what is
         provided by the base writer class).
         """
-        
+
         def append_data(self, im, meta=None):
             """ append_data(im, meta={})
             
             Append an image (and meta data) to the file. The final meta
             data that is used consists of the meta data on the given
             image (if applicable), updated with the given meta data.
-            """ 
+            """
             self._checkClosed()
             # Check image data
             if not isinstance(im, np.ndarray):
-                raise ValueError('append_data requires ndarray as first arg')
+                raise ValueError("append_data requires ndarray as first arg")
             # Get total meta dict
             total_meta = {}
-            if hasattr(im, 'meta') and isinstance(im.meta, dict):
+            if hasattr(im, "meta") and isinstance(im.meta, dict):
                 total_meta.update(im.meta)
             if meta is None:
                 pass
             elif not isinstance(meta, dict):
-                raise ValueError('Meta must be a dict.')
+                raise ValueError("Meta must be a dict.")
             else:
-                total_meta.update(meta)        
-            
+                total_meta.update(meta)
+
             # Decouple meta info
             im = asarray(im)
             # Call
             return self._append_data(im, total_meta)
-        
+
         def set_meta_data(self, meta):
             """ set_meta_data(meta)
             
@@ -503,22 +511,22 @@ class Format(object):
             Note that some meta formats may not be supported for
             writing, and individual fields may be ignored without
             warning if they are invalid.
-            """ 
+            """
             self._checkClosed()
             if not isinstance(meta, dict):
-                raise ValueError('Meta must be a dict.')
+                raise ValueError("Meta must be a dict.")
             else:
                 return self._set_meta_data(meta)
-        
+
         # To implement
-        
+
         def _append_data(self, im, meta):
             # Plugins must implement this
-            raise NotImplementedError() 
-        
+            raise NotImplementedError()
+
         def _set_meta_data(self, meta):
             # Plugins must implement this
-            raise NotImplementedError() 
+            raise NotImplementedError()
 
 
 class FormatManager(object):
@@ -532,44 +540,46 @@ class FormatManager(object):
     
     See also :func:`.help`.
     """
-    
+
     def __init__(self):
         self._formats = []
         self._formats_sorted = []
-    
+
     def __repr__(self):
-        return '<imageio.FormatManager with %i registered formats>' % len(self)
-    
+        return "<imageio.FormatManager with %i registered formats>" % len(self)
+
     def __iter__(self):
         return iter(self._formats_sorted)
-    
+
     def __len__(self):
         return len(self._formats)
-    
+
     def __str__(self):
         ss = []
-        for format in self: 
-            ext = ', '.join(format.extensions)
-            s = '%s - %s [%s]' % (format.name, format.description, ext)
+        for format in self:
+            ext = ", ".join(format.extensions)
+            s = "%s - %s [%s]" % (format.name, format.description, ext)
             ss.append(s)
-        return '\n'.join(ss)
-    
+        return "\n".join(ss)
+
     def __getitem__(self, name):
         # Check
         if not isinstance(name, string_types):
-            raise ValueError('Looking up a format should be done by name '
-                             'or by extension.')
+            raise ValueError(
+                "Looking up a format should be done by name " "or by extension."
+            )
         if not name:
-            raise ValueError('No format matches the empty string.')
-        
+            raise ValueError("No format matches the empty string.")
+
         # Test if name is existing file
         if os.path.isfile(name):
             from . import Request
-            format = self.search_read_format(Request(name, 'r?'))
+
+            format = self.search_read_format(Request(name, "r?"))
             if format is not None:
                 return format
-        
-        if '.' in name:
+
+        if "." in name:
             # Look for extension
             e1, e2 = os.path.splitext(name.lower())
             name = e2 or e1
@@ -584,18 +594,18 @@ class FormatManager(object):
                 if name == format.name:
                     return format
             for format in self:
-                if name == format.name.rsplit('-', 1)[0]:
+                if name == format.name.rsplit("-", 1)[0]:
                     return format
             else:
                 # Maybe the user meant to specify an extension
                 try:
-                    return self['.'+name.lower()]
+                    return self["." + name.lower()]
                 except IndexError:
                     pass  # Fail using original name below
-        
+
         # Nothing found ...
-        raise IndexError('No format known by name %s.' % name)
-    
+        raise IndexError("No format known by name %s." % name)
+
     def sort(self, *names):
         """ sort(name1, name2, name3, ...)
         
@@ -618,18 +628,20 @@ class FormatManager(object):
         # Check and sanitize imput
         for name in names:
             if not isinstance(name, string_types):
-                raise TypeError('formats.sort() accepts only string names.')
-            if any(c in name for c in '.,'):
-                raise ValueError('Names given to formats.sort() should not '
-                                 'contain dots or commas.')
+                raise TypeError("formats.sort() accepts only string names.")
+            if any(c in name for c in ".,"):
+                raise ValueError(
+                    "Names given to formats.sort() should not "
+                    "contain dots or commas."
+                )
         names = [name.strip().upper() for name in names]
         # Reset
         self._formats_sorted = list(self._formats)
         # Sort
         for name in reversed(names):
-            sorter = lambda f: - ((f.name == name) + (f.name.endswith(name)))
+            sorter = lambda f: -((f.name == name) + (f.name.endswith(name)))
             self._formats_sorted.sort(key=sorter)
-    
+
     def add_format(self, format, overwrite=False):
         """ add_format(format, overwrite=False)
         
@@ -638,9 +650,9 @@ class FormatManager(object):
         in which case the current format is replaced.
         """
         if not isinstance(format, Format):
-            raise ValueError('add_format needs argument to be a Format object')
+            raise ValueError("add_format needs argument to be a Format object")
         elif format in self._formats:
-            raise ValueError('Given Format instance is already registered')
+            raise ValueError("Given Format instance is already registered")
         elif format.name in self.get_format_names():
             if overwrite:
                 old_format = self[format.name]
@@ -648,58 +660,60 @@ class FormatManager(object):
                 if old_format in self._formats_sorted:
                     self._formats_sorted.remove(old_format)
             else:
-                raise ValueError('A Format named %r is already registered, use'
-                                 ' overwrite=True to replace.' % format.name)
+                raise ValueError(
+                    "A Format named %r is already registered, use"
+                    " overwrite=True to replace." % format.name
+                )
         self._formats.append(format)
         self._formats_sorted.append(format)
-    
+
     def search_read_format(self, request):
         """ search_read_format(request)
         
         Search a format that can read a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
-        
+        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
+
         # Select formats that seem to be able to read it
         selected_formats = []
         for format in self:
             if select_mode in format.modes:
                 if request.extension in format.extensions:
                     selected_formats.append(format)
-        
+
         # Select the first that can
         for format in selected_formats:
             if format.can_read(request):
                 return format
-        
+
         # If no format could read it, it could be that file has no or
         # the wrong extension. We ask all formats again.
         for format in self:
             if format not in selected_formats:
                 if format.can_read(request):
                     return format
-    
+
     def search_write_format(self, request):
         """ search_write_format(request)
         
         Search a format that can write a file according to the given request. 
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in 'iIvV' else ''
-        
+        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
+
         # Select formats that seem to be able to write it
         selected_formats = []
         for format in self:
             if select_mode in format.modes:
                 if request.extension in format.extensions:
                     selected_formats.append(format)
-        
+
         # Select the first that can
         for format in selected_formats:
             if format.can_write(request):
                 return format
-        
+
         # If none of the selected formats could write it, maybe another
         # format can still write it. It might prefer a different mode,
         # or be able to handle more formats than it says by its extensions.
@@ -707,12 +721,12 @@ class FormatManager(object):
             if format not in selected_formats:
                 if format.can_write(request):
                     return format
-    
+
     def get_format_names(self):
         """ Get the names of all registered formats.
         """
         return [f.name for f in self]
-    
+
     def show(self):
         """ Show a nicely formatted list of available formats
         """
