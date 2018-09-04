@@ -332,13 +332,27 @@ def test_images_with_transparency():
     assert im.shape == (24, 30, 4)
 
 
-def test_regression_302():
-    # When using gamma correction, the result should keep the same dtype
+def test_gamma_correction():
     need_internet()
 
     fname = get_remote_file("images/kodim03.png")
-    im = imageio.imread(fname)
-    assert im.shape == (512, 768, 3) and im.dtype == "uint8"
+
+    # Load image three times
+    im1 = imageio.imread(fname)
+    im2 = imageio.imread(fname, ignoregamma=True)
+    im3 = imageio.imread(fname, ignoregamma=False)
+
+    # Default is to ignore gamma
+    assert np.all(im1 == im2)
+
+    # Test result depending of application of gamma
+    assert im1.meta["gamma"] < 1
+    assert im1.mean() == im2.mean()
+    assert im2.mean() < im3.mean()
+
+    # test_regression_302
+    for im in (im1, im2, im3):
+        assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
 def test_inside_zipfile():

@@ -493,6 +493,30 @@ def test_other():
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")
 
 
+def test_gamma_correction():
+    need_internet()
+
+    fname = get_remote_file("images/kodim03.png")
+
+    # Load image three times
+    im1 = imageio.imread(fname, format="PNG-FI")
+    im2 = imageio.imread(fname, ignoregamma=True, format="PNG-FI")
+    im3 = imageio.imread(fname, ignoregamma=False, format="PNG-FI")
+
+    # Default is to ignore gamma
+    assert np.all(im1 == im2)
+
+    # Test result depending of application of gamma
+    assert im1.mean() == im2.mean()
+
+    # TODO: We have assert im2.mean() == im3.mean()
+    # But this is wrong, we want: assert im2.mean() < im3.mean()
+
+    # test_regression_302
+    for im in (im1, im2, im3):
+        assert im.shape == (512, 768, 3) and im.dtype == "uint8"
+
+
 if __name__ == "__main__":
     # test_animated_gif()
     run_tests_if_main()
