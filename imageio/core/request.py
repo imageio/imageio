@@ -351,14 +351,9 @@ class Request(object):
                 self._file = BytesIO()
             else:
                 # Open zipfile and open new file object for specific file
-<<<<<<< HEAD
                 self._zipfile = zipfile.ZipFile(filename, "r")
                 self._file = self._zipfile.open(name, "r")
-=======
-                self._zipfile = zipfile.ZipFile(filename, 'r')
-                self._file = self._zipfile.open(name, 'r')
                 make_file_object_support_noop_seeks(self._file)
->>>>>>> fix loading from zipfile
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
