@@ -301,17 +301,6 @@ def test_request_file_no_seek():
         R.firstbytes
 
 
-def test_util_imagelist():
-    meta = {"foo": 3, "bar": {"spam": 1, "eggs": 2}}
-
-    # Image list
-    L = core.util.ImageList(meta)
-    assert isinstance(L, list)
-    assert L.meta == meta
-    # Fail
-    raises(ValueError, core.util.ImageList, 3)  # not a dict
-
-
 def test_util_image():
     meta = {"foo": 3, "bar": {"spam": 1, "eggs": 2}}
     # Image
