@@ -343,7 +343,7 @@ def test_regression_302():
 
 def test_inside_zipfile():
     need_internet()
-    
+
     fname = os.path.join(test_dir, "pillowtest.zip")
     with ZipFile(fname, "w") as z:
         z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
