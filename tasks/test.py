@@ -38,11 +38,6 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
 
     if style:
         black_wrapper(False)
-        # try:
-        #     testing.test_style()
-        # except RuntimeError as err:
-        #     print(str(err))
-        #     sys.exit(1)
 
     if installed:
         for p in list(sys.path):
