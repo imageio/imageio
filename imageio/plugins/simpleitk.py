@@ -17,20 +17,29 @@ def load_lib():
     try:
         import SimpleITK as _itk
     except ImportError:
-        raise ImportError("SimpleITK could not be found. "
-                          "Please try "
-                          "  easy_install SimpleITK "
-                          "or refer to "
-                          "  http://simpleitk.org/ "
-                          "for further instructions.")
+        raise ImportError(
+            "SimpleITK could not be found. "
+            "Please try "
+            "  easy_install SimpleITK "
+            "or refer to "
+            "  http://simpleitk.org/ "
+            "for further instructions."
+        )
     return _itk
 
 
 # Split up in real ITK and all supported formats.
-ITK_FORMATS = ('.gipl', '.ipl', '.mha', '.mhd', '.nhdr', '.nii', '.nrrd',
-               '.vtk')
-ALL_FORMATS = ITK_FORMATS + ('.bmp', '.jpeg', '.jpg', '.png', '.tiff', '.tif',
-                             '.dicom', '.gdcm')
+ITK_FORMATS = (".gipl", ".ipl", ".mha", ".mhd", ".nhdr", ".nii", ".nrrd", ".vtk")
+ALL_FORMATS = ITK_FORMATS + (
+    ".bmp",
+    ".jpeg",
+    ".jpg",
+    ".png",
+    ".tiff",
+    ".tif",
+    ".dicom",
+    ".gdcm",
+)
 
 
 class ItkFormat(Format):
@@ -57,19 +66,18 @@ class ItkFormat(Format):
         # we only report that we can read if the library is installed.
         if request.extension in ITK_FORMATS:
             return True
-        if has_module('SimpleITK'):
+        if has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     def _can_write(self, request):
         if request.extension in ITK_FORMATS:
             return True
-        if has_module('SimpleITK'):
+        if has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     # -- reader
 
     class Reader(Format.Reader):
-
         def _open(self, **kwargs):
             if not _itk:
                 load_lib()
@@ -84,19 +92,16 @@ class ItkFormat(Format):
         def _get_data(self, index):
             # Get data
             if index != 0:
-                raise IndexError(
-                    'Index out of range while reading from itk file')
+                raise IndexError("Index out of range while reading from itk file")
 
             # Return array and empty meta data
             return _itk.GetArrayFromImage(self._img), {}
 
         def _get_meta_data(self, index):
-            raise RuntimeError('The itk format does not support '
-                               ' meta data.')
+            raise RuntimeError("The itk format does not support " " meta data.")
 
     # -- writer
     class Writer(Format.Writer):
-
         def _open(self):
             if not _itk:
                 load_lib()
@@ -109,11 +114,10 @@ class ItkFormat(Format):
             _itk.WriteImage(_itk_img, self.request.get_local_filename())
 
         def set_meta_data(self, meta):
-            raise RuntimeError('The itk format does not support '
-                               ' meta data.')
+            raise RuntimeError("The itk format does not support " " meta data.")
 
 
 # Register
 title = "Insight Segmentation and Registration Toolkit (ITK) format"
-format = ItkFormat('itk', title, ' '.join(ALL_FORMATS), 'iIvV')
+format = ItkFormat("itk", title, " ".join(ALL_FORMATS), "iIvV")
 formats.add_format(format)

@@ -13,6 +13,7 @@ imageio.egg-info
 MANIFEST
 .coverage
 .cache
+.pytest_cache/
 
 # Specific folders
 imageio/lib

@@ -13,7 +13,7 @@ test_dir = get_test_dir()
 def test_spe_format():
     for name in ("spe", ".spe"):
         fmt = imageio.formats[name]
-        assert(isinstance(fmt, spe.SpeFormat))
+        assert isinstance(fmt, spe.SpeFormat)
 
 
 def test_spe_reading():
@@ -47,19 +47,22 @@ def test_spe_reading():
 
     # check metadata
     md = r.get_meta_data()
-    assert(md["ROIs"] == [{"top_left": [238, 187], "bottom_right": [269, 218],
-                           "bin": [1, 1]}])
-    cmt = ["OD 1.0 in r, g                                                    "
-           "              ",
-           "000200000000000004800000000000000000000000000000000000000000000000"
-           "0002000001000X",
-           "                                                                  "
-           "              ",
-           "                                                                  "
-           "              ",
-           "ACCI2xSEQU-1---10000010001600300EA                              SW"
-           "0218COMVER0500"]
-    assert(md["comments"] == cmt)
+    assert md["ROIs"] == [
+        {"top_left": [238, 187], "bottom_right": [269, 218], "bin": [1, 1]}
+    ]
+    cmt = [
+        "OD 1.0 in r, g                                                    "
+        "              ",
+        "000200000000000004800000000000000000000000000000000000000000000000"
+        "0002000001000X",
+        "                                                                  "
+        "              ",
+        "                                                                  "
+        "              ",
+        "ACCI2xSEQU-1---10000010001600300EA                              SW"
+        "0218COMVER0500",
+    ]
+    assert md["comments"] == cmt
     np.testing.assert_equal(md["frame_shape"], fr1.shape)
 
 

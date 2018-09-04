@@ -16,7 +16,7 @@ To install:
 If the real package is in "yourpackage/yourpackage" relative to this file, 
 you're done. Otherwise modify PARENT_DIR_OF_MODULE.
 
-""" 
+"""
 
 import os
 import sys

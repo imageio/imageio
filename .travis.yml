@@ -79,7 +79,7 @@ install:
     # Install dependencies (also for testing)
     - pip install invoke
     - if [ "${TEST_STYLE}" == "1" ]; then
-        pip install -q flake8;
+        pip install -q black;
         pip install -q sphinx;
         pip install -q numpydoc;
       else

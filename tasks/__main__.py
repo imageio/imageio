@@ -5,9 +5,9 @@ Make this module itself executable as an alias for invoke.
 import sys
 import subprocess
 
-cmd = ['invoke']
+cmd = ["invoke"]
 if len(sys.argv) == 1:
-    cmd.append('help')
+    cmd.append("help")
 else:
     cmd.extend(sys.argv[1:])
 

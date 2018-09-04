@@ -17,9 +17,11 @@ def load_lib():
     try:
         from astropy.io import fits as _fits
     except ImportError:
-        raise ImportError("The FITS format relies on the astropy package."
-                          "Please refer to http://www.astropy.org/ "
-                          "for further instructions.")
+        raise ImportError(
+            "The FITS format relies on the astropy package."
+            "Please refer to http://www.astropy.org/ "
+            "for further instructions."
+        )
     return _fits
 
 
@@ -86,17 +88,14 @@ class FitsFormat(Format):
     # -- reader
 
     class Reader(Format.Reader):
-
         def _open(self, cache=False, **kwargs):
             if not _fits:
                 load_lib()
-            hdulist = _fits.open(self.request.get_file(),
-                                 cache=cache, **kwargs)
+            hdulist = _fits.open(self.request.get_file(), cache=cache, **kwargs)
 
             self._index = []
             for n, hdu in zip(range(len(hdulist)), hdulist):
-                if (isinstance(hdu, _fits.ImageHDU) or
-                        isinstance(hdu, _fits.PrimaryHDU)):
+                if isinstance(hdu, _fits.ImageHDU) or isinstance(hdu, _fits.PrimaryHDU):
                     # Ignore (primary) header units with no data (use '.size'
                     # rather than '.data' to avoid actually loading the image):
                     if hdu.size > 0:
@@ -112,17 +111,18 @@ class FitsFormat(Format):
         def _get_data(self, index):
             # Get data
             if index < 0 or index >= len(self._index):
-                raise IndexError('Index out of range while reading from fits')
+                raise IndexError("Index out of range while reading from fits")
             im = self._hdulist[self._index[index]].data
             # Return array and empty meta data
             return im, {}
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index
-            raise RuntimeError('The fits format does not support meta data.')
+            raise RuntimeError("The fits format does not support meta data.")
 
 
 # Register
-format = FitsFormat('fits', "Flexible Image Transport System (FITS) format",
-                    'fits fit fts', 'iIvV')
+format = FitsFormat(
+    "fits", "Flexible Image Transport System (FITS) format", "fits fit fts", "iIvV"
+)
 formats.add_format(format)

@@ -114,6 +114,6 @@ from . import example
 # Sort
 import os
 from .. import formats
-formats.sort(*os.getenv('IMAGEIO_FORMAT_ORDER', '').split(','))
-del os, formats
 
+formats.sort(*os.getenv("IMAGEIO_FORMAT_ORDER", "").split(","))
+del os, formats

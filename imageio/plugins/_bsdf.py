@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 # being read has a higher minor version. The patch version is increased
 # for subsequent releases of the implementation.
 VERSION = 2, 1, 2
-__version__ = '.'.join(str(i) for i in VERSION)
+__version__ = ".".join(str(i) for i in VERSION)
 
 
 # %% The encoder and decoder implementation
@@ -77,21 +77,22 @@ def lencode(x):
     # We could support 16 bit and 32 bit as well, but the gain is low, since
     # 9 bytes for collections with over 250 elements is marginal anyway.
     if x <= 250:
-        return spack('<B', x)
+        return spack("<B", x)
     # elif x < 65536:
     #     return spack('<BH', 251, x)
     # elif x < 4294967296:
     #     return spack('<BI', 252, x)
     else:
-        return spack('<BQ', 253, x)
+        return spack("<BQ", 253, x)
 
 
 # Include len decoder for completeness; we've inlined it for performance.
 def lendecode(f):
     """ Decode an unsigned integer from a file.
     """
-    n = strunpack('<B', f.read(1))[0]
-    if n == 253: n = strunpack('<Q', f.read(8))[0]  # noqa
+    n = strunpack("<B", f.read(1))[0]
+    if n == 253:
+        n = strunpack("<Q", f.read(8))[0]  # noqa
     return n
 
 
@@ -99,7 +100,7 @@ def encode_type_id(b, ext_id):
     """ Encode the type identifier, with or without extension id.
     """
     if ext_id is not None:
-        bb = ext_id.encode('UTF-8')
+        bb = ext_id.encode("UTF-8")
         return b.upper() + lencode(len(bb)) + bb  # noqa
     else:
         return b  # noqa
@@ -109,9 +110,11 @@ def _isidentifier(s):  # pragma: no cover
     """ Use of str.isidentifier() for Legacy Python, but slower.
     """
     # http://stackoverflow.com/questions/2544972/
-    return (isinstance(s, string_types) and
-            re.match(r'^\w+$', s, re.UNICODE) and
-            re.match(r'^[0-9]', s) is None)
+    return (
+        isinstance(s, string_types)
+        and re.match(r"^\w+$", s, re.UNICODE)
+        and re.match(r"^[0-9]", s) is None
+    )
 
 
 class BsdfSerializer(object):
@@ -154,17 +157,21 @@ class BsdfSerializer(object):
             self.add_extension(extension)
         self._parse_options(**options)
 
-    def _parse_options(self,
-                       compression=0, use_checksum=False, float64=True,
-                       load_streaming=False, lazy_blob=False):
+    def _parse_options(
+        self,
+        compression=0,
+        use_checksum=False,
+        float64=True,
+        load_streaming=False,
+        lazy_blob=False,
+    ):
 
         # Validate compression
         if isinstance(compression, string_types):
-            m = {'no': 0, 'zlib': 1, 'bz2': 2}
+            m = {"no": 0, "zlib": 1, "bz2": 2}
             compression = m.get(compression.lower(), compression)
         if compression not in (0, 1, 2):
-            raise TypeError('Compression must be 0, 1, 2, '
-                            '"no", "zlib", or "bz2"')
+            raise TypeError("Compression must be 0, 1, 2, " '"no", "zlib", or "bz2"')
         self._compression = compression
 
         # Other encoding args
@@ -180,21 +187,25 @@ class BsdfSerializer(object):
         a subclass of Extension. Can be used as a decorator.
         """
         # Check class
-        if not (isinstance(extension_class, type) and
-                issubclass(extension_class, Extension)):
-            raise TypeError('add_extension() expects a Extension class.')
+        if not (
+            isinstance(extension_class, type) and issubclass(extension_class, Extension)
+        ):
+            raise TypeError("add_extension() expects a Extension class.")
         extension = extension_class()
 
         # Get name
         name = extension.name
         if not isinstance(name, str):
-            raise TypeError('Extension name must be str.')
+            raise TypeError("Extension name must be str.")
         if len(name) == 0 or len(name) > 250:
-            raise NameError('Extension names must be nonempty and shorter '
-                            'than 251 chars.')
+            raise NameError(
+                "Extension names must be nonempty and shorter " "than 251 chars."
+            )
         if name in self._extensions:
-            logger.warn('BSDF warning: overwriting extension "%s", '
-                        'consider removing first' % name)
+            logger.warn(
+                'BSDF warning: overwriting extension "%s", '
+                "consider removing first" % name
+            )
 
         # Get classes
         cls = extension.cls
@@ -206,7 +217,7 @@ class BsdfSerializer(object):
             clss = [cls]
         for cls in clss:
             if not isinstance(cls, classtypes):
-                raise TypeError('Extension classes must be types.')
+                raise TypeError("Extension classes must be types.")
 
         # Store
         for cls in clss:
@@ -218,7 +229,7 @@ class BsdfSerializer(object):
         """ Remove a converted by its unique name.
         """
         if not isinstance(name, str):
-            raise TypeError('Extension name must be str.')
+            raise TypeError("Extension name must be str.")
         if name in self._extensions:
             self._extensions.pop(name)
         for cls in list(self._extensions_by_cls.keys()):
@@ -231,69 +242,71 @@ class BsdfSerializer(object):
         x = encode_type_id
 
         if value is None:
-            f.write(x(b'v', ext_id))  # V for void
+            f.write(x(b"v", ext_id))  # V for void
         elif value is True:
-            f.write(x(b'y', ext_id))  # Y for yes
+            f.write(x(b"y", ext_id))  # Y for yes
         elif value is False:
-            f.write(x(b'n', ext_id))  # N for no
+            f.write(x(b"n", ext_id))  # N for no
         elif isinstance(value, integer_types):
             if -32768 <= value <= 32767:
-                f.write(x(b'h', ext_id) + spack('h', value))  # H for ...
+                f.write(x(b"h", ext_id) + spack("h", value))  # H for ...
             else:
-                f.write(x(b'i', ext_id) + spack('<q', value))  # I for int
+                f.write(x(b"i", ext_id) + spack("<q", value))  # I for int
         elif isinstance(value, float):
             if self._float64:
-                f.write(x(b'd', ext_id) + spack('<d', value))  # D for double
+                f.write(x(b"d", ext_id) + spack("<d", value))  # D for double
             else:
-                f.write(x(b'f', ext_id) + spack('<f', value))  # f for float
+                f.write(x(b"f", ext_id) + spack("<f", value))  # f for float
         elif isinstance(value, unicode_types):
-            bb = value.encode('UTF-8')
-            f.write(x(b's', ext_id) + lencode(len(bb)))  # S for str
+            bb = value.encode("UTF-8")
+            f.write(x(b"s", ext_id) + lencode(len(bb)))  # S for str
             f.write(bb)
         elif isinstance(value, (list, tuple)):
-            f.write(x(b'l', ext_id) + lencode(len(value)))  # L for list
+            f.write(x(b"l", ext_id) + lencode(len(value)))  # L for list
             for v in value:
                 self._encode(f, v, streams, None)
         elif isinstance(value, dict):
-            f.write(x(b'm', ext_id) + lencode(len(value)))  # M for mapping
+            f.write(x(b"m", ext_id) + lencode(len(value)))  # M for mapping
             for key, v in value.items():
                 if PY3:
                     assert key.isidentifier()  # faster
                 else:  # pragma: no cover
                     assert _isidentifier(key)
                 # yield ' ' * indent + key
-                name_b = key.encode('UTF-8')
+                name_b = key.encode("UTF-8")
                 f.write(lencode(len(name_b)))
                 f.write(name_b)
                 self._encode(f, v, streams, None)
         elif isinstance(value, bytes):
-            f.write(x(b'b', ext_id))  # B for blob
-            blob = Blob(value, compression=self._compression,
-                        use_checksum=self._use_checksum)
+            f.write(x(b"b", ext_id))  # B for blob
+            blob = Blob(
+                value, compression=self._compression, use_checksum=self._use_checksum
+            )
             blob._to_file(f)  # noqa
         elif isinstance(value, Blob):
-            f.write(x(b'b', ext_id))  # B for blob
+            f.write(x(b"b", ext_id))  # B for blob
             value._to_file(f)  # noqa
         elif isinstance(value, BaseStream):
             # Initialize the stream
-            if value.mode != 'w':
-                raise ValueError('Cannot serialize a read-mode stream.')
+            if value.mode != "w":
+                raise ValueError("Cannot serialize a read-mode stream.")
             elif isinstance(value, ListStream):
-                f.write(x(b'l', ext_id) + spack('<BQ', 255, 0))  # L for list
+                f.write(x(b"l", ext_id) + spack("<BQ", 255, 0))  # L for list
             else:
-                raise TypeError('Only ListStream is supported')
+                raise TypeError("Only ListStream is supported")
             # Mark this as *the* stream, and activate the stream.
             # The save() function verifies this is the last written object.
             if len(streams) > 0:
-                raise ValueError('Can only have one stream per file.')
+                raise ValueError("Can only have one stream per file.")
             streams.append(value)
             value._activate(f, self._encode, self._decode)  # noqa
         else:
             if ext_id is not None:
                 raise ValueError(
-                    'Extension %s wronfully encodes object to another '
-                    'extension object (though it may encode to a list/dict '
-                    'that contains other extension objects).' % ext_id)
+                    "Extension %s wronfully encodes object to another "
+                    "extension object (though it may encode to a list/dict "
+                    "that contains other extension objects)." % ext_id
+                )
             # Try if the value is of a type we know
             ex = self._extensions_by_cls.get(value.__class__, None)
             # Maybe its a subclass of a type we know
@@ -307,11 +320,12 @@ class BsdfSerializer(object):
             # Success or fail
             if ex is not None:
                 ext_id2, extension_encode = ex
-                self._encode(f, extension_encode(self, value),
-                             streams, ext_id2)
+                self._encode(f, extension_encode(self, value), streams, ext_id2)
             else:
-                t = ('Class %r is not a valid base BSDF type, nor is it '
-                     'handled by an extension.')
+                t = (
+                    "Class %r is not a valid base BSDF type, nor is it "
+                    "handled by an extension."
+                )
                 raise TypeError(t % value.__class__.__name__)
 
     def _decode(self, f):
@@ -326,38 +340,39 @@ class BsdfSerializer(object):
         if not char:
             raise EOFError()
         elif char != c:
-            n = strunpack('<B', f.read(1))[0]
+            n = strunpack("<B", f.read(1))[0]
             # if n == 253: n = strunpack('<Q', f.read(8))[0]  # noqa - noneed
-            ext_id = f.read(n).decode('UTF-8')
+            ext_id = f.read(n).decode("UTF-8")
         else:
             ext_id = None
 
-        if c == b'v':
+        if c == b"v":
             value = None
-        elif c == b'y':
+        elif c == b"y":
             value = True
-        elif c == b'n':
+        elif c == b"n":
             value = False
-        elif c == b'h':
-            value = strunpack('<h', f.read(2))[0]
-        elif c == b'i':
-            value = strunpack('<q', f.read(8))[0]
-        elif c == b'f':
-            value = strunpack('<f', f.read(4))[0]
-        elif c == b'd':
-            value = strunpack('<d', f.read(8))[0]
-        elif c == b's':
-            n_s = strunpack('<B', f.read(1))[0]
-            if n_s == 253: n_s = strunpack('<Q', f.read(8))[0]  # noqa
-            value = f.read(n_s).decode('UTF-8')
-        elif c == b'l':
-            n = strunpack('<B', f.read(1))[0]
+        elif c == b"h":
+            value = strunpack("<h", f.read(2))[0]
+        elif c == b"i":
+            value = strunpack("<q", f.read(8))[0]
+        elif c == b"f":
+            value = strunpack("<f", f.read(4))[0]
+        elif c == b"d":
+            value = strunpack("<d", f.read(8))[0]
+        elif c == b"s":
+            n_s = strunpack("<B", f.read(1))[0]
+            if n_s == 253:
+                n_s = strunpack("<Q", f.read(8))[0]  # noqa
+            value = f.read(n_s).decode("UTF-8")
+        elif c == b"l":
+            n = strunpack("<B", f.read(1))[0]
             if n >= 254:
                 # Streaming
                 closed = n == 254
-                n = strunpack('<Q', f.read(8))[0]
+                n = strunpack("<Q", f.read(8))[0]
                 if self._load_streaming:
-                    value = ListStream(n if closed else 'r')
+                    value = ListStream(n if closed else "r")
                     value._activate(f, self._encode, self._decode)  # noqa
                 elif closed:
                     value = [self._decode(f) for i in range(n)]
@@ -370,26 +385,29 @@ class BsdfSerializer(object):
                         pass
             else:
                 # Normal
-                if n == 253: n = strunpack('<Q', f.read(8))[0]  # noqa
+                if n == 253:
+                    n = strunpack("<Q", f.read(8))[0]  # noqa
                 value = [self._decode(f) for i in range(n)]
-        elif c == b'm':
+        elif c == b"m":
             value = dict()
-            n = strunpack('<B', f.read(1))[0]
-            if n == 253: n = strunpack('<Q', f.read(8))[0]  # noqa
+            n = strunpack("<B", f.read(1))[0]
+            if n == 253:
+                n = strunpack("<Q", f.read(8))[0]  # noqa
             for i in range(n):
-                n_name = strunpack('<B', f.read(1))[0]
-                if n_name == 253: n_name = strunpack('<Q', f.read(8))[0]  # noqa
+                n_name = strunpack("<B", f.read(1))[0]
+                if n_name == 253:
+                    n_name = strunpack("<Q", f.read(8))[0]  # noqa
                 assert n_name > 0
-                name = f.read(n_name).decode('UTF-8')
+                name = f.read(n_name).decode("UTF-8")
                 value[name] = self._decode(f)
-        elif c == b'b':
+        elif c == b"b":
             if self._lazy_blob:
                 value = Blob((f, True))
             else:
                 blob = Blob((f, False))
                 value = blob.get_bytes()
         else:
-            raise RuntimeError('Parse error %r' % char)
+            raise RuntimeError("Parse error %r" % char)
 
         # Convert value if we have an extension for it
         if ext_id is not None:
@@ -397,7 +415,7 @@ class BsdfSerializer(object):
             if extension is not None:
                 value = extension.decode(self, value)
             else:
-                logger.warn('BSDF warning: no extension found for %r' % ext_id)
+                logger.warn("BSDF warning: no extension found for %r" % ext_id)
 
         return value
 
@@ -411,9 +429,9 @@ class BsdfSerializer(object):
     def save(self, f, ob):
         """ Write the given object to the given file object.
         """
-        f.write(b'BSDF')
-        f.write(struct.pack('<B', VERSION[0]))
-        f.write(struct.pack('<B', VERSION[1]))
+        f.write(b"BSDF")
+        f.write(struct.pack("<B", VERSION[0]))
+        f.write(struct.pack("<B", VERSION[1]))
 
         # Prepare streaming, this list will have 0 or 1 item at the end
         streams = []
@@ -424,8 +442,9 @@ class BsdfSerializer(object):
         if len(streams) > 0:
             stream = streams[0]
             if stream._start_pos != f.tell():
-                raise ValueError('The stream object must be '
-                                 'the last object to be encoded.')
+                raise ValueError(
+                    "The stream object must be " "the last object to be encoded."
+                )
 
     def decode(self, bb):
         """ Load the data structure that is BSDF-encoded in the given bytes.
@@ -438,19 +457,23 @@ class BsdfSerializer(object):
         """
         # Check magic string
         f4 = f.read(4)
-        if f4 != b'BSDF':
-            raise RuntimeError('This does not look like a BSDF file: %r' % f4)
+        if f4 != b"BSDF":
+            raise RuntimeError("This does not look like a BSDF file: %r" % f4)
         # Check version
-        major_version = strunpack('<B', f.read(1))[0]
-        minor_version = strunpack('<B', f.read(1))[0]
-        file_version = '%i.%i' % (major_version, minor_version)
+        major_version = strunpack("<B", f.read(1))[0]
+        minor_version = strunpack("<B", f.read(1))[0]
+        file_version = "%i.%i" % (major_version, minor_version)
         if major_version != VERSION[0]:  # major version should be 2
-            t = ('Reading file with different major version (%s) '
-                 'from the implementation (%s).')
+            t = (
+                "Reading file with different major version (%s) "
+                "from the implementation (%s)."
+            )
             raise RuntimeError(t % (__version__, file_version))
         if minor_version > VERSION[1]:  # minor should be < ours
-            t = ('BSDF warning: reading file with higher minor version (%s) '
-                 'than the implementation (%s).')
+            t = (
+                "BSDF warning: reading file with higher minor version (%s) "
+                "than the implementation (%s)."
+            )
             logger.warn(t % (__version__, file_version))
 
         return self._decode(f)
@@ -463,22 +486,22 @@ class BaseStream(object):
     """ Base class for streams.
     """
 
-    def __init__(self, mode='w'):
+    def __init__(self, mode="w"):
         self._i = 0
         self._count = -1
         if isinstance(mode, int):
             self._count = mode
-            mode = 'r'
-        elif mode == 'w':
+            mode = "r"
+        elif mode == "w":
             self._count = 0
-        assert mode in ('r', 'w')
+        assert mode in ("r", "w")
         self._mode = mode
         self._f = None
         self._start_pos = 0
 
     def _activate(self, file, encode_func, decode_func):
         if self._f is not None:  # Associated with another write
-            raise IOError('Stream object cannot be activated twice?')
+            raise IOError("Stream object cannot be activated twice?")
         self._f = file
         self._start_pos = self._f.tell()
         self._encode = encode_func
@@ -516,11 +539,11 @@ class ListStream(BaseStream):
         # if self._mode != 'w':
         #     raise IOError('This ListStream is not in write mode.')
         if self._count != self._i:
-            raise IOError('Can only append items to the end of the stream.')
+            raise IOError("Can only append items to the end of the stream.")
         if self._f is None:
-            raise IOError('List stream is not associated with a file yet.')
+            raise IOError("List stream is not associated with a file yet.")
         if self._f.closed:
-            raise IOError('Cannot stream to a close file.')
+            raise IOError("Cannot stream to a close file.")
         self._encode(self._f, item, [self], None)
         self._i += 1
         self._count += 1
@@ -534,27 +557,27 @@ class ListStream(BaseStream):
         # if self._mode != 'w':
         #     raise IOError('This ListStream is not in write mode.')
         if self._count != self._i:
-            raise IOError('Can only close when at the end of the stream.')
+            raise IOError("Can only close when at the end of the stream.")
         if self._f is None:
-            raise IOError('ListStream is not associated with a file yet.')
+            raise IOError("ListStream is not associated with a file yet.")
         if self._f.closed:
-            raise IOError('Cannot close a stream on a close file.')
+            raise IOError("Cannot close a stream on a close file.")
         i = self._f.tell()
         self._f.seek(self._start_pos - 8 - 1)
-        self._f.write(spack('<B', 253 if unstream else 254))
-        self._f.write(spack('<Q', self._count))
+        self._f.write(spack("<B", 253 if unstream else 254))
+        self._f.write(spack("<Q", self._count))
         self._f.seek(i)
 
     def next(self):
         """ Read and return the next element in the streaming list.
         Raises StopIteration if the stream is exhausted.
         """
-        if self._mode != 'r':
-            raise IOError('This ListStream in not in read mode.')
+        if self._mode != "r":
+            raise IOError("This ListStream in not in read mode.")
         if self._f is None:
-            raise IOError('ListStream is not associated with a file yet.')
-        if getattr(self._f, 'closed', None):  # not present on 2.7 http req :/
-            raise IOError('Cannot read a stream from a close file.')
+            raise IOError("ListStream is not associated with a file yet.")
+        if getattr(self._f, "closed", None):  # not present on 2.7 http req :/
+            raise IOError("Cannot read a stream from a close file.")
         if self._count >= 0:
             if self._i >= self._count:
                 raise StopIteration()
@@ -571,8 +594,8 @@ class ListStream(BaseStream):
                 raise StopIteration()
 
     def __iter__(self):
-        if self._mode != 'r':
-            raise IOError('Cannot iterate: ListStream in not in read mode.')
+        if self._mode != "r":
+            raise IOError("Cannot iterate: ListStream in not in read mode.")
         return self
 
     def __next__(self):
@@ -596,13 +619,13 @@ class Blob(object):
             self.compression = compression
             self.allocated_size = self.used_size + extra_size
             self.use_checksum = use_checksum
-        elif isinstance(bb, tuple) and len(bb) == 2 and hasattr(bb[0], 'read'):
+        elif isinstance(bb, tuple) and len(bb) == 2 and hasattr(bb[0], "read"):
             self._f, allow_seek = bb
             self.compressed = None
             self._from_file(self._f, allow_seek)
             self._modified = False
         else:
-            raise TypeError('Wrong argument to create Blob.')
+            raise TypeError("Wrong argument to create Blob.")
 
     def _from_bytes(self, value, compression):
         """ When used to wrap bytes in a blob.
@@ -614,7 +637,7 @@ class Blob(object):
         elif compression == 2:
             compressed = bz2.compress(value, 9)
         else:  # pragma: no cover
-            assert False, 'Unknown compression identifier'
+            assert False, "Unknown compression identifier"
 
         self.data_size = len(value)
         self.used_size = len(compressed)
@@ -625,48 +648,51 @@ class Blob(object):
         """
         # Write sizes - write at least in a size that allows resizing
         if self.allocated_size <= 250 and self.compression == 0:
-            f.write(spack('<B', self.allocated_size))
-            f.write(spack('<B', self.used_size))
+            f.write(spack("<B", self.allocated_size))
+            f.write(spack("<B", self.used_size))
             f.write(lencode(self.data_size))
         else:
-            f.write(spack('<BQ', 253, self.allocated_size))
-            f.write(spack('<BQ', 253, self.used_size))
-            f.write(spack('<BQ', 253, self.data_size))
+            f.write(spack("<BQ", 253, self.allocated_size))
+            f.write(spack("<BQ", 253, self.used_size))
+            f.write(spack("<BQ", 253, self.data_size))
         # Compression and checksum
-        f.write(spack('B', self.compression))
+        f.write(spack("B", self.compression))
         if self.use_checksum:
-            f.write(b'\xff' + hashlib.md5(self.compressed).digest())
+            f.write(b"\xff" + hashlib.md5(self.compressed).digest())
         else:
-            f.write(b'\x00')
+            f.write(b"\x00")
         # Byte alignment (only necessary for uncompressed data)
         if self.compression == 0:
             alignment = 8 - (f.tell() + 1) % 8  # +1 for the byte to write
-            f.write(spack('<B', alignment))  # padding for byte alignment
-            f.write(b'\x00' * alignment)
+            f.write(spack("<B", alignment))  # padding for byte alignment
+            f.write(b"\x00" * alignment)
         else:
-            f.write(spack('<B', 0))
+            f.write(spack("<B", 0))
         # The actual data and extra space
         f.write(self.compressed)
-        f.write(b'\x00' * (self.allocated_size - self.used_size))
+        f.write(b"\x00" * (self.allocated_size - self.used_size))
 
     def _from_file(self, f, allow_seek):
         """ Used when a blob is read by the decoder.
         """
         # Read blob header data (5 to 42 bytes)
         # Size
-        allocated_size = strunpack('<B', f.read(1))[0]
-        if allocated_size == 253: allocated_size = strunpack('<Q', f.read(8))[0]  # noqa
-        used_size = strunpack('<B', f.read(1))[0]
-        if used_size == 253: used_size = strunpack('<Q', f.read(8))[0]  # noqa
-        data_size = strunpack('<B', f.read(1))[0]
-        if data_size == 253: data_size = strunpack('<Q', f.read(8))[0]  # noqa
+        allocated_size = strunpack("<B", f.read(1))[0]
+        if allocated_size == 253:
+            allocated_size = strunpack("<Q", f.read(8))[0]  # noqa
+        used_size = strunpack("<B", f.read(1))[0]
+        if used_size == 253:
+            used_size = strunpack("<Q", f.read(8))[0]  # noqa
+        data_size = strunpack("<B", f.read(1))[0]
+        if data_size == 253:
+            data_size = strunpack("<Q", f.read(8))[0]  # noqa
         # Compression and checksum
-        compression = strunpack('<B', f.read(1))[0]
-        has_checksum = strunpack('<B', f.read(1))[0]
+        compression = strunpack("<B", f.read(1))[0]
+        has_checksum = strunpack("<B", f.read(1))[0]
         if has_checksum:
             checksum = f.read(16)
         # Skip alignment
-        alignment = strunpack('<B', f.read(1))[0]
+        alignment = strunpack("<B", f.read(1))[0]
         f.read(alignment)
         # Get or skip data + extra space
         if allow_seek:
@@ -690,32 +716,35 @@ class Blob(object):
         """ Seek to the given position (relative to the blob start).
         """
         if self._f is None:
-            raise RuntimeError('Cannot seek in a blob '
-                               'that is not created by the BSDF decoder.')
+            raise RuntimeError(
+                "Cannot seek in a blob " "that is not created by the BSDF decoder."
+            )
         if p < 0:
             p = self.allocated_size + p
         if p < 0 or p > self.allocated_size:
-            raise IOError('Seek beyond blob boundaries.')
+            raise IOError("Seek beyond blob boundaries.")
         self._f.seek(self.start_pos + p)
 
     def tell(self):
         """ Get the current file pointer position (relative to the blob start).
         """
         if self._f is None:
-            raise RuntimeError('Cannot tell in a blob '
-                               'that is not created by the BSDF decoder.')
+            raise RuntimeError(
+                "Cannot tell in a blob " "that is not created by the BSDF decoder."
+            )
         return self._f.tell() - self.start_pos
 
     def write(self, bb):
         """ Write bytes to the blob.
         """
         if self._f is None:
-            raise RuntimeError('Cannot write in a blob '
-                               'that is not created by the BSDF decoder.')
+            raise RuntimeError(
+                "Cannot write in a blob " "that is not created by the BSDF decoder."
+            )
         if self.compression:
-            raise IOError('Cannot arbitrarily write in compressed blob.')
+            raise IOError("Cannot arbitrarily write in compressed blob.")
         if self._f.tell() + len(bb) > self.end_pos:
-            raise IOError('Write beyond blob boundaries.')
+            raise IOError("Write beyond blob boundaries.")
         self._modified = True
         return self._f.write(bb)
 
@@ -723,12 +752,13 @@ class Blob(object):
         """ Read n bytes from the blob.
         """
         if self._f is None:
-            raise RuntimeError('Cannot read in a blob '
-                               'that is not created by the BSDF decoder.')
+            raise RuntimeError(
+                "Cannot read in a blob " "that is not created by the BSDF decoder."
+            )
         if self.compression:
-            raise IOError('Cannot arbitrarily read in compressed blob.')
+            raise IOError("Cannot arbitrarily read in compressed blob.")
         if self._f.tell() + n > self.end_pos:
-            raise IOError('Read beyond blob boundaries.')
+            raise IOError("Read beyond blob boundaries.")
         return self._f.read(n)
 
     def get_bytes(self):
@@ -748,7 +778,7 @@ class Blob(object):
         elif self.compression == 2:
             value = bz2.decompress(compressed)
         else:  # pragma: no cover
-            raise RuntimeError('Invalid compression %i' % self.compression)
+            raise RuntimeError("Invalid compression %i" % self.compression)
         return value
 
     def update_checksum(self):
@@ -780,7 +810,7 @@ def save(f, ob, extensions=None, **options):
     """
     s = BsdfSerializer(extensions, **options)
     if isinstance(f, string_types):
-        with open(f, 'wb') as fp:
+        with open(f, "wb") as fp:
             return s.save(fp, ob)
     else:
         return s.save(f, ob)
@@ -800,9 +830,9 @@ def load(f, extensions=None, **options):
     """
     s = BsdfSerializer(extensions, **options)
     if isinstance(f, string_types):
-        if f.startswith(('~/', '~\\')):  # pragma: no cover
+        if f.startswith(("~/", "~\\")):  # pragma: no cover
             f = os.path.expanduser(f)
-        with open(f, 'rb') as fp:
+        with open(f, "rb") as fp:
             return s.load(fp)
     else:
         return s.load(f)
@@ -818,6 +848,7 @@ dumps = encode
 # Defining extensions as a dict would be more compact and feel lighter, but
 # that would only allow lambdas, which is too limiting, e.g. for ndarray
 # extension.
+
 
 class Extension(object):
     """ Base class to implement BSDF extensions for special data types.
@@ -845,11 +876,11 @@ class Extension(object):
 
     """
 
-    name = ''
+    name = ""
     cls = ()
 
     def __repr__(self):
-        return '<BSDF extension %r at 0x%s>' % (self.name, hex(id(self)))
+        return "<BSDF extension %r at 0x%s>" % (self.name, hex(id(self)))
 
     def match(self, s, v):
         return isinstance(v, self.cls)
@@ -863,7 +894,7 @@ class Extension(object):
 
 class ComplexExtension(Extension):
 
-    name = 'c'
+    name = "c"
     cls = complex
 
     def encode(self, s, v):
@@ -875,37 +906,35 @@ class ComplexExtension(Extension):
 
 class NDArrayExtension(Extension):
 
-    name = 'ndarray'
+    name = "ndarray"
 
     def __init__(self):
-        if 'numpy' in sys.modules:
+        if "numpy" in sys.modules:
             import numpy as np
+
             self.cls = np.ndarray
 
     def match(self, s, v):  # pragma: no cover - e.g. work for nd arrays in JS
-        return (hasattr(v, 'shape') and
-                hasattr(v, 'dtype') and
-                hasattr(v, 'tobytes'))
+        return hasattr(v, "shape") and hasattr(v, "dtype") and hasattr(v, "tobytes")
 
     def encode(self, s, v):
-        return dict(shape=v.shape,
-                    dtype=text_type(v.dtype),
-                    data=v.tobytes())
+        return dict(shape=v.shape, dtype=text_type(v.dtype), data=v.tobytes())
 
     def decode(self, s, v):
         try:
             import numpy as np
         except ImportError:  # pragma: no cover
             return v
-        a = np.frombuffer(v['data'], dtype=v['dtype'])
-        a.shape = v['shape']
+        a = np.frombuffer(v["data"], dtype=v["dtype"])
+        a.shape = v["shape"]
         return a
 
 
 standard_extensions = [ComplexExtension, NDArrayExtension]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Invoke CLI
     import bsdf_cli
+
     bsdf_cli.main()
