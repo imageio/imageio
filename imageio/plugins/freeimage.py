@@ -195,7 +195,7 @@ class FreeimagePngFormat(FreeimageFormat):
     Parameters for reading
     ----------------------
     ignoregamma : bool
-        Avoid gamma correction. Default False.
+        Avoid gamma correction. Default True.
     
     Parameters for saving
     ---------------------
@@ -212,7 +212,7 @@ class FreeimagePngFormat(FreeimageFormat):
     """
 
     class Reader(FreeimageFormat.Reader):
-        def _open(self, flags=0, ignoregamma=False):
+        def _open(self, flags=0, ignoregamma=True):
             # Build flags from kwargs
             flags = int(flags)
             if ignoregamma:

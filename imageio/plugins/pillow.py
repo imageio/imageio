@@ -212,7 +212,7 @@ class PNGFormat(PillowFormat):
     Parameters for reading
     ----------------------
     ignoregamma : bool
-        Avoid gamma correction. Default False.
+        Avoid gamma correction. Default True.
     pilmode : str
         From the Pillow documentation:
         
@@ -272,12 +272,16 @@ class PNGFormat(PillowFormat):
     """
 
     class Reader(PillowFormat.Reader):
-        def _open(self, pilmode=None, as_gray=False, ignoregamma=False):
+        def _open(self, pilmode=None, as_gray=False, ignoregamma=True):
             return PillowFormat.Reader._open(self, pilmode=pilmode, as_gray=as_gray)
 
         def _get_data(self, index):
             im, info = PillowFormat.Reader._get_data(self, index)
-            if not self.request.kwargs.get("ignoregamma", False):
+            if not self.request.kwargs.get("ignoregamma", True):
+                # The gamma value in the file represents the gamma factor for the
+                # hardware on the system where the file was created, and is meant
+                # to be able to match the colors with the system on which the
+                # image is shown. See also issue #366
                 try:
                     gamma = float(info["gamma"])
                 except (KeyError, ValueError):
