@@ -353,11 +353,12 @@ class Request(object):
                 # Open zipfile and open new file object for specific file
                 self._zipfile = zipfile.ZipFile(filename, "r")
                 self._file = self._zipfile.open(name, "r")
+                make_file_object_support_noop_seeks(self._file)
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
-            fix_HTTPResponse(self._file)
+            make_file_object_support_noop_seeks(self._file)
 
         return self._file
 
@@ -492,7 +493,7 @@ def read_n_bytes(f, N):
     return bb
 
 
-def fix_HTTPResponse(f):
+def make_file_object_support_noop_seeks(f):
     """This fixes up an HTTPResponse object so that it can tell(), and also
     seek() will work if its effectively a no-op. This allows tools like Pillow
     to use the file object.

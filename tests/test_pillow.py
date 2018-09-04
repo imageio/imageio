@@ -3,7 +3,7 @@
 
 import os
 import sys
-
+from zipfile import ZipFile
 import numpy as np
 
 from pytest import raises
@@ -341,6 +341,18 @@ def test_regression_302():
     assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
+def test_inside_zipfile():
+    need_internet()
+
+    fname = os.path.join(test_dir, "pillowtest.zip")
+    with ZipFile(fname, "w") as z:
+        z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
+        z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())
+
+    for name in ("x.png", "x.jpg"):
+        im = imageio.imread(fname + "/" + name)
+
+
 def test_scipy_imread_compat():
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
@@ -373,6 +385,7 @@ def test_scipy_imread_compat():
 
 
 if __name__ == "__main__":
+    # test_inside_zipfile()
     # test_png()
     # test_animated_gif()
     run_tests_if_main()
