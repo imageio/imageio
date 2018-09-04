@@ -403,14 +403,8 @@ class JPEGFormat(PillowFormat):
 
         def _get_file(self):
             # Pillow uses seek for JPG, so we cannot directly stream from web
-<<<<<<< HEAD
-            if self.request.filename.startswith(
-                ("http://", "https://")
-            ) or ".zip/" in self.request.filename.replace("\\", "/"):
-=======
             if self.request.filename.startswith(('http://', 'https://')) or \
                     '.zip/' in self.request.filename.replace('\\', '/'):
->>>>>>> flake
                 self._we_own_fp = True
                 return open(self.request.get_local_filename(), "rb")
             else:
