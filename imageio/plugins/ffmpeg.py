@@ -640,7 +640,7 @@ class FfmpegFormat(Format):
             w, h = self._meta["size"]
             # t0 = time.time()
             s, is_new = self._read_frame_data()
-            result = np.frombuffer(s, dtype=self._dtype)
+            result = np.frombuffer(s, dtype=self._dtype).copy()
             result = result.reshape((h, w, self._depth))
             # t1 = time.time()
             # print('etime', t1-t0)

@@ -492,7 +492,7 @@ class SimpleDicomReader(object):
             )
 
         # Have correct Numpy format, so create the NumPy array
-        arr = np.frombuffer(self.PixelData, numpy_format)
+        arr = np.frombuffer(self.PixelData, numpy_format).copy()
 
         # XXX byte swap - may later handle this in read_file!!?
         if need_byteswap:

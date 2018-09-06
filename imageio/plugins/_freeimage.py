@@ -705,7 +705,9 @@ class FIBaseBitmap(object):
                                 pass  # pragma: no cover - or we get a segfault
                             else:
                                 try:
-                                    tag_val = numpy.frombuffer(tag_bytes, dtype=dtype)
+                                    tag_val = numpy.frombuffer(
+                                        tag_bytes, dtype=dtype
+                                    ).copy()
                                     if len(tag_val) == 1:
                                         tag_val = tag_val[0]
                                 except Exception:  # pragma: no cover
@@ -1071,7 +1073,7 @@ class FIBitmap(FIBaseBitmap):
                 return numpy.zeros(shape, dtype=dtype)
             else:
                 bytes = binary_type(bytearray(data))
-                array = numpy.frombuffer(bytes, dtype=dtype)
+                array = numpy.frombuffer(bytes, dtype=dtype).copy()
                 # Deal with strides
                 if len(shape) == 3:
                     array.shape = shape[2], strides[-1] // shape[0], shape[0]
@@ -1136,7 +1138,7 @@ class FIBitmap(FIBaseBitmap):
                     palette = lib.FreeImage_GetPalette(bitmap)
                     palette = ctypes.c_void_p(palette)
                     p = (ctypes.c_uint8 * (256 * 4)).from_address(palette.value)
-                    p = numpy.frombuffer(p, numpy.uint32)
+                    p = numpy.frombuffer(p, numpy.uint32).copy()
                     if (GREY_PALETTE == p).all():
                         extra_dims = []
                         return numpy.dtype(dtype), extra_dims + [w, h], bpp
