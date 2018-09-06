@@ -196,11 +196,11 @@ class build_with_images(sdist):
 extras_require = {"fits": ["astropy"], "gdal": ["gdal"], "simpleitk": ["SimpleITK"]}
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 
-install_requires=["numpy", "pillow"]
+install_requires = ["numpy", "pillow"]
 if sys.version_info < (3, 4):
-    install_requires.append('enum34')
+    install_requires.append("enum34")
 if sys.version_info < (3, 2):
-    install_requires.append('futures')
+    install_requires.append("futures")
 
 
 setup(
