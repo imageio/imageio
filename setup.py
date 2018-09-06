@@ -196,6 +196,13 @@ class build_with_images(sdist):
 extras_require = {"fits": ["astropy"], "gdal": ["gdal"], "simpleitk": ["SimpleITK"]}
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 
+install_requires=["numpy", "pillow"]
+if sys.version_info < (3, 4):
+    install_requires.append('enum34')
+if sys.version_info < (3, 2):
+    install_requires.append('futures')
+
+
 setup(
     cmdclass={  # 'bdist_wheel_all': bdist_wheel_all,
         # 'sdist_all': sdist_all,
@@ -217,12 +224,7 @@ setup(
     platforms="any",
     provides=["imageio"],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
-    install_requires=[
-        "numpy",
-        "pillow",
-        'enum34; python_version < "3.4"',
-        'futures; python_version < "3.2"',
-    ],
+    install_requires=install_requires,
     extras_require=extras_require,
     packages=["imageio", "imageio.core", "imageio.plugins"],
     package_dir={"imageio": "imageio"},
