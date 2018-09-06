@@ -1,6 +1,10 @@
 # CI on Windows via appveyor
 # This file was based on Olivier Grisel's python-appveyor-demo
 
+
+# https://github.com/appveyor/ci/issues/882#issuecomment-248063991
+skip_branch_with_pr: true
+
 environment:
 
   matrix:

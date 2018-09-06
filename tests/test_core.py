@@ -208,9 +208,9 @@ def test_request_read_sources():
     bytes = open(filename, "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    z = ZipFile(os.path.join(test_dir, "test.zip"), "w")
-    z.writestr(fname, bytes)
-    z.close()
+    zipfilename = os.path.join(test_dir, "test1.zip")
+    with ZipFile(zipfilename, "w") as zf:
+        zf.writestr(fname, bytes)
 
     has_inet = os.getenv("IMAGEIO_NO_INTERNET", "") not in ("1", "yes", "true")
 
@@ -219,12 +219,7 @@ def test_request_read_sources():
     for X in range(2):
 
         # Define uris to test. Define inside loop, since we need fresh files
-        uris = [
-            filename,
-            os.path.join(test_dir, "test.zip", fname),
-            bytes,
-            open(filename, "rb"),
-        ]
+        uris = [filename, os.path.join(zipfilename, fname), bytes, open(filename, "rb")]
         if has_inet:
             uris.append(burl + fname)
 
@@ -234,8 +229,8 @@ def test_request_read_sources():
             if X == 0:
                 all_bytes = R.get_file().read()
             else:
-                f = open(R.get_local_filename(), "rb")
-                all_bytes = f.read()
+                with open(R.get_local_filename(), "rb") as f:
+                    all_bytes = f.read()
             R.finish()
             # Test
             assert len(first_bytes) > 0
@@ -248,11 +243,12 @@ def test_request_save_sources():
     # Prepare desinations
     fname = "images/chelsea.png"
     filename = get_remote_file(fname, test_dir)
-    bytes = open(filename, "rb").read()
+    with open(filename, "rb") as f:
+        bytes = f.read()
     #
     fname2 = fname + ".out"
     filename2 = os.path.join(test_dir, fname2)
-    zipfilename2 = os.path.join(test_dir, "test.zip")
+    zipfilename2 = os.path.join(test_dir, "test2.zip")
     file2 = BytesIO()
 
     # Write an image into many different destinations
@@ -261,6 +257,7 @@ def test_request_save_sources():
         # Clear
         for xx in (filename2, zipfilename2):
             if os.path.isfile(xx):
+                print("trying to delete", xx)
                 os.remove(xx)
         # Write to three destinations
         for uri in (
@@ -273,12 +270,15 @@ def test_request_save_sources():
             if i == 0:
                 R.get_file().write(bytes)  # via file
             else:
-                open(R.get_local_filename(), "wb").write(bytes)  # via local
+                with open(R.get_local_filename(), "wb") as f:
+                    f.write(bytes)  # via local
             R.finish()
             res = R.get_result()
         # Test three results
-        assert open(filename2, "rb").read() == bytes
-        assert ZipFile(zipfilename2, "r").open(fname2).read() == bytes
+        with open(filename2, "rb") as f:
+            assert f.read() == bytes
+        with ZipFile(zipfilename2, "r") as zf:
+            assert zf.open(fname2).read() == bytes
         assert res == bytes
 
 
