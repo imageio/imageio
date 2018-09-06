@@ -208,10 +208,9 @@ def test_request_read_sources():
     bytes = open(filename, "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    z = ZipFile(os.path.join(test_dir, "test.zip"), "w")
-    z.writestr(fname, bytes)
-    z.close()
-
+    with ZipFile(os.path.join(test_dir, "test.zip"), "w") as zf:
+        zf.writestr(fname, bytes)
+    
     has_inet = os.getenv("IMAGEIO_NO_INTERNET", "") not in ("1", "yes", "true")
 
     # Read that image from these different sources. Read data from file
@@ -234,8 +233,8 @@ def test_request_read_sources():
             if X == 0:
                 all_bytes = R.get_file().read()
             else:
-                f = open(R.get_local_filename(), "rb")
-                all_bytes = f.read()
+                with open(R.get_local_filename(), "rb") as f:
+                    all_bytes = f.read()
             R.finish()
             # Test
             assert len(first_bytes) > 0
@@ -262,6 +261,7 @@ def test_request_save_sources():
         # Clear
         for xx in (filename2, zipfilename2):
             if os.path.isfile(xx):
+                print('trying to delete', xx)
                 os.remove(xx)
         # Write to three destinations
         for uri in (
