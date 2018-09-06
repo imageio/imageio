@@ -248,7 +248,8 @@ def test_request_save_sources():
     # Prepare desinations
     fname = "images/chelsea.png"
     filename = get_remote_file(fname, test_dir)
-    bytes = open(filename, "rb").read()
+    with open(filename, "rb") as f:
+        bytes = f.read()
     #
     fname2 = fname + ".out"
     filename2 = os.path.join(test_dir, fname2)
@@ -273,12 +274,15 @@ def test_request_save_sources():
             if i == 0:
                 R.get_file().write(bytes)  # via file
             else:
-                open(R.get_local_filename(), "wb").write(bytes)  # via local
+                with open(R.get_local_filename(), "wb") as f:
+                    f.write(bytes)  # via local
             R.finish()
             res = R.get_result()
         # Test three results
-        assert open(filename2, "rb").read() == bytes
-        assert ZipFile(zipfilename2, "r").open(fname2).read() == bytes
+        with open(filename2, "rb") as f:
+            assert f.read() == bytes
+        with ZipFile(zipfilename2, "r") as zf:
+            assert zf.open(fname2).read() == bytes
         assert res == bytes
 
 
