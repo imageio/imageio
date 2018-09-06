@@ -208,7 +208,8 @@ def test_request_read_sources():
     bytes = open(filename, "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    with ZipFile(os.path.join(test_dir, "test.zip"), "w") as zf:
+    zipfilename = os.path.join(test_dir, "test1.zip")
+    with ZipFile(zipfilename, "w") as zf:
         zf.writestr(fname, bytes)
 
     has_inet = os.getenv("IMAGEIO_NO_INTERNET", "") not in ("1", "yes", "true")
@@ -218,12 +219,7 @@ def test_request_read_sources():
     for X in range(2):
 
         # Define uris to test. Define inside loop, since we need fresh files
-        uris = [
-            filename,
-            os.path.join(test_dir, "test.zip", fname),
-            bytes,
-            open(filename, "rb"),
-        ]
+        uris = [filename, os.path.join(zipfilename, fname), bytes, open(filename, "rb")]
         if has_inet:
             uris.append(burl + fname)
 
@@ -252,7 +248,7 @@ def test_request_save_sources():
     #
     fname2 = fname + ".out"
     filename2 = os.path.join(test_dir, fname2)
-    zipfilename2 = os.path.join(test_dir, "test.zip")
+    zipfilename2 = os.path.join(test_dir, "test2.zip")
     file2 = BytesIO()
 
     # Write an image into many different destinations
