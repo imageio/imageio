@@ -210,7 +210,7 @@ def test_request_read_sources():
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
     with ZipFile(os.path.join(test_dir, "test.zip"), "w") as zf:
         zf.writestr(fname, bytes)
-    
+
     has_inet = os.getenv("IMAGEIO_NO_INTERNET", "") not in ("1", "yes", "true")
 
     # Read that image from these different sources. Read data from file
@@ -261,7 +261,7 @@ def test_request_save_sources():
         # Clear
         for xx in (filename2, zipfilename2):
             if os.path.isfile(xx):
-                print('trying to delete', xx)
+                print("trying to delete", xx)
                 os.remove(xx)
         # Write to three destinations
         for uri in (

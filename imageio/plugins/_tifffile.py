@@ -3245,13 +3245,13 @@ class TiffPage(object):
                         # needs the raw byte order
                         typecode = dtype.char
                     try:
-                        return numpy.fromstring(x, typecode)
+                        return numpy.frombuffer(x, typecode)
                     except ValueError as e:
                         # strips may be missing EOI
                         # warnings.warn("unpack: %s" % e)
                         xlen = ((len(x) // (bitspersample // 8)) *
                                 (bitspersample // 8))
-                        return numpy.fromstring(x[:xlen], typecode)
+                        return numpy.frombuffer(x[:xlen], typecode)
 
             elif isinstance(bitspersample, tuple):
                 def unpack(x):
@@ -4406,7 +4406,7 @@ class FileHandle(object):
             except IOError:
                 # ByteIO
                 data = fh.read(size)
-                return numpy.fromstring(data, dtype, count, sep)
+                return numpy.frombuffer(data, dtype, count, sep)
 
         # Read data from file in chunks and copy to output array
         shape = out.shape
@@ -4419,7 +4419,7 @@ class FileHandle(object):
             if datasize == 0:
                 break
             size -= datasize
-            data = numpy.fromstring(data, dtype)
+            data = numpy.frombuffer(data, dtype)
             out[index:index+data.size] = data
             index += data.size
 
@@ -6179,7 +6179,7 @@ class TIFF(object):
 
     def REVERSE_BITORDER_ARRAY():
         # Numpy array of bytes with reversed bitorder
-        return numpy.fromstring(TIFF.REVERSE_BITORDER_BYTES, dtype='uint8')
+        return numpy.frombuffer(TIFF.REVERSE_BITORDER_BYTES, dtype='uint8')
 
     def ALLOCATIONGRANULARITY():
         # alignment for writing contiguous data to TIFF
@@ -6877,7 +6877,7 @@ def imagej_metadata(data, bytecounts, byteorder):
         return struct.unpack(byteorder+('d' * (len(data) // 8)), data)
 
     def readbytes(data, byteorder):
-        return numpy.fromstring(data, 'uint8')
+        return numpy.frombuffer(data, 'uint8')
 
     metadata_types = {  # big endian
         b'info': ('Info', readstring),
@@ -7501,7 +7501,7 @@ def unpack_ints(data, dtype, itemsize, runlen=0):
 
     """
     if itemsize == 1:  # bitarray
-        data = numpy.fromstring(data, '|B')
+        data = numpy.frombuffer(data, '|B')
         data = numpy.unpackbits(data)
         if runlen % 8:
             data = data.reshape(-1, runlen + (8 - runlen % 8))
@@ -7510,7 +7510,7 @@ def unpack_ints(data, dtype, itemsize, runlen=0):
 
     dtype = numpy.dtype(dtype)
     if itemsize in (8, 16, 32, 64):
-        return numpy.fromstring(data, dtype)
+        return numpy.frombuffer(data, dtype)
     if itemsize not in (1, 2, 4, 8, 16, 32):
         raise ValueError("itemsize not supported: %i" % itemsize)
     if dtype.kind not in "biu":
@@ -7586,7 +7586,7 @@ def unpack_rgb(data, dtype='<B', bitspersample=(5, 6, 5), rescale=True):
     if not (bits <= 32 and all(i <= dtype.itemsize*8 for i in bitspersample)):
         raise ValueError("sample size not supported %s" % str(bitspersample))
     dt = next(i for i in 'BHI' if numpy.dtype(i).itemsize*8 >= bits)
-    data = numpy.fromstring(data, dtype.byteorder+dt)
+    data = numpy.frombuffer(data, dtype.byteorder+dt)
     result = numpy.empty((data.size, len(bitspersample)), dtype.char)
     for i, bps in enumerate(bitspersample):
         t = data >> int(numpy.sum(bitspersample[i+1:]))
