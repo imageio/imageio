@@ -10,9 +10,15 @@ Planned
 * New plugin to read/write video, to overcome the issues with the ffmpeg plugin.
 
 
-Version 2.4.0 (06-09-2018)
+Version 2.4.1 (06-09-2018)
 ==========================
 
+* Fix installation issue on flavors of Ubuntu 14.04 /w Python 2.7  (#378).
+* Use `np.frombuffer` instead of `np.fromstring` in some cases.
+
+
+Version 2.4.0 (06-09-2018)
+==========================
 
 * Renamed ``Image`` class to ``Array`` and add documentation for this ndarray subclass.
 * Reading from HTTP and zipfiles has been improved and better documented.
