@@ -3,6 +3,26 @@ Release notes
 -------------
 
 
+Planned
+=======
+
+* Improved handling and support for meta data.
+* New plugin to read/write video, to overcome the issues with the ffmpeg plugin.
+
+
+Version 2.4.0 (06-09-2018)
+==========================
+
+
+* Renamed ``Image`` class to ``Array`` and add documentation for this ndarray subclass.
+* Reading from HTTP and zipfiles has been improved and better documented.
+* Improvements to reading and writing of Tiff metadata (by Lukas Schrangl).
+* Better dealing of tifffile dependencies on Python 2.7 (#330 and #337 by Chris Barnes).
+* Reader for the SPE format (#358 by lschr).
+* Better termination of FFMPEG when reading from webcam (#346 by Dennis Vang).
+* FFMPEG support for reading 16bit videos (#342 by Peter Minin).
+
+
 Version 2.3.0 (20-03-2018)
 ==========================
 
