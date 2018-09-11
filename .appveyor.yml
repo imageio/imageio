@@ -5,6 +5,13 @@
 # https://github.com/appveyor/ci/issues/882#issuecomment-248063991
 skip_branch_with_pr: true
 
+
+# Caching to reduce time waiting for downloads
+# https://www.appveyor.com/docs/build-cache/
+cache:
+  - '%APPDATA%\imageio\images'
+
+
 environment:
 
   matrix:
