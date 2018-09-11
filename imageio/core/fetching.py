@@ -231,7 +231,7 @@ def _chunk_write(chunk, local_file, progress):
     """Write a chunk to file and update the progress bar"""
     local_file.write(chunk)
     progress.increase_progress(len(chunk))
-    time.sleep(0.0001)
+    time.sleep(0)  # Give other threads a chance, e.g. those that handle stdout pipes
 
 
 def _sizeof_fmt(num):
