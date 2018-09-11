@@ -15,6 +15,12 @@ branches:
   only:
     - master
 
+# Cache image data
+cache:
+  directories:
+  - $HOME/.imageio/images
+
+
 matrix:
     include:
         - python: "3.6"
