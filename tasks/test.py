@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import webbrowser
 
 from invoke import task
@@ -11,7 +12,8 @@ from ._config import ROOT_DIR
 def lint(ctx):
     """ alias for "invoke test --style"
     """
-    black_wrapper(False)
+    flake8_wrapper()  # exits on fail
+    black_wrapper(False)  # always exits
 
 
 @task(
@@ -37,7 +39,8 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
         sys.exit(testing.test_unit())
 
     if style:
-        black_wrapper(False)
+        flake8_wrapper()  # exits on fail
+        black_wrapper(False)  # always exits
 
     if installed:
         for p in list(sys.path):
@@ -64,6 +67,18 @@ def black(ctx):
     """ Format the code using the Black uncompromising formatter.
     """
     black_wrapper(True)
+
+
+def flake8_wrapper():
+    """ Helper function to catch the worst style errors (e.g. unused variables).
+    """
+    # http://pep8.readthedocs.io/en/latest/intro.html#error-codes
+    cmd = [sys.executable, '-m', 'flake8', '--select=F,E11', 'imageio', 'tests']
+    ret_code = subprocess.call(cmd, cwd=ROOT_DIR)
+    if ret_code == 0:
+        print('No style errors found')
+    else:
+        sys.exit(ret_code)
 
 
 def black_wrapper(writeback):
