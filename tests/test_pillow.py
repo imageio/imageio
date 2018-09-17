@@ -364,7 +364,7 @@ def test_inside_zipfile():
         z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())
 
     for name in ("x.png", "x.jpg"):
-        im = imageio.imread(fname + "/" + name)
+        imageio.imread(fname + "/" + name)
 
 
 def test_scipy_imread_compat():
