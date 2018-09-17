@@ -86,12 +86,9 @@ install:
     # Install dependencies (also for testing)
     - pip install invoke
     - if [ "${TEST_STYLE}" == "1" ]; then
-        pip install -q black;
-        pip install -q sphinx;
-        pip install -q numpydoc;
+        pip install -q black flake8 sphinx numpydoc;
       else
-        pip install -q pytest pytest-cov;
-        pip install -q coveralls;
+        pip install -q pytest pytest-cov coveralls;
       fi;
     # Install optional dependencies
     # We do NOT conda install gdal, because it causes segfaults

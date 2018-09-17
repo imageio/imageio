@@ -26,4 +26,4 @@ details.
 
 Further imageio has the following dev-dependencies:
 
-``pip install black pytest pytest-cov sphinx numpydoc``
+``pip install black flake8 pytest pytest-cov sphinx numpydoc``
