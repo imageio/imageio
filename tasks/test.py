@@ -73,10 +73,10 @@ def flake8_wrapper():
     """ Helper function to catch the worst style errors (e.g. unused variables).
     """
     # http://pep8.readthedocs.io/en/latest/intro.html#error-codes
-    cmd = [sys.executable, '-m', 'flake8', '--select=F,E11', 'imageio', 'tests']
+    cmd = [sys.executable, "-m", "flake8", "--select=F,E11", "imageio", "tests"]
     ret_code = subprocess.call(cmd, cwd=ROOT_DIR)
     if ret_code == 0:
-        print('No style errors found')
+        print("No style errors found")
     else:
         sys.exit(ret_code)
 
