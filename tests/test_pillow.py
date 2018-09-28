@@ -367,6 +367,17 @@ def test_inside_zipfile():
         imageio.imread(fname + "/" + name)
 
 
+def test_bmp():
+    need_internet()
+
+    # fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
+    fname = "D:/Users/addis/Documents/PythonProjects/imageio-binaries/images/scribble_P_RGB.bmp"
+
+    im = imageio.imread(fname)
+    # im = imageio.imread(fname, pilmode="RGB")
+    # im = imageio.imread(fname, pilmode="RGBA")
+
+
 def test_scipy_imread_compat():
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
