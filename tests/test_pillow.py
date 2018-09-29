@@ -370,18 +370,11 @@ def test_inside_zipfile():
 def test_bmp():
     need_internet()
 
-    # fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
-    fname = "D:/Users/addis/Documents/PythonProjects/imageio-binaries/images/scribble_P_RGB.bmp"
+    fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
 
     im = imageio.imread(fname)
-    # im = imageio.imread(fname, pilmode="RGB")
-    # im = imageio.imread(fname, pilmode="RGBA")
-
-    import matplotlib.pyplot as plt
-
-    plt.imshow(im)
-    plt.show()
-    i = 4
+    im = imageio.imread(fname, pilmode="RGB")
+    im = imageio.imread(fname, pilmode="RGBA")
 
 
 def test_scipy_imread_compat():
@@ -419,5 +412,5 @@ if __name__ == "__main__":
     # test_inside_zipfile()
     # test_png()
     # test_animated_gif()
-    test_bmp()
-    # run_tests_if_main()
+    # test_bmp()
+    run_tests_if_main()
