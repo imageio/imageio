@@ -374,8 +374,8 @@ def test_bmp():
     fname = "D:/Users/addis/Documents/PythonProjects/imageio-binaries/images/scribble_P_RGB.bmp"
 
     im = imageio.imread(fname)
-    # im = imageio.imread(fname, pilmode="RGB")
-    # im = imageio.imread(fname, pilmode="RGBA")
+    im = imageio.imread(fname, pilmode="RGB")
+    im = imageio.imread(fname, pilmode="RGBA")
 
 
 def test_scipy_imread_compat():
