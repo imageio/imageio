@@ -371,9 +371,9 @@ def test_bmp():
     need_internet()
     fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
 
-    im = imageio.imread(fname)
-    im = imageio.imread(fname, pilmode="RGB")
-    im = imageio.imread(fname, pilmode="RGBA")
+    imageio.imread(fname)
+    imageio.imread(fname, pilmode="RGB")
+    imageio.imread(fname, pilmode="RGBA")
 
 
 def test_scipy_imread_compat():
