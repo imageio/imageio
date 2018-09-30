@@ -369,7 +369,6 @@ def test_inside_zipfile():
 
 def test_bmp():
     need_internet()
-
     fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
 
     im = imageio.imread(fname)
