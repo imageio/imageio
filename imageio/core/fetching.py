@@ -161,7 +161,7 @@ def _fetch_file(url, file_name, print_destination=True):
     for tries in range(4):
         try:
             # Checking file size and displaying it alongside the download url
-            remote_file = urlopen(url, timeout=5.)
+            remote_file = urlopen(url, timeout=5.0)
             file_size = int(remote_file.headers["Content-Length"].strip())
             size_str = _sizeof_fmt(file_size)
             print("Try %i. Download from %s (%s)" % (tries + 1, url, size_str))

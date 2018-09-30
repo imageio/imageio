@@ -569,16 +569,16 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
             # Create palette array
             p = np.frombuffer(im.palette.getdata()[1], np.uint8)
             # Restore the raw mode that was saved to be used to parse the palette
-            if hasattr(im.palette, 'rawmode_saved'):
+            if hasattr(im.palette, "rawmode_saved"):
                 im.palette.rawmode = im.palette.rawmode_saved
             mode = im.palette.rawmode if im.palette.rawmode else im.palette.mode
             nchannels = len(mode)
             # Shape it.
             p.shape = -1, nchannels
-            if p.shape[1] == 3 or (p.shape[1] == 4 and mode[-1] == 'X'):
+            if p.shape[1] == 3 or (p.shape[1] == 4 and mode[-1] == "X"):
                 p = np.column_stack((p[:, :3], 255 * np.ones(p.shape[0], p.dtype)))
             # Swap the axes if the mode is in BGR and not RGB
-            if mode.startswith('BGR'):
+            if mode.startswith("BGR"):
                 p = p[:, [2, 1, 0]] if p.shape[1] == 3 else p[:, [2, 1, 0, 3]]
             # Apply palette
             frame_paletted = np.array(im, np.uint8)
