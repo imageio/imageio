@@ -563,12 +563,16 @@ class FfmpegFormat(Format):
                 if self.request._video:
                     ffmpeg_err = (
                         "FFMPEG STDERR OUTPUT:\n"
-                        + self._stderr_catcher.get_text(.1)
+                        + self._stderr_catcher.get_text(0.1)
                         + "\n"
                     )
                     if "darwin" in sys.platform:
                         if "Unknown input format: 'avfoundation'" in ffmpeg_err:
-                            ffmpeg_err += "Try installing FFMPEG using " "home brew to get a version with " "support for cameras."
+                            ffmpeg_err += (
+                                "Try installing FFMPEG using "
+                                "home brew to get a version with "
+                                "support for cameras."
+                            )
                     raise IndexError(
                         "No video4linux camera at %s.\n\n%s"
                         % (self.request._video, ffmpeg_err)

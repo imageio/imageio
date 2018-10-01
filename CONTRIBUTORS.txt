@@ -49,3 +49,6 @@
 
 - Zulko
   Various contribution related to the ffmpeg plugin.
+
+- Addison Elliott
+  Add support for 8-bit paletted BMPs

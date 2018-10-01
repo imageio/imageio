@@ -122,6 +122,13 @@ class PillowFormat(Format):
             self._im = factory(self._fp, "")
             if hasattr(Image, "_decompression_bomb_check"):
                 Image._decompression_bomb_check(self._im.size)
+            # Save the raw mode used by the palette for a BMP because it may not be the number of channels
+            # When the data is read, imageio hands the palette to PIL to handle and clears the rawmode argument
+            # However, there is a bug in PIL with handling animated GIFs with a different color palette on each frame.
+            # This issue is resolved by using the raw palette data but the rawmode information is now lost. So we
+            # store the raw mode for later use
+            if self._im.palette and self._im.palette.dirty:
+                self._im.palette.rawmode_saved = self._im.palette.rawmode
             pil_try_read(self._im)
             # Store args
             self._kwargs = dict(
@@ -161,6 +168,8 @@ class PillowFormat(Format):
                 while i < index:  # some formats need to be read in sequence
                     i += 1
                     self._seek(i)
+            if self._im.palette and self._im.palette.dirty:
+                self._im.palette.rawmode_saved = self._im.palette.rawmode
             self._im.getdata()[0]
             im = pil_get_frame(self._im, **self._kwargs)
             return im, self._im.info
@@ -556,14 +565,21 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
             frame = im.convert("RGBA")
         elif im.palette.mode in ("RGB", "RGBA"):
             # We can do this ourselves. Pillow seems to sometimes screw
-            # this up if a  multi-gif has a pallete for each frame ...
+            # this up if a  multi-gif has a palette for each frame ...
             # Create palette array
             p = np.frombuffer(im.palette.getdata()[1], np.uint8)
+            # Restore the raw mode that was saved to be used to parse the palette
+            if hasattr(im.palette, "rawmode_saved"):
+                im.palette.rawmode = im.palette.rawmode_saved
+            mode = im.palette.rawmode if im.palette.rawmode else im.palette.mode
+            nchannels = len(mode)
             # Shape it.
-            nchannels = len(im.palette.mode)
             p.shape = -1, nchannels
-            if p.shape[1] == 3:
-                p = np.column_stack((p, 255 * np.ones(p.shape[0], p.dtype)))
+            if p.shape[1] == 3 or (p.shape[1] == 4 and mode[-1] == "X"):
+                p = np.column_stack((p[:, :3], 255 * np.ones(p.shape[0], p.dtype)))
+            # Swap the axes if the mode is in BGR and not RGB
+            if mode.startswith("BGR"):
+                p = p[:, [2, 1, 0]] if p.shape[1] == 3 else p[:, [2, 1, 0, 3]]
             # Apply palette
             frame_paletted = np.array(im, np.uint8)
             try:

@@ -367,6 +367,15 @@ def test_inside_zipfile():
         imageio.imread(fname + "/" + name)
 
 
+def test_bmp():
+    need_internet()
+    fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
+
+    imageio.imread(fname)
+    imageio.imread(fname, pilmode="RGB")
+    imageio.imread(fname, pilmode="RGBA")
+
+
 def test_scipy_imread_compat():
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
@@ -402,4 +411,5 @@ if __name__ == "__main__":
     # test_inside_zipfile()
     # test_png()
     # test_animated_gif()
+    # test_bmp()
     run_tests_if_main()
