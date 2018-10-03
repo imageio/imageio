@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Storage of image data in tiff format.
+""" Storage of image data in multiple formats.
 """
 
 from __future__ import absolute_import, print_function, division
