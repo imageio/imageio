@@ -20,7 +20,7 @@ def load_lib():
         raise ImportError(
             "SimpleITK could not be found. "
             "Please try "
-            "  easy_install SimpleITK "
+            "  python -m pip install SimpleITK "
             "or refer to "
             "  http://simpleitk.org/ "
             "for further instructions."
