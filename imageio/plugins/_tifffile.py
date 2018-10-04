@@ -303,7 +303,7 @@ Other Python packages and modules for reading (bio) scientific TIFF files:
 *  `python-bioformats <https://github.com/CellProfiler/python-bioformats>`_
 *  `Imread <https://github.com/luispedro/imread>`_
 *  `PyLibTiff <https://github.com/pearu/pylibtiff>`_
-*  `SimpleITK <http://www.simpleitk.org>`_
+*  `ITK <https://www.itk.org>`_
 *  `PyLSM <https://launchpad.net/pylsm>`_
 *  `PyMca.TiffIO.py <https://github.com/vasole/pymca>`_ (same as fabio.TiffIO)
 *  `BioImageXD.Readers <http://www.bioimagexd.net/>`_

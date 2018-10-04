@@ -193,7 +193,7 @@ class build_with_images(sdist):
         sdist.run(self)
 
 
-extras_require = {"fits": ["astropy"], "gdal": ["gdal"], "simpleitk": ["SimpleITK"]}
+extras_require = {"fits": ["astropy"], "gdal": ["gdal"], "itk": ["itk"]}
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 
 install_requires = ["numpy", "pillow"]

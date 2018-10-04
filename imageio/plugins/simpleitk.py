@@ -13,18 +13,27 @@ _itk = None  # Defer loading to load_lib() function.
 
 
 def load_lib():
-    global _itk
+    global _itk, _read_function, _write_function
     try:
-        import SimpleITK as _itk
+        import itk as _itk
+        _read_function = _itk.imread
+        _write_function = _itk.imwrite
     except ImportError:
-        raise ImportError(
-            "SimpleITK could not be found. "
-            "Please try "
-            "  python -m pip install SimpleITK "
-            "or refer to "
-            "  http://simpleitk.org/ "
-            "for further instructions."
-        )
+        try:
+            import SimpleITK as _itk
+            _read_function = _itk.ReadImage
+            _write_function = _itk.WriteImage
+        except ImportError:
+            raise ImportError(
+                "itk could not be found. "
+                "Please try "
+                "  python -m pip install itk "
+                "or "
+                "  python -m pip install simpleitk "
+                "or refer to "
+                "  https://itkpythonpackage.readthedocs.io/ "
+                "for further instructions."
+            )
     return _itk
 
 
@@ -43,11 +52,11 @@ ALL_FORMATS = ITK_FORMATS + (
 
 
 class ItkFormat(Format):
-    """ The ItkFormat uses the simpleITK library to support a range of
+    """ The ItkFormat uses the ITK or SimpleITK library to support a range of
     ITK-related formats. It also supports a few common formats that are
     also supported by the freeimage plugin (e.g. PNG and JPEG).
-    
-    This format requires the ``simpleITK`` package.
+
+    This format requires the ``itk`` or ``SimpleITK`` package.
 
     Parameters for reading
     ----------------------
@@ -66,13 +75,13 @@ class ItkFormat(Format):
         # we only report that we can read if the library is installed.
         if request.extension in ITK_FORMATS:
             return True
-        if has_module("SimpleITK"):
+        if has_module("itk") or has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     def _can_write(self, request):
         if request.extension in ITK_FORMATS:
             return True
-        if has_module("SimpleITK"):
+        if has_module("itk") or has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     # -- reader
@@ -81,7 +90,7 @@ class ItkFormat(Format):
         def _open(self, **kwargs):
             if not _itk:
                 load_lib()
-            self._img = _itk.ReadImage(self.request.get_local_filename())
+            self._img = _read_function(self.request.get_local_filename())
 
         def _get_length(self):
             return 1
@@ -110,8 +119,8 @@ class ItkFormat(Format):
             pass
 
         def _append_data(self, im, meta):
-            _itk_img = _itk.GetImageFromArray(im, isVector=True)
-            _itk.WriteImage(_itk_img, self.request.get_local_filename())
+            _itk_img = _itk.GetImageFromArray(im)
+            _write_function(_itk_img, self.request.get_local_filename())
 
         def set_meta_data(self, meta):
             raise RuntimeError("The itk format does not support " " meta data.")

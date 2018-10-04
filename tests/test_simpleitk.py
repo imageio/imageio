@@ -14,10 +14,16 @@ import imageio
 test_dir = get_test_dir()
 
 
+itk = None
 try:
-    import SimpleITK as itk
+    import itk
 except ImportError:
-    itk = None
+    pass
+try:
+    if not itk:
+        import SimpleITK as itk
+except ImportError:
+    pass
 
 
 @pytest.mark.skipif("itk is None")
@@ -30,7 +36,9 @@ def test_simpleitk_reading_writing():
     # One image
     imageio.imsave(filename1, im2, "itk")
     im = imageio.imread(filename1, "itk")
+    print(im.shape)
     ims = imageio.mimread(filename1, "itk")
+    print(im2.shape)
     assert (im == im2).all()
     assert len(ims) == 1
 

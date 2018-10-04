@@ -88,7 +88,7 @@ Minimal requirements:
 
 Optional Python packages:
 <ul>
-    <li>SimpleITK (for ITK formats)</li>
+    <li>itk or SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
 </ul>  
