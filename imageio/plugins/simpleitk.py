@@ -16,11 +16,13 @@ def load_lib():
     global _itk, _read_function, _write_function
     try:
         import itk as _itk
+
         _read_function = _itk.imread
         _write_function = _itk.imwrite
     except ImportError:
         try:
             import SimpleITK as _itk
+
             _read_function = _itk.ReadImage
             _write_function = _itk.WriteImage
         except ImportError:
@@ -38,9 +40,25 @@ def load_lib():
 
 
 # Split up in real ITK and all supported formats.
-ITK_FORMATS = (".gipl", ".ipl", ".mha", ".mhd", ".nhdr", "nia", "hdr", ".nrrd",
-               ".nii", ".vtk", "hdf5", "lsm", "mnc", "mnc2", "mgh", "mnc",
-               "pic")
+ITK_FORMATS = (
+    ".gipl",
+    ".ipl",
+    ".mha",
+    ".mhd",
+    ".nhdr",
+    "nia",
+    "hdr",
+    ".nrrd",
+    ".nii",
+    ".vtk",
+    "hdf5",
+    "lsm",
+    "mnc",
+    "mnc2",
+    "mgh",
+    "mnc",
+    "pic",
+)
 ALL_FORMATS = ITK_FORMATS + (
     ".bmp",
     ".jpeg",
@@ -104,13 +122,15 @@ class ItkFormat(Format):
         def _get_data(self, index):
             # Get data
             if index != 0:
-                raise IndexError("Index out of range while reading from itk file")
+                error_msg = "Index out of range while reading from itk file"
+                raise IndexError(error_msg)
 
             # Return array and empty meta data
             return _itk.GetArrayFromImage(self._img), {}
 
         def _get_meta_data(self, index):
-            raise RuntimeError("The itk format does not support " " meta data.")
+            error_msg = "The itk plugin does not support meta data, currently."
+            raise RuntimeError(error_msg)
 
     # -- writer
     class Writer(Format.Writer):
@@ -126,7 +146,8 @@ class ItkFormat(Format):
             _write_function(_itk_img, self.request.get_local_filename())
 
         def set_meta_data(self, meta):
-            raise RuntimeError("The itk format does not support " " meta data.")
+            error_msg = "The itk plugin does not support meta data, currently."
+            raise RuntimeError(error_msg)
 
 
 # Register
