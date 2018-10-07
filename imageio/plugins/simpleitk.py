@@ -96,13 +96,13 @@ class ItkFormat(Format):
         # we only report that we can read if the library is installed.
         if request.extension in ITK_FORMATS:
             return True
-        if has_module("itk") or has_module("SimpleITK"):
+        if has_module("itk.ImageIOBase") or has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     def _can_write(self, request):
         if request.extension in ITK_FORMATS:
             return True
-        if has_module("itk") or has_module("SimpleITK"):
+        if has_module("itk.ImageIOBase") or has_module("SimpleITK"):
             return request.extension in ALL_FORMATS
 
     # -- reader
