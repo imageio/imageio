@@ -658,16 +658,21 @@ def ndarray_to_pil(arr, format_str=None):
         mode = "L"
         mode_base = "L"
 
-    array_buffer = arr.tobytes()
 
-    if arr.ndim == 2:
-        im = Image.new(mode_base, arr.T.shape)
-        im.frombytes(array_buffer, "raw", mode)
+    if mode == "I;16":
+        # Image.fromarray doesn't seem to be compatible with 'I;16' formats
+        # Therefore, we fallback to this expensive workaround.
+        # tobytes actually creates a copy of the image, which is costly.
+        array_buffer = arr.tobytes()
+        if arr.ndim == 2:
+            im = Image.new(mode_base, arr.T.shape)
+            im.frombytes(array_buffer, "raw", mode)
+        else:
+            image_shape = (arr.shape[1], arr.shape[0])
+            im = Image.frombytes(mode, image_shape, array_buffer)
+        return im
     else:
-        image_shape = (arr.shape[1], arr.shape[0])
-        im = Image.frombytes(mode, image_shape, array_buffer)
-
-    return im
+        return Image.fromarray(arr, mode)
 
 
 ## End of code from scikit-image
