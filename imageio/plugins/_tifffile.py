@@ -3246,7 +3246,7 @@ class TiffPage(object):
                         typecode = dtype.char
                     try:
                         return numpy.fromstring(x, typecode)
-                    except ValueError as e:
+                    except ValueError: # as e:
                         # strips may be missing EOI
                         # warnings.warn("unpack: %s" % e)
                         xlen = ((len(x) // (bitspersample // 8)) *
