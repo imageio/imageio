@@ -132,8 +132,11 @@ class PillowFormat(Format):
             pil_try_read(self._im)
             # Store args
             self._kwargs = dict(
-                mode=pilmode, as_gray=as_gray, is_gray=_palette_is_grayscale(self._im)
+                as_gray=as_gray, is_gray=_palette_is_grayscale(self._im)
             )
+            # setting mode=None is not the same as just not providing it
+            if pilmode is not None:
+                self._kwargs['mode'] = pilmode
             # Set length
             self._length = 1
             if hasattr(self._im, "n_frames"):
