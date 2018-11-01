@@ -1060,7 +1060,7 @@ def parse_ffmpeg_info(text):
     # matches can be empty, see #171, assume nframes = inf
     # the regexp omits values of "1k tbr" which seems a specific edge-case #262
     # it seems that tbr is generally to be preferred #262
-    matches = re.findall(" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
+    matches = re.findall(r" ([0-9]+\.?[0-9]*) (tbr|fps)", line)
     fps = 0
     matches.sort(key=lambda x: x[1] == "tbr", reverse=True)
     if matches:
