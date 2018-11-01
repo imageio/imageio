@@ -118,6 +118,44 @@ def test_read_and_write():
             assert diff.mean() < 2.5
 
 
+def test_write_not_contiguous():
+    need_internet()
+
+    R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
+    assert R.format is imageio.formats["ffmpeg"]
+
+    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname2 = fname1[:-4] + ".out.mp4"
+
+    # Read
+    ims1 = []
+    with imageio.read(fname1, "ffmpeg") as R:
+        for i in range(10):
+            im = R.get_next_data()
+            ims1.append(im)
+
+    # Save non contiguous data
+    with imageio.save(fname2, "ffmpeg") as W:
+        for im in ims1:
+            # DOn't slice the first dimension since it won't be
+            # a multiple of 16. This will cause the writer to expand
+            # the data to make it fit, we won't be able to compare
+            # the difference between the saved and the original images.
+            im = im[:, ::2]
+            assert not im.flags.c_contiguous
+            W.append_data(im)
+
+    ims2 = imageio.mimread(fname2, "ffmpeg")
+
+    # Check
+    for im1, im2 in zip(ims1, ims2):
+        diff = np.abs(im1[:, ::2].astype(np.float32) - im2.astype(np.float32))
+        if IS_PYPY:
+            assert (diff.sum() / diff.size) < 100
+        else:
+            assert diff.mean() < 2.5
+
+
 def test_reader_more():
     need_internet()
 
