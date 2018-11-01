@@ -52,3 +52,6 @@
 
 - Addison Elliott
   Add support for 8-bit paletted BMPs
+
+- Mark Harfouche
+  Speedups to pillow and ffpmeg by avoiding memory copies and conversions.
