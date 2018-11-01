@@ -242,17 +242,16 @@ def imwrite(uri, im, format=None, **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """
+    # Don't coerce subclasses as we need to pass the Image
+    im = np.asanyarray(im)
 
     # Test image
-    if isinstance(im, np.ndarray):
-        if im.ndim == 2:
-            pass
-        elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
-            pass
-        else:
-            raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
+    if im.ndim == 2:
+        pass
+    elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
+        pass
     else:
-        raise ValueError("Image must be a numpy array.")
+        raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
     # Get writer and write first
     writer = get_writer(uri, format, "i", **kwargs)
@@ -341,15 +340,13 @@ def mimwrite(uri, ims, format=None, **kwargs):
         for im in ims:
 
             # Test image
-            if isinstance(im, np.ndarray):
-                if im.ndim == 2:
-                    pass
-                elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
-                    pass
-                else:
-                    raise ValueError("Image must be 2D " "(grayscale, RGB, or RGBA).")
+            im = np.asanyarray(im)
+            if im.ndim == 2:
+                pass
+            elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
+                pass
             else:
-                raise ValueError("Image must be a numpy array.")
+                raise ValueError("Image must be 2D " "(grayscale, RGB, or RGBA).")
 
             # Add image
             writer.append_data(im)
@@ -413,15 +410,13 @@ def volwrite(uri, im, format=None, **kwargs):
     """
 
     # Test image
-    if isinstance(im, np.ndarray):
-        if im.ndim == 3:
-            pass
-        elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
-            pass
-        else:
-            raise ValueError("Image must be 3D, or 4D if each voxel is " "a tuple.")
+    im = np.asanyarray(im)
+    if im.ndim == 3:
+        pass
+    elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
+        pass
     else:
-        raise ValueError("Image must be a numpy array.")
+        raise ValueError("Image must be 3D, or 4D if each voxel is " "a tuple.")
 
     # Get writer and write first
     writer = get_writer(uri, format, "v", **kwargs)
@@ -509,19 +504,16 @@ def mvolwrite(uri, ims, format=None, **kwargs):
 
         # Iterate over images (ims may be a generator)
         for im in ims:
-
-            # Test image
-            if isinstance(im, np.ndarray):
-                if im.ndim == 3:
-                    pass
-                elif im.ndim == 4 and im.shape[3] < 32:
-                    pass  # How large can a tuple be?
-                else:
-                    raise ValueError(
-                        "Image must be 3D, or 4D if each voxel is" "a tuple."
-                    )
+            # Don't coerce subclasses as we need to pass the Image
+            im = np.asanyarray(im)
+            if im.ndim == 3:
+                pass
+            elif im.ndim == 4 and im.shape[3] < 32:
+                pass  # How large can a tuple be?
             else:
-                raise ValueError("Image must be a numpy array.")
+                raise ValueError(
+                    "Image must be 3D, or 4D if each voxel is" "a tuple."
+                )
 
             # Add image
             writer.append_data(im)

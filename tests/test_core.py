@@ -629,4 +629,13 @@ def test_example_plugin():
     W.close()
 
 
+def test_imwrite_not_subclass(tmpdir):
+    class foo(object):
+        def __init__(self):
+            pass
+        def __array__(self, dtype=None):
+            return np.zeros((4, 4), dtype=dtype)
+    imageio.imwrite(os.path.join(str(tmpdir), 'foo.bmp'), foo())
+
+
 run_tests_if_main()
