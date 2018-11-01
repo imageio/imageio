@@ -705,6 +705,13 @@ class FfmpegFormat(Format):
 
             # Ensure that image is in uint8
             im = image_as_uint(im, bitdepth=8)
+            # To be written efficiently, ie. without creating an immutable
+            # buffer, by calling im.tostring() the array must be contiguous.
+            if not im.flags.c_contiguous:
+                # checkign the flag is a micro optimization.
+                # the image will be a numpy subclass. See discussion
+                # https://github.com/numpy/numpy/issues/11804
+                im = np.ascontiguousarray(im)
 
             # Set size and initialize if not initialized yet
             if self._size is None:
@@ -728,7 +735,7 @@ class FfmpegFormat(Format):
 
             # Write
             try:
-                self._proc.stdin.write(im.tostring())
+                self._proc.stdin.write(im)
             except IOError as e:
                 # Show the command and stderr from pipe
                 msg = (
