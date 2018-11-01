@@ -165,6 +165,7 @@ Note, you will need ffmpeg compiled with vaapi for this to work.
     w.close()
 
 A little bit of explanation:
+
   * ``output_params``
     * ``vaapi_device`` speficifies the encoding device that will be used.
     * ``vf`` and ``format`` tell ffmpeg that it must upload to the dedicated
@@ -172,3 +173,6 @@ A little bit of explanation:
       that the video is in either gray or nv12 before uploading it. The ``or``
       operation is acheived with ``|``.
   * ``pixelformat``: set to ``'vaapi_vld'`` to avoid a warning in ffmpeg.
+  * ``codec``: the code you wish to use to encode the video. Make sure your
+    hardware supports the chosen codec. If your hardware supports h265, you
+    may be able to encode using ``'hevc_vaapi'``
