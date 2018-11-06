@@ -20,6 +20,12 @@ from imageio.core import get_remote_file, IS_PYPY
 test_dir = get_test_dir()
 
 
+if os.getenv("TRAVIS_OS_NAME") == "windows":
+    skip(
+        "Skip this on the Travis Windows run for now, see #408", allow_module_level=True
+    )
+
+
 def setup_module():
     try:
         imageio.plugins.ffmpeg.download()
