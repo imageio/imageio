@@ -871,7 +871,7 @@ class FfmpegFormat(Format):
             # For Windows, set `shell=True` in sp.Popen to prevent popup
             # of a command line window in frozen applications.
             self._proc = sp.Popen(
-                cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.STDOUT, shell=ISWIN
+                cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=None, shell=ISWIN
             )
             # Warning, directing stderr to a pipe on windows will cause ffmpeg
             # to hang if the buffer is not periodically cleared using
