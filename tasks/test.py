@@ -63,7 +63,7 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
 
 
 @task
-def black(ctx):
+def autoformat(ctx):
     """ Format the code using the Black uncompromising formatter.
     """
     black_wrapper(True)

@@ -136,7 +136,7 @@ class PillowFormat(Format):
             )
             # setting mode=None is not the same as just not providing it
             if pilmode is not None:
-                self._kwargs['mode'] = pilmode
+                self._kwargs["mode"] = pilmode
             # Set length
             self._length = 1
             if hasattr(self._im, "n_frames"):
@@ -660,7 +660,6 @@ def ndarray_to_pil(arr, format_str=None):
         arr = image_as_uint(arr, bitdepth=8)
         mode = "L"
         mode_base = "L"
-
 
     if mode == "I;16":
         # Image.fromarray doesn't seem to be compatible with 'I;16' formats
