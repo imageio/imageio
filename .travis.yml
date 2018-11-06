@@ -1,5 +1,7 @@
 # Travis CI configuration file for imageio
 
+language: python
+
 addons:
   apt:
     packages:
@@ -10,12 +12,11 @@ branches:
   only:
     - master
 
-
 # Cache image data
 cache:
-  pip
-  directories:
-  - $HOME/.imageio/images
+  - pip
+  - directories:
+    - $HOME/.imageio/images
 
 
 matrix:
@@ -79,6 +80,15 @@ before_install:
     - cd ${SRC_DIR}
 
 install:
+    # Special stuff for Windows and Legacy Python
+    - if [ "$TRAVIS_OS_NAME" = "windows" ]; then
+        choco install python3;
+        export PATH=/c/Python38:/c/Python38/Scripts:/c/Python37:/c/Python37/Scripts:$PATH;
+      fi;
+    - if [ "${IS_LEGACY}" == "1" ]; then
+        pip install enum34 futures;
+      fi;
+    # Install dependencies depending on ENV
     - pip install invoke
     - if [ "${TEST_UNIT}" == "1" ]; then
         pip install numpy pillow psutil;
@@ -91,10 +101,6 @@ install:
     # We do NOT conda install gdal, because it causes segfaults
     - if [ "${TEST_FULL}" == "1" ]; then
        pip install simpleitk astropy;
-      fi;
-    # Install more deps on legacy py
-    - if [ "${IS_LEGACY}" == "1" ]; then
-        pip install enum34 futures;
       fi;
     # Install imageio on one/some env
     - if [ "${TEST_INSTALL}" == "1" ]; then
