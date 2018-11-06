@@ -27,6 +27,25 @@ def setup_module():
         pass
 
 
+def test_get_exe_downloaded():
+    need_internet()
+
+    # backup any user-defined path
+    if "IMAGEIO_FFMPEG_EXE" in os.environ:
+        oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
+    else:
+        oldpath = ""
+    # Test if download works
+    os.environ["IMAGEIO_FFMPEG_EXE"] = ""
+    path = imageio.plugins.ffmpeg.get_exe()
+    # cleanup
+    os.environ.pop("IMAGEIO_FFMPEG_EXE")
+    if oldpath:
+        os.environ["IMAGEIO_FFMPEG_EXE"] = oldpath
+    print(path)
+    assert os.path.isfile(path)
+
+
 def test_get_exe_env():
     # backup any user-defined path
     if "IMAGEIO_FFMPEG_EXE" in os.environ:
