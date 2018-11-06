@@ -117,11 +117,12 @@ def test_import_dependencies():
     """
 
     # Get loaded modules when numpy is imported and when imageio is imported
-    modnames_ref = loaded_modules("numpy", 1, True)
+    modnames_ref1 = loaded_modules("numpy", 1, True)
+    modnames_ref2 = loaded_modules("PIL", 1, True)
     modnames_new = loaded_modules("imageio", 1, True)
 
     # Get the difference; what do we import extra?
-    extra_modules = modnames_new.difference(modnames_ref)
+    extra_modules = modnames_new.difference(modnames_ref1).difference(modnames_ref2)
 
     known_modules = [
         "zipfile",
