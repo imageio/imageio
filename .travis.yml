@@ -86,7 +86,7 @@ install:
         export PATH=/c/Python38:/c/Python38/Scripts:/c/Python37:/c/Python37/Scripts:$PATH;
       fi;
     - if [ "${IS_LEGACY}" == "1" ]; then
-        pip install enum34 futures;
+        pip install enum34 futures pathlib;
       fi;
     # Install dependencies depending on ENV
     - pip install invoke
