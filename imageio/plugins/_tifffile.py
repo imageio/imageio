@@ -8201,7 +8201,7 @@ def scanimage_artist_metadata(artist):
 
 def _replace_by(module_function, package=__package__, warn=None, prefix='_'):
     """Try replace decorated function by module.function."""
-    return identityfunc  # imageio: just use what's in here
+    return lambda f: f  # imageio: just use what's in here
     def _warn(e, warn):
         if warn is None:
             warn = '\n  Functionality might be degraded or be slow.\n'
