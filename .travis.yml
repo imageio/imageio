@@ -29,9 +29,6 @@ matrix:
     - os: windows
       language: bash
       env: TEST_UNIT=1
-    #- os: linux
-    #  python: "pypy3.5"
-    #  env: TEST_UNIT=1
     # The main tests run on Linux for a all relevant Python versions.
     - os: linux
       python: "2.7"
