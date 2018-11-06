@@ -1,9 +1,4 @@
 # Travis CI configuration file for imageio
-# Validate this at http://lint.travis-ci.org/
-
-language: python
-
-sudo: false
 
 addons:
   apt:
@@ -18,35 +13,44 @@ branches:
 
 # Cache image data
 cache:
+  pip
   directories:
   - $HOME/.imageio/images
 
 
 matrix:
-    include:
-        - python: "3.6"
-          env: TEST_UNIT=0 TEST_STYLE=1
-        #
-        - python: "2.7"
-          env: TEST_UNIT=1 TEST_INSTALL=1 IS_LEGACY=1
-        - python: "3.4"
-          env: TEST_UNIT=1 TEST_FULL=1
-        - python: "3.5"
-          env: TEST_UNIT=1
-        - python: "3.6"
-          env: TEST_UNIT=1 TEST_COVER=1
+  include:
+    # One runner for style stuff
+    - os: linux
+      python: "3.6"
+      env: TEST_UNIT=0 TEST_STYLE=1
+    # Special OS'es / interpreters
+    - os: windows
+      language: bash
+      env: TEST_UNIT=1
+    #- os: linux
+    #  python: "pypy3.5"
+    #  env: TEST_UNIT=1
+    # The main tests run on Linux for a all relevant Python versions.
+    - os: linux
+      python: "2.7"
+      env: TEST_UNIT=1 TEST_INSTALL=1 IS_LEGACY=1
+    - os: linux
+      python: "3.4"
+      env: TEST_UNIT=1 TEST_FULL=1
+    - os: linux
+      python: "3.5"
+      env: TEST_UNIT=1
+    - os: linux
+      python: "3.6"
+      env: TEST_UNIT=1 TEST_COVER=1
+    - os: linux
+      python: "3.7-dev"
+      env: TEST_UNIT=1
 
 
 before_install:
     - REDIRECT_TO=/dev/stdout  # change to /dev/null to silence Travis
-    # Install miniconda
-    - if [ "${TEST_UNIT}" == "1" ]; then
-        wget -q http://repo.continuum.io/miniconda/Miniconda3-4.0.5-Linux-x86_64.sh -O miniconda.sh;
-        chmod +x miniconda.sh;
-        ./miniconda.sh -b -p ~/anaconda &> ${REDIRECT_TO};
-        export PATH=~/anaconda/bin:$PATH;
-        conda update --yes --quiet conda &> ${REDIRECT_TO};
-      fi;
     - SRC_DIR=$(pwd)
     # file size checks
     - if [ "${TEST_STYLE}" == "1" ]; then
@@ -75,35 +79,26 @@ before_install:
     - cd ${SRC_DIR}
 
 install:
-    # Install Python with numpy
-    - if [ "${TEST_UNIT}" == "1" ]; then
-        conda create -n testenv --yes --quiet pip python=$TRAVIS_PYTHON_VERSION > ${REDIRECT_TO};
-        source activate testenv > ${REDIRECT_TO};
-        conda install --yes --quiet numpy > ${REDIRECT_TO};
-        conda install --yes --quiet pillow -c conda-forge > ${REDIRECT_TO};
-        conda install --yes --quiet psutil > ${REDIRECT_TO};
-      fi;
-    # Install dependencies (also for testing)
     - pip install invoke
+    - if [ "${TEST_UNIT}" == "1" ]; then
+        pip install numpy pillow psutil;
+        pip install -q pytest pytest-cov coveralls;
+      fi;
     - if [ "${TEST_STYLE}" == "1" ]; then
         pip install -q black flake8 sphinx numpydoc;
-      else
-        pip install -q pytest pytest-cov coveralls;
       fi;
     # Install optional dependencies
     # We do NOT conda install gdal, because it causes segfaults
     - if [ "${TEST_FULL}" == "1" ]; then
-       easy_install -q simpleitk; true;
-       conda install -y astropy;
+       pip install simpleitk astropy;
       fi;
     # Install more deps on legacy py
     - if [ "${IS_LEGACY}" == "1" ]; then
         pip install enum34 futures;
       fi;
-    
-    # Install imageio, use installed version on only one machine
+    # Install imageio on one/some env
     - if [ "${TEST_INSTALL}" == "1" ]; then
-       python setup.py build_with_fi install > ${REDIRECT_TO};
+       python setup.py build_with_fi install;
       fi;
 
 before_script:
