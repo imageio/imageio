@@ -403,6 +403,8 @@ class Format(object):
             while i < n:
                 try:
                     im, meta = self._get_data(i)
+                except StopIteration:
+                    return
                 except (IndexError, CannotReadFrameError):
                     if n == float("inf"):
                         return

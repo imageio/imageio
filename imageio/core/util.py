@@ -556,10 +556,14 @@ def get_platform():
 def has_module(module_name):
     """Check to see if a python module is available.
     """
-    if sys.version_info > (3,):
+    if sys.version_info > (3, 4):
         import importlib
 
-        return importlib.find_loader(module_name) is not None
+        name_parts = module_name.split(".")
+        for i in range(len(name_parts)):
+            if importlib.util.find_spec(".".join(name_parts[: i + 1])) is None:
+                return False
+        return True
     else:  # pragma: no cover
         import imp
 
