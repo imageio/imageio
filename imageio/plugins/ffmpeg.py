@@ -381,6 +381,7 @@ class FfmpegFormat(Format):
                 self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
+                self._filename = self._filename.replace("^", "^^")
             # Determine pixel format and depth
             self._depth = 3
             if self._dtype.name == "uint8":
