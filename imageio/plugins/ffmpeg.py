@@ -381,6 +381,7 @@ class FfmpegFormat(Format):
                 self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
+                # When passed to ffmpeg on command line, carets need to be escaped.
                 self._filename = self._filename.replace("^", "^^")
             # Determine pixel format and depth
             self._depth = 3
