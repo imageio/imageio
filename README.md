@@ -124,6 +124,6 @@ makes it possible to scale the number of supported formats and still
 keep a small footprint.
 </p><p>
 It is our hope to form a group of developers, whom each maintain
-one or more plugins. In that way, the burder of each developer is low,
+one or more plugins. In that way, the burden of each developer is low,
 and together we can make imageio into a really useful library!
 </p>
