@@ -4,6 +4,7 @@
 
 from io import BytesIO
 import os
+import gc
 import time
 import threading
 import psutil
@@ -24,6 +25,14 @@ if os.getenv("TRAVIS_OS_NAME") == "windows":
     skip(
         "Skip this on the Travis Windows run for now, see #408", allow_module_level=True
     )
+
+
+def get_ffmpeg_pids():
+    pids = set()
+    for p in psutil.process_iter():
+        if "ffmpeg" in p.name().lower():
+            pids.add(p.pid)
+    return pids
 
 
 def setup_module():
@@ -478,6 +487,32 @@ def test_webcam_get_next_data():
     reader.close()
 
 
+def test_process_termination():
+
+    pids0 = get_ffmpeg_pids()
+
+    r1 = imageio.get_reader("imageio:cockatoo.mp4")
+    r2 = imageio.get_reader("imageio:cockatoo.mp4")
+
+    assert len(get_ffmpeg_pids().difference(pids0)) == 2
+
+    r1.close()
+    r2.close()
+
+    assert len(get_ffmpeg_pids().difference(pids0)) == 0
+
+    r1 = imageio.get_reader("imageio:cockatoo.mp4")
+    r2 = imageio.get_reader("imageio:cockatoo.mp4")
+
+    assert len(get_ffmpeg_pids().difference(pids0)) == 2
+
+    del r1
+    del r2
+    gc.collect()
+
+    assert len(get_ffmpeg_pids().difference(pids0)) == 0
+
+
 def test_webcam_process_termination():
     """
     Test for issue #343. Ensures that an ffmpeg process streaming from
@@ -485,30 +520,16 @@ def test_webcam_process_termination():
 
     """
 
-    def ffmpeg_alive():
-        """ Enumerate ffmpeg processes, then wait for them to terminate """
-        ffmpeg_processes = []
-        for process in psutil.process_iter():
-            # NOTE: using list comprehension here caused NoSuchProcess
-            # exception in some cases.
-            try:
-                if "ffmpeg" in process.name().lower():
-                    ffmpeg_processes.append(process)
-            except psutil.NoSuchProcess as e:
-                print(e.message)
-        still_alive = False
-        if ffmpeg_processes:
-            __, still_alive = psutil.wait_procs(ffmpeg_processes, timeout=1)
-        return still_alive
+    pids0 = get_ffmpeg_pids()
 
     try:
         # Open the first webcam found.
         with imageio.get_reader("<video0>") as reader:
             assert reader._read_gen is not None
-            assert ffmpeg_alive()
+            assert get_ffmpeg_pids().difference(pids0)
         # Ensure that the corresponding ffmpeg process has been terminated.
         assert reader._read_gen is None
-        assert not ffmpeg_alive()
+        assert not get_ffmpeg_pids().difference(pids0)
     except IndexError:
         skip("no webcam")
 
