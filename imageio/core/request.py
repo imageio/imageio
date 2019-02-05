@@ -190,7 +190,11 @@ class Request(object):
                 else:
                     self._uri_type = URI_FILENAME
                     self._filename = uri
-        elif py3k and isinstance(uri, binary_type) and is_read_request:
+        elif isinstance(uri, memoryview) and is_read_request:
+            self._uri_type = URI_BYTES
+            self._filename = "<bytes>"
+            self._bytes = uri.tobytes()
+        elif isinstance(uri, binary_type) and is_read_request:
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"
             self._bytes = uri
