@@ -157,7 +157,7 @@ Note, you will need ffmpeg compiled with vaapi for this to work.
     w = imageio.get_writer('my_video.mp4', format='FFMPEG', mode='I', fps=1,
                            codec='h264_vaapi',
                            output_params=['-vaapi_device',
-                                         '/dev/dri/renderD128',
+                                          '/dev/dri/renderD128',
                                           '-vf',
                                           'format=gray|nv12,hwupload'],
                            pixelformat='vaapi_vld')

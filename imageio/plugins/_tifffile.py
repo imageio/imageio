@@ -3009,7 +3009,7 @@ class TiffPages(object):
         pages = self.pages
         if not pages:
             raise IndexError('list index out of range')
-        if key is 0:
+        if key == 0:
             return pages[key]
 
         if isinstance(key, slice):
