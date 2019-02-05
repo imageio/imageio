@@ -3,6 +3,7 @@
 """
 
 import os
+import sys
 from pytest import skip
 from imageio.testing import run_tests_if_main, need_internet
 
