@@ -77,12 +77,12 @@ before_install:
     - cd ${SRC_DIR}
 
 install:
-    - pip install --upgrade pip
     # Special stuff for Windows and Legacy Python
     - if [ "$TRAVIS_OS_NAME" = "windows" ]; then
         choco install python3;
         export PATH=/c/Python38:/c/Python38/Scripts:/c/Python37:/c/Python37/Scripts:$PATH;
       fi;
+    - pip install --upgrade pip
     - if [ "${IS_LEGACY}" == "1" ]; then
         pip install enum34 futures pathlib;
       fi;
