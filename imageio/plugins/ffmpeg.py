@@ -426,7 +426,25 @@ class FfmpegFormat(Format):
             )
 
             # Read meta data. This start the generator (and ffmpeg subprocess)
-            if index == 0:
+            if self.request._video:
+                # With cameras, catch error and turn into IndexError
+                try:
+                    meta = self._read_gen.__next__()
+                except IOError as err:
+                    err_text = str(err)
+                    if "darwin" in sys.platform:
+                        if "Unknown input format: 'avfoundation'" in err_text:
+                            err_text += (
+                                "Try installing FFMPEG using "
+                                "home brew to get a version with "
+                                "support for cameras."
+                            )
+                    raise IndexError(
+                        "No camera at {}s.\n\n{}".format(self.request._video, err_text)
+                    )
+                else:
+                    self._meta.update(meta)
+            elif index == 0:
                 self._meta.update(self._read_gen.__next__())
             else:
                 self._read_gen.__next__()  # we already have meta data
