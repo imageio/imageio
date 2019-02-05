@@ -24,7 +24,7 @@ test_dir = get_test_dir()
 
 
 if sys.version_info < (3,):
-    skip("imageio-ffmpeg is py3 only. It's 2019, come on.")
+    skip("imageio-ffmpeg is py3 only. It's 2019, come on.", allow_module_level=True)
 if os.getenv("TRAVIS_OS_NAME") == "windows":
     skip(
         "Skip this on the Travis Windows run for now, see #408", allow_module_level=True
