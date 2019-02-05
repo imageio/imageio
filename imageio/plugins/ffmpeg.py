@@ -355,7 +355,7 @@ class FfmpegFormat(Format):
             if index == self._pos:
                 return self._lastread, dict(new=False)
             elif index < 0:
-                raise IndexError("Frame index must be > 0")
+                raise IndexError("Frame index must be >= 0")
             elif index >= self._nframes:
                 raise IndexError("Reached end of video")
             else:
