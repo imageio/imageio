@@ -219,8 +219,13 @@ def test_request_read_sources():
     for X in range(2):
 
         # Define uris to test. Define inside loop, since we need fresh files
-        uris = [filename, os.path.join(zipfilename, fname),
-                bytes, memoryview(bytes), open(filename, "rb")]
+        uris = [
+            filename,
+            os.path.join(zipfilename, fname),
+            bytes,
+            memoryview(bytes),
+            open(filename, "rb"),
+        ]
         if has_inet:
             uris.append(burl + fname)
 
