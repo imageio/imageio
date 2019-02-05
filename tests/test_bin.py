@@ -13,6 +13,9 @@ from imageio.core import get_remote_file, NeedDownloadError, util
 
 NOINET = os.getenv("IMAGEIO_NO_INTERNET", "").lower() in ("1", "true", "yes")
 
+if os.getenv("TRAVIS_OS_NAME") == "windows":
+    pytest.skip("Skip this on the Travis Windows run for now", allow_module_level=True)
+
 
 @pytest.mark.xfail(NOINET, reason="Internet not allowed")
 def test_download_avbin():
