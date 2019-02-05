@@ -40,9 +40,10 @@ install:
   # Install the build dependencies of the project. 
   #- "%CMD_IN_ENV% pip install -r dev-requirements.txt"
   - "python -m pip install invoke"
-  - "python -m pip install pytest pytest-cov"
+  - "python -m pip install --upgrade pytest pytest-cov"
   - "python -m pip install wheel"
   - "python -m pip install psutil"
+  - "python -m pip install --upgrade imageio-ffmpeg"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
