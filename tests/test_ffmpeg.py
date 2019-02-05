@@ -11,7 +11,7 @@ import psutil
 import numpy as np
 
 from pytest import raises, skip
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio import core
@@ -27,14 +27,11 @@ if os.getenv("TRAVIS_OS_NAME") == "windows":
 
 
 def setup_module():
-    try:
-        imageio.plugins.ffmpeg.download()
-    except imageio.core.InternetNotAllowedError:
-        pass
+    pass
 
 
-def test_get_exe_downloaded():
-    need_internet()
+def test_get_exe_installed():
+    import imageio_ffmpeg
 
     # backup any user-defined path
     if "IMAGEIO_FFMPEG_EXE" in os.environ:
@@ -43,7 +40,7 @@ def test_get_exe_downloaded():
         oldpath = ""
     # Test if download works
     os.environ["IMAGEIO_FFMPEG_EXE"] = ""
-    path = imageio.plugins.ffmpeg.get_exe()
+    path = imageio_ffmpeg.get_ffmpeg_exe()
     # cleanup
     os.environ.pop("IMAGEIO_FFMPEG_EXE")
     if oldpath:
@@ -53,6 +50,8 @@ def test_get_exe_downloaded():
 
 
 def test_get_exe_env():
+    import imageio_ffmpeg
+
     # backup any user-defined path
     if "IMAGEIO_FFMPEG_EXE" in os.environ:
         oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
@@ -62,7 +61,7 @@ def test_get_exe_env():
     path = "invalid/path/to/my/ffmpeg"
     os.environ["IMAGEIO_FFMPEG_EXE"] = path
     try:
-        path2 = imageio.plugins.ffmpeg.get_exe()
+        path2 = imageio_ffmpeg.get_ffmpeg_exe()
     except Exception:
         path2 = "none"
         pass
@@ -92,13 +91,14 @@ def test_select():
 
 
 def test_read_and_write():
-    need_internet()
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
     assert R.format is imageio.formats["ffmpeg"]
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
+
+    frame1, frame2, frame3 = 41, 131, 227
 
     # Read
     ims1 = []
@@ -110,20 +110,34 @@ def test_read_and_write():
             assert (im.sum() / im.size) > 0  # pypy mean is broken
         assert im.sum() > 0
 
-        # Get arbitrary data
-        im1 = R.get_data(120)
-        assert im1.shape == (720, 1280, 3)
+        # Seek to reference frames in steps. OUR code will skip steps
+        im11 = R.get_data(frame1)
+        im12 = R.get_data(frame2)
+        im13 = R.get_data(frame3)
 
-        # Set image index
-        R.set_image_index(42)
-        im2 = R.get_next_data()
-        assert im2.shape == (720, 1280, 3)
+        # Now go backwards, seek will kick in
+        R.get_next_data()
+        im23 = R.get_data(frame3)
+        im22 = R.get_data(frame2)
+        im21 = R.get_data(frame1)
 
-        R.set_image_index(120)
-        im3 = R.get_next_data()
-        assert im3.shape == (720, 1280, 3)
-        assert (im1 == im3).all()
-        assert not (im1 == im2).all()
+        # Also use set_image_index
+        R.set_image_index(frame2)
+        im32 = R.get_next_data()
+        R.set_image_index(frame3)
+        im33 = R.get_next_data()
+        R.set_image_index(frame1)
+        im31 = R.get_next_data()
+
+        for im in (im11, im12, im13, im21, im22, im23, im31, im32, im33):
+            assert im.shape == (720, 1280, 3)
+
+        assert (im11 == im21).all() and (im11 == im31).all()
+        assert (im12 == im22).all() and (im12 == im32).all()
+        assert (im13 == im23).all() and (im13 == im33).all()
+
+        assert not (im11 == im12).all()
+        assert not (im11 == im13).all()
 
     # Save
     with imageio.save(fname2, "ffmpeg") as W:
@@ -133,6 +147,8 @@ def test_read_and_write():
     # Read the result
     ims2 = imageio.mimread(fname2, "ffmpeg")
     assert len(ims1) == len(ims2)
+    for im in ims2:
+        assert im.shape == (720, 1280, 3)
 
     # Check
     for im1, im2 in zip(ims1, ims2):
@@ -144,7 +160,6 @@ def test_read_and_write():
 
 
 def test_write_not_contiguous():
-    need_internet()
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
     assert R.format is imageio.formats["ffmpeg"]
@@ -182,7 +197,6 @@ def test_write_not_contiguous():
 
 
 def test_reader_more():
-    need_internet()
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname3 = fname1[:-4] + ".stub.mp4"
@@ -213,12 +227,12 @@ def test_reader_more():
             break
         else:
             count += 1
-    assert count == len(R)
+    assert count == R.count_frames()
     assert count in (35, 36)  # allow one frame off size that we know
     raises(IndexError, R.get_data, -1)  # Test index error -1
 
     # Now read beyond (simulate broken file)
-    with raises(RuntimeError):
+    with raises(StopIteration):
         R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
         R._read_frame()
 
@@ -257,7 +271,6 @@ def test_reader_more():
 
 
 def test_writer_more():
-    need_internet()
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
@@ -278,25 +291,24 @@ def test_writer_more():
 def test_writer_file_properly_closed(tmpdir):
     # Test to catch if file is correctly closed.
     # Otherwise it won't play in most players. This seems to occur on windows.
-    need_internet()
     tmpf = tmpdir.join("test.mp4")
     W = imageio.get_writer(str(tmpf))
-    for i in range(10):
+    for i in range(12):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
     # If Duration: N/A reported by ffmpeg, then the file was not
     # correctly closed.
     # This will cause the file to not be readable in many players.
-    assert "Duration: N/A" not in W._stderr_catcher.header
+    assert 1.1 < W._meta["duration"] < 1.3
 
 
 def test_writer_pixelformat_size_verbose(tmpdir):
     # Check that video pixel format and size get written as expected.
-    need_internet()
+
     # Make sure verbose option works and that default pixelformat is yuv420p
-    tmpf = tmpdir.join("test.mp4", fps=30)
-    W = imageio.get_writer(str(tmpf), ffmpeg_log_level="debug")
+    tmpf = tmpdir.join("test.mp4")
+    W = imageio.get_writer(str(tmpf), ffmpeg_log_level="warning")
     nframes = 4  # Number of frames in video
     for i in range(nframes):
         # Use size divisible by 16 or it gets changed.
@@ -306,29 +318,29 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     # Check that video is correct size & default output video pixel format
     # is correct
     W = imageio.get_reader(str(tmpf))
-    assert len(W) == nframes
-    assert "64x64" in W._stderr_catcher.header
-    assert "yuv420p" in W._stderr_catcher.header
+    assert W.count_frames() == nframes
+    assert W._meta["size"] == (64, 64)
+    assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now check that macroblock size gets turned off if requested
-    W = imageio.get_writer(str(tmpf), macro_block_size=None, ffmpeg_log_level="debug")
+    W = imageio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((100, 106, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
-    assert len(W) == nframes
-    assert "106x100" in W._stderr_catcher.header
-    assert "yuv420p" in W._stderr_catcher.header
+    assert W.count_frames() == nframes
+    assert W._meta["size"] == (106, 100)
+    assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now double check values different than default work
-    W = imageio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="debug")
+    W = imageio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((64, 65, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
-    assert len(W) == nframes
-    assert "68x64" in W._stderr_catcher.header
-    assert "yuv420p" in W._stderr_catcher.header
+    assert W.count_frames() == nframes
+    assert W._meta["size"] == (68, 64)
+    assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now check that the macroblock works as expected for the default of 16
     W = imageio.get_writer(str(tmpf), ffmpeg_log_level="debug")
@@ -336,14 +348,13 @@ def test_writer_pixelformat_size_verbose(tmpdir):
         W.append_data(np.zeros((111, 140, 3), np.uint8))
     W.close()
     W = imageio.get_reader(str(tmpf))
-    assert len(W) == nframes
+    assert W.count_frames() == nframes
     # Check for warning message with macroblock
-    assert "144x112" in W._stderr_catcher.header
-    assert "yuv420p" in W._stderr_catcher.header
+    assert W._meta["size"] == (144, 112)
+    assert "yuv420p" == W._meta["pix_fmt"]
 
 
 def test_writer_ffmpeg_params(tmpdir):
-    need_internet()
     # Test optional ffmpeg_params with a valid option
     # Also putting in an image size that is not divisible by macroblock size
     # To check that the -vf scale overwrites what it does.
@@ -354,11 +365,10 @@ def test_writer_ffmpeg_params(tmpdir):
     W.close()
     W = imageio.get_reader(str(tmpf))
     # Check that the optional argument scaling worked.
-    assert "320x240" in W._stderr_catcher.header
+    assert W._meta["size"] == (320, 240)
 
 
 def test_writer_wmv(tmpdir):
-    need_internet()
     # WMV has different default codec, make sure it works.
     tmpf = tmpdir.join("test.wmv")
     W = imageio.get_writer(str(tmpf), ffmpeg_params=["-v", "info"])
@@ -368,60 +378,47 @@ def test_writer_wmv(tmpdir):
 
     W = imageio.get_reader(str(tmpf))
     # Check that default encoder is msmpeg4 for wmv
-    assert "msmpeg4" in W._stderr_catcher.header
-
-
-def test_cvsecs():
-
-    cvsecs = imageio.plugins.ffmpeg.cvsecs
-    assert cvsecs(20) == 20
-    assert cvsecs(2, 20) == (2 * 60) + 20
-    assert cvsecs(2, 3, 20) == (2 * 3600) + (3 * 60) + 20
-
-
-def test_limit_lines():
-    limit_lines = imageio.plugins.ffmpeg.limit_lines
-    lines = ["foo"] * 10
-    assert len(limit_lines(lines)) == 10
-    lines = ["foo"] * 50
-    assert len(limit_lines(lines)) == 50  # < 2 * N
-    lines = ["foo"] * 70 + ["bar"]
-    lines2 = limit_lines(lines)
-    assert len(lines2) == 33  # > 2 * N
-    assert b"last few lines" in lines2[0]
-    assert "bar" == lines2[-1]
+    assert W._meta["codec"].startswith("msmpeg4")
 
 
 def test_framecatcher():
-    class BlockingBytesIO(BytesIO):
-        def __init__(self):
-            BytesIO.__init__(self)
+    class FakeGenerator:
+        def __init__(self, nframebytes):
+            self._f = BytesIO()
+            self._n = nframebytes
             self._lock = threading.RLock()
+            self._bb = b""
 
         def write_and_rewind(self, bb):
             with self._lock:
-                t = self.tell()
-                self.write(bb)
-                self.seek(t)
+                t = self._f.tell()
+                self._f.write(bb)
+                self._f.seek(t)
 
-        def read(self, n):
-            if self.closed:
-                return b""
+        def __next__(self):
             while True:
                 time.sleep(0.001)
                 with self._lock:
-                    bb = BytesIO.read(self, n)
-                if bb:
+                    if self._f.closed:
+                        raise StopIteration()
+                    self._bb += self._f.read(self._n)
+                if len(self._bb) >= self._n:
+                    bb = self._bb[: self._n]
+                    self._bb = self._bb[self._n :]
                     return bb
 
-    # Test our class
-    file = BlockingBytesIO()
-    file.write_and_rewind(b"v")
-    assert file.read(100) == b"v"
+        def close(self):
+            with self._lock:
+                self._f.close()
 
-    file = BlockingBytesIO()
+    # Test our class
     N = 100
-    T = imageio.plugins.ffmpeg.FrameCatcher(file, N)
+    file = FakeGenerator(N)
+    file.write_and_rewind(b"v" * N)
+    assert file.__next__() == b"v" * N
+
+    file = FakeGenerator(N)
+    T = imageio.plugins.ffmpeg.FrameCatcher(file)  # the file looks like a generator
 
     # Init None
     time.sleep(0.1)
@@ -454,8 +451,6 @@ def test_framecatcher():
 
 
 def test_webcam():
-    need_internet()
-
     try:
         imageio.read("<video0>")
     except Exception:
@@ -463,8 +458,6 @@ def test_webcam():
 
 
 def test_webcam_get_next_data():
-    need_internet()
-
     try:
         reader = imageio.get_reader("<video0>")
     except IndexError:
@@ -482,6 +475,7 @@ def test_webcam_get_next_data():
         "assuming the loop is faster than the webcam, the number of unique "
         "frames should be smaller than the number of iterations"
     )
+    reader.close()
 
 
 def test_webcam_process_termination():
@@ -490,7 +484,6 @@ def test_webcam_process_termination():
     webcam is terminated properly when the reader is closed.
 
     """
-    need_internet()
 
     def ffmpeg_alive():
         """ Enumerate ffmpeg processes, then wait for them to terminate """
@@ -511,18 +504,17 @@ def test_webcam_process_termination():
     try:
         # Open the first webcam found.
         with imageio.get_reader("<video0>") as reader:
-            assert reader._proc is not None
-            assert reader._proc.poll() is None, "ffmpeg process should be active"
+            assert reader._read_gen is not None
             assert ffmpeg_alive()
         # Ensure that the corresponding ffmpeg process has been terminated.
-        assert reader._proc is None
+        assert reader._read_gen is None
         assert not ffmpeg_alive()
     except IndexError:
         skip("no webcam")
 
 
 def show_in_console():
-    reader = imageio.read("cockatoo.mp4", "ffmpeg")
+    reader = imageio.read("imageio:cockatoo.mp4", "ffmpeg")
     # reader = imageio.read('<video0>')
     im = reader.get_next_data()
     while True:
@@ -534,8 +526,8 @@ def show_in_console():
 
 
 def show_in_visvis():
-    reader = imageio.read("cockatoo.mp4", "ffmpeg")
-    # reader = imageio.read('<video0>')
+    # reader = imageio.read("imageio:cockatoo.mp4", "ffmpeg")
+    reader = imageio.read("<video0>", fps=20)
 
     import visvis as vv
 
@@ -545,22 +537,23 @@ def show_in_visvis():
     t = vv.imshow(im, clim=(0, 255))
 
     while not f._destroyed:
-        t.SetData(reader.get_next_data())
+        im = reader.get_next_data()
+        if im.meta["new"]:
+            t.SetData(im)
         vv.processEvents()
 
 
 def test_reverse_read(tmpdir):
-    need_internet()
     # Ensure we can read a file in reverse without error.
 
     tmpf = tmpdir.join("test_vid.mp4")
     W = imageio.get_writer(str(tmpf))
-    for i in range(300):
+    for i in range(120):
         W.append_data(np.zeros((64, 64, 3), np.uint8))
     W.close()
 
     W = imageio.get_reader(str(tmpf))
-    for i in range(len(W) - 1, 0, -1):
+    for i in range(W.count_frames() - 1, 0, -1):
         print("reading", i)
         W.get_data(i)
     W.close()
