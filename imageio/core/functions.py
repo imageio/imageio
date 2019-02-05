@@ -242,11 +242,13 @@ def imwrite(uri, im, format=None, **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """
-    # Don't coerce subclasses as we need to pass the Image
-    im = np.asanyarray(im)
 
     # Test image
-    if im.ndim == 2:
+    imt = type(im)
+    im = np.asanyarray(im)
+    if not np.issubdtype(im.dtype, np.number):
+        raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+    elif im.ndim == 2:
         pass
     elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
         pass
@@ -340,8 +342,11 @@ def mimwrite(uri, ims, format=None, **kwargs):
         for im in ims:
 
             # Test image
+            imt = type(im)
             im = np.asanyarray(im)
-            if im.ndim == 2:
+            if not np.issubdtype(im.dtype, np.number):
+                raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+            elif im.ndim == 2:
                 pass
             elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
                 pass
@@ -410,13 +415,16 @@ def volwrite(uri, im, format=None, **kwargs):
     """
 
     # Test image
+    imt = type(im)
     im = np.asanyarray(im)
-    if im.ndim == 3:
+    if not np.issubdtype(im.dtype, np.number):
+        raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+    elif im.ndim == 3:
         pass
     elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
         pass
     else:
-        raise ValueError("Image must be 3D, or 4D if each voxel is " "a tuple.")
+        raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
     # Get writer and write first
     writer = get_writer(uri, format, "v", **kwargs)
@@ -504,16 +512,17 @@ def mvolwrite(uri, ims, format=None, **kwargs):
 
         # Iterate over images (ims may be a generator)
         for im in ims:
-            # Don't coerce subclasses as we need to pass the Image
+            # Test image
+            imt = type(im)
             im = np.asanyarray(im)
-            if im.ndim == 3:
+            if not np.issubdtype(im.dtype, np.number):
+                raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+            elif im.ndim == 3:
                 pass
             elif im.ndim == 4 and im.shape[3] < 32:
                 pass  # How large can a tuple be?
             else:
-                raise ValueError(
-                    "Image must be 3D, or 4D if each voxel is" "a tuple."
-                )
+                raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
             # Add image
             writer.append_data(im)

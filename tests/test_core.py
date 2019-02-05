@@ -630,12 +630,28 @@ def test_example_plugin():
 
 
 def test_imwrite_not_subclass(tmpdir):
-    class foo(object):
+    class Foo(object):
         def __init__(self):
             pass
+
         def __array__(self, dtype=None):
             return np.zeros((4, 4), dtype=dtype)
-    imageio.imwrite(os.path.join(str(tmpdir), 'foo.bmp'), foo())
+
+    filename = os.path.join(str(tmpdir), "foo.bmp")
+    imageio.imwrite(filename, Foo())
+    im = imageio.imread(filename)
+    assert im.shape == (4, 4)
+
+
+def test_imwrite_not_array_like():
+    class Foo(object):
+        def __init__(self):
+            pass
+
+    with raises(ValueError):
+        imageio.imwrite("foo.bmp", Foo())
+    with raises(ValueError):
+        imageio.imwrite("foo.bmp", "asd")
 
 
 run_tests_if_main()
