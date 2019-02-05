@@ -71,7 +71,8 @@ Grab frames from your webcam
 
 Use the special ``<video0>`` uri to read frames from your webcam (via
 the ffmpeg plugin). You can replace the zero with another index in case
-you have multiple cameras attached.
+you have multiple cameras attached. You need to ``pip install imageio-ffmpeg``
+in order to use this plugin.
 
 .. code-block:: python
 
@@ -90,6 +91,7 @@ Convert a movie
 
 Here we take a movie and convert it to gray colors. Of course, you
 can apply any kind of (image) processing to the image here ...
+You need to ``pip install imageio-ffmpeg`` in order to use the ffmpeg plugin.
 
 .. code-block:: python
 
