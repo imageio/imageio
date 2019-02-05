@@ -38,7 +38,8 @@ matrix:
       env: TEST_UNIT=1 TEST_FULL=1
     - os: linux
       python: "3.5"
-      env: TEST_UNIT=1 TEST_INSTALL=1
+      env: TEST_UNIT=1 TEST_INSTALL=0
+    # NOTE -------------------------/\ turned off for now
     - os: linux
       python: "3.6"
       env: TEST_UNIT=1 TEST_COVER=1
