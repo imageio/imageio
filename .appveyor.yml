@@ -51,14 +51,14 @@ test_script:
   # Run the project tests
   - invoke test --unit"
 
-after_test:
-  # If tests are successful, create a whl package for the project.
-  - python setup.py bdist_wheel bdist_wininst"
-  - ps: "ls dist"
+#after_test:
+#  # If tests are successful, create a whl package for the project.
+#  - python setup.py bdist_wheel bdist_wininst"
+#  - ps: "ls dist"
 
-artifacts:
-  # Archive the generated wheel package in the ci.appveyor.com build report.
-  - path: dist\*
+#artifacts:
+#  # Archive the generated wheel package in the ci.appveyor.com build report.
+#  - path: dist\*
 
 #on_success:
 #  - TODO: upload the content of dist/*.whl to a public wheelhouse
