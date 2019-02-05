@@ -10,6 +10,7 @@ avbin does not currently support this.
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
+from logging import warning
 import ctypes
 import sys
 import os
@@ -252,6 +253,11 @@ class AvBinFormat(Format):
         if self._avbin is not None and libpath is None:
             # Already loaded
             return self._avbin
+
+        warning(
+            "The imageio avbin plugin is deprecated and will be removed in "
+            "a future version. Please use ffmpeg instead."
+        )
 
         if libpath is None:
             libpath = get_avbin_lib()
