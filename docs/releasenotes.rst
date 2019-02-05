@@ -9,6 +9,26 @@ Planned
 * Improved handling and support for meta data.
 * New plugin to read/write video, to overcome the issues with the ffmpeg plugin.
 
+Version 2.5 (upcoming)
+======================
+
+The ffmpeg plugin has been refactored:
+
+* The core has been moved to a new library: imageio-ffmpeg.
+* That library provides platform-specific wheels that includes ffmpeg,
+  so just ``pip install imageio-ffmpeg`` instead of the download step.
+* Note that this new library is py3k only.
+* Termination of ffmpeg subprocess is now more reliable.
+* The reader of the ffmpeg plugin now always repors ``inf`` as the number of
+  frames. Use ``reader.count_frames()`` to get the actual number, or estimate
+  it from the fps and duration in the meta data.
+* Removed ``CannotReadFrameError``.
+
+Other changes:
+    
+* The avbin plugin has been depreacted and will be removed in a future version.
+
+
 
 Version 2.4.1 (06-09-2018)
 ==========================
