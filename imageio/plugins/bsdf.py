@@ -224,7 +224,6 @@ class BsdfFormat(Format):
                         "mode, thus does not allow rewinding."
                     )
                 while index > self._stream.index:
-                    print("skipping one")
                     self._stream.next()
                 image_ob = self._stream.next()  # Can raise StopIteration
             # Is this an image?

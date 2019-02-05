@@ -20,7 +20,7 @@ import struct
 
 import numpy as np
 
-from ..core import string_types
+from ..core import string_types, logger
 
 
 # Determine endianity of system
@@ -285,7 +285,9 @@ class SimpleDicomReader(object):
                 fp.seek(chunk_start + index + 4)  # rewind to end of delimiter
                 length = fp.read(4)
                 if length != b"\0\0\0\0":
-                    print("Expected 4 zero bytes after undefined length " "delimiter")
+                    logger.warning(
+                        "Expected 4 zero bytes after undefined length " "delimiter"
+                    )
             else:
                 fp.seek(fp.tell() - search_rewind)  # rewind a bit
                 # accumulate the bytes read (not including the rewind)

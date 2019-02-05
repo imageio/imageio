@@ -6,12 +6,11 @@
 
 from __future__ import absolute_import, print_function, division
 
-from warnings import warn
 import numpy as np
 import threading
 
 from .. import formats
-from ..core import Format, image_as_uint
+from ..core import Format, image_as_uint, logger
 
 # Get info about pillow formats without having to import PIL
 from .pillow_info import pillow_formats, pillow_docs
@@ -326,7 +325,7 @@ class PNGFormat(PillowFormat):
                     )
                 kwargs["bits"] = bits
             if interlaced:
-                warn("PIL PNG writer cannot produce interlaced images.")
+                logger.warning("PIL PNG writer cannot produce interlaced images.")
 
             ok_keys = (
                 "optimize",

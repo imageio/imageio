@@ -27,7 +27,7 @@ import struct
 import numpy as np
 
 from .. import formats
-from ..core import Format
+from ..core import Format, logger
 from .. import imread
 
 
@@ -188,7 +188,7 @@ class LytroIllumRawFormat(LytroFormat):
                 return meta_data
 
             else:
-                print("No metadata file found for provided raw file.")
+                logger.warning("No metadata file found for provided raw file.")
                 return {}
 
 
@@ -487,7 +487,7 @@ class LytroF01RawFormat(LytroFormat):
                 return meta_data
 
             else:
-                print("No metadata file found for provided raw file.")
+                logger.warning("No metadata file found for provided raw file.")
                 return {}
 
 

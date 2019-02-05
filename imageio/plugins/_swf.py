@@ -44,7 +44,7 @@ import time  # noqa
 
 import numpy as np
 
-from ..core import string_types, binary_type
+from ..core import string_types, binary_type, logger
 
 PY3 = sys.version_info >= (3,)
 
@@ -442,7 +442,7 @@ class DoActionTag(Tag):
             elif action == "play":  # pragma: no cover - not used
                 bb += "\x06".encode("ascii")
             else:  # pragma: no cover
-                print("warning, unkown action: %s" % action)
+                logger.warning("unkown action: %s" % action)
 
         bb += int2uint8(0)
         self.bytes = bb
@@ -670,7 +670,7 @@ def read_pixels(bb, i, tagType, L1):
 
     # If we can, get pixeldata and make numpy array
     if format != 5:
-        print("Can only read 24bit or 32bit RGB(A) lossless images.")
+        logger.warning("Can only read 24bit or 32bit RGB(A) lossless images.")
     else:
         # Read byte data
         offset = 2 + 1 + 2 + 2  # all the info bits
@@ -687,7 +687,7 @@ def read_pixels(bb, i, tagType, L1):
                 a.shape = height, width, 3
             except Exception:
                 # Byte align stuff might cause troubles
-                print("Cannot read image due to byte alignment")
+                logger.warning("Cannot read image due to byte alignment")
         if tagType == 36:
             # DefineBitsLossless2 - ARGB data
             a.shape = height, width, 4
@@ -840,7 +840,7 @@ def write_swf(filename, images, duration=0.1, repeat=True):  # pragma: no cover
         fp.close()
     # t2 = time.time()
 
-    # print("Writing SWF took %1.2f and %1.2f seconds" % (t1-t0, t2-t1) )
+    # logger.warning("Writing SWF took %1.2f and %1.2f seconds" % (t1-t0, t2-t1) )
 
 
 def read_swf(filename):  # pragma: no cover
@@ -895,9 +895,9 @@ def read_swf(filename):  # pragma: no cover
             # Determine type and length
             T, L1, L2 = get_type_and_len(head)
             if not L2:
-                print("Invalid tag length, could not proceed")
+                logger.warning("Invalid tag length, could not proceed")
                 break
-            # print(T, L2)
+            # logger.warning(T, L2)
 
             # Read image if we can
             if T in [20, 36]:
@@ -905,7 +905,7 @@ def read_swf(filename):  # pragma: no cover
                 if im is not None:
                     images.append(im)
             elif T in [6, 21, 35, 90]:
-                print("Ignoring JPEG image: cannot read JPEG.")
+                logger.warning("Ignoring JPEG image: cannot read JPEG.")
             else:
                 pass  # Not an image tag
 

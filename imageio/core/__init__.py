@@ -7,7 +7,7 @@
 
 # flake8: noqa
 
-from .util import Image, Array, Dict, asarray, image_as_uint, urlopen
+from .util import Image, Array, Dict, asarray, image_as_uint, urlopen, logger
 from .util import BaseProgressIndicator, StdoutProgressIndicator
 from .util import string_types, text_type, binary_type, IS_PYPY
 from .util import get_platform, appdata_dir, resource_dirs, has_module

@@ -20,7 +20,7 @@ import subprocess
 
 from .. import formats
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
-from ..core import read_n_bytes
+from ..core import read_n_bytes, logger
 
 _dicom = None  # lazily loaded in load_lib()
 
@@ -128,7 +128,7 @@ class DicomFormat(Format):
                             subprocess.check_call([exe, fname1, fname2], shell=True)
                         except Exception:
                             raise err
-                        print(
+                        logger.warning(
                             "DICOM file contained compressed data. "
                             "Used dcmtk to convert it."
                         )
