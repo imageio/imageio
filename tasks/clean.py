@@ -31,3 +31,9 @@ def clean(ctx):
         if os.path.isdir(dirname):
             shutil.rmtree(dirname)
             print("Removed directory %r" % dir)
+
+    for fname in ["MANIFEST"]:
+        filename = os.path.join(ROOT_DIR, fname)
+        if os.path.isfile(filename):
+            os.remove(filename)
+            print("Removed file %r" % fname)
