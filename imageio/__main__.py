@@ -15,14 +15,14 @@ from .core import util
 
 # A list of plugins that require binaries from the imageio-binaries
 # repository. These plugins must implement the `download` method.
-PLUGINS_WITH_BINARIES = ["avbin", "ffmpeg", "freeimage"]
+PLUGINS_WITH_BINARIES = ["avbin", "freeimage"]
 
 
 def download_bin(plugin_names=["all"], package_dir=False):
     """ Download binary dependencies of plugins
     
     This is a convenience method for downloading the binaries
-    (e.g. `ffmpeg.win32.exe` for Windows) from the imageio-binaries
+    (e.g. for freeimage) from the imageio-binaries
     repository.
     
     Parameters
@@ -77,8 +77,7 @@ def download_bin_main():
     example_text = (
         "examples:\n"
         + "  imageio_download_bin all\n"
-        + "  imageio_download_bin ffmpeg\n"
-        + "  imageio_download_bin avbin ffmpeg\n"
+        + "  imageio_download_bin avbin\n"
     )
     parser = argparse.ArgumentParser(
         description=description,
@@ -148,10 +147,7 @@ def remove_bin_main():
         + "If no argument is given, all binaries are removed."
     )
     example_text = (
-        "examples:\n"
-        + "  imageio_remove_bin all\n"
-        + "  imageio_remove_bin ffmpeg\n"
-        + "  imageio_remove_bin avbin ffmpeg\n"
+        "examples:\n" + "  imageio_remove_bin all\n" + "  imageio_remove_bin avbin\n"
     )
     parser = argparse.ArgumentParser(
         description=description,
