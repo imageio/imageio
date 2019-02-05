@@ -12,8 +12,7 @@ for the current Python process use
   retrieve files (like libraries or sample data). Some plugins (e.g.
   freeimage and ffmpeg) will try to use the system version in this case.
 * ``IMAGEIO_FFMPEG_EXE``: Set the path to the ffmpeg executable. Set
-  to simply "ffmpeg" to use your system ffmpeg executable. If not given,
-  will prompt the user to download the ffmpeg exe that imageio provides.
+  to simply "ffmpeg" to use your system ffmpeg executable.
 * ``IMAGEIO_AVBIN_LIB``: Set the path to the avbin library. If not given,
   will prompt the user to download the avbin library that imageio provides.
 * ``IMAGEIO_FREEIMAGE_LIB``: Set the path to the freeimage library. If
