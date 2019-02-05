@@ -88,6 +88,7 @@ install:
     # Install dependencies depending on ENV
     - pip install invoke
     - if [ "${TEST_UNIT}" == "1" ]; then
+        pip install imageio-ffmpeg;
         pip install numpy pillow psutil;
         pip install -q pytest pytest-cov coveralls;
       fi;
