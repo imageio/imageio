@@ -286,7 +286,7 @@ class TiffFormat(Format):
 
             try:
                 self._tf = _tifffile.TiffWriter(
-                    self.request.get_local_filename(),
+                    self.request.get_file(),
                     bigtiff,
                     byteorder,
                     software=software,
@@ -296,7 +296,7 @@ class TiffFormat(Format):
                 # In tifffile >= 0.15, the `software` arg is passed to
                 # TiffWriter.save
                 self._tf = _tifffile.TiffWriter(
-                    self.request.get_local_filename(), bigtiff, byteorder
+                    self.request.get_file(), bigtiff, byteorder
                 )
                 self._software = software
 
