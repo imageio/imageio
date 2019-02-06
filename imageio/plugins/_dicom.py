@@ -17,11 +17,14 @@ from __future__ import absolute_import, print_function, division
 import sys
 import os
 import struct
+import logging
 
 import numpy as np
 
-from ..core import string_types, logger
+from ..core import string_types
 
+
+logger = logging.getLogger(__name__)
 
 # Determine endianity of system
 sys_is_little_endian = sys.byteorder == "little"

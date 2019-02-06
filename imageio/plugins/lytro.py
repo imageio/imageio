@@ -22,13 +22,17 @@ from __future__ import absolute_import, print_function, division
 import os
 import json
 import struct
+import logging
 
 
 import numpy as np
 
 from .. import formats
-from ..core import Format, logger
+from ..core import Format
 from .. import imread
+
+
+logger = logging.getLogger(__name__)
 
 
 # Sensor size of Lytro Illum resp. Lytro F01 light field camera sensor

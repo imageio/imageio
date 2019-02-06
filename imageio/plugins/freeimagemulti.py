@@ -6,12 +6,15 @@
 
 from __future__ import absolute_import, print_function, division
 
+import logging
 import numpy as np
 
 from .. import formats
-from ..core import Format, image_as_uint, logger
+from ..core import Format, image_as_uint
 from ._freeimage import fi, IO_FLAGS
 from .freeimage import FreeimageFormat
+
+logger = logging.getLogger(__name__)
 
 
 class FreeimageMulti(FreeimageFormat):

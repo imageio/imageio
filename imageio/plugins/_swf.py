@@ -41,12 +41,15 @@ import os
 import sys
 import zlib
 import time  # noqa
+import logging
 
 import numpy as np
 
-from ..core import string_types, binary_type, logger
+from ..core import string_types, binary_type
 
 PY3 = sys.version_info >= (3,)
+
+logger = logging.getLogger(__name__)
 
 # todo: use Pillow to support reading JPEG images from SWF?
 

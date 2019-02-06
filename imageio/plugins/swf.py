@@ -8,13 +8,16 @@ from __future__ import absolute_import, print_function, division
 
 import os
 import zlib
+import logging
 from io import BytesIO
 
 import numpy as np
 
 from .. import formats
-from ..core import Format, read_n_bytes, image_as_uint, logger
+from ..core import Format, read_n_bytes, image_as_uint
 
+
+logger = logging.getLogger(__name__)
 
 _swf = None  # lazily loaded in lib()
 

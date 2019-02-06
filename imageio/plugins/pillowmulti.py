@@ -3,11 +3,14 @@ PIL formats for multiple images.
 """
 
 import sys
+import logging
+
 import numpy as np
 
 from .pillow import PillowFormat, ndarray_to_pil, image_as_uint
-from ..core import logger
 
+
+logger = logging.getLogger(__name__)
 
 NeuQuant = None  # we can implement this when we need it
 

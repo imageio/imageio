@@ -7,10 +7,15 @@
 from __future__ import absolute_import, print_function, division
 
 import os
+import logging
+
 import numpy as np
 
 from .. import formats
-from ..core import Format, logger
+from ..core import Format
+
+
+logger = logging.getLogger(__name__)
 
 
 class Spec:

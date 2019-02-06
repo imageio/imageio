@@ -10,6 +10,7 @@ avbin does not currently support this.
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
+import logging
 import ctypes
 import sys
 import os
@@ -21,8 +22,10 @@ from ..core import (
     get_remote_file,
     InternetNotAllowedError,
     NeedDownloadError,
-    logger,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 FNAME_PER_PLATFORM = {

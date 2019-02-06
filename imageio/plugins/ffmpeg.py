@@ -13,14 +13,16 @@ from __future__ import absolute_import, print_function, division
 
 import sys
 import time
+import logging
 import threading
 import subprocess as sp
 
 import numpy as np
 
 from .. import formats
-from ..core import Format, string_types, image_as_uint, logger
+from ..core import Format, string_types, image_as_uint
 
+logger = logging.getLogger(__name__)
 
 # Get camera format
 if sys.platform.startswith("win"):
