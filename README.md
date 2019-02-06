@@ -56,6 +56,13 @@ As a user, you just have to remember a handfull of functions:
 </ul>
 
 
+<h2>Citing imageio</h2>
+<p>
+If you use imageio for scientific work, we would appreciate a citation.
+We have a <a href='https://doi.org/10.5281/zenodo.1488561'>DOI</a>!
+</p>
+
+
 <h2>Details</h2>
 <p>
 Imageio has a relatively simple core that provides a common interface
@@ -88,19 +95,11 @@ Minimal requirements:
 
 Optional Python packages:
 <ul>
+    <li>imageio-ffmpeg (for working with video files)</li>
     <li>itk or SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
 </ul>  
-
-
-Optional libraries and executables that Imageio provides and can be downloaded
-with one function call:
-<ul>
-    <li>freeimage (library)</li>
-    <li>ffmpeg (executable)</li>
-    <li>avbin (library)</li>
-</ul>
 
 
 <h2>Origin and outlook</h2>
