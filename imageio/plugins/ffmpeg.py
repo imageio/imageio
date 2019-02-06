@@ -35,7 +35,7 @@ else:  # pragma: no cover
     CAM_FORMAT = "unknown-cam-format"
 
 
-def download(directory=None, force_download=False):
+def download(directory=None, force_download=False):  # pragma: no cover
     raise RuntimeError(
         "imageio.ffmpeg.download() has been deprecated. "
         "Use 'pip install imageio-ffmpeg' instead.'"
@@ -43,7 +43,7 @@ def download(directory=None, force_download=False):
 
 
 # For backwards compatibility - we dont use this ourselves
-def get_exe():
+def get_exe():  # pragma: no cover
     """ Wrapper for imageio_ffmpeg.get_ffmpeg_exe()
     """
     import imageio_ffmpeg
