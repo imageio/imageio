@@ -216,56 +216,60 @@ def test_request_read_sources():
 
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
-    for X in range(2):
+    for file_or_filename in range(2):
+        for check_first_bytes in range(2):
 
-        # Define uris to test. Define inside loop, since we need fresh files
-        uris = [
-            filename,
-            os.path.join(zipfilename, fname),
-            bytes,
-            memoryview(bytes),
-            open(filename, "rb"),
-        ]
-        if has_inet:
-            uris.append(burl + fname)
+            # Define uris to test. Define inside loop, since we need fresh files
+            uris = [
+                filename,
+                os.path.join(zipfilename, fname),
+                bytes,
+                memoryview(bytes),
+                open(filename, "rb"),
+            ]
+            if has_inet:
+                uris.append(burl + fname)
 
-        for uri in uris:
-            R = Request(uri, "ri")
-            first_bytes = R.firstbytes
-            if X == 0:
-                all_bytes = R.get_file().read()
-            else:
-                with open(R.get_local_filename(), "rb") as f:
-                    all_bytes = f.read()
-            R.finish()
-            # Test
-            assert len(first_bytes) > 0
-            assert all_bytes.startswith(first_bytes)
-            assert bytes == all_bytes
+            for uri in uris:
+                R = Request(uri, "ri")
+                if check_first_bytes:
+                    first_bytes = R.firstbytes
+                if file_or_filename == 0:
+                    all_bytes = R.get_file().read()
+                else:
+                    with open(R.get_local_filename(), "rb") as f:
+                        all_bytes = f.read()
+                R.finish()
+                assert bytes == all_bytes
+                if check_first_bytes:
+                    assert len(first_bytes) > 0
+                    assert all_bytes.startswith(first_bytes)
 
 
 def test_request_save_sources():
 
-    # Prepare desinations
+    # Get test data
     fname = "images/chelsea.png"
     filename = get_remote_file(fname, test_dir)
     with open(filename, "rb") as f:
         bytes = f.read()
-    #
+    assert len(bytes) > 0
+
+    # Prepare destinations
     fname2 = fname + ".out"
     filename2 = os.path.join(test_dir, fname2)
     zipfilename2 = os.path.join(test_dir, "test2.zip")
-    file2 = BytesIO()
+    file2 = None
 
     # Write an image into many different destinations
     # Do once via file and ones via local filename
-    for i in range(2):
-        # Clear
+    for file_or_filename in range(2):
+        # Clear destinations
         for xx in (filename2, zipfilename2):
             if os.path.isfile(xx):
-                print("trying to delete", xx)
                 os.remove(xx)
-        # Write to three destinations
+        file2 = BytesIO()
+        # Write to four destinations
         for uri in (
             filename2,
             os.path.join(zipfilename2, fname2),
@@ -273,18 +277,19 @@ def test_request_save_sources():
             imageio.RETURN_BYTES,  # This one last to fill `res`
         ):
             R = Request(uri, "wi")
-            if i == 0:
+            if file_or_filename == 0:
                 R.get_file().write(bytes)  # via file
             else:
                 with open(R.get_local_filename(), "wb") as f:
                     f.write(bytes)  # via local
             R.finish()
             res = R.get_result()
-        # Test three results
+        # Test four results
         with open(filename2, "rb") as f:
             assert f.read() == bytes
         with ZipFile(zipfilename2, "r") as zf:
             assert zf.open(fname2).read() == bytes
+        assert file2.getvalue() == bytes
         assert res == bytes
 
 
