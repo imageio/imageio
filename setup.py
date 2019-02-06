@@ -8,27 +8,13 @@
 
 """
 
-Before release:
-
-  * Run test suite on pypy (with numpy)
-  * Run test suite on Windows 32
-  * Run test suite on Windows 64
-  * Run test suite on OS X
-  * Write release notes
-  * Check if docs are still good
-  * Maybe test pypi page via "python setup.py register -r test"
-
 Release:
 
+  * Write release notes
   * Increase __version__
   * git tag the release (and push the tag to Github)
-  * Upload to Pypi: python setup.py sdist upload
+  * Upload to Pypi: python setup.py sdist bdist_wheel upload
   * Update conda recipe on conda-forge feedstock
-
-After release:
-
-  * Set __version__ to dev
-  * Announce
 
 """
 
