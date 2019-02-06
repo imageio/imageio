@@ -104,6 +104,7 @@ class Request(object):
 
         # To handle the plugin side
         self._file = None  # To store the file instance
+        self._file_is_local = False  # whether the data needs to be copied at end
         self._filename_local = None  # not None if using tempfile on this FS
         self._firstbytes = None  # For easy header parsing
 
@@ -206,12 +207,12 @@ class Request(object):
             if hasattr(uri, "read") and hasattr(uri, "close"):
                 self._uri_type = URI_FILE
                 self._filename = "<file>"
-                self._file = uri
+                self._file = uri  # Data must be read from here
         elif is_write_request:
             if hasattr(uri, "write") and hasattr(uri, "close"):
                 self._uri_type = URI_FILE
                 self._filename = "<file>"
-                self._file = uri
+                self._file = uri  # Data must be written here
 
         # Expand user dir
         if self._uri_type == URI_FILENAME and self._filename.startswith("~"):
@@ -321,7 +322,7 @@ class Request(object):
         Get a file object for the resource associated with this request.
         If this is a reading request, the file is in read mode,
         otherwise in write mode. This method is not thread safe. Plugins
-        do not need to close the file when done.
+        should not close the file when done.
 
         This is the preferred way to read/write the data. But if a
         format cannot handle file-like objects, they should use
@@ -337,7 +338,9 @@ class Request(object):
 
         if self._uri_type == URI_BYTES:
             if want_to_write:
+                # Create new file object, we catch the bytes in finish()
                 self._file = BytesIO()
+                self._file_is_local = True
             else:
                 self._file = BytesIO(self._bytes)
 
@@ -353,6 +356,7 @@ class Request(object):
             if want_to_write:
                 # Create new file object, we catch the bytes in finish()
                 self._file = BytesIO()
+                self._file_is_local = True
             else:
                 # Open zipfile and open new file object for specific file
                 self._zipfile = zipfile.ZipFile(filename, "r")
@@ -395,18 +399,28 @@ class Request(object):
         results.
         """
 
-        # Init
-        bytes = None
+        if self.mode[0] == "w":
 
-        # Collect bytes from temp file
-        if self.mode[0] == "w" and self._filename_local:
-            with open(self._filename_local, "rb") as file:
-                bytes = file.read()
+            # See if we "own" the data and must put it somewhere
+            bytes = None
+            if self._filename_local:
+                with open(self._filename_local, "rb") as file:
+                    bytes = file.read()
+            elif self._file_is_local:
+                bytes = self._file.getvalue()
 
-        # Collect bytes from BytesIO file object.
-        written = (self.mode[0] == "w") and self._file
-        if written and self._uri_type in [URI_BYTES, URI_ZIPPED]:
-            bytes = self._file.getvalue()
+            # Put the data in the right place
+            if bytes is not None:
+                if self._uri_type == URI_BYTES:
+                    self._result = bytes  # Picked up by imread function
+                elif self._uri_type == URI_FILE:
+                    self._file.write(bytes)
+                elif self._uri_type == URI_ZIPPED:
+                    zf = zipfile.ZipFile(self._filename_zip[0], "a")
+                    zf.writestr(self._filename_zip[1], bytes)
+                    zf.close()
+                # elif self._uri_type == URI_FILENAME: -> is always direct
+                # elif self._uri_type == URI_FTP/HTTP: -> write not supported
 
         # Close open files that we know of (and are responsible for)
         if self._file and self._uri_type != URI_FILE:
@@ -415,6 +429,7 @@ class Request(object):
         if self._zipfile:
             self._zipfile.close()
             self._zipfile = None
+
         # Remove temp file
         if self._filename_local:
             try:
@@ -422,15 +437,6 @@ class Request(object):
             except Exception:  # pragma: no cover
                 pass
             self._filename_local = None
-
-        # Handle bytes that we collected
-        if bytes is not None:
-            if self._uri_type == URI_BYTES:
-                self._result = bytes  # Picked up by imread function
-            elif self._uri_type == URI_ZIPPED:
-                zf = zipfile.ZipFile(self._filename_zip[0], "a")
-                zf.writestr(self._filename_zip[1], bytes)
-                zf.close()
 
         # Detach so gc can clean even if a reference of self lingers
         self._bytes = None
