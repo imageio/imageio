@@ -18,7 +18,7 @@ import os
 import sys
 import ctypes
 import threading
-from logging import warning as warn
+import logging
 import numpy
 
 from ..core import (
@@ -33,6 +33,8 @@ from ..core import (
     InternetNotAllowedError,
     NeedDownloadError,
 )
+
+logger = logging.getLogger(__name__)
 
 TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 
@@ -95,7 +97,7 @@ def get_freeimage_lib():
                 "imageio.plugins.freeimage.download()\n"
             )
         except RuntimeError as e:  # pragma: no cover
-            warn(str(e))
+            logger.warning(str(e))
 
 
 # Define function to encode a filename to bytes (for the current system)
@@ -555,7 +557,7 @@ class Freeimage(object):
         as a warning. Otherwise do nothing. Also resets the messages.
         """
         if self._messages:
-            warn("imageio.freeimage warning: " + self._get_error_message())
+            logger.warning("imageio.freeimage warning: " + self._get_error_message())
             self._reset_log()
 
     def get_output_log(self):
@@ -774,7 +776,7 @@ class FIBaseBitmap(object):
                                 tag_val = numpy.array([tag_val])
                             tag_type = get_tag_type_number(tag_val.dtype)
                             if tag_type is None:
-                                warn(
+                                logger.warning(
                                     "imageio.freeimage warning: Could not "
                                     "determine tag type of %r." % tag_name
                                 )
@@ -792,7 +794,7 @@ class FIBaseBitmap(object):
                         lib.FreeImage_SetMetadata(number, self._bitmap, tag_key, tag)
 
                     except Exception as err:  # pragma: no cover
-                        warn(
+                        logger.warning(
                             "imagio.freeimage warning: Could not set tag "
                             "%r: %s, %s"
                             % (tag_name, self._fi._get_error_message(), str(err))

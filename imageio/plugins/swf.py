@@ -8,6 +8,7 @@ from __future__ import absolute_import, print_function, division
 
 import os
 import zlib
+import logging
 from io import BytesIO
 
 import numpy as np
@@ -15,6 +16,8 @@ import numpy as np
 from .. import formats
 from ..core import Format, read_n_bytes, image_as_uint
 
+
+logger = logging.getLogger(__name__)
 
 _swf = None  # lazily loaded in lib()
 
@@ -205,7 +208,7 @@ class SWFFormat(Format):
                 isimage = True
                 # im = _swf.read_pixels(bb, 0, T, L1)  # can be None
             elif T in [6, 21, 35, 90]:  # pragma: no cover
-                print("Ignoring JPEG image: cannot read JPEG.")
+                logger.warning("Ignoring JPEG image: cannot read JPEG.")
             else:
                 pass  # Not an image tag
 

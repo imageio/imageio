@@ -7,11 +7,15 @@
 from __future__ import absolute_import, print_function, division
 
 import os
-import warnings
+import logging
+
 import numpy as np
 
 from .. import formats
 from ..core import Format
+
+
+logger = logging.getLogger(__name__)
 
 
 class Spec:
@@ -271,7 +275,7 @@ class SpeFormat(Format):
                 l = fsz - Spec.data_start
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
-                    warnings.warn(
+                    logger.warning(
                         "Number of frames according to file header "
                         "does not match the size of file %s." % self.request.filename
                     )
@@ -362,7 +366,7 @@ class SpeFormat(Format):
                     try:
                         v = decode(v)
                     except Exception:
-                        warnings.warn(
+                        logger.warning(
                             'Failed to decode "{}" metadata '
                             "string. Check `char_encoding` "
                             "parameter.".format(name)

@@ -13,15 +13,16 @@ from __future__ import absolute_import, print_function, division
 
 import sys
 import time
+import logging
 import threading
 import subprocess as sp
-import logging
 
 import numpy as np
 
 from .. import formats
 from ..core import Format, string_types, image_as_uint
 
+logger = logging.getLogger(__name__)
 
 # Get camera format
 if sys.platform.startswith("win"):
@@ -649,7 +650,7 @@ def parse_device_names(ffmpeg_output):
     in_video_devices = False
     for line in ffmpeg_output.splitlines():
         if line.startswith("[dshow"):
-            logging.debug(line)
+            logger.debug(line)
             line = line.split("]", 1)[1].strip()
             if in_video_devices and line.startswith('"'):
                 device_names.append(line[1:-1])

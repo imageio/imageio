@@ -6,12 +6,15 @@
 
 from __future__ import absolute_import, print_function, division
 
+import logging
 import numpy as np
 
 from .. import formats
 from ..core import Format, image_as_uint
 from ._freeimage import fi, IO_FLAGS
 from .freeimage import FreeimageFormat
+
+logger = logging.getLogger(__name__)
 
 
 class FreeimageMulti(FreeimageFormat):
@@ -225,7 +228,7 @@ class GifFormat(FreeimageMulti):
                 raise ValueError("GIF quantize param must be 2..256")
             if palettesize not in [2, 4, 8, 16, 32, 64, 128, 256]:
                 palettesize = 2 ** int(np.log2(128) + 0.999)
-                print(
+                logger.warning(
                     "Warning: palettesize (%r) modified to a factor of "
                     "two between 2-256." % palettesize
                 )

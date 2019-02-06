@@ -13,7 +13,10 @@ import re
 import struct
 import sys
 import time
-from logging import warning as warn
+import logging
+
+logger = logging.getLogger("imageio")
+
 
 # Make pkg_resources optional if setuptools is not available
 try:
@@ -58,7 +61,7 @@ def _precision_warn(p1, p2, extra=""):
         "Lossy conversion from {} to {}. {} Convert image to {} prior to "
         "saving to suppress this warning."
     )
-    warn(t.format(p1, p2, extra, p2))
+    logger.warning(t.format(p1, p2, extra, p2))
 
 
 def image_as_uint(im, bitdepth=None):

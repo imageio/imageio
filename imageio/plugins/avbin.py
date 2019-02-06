@@ -10,7 +10,7 @@ avbin does not currently support this.
 from __future__ import absolute_import, print_function, division
 
 import numpy as np
-from logging import warning
+import logging
 import ctypes
 import sys
 import os
@@ -23,6 +23,9 @@ from ..core import (
     InternetNotAllowedError,
     NeedDownloadError,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 FNAME_PER_PLATFORM = {
@@ -254,7 +257,7 @@ class AvBinFormat(Format):
             # Already loaded
             return self._avbin
 
-        warning(
+        logger.warning(
             "The imageio avbin plugin is deprecated and will be removed in "
             "a future version. Please use ffmpeg instead."
         )
