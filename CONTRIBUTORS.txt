@@ -40,8 +40,7 @@ The most up-to-date info is in https://github.com/imageio/imageio/graphs/contrib
   added `set_image_index()` to Reader object
 
 - Mark Harfouche
-  Improvements to speed/correctness of PIL plugin
-  Improvements to ffmpeg plugin
+  Speedups to pillow and ffpmeg by avoiding memory copies and conversions.
 
 - Matt McCormick
   Improvements to simpleITK plugin
@@ -78,6 +77,3 @@ The most up-to-date info is in https://github.com/imageio/imageio/graphs/contrib
 
 - Addison Elliott
   Add support for 8-bit paletted BMPs
-
-- Mark Harfouche
-  Speedups to pillow and ffpmeg by avoiding memory copies and conversions.

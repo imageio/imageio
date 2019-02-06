@@ -7,10 +7,10 @@ Planned
 =======
 
 * Improved handling and support for meta data.
-* New plugin to read/write video, to overcome the issues with the ffmpeg plugin.
 
-Version 2.5 (upcoming)
-======================
+
+Version 2.5.0 (06-02-2019)
+==========================
 
 The ffmpeg plugin has been refactored:
 
@@ -19,7 +19,7 @@ The ffmpeg plugin has been refactored:
   so just ``pip install imageio-ffmpeg`` instead of the download step.
 * Note that this new library is py3k only.
 * Termination of ffmpeg subprocess is now more reliable.
-* The reader of the ffmpeg plugin now always repors ``inf`` as the number of
+* The reader of the ffmpeg plugin now always reports ``inf`` as the number of
   frames. Use ``reader.count_frames()`` to get the actual number, or estimate
   it from the fps and duration in the meta data.
 * Removed ``CannotReadFrameError``.
@@ -27,7 +27,16 @@ The ffmpeg plugin has been refactored:
 Other changes:
     
 * The avbin plugin has been depreacted and will be removed in a future version.
-
+* Imnproved speed for PIL and FFMPEG plugsins by avoiding memory copies.
+* Update the included tiffile library.
+* Support for SimpleITK.
+* Speed up tiffile plugin when writing to something else than a filename.
+* Fix that writing to a file object would not work for some plugins.
+* Can now pass image data to the write functions as anything that resolves to
+  a numpy array with a numeric dtype.
+* One can now read from a memoryview.
+* Fix error related to paletted BMP with the Pillow plugin.
+* Improved logging.
 
 
 Version 2.4.1 (06-09-2018)
