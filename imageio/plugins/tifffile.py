@@ -286,10 +286,7 @@ class TiffFormat(Format):
 
             try:
                 self._tf = _tifffile.TiffWriter(
-                    self.request.get_file(),
-                    bigtiff,
-                    byteorder,
-                    software=software,
+                    self.request.get_file(), bigtiff, byteorder, software=software
                 )
                 self._software = None
             except TypeError:
