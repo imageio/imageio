@@ -188,10 +188,6 @@ extras_require = {
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 
 install_requires = ["numpy", "pillow"]
-if sys.version_info < (3, 4):
-    install_requires.append("enum34")
-if sys.version_info < (3, 2):
-    install_requires.append("futures")
 
 
 setup(
@@ -214,7 +210,7 @@ setup(
     long_description=long_description.replace("__doc__", __doc__),
     platforms="any",
     provides=["imageio"],
-    python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
+    python_requires=">=3.4",
     install_requires=install_requires,
     extras_require=extras_require,
     packages=["imageio", "imageio.core", "imageio.plugins"],
@@ -236,9 +232,6 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
