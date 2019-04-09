@@ -148,6 +148,12 @@ def test_png():
     im2 = imageio.imread(fnamebase + "1.png")
     assert im2.dtype == np.uint16
 
+    # issue #352 - prevent low-luma uint16 truncation to uint8
+    arr = np.full((32, 32), 255, dtype=np.uint16)  # values within range of uint8
+    imageio.imwrite(fnamebase + ".png", arr, interpret_uint8=False)
+    im = imageio.imread(fnamebase + ".png")
+    assert im.dtype == np.uint16
+
 
 def test_png_remote():
     # issue #202
