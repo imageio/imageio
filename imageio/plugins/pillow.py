@@ -211,7 +211,13 @@ class PillowFormat(Format):
                 im = im[:, :, 0]
             self._written = True
             self._meta.update(meta)
-            img = ndarray_to_pil(im, self.format.plugin_id)
+            if "interpret_uint8" in self._meta:
+                img = ndarray_to_pil(
+                    im, self.format.plugin_id, self._meta["interpret_uint8"]
+                )
+                del self._meta["interpret_uint8"]
+            else:
+                img = ndarray_to_pil(im, self.format.plugin_id)
             if "bits" in self._meta:
                 img = img.quantize()  # Make it a P image, so bits arg is used
             img.save(self._fp, format=self.format.plugin_id, **self._meta)
@@ -286,6 +292,11 @@ class PNGFormat(PillowFormat):
         bits. In this case, given as a number between 1-256.
     dictionary (experimental): dict
         Set the ZLIB encoder dictionary.
+    interpret_uint8: bool
+        Let the PNG writer truncate uint16 image arrays to uint8 if their values fall
+        within the range [0, 255]. Defaults to true for legacy compatibility, however
+        it is recommended to set this to false to avoid unexpected behavior when
+        saving e.g. weakly saturated images.
     """
 
     class Reader(PillowFormat.Reader):
@@ -342,6 +353,7 @@ class PNGFormat(PillowFormat):
                 "compress_level",
                 "icc_profile",
                 "dictionary",
+                "interpret_uint8",
             )
             for key in kwargs:
                 if key not in ok_keys:
@@ -639,7 +651,7 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
     return frame
 
 
-def ndarray_to_pil(arr, format_str=None):
+def ndarray_to_pil(arr, format_str=None, interpret_uint8=True):
 
     from PIL import Image
 
@@ -654,7 +666,7 @@ def ndarray_to_pil(arr, format_str=None):
         if arr.dtype.kind == "f":
             arr = image_as_uint(arr)
 
-        elif arr.max() < 256 and arr.min() >= 0:
+        elif interpret_uint8 and arr.max() < 256 and arr.min() >= 0:
             arr = arr.astype(np.uint8)
             mode = mode_base = "L"
 
