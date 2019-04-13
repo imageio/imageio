@@ -666,7 +666,7 @@ def ndarray_to_pil(arr, format_str=None):
         mode = "L"
         mode_base = "L"
 
-    if mode == "I;16" and int(getattr(Image, "__version__", "0")[0]) < 6:
+    if mode == "I;16" and int(getattr(Image, "__version__", "0").split(".")[0]) < 6:
         # Pillow < v6.0.0 has limited support for the "I;16" mode,
         # requiring us to fall back to this expensive workaround.
         # tobytes actually creates a copy of the image, which is costly.
