@@ -150,9 +150,15 @@ def test_png():
 
     # issue #352 - prevent low-luma uint16 truncation to uint8
     arr = np.full((32, 32), 255, dtype=np.uint16)  # values within range of uint8
-    imageio.imwrite(fnamebase + ".png", arr, prefer_uint8=False)
-    im = imageio.imread(fnamebase + ".png")
-    assert im.dtype == np.uint16
+    preferences_dtypes = [
+        [{}, np.uint8],
+        [{"prefer_uint8": True}, np.uint8],
+        [{"prefer_uint8": False}, np.uint16],
+    ]
+    for preference, dtype in preferences_dtypes:
+        imageio.imwrite(fnamebase + ".png", arr, **preference)
+        im = imageio.imread(fnamebase + ".png")
+        assert im.dtype == dtype
 
 
 def test_png_remote():
