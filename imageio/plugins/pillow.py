@@ -211,13 +211,9 @@ class PillowFormat(Format):
                 im = im[:, :, 0]
             self._written = True
             self._meta.update(meta)
-            if "prefer_uint8" in self._meta:
-                img = ndarray_to_pil(
-                    im, self.format.plugin_id, self._meta["prefer_uint8"]
-                )
-                del self._meta["prefer_uint8"]
-            else:
-                img = ndarray_to_pil(im, self.format.plugin_id)
+            img = ndarray_to_pil(
+                im, self.format.plugin_id, self._meta.pop("prefer_uint8", True)
+            )
             if "bits" in self._meta:
                 img = img.quantize()  # Make it a P image, so bits arg is used
             img.save(self._fp, format=self.format.plugin_id, **self._meta)
