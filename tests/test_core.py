@@ -10,8 +10,11 @@ from zipfile import ZipFile
 from io import BytesIO
 
 import numpy as np
+import pytest
 
 from pytest import raises, skip
+
+from imageio.core.functions import to_nbytes
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
@@ -618,6 +621,40 @@ def test_functions():
     raises(ValueError, imageio.volsave, fname6, 42)
     raises(ValueError, imageio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
     raises(ValueError, imageio.mvolsave, fname6, [42])
+
+
+@pytest.mark.parametrize(
+    "arg,expected",
+    [
+        (1, 1),
+        ("1", 1),
+        ("8b", 1),
+        ("8B", 8),
+        ("1MB", 1000 ** 2),
+        ("1Gib", 1024 ** 3 / 8),
+    ],
+)
+def test_to_nbytes_correct(arg, expected):
+    n = to_nbytes(arg)
+    assert n == expected
+
+
+@pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1M"])
+def test_to_nbytes_incorrect(arg):
+    with raises(ValueError):
+        to_nbytes(arg)
+
+
+def test_memtest():
+    fname3 = get_remote_file("images/newtonscradle.gif", test_dir)
+    imageio.mimread(fname3, memtest=True)
+    imageio.mimread(fname3, memtest=False)
+    imageio.mimread(fname3, memtest=1000 ** 2 * 256)
+    imageio.mimread(fname3, memtest="256MB")
+    with raises(RuntimeError):
+        imageio.mimread(fname3, memtest=10)
+    with raises(RuntimeError):
+        imageio.mimread(fname3, memtest="64b")
 
 
 def test_example_plugin():
