@@ -99,7 +99,7 @@ Optional Python packages:
     <li>itk or SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
-</ul>  
+</ul>
 
 
 <h2>Origin and outlook</h2>
@@ -126,3 +126,32 @@ It is our hope to form a group of developers, whom each maintain
 one or more plugins. In that way, the burden of each developer is low,
 and together we can make imageio into a really useful library!
 </p>
+
+
+## Contributing
+
+Install a complete development environment:
+
+```bash
+pip install -r requirements.txt
+pip install -e .
+```
+
+*N.B. this does not include GDAL because it has awkward compiled dependencies*
+
+You may see failing test(s) due to missing installed components.
+On ubuntu, do `sudo apt install libfreeimage3`
+
+Style checks, unit tests and coverage are controlled by `invoke`.
+Before committing, check these with:
+
+```bash
+# reformat code on python 3.6+
+invoke autoformat
+# check there are no style errors
+invoke test --style
+# check the tests pass
+invoke test --unit
+# check test coverage (re-runs tests)
+invoke test --cover
+```
