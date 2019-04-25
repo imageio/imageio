@@ -1,15 +1,20 @@
 # core
+
 numpy
 pillow
 enum34; python_version < "3.4"
 futures; python_version < "3.2"
 pathlib; python_version < "3.0"
+
 # extras
+
 astropy
 # gdal
 simpleitk
 imageio-ffmpeg
+
 # development
+
 invoke
 pytest
 pytest-cov
@@ -17,6 +22,8 @@ coveralls
 psutil
 flake8
 black; python_version >= "3.6"
+
 # docs
+
 sphinx
 numpydoc
