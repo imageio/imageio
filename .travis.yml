@@ -53,6 +53,8 @@ matrix:
       sudo: true
       python: "3.8-dev"
       env: TEST_UNIT=1
+  allow_failures:
+    - python: "3.8-dev"
 
 
 before_install:
