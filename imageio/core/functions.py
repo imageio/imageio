@@ -89,7 +89,7 @@ MEMTEST_DEFAULT_MIM = "256MB"
 MEMTEST_DEFAULT_MVOL = "1GB"
 
 
-mem_re = re.compile(r"^([\d.]+)\s*([kKMGTPEZY]*i?[bB])?$")
+mem_re = re.compile(r"^(\d+\.?\d*)\s*([kKMGTPEZY]?i?[bB])?$")
 sizes = {"": 1, None: 1}
 for i, si in enumerate([""] + list("kMGTPEZY")):
     for b, divisor in [("b", 8), ("B", 1)]:
@@ -355,9 +355,9 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
         if nbyte_limit and nbytes > nbyte_limit:
             ims[:] = []  # clear to free the memory
             raise RuntimeError(
-                "imageio.mimread() has read over 256 MiB of "
+                "imageio.mimread() has read over {}B of "
                 "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader() or memtest=False."
+                " Use imageio.get_reader() or memtest=False.".format(nbyte_limit)
             )
 
     return ims
@@ -532,9 +532,9 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
         if nbyte_limit and nbytes > nbyte_limit:  # pragma: no cover
             ims[:] = []  # clear to free the memory
             raise RuntimeError(
-                "imageio.mvolread() has read over 1 GiB of "
+                "imageio.mvolread() has read over {}B of "
                 "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader() or memtest=False."
+                " Use imageio.get_reader() or memtest=False.".format(nbyte_limit)
             )
 
     return ims

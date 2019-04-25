@@ -632,6 +632,7 @@ def test_functions():
         ("8B", 8),
         ("1MB", 1000 ** 2),
         ("1Gib", 1024 ** 3 / 8),
+        ("1.5TB", 1.5 * 1000 ** 4),
     ],
 )
 def test_to_nbytes_correct(arg, expected):
@@ -639,7 +640,7 @@ def test_to_nbytes_correct(arg, expected):
     assert n == expected
 
 
-@pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1M"])
+@pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1M", "1.3.2TB"])
 def test_to_nbytes_incorrect(arg):
     with raises(ValueError):
         to_nbytes(arg)
