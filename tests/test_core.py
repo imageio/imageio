@@ -628,10 +628,10 @@ def test_functions():
     [
         (1, 1),
         ("1", 1),
-        ("8b", 1),
         ("8B", 8),
         ("1MB", 1000 ** 2),
-        ("1Gib", 1024 ** 3 / 8),
+        ("1M", 1000 ** 2),
+        ("1GiB", 1024 ** 3),
         ("1.5TB", 1.5 * 1000 ** 4),
     ],
 )
@@ -640,7 +640,7 @@ def test_to_nbytes_correct(arg, expected):
     assert n == expected
 
 
-@pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1M", "1.3.2TB"])
+@pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1.3.2TB", "8b"])
 def test_to_nbytes_incorrect(arg):
     with raises(ValueError):
         to_nbytes(arg)
@@ -648,13 +648,19 @@ def test_to_nbytes_incorrect(arg):
 
 def test_memtest():
     fname3 = get_remote_file("images/newtonscradle.gif", test_dir)
-    imageio.mimread(fname3, memtest=True)
-    imageio.mimread(fname3, memtest=False)
+    imageio.mimread(fname3)  # trivial case
     imageio.mimread(fname3, memtest=1000 ** 2 * 256)
     imageio.mimread(fname3, memtest="256MB")
+    imageio.mimread(fname3, memtest="256M")
+    imageio.mimread(fname3, memtest="256MiB")
+
+    # low limit should be hit
     with raises(RuntimeError):
         imageio.mimread(fname3, memtest=10)
     with raises(RuntimeError):
+        imageio.mimread(fname3, memtest="64B")
+
+    with raises(ValueError):
         imageio.mimread(fname3, memtest="64b")
 
 

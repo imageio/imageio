@@ -89,20 +89,20 @@ MEMTEST_DEFAULT_MIM = "256MB"
 MEMTEST_DEFAULT_MVOL = "1GB"
 
 
-mem_re = re.compile(r"^(\d+\.?\d*)\s*([kKMGTPEZY]?i?[bB])?$")
+mem_re = re.compile(r"^(\d+\.?\d*)\s*([kKMGTPEZY]?i?)B?$")
 sizes = {"": 1, None: 1}
 for i, si in enumerate([""] + list("kMGTPEZY")):
-    for b, divisor in [("b", 8), ("B", 1)]:
-        sizes[si + b] = 1000 ** i / divisor
-        sizes[si.upper() + "i" + b] = 1024 ** i / divisor
+    sizes[si] = 1000 ** i
+    if si:
+        sizes[si.upper() + "i"] = 1024 ** i
 
 
 def to_nbytes(arg, default=None):
-    if arg is True:
-        arg = default
-
     if not arg:
         return None
+
+    if arg is True:
+        return default
 
     if isinstance(arg, Number):
         return arg
@@ -324,17 +324,25 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    memtest : {int, float, str}
+    memtest : {bool, int, float, str}
         If truthy, this function will raise an error if the resulting
         list of images consumes greater than the amount of memory specified.
         This is to protect the system from using so much memory that it needs
         to resort to swapping, and thereby stall the computer. E.g.
         ``mimread('hunger_games.avi')``.
+
         If the argument is a number, that will be used as the threshold number
         of bytes.
-        If the argument is a string, it will be interpreted as a memory size with
-        units (e.g. '1kB', '250MiB', '80Yb'). This is case-sensitive.
-        If True, resort to the default (for compatibility reasons).
+
+        If the argument is a string, it will be interpreted as a number of bytes with
+        SI/IEC prefixed units (e.g. '1kB', '250MiB', '80.3YB').
+
+        - Units are case sensitive
+        - k, M etc. represent a 1000-fold change, where Ki, Mi etc. represent 1024-fold
+        - The "B" is optional, but if present, must be capitalised
+
+        If the argument is True, the default will be used, for compatibility reasons.
+
         Default: '256MB'
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
@@ -357,7 +365,9 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
             raise RuntimeError(
                 "imageio.mimread() has read over {}B of "
                 "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader() or memtest=False.".format(nbyte_limit)
+                " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                    int(nbyte_limit)
+                )
             )
 
     return ims
@@ -502,17 +512,25 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
     format : str
         The format to use to read the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
-    memtest : {int, float, str}
+    memtest : {bool, int, float, str}
         If truthy, this function will raise an error if the resulting
         list of images consumes greater than the amount of memory specified.
         This is to protect the system from using so much memory that it needs
         to resort to swapping, and thereby stall the computer. E.g.
         ``mimread('hunger_games.avi')``.
+
         If the argument is a number, that will be used as the threshold number
         of bytes.
-        If the argument is a string, it will be interpreted as a memory size with
-        units (e.g. '1kB', '250MiB', '80Yb'). This is case-sensitive.
-        If True, resort to the default (for compatibility reasons).
+
+        If the argument is a string, it will be interpreted as a number of bytes with
+        SI/IEC prefixed units (e.g. '1kB', '250MiB', '80.3YB').
+
+        - Units are case sensitive
+        - k, M etc. represent a 1000-fold change, where Ki, Mi etc. represent 1024-fold
+        - The "B" is optional, but if present, must be capitalised
+
+        If the argument is True, the default will be used, for compatibility reasons.
+
         Default: '1GB'
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
@@ -534,7 +552,9 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
             raise RuntimeError(
                 "imageio.mvolread() has read over {}B of "
                 "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader() or memtest=False.".format(nbyte_limit)
+                " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                    int(nbyte_limit)
+                )
             )
 
     return ims

@@ -54,6 +54,8 @@ matrix:
       python: "3.8-dev"
       env: TEST_UNIT=1
   allow_failures:
+    # future compatibility is nice,
+    # but a failure here shouldn't break the build until released
     - python: "3.8-dev"
 
 
