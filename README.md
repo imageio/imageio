@@ -23,11 +23,11 @@ Python 2.7 and 3.4+, and is easy to install.
 Here's a minimal example of how to use imageio. See the docs for 
 <a href='http://imageio.readthedocs.io/en/latest/examples.html'>more examples</a>.
 <pre>
->>> import imageio
->>> im = imageio.imread('imageio:chelsea.png')  # read a standard image
->>> im.shape  # im is a numpy array
-(300, 451, 3)
->>> imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
+import imageio
+im = imageio.imread('imageio:chelsea.png')  # read a standard image
+im.shape  # im is a numpy array
+>> (300, 451, 3)
+imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
 </pre>
 
 <h2>API in a nutshell</h2>
@@ -99,7 +99,7 @@ Optional Python packages:
     <li>itk or SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
-</ul>  
+</ul>
 
 
 <h2>Origin and outlook</h2>
@@ -126,3 +126,32 @@ It is our hope to form a group of developers, whom each maintain
 one or more plugins. In that way, the burden of each developer is low,
 and together we can make imageio into a really useful library!
 </p>
+
+<h2>Contributing</h2>
+
+<p>Install a complete development environment:</p>
+
+<pre>
+pip install -r requirements.txt
+pip install -e .
+</pre>
+
+<p><i>N.B. this does not include GDAL because it has awkward compiled dependencies</i></p>
+
+<p>You may see failing test(s) due to missing installed components.
+On ubuntu, do <code>sudo apt install libfreeimage3</code></p>
+
+<p>
+Style checks, unit tests and coverage are controlled by <code>invoke</code>.
+Before committing, check these with:</p>
+
+<pre>
+# reformat code on python 3.6+
+invoke autoformat
+# check there are no style errors
+invoke test --style
+# check the tests pass
+invoke test --unit
+# check test coverage (re-runs tests)
+invoke test --cover
+</pre>
