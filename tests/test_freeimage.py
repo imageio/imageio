@@ -23,7 +23,7 @@ def setup_module():
     # This tests requires our version of the FI lib
     try:
         imageio.plugins.freeimage.download()
-    except imageio.core.InternetNotAllowedError:
+    except core.InternetNotAllowedError:
         # We cannot download; skip all freeimage tests
         need_internet()
 
@@ -484,6 +484,23 @@ def test_ico():
 def test_mng():
     pass  # MNG seems broken in FreeImage
     # ims = imageio.imread(get_remote_file('images/mngexample.mng'))
+
+
+def test_pnm():
+
+    for useAscii in (True, False):
+        for crop in (0, 1, 2):
+            for colors in (0, 1, 3):
+                fname = fnamebase
+                fname += "%i.%i.%i.ppm" % (useAscii, crop, colors)
+                rim = get_ref_im(colors, crop, isfloat=False)
+                imageio.imsave(fname, rim, use_ascii=useAscii)
+                im = imageio.imread(fname)
+                assert_close(rim, im, 0.1)  # lossless
+
+                # Parameter fail
+                raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
+                raises(TypeError, imageio.imsave, fname, im, notavalidk=True)
 
 
 def test_other():
