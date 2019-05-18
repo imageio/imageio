@@ -26,7 +26,7 @@ class FreeimageFormat(Format):
     The freeimage plugin requires a `freeimage` binary. If this binary
     not available on the system, it can be downloaded manually from
     <https://github.com/imageio/imageio-binaries> by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -35,7 +35,7 @@ class FreeimageFormat(Format):
     flags : int
         A freeimage-specific option. In most cases we provide explicit
         parameters for influencing image reading.
-    
+
     Parameters for saving
     ----------------------
     flags : int
@@ -145,13 +145,13 @@ class FreeimageFormat(Format):
 
 class FreeimageBmpFormat(FreeimageFormat):
     """ A BMP format based on the Freeimage library.
-    
+
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     not available on the system, it can be downloaded manually from
     <https://github.com/imageio/imageio-binaries> by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -161,7 +161,7 @@ class FreeimageBmpFormat(FreeimageFormat):
         Whether to compress the bitmap using RLE when saving. Default False.
         It seems this does not always work, but who cares, you should use
         PNG anyway.
-    
+
     """
 
     class Writer(FreeimageFormat.Writer):
@@ -182,13 +182,13 @@ class FreeimageBmpFormat(FreeimageFormat):
 
 class FreeimagePngFormat(FreeimageFormat):
     """ A PNG format based on the Freeimage library.
-    
+
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     not available on the system, it can be downloaded manually from
     <https://github.com/imageio/imageio-binaries> by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -196,7 +196,7 @@ class FreeimagePngFormat(FreeimageFormat):
     ----------------------
     ignoregamma : bool
         Avoid gamma correction. Default True.
-    
+
     Parameters for saving
     ---------------------
     compression : {0, 1, 6, 9}
@@ -263,13 +263,13 @@ class FreeimagePngFormat(FreeimageFormat):
 
 class FreeimageJpegFormat(FreeimageFormat):
     """ A JPEG format based on the Freeimage library.
-    
+
     This format supports grayscale and RGB images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     not available on the system, it can be downloaded manually from
     <https://github.com/imageio/imageio-binaries> by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -280,9 +280,9 @@ class FreeimageJpegFormat(FreeimageFormat):
         Default True. If 2 is given, do the rotation in Python instead
         of freeimage.
     quickread : bool
-        Read the image more quickly, at the expense of quality. 
+        Read the image more quickly, at the expense of quality.
         Default False.
-    
+
     Parameters for saving
     ---------------------
     quality : scalar
@@ -296,7 +296,7 @@ class FreeimageJpegFormat(FreeimageFormat):
         few percent of file size). Default False.
     baseline : bool
         Save basic JPEG, without metadata or any markers. Default False.
-    
+
     """
 
     class Reader(FreeimageFormat.Reader):
@@ -316,7 +316,7 @@ class FreeimageJpegFormat(FreeimageFormat):
             return im, meta
 
         def _rotate(self, im, meta):
-            """ Use Orientation information from EXIF meta data to 
+            """ Use Orientation information from EXIF meta data to
             orient the image correctly. Freeimage is also supposed to
             support that, and I am pretty sure it once did, but now it
             does not, so let's just do it in Python.
@@ -370,12 +370,43 @@ class FreeimageJpegFormat(FreeimageFormat):
             return FreeimageFormat.Writer._append_data(self, im, meta)
 
 
+class FreeimagePnmFormat(FreeimageFormat):
+    """ A PNM format based on the Freeimage library.
+
+    This format supports single bit (PBM), grayscale (PGM) and RGB (PPM)
+    images, even with ASCII or binary coding.
+
+    The freeimage plugin requires a `freeimage` binary. If this binary
+    not available on the system, it can be downloaded manually from
+    <https://github.com/imageio/imageio-binaries> by either
+
+    - the command line script ``imageio_download_bin freeimage``
+    - the Python method ``imageio.plugins.freeimage.download()``
+
+    Parameters for saving
+    ---------------------
+    use_ascii : bool
+        Save with ASCII coding. Default True.
+    """
+
+    class Writer(FreeimageFormat.Writer):
+        def _open(self, flags=0, use_ascii=True):
+            # Build flags from kwargs
+            flags = int(flags)
+            if use_ascii:
+                flags |= IO_FLAGS.PNM_SAVE_ASCII
+            # Act as usual, but with modified flags
+            return FreeimageFormat.Writer._open(self, flags)
+
+
 ## Create the formats
 
 SPECIAL_CLASSES = {
     "jpeg": FreeimageJpegFormat,
     "png": FreeimagePngFormat,
     "bmp": FreeimageBmpFormat,
+    "ppm": FreeimagePnmFormat,
+    "ppmraw": FreeimagePnmFormat,
     "gif": None,  # defined in freeimagemulti
     "ico": None,  # defined in freeimagemulti
     "mng": None,  # defined in freeimagemulti

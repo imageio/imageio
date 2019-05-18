@@ -33,3 +33,6 @@ __pychache__
 
 # IDE
 .idea
+.project
+.pydevproject
+.settings
