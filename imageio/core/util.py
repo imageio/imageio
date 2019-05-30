@@ -91,6 +91,8 @@ def image_as_uint(im, bitdepth=None):
     ):
         # Already the correct format? Return as-is
         return im
+    if im.sum() == 0:
+        return im.astype(out_type)
     if dtype_str1.startswith("float") and np.nanmin(im) >= 0 and np.nanmax(im) <= 1:
         _precision_warn(dtype_str1, dtype_str2, "Range [0, 1].")
         im = im.astype(np.float64) * (np.power(2.0, bitdepth) - 1) + 0.499999999
