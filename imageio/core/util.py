@@ -119,7 +119,7 @@ def image_as_uint(im, bitdepth=None):
         if not np.isfinite(ma):
             raise ValueError("Maximum image value is not finite")
         if ma == mi:
-            raise ValueError("Max value == min value, ambiguous given dtype")
+            return im.astype(out_type)
         _precision_warn(dtype_str1, dtype_str2, "Range [{}, {}].".format(mi, ma))
         # Now make float copy before we scale
         im = im.astype("float64")

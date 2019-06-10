@@ -441,7 +441,6 @@ def test_util_image_as_uint():
     raises(ValueError, core.image_as_uint, 4)
     raises(ValueError, core.image_as_uint, "not an image")
     raises(ValueError, core.image_as_uint, np.array([0, 1]), bitdepth=13)
-    raises(ValueError, core.image_as_uint, np.array([2.0, 2.0], "float32"))
     raises(ValueError, core.image_as_uint, np.array([0.0, np.inf], "float32"))
     raises(ValueError, core.image_as_uint, np.array([-np.inf, 0.0], "float32"))
 
