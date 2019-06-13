@@ -504,6 +504,144 @@ class JPEGFormat(PillowFormat):
             PillowFormat.Writer._append_data(self, im, meta)
             return
 
+class JPEG2000Format(PillowFormat):
+    """A JPEG 2000 format based on Pillow.
+    
+    This format supports grayscale and RGB images.
+    
+    Parameters for reading
+    ----------------------
+    pilmode : str
+        From the Pillow documentation:
+        
+        * 'L' (8-bit pixels, grayscale)
+        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+        * 'RGB' (3x8-bit pixels, true color)
+        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+        * 'CMYK' (4x8-bit pixels, color separation)
+        * 'YCbCr' (3x8-bit pixels, color video format)
+        * 'I' (32-bit signed integer pixels)
+        * 'F' (32-bit floating point pixels)
+        
+        PIL also provides limited support for a few special modes, including
+        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+        (true color with premultiplied alpha).
+        
+        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+        the library uses the ITU-R 601-2 luma transform::
+        
+            L = R * 299/1000 + G * 587/1000 + B * 114/1000
+    as_gray : bool
+        If True, the image is converted using mode 'F'. When `mode` is
+        not None and `as_gray` is True, the image is first converted
+        according to `mode`, and the result is then "flattened" using
+        mode 'F'.
+    
+    Parameters for saving
+    ---------------------    
+    **quality_mode**
+        Either `"rates"` or `"dB"` depending on the units you want to use to
+        specify image quality.
+    
+    **quality**
+        Approximate size reduction (if quality mode is `rates`) or a signal to noise ratio
+        in decibels (if quality mode is `dB`).  
+    
+    .. note::
+    
+       To enable JPEG 2000 support, you need to build and install the OpenJPEG
+       library, version 2.0.0 or higher, before building the Python Imaging
+       Library.
+    
+       Windows users can install the OpenJPEG binaries available on the
+       OpenJPEG website, but must add them to their PATH in order to use PIL (if
+       you fail to do this, you will get errors about not being able to load the
+       ``_imaging`` DLL).
+
+    """
+
+    class Reader(PillowFormat.Reader):
+        def _open(self, pilmode=None, as_gray=False):
+            return PillowFormat.Reader._open(self, pilmode=pilmode, as_gray=as_gray)
+
+        def _get_file(self):
+            # Pillow uses seek for JPG, so we cannot directly stream from web
+            if self.request.filename.startswith(
+                ("http://", "https://")
+            ) or ".zip/" in self.request.filename.replace("\\", "/"):
+                self._we_own_fp = True
+                return open(self.request.get_local_filename(), "rb")
+            else:
+                self._we_own_fp = False
+                return self.request.get_file()
+
+        def _get_data(self, index):
+            im, info = PillowFormat.Reader._get_data(self, index)
+
+            # Handle exif
+            if "exif" in info:
+                from PIL.ExifTags import TAGS
+
+                info["EXIF_MAIN"] = {}
+                for tag, value in self._im._getexif().items():
+                    decoded = TAGS.get(tag, tag)
+                    info["EXIF_MAIN"][decoded] = value
+
+            im = self._rotate(im, info)
+            return im, info
+
+        def _rotate(self, im, meta):
+            """ Use Orientation information from EXIF meta data to 
+            orient the image correctly. Similar code as in FreeImage plugin.
+            """
+            if self.request.kwargs.get("exifrotate", True):
+                try:
+                    ori = meta["EXIF_MAIN"]["Orientation"]
+                except KeyError:  # pragma: no cover
+                    pass  # Orientation not available
+                else:  # pragma: no cover - we cannot touch all cases
+                    # www.impulseadventure.com/photo/exif-orientation.html
+                    if ori in [1, 2]:
+                        pass
+                    if ori in [3, 4]:
+                        im = np.rot90(im, 2)
+                    if ori in [5, 6]:
+                        im = np.rot90(im, 3)
+                    if ori in [7, 8]:
+                        im = np.rot90(im)
+                    if ori in [2, 4, 5, 7]:  # Flipped cases (rare)
+                        im = np.fliplr(im)
+            return im
+
+    # --
+
+    class Writer(PillowFormat.Writer):
+        def _open(self, quality_mode='rates', quality=5, **kwargs):
+
+            # Check quality - in Pillow it should be no higher than 95
+            if quality_mode not in {'rates', 'dB'}:
+                raise ValueError("Quality mode should be either 'rates' or 'dB'")
+
+            quality = float(quality)
+            
+            if quality_mode == 'rates' and (quality < 1 or quality > 1000):
+                raise ValueError("The quality value {} seems to be an invalid rate!".format(quality))
+            elif quality_mode == 'dB' and (quality < 15 or quality > 100):
+                raise ValueError("The quality value {} seems to be an invalid PSNR!".format(quality))
+            
+            kwargs["quality_mode"] = quality_mode
+            kwargs["quality_layers"] = [quality]
+
+            PillowFormat.Writer._open(self)
+            self._meta.update(kwargs)
+
+        def _append_data(self, im, meta):
+            if im.ndim == 3 and im.shape[-1] == 4:
+                raise IOError("The current implementation of JPEG 2000 does not support alpha channel.")
+            im = image_as_uint(im, bitdepth=8)
+            PillowFormat.Writer._append_data(self, im, meta)
+            return
+
 
 def save_pillow_close(im):
     # see issue #216 and #300
@@ -697,7 +835,7 @@ from .pillowmulti import GIFFormat, TIFFFormat
 
 IGNORE_FORMATS = "MPEG"
 
-SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat, GIF=GIFFormat, TIFF=TIFFFormat)
+SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat, GIF=GIFFormat, TIFF=TIFFFormat, JPEG2000=JPEG2000Format)
 
 
 def register_pillow_formats():
