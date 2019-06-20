@@ -94,11 +94,7 @@ class FitsFormat(Format):
             hdulist = _fits.open(self.request.get_file(), cache=cache, **kwargs)
 
             self._index = []
-            allowed_hdu_types = (
-                _fits.ImageHDU,
-                _fits.PrimaryHDU,
-                _fits.CompImageHDU
-            )
+            allowed_hdu_types = (_fits.ImageHDU, _fits.PrimaryHDU, _fits.CompImageHDU)
             for n, hdu in zip(range(len(hdulist)), hdulist):
                 if isinstance(hdu, allowed_hdu_types):
                     # Ignore (primary) header units with no data (use '.size'
