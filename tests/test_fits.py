@@ -51,6 +51,7 @@ def test_fits_reading():
 
     simple = get_remote_file("images/simple.fits")
     multi = get_remote_file("images/multi.fits")
+    compressed = get_remote_file("images/compressed.fits.fz")
 
     # One image
     im = imageio.imread(simple)
@@ -73,6 +74,10 @@ def test_fits_reading():
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data, None)  # no meta data support
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
+
+    # Compressed image
+    im = imageio.imread(compressed)
+    assert im.shape == (2042, 3054)
 
 
 run_tests_if_main()
