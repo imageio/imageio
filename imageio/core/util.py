@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" 
+"""
 Various utilities for imageio
 """
 
@@ -18,11 +18,6 @@ import logging
 logger = logging.getLogger("imageio")
 
 
-# Make pkg_resources optional if setuptools is not available
-try:
-    import pkg_resources
-except ImportError:
-    pkg_resources = None
 
 import numpy as np
 
@@ -66,7 +61,7 @@ def _precision_warn(p1, p2, extra=""):
 
 def image_as_uint(im, bitdepth=None):
     """ Convert the given image to uint (default: uint8)
-    
+
     If the dtype already matches the desired format, it is returned
     as-is. If the image is float, and all values are between 0 and 1,
     the values are multiplied by np.power(2.0, bitdepth). In all other
@@ -132,11 +127,11 @@ def image_as_uint(im, bitdepth=None):
 
 class Array(np.ndarray):
     """ Array(array, meta=None)
-    
+
     A subclass of np.ndarray that has a meta attribute. Get the dictionary
     that contains the meta data using ``im.meta``. Convert to a plain numpy
     array using ``np.asarray(im)``.
-    
+
     """
 
     def __new__(cls, array, meta=None):
@@ -172,7 +167,7 @@ class Array(np.ndarray):
 
     def __array_finalize__(self, ob):
         """ So the meta info is maintained when doing calculations with
-        the array. 
+        the array.
         """
         if isinstance(ob, Array):
             self._copy_meta(ob.meta)
@@ -213,9 +208,9 @@ from collections import OrderedDict
 class Dict(OrderedDict):
     """ A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
-    
+
     This Dict still behaves as much as possible as a normal dict, and
-    keys can be anything that are otherwise valid keys. However, 
+    keys can be anything that are otherwise valid keys. However,
     keys that are not valid identifiers or that are names of the dict
     class (such as 'items' and 'copy') cannot be get/set as attributes.
     """
@@ -256,10 +251,10 @@ class Dict(OrderedDict):
 
 class BaseProgressIndicator(object):
     """ BaseProgressIndicator(name)
-    
+
     A progress indicator helps display the progres of a task to the
     user. Progress can be pending, running, finished or failed.
-    
+
     Each task has:
       * a name - a short description of what needs to be done.
       * an action - the current action in performing the task (e.g. a subtask)
@@ -267,7 +262,7 @@ class BaseProgressIndicator(object):
       * max - max number of progress units. If 0, the progress is indefinite
       * unit - the units in which the progress is counted
       * status - 0: pending, 1: in progress, 2: finished, 3: failed
-    
+
     This class defines an abstract interface. Subclasses should implement
     _start, _stop, _update_progress(progressText), _write(message).
     """
@@ -282,7 +277,7 @@ class BaseProgressIndicator(object):
 
     def start(self, action="", unit="", max=0):
         """ start(action='', unit='', max=0)
-        
+
         Start the progress. Optionally specify an action, a unit,
         and a maxium progress value.
         """
@@ -298,7 +293,7 @@ class BaseProgressIndicator(object):
 
     def status(self):
         """ status()
-        
+
         Get the status of the progress - 0: pending, 1: in progress,
         2: finished, 3: failed
         """
@@ -306,7 +301,7 @@ class BaseProgressIndicator(object):
 
     def set_progress(self, progress=0, force=False):
         """ set_progress(progress=0, force=False)
-        
+
         Set the current progress. To avoid unnecessary progress updates
         this will only have a visual effect if the time since the last
         update is > 0.1 seconds, or if force is True.
@@ -334,14 +329,14 @@ class BaseProgressIndicator(object):
 
     def increase_progress(self, extra_progress):
         """ increase_progress(extra_progress)
-        
+
         Increase the progress by a certain amount.
         """
         self.set_progress(self._progress + extra_progress)
 
     def finish(self, message=None):
         """ finish(message=None)
-        
+
         Finish the progress, optionally specifying a message. This will
         not set the progress to the maximum.
         """
@@ -353,7 +348,7 @@ class BaseProgressIndicator(object):
 
     def fail(self, message=None):
         """ fail(message=None)
-        
+
         Stop the progress with a failure, optionally specifying a message.
         """
         self.set_progress(self._progress, True)  # fore update
@@ -364,7 +359,7 @@ class BaseProgressIndicator(object):
 
     def write(self, message):
         """ write(message)
-        
+
         Write a message during progress (such as a warning).
         """
         if self.__class__ == BaseProgressIndicator:
@@ -390,7 +385,7 @@ class BaseProgressIndicator(object):
 
 class StdoutProgressIndicator(BaseProgressIndicator):
     """ StdoutProgressIndicator(name)
-    
+
     A progress indicator that shows the progress in stdout. It
     assumes that the tty can appropriately deal with backspace
     characters.
@@ -435,11 +430,11 @@ class StdoutProgressIndicator(BaseProgressIndicator):
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
 def appdata_dir(appname=None, roaming=False):
     """ appdata_dir(appname=None, roaming=False)
-    
+
     Get the path to the application directory, where applications are allowed
     to write user specific files (e.g. configurations). For non-user specific
     data, consider using common_appdata_dir().
-    If appname is given, a subdir is appended (and created if necessary). 
+    If appname is given, a subdir is appended (and created if necessary).
     If roaming is True, will prefer a roaming directory (Windows Vista/7).
     """
 
@@ -492,7 +487,7 @@ def appdata_dir(appname=None, roaming=False):
 
 def resource_dirs():
     """ resource_dirs()
-    
+
     Get a list of directories where imageio resources may be located.
     The first directory in this list is the "resources" directory in
     the package itself. The second directory is the appdata directory
@@ -517,15 +512,23 @@ def resource_dirs():
 
 def resource_package_dir():
     """ package_dir
-    
+
     Get the resources directory in the imageio package installation
     directory.
-    
+
     Notes
     -----
     This is a convenience method that is used by `resource_dirs` and
     imageio entry point scripts.
     """
+    # Make pkg_resources optional if setuptools is not available
+    try:
+        # Avoid importing pkg_resources in the top level due to how slow it is
+        # https://github.com/pypa/setuptools/issues/510
+        import pkg_resources
+    except ImportError:
+        pkg_resources = None
+
     if pkg_resources:
         # The directory returned by `pkg_resources.resource_filename`
         # also works with eggs.
@@ -538,7 +541,7 @@ def resource_package_dir():
 
 def get_platform():
     """ get_platform()
-    
+
     Get a string that specifies the platform more specific than
     sys.platform does. The result can be: linux32, linux64, win32,
     win64, osx32, osx64. Other platforms may be added in the future.
