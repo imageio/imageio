@@ -504,6 +504,7 @@ class JPEGFormat(PillowFormat):
             PillowFormat.Writer._append_data(self, im, meta)
             return
 
+
 class JPEG2000Format(PillowFormat):
     """A JPEG 2000 format based on Pillow.
     
@@ -616,19 +617,23 @@ class JPEG2000Format(PillowFormat):
     # --
 
     class Writer(PillowFormat.Writer):
-        def _open(self, quality_mode='rates', quality=5, **kwargs):
+        def _open(self, quality_mode="rates", quality=5, **kwargs):
 
             # Check quality - in Pillow it should be no higher than 95
-            if quality_mode not in {'rates', 'dB'}:
+            if quality_mode not in {"rates", "dB"}:
                 raise ValueError("Quality mode should be either 'rates' or 'dB'")
 
             quality = float(quality)
-            
-            if quality_mode == 'rates' and (quality < 1 or quality > 1000):
-                raise ValueError("The quality value {} seems to be an invalid rate!".format(quality))
-            elif quality_mode == 'dB' and (quality < 15 or quality > 100):
-                raise ValueError("The quality value {} seems to be an invalid PSNR!".format(quality))
-            
+
+            if quality_mode == "rates" and (quality < 1 or quality > 1000):
+                raise ValueError(
+                    "The quality value {} seems to be an invalid rate!".format(quality)
+                )
+            elif quality_mode == "dB" and (quality < 15 or quality > 100):
+                raise ValueError(
+                    "The quality value {} seems to be an invalid PSNR!".format(quality)
+                )
+
             kwargs["quality_mode"] = quality_mode
             kwargs["quality_layers"] = [quality]
 
@@ -637,7 +642,9 @@ class JPEG2000Format(PillowFormat):
 
         def _append_data(self, im, meta):
             if im.ndim == 3 and im.shape[-1] == 4:
-                raise IOError("The current implementation of JPEG 2000 does not support alpha channel.")
+                raise IOError(
+                    "The current implementation of JPEG 2000 does not support alpha channel."
+                )
             im = image_as_uint(im, bitdepth=8)
             PillowFormat.Writer._append_data(self, im, meta)
             return
@@ -835,7 +842,13 @@ from .pillowmulti import GIFFormat, TIFFFormat
 
 IGNORE_FORMATS = "MPEG"
 
-SPECIAL_FORMATS = dict(PNG=PNGFormat, JPEG=JPEGFormat, GIF=GIFFormat, TIFF=TIFFFormat, JPEG2000=JPEG2000Format)
+SPECIAL_FORMATS = dict(
+    PNG=PNGFormat,
+    JPEG=JPEGFormat,
+    GIF=GIFFormat,
+    TIFF=TIFFFormat,
+    JPEG2000=JPEG2000Format,
+)
 
 
 def register_pillow_formats():
