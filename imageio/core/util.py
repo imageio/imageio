@@ -18,7 +18,6 @@ import logging
 logger = logging.getLogger("imageio")
 
 
-
 import numpy as np
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
@@ -479,7 +478,7 @@ def appdata_dir(appname=None, roaming=False):
             appname = "." + appname.lstrip(".")  # Make it a hidden directory
         path = os.path.join(path, appname)
         if not os.path.isdir(path):  # pragma: no cover
-            os.mkdir(path)
+            os.makedirs(path, exist_ok=True)
 
     # Done
     return path
