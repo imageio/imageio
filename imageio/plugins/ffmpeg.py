@@ -73,17 +73,17 @@ def _get_ffmpeg_api():
 class FfmpegFormat(Format):
     """ The ffmpeg format provides reading and writing for a wide range
     of movie formats such as .avi, .mpeg, .mp4, etc. And also to read
-    streams from webcams and USB cameras. 
-    
+    streams from webcams and USB cameras.
+
     To read from camera streams, supply "<video0>" as the filename,
     where the "0" can be replaced with any index of cameras known to
     the system.
-    
+
     To use this plugin, the ``imageio-ffmpeg`` library should be installed
     (e.g. via pip). For most platforms this includes the ffmpeg executable.
     One can use the ``IMAGEIO_FFMPEG_EXE`` environment variable to force
     using a specific ffmpeg executable.
-    
+
     When reading from a video, the number of available frames is hard/expensive
     to calculate, which is why its set to inf by default, indicating
     "stream mode". To get the number of frames before having read them all,
@@ -93,7 +93,7 @@ class FfmpegFormat(Format):
     Alternatively, the number of frames can be estimated from the fps and
     duration in the meta data (though these values themselves are not always
     present/reliable).
-    
+
     Parameters for reading
     ----------------------
     fps : scalar
@@ -107,7 +107,7 @@ class FfmpegFormat(Format):
         Setting this to True will internally call ``count_frames()``,
         and set the reader's length to that value instead of inf.
     size : str | tuple
-        The frame size (i.e. resolution) to read the images, e.g. 
+        The frame size (i.e. resolution) to read the images, e.g.
         (100, 100) or "640x480". For camera streams, this allows setting
         the capture resolution. For normal video data, ffmpeg will
         rescale the data.
@@ -130,7 +130,7 @@ class FfmpegFormat(Format):
         stream being read by imageio).
     print_info : bool
         Print information about the video file as reported by ffmpeg.
-    
+
     Parameters for saving
     ---------------------
     fps : scalar
@@ -457,7 +457,7 @@ class FfmpegFormat(Format):
                                 "support for cameras."
                             )
                     raise IndexError(
-                        "No camera at {}s.\n\n{}".format(self.request._video, err_text)
+                        "No camera at {}.\n\n{}".format(self.request._video, err_text)
                     )
                 else:
                     self._meta.update(meta)
@@ -662,6 +662,7 @@ class FrameCatcher(threading.Thread):
 
 def parse_device_names(ffmpeg_output):
     """ Parse the output of the ffmpeg -list-devices command"""
+    # Collect device names - get [friendly_name, alt_name] of each
     device_names = []
     in_video_devices = False
     for line in ffmpeg_output.splitlines():
@@ -669,13 +670,31 @@ def parse_device_names(ffmpeg_output):
             logger.debug(line)
             line = line.split("]", 1)[1].strip()
             if in_video_devices and line.startswith('"'):
-                device_names.append(line[1:-1])
+                friendly_name = line[1:-1]
+                device_names.append([friendly_name, ""])
+            elif in_video_devices and line.lower().startswith("alternative name"):
+                alt_name = line.split(" name ", 1)[1].strip()[1:-1]
+                if sys.platform.startswith("win"):
+                    alt_name = alt_name.replace("&", "^&")  # Tested to work
+                else:
+                    alt_name = alt_name.replace("&", "\\&")  # Does this work?
+                device_names[-1][-1] = alt_name
             elif "video devices" in line:
                 in_video_devices = True
             elif "devices" in line:
                 # set False for subsequent "devices" sections
                 in_video_devices = False
-    return device_names
+    # Post-process, see #441
+    # prefer friendly names, use alt name if two cams have same friendly name
+    device_names2 = []
+    for friendly_name, alt_name in device_names:
+        if friendly_name not in device_names2:
+            device_names2.append(friendly_name)
+        elif alt_name:
+            device_names2.append(alt_name)
+        else:
+            device_names2.append(friendly_name)  # duplicate, but not much we can do
+    return device_names2
 
 
 # Register. You register an *instance* of a Format class.
