@@ -8947,7 +8947,7 @@ def matlabstr2py(string):
                 j += 1
             return s[i: j+1], j + 1
         j = i
-        while j < length and not s[j] in ' {[;]}':
+        while j < length and s[j] not in ' {[;]}':
             j += 1
         return s[i:j], j
 
