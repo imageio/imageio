@@ -7818,7 +7818,7 @@ def imagej_metadata(data, bytecounts, byteorder):
     if not bytecounts:
         raise ValueError('no ImageJ metadata')
 
-    if not data[:4] in (b'IJIJ', b'JIJI'):
+    if data[:4] not in (b'IJIJ', b'JIJI'):
         raise ValueError('invalid ImageJ metadata')
 
     header_size = bytecounts[0]
