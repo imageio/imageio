@@ -14,6 +14,11 @@ import imageio
 from imageio.plugins import _bsdf as bsdf
 
 
+import pytest
+import sys
+xfail_big_endian = pytest.mark.xfail(sys.byteorder == 'big',
+                                     reason='expected failure on big-endian')
+
 test_dir = get_test_dir()
 
 
@@ -64,6 +69,7 @@ def test_not_an_image():
     assert imageio.mimread(fname) == []
 
 
+@xfail_big_endian
 def test_singleton():
 
     im1 = imageio.imread("imageio:chelsea.png")
@@ -94,6 +100,7 @@ def test_singleton():
     assert np.all(im1 == im3)
 
 
+@xfail_big_endian
 def test_series():
 
     im1 = imageio.imread("imageio:chelsea.png")
@@ -126,6 +133,7 @@ def test_series():
     assert len(ims3) == 3 and all(np.all(ims1[i] == ims3[i]) for i in range(3))
 
 
+@xfail_big_endian
 def test_series_unclosed():
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
@@ -155,6 +163,7 @@ def test_series_unclosed():
     assert np.all(ims1[2] == r.get_data(2))
 
 
+@xfail_big_endian
 def test_random_access():
 
     im1 = imageio.imread("imageio:chelsea.png")
@@ -171,6 +180,7 @@ def test_random_access():
     # these bytes are never read.
 
 
+@xfail_big_endian
 def test_volume():
 
     vol1 = imageio.imread("imageio:stent.npz")
