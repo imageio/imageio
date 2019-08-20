@@ -16,8 +16,10 @@ from imageio.plugins import _bsdf as bsdf
 
 import pytest
 import sys
-xfail_big_endian = pytest.mark.xfail(sys.byteorder == 'big',
-                                     reason='expected failure on big-endian')
+
+xfail_big_endian = pytest.mark.xfail(
+    sys.byteorder == "big", reason="expected failure on big-endian"
+)
 
 test_dir = get_test_dir()
 
