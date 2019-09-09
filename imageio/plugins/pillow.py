@@ -685,6 +685,8 @@ def pil_try_read(im):
 def _palette_is_grayscale(pil_image):
     if pil_image.mode != "P":
         return False
+    elif pil_image.info.get("transparency", None):  # see issue #475
+        return False
     # get palette as an array with R, G, B columns
     palette = np.asarray(pil_image.getpalette()).reshape((256, 3))
     # Not all palette colors are used; unused colors have junk values.
