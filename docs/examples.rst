@@ -196,7 +196,7 @@ In this example, we apply the described method to a given GIF `my_gif` using
 `pygifsicle <https://github.com/LucaCappelletti94/pygifsicle>`_, a porting
 of the general-purpose GIF editing command-line library
 `gifsicle <https://www.lcdf.org/gifsicle/>`_. To install pygifsicle and gifsicle,
-`read the setup on the project page<https://github.com/LucaCappelletti94/pygifsicle>`_:
+`read the setup on the project page <https://github.com/LucaCappelletti94/pygifsicle>`_:
 it boils down to installing the package using pip and following
 the console instructions:
 
