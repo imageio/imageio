@@ -227,9 +227,7 @@ Now, let's start by creating a gif using imageio:
         for i in range(n):
             writer.append_data(imageio.imread(frames_path.format(i=i)))
             
-This way we obtain the following 2.5MB gif:    
-
-.. image:: https://github.com/LucaCappelletti94/imageio/blob/patch-1/docs/big-example.gif?raw=true
+This way we obtain a 2.5MB gif.
 
 We now want to compress the created GIF.
 We can either overwrite the initial one or create a new optimized one:
@@ -242,9 +240,7 @@ We start by importing the library method:
     optimize(gif_path, "optimized.gif") # For creating a new one
     optimize(gif_path) # For overwriting the original one
    
-The new optimized GIF now weights 870KB, almost 3 times less:
-
-.. image:: https://github.com/LucaCappelletti94/imageio/blob/patch-1/docs/optimized.gif?raw=true
+The new optimized GIF now weights 870KB, almost 3 times less.
 
 Putting everything togheter:
 
