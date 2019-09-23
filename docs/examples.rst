@@ -146,6 +146,7 @@ format yuv420p.
 Note, you will need ffmpeg compiled with vaapi for this to work.
 
 .. code-block:: python
+
     import imageio
     import numpy as np
 
