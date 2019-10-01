@@ -146,6 +146,7 @@ format yuv420p.
 Note, you will need ffmpeg compiled with vaapi for this to work.
 
 .. code-block:: python
+
     import imageio
     import numpy as np
 
@@ -178,3 +179,91 @@ A little bit of explanation:
   * ``codec``: the code you wish to use to encode the video. Make sure your
     hardware supports the chosen codec. If your hardware supports h265, you
     may be able to encode using ``'hevc_vaapi'``
+    
+    
+Optimizing a GIF using pygifsicle
+------------------------------------
+When creating a `GIF <https://it.wikipedia.org/wiki/Graphics_Interchange_Format>`_
+using `imageio <https://imageio.readthedocs.io/en/stable/>`_ the resulting images
+can get quite heavy, as the created GIF is not optimized.
+This can be useful when the elaboration process for the GIF is not finished yet
+(for instance if some elaboration on specific frames stills need to happen),
+but it can be an issue when the process is finished and the GIF is unexpectedly big.
+
+GIF files can be compressed in several ways, the most common one method
+(the one used here) is saving just the differences between the following frames.
+In this example, we apply the described method to a given GIF `my_gif` using
+`pygifsicle <https://github.com/LucaCappelletti94/pygifsicle>`_, a porting
+of the general-purpose GIF editing command-line library
+`gifsicle <https://www.lcdf.org/gifsicle/>`_. To install pygifsicle and gifsicle,
+`read the setup on the project page <https://github.com/LucaCappelletti94/pygifsicle>`_:
+it boils down to installing the package using pip and following
+the console instructions:
+
+.. code-block:: shell
+
+    pip install pygifsicle
+
+Now, let's start by creating a gif using imageio:
+
+.. code-block:: python
+
+    import imageio
+    import matplotlib.pyplot as plt
+    
+    n = 100
+    gif_path = "test.gif"
+    frames_path = "{i}.jpg"
+    
+    n = 100
+    plt.figure(figsize=(4,4))
+    for i, x in enumerate(range(n)):
+        plt.scatter(x/n, x/n)
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
+        plt.savefig("{i}.jpg".format(i=i))
+        
+    with imageio.get_writer(gif_path, mode='I') as writer:
+        for i in range(n):
+            writer.append_data(imageio.imread(frames_path.format(i=i)))
+            
+This way we obtain a 2.5MB gif.
+
+We now want to compress the created GIF.
+We can either overwrite the initial one or create a new optimized one:
+We start by importing the library method:
+
+.. code-block:: python
+
+    from pygifsicle import optimize
+    
+    optimize(gif_path, "optimized.gif") # For creating a new one
+    optimize(gif_path) # For overwriting the original one
+   
+The new optimized GIF now weights 870KB, almost 3 times less.
+
+Putting everything togheter:
+
+.. code-block:: python
+
+    import imageio
+    import matplotlib.pyplot as plt
+    from pygifsicle import optimize
+    
+    n = 100
+    gif_path = "test.gif"
+    frames_path = "{i}.jpg"
+    
+    n = 100
+    plt.figure(figsize=(4,4))
+    for i, x in enumerate(range(n)):
+        plt.scatter(x/n, x/n)
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
+        plt.savefig("{i}.jpg".format(i=i))
+        
+    with imageio.get_writer(gif_path, mode='I') as writer:
+        for i in range(n):
+            writer.append_data(imageio.imread(frames_path.format(i=i)))
+            
+    optimize(gif_path)
