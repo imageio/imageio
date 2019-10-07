@@ -47,7 +47,7 @@ As a user, you just have to remember a handfull of functions:
     <li>Simple interface via a consise set of functions.</li>
     <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>
     <li>Few dependencies (only Numpy and Pillow).</li>
-    <li>Pure Python, runs on Python 2.7, 3.4+, and Pypy</li>
+    <li>Pure Python, runs on Python 3.5+, and Pypy</li>
     <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>
     <li>Lots of supported <a href='http://imageio.readthedocs.io/en/latest/formats.html'>formats</a>.</li>
     <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
@@ -88,7 +88,7 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 Minimal requirements:
 <ul>
-    <li>Python 3.4+, 2.7</li>
+    <li>Python 3.5+</li>
     <li>Numpy</li>
     <li>Pillow</li>
 </ul>
@@ -100,6 +100,8 @@ Optional Python packages:
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
 </ul>
+
+Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
 
 
 <h2>Origin and outlook</h2>
