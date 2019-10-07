@@ -23,15 +23,15 @@ class TIFFFormat(PillowFormat):
 class GIFFormat(PillowFormat):
     """ A format for reading and writing static and animated GIF, based
     on Pillow.
-    
+
     Images read with this format are always RGBA. Currently,
     the alpha channel is ignored when saving RGB images with this
     format.
-    
+
     Parameters for reading
     ----------------------
     None
-    
+
     Parameters for saving
     ---------------------
     loop : int
@@ -119,16 +119,7 @@ class GIFFormat(PillowFormat):
             return
 
 
-if sys.version_info >= (3,):
-    intToBin = lambda i: i.to_bytes(2, byteorder="little")
-else:
-
-    def intToBin(i):
-        """Integer to two bytes"""
-        # No int.to_bytes() in Legacy Python
-        i1 = i % 256
-        i2 = int(i / 256)
-        return chr(i1) + chr(i2)  # little endian
+intToBin = lambda i: i.to_bytes(2, byteorder="little")
 
 
 class GifWriter:
@@ -348,7 +339,7 @@ class GifWriter:
 
     def converToPIL(self, im, quantizer, palette_size=256):
         """Convert image to Paletted PIL image.
-        
+
         PIL used to not do a very good job at quantization, but I guess
         this has improved a lot (at least in Pillow). I don't think we need
         neuqant (and we can add it later if we really want).

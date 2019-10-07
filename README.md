@@ -16,11 +16,11 @@ Website: http://imageio.github.io
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, video,
 volumetric data, and scientific formats. It is cross-platform, runs on
-Python 2.7 and 3.4+, and is easy to install.
+Python 3.5+, and is easy to install.
 </p>
 
 <h2>Example</h2>
-Here's a minimal example of how to use imageio. See the docs for 
+Here's a minimal example of how to use imageio. See the docs for
 <a href='http://imageio.readthedocs.io/en/latest/examples.html'>more examples</a>.
 <pre>
 import imageio
@@ -45,7 +45,7 @@ As a user, you just have to remember a handfull of functions:
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a consise set of functions.</li>
-    <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>    
+    <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>
     <li>Few dependencies (only Numpy and Pillow).</li>
     <li>Pure Python, runs on Python 2.7, 3.4+, and Pypy</li>
     <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>

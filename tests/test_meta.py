@@ -117,8 +117,6 @@ def test_import_dependencies():
     """
 
     # Skip when we know there's more imports
-    if sys.version_info < (3,):
-        return
     if os.getenv("TRAVIS") and os.getenv("TEST_FULL"):
         return
 

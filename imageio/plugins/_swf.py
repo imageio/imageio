@@ -4,13 +4,13 @@
 
 # styletest: ignore E261
 
-""" 
+"""
 Provides a function (write_swf) to store a series of numpy arrays in an
 SWF movie, that can be played on a wide range of OS's.
 
 In desperation of wanting to share animated images, and then lacking a good
 writer for animated gif or .avi, I decided to look into SWF. This format
-is very well documented. 
+is very well documented.
 
 This is a pure python module to create an SWF file that shows a series
 of images. The images are stored using the DEFLATE algorithm (same as
@@ -21,8 +21,6 @@ while still producesing smaller files (a test showed ~75%). Although
 SWF also allows for JPEG compression, doing so would probably require
 a third party library for the JPEG encoding/decoding, we could
 perhaps do this via Pillow or freeimage.
-
-This module requires Python 2.x / 3,x and numpy.
 
 sources and tools:
 
@@ -47,7 +45,6 @@ import numpy as np
 
 from ..core import string_types, binary_type
 
-PY3 = sys.version_info >= (3,)
 
 logger = logging.getLogger(__name__)
 
@@ -132,39 +129,15 @@ class BitArray:
         return bb
 
 
-if PY3:
+def int2uint32(i):
+    return int(i).to_bytes(4, "little")
 
-    def int2uint32(i):
-        return int(i).to_bytes(4, "little")
+def int2uint16(i):
+    return int(i).to_bytes(2, "little")
 
-    def int2uint16(i):
-        return int(i).to_bytes(2, "little")
+def int2uint8(i):
+    return int(i).to_bytes(1, "little")
 
-    def int2uint8(i):
-        return int(i).to_bytes(1, "little")
-
-
-else:  # pragma: no cover
-
-    def int2uint32(i):
-        number = int(i)
-        n1, n2, n3, n4 = 1, 256, 256 * 256, 256 * 256 * 256  # noqa
-        b4, number = number // n4, number % n4
-        b3, number = number // n3, number % n3
-        b2, number = number // n2, number % n2
-        b1 = number
-        return chr(b1) + chr(b2) + chr(b3) + chr(b4)
-
-    def int2uint16(i):
-        i = int(i)
-        # devide in two parts (bytes)
-        i1 = i % 256
-        i2 = int(i // 256)
-        # make string (little endian)
-        return chr(i1) + chr(i2)
-
-    def int2uint8(i):
-        return chr(int(i))
 
 
 def int2bits(i, n=None):
@@ -227,7 +200,7 @@ def get_type_and_len(bb):
     if L == 63:  # '111111'
         value = ""
         for i in range(2, 6):
-            b = bb[i : i + 1]  # becomes a single-byte bytes() on both PY3 & PY2
+            b = bb[i : i + 1]  # becomes a single-byte bytes()
             tmp = bin(ord(b))[2:]
             # value += tmp.rjust(8,'0')
             value = tmp.rjust(8, "0") + value

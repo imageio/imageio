@@ -55,8 +55,6 @@ _ffmpeg_api = None
 def _get_ffmpeg_api():
     global _ffmpeg_api
     if _ffmpeg_api is None:
-        if sys.version_info < (3,):
-            raise RuntimeError("The ffmpeg plugin does not work on Python 2.x")
         try:
             import imageio_ffmpeg
         except ImportError:

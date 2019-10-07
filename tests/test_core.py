@@ -22,8 +22,6 @@ from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
 
-if sys.version_info < (3,):
-    FileNotFoundError = OSError
 
 try:
     from pathlib import Path

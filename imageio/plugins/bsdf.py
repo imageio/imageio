@@ -12,12 +12,6 @@ from .. import formats
 from ..core import Format
 
 
-PY3 = sys.version_info[0] >= 3
-if PY3:
-    text_type = str
-else:  # pragma: no cover
-    text_type = unicode  # noqa
-
 
 def get_bsdf_serializer(options):
     from . import _bsdf as bsdf
@@ -30,7 +24,7 @@ def get_bsdf_serializer(options):
         cls = np.ndarray
 
         def encode(self, s, v):
-            return dict(shape=v.shape, dtype=text_type(v.dtype), data=v.tobytes())
+            return dict(shape=v.shape, dtype=str(v.dtype), data=v.tobytes())
 
         def decode(self, s, v):
             return v  # return as dict, because of lazy blobs, decode in Image

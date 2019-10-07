@@ -133,15 +133,12 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
         try:
             the_lib = loader.LoadLibrary(fname)
             break
-        except Exception:
+        except Exception as err:
             # Don't record errors when it couldn't load the library from an
             # exact name -- this fails often, and doesn't provide any useful
             # debugging information anyway, beyond "couldn't find library..."
             if fname not in exact_lib_names:
-                # Get exception instance in Python 2.x/3.x compatible manner
-                e_type, e_value, e_tb = sys.exc_info()
-                del e_tb
-                errors.append((fname, e_value))
+                errors.append((fname, err))
 
     # No success ...
     if the_lib is None:
