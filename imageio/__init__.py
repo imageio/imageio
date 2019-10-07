@@ -5,7 +5,7 @@
 # This docstring is used at the index of the documentation pages, and
 # gets inserted into a slightly larger description (in setup.py) for
 # the page on Pypi:
-""" 
+"""
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, volumetric
 data, and scientific formats. It is cross-platform, runs on Python 2.7
@@ -16,7 +16,7 @@ Main website: http://imageio.github.io
 
 # flake8: noqa
 
-__version__ = "2.5.0"
+__version__ = "2.6.0"
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
