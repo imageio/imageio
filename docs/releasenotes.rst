@@ -9,6 +9,30 @@ Planned
 * Improved handling and support for meta data.
 
 
+Version 2.6.0 (07-10-2019)
+==========================
+
+This will likely be the last release to support Python 2.7.
+
+Fixes:
+
+* Fixed a security vulnerability for Windows users that have dcmtk installed,
+  and where an attacker can set the filename.
+* Fixed bug in ``image_as_uint`` (#451 by clintg6).
+* Fix that only one webcam could be used when two cameras are connected that have the same name.
+* Prevent paletted image with transparency to be converted to grayscale.
+
+Improvements:
+
+* Optimise 16-bit PNG write performance for newer versions of Pillow (#440 by Ariel Ladegaard).
+* More flexible setting of memory limit in ``mimread`` and ``mvolread`` (#442 by Chris Barnes).
+* Support for ASCII PNM files (#447 by Tobias Baumann).
+* Improved support for JPEG2000 (can now provide parameters) (#456 by Pawel Korus).
+* Added support for compressed FITS images (#458 by Joe Singleton).
+* Improve imageio import time by avoiding pkg_resources import (#462 by Mark Harfouche).
+* Added example for compressing GIFs using pygifsicle (#481 by Luca Cappelletti).
+
+
 Version 2.5.0 (06-02-2019)
 ==========================
 
