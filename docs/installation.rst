@@ -16,6 +16,8 @@ To install imageio, use one of the following methods:
 After installation, checkout the
 :doc:`examples  <examples>` and :doc:`user api <userapi>`.
 
+Still running Python 2.7? Read :doc:`here <drop27>`.
+
 
 Developers
 ----------
