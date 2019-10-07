@@ -31,12 +31,6 @@ matrix:
       env: TEST_UNIT=1
     # The main tests run on Linux for a all relevant Python versions.
     - os: linux
-      python: "2.7"
-      env: TEST_UNIT=1 IS_LEGACY=1
-    - os: linux
-      python: "3.4"
-      env: TEST_UNIT=1 TEST_FULL=1
-    - os: linux
       python: "3.5"
       env: TEST_UNIT=1 TEST_INSTALL=0
     # NOTE -------------------------/\ turned off for now
@@ -47,7 +41,7 @@ matrix:
       dist: xenial
       sudo: true
       python: "3.7"
-      env: TEST_UNIT=1
+      env: TEST_UNIT=1 TEST_FULL=1
     - os: linux
       dist: xenial
       sudo: true
@@ -96,9 +90,6 @@ install:
       else
         pip install --upgrade pip;
       fi;
-    - if [ "${IS_LEGACY}" == "1" ]; then
-        pip install enum34 futures pathlib;
-      fi;
     # Install dependencies depending on ENV
     - pip install invoke
     - invoke clean
@@ -122,7 +113,7 @@ install:
 
 before_script:
 
-script: 
+script:
     - python -c "import sys; print(sys.version, '\n', sys.prefix)";
     # Run unit tests or style test
     - if [ "${TEST_STYLE}" == "1" ]; then
