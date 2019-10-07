@@ -373,7 +373,7 @@ class SpeFormat(Format):
                 try:
                     # For convenience, if the array contains only one single
                     # entry, return this entry itself.
-                    v = np.asscalar(v)
+                    v = v.item()
                 except ValueError:
                     v = np.squeeze(v)
                 ret[name] = v
