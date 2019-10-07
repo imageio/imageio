@@ -582,9 +582,7 @@ class Freeimage(object):
             # the file.
             if mode == "r":
                 if bb is not None:
-                    fimemory = lib.FreeImage_OpenMemory(
-                        ctypes.c_char_p(bb), len(bb)
-                    )
+                    fimemory = lib.FreeImage_OpenMemory(ctypes.c_char_p(bb), len(bb))
                     ftype = lib.FreeImage_GetFileTypeFromMemory(
                         ctypes.c_void_p(fimemory), len(bb)
                     )
