@@ -147,6 +147,7 @@ def test_import_dependencies():
         "plistlib",
         "quopri",
         "calendar",
+        "string",  # py 3.8
     ]  # discard these
 
     # Remove modules in standard library
