@@ -19,8 +19,6 @@ import logging
 
 import numpy as np
 
-from ..core import string_types
-
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +147,7 @@ class SimpleDicomReader(object):
 
     def __init__(self, file):
         # Open file if filename given
-        if isinstance(file, string_types):
+        if isinstance(file, str):
             self._filename = file
             self._file = open(file, "rb")
         else:

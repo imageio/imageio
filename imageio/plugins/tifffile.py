@@ -4,7 +4,6 @@
 """ Storage of image data in tiff format.
 """
 
-import sys
 import datetime
 
 from .. import formats

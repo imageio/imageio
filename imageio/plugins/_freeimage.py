@@ -24,8 +24,6 @@ from ..core import (
     load_lib,
     Dict,
     resource_dirs,
-    string_types,
-    binary_type,
     IS_PYPY,
     get_platform,
     InternetNotAllowedError,
@@ -565,7 +563,7 @@ class Freeimage(object):
         # This message log is not cleared/reset, but kept to 256 elements.
         return [m for m in self._messages]
 
-    def getFIF(self, filename, mode, bytes=None):
+    def getFIF(self, filename, mode, bb=None):
         """ Get the freeimage Format (FIF) from a given filename.
         If mode is 'r', will try to determine the format by reading
         the file, otherwise only the filename is used.
@@ -583,12 +581,12 @@ class Freeimage(object):
             # do not have a header that allows reading the format from
             # the file.
             if mode == "r":
-                if bytes is not None:
+                if bb is not None:
                     fimemory = lib.FreeImage_OpenMemory(
-                        ctypes.c_char_p(bytes), len(bytes)
+                        ctypes.c_char_p(bb), len(bb)
                     )
                     ftype = lib.FreeImage_GetFileTypeFromMemory(
-                        ctypes.c_void_p(fimemory), len(bytes)
+                        ctypes.c_void_p(fimemory), len(bb)
                     )
                     lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
                 if (ftype == -1) and os.path.isfile(filename):
@@ -693,7 +691,7 @@ class FIBaseBitmap(object):
                         char_ptr = ctypes.c_char * byte_size
                         data = char_ptr.from_address(lib.FreeImage_GetTagValue(tag))
                         # Convert in a way compatible with Pypy
-                        tag_bytes = binary_type(bytearray(data))
+                        tag_bytes = bytes(bytearray(data))
                         # The default value is the raw bytes
                         tag_val = tag_bytes
                         # Convert to a Python value in the metadata dict
@@ -760,7 +758,7 @@ class FIBaseBitmap(object):
                     try:
                         # Convert Python value to FI type, val
                         is_ascii = False
-                        if isinstance(tag_val, string_types):
+                        if isinstance(tag_val, str):
                             try:
                                 tag_bytes = tag_val.encode("ascii")
                                 is_ascii = True
@@ -859,11 +857,11 @@ class FIBitmap(FIBaseBitmap):
                 )
             self._set_bitmap(bitmap, (lib.FreeImage_Unload, bitmap))
 
-    # def load_from_bytes(self, bytes):
+    # def load_from_bytes(self, bb):
     #     with self._fi as lib:
     #         # Create bitmap
     #         fimemory = lib.FreeImage_OpenMemory(
-    #                                         ctypes.c_char_p(bytes), len(bytes))
+    #                                         ctypes.c_char_p(bb), len(bb))
     #         bitmap = lib.FreeImage_LoadFromMemory(
     #                         self._ftype, ctypes.c_void_p(fimemory), self._flags)
     #         bitmap = ctypes.c_void_p(bitmap)
@@ -1072,8 +1070,8 @@ class FIBitmap(FIBaseBitmap):
                 self._need_finish = True  # Flag to use _finish_wrapped_array
                 return numpy.zeros(shape, dtype=dtype)
             else:
-                bytes = binary_type(bytearray(data))
-                array = numpy.frombuffer(bytes, dtype=dtype).copy()
+                bb = bytes(bytearray(data))
+                array = numpy.frombuffer(bb, dtype=dtype).copy()
                 # Deal with strides
                 if len(shape) == 3:
                     array.shape = shape[2], strides[-1] // shape[0], shape[0]
@@ -1248,17 +1246,17 @@ class FIMultipageBitmap(FIBaseBitmap):
                 )
             self._set_bitmap(multibitmap, (lib.FreeImage_CloseMultiBitmap, multibitmap))
 
-    # def load_from_bytes(self, bytes):
+    # def load_from_bytes(self, bb):
     #     with self._fi as lib:
     #         # Create bitmap
     #         fimemory = lib.FreeImage_OpenMemory(
-    #                                         ctypes.c_char_p(bytes), len(bytes))
+    #                                         ctypes.c_char_p(bb), len(bb))
     #         multibitmap = lib.FreeImage_LoadMultiBitmapFromMemory(
     #             self._ftype, ctypes.c_void_p(fimemory), self._flags)
     #         multibitmap = ctypes.c_void_p(multibitmap)
     #         #lib.FreeImage_CloseMemory(ctypes.c_void_p(fimemory))
     #         self._mem = fimemory
-    #         self._bytes = bytes
+    #         self._bytes = bb
     #         # Check
     #         if not multibitmap:
     #             raise ValueError('Could not load multibitmap "%s": %s'

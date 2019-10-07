@@ -2,7 +2,6 @@
 PIL formats for multiple images.
 """
 
-import sys
 import logging
 
 import numpy as np

@@ -8,8 +8,7 @@
 # flake8: noqa
 
 from .util import Image, Array, Dict, asarray, image_as_uint, urlopen
-from .util import BaseProgressIndicator, StdoutProgressIndicator
-from .util import string_types, text_type, binary_type, IS_PYPY
+from .util import BaseProgressIndicator, StdoutProgressIndicator, IS_PYPY
 from .util import get_platform, appdata_dir, resource_dirs, has_module
 from .findlib import load_lib
 from .fetching import get_remote_file, InternetNotAllowedError, NeedDownloadError

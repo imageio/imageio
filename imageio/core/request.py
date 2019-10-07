@@ -6,14 +6,13 @@ Definition of the Request object, which acts as a kind of bridge between
 what the user wants and what the plugins can.
 """
 
-import sys
 import os
 from io import BytesIO
 import zipfile
 import tempfile
 import shutil
 
-from ..core import string_types, binary_type, urlopen, get_remote_file
+from ..core import urlopen, get_remote_file
 
 try:
     from pathlib import Path
@@ -109,7 +108,7 @@ class Request(object):
 
         # Check mode
         self._mode = mode
-        if not isinstance(mode, string_types):
+        if not isinstance(mode, str):
             raise ValueError("Request requires mode must be a string")
         if not len(mode) == 2:
             raise ValueError("Request requires mode to have two chars")
@@ -134,7 +133,7 @@ class Request(object):
         is_read_request = self.mode[0] == "r"
         is_write_request = self.mode[0] == "w"
 
-        if isinstance(uri, string_types):
+        if isinstance(uri, str):
             # Explicit
             if uri.startswith("imageio:"):
                 if is_write_request:
@@ -172,7 +171,7 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"
             self._bytes = uri.tobytes()
-        elif isinstance(uri, binary_type) and is_read_request:
+        elif isinstance(uri, bytes) and is_read_request:
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"
             self._bytes = uri
@@ -443,7 +442,7 @@ class Request(object):
                 f = self.get_file()
             except IOError:
                 if os.path.isdir(self.filename):  # A directory, e.g. for DICOM
-                    self._firstbytes = binary_type()
+                    self._firstbytes = bytes()
                     return
                 raise
             try:
@@ -471,7 +470,7 @@ def read_n_bytes(f, N):
     Read n bytes from the given file, or less if the file has less
     bytes. Returns zero bytes if the file is closed.
     """
-    bb = binary_type()
+    bb = bytes()
     while len(bb) < N:
         extra_bytes = f.read(N - len(bb))
         if not extra_bytes:

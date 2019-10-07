@@ -5,7 +5,6 @@
 from io import BytesIO
 import os
 import gc
-import sys
 import time
 import threading
 
