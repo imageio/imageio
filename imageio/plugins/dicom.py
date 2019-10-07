@@ -52,7 +52,7 @@ def get_dcmdjpeg_exe():
             return filename
 
     try:
-        subprocess.check_call([fname, "--version"], shell=True)
+        subprocess.check_call([fname, "--version"])
         return fname
     except Exception:
         return None
@@ -61,7 +61,7 @@ def get_dcmdjpeg_exe():
 class DicomFormat(Format):
     """ A format for reading DICOM images: a common format used to store
     medical image data, such as X-ray, CT and MRI.
-    
+
     This format borrows some code (and ideas) from the pydicom project,
     and (to the best of our knowledge) has the same limitations as
     pydicom with regard to the type of files that it can handle. However,
@@ -69,13 +69,13 @@ class DicomFormat(Format):
     for great simplifications allowing us to make a stand-alone reader, and
     also results in a much faster read time. We plan to allow reading all
     tags in the future (by using pydicom).
-    
+
     This format provides functionality to group images of the same
     series together, thus extracting volumes (and multiple volumes).
     Using volread will attempt to yield a volume. If multiple volumes
     are present, the first one is given. Using mimread will simply yield
     all images in the given directory (not taking series into account).
-    
+
     Parameters for reading
     ----------------------
     progress : {True, False, BaseProgressIndicator}
@@ -83,7 +83,7 @@ class DicomFormat(Format):
         Default True. By passing an object that inherits from
         BaseProgressIndicator, the way in which progress is reported
         can be costumized.
-    
+
     """
 
     def _can_read(self, request):
@@ -128,7 +128,7 @@ class DicomFormat(Format):
                         fname1 = self.request.get_local_filename()
                         fname2 = fname1 + ".raw"
                         try:
-                            subprocess.check_call([exe, fname1, fname2], shell=True)
+                            subprocess.check_call([exe, fname1, fname2])
                         except Exception:
                             raise err
                         logger.warning(
