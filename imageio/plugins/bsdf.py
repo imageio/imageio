@@ -4,8 +4,6 @@
 """ BSDF plugin.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import sys
 
 import numpy as np
@@ -101,17 +99,17 @@ class BsdfFormat(Format):
     and series thereof. Data can be of any numeric data type, and can
     optionally be compressed. Each image/volume can have associated
     meta data, which can consist of any data type supported by BSDF.
-    
+
     By default, image data is lazily loaded; the actual image data is
     not read until it is requested. This allows storing multiple images
     in a single file and still have fast access to individual images.
     Alternatively, a series of images can be read in streaming mode, reading
     images as they are read (e.g. from http).
-    
+
     BSDF is a simple generic binary format. It is easy to extend and there
     are standard extension definitions for 2D and 3D image data.
     Read more at http://bsdf.io.
-    
+
     Parameters for reading
     ----------------------
     random_access : bool
@@ -121,7 +119,7 @@ class BsdfFormat(Format):
         files as they are read, but without support for "rewinding".
         Note that setting this to True when reading from HTTP, the whole file
         is read upon opening it (since lazy loading is not possible over HTTP).
-    
+
     Parameters for saving
     ---------------------
     compression : {0, 1, 2}
@@ -130,7 +128,7 @@ class BsdfFormat(Format):
         compression (more compact but slower). Default 1 (zlib).
         Note that some BSDF implementations may not support compression
         (e.g. JavaScript).
-    
+
     """
 
     def _can_read(self, request):

@@ -4,8 +4,6 @@
 """ Functionality used for testing. This code itself is not covered in tests.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import os
 import sys
 import inspect
@@ -28,7 +26,7 @@ for i in range(9):
 
 def run_tests_if_main(show_coverage=False):
     """ Run tests in a given file if it is run as a script
-    
+
     Coverage is reported for running this single test. Set show_coverage to
     launch the report in the web browser.
     """

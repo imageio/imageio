@@ -4,8 +4,6 @@
 """ Storage of image data in tiff format.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import sys
 import datetime
 
@@ -76,7 +74,7 @@ READ_METADATA_KEYS = (
 
 class TiffFormat(Format):
     """ Provides support for a wide range of Tiff images.
-    
+
     Images that contain multiple pages can be read using ``imageio.mimread()``
     to read the individual pages, or ``imageio.volread()`` to obtain a
     single (higher dimensional) array.

@@ -4,8 +4,6 @@
 """ SWF plugin. Most of the actual work is done in _swf.py.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import os
 import zlib
 import logging
@@ -35,16 +33,16 @@ class SWFFormat(Format):
     store a series of images in a lossless format with good compression
     (zlib). The resulting images can be shown as an animation using
     a flash player (such as the browser).
-    
+
     SWF stores images in RGBA format. RGB or grayscale images are
     automatically converted. SWF does not support meta data.
-    
+
     Parameters for reading
     ----------------------
     loop : bool
         If True, the video will rewind as soon as a frame is requested
         beyond the last frame. Otherwise, IndexError is raised. Default False.
-    
+
     Parameters for saving
     ---------------------
     fps : int
@@ -181,7 +179,7 @@ class SWFFormat(Format):
                 return im, {}
 
         def _read_one_tag(self):
-            """ 
+            """
             Return (True, loc, size, T, L1) if an image that we can read.
             Return (False, loc, size, T, L1) if any other tag.
             """

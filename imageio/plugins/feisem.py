@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-from __future__ import absolute_import, unicode_literals
-
 from .tifffile import TiffFormat
 
 from .. import formats

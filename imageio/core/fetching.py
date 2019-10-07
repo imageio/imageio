@@ -5,8 +5,6 @@
 """Data downloading and reading functions
 """
 
-from __future__ import absolute_import, print_function, division
-
 from math import log
 import os
 from os import path as op

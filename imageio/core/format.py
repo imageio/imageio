@@ -21,8 +21,6 @@ a format object using ``imageio.formats.add_format()``.
 
 """
 
-from __future__ import absolute_import, print_function, division
-
 # todo: do we even use the known extensions?
 
 # Some notes:
@@ -30,8 +28,6 @@ from __future__ import absolute_import, print_function, division
 # The classes in this module use the Request object to pass filename and
 # related info around. This request object is instantiated in
 # imageio.get_reader and imageio.get_writer.
-
-from __future__ import with_statement
 
 import os
 

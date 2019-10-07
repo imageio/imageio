@@ -4,8 +4,6 @@
 """ Plugin for multi-image freeimafe formats, like animated GIF and ico.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import logging
 import numpy as np
 
@@ -101,7 +99,7 @@ class FreeimageMulti(FreeimageFormat):
 
 class MngFormat(FreeimageMulti):
     """ An Mng format based on the Freeimage library.
-    
+
     Read only. Seems broken.
     """
 
@@ -113,12 +111,12 @@ class MngFormat(FreeimageMulti):
 
 class IcoFormat(FreeimageMulti):
     """ An ICO format based on the Freeimage library.
-    
+
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     is not available on the system, it can be downloaded by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -128,7 +126,7 @@ class IcoFormat(FreeimageMulti):
         Convert to 32-bit and create an alpha channel from the AND-
         mask when loading. Default False. Note that this returns wrong
         results if the image was already RGBA.
-    
+
     """
 
     _fif = 1
@@ -145,14 +143,14 @@ class IcoFormat(FreeimageMulti):
 class GifFormat(FreeimageMulti):
     """ A format for reading and writing static and animated GIF, based
     on the Freeimage library.
-    
+
     Images read with this format are always RGBA. Currently,
     the alpha channel is ignored when saving RGB images with this
     format.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     is not available on the system, it can be downloaded by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -161,7 +159,7 @@ class GifFormat(FreeimageMulti):
     playback : bool
         'Play' the GIF to generate each frame (as 32bpp) instead of
         returning raw frame data when loading. Default True.
-    
+
     Parameters for saving
     ---------------------
     loop : int

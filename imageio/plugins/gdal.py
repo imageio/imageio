@@ -3,7 +3,6 @@
 
 """ Plugin for reading gdal files.
 """
-from __future__ import absolute_import, print_function, division
 
 from .. import formats
 from ..core import Format, has_module

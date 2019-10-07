@@ -5,8 +5,6 @@
 it supports volumetric data. And its less than 100 lines.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import numpy as np
 
 from .. import formats
@@ -16,8 +14,8 @@ from ..core import Format
 class NpzFormat(Format):
     """ NPZ is a file format by numpy that provides storage of array
     data using gzip compression. This imageio plugin supports data of any
-    shape, and also supports multiple images per file. 
-    
+    shape, and also supports multiple images per file.
+
     However, the npz format does not provide streaming; all data is
     read/written at once. Further, there is no support for meta data.
 
@@ -25,13 +23,13 @@ class NpzFormat(Format):
     of Python 2.7 and numpy, which can cause the resulting files to
     become unreadable on Python 3. Also, this format is not available
     on Pypy.
-    
+
     See the BSDF format for a similar (but more fully featured) format.
-    
+
     Parameters for reading
     ----------------------
     None
-    
+
     Parameters for saving
     ---------------------
     None

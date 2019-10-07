@@ -4,8 +4,6 @@
 """ Plugin for reading FITS files.
 """
 
-from __future__ import absolute_import, print_function, division
-
 from .. import formats
 from ..core import Format
 
@@ -31,7 +29,7 @@ class FitsFormat(Format):
     digital file format useful for storage, transmission and processing of
     scientific and other images. FITS is the most commonly used digital
     file format in astronomy.
-    
+
     This format requires the ``astropy`` package.
 
     Parameters for reading

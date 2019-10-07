@@ -18,7 +18,6 @@
 #   (https://github.com/behnam/python-lfp-reader/)
 
 
-from __future__ import absolute_import, print_function, division
 import os
 import json
 import struct

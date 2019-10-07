@@ -7,8 +7,6 @@ Would be nice if we could capture webcam with this, but unfortunately,
 avbin does not currently support this.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import numpy as np
 import logging
 import ctypes
@@ -199,21 +197,21 @@ def get_avbin_lib():
 
 
 class AvBinFormat(Format):
-    """ 
+    """
     The AvBinFormat uses the AvBin library (based on libav) to read
     video files.
-    
+
     This plugin is more efficient than the ffmpeg plugin, because it
     uses ctypes (rather than a pipe like the ffmpeg plugin does).
     Further, it supports reading images into a given numpy array.
-    
+
     The limitations of this plugin are that seeking, writing and camera
     feeds are not supported. See the ffmpeg format for these features.
 
     The avbin plugin requires an `avbin` binary. If this binary is
     not available on the system, it can be downloaded manually from
     <https://github.com/imageio/imageio-binaries> by either
-    
+
     - the command line script ``imageio_download_bin avbin``
     - the Python method ``imageio.plugins.avbin.download()``.
 
@@ -227,15 +225,15 @@ class AvBinFormat(Format):
     videoformat : str | None
         Specifies the video format (e.g. 'avi', or 'mp4'). If this is None
         (default) the format is auto-detected.
-    
+
     Parameters for get_data
     -----------------------
     out : np.ndarray
-        destination for the data retrieved. This can be used to save 
+        destination for the data retrieved. This can be used to save
         time-consuming memory allocations when reading multiple image
         sequntially. The shape of out must be (width, height, 3), the
         dtype must be np.uint8 and it must be C-contiguous.
-        
+
         Use the create_empty_image() method of the reader object
         to create an array that is suitable for get_data.
     """
