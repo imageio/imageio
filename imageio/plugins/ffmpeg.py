@@ -220,8 +220,9 @@ class FfmpegFormat(Format):
                     "-i",
                     "dummy",
                 ]
-                # Set `shell=True` in sp.Popen to prevent popup of
-                # a command line window in frozen applications.
+                # Set `shell=True` in sp.Popen to prevent popup of a command line
+                # window in frozen applications. Note: this would be a security
+                # vulnerability if user-input goes into the cmd.
                 proc = sp.Popen(
                     cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True
                 )
