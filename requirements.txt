@@ -2,9 +2,6 @@
 
 numpy
 pillow
-enum34; python_version < "3.4"
-futures; python_version < "3.2"
-pathlib; python_version < "3.0"
 
 # extras
 

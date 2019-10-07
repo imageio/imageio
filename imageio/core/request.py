@@ -15,8 +15,6 @@ import shutil
 
 from ..core import string_types, binary_type, urlopen, get_remote_file
 
-if sys.version_info < (3,):
-    FileNotFoundError = OSError
 try:
     from pathlib import Path
 except ImportError:
@@ -133,7 +131,6 @@ class Request(object):
     def _parse_uri(self, uri):
         """ Try to figure our what we were given
         """
-        py3k = sys.version_info[0] == 3
         is_read_request = self.mode[0] == "r"
         is_write_request = self.mode[0] == "w"
 
@@ -167,28 +164,10 @@ class Request(object):
             elif uri.startswith(RETURN_BYTES) and is_write_request:
                 self._uri_type = URI_BYTES
                 self._filename = uri
-            # Less explicit (particularly on py 2.x)
-            elif py3k:
+            else:
                 self._uri_type = URI_FILENAME
                 self._filename = uri
-            else:  # pragma: no cover - our ref for coverage is py3k
-                try:
-                    isfile = os.path.isfile(uri)
-                except Exception:
-                    isfile = False  # If checking does not even work ...
-                if isfile:
-                    self._uri_type = URI_FILENAME
-                    self._filename = uri
-                elif len(uri) < 256:  # Can go wrong with veeery tiny images
-                    self._uri_type = URI_FILENAME
-                    self._filename = uri
-                elif isinstance(uri, binary_type) and is_read_request:
-                    self._uri_type = URI_BYTES
-                    self._filename = "<bytes>"
-                    self._bytes = uri
-                else:
-                    self._uri_type = URI_FILENAME
-                    self._filename = uri
+
         elif isinstance(uri, memoryview) and is_read_request:
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"

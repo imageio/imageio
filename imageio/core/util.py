@@ -21,17 +21,6 @@ import numpy as np
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
-# Taken from six.py
-PY3 = sys.version_info[0] == 3
-if PY3:
-    string_types = (str,)
-    text_type = str
-    binary_type = bytes
-else:  # pragma: no cover
-    string_types = (basestring,)  # noqa
-    text_type = unicode  # noqa
-    binary_type = str
-
 
 def urlopen(*args, **kwargs):
     """ Compatibility function for the urlopen function. Raises an
@@ -39,12 +28,9 @@ def urlopen(*args, **kwargs):
     frozen applications.
     """
     try:
-        from urllib2 import urlopen
+        from urllib.request import urlopen
     except ImportError:
-        try:
-            from urllib.request import urlopen  # Py3k
-        except ImportError:
-            raise RuntimeError("Could not import urlopen.")
+        raise RuntimeError("Could not import urlopen.")
     return urlopen(*args, **kwargs)
 
 
@@ -241,7 +227,7 @@ class Dict(OrderedDict):
     def __dir__(self):
         isidentifier = lambda x: bool(re.match(r"[a-z_]\w*$", x, re.I))
         names = [
-            k for k in self.keys() if (isinstance(k, string_types) and isidentifier(k))
+            k for k in self.keys() if (isinstance(k, str) and isidentifier(k))
         ]
         return Dict.__reserved_names__ + names
 
