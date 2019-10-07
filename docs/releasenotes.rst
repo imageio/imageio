@@ -9,6 +9,14 @@ Planned
 * Improved handling and support for meta data.
 
 
+Version 2.8.0 (TBD)
+==========================
+
+(skipping version 2.7 to avoid confusion with Python v2.7.)
+
+This release drops support for Python 2.7 and Python 3.4.
+
+
 Version 2.6.0 (07-10-2019)
 ==========================
 
