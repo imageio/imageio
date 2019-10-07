@@ -12,8 +12,6 @@
 # file: speed still high
 # * Perhaps allow writing?
 
-from __future__ import absolute_import, print_function, division
-
 import os
 import sys
 import logging

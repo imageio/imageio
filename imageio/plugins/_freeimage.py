@@ -12,8 +12,6 @@ types.
 
 """
 
-from __future__ import absolute_import, print_function, with_statement
-
 import os
 import sys
 import ctypes
@@ -338,15 +336,15 @@ class METADATA_DATATYPE(object):
 class Freeimage(object):
     """ Class to represent an interface to the FreeImage library.
     This class is relatively thin. It provides a Pythonic API that converts
-    Freeimage objects to Python objects, but that's about it. 
+    Freeimage objects to Python objects, but that's about it.
     The actual implementation should be provided by the plugins.
-    
+
     The recommended way to call into the Freeimage library (so that
-    errors and warnings show up in the right moment) is to use this 
+    errors and warnings show up in the right moment) is to use this
     object as a context manager:
     with imageio.fi as lib:
         lib.FreeImage_GetPalette()
-    
+
     """
 
     _API = {
@@ -535,14 +533,14 @@ class Freeimage(object):
         self._lock.release()
 
     def _reset_log(self):
-        """ Reset the list of output messages. Call this before 
+        """ Reset the list of output messages. Call this before
         loading or saving an image with the FreeImage API.
         """
         self._messages = []
 
     def _get_error_message(self):
-        """ Get the output messages produced since the last reset as 
-        one string. Returns 'No known reason.' if there are no messages. 
+        """ Get the output messages produced since the last reset as
+        one string. Returns 'No known reason.' if there are no messages.
         Also resets the log.
         """
         if self._messages:
@@ -561,7 +559,7 @@ class Freeimage(object):
             self._reset_log()
 
     def get_output_log(self):
-        """ Return a list of the last 256 output messages 
+        """ Return a list of the last 256 output messages
         (warnings and errors) produced by the FreeImage library.
         """
         # This message log is not cleared/reset, but kept to 256 elements.
@@ -571,7 +569,7 @@ class Freeimage(object):
         """ Get the freeimage Format (FIF) from a given filename.
         If mode is 'r', will try to determine the format by reading
         the file, otherwise only the filename is used.
-        
+
         This function also tests whether the format supports reading/writing.
         """
         with self as lib:
@@ -1041,7 +1039,7 @@ class FIBitmap(FIBaseBitmap):
         valid for as long as the bitmap is loaded (if single page) / locked
         in memory (if multipage). This is used in loading data, but
         also during saving, to prepare a strided numpy array buffer.
-        
+
         """
         # Get bitmap info
         with self._fi as lib:

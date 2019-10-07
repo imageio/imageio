@@ -74,8 +74,6 @@ like ``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
 
 """
 
-from __future__ import absolute_import, print_function, division
-
 from numbers import Number
 import re
 

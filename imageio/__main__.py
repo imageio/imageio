@@ -1,7 +1,6 @@
-""" 
+"""
 Console scripts and associated helper methods for imageio.
 """
-from __future__ import print_function
 
 import argparse
 import os
@@ -20,11 +19,11 @@ PLUGINS_WITH_BINARIES = ["avbin", "freeimage"]
 
 def download_bin(plugin_names=["all"], package_dir=False):
     """ Download binary dependencies of plugins
-    
+
     This is a convenience method for downloading the binaries
     (e.g. for freeimage) from the imageio-binaries
     repository.
-    
+
     Parameters
     ----------
     plugin_names: list
@@ -98,10 +97,10 @@ def download_bin_main():
 
 def remove_bin(plugin_names=["all"]):
     """ Remove binary dependencies of plugins
-    
+
     This is a convenience method that removes all binaries
     dependencies for plugins downloaded by imageio.
-    
+
     Notes
     -----
     It only makes sense to use this method if the binaries

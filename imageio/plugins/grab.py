@@ -2,8 +2,6 @@
 PIL-based formats to take screenshots and grab from the clipboard.
 """
 
-from __future__ import absolute_import, print_function, division
-
 import threading
 
 import numpy as np
@@ -55,10 +53,10 @@ class BaseGrabFormat(Format):
 class ScreenGrabFormat(BaseGrabFormat):
     """ The ScreenGrabFormat provided a means to grab screenshots using
     the uri of "<screen>".
-    
+
     This functionality is provided via Pillow. Note that "<screen>" is
     only supported on Windows and OS X.
-    
+
     Parameters for reading
     ----------------------
     No parameters.
@@ -84,10 +82,10 @@ class ScreenGrabFormat(BaseGrabFormat):
 class ClipboardGrabFormat(BaseGrabFormat):
     """ The ClipboardGrabFormat provided a means to grab image data from
     the clipboard, using the uri "<clipboard>"
-    
+
     This functionality is provided via Pillow. Note that "<clipboard>" is
     only supported on Windows.
-    
+
     Parameters for reading
     ----------------------
     No parameters.

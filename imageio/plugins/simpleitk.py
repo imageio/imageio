@@ -4,8 +4,6 @@
 """ Storage of image data in multiple formats.
 """
 
-from __future__ import absolute_import, print_function, division
-
 from .. import formats
 from ..core import Format, has_module
 
