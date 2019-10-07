@@ -34,7 +34,6 @@ import os
 import numpy as np
 
 from . import Array, asarray
-from . import string_types, text_type, binary_type  # noqa
 
 
 class Format(object):
@@ -83,7 +82,7 @@ class Format(object):
         # They are stored as a list of lowercase strings without leading dots.
         if extensions is None:
             extensions = []
-        elif isinstance(extensions, string_types):
+        elif isinstance(extensions, str):
             extensions = extensions.replace(",", " ").split(" ")
         #
         if isinstance(extensions, (tuple, list)):
@@ -95,7 +94,7 @@ class Format(object):
 
         # Store mode
         self._modes = modes or ""
-        if not isinstance(self._modes, string_types):
+        if not isinstance(self._modes, str):
             raise ValueError("Invalid value for modes given.")
         for m in self._modes:
             if m not in "iIvV?":
@@ -552,7 +551,7 @@ class FormatManager(object):
 
     def __getitem__(self, name):
         # Check
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             raise ValueError(
                 "Looking up a format should be done by name " "or by extension."
             )
@@ -615,7 +614,7 @@ class FormatManager(object):
         """
         # Check and sanitize imput
         for name in names:
-            if not isinstance(name, string_types):
+            if not isinstance(name, str):
                 raise TypeError("formats.sort() accepts only string names.")
             if any(c in name for c in ".,"):
                 raise ValueError(

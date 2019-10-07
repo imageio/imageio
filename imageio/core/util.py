@@ -226,9 +226,7 @@ class Dict(OrderedDict):
 
     def __dir__(self):
         isidentifier = lambda x: bool(re.match(r"[a-z_]\w*$", x, re.I))
-        names = [
-            k for k in self.keys() if (isinstance(k, str) and isidentifier(k))
-        ]
+        names = [k for k in self.keys() if (isinstance(k, str) and isidentifier(k))]
         return Dict.__reserved_names__ + names
 
 

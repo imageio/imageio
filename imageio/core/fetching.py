@@ -13,7 +13,7 @@ import shutil
 import time
 
 from . import appdata_dir, resource_dirs
-from . import StdoutProgressIndicator, string_types, urlopen
+from . import StdoutProgressIndicator, urlopen
 
 
 class InternetNotAllowedError(IOError):
@@ -80,7 +80,7 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                     shutil.copy(filename, filename2)
                     return filename2
                 return filename
-            if isinstance(force_download, string_types):
+            if isinstance(force_download, str):
                 ntime = time.strptime(force_download, "%Y-%m-%d")
                 ftime = time.gmtime(op.getctime(filename))
                 if ftime >= ntime:

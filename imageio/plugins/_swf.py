@@ -36,14 +36,11 @@ sources and tools:
 """
 
 import os
-import sys
 import zlib
 import time  # noqa
 import logging
 
 import numpy as np
-
-from ..core import string_types, binary_type
 
 
 logger = logging.getLogger(__name__)
@@ -92,7 +89,7 @@ class BitArray:
             bits = str(bits)
         if isinstance(bits, int):  # pragma: no cover - we dont use it
             bits = str(bits)
-        if not isinstance(bits, string_types):  # pragma: no cover
+        if not isinstance(bits, str):  # pragma: no cover
             raise ValueError("Append bits as strings or integers!")
 
         # add bits
@@ -120,7 +117,7 @@ class BitArray:
         bits = bits.ljust(nbytes * 8, "0")
 
         # go from bits to bytes
-        bb = binary_type()
+        bb = bytes()
         for i in range(nbytes):
             tmp = int(bits[i * 8 : (i + 1) * 8], 2)
             bb += int2uint8(tmp)
@@ -132,12 +129,13 @@ class BitArray:
 def int2uint32(i):
     return int(i).to_bytes(4, "little")
 
+
 def int2uint16(i):
     return int(i).to_bytes(2, "little")
 
+
 def int2uint8(i):
     return int(i).to_bytes(1, "little")
-
 
 
 def int2bits(i, n=None):
@@ -290,7 +288,7 @@ def floats2bits(arr):
 
 class Tag:
     def __init__(self):
-        self.bytes = binary_type()
+        self.bytes = bytes()
         self.tagtype = -1
 
     def process_tag(self):
@@ -377,7 +375,7 @@ class ShowFrameTag(ControlTag):
         self.tagtype = 1
 
     def process_tag(self):
-        self.bytes = binary_type()
+        self.bytes = bytes()
 
 
 class SetBackgroundTag(ControlTag):
@@ -390,7 +388,7 @@ class SetBackgroundTag(ControlTag):
         self.rgb = rgb
 
     def process_tag(self):
-        bb = binary_type()
+        bb = bytes()
         for i in range(3):
             clr = self.rgb[i]
             if isinstance(clr, float):  # pragma: no cover - not used
@@ -409,7 +407,7 @@ class DoActionTag(Tag):
         self.actions.append(action)
 
     def process_tag(self):
-        bb = binary_type()
+        bb = bytes()
 
         for action in self.actions:
             action = action.lower()
@@ -470,7 +468,7 @@ class BitmapTag(DefinitionTag):
     def process_tag(self):
 
         # build tag
-        bb = binary_type()
+        bb = bytes()
         bb += int2uint16(self.id)  # CharacterID
         bb += int2uint8(5)  # BitmapFormat
         bb += int2uint16(self.imshape[1])  # BitmapWidth
@@ -496,7 +494,7 @@ class PlaceObjectTag(ControlTag):
         id = self.idToPlace
 
         # build PlaceObject2
-        bb = binary_type()
+        bb = bytes()
         if self.move:
             bb += "\x07".encode("ascii")
         else:
@@ -519,7 +517,7 @@ class ShapeTag(DefinitionTag):
     def process_tag(self):
         """ Returns a defineshape tag. with a bitmap fill """
 
-        bb = binary_type()
+        bb = bytes()
         bb += int2uint16(self.id)
         xy, wh = self.xy, self.wh
         tmp = self.make_rect_record(xy[0], wh[0], xy[1], wh[1])  # ShapeBounds
@@ -732,7 +730,7 @@ def build_file(
     """ Give the given file (as bytes) a header. """
 
     # compose header
-    bb = binary_type()
+    bb = bytes()
     bb += "F".encode("ascii")  # uncompressed
     bb += "WS".encode("ascii")  # signature bytes
     bb += int2uint8(version)  # version

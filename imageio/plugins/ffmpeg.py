@@ -18,7 +18,7 @@ import subprocess as sp
 import numpy as np
 
 from .. import formats
-from ..core import Format, string_types, image_as_uint
+from ..core import Format, image_as_uint
 
 logger = logging.getLogger(__name__)
 
@@ -261,13 +261,13 @@ class FfmpegFormat(Format):
                 self._arg_size = None
             elif isinstance(size, tuple):
                 self._arg_size = "%ix%i" % size
-            elif isinstance(size, string_types) and "x" in size:
+            elif isinstance(size, str) and "x" in size:
                 self._arg_size = size
             else:
                 raise ValueError('FFMPEG size must be tuple of "NxM"')
             if pixelformat is None:
                 pass
-            elif not isinstance(pixelformat, string_types):
+            elif not isinstance(pixelformat, str):
                 raise ValueError("FFMPEG pixelformat must be str")
             if dtype is None:
                 self._dtype = np.dtype("uint8")

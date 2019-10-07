@@ -4,13 +4,10 @@
 """ BSDF plugin.
 """
 
-import sys
-
 import numpy as np
 
 from .. import formats
 from ..core import Format
-
 
 
 def get_bsdf_serializer(options):
