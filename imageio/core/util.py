@@ -478,7 +478,10 @@ def appdata_dir(appname=None, roaming=False):
             appname = "." + appname.lstrip(".")  # Make it a hidden directory
         path = os.path.join(path, appname)
         if not os.path.isdir(path):  # pragma: no cover
-            os.makedirs(path, exist_ok=True)
+            try:
+                os.makedirs(path)
+            except Exception:
+                pass
 
     # Done
     return path
