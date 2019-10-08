@@ -9,6 +9,13 @@ Planned
 * Improved handling and support for meta data.
 
 
+Version 2.6.1 (08-10-2019)
+==========================
+
+* Fix a regression failing to create the appdatadir on Python 2.7
+  (which is a bit sad for a last release to support Python 2).
+
+
 Version 2.6.0 (07-10-2019)
 ==========================
 
