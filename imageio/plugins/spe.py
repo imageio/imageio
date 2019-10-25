@@ -110,13 +110,13 @@ class Spec:
 
     data_start = 4100
 
-    dtypes = [
-        np.dtype("<f"),
-        np.dtype("<i"),
-        np.dtype("<h"),
-        np.dtype("<H"),
-        np.dtype("<I"),
-    ]
+    dtypes = {
+        0: np.dtype(np.float32),
+        1: np.dtype(np.int32),
+        2: np.dtype(np.int16),
+        3: np.dtype(np.uint16),
+        8: np.dtype(np.uint32),
+        }
 
     controllers = [
         "new120 (Type II)",
