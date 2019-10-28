@@ -116,7 +116,7 @@ class Spec:
         2: np.dtype(np.int16),
         3: np.dtype(np.uint16),
         8: np.dtype(np.uint32),
-        }
+    }
 
     controllers = [
         "new120 (Type II)",
