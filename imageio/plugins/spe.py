@@ -38,7 +38,9 @@ class Spec:
         "datatype": (108, "<h"),  # dtypes
         "xdim": (42, "<H"),
         "ydim": (656, "<H"),
+        "xml_footer_offset": (678, "<Q"),
         "NumFrames": (1446, "<i"),
+        "file_header_ver": (1992, "<f"),
     }
 
     metadata = {
@@ -101,6 +103,7 @@ class Spec:
         "YPrePixels": (102, "<h"),
         "YPostPixels": (104, "<h"),
         "readout_time": (672, "<f"),
+        "xml_footer_offset": (678, "<Q"),
         "type": (704, "<h"),  # controllers
         "clockspeed_us": (1428, "<f"),
         "readout_mode": (1480, "<H"),  # readout_modes
@@ -267,10 +270,14 @@ class SpeFormat(Format):
             self._len = info["NumFrames"]
 
             if check_filesize:
-                # Some software writes incorrecet `NumFrames` metadata
-                # Use the file size to determine the number of frames
-                fsz = os.path.getsize(self.request.get_local_filename())
-                l = fsz - Spec.data_start
+                # Some software writes incorrect `NumFrames` metadata.
+                # To determine the number of frames, check the size of the data
+                # segment -- until the end of the file for SPE<3, until the
+                # xml footer for SPE>=3.
+                data_end = (info["xml_footer_offset"]
+                            if info["file_header_ver"] >= 3 else
+                            os.path.getsize(self.request.get_local_filename()))
+                l = data_end - Spec.data_start
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
                     logger.warning(
