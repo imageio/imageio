@@ -265,6 +265,7 @@ class SpeFormat(Format):
             self._char_encoding = char_encoding
 
             info = self._parse_header(Spec.basic)
+            self._file_header_ver = info["file_header_ver"]
             self._dtype = Spec.dtypes[info["datatype"]]
             self._shape = (info["ydim"], info["xdim"])
             self._len = info["NumFrames"]
@@ -274,16 +275,20 @@ class SpeFormat(Format):
                 # To determine the number of frames, check the size of the data
                 # segment -- until the end of the file for SPE<3, until the
                 # xml footer for SPE>=3.
-                data_end = (info["xml_footer_offset"]
-                            if info["file_header_ver"] >= 3 else
-                            os.path.getsize(self.request.get_local_filename()))
+                data_end = (
+                    info["xml_footer_offset"]
+                    if info["file_header_ver"] >= 3
+                    else os.path.getsize(self.request.get_local_filename())
+                )
                 l = data_end - Spec.data_start
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
                     logger.warning(
                         "The file header of %s claims there are %s frames, "
                         "but there are actually %s frames.",
-                        self.request.filename, self._len, l,
+                        self.request.filename,
+                        self._len,
+                        l,
                     )
                     self._len = min(l, self._len)
 
@@ -291,72 +296,78 @@ class SpeFormat(Format):
 
         def _get_meta_data(self, index):
             if self._meta is None:
-                self._meta = self._parse_header(Spec.metadata)
-
-                nr = self._meta.pop("NumROI", None)
-                nr = 1 if nr < 1 else nr
-                self._meta["ROIs"] = roi_array_to_dict(self._meta["ROIs"][:nr])
-
-                # chip sizes
-                self._meta["chip_size"] = [
-                    self._meta.pop("xDimDet", None),
-                    self._meta.pop("yDimDet", None),
-                ]
-                self._meta["virt_chip_size"] = [
-                    self._meta.pop("VChipXdim", None),
-                    self._meta.pop("VChipYdim", None),
-                ]
-                self._meta["pre_pixels"] = [
-                    self._meta.pop("XPrePixels", None),
-                    self._meta.pop("YPrePixels", None),
-                ]
-                self._meta["post_pixels"] = [
-                    self._meta.pop("XPostPixels", None),
-                    self._meta.pop("YPostPixels", None),
-                ]
-
-                # comments
-                self._meta["comments"] = [str(c) for c in self._meta["comments"]]
-
-                # geometric operations
-                g = []
-                f = self._meta.pop("geometric", 0)
-                if f & 1:
-                    g.append("rotate")
-                if f & 2:
-                    g.append("reverse")
-                if f & 4:
-                    g.append("flip")
-                self._meta["geometric"] = g
-
-                # Make some additional information more human-readable
-                t = self._meta["type"]
-                if 1 <= t <= len(Spec.controllers):
-                    self._meta["type"] = Spec.controllers[t - 1]
+                if self._file_header_ver < 3:
+                    self._init_meta_data_pre_v3()
                 else:
-                    self._meta["type"] = ""
-                m = self._meta["readout_mode"]
-                if 1 <= m <= len(Spec.readout_modes):
-                    self._meta["readout_mode"] = Spec.readout_modes[m - 1]
-                else:
-                    self._meta["readout_mode"] = ""
-
-                # bools
-                for k in (
-                    "absorb_live",
-                    "can_do_virtual_chip",
-                    "threshold_min_live",
-                    "threshold_max_live",
-                ):
-                    self._meta[k] = bool(self._meta[k])
-
-                # frame shape
-                self._meta["frame_shape"] = self._shape
+                    self._init_meta_data_post_v3()
             return self._meta
 
         def _close(self):
             # The file should be closed by `self.request`
             pass
+
+        def _init_meta_data_pre_v3(self):
+            self._meta = self._parse_header(Spec.metadata)
+
+            nr = self._meta.pop("NumROI", None)
+            nr = 1 if nr < 1 else nr
+            self._meta["ROIs"] = roi_array_to_dict(self._meta["ROIs"][:nr])
+
+            # chip sizes
+            self._meta["chip_size"] = [
+                self._meta.pop("xDimDet", None),
+                self._meta.pop("yDimDet", None),
+            ]
+            self._meta["virt_chip_size"] = [
+                self._meta.pop("VChipXdim", None),
+                self._meta.pop("VChipYdim", None),
+            ]
+            self._meta["pre_pixels"] = [
+                self._meta.pop("XPrePixels", None),
+                self._meta.pop("YPrePixels", None),
+            ]
+            self._meta["post_pixels"] = [
+                self._meta.pop("XPostPixels", None),
+                self._meta.pop("YPostPixels", None),
+            ]
+
+            # comments
+            self._meta["comments"] = [str(c) for c in self._meta["comments"]]
+
+            # geometric operations
+            g = []
+            f = self._meta.pop("geometric", 0)
+            if f & 1:
+                g.append("rotate")
+            if f & 2:
+                g.append("reverse")
+            if f & 4:
+                g.append("flip")
+            self._meta["geometric"] = g
+
+            # Make some additional information more human-readable
+            t = self._meta["type"]
+            if 1 <= t <= len(Spec.controllers):
+                self._meta["type"] = Spec.controllers[t - 1]
+            else:
+                self._meta["type"] = ""
+            m = self._meta["readout_mode"]
+            if 1 <= m <= len(Spec.readout_modes):
+                self._meta["readout_mode"] = Spec.readout_modes[m - 1]
+            else:
+                self._meta["readout_mode"] = ""
+
+            # bools
+            for k in (
+                "absorb_live",
+                "can_do_virtual_chip",
+                "threshold_min_live",
+                "threshold_max_live",
+            ):
+                self._meta[k] = bool(self._meta[k])
+
+            # frame shape
+            self._meta["frame_shape"] = self._shape
 
         def _parse_header(self, spec):
             ret = {}
@@ -386,6 +397,12 @@ class SpeFormat(Format):
                     v = np.squeeze(v)
                 ret[name] = v
             return ret
+
+        def _init_meta_data_post_v3(self):
+            info = self._parse_header(Spec.basic)
+            self._file.seek(info["xml_footer_offset"])
+            xml = self._file.read()
+            self._meta = {"__xml": xml}
 
         def _get_length(self):
             if self.request.mode[1] in "vV":
