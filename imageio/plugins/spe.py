@@ -274,8 +274,9 @@ class SpeFormat(Format):
                 l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if l != self._len:
                     logger.warning(
-                        "Number of frames according to file header "
-                        "does not match the size of file %s." % self.request.filename
+                        "The file header of %s claims there are %s frames, "
+                        "but there are actually %s frames.",
+                        self.request.filename, self._len, l,
                     )
                     self._len = min(l, self._len)
 
