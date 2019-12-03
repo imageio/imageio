@@ -30,6 +30,7 @@ WRITE_METADATA_KEYS = (
     "resolution",
     "description",
     "compress",
+    "predictor",
     "volume",
     "writeshape",
     "extratags",
@@ -51,6 +52,7 @@ READ_METADATA_KEYS = (
     "is_tiled",
     "is_mdgel" "resolution_unit",
     "compression",
+    "predictor",
     "is_mediacy",
     "orientation",
     "description",
@@ -104,8 +106,13 @@ class TiffFormat(Format):
     resolution_unit : (float, float) or ((int, int), (int, int))
         X and Y resolution in dots per inch as float or rational numbers.
     compression : int
-        Values from 0 to 9 indicating the level of zlib compression.
-        If 0, data is uncompressed.
+        Value indicating the compression algorithm used, e.g. 5 is LZW,
+        7 is JPEG, 8 is deflate.
+        If 1, data is uncompressed.
+    predictor : int
+        Value 2 indicates horizontal differencing was used before compression,
+        while 3 indicates floating point horizontal differencing.
+        If 1, no prediction scheme was used before compression.
     orientation : {'top_left', 'bottom_right', ...}
         Oriented of image array.
     is_rgb : bool
@@ -166,8 +173,10 @@ class TiffFormat(Format):
     description : str
         The subject of the image. Saved with the first page only.
     compress : int
-        Values from 0 to 9 controlling the level of zlib compression.
+        Values from 0 to 9 controlling the level of zlib (deflate) compression.
         If 0, data are written uncompressed (default).
+    predictor : bool
+        If True, horizontal differencing is applied before compression.
     volume : bool
         If True, volume data are stored in one tile (if applicable) using
         the SGI image_depth and tile_depth tags.
