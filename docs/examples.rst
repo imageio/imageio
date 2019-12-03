@@ -244,7 +244,7 @@ We start by importing the library method:
    
 The new optimized GIF now weights 870KB, almost 3 times less.
 
-Putting everything togheter:
+Putting everything together:
 
 .. code-block:: python
 
