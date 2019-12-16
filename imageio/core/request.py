@@ -201,12 +201,15 @@ class Request(object):
                 zip_i = self._filename.lower().find(needle)
                 if zip_i > 0:
                     zip_i += 4
-                    self._uri_type = URI_ZIPPED
-                    self._filename_zip = (
-                        self._filename[:zip_i],
-                        self._filename[zip_i:].lstrip("/\\"),
-                    )
-                    break
+                    zip_path = self._filename[:zip_i]
+                    if is_write_request or os.path.isfile(zip_path):
+                        self._uri_type = URI_ZIPPED
+
+                        self._filename_zip = (
+                            zip_path,
+                            self._filename[zip_i:].lstrip("/\\"),
+                        )
+                        break
 
         # Check if we could read it
         if self._uri_type is None:

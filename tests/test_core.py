@@ -8,6 +8,7 @@ import shutil
 import ctypes.util
 from zipfile import ZipFile
 from io import BytesIO
+import tempfile
 
 import numpy as np
 import pytest
@@ -199,6 +200,17 @@ def test_request():
     R = Request("imageio:chelsea.zip/chelsea.png", "ri")
     assert R._filename_zip[0] == get_remote_file("images/chelsea.zip")
     assert R.filename == get_remote_file("images/chelsea.zip") + "/chelsea.png"
+
+    # Test zip false-positive detection
+    with tempfile.TemporaryDirectory() as tmp_path:
+        bait_zip = os.path.join(tmp_path, "test.zip")
+        os.mkdir(bait_zip)
+        file_path = os.path.join(bait_zip, "foo.jpg")
+        chelsia = get_remote_file("images/chelsea.png")
+        shutil.copy(chelsia, file_path)
+
+        R = Request(file_path, "ri")
+        assert R._uri_type == core.request.URI_FILENAME
 
 
 def test_request_read_sources():
