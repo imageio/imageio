@@ -108,11 +108,7 @@ class TiffFormat(Format):
     compression : int
         Value indicating the compression algorithm used, e.g. 5 is LZW,
         7 is JPEG, 8 is deflate.
-<<<<<<< HEAD
         If 1, data are uncompressed.
-=======
-        If 1, data is uncompressed.
->>>>>>> aa84bdf6e47f5283a5a19b9d1320d20d60e352f1
     predictor : int
         Value 2 indicates horizontal differencing was used before compression,
         while 3 indicates floating point horizontal differencing.
@@ -181,11 +177,8 @@ class TiffFormat(Format):
         If 0, data are written uncompressed (default).
     predictor : bool
         If True, horizontal differencing is applied before compression.
-<<<<<<< HEAD
         Note that using an int literal 1 actually means no prediction scheme
         will be used.
-=======
->>>>>>> aa84bdf6e47f5283a5a19b9d1320d20d60e352f1
     volume : bool
         If True, volume data are stored in one tile (if applicable) using
         the SGI image_depth and tile_depth tags.
