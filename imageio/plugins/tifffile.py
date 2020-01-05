@@ -108,7 +108,7 @@ class TiffFormat(Format):
     compression : int
         Value indicating the compression algorithm used, e.g. 5 is LZW,
         7 is JPEG, 8 is deflate.
-        If 1, data is uncompressed.
+        If 1, data are uncompressed.
     predictor : int
         Value 2 indicates horizontal differencing was used before compression,
         while 3 indicates floating point horizontal differencing.
@@ -177,6 +177,8 @@ class TiffFormat(Format):
         If 0, data are written uncompressed (default).
     predictor : bool
         If True, horizontal differencing is applied before compression.
+        Note that using an int literal 1 actually means no prediction scheme
+        will be used.
     volume : bool
         If True, volume data are stored in one tile (if applicable) using
         the SGI image_depth and tile_depth tags.
@@ -215,7 +217,7 @@ class TiffFormat(Format):
         def _open(self, **kwargs):
             if not _tifffile:
                 load_lib()
-            # Allow loading from http; tiffile uses seek, so download first
+            # Allow loading from http; tifffile uses seek, so download first
             if self.request.filename.startswith(("http://", "https://")):
                 self._f = f = open(self.request.get_local_filename(), "rb")
             else:
@@ -300,7 +302,7 @@ class TiffFormat(Format):
         def _append_data(self, im, meta):
             if meta:
                 self.set_meta_data(meta)
-            # No need to check self.request.mode; tiffile figures out whether
+            # No need to check self.request.mode; tifffile figures out whether
             # this is a single page, or all page data at once.
             if self._software is None:
                 self._tf.save(np.asanyarray(im), **self._meta)
@@ -312,7 +314,12 @@ class TiffFormat(Format):
             self._meta = {}
             for (key, value) in meta.items():
                 if key in WRITE_METADATA_KEYS:
-                    self._meta[key] = value
+                    # Special case of previously read `predictor` int value
+                    # 1(=NONE) translation to False expected by TiffWriter.save
+                    if key=="predictor" and not isinstance(value, bool):
+                        self._meta[key] = value > 1
+                    else:
+                        self._meta[key] = value
 
 
 # Register

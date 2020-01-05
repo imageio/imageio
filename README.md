@@ -37,7 +37,7 @@ As a user, you just have to remember a handfull of functions:
     <li>imread() and imwrite() - for single images</li>
     <li>mimread() and mimwrite() - for image series (animations)</li>
     <li>volread() and volwrite() - for volumetric image data</li>
-    <li>get_reader() and get_writer() - for more control (e.g. streaming)</li>
+    <li>get_reader() and get_writer() - for more control (e.g. streaming or compression)</li>
     <li>See the <a href='http://imageio.readthedocs.io/en/latest/userapi.html'>user api</a> for more information</li>
 </ul>
 
