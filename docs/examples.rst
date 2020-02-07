@@ -13,7 +13,7 @@ Therefore most examples below should just work.
 Read an image of a cat
 ----------------------
 
-Probably the most important thing you ever need.
+Probably the most important thing you'll ever need.
 
 .. code-block:: python
 
@@ -21,6 +21,25 @@ Probably the most important thing you ever need.
 
     im = imageio.imread('imageio:chelsea.png')
     print(im.shape)
+    
+If the image is a GIF:
+
+.. code-block:: python
+
+    import imageio
+    
+    im = imageio.get_reader('cat.gif')
+    for frame in im:
+      # Each frame is a numpy matrix
+      
+If the GIF is stored in memory:
+
+.. code-block:: python
+
+    import imageio
+    
+    im = imageio.get_reader(image_bytes, '.gif')
+    
 
 
 Read from fancy sources
