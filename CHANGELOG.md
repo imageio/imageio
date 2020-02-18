@@ -42,6 +42,11 @@ released, which fixes several (stability) issues for video io.
 * Drop support for AVbin, use ffmpeg instead.
 
 
+## [2.6.1] - 2019-10-08
+
+* Fixed potential error when creating a new appdata directory.
+
+
 ## [2.6.0] - 2019-10-07
 
 This will likely be the last release to support Python 2.7.
