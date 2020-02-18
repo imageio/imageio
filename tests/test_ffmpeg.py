@@ -103,7 +103,7 @@ def test_select():
 
 def test_integer_reader_length():
     # Avoid regression for #280
-    r = imageio.get_reader('imageio:cockatoo.mp4')
+    r = imageio.get_reader("imageio:cockatoo.mp4")
     assert r.get_length() == float("inf")
     assert isinstance(len(r), int)
     assert len(r) == sys.maxsize

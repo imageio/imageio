@@ -316,7 +316,7 @@ class TiffFormat(Format):
                 if key in WRITE_METADATA_KEYS:
                     # Special case of previously read `predictor` int value
                     # 1(=NONE) translation to False expected by TiffWriter.save
-                    if key=="predictor" and not isinstance(value, bool):
+                    if key == "predictor" and not isinstance(value, bool):
                         self._meta[key] = value > 1
                     else:
                         self._meta[key] = value

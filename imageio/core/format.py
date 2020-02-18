@@ -45,6 +45,7 @@ MODENAMES = {
     "?": "any-mode",
 }
 
+
 class Format(object):
     """ Represents an implementation to read/write a particular file format
     
