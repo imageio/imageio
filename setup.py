@@ -83,8 +83,8 @@ Example:
     (512, 512, 3)
     >>> imageio.imwrite('astronaut-gray.jpg', im[:, :, 0])
 
-See the `user API <http://imageio.readthedocs.io/en/latest/userapi.html>`_
-or `examples <http://imageio.readthedocs.io/en/latest/examples.html>`_
+See the `user API <https://imageio.readthedocs.io/en/latest/userapi.html>`_
+or `examples <https://imageio.readthedocs.io/en/latest/examples.html>`_
 for more information.
 """
 

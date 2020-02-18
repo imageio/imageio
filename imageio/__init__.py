@@ -11,7 +11,7 @@ write a wide range of image data, including animated images, volumetric
 data, and scientific formats. It is cross-platform, runs on Python 3.5+,
 and is easy to install.
 
-Main website: http://imageio.github.io
+Main website: https://imageio.github.io
 """
 
 # flake8: noqa

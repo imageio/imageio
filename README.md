@@ -8,7 +8,7 @@
 [![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1488561.svg)](https://doi.org/10.5281/zenodo.1488561)
 
-Website: http://imageio.github.io
+Website: https://imageio.github.io
 
 <!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
 
@@ -21,7 +21,7 @@ Python 3.5+, and is easy to install.
 
 <h2>Example</h2>
 Here's a minimal example of how to use imageio. See the docs for
-<a href='http://imageio.readthedocs.io/en/latest/examples.html'>more examples</a>.
+<a href='https://imageio.readthedocs.io/en/stable/examples.html'>more examples</a>.
 <pre>
 import imageio
 im = imageio.imread('imageio:chelsea.png')  # read a standard image
@@ -38,18 +38,18 @@ As a user, you just have to remember a handfull of functions:
     <li>mimread() and mimwrite() - for image series (animations)</li>
     <li>volread() and volwrite() - for volumetric image data</li>
     <li>get_reader() and get_writer() - for more control (e.g. streaming or compression)</li>
-    <li>See the <a href='http://imageio.readthedocs.io/en/latest/userapi.html'>user api</a> for more information</li>
+    <li>See the <a href='https://imageio.readthedocs.io/en/stable/userapi.html'>user api</a> for more information</li>
 </ul>
 
 
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a consise set of functions.</li>
-    <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>
+    <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/installation.html'>install</a> using conda or pip.</li>
     <li>Few dependencies (only Numpy and Pillow).</li>
     <li>Pure Python, runs on Python 3.5+, and Pypy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
-    <li>Lots of supported <a href='http://imageio.readthedocs.io/en/latest/formats.html'>formats</a>.</li>
+    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats.html'>formats</a>.</li>
     <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
     <li>Easy to extend using plugins.</li>
     <li>Code quality is maintained with many tests and continuous integration.</li>
