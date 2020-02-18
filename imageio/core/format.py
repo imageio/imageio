@@ -30,10 +30,20 @@ a format object using ``imageio.formats.add_format()``.
 # imageio.get_reader and imageio.get_writer.
 
 import os
+import sys
 
 import numpy as np
 
 from . import Array, asarray
+
+
+MODENAMES = {
+    "i": "single-image",
+    "I": "multi-image",
+    "v": "single-volume",
+    "V": "multi-volume",
+    "?": "any-mode",
+}
 
 
 class Format(object):
@@ -153,8 +163,9 @@ class Format(object):
         """
         select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
+            modename = MODENAMES.get(select_mode, select_mode)
             raise RuntimeError(
-                "Format %s cannot read in mode %r" % (self.name, select_mode)
+                "Format %s cannot read in %s mode" % (self.name, modename)
             )
         return self.Reader(self, request)
 
@@ -167,8 +178,9 @@ class Format(object):
         """
         select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
+            modename = MODENAMES.get(select_mode, select_mode)
             raise RuntimeError(
-                "Format %s cannot write in mode %r" % (self.name, select_mode)
+                "Format %s cannot write in %s mode" % (self.name, modename)
             )
         return self.Writer(self, request)
 
@@ -407,7 +419,10 @@ class Format(object):
             return self.iter_data()
 
         def __len__(self):
-            return self.get_length()
+            n = self.get_length()
+            if n == float("inf"):
+                n = sys.maxsize
+            return n
 
         # To implement
 
