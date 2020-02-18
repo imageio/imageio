@@ -48,12 +48,32 @@ As a user, you just have to remember a handfull of functions:
     <li>Easy to <a href='http://imageio.readthedocs.io/en/latest/installation.html'>install</a> using conda or pip.</li>
     <li>Few dependencies (only Numpy and Pillow).</li>
     <li>Pure Python, runs on Python 3.5+, and Pypy</li>
-    <li>Cross platform, runs on Windows, Linux, OS X (Raspberry Pi planned)</li>
+    <li>Cross platform, runs on Windows, Linux, macOS</li>
     <li>Lots of supported <a href='http://imageio.readthedocs.io/en/latest/formats.html'>formats</a>.</li>
     <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
     <li>Easy to extend using plugins.</li>
     <li>Code quality is maintained with many tests and continuous integration.</li>
 </ul>
+
+
+<h2>Dependencies</h2>
+
+Minimal requirements:
+<ul>
+    <li>Python 3.5+</li>
+    <li>Numpy</li>
+    <li>Pillow</li>
+</ul>
+
+Optional Python packages:
+<ul>
+    <li>imageio-ffmpeg (for working with video files)</li>
+    <li>itk or SimpleITK (for ITK formats)</li>
+    <li>astropy (for FITS plugin)</li>
+    <li>osgeo (for GDAL plugin)</li>
+</ul>
+
+Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
 
 
 <h2>Citing imageio</h2>
@@ -86,11 +106,6 @@ sources (like http), and exposes a simple API for the plugins to access
 the raw data. All file formats are implemented in plugins. Additional
 plugins can easily be registered.
 </p><p>
-Some plugins rely on external libraries (e.g. ffmpeg). Imageio provides
-a way to download these with one function call, and prompts the user to do
-so when needed. The download is cached in your appdata
-directory, this keeps imageio light and scalable.
-</p><p>
 Imageio provides a wide range of image formats, including scientific
 formats. Any help with implementing more formats is very welcome!
 </p><p>
@@ -98,51 +113,6 @@ The codebase adheres to (a subset of) the PEP8 style guides. We strive
 for maximum test coverage (100% for the core, >95% for each plugin).
 </p>
 
-
-<h2>Dependencies</h2>
-
-Minimal requirements:
-<ul>
-    <li>Python 3.5+</li>
-    <li>Numpy</li>
-    <li>Pillow</li>
-</ul>
-
-Optional Python packages:
-<ul>
-    <li>imageio-ffmpeg (for working with video files)</li>
-    <li>itk or SimpleITK (for ITK formats)</li>
-    <li>astropy (for FITS plugin)</li>
-    <li>osgeo (for GDAL plugin)</li>
-</ul>
-
-Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
-
-
-<h2>Origin and outlook</h2>
-<p>
-Imageio was based out of the frustration that many libraries that needed
-to read or write image data produced their own functionality for IO.
-PIL did not meet the needs very well, and libraries like scikit-image
-need to be able to deal with scientific formats. There was a
-need for a good image io library, which is an easy dependency, easy to
-maintain, and scalable to exotic file formats.
-</p><p>
-Imageio started out as component of the scikit-image
-project, through which it was able to support a lot of common formats.
-We created a simple but powerful core, a clean user API, and a proper
-plugin system.
-</p><p>
-The purpose of imageio is to support reading and writing of image data.
-We're not processing images, you should use e.g. scikit-image for that. Imageio
-should be easy to install and be lightweight. Imageio's plugin system
-makes it possible to scale the number of supported formats and still
-keep a small footprint.
-</p><p>
-It is our hope to form a group of developers, whom each maintain
-one or more plugins. In that way, the burden of each developer is low,
-and together we can make imageio into a really useful library!
-</p>
 
 <h2>Contributing</h2>
 
