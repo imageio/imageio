@@ -94,7 +94,6 @@ package_data = [
     "resources/*.*",
     "resources/images/*.*",
     "resources/freeimage/*.*",
-    "resources/ffmpeg/*.*",
 ]
 
 
@@ -132,11 +131,6 @@ def _set_platform_resources(resource_dir, platform):
     imageio.core.get_remote_file(
         "freeimage/" + fname, resource_dir, force_download=True
     )
-
-    # Load ffmpeg
-    # fname = imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[platform]
-    # imageio.core.get_remote_file('ffmpeg/'+fname, resource_dir,
-    #                             force_download=True)
 
 
 class test_command(Command):
@@ -201,8 +195,8 @@ setup(
     version=__version__,
     author="imageio contributors",
     author_email="almar.klein@gmail.com",
-    license="(new) BSD",
-    url="http://imageio.github.io/",
+    license="BSD-2-Clause",
+    url="https://github.com/imageio/imageio",
     download_url="http://pypi.python.org/pypi/imageio",
     keywords="image video volume imread imwrite io animation ffmpeg",
     description=description,
