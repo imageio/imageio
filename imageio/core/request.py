@@ -340,12 +340,12 @@ class Request(object):
                 # Open zipfile and open new file object for specific file
                 self._zipfile = zipfile.ZipFile(filename, "r")
                 self._file = self._zipfile.open(name, "r")
-                make_file_object_support_noop_seeks(self._file)
+                self._file = SeekableFileObject(self._file)
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
-            make_file_object_support_noop_seeks(self._file)
+            self._file = SeekableFileObject(self._file)
 
         return self._file
 
@@ -482,33 +482,90 @@ def read_n_bytes(f, N):
     return bb
 
 
-def make_file_object_support_noop_seeks(f):
-    """This fixes up an HTTPResponse object so that it can tell(), and also
-    seek() will work if its effectively a no-op. This allows tools like Pillow
-    to use the file object.
+class SeekableFileObject:
+    """ A readonly wrapper file object that add support for seeking, even if
+    the wrapped file object does not. The allows us to stream from http and
+    still use Pillow.
     """
-    count = [0]
 
-    def read(n=None):
-        res = ori_read(n)
-        count[0] += len(res)
+    def __init__(self, f):
+        self.f = f
+        self._i = 0  # >=0 but can exceed buffer
+        self._buffer = b""
+        self._have_all = False
+        self.closed = False
+
+    def read(self, n=None):
+
+        # Fix up n
+        if n is None:
+            pass
+        else:
+            n = int(n)
+            if n < 0:
+                n = None
+
+        # Can and must we read more?
+        if not self._have_all:
+            more = b""
+            if n is None:
+                more = self.f.read()
+                self._have_all = True
+            else:
+                want_i = self._i + n
+                want_more = want_i - len(self._buffer)
+                if want_more > 0:
+                    more = self.f.read(want_more)
+                    if len(more) < want_more:
+                        self._have_all = True
+            self._buffer += more
+
+        # Read data from buffer and update pointer
+        if n is None:
+            res = self._buffer[self._i :]
+        else:
+            res = self._buffer[self._i : self._i + n]
+        self._i += len(res)
+
         return res
 
-    def tell():
-        return count[0]
+    def tell(self):
+        return self._i
 
-    def seek(i, mode=0):
-        if not (mode == 0 and i == count[0]):
-            ori_seek(i, mode)
+    def seek(self, i, mode=0):
+        # Mimic BytesIO behavior
 
-    def fail_seek(i, mode=0):
-        raise RuntimeError("No seeking allowed!")
+        # Get the absolute new position
+        i = int(i)
+        if mode == 0:
+            if i < 0:
+                raise ValueError("negative seek value " + str(i))
+            real_i = i
+        elif mode == 1:
+            real_i = max(0, self._i + i)  # negative ok here
+        elif mode == 2:
+            if not self._have_all:
+                self.read()
+            real_i = max(0, len(self._buffer) + i)
+        else:
+            raise ValueError("invalid whence (%s, should be 0, 1 or 2)" % i)
 
-    # Note, there is currently no protection from wrapping an object more than
-    # once, it will (probably) work though, because closures.
-    ori_read = f.read
-    ori_seek = f.seek if hasattr(f, "seek") else fail_seek
+        # Read some?
+        if real_i <= len(self._buffer):
+            pass  # no need to read
+        elif not self._have_all:
+            assert real_i > self._i  # if we don't have all, _i cannot be > _buffer
+            self.read(real_i - self._i)  # sets self._i
 
-    f.read = read
-    f.tell = tell
-    f.seek = seek
+        self._i = real_i
+        return self._i
+
+    def close(self):
+        self.closed = True
+        self.f.close()
+
+    def isatty(self):
+        return False
+
+    def seekable(self):
+        return True

@@ -1,14 +1,15 @@
 """ Test imageio core functionality.
 """
 
-import time
-import sys
 import os
+import sys
+import time
 import shutil
-import ctypes.util
-from zipfile import ZipFile
-from io import BytesIO
+import random
 import tempfile
+import ctypes.util
+from io import BytesIO
+from zipfile import ZipFile
 
 import numpy as np
 import pytest
@@ -304,6 +305,60 @@ def test_request_save_sources():
             assert zf.open(fname2).read() == bytes
         assert file2.getvalue() == bytes
         assert res == bytes
+
+
+def test_request_seekable_file_object():
+    SeekableFileObject = imageio.core.request.SeekableFileObject
+    data = bytes([int(random.uniform(0, 255)) for i in range(100)])
+    f1 = BytesIO(data)
+    f2 = SeekableFileObject(f1)
+
+    # Test all kinds of seeks, reads and tells
+    resses = []
+    for f in (f1, f2):
+        (f1.seek(0), f2.seek(0))
+        res = [
+            f.read(8),
+            f.tell(),
+            f.seek(0),
+            f.tell(),
+            f.read(8),
+            f.read(),
+            f.seek(20, 1),
+            f.read(8),
+            f.seek(10, 2),
+            f.read(8),
+            f.seek(-10, 2),
+            f.read(8),
+            f.seek(-20, 2),
+            f.tell(),
+            f.read(8),
+            f.read(0),
+            f.read(-1),
+        ]
+        resses.append(res)
+    assert resses[0] == resses[1]
+
+    # Test out of bounds
+    for f in (f1, f2):
+        # Align them
+        (f1.seek(0), f2.seek(0))
+        f.seek(3)
+        assert f.tell() == 3
+        with raises(ValueError):
+            f.seek(-10)
+        assert f.tell() == 3
+        f.seek(-10, 1)  # no raise!
+        assert f.tell() == 0
+        f.seek(-10, 2)
+        assert f.tell() == 90
+        f.seek(10, 2)
+        assert f.tell() == 110
+        assert f.read(1) == b""
+        f.seek(20, 1)
+        assert f.tell() == 130
+        f.seek(150)
+        assert f.tell() == 150
 
 
 def test_request_file_no_seek():
