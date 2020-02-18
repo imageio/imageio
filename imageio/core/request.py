@@ -340,10 +340,12 @@ class Request(object):
                 # Open zipfile and open new file object for specific file
                 self._zipfile = zipfile.ZipFile(filename, "r")
                 self._file = self._zipfile.open(name, "r")
+                self._file = SeekableFileObject(self._file)
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
             self._file = urlopen(self.filename, timeout=5)
+            self._file = SeekableFileObject(self._file)
 
         return self._file
 
@@ -491,6 +493,7 @@ class SeekableFileObject:
         self._i = 0  # >=0 but can exceed buffer
         self._buffer = b""
         self._have_all = False
+        self.closed = False
 
     def read(self, n=None):
 
@@ -556,3 +559,13 @@ class SeekableFileObject:
 
         self._i = real_i
         return self._i
+
+    def close(self):
+        self.closed = True
+        self.f.close()
+
+    def isatty(self):
+        return False
+
+    def seekable(self):
+        return True
