@@ -30,6 +30,7 @@ a format object using ``imageio.formats.add_format()``.
 # imageio.get_reader and imageio.get_writer.
 
 import os
+import sys
 
 import numpy as np
 
@@ -407,7 +408,10 @@ class Format(object):
             return self.iter_data()
 
         def __len__(self):
-            return self.get_length()
+            n = self.get_length()
+            if n == float("inf"):
+                n = sys.maxsize
+            return n
 
         # To implement
 
