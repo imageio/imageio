@@ -95,7 +95,6 @@ package_data = [
     "resources/images/*.*",
     "resources/freeimage/*.*",
     "resources/ffmpeg/*.*",
-    "resources/avbin/*.*",
 ]
 
 

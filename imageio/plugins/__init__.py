@@ -14,9 +14,9 @@ imageio codebase!
 What is a plugin
 ----------------
 
-In imageio, a plugin provides one or more :class:`.Format` objects, and 
+In imageio, a plugin provides one or more :class:`.Format` objects, and
 corresponding :class:`.Reader` and :class:`.Writer` classes.
-Each Format object represents an implementation to read/write a 
+Each Format object represents an implementation to read/write a
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.
 
@@ -29,12 +29,12 @@ data.
 Registering
 -----------
 
-Strictly speaking a format can be used stand alone. However, to allow 
+Strictly speaking a format can be used stand alone. However, to allow
 imageio to automatically select it for a specific file, the format must
-be registered using ``imageio.formats.add_format()``. 
+be registered using ``imageio.formats.add_format()``.
 
 Note that a plugin is not required to be part of the imageio package; as
-long as a format is registered, imageio can use it. This makes imageio very 
+long as a format is registered, imageio can use it. This makes imageio very
 easy to extend.
 
 
@@ -54,12 +54,12 @@ For the Format class, the following needs to be implemented/specified:
   * Use a docstring to provide more detailed information about the
     format/plugin, such as parameters for reading and saving that the user
     can supply via keyword arguments.
-  * Implement ``_can_read(request)``, return a bool. 
+  * Implement ``_can_read(request)``, return a bool.
     See also the :class:`.Request` class.
   * Implement ``_can_write(request)``, dito.
 
 For the Format.Reader class:
-  
+
   * Implement ``_open(**kwargs)`` to initialize the reader. Deal with the
     user-provided keyword arguments here.
   * Implement ``_close()`` to clean up.
@@ -70,7 +70,7 @@ For the Format.Reader class:
     is None, it should return the 'global' meta-data.
 
 For the Format.Writer class:
-    
+
   * Implement ``_open(**kwargs)`` to initialize the writer. Deal with the
     user-provided keyword arguments here.
   * Implement ``_close()`` to clean up.
@@ -88,7 +88,6 @@ from . import freeimage
 from . import freeimagemulti
 
 from . import ffmpeg
-from . import avbin
 
 from . import bsdf
 from . import dicom

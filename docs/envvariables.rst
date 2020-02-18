@@ -13,8 +13,6 @@ for the current Python process use
   freeimage and ffmpeg) will try to use the system version in this case.
 * ``IMAGEIO_FFMPEG_EXE``: Set the path to the ffmpeg executable. Set
   to simply "ffmpeg" to use your system ffmpeg executable.
-* ``IMAGEIO_AVBIN_LIB``: Set the path to the avbin library. If not given,
-  will prompt the user to download the avbin library that imageio provides.
 * ``IMAGEIO_FREEIMAGE_LIB``: Set the path to the freeimage library. If
   not given, will prompt user to download the freeimage library.
 * ``IMAGEIO_FORMAT_ORDER``: Determine format preference. E.g. setting this

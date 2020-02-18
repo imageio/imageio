@@ -254,7 +254,7 @@ def test_reader_more():
 
     # Now read beyond (simulate broken file)
     with raises(StopIteration):
-        R._read_frame()  # ffmpeg seems to have an extra frame, avbin not?
+        R._read_frame()  # ffmpeg seems to have an extra frame
         R._read_frame()
 
     # Set the image index to 0 and go again

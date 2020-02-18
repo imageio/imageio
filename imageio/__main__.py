@@ -14,7 +14,7 @@ from .core import util
 
 # A list of plugins that require binaries from the imageio-binaries
 # repository. These plugins must implement the `download` method.
-PLUGINS_WITH_BINARIES = ["avbin", "freeimage"]
+PLUGINS_WITH_BINARIES = ["freeimage"]
 
 
 def download_bin(plugin_names=["all"], package_dir=False):
@@ -76,7 +76,7 @@ def download_bin_main():
     example_text = (
         "examples:\n"
         + "  imageio_download_bin all\n"
-        + "  imageio_download_bin avbin\n"
+        + "  imageio_download_bin freeimage\n"
     )
     parser = argparse.ArgumentParser(
         description=description,
@@ -146,7 +146,9 @@ def remove_bin_main():
         + "If no argument is given, all binaries are removed."
     )
     example_text = (
-        "examples:\n" + "  imageio_remove_bin all\n" + "  imageio_remove_bin avbin\n"
+        "examples:\n"
+        + "  imageio_remove_bin all\n"
+        + "  imageio_remove_bin freeimage\n"
     )
     parser = argparse.ArgumentParser(
         description=description,
