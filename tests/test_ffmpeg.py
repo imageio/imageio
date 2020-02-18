@@ -4,6 +4,7 @@
 
 from io import BytesIO
 import os
+import sys
 import gc
 import time
 import threading
@@ -98,6 +99,16 @@ def test_select():
     assert imageio.formats[".mp4"] is F
     assert imageio.formats.search_write_format(core.Request(fname1, "wI")) is F
     assert imageio.formats.search_read_format(core.Request(fname1, "rI")) is F
+
+
+def test_integer_reader_length():
+    # Avoid regression for #280
+    r = imageio.get_reader('imageio:cockatoo.mp4')
+    assert r.get_length() == float("inf")
+    assert isinstance(len(r), int)
+    assert len(r) == sys.maxsize
+    assert bool(r)
+    assert True if r else False
 
 
 def test_read_and_write():
