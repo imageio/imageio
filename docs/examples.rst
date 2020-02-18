@@ -30,8 +30,8 @@ If the image is a GIF:
     
     im = imageio.get_reader('cat.gif')
     for frame in im:
-      # Each frame is a numpy matrix
-      
+        print(im.shape)  # Each frame is a numpy matrix
+    
 If the GIF is stored in memory:
 
 .. code-block:: python
@@ -40,7 +40,6 @@ If the GIF is stored in memory:
     
     im = imageio.get_reader(image_bytes, '.gif')
     
-
 
 Read from fancy sources
 -----------------------
