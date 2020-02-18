@@ -63,6 +63,21 @@ We have a <a href='https://doi.org/10.5281/zenodo.1488561'>DOI</a>!
 </p>
 
 
+<h2>Security contact information</h2>
+
+To report a security vulnerability, please use the
+<a href='https://tidelift.com/security'>Tidelift security contact</a>.
+Tidelift will coordinate the fix and disclosure.
+
+
+<h2>imageio for enterprise</h2>
+
+Available as part of the Tidelift Subscription
+
+The maintainers of imageio and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use.
+<a href='https://tidelift.com/subscription/pkg/pypi-imageio?utm_source=pypi-imageio&utm_medium=referral&utm_campaign=readme'>Learn more.
+
+
 <h2>Details</h2>
 <p>
 Imageio has a relatively simple core that provides a common interface
