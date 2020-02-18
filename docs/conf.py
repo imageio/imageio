@@ -53,7 +53,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"imageio"
-copyright = u"2014-2019, imageio contributors"
+copyright = u"2014-2020, imageio contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

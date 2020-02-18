@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2019, imageio contributors
+# Copyright (C) 2014-2020, imageio contributors
 #
 # imageio is distributed under the terms of the (new) BSD License.
 # The full license can be found in 'license.txt'.
@@ -71,7 +71,7 @@ long_description = """
 
 __doc__
 
-Release notes: http://imageio.readthedocs.io/en/latest/releasenotes.html
+Release notes: hhttps://github.com/imageio/imageio/blob/master/CHANGELOG.md
 
 Example:
 
@@ -94,7 +94,6 @@ package_data = [
     "resources/*.*",
     "resources/images/*.*",
     "resources/freeimage/*.*",
-    "resources/ffmpeg/*.*",
 ]
 
 
@@ -132,11 +131,6 @@ def _set_platform_resources(resource_dir, platform):
     imageio.core.get_remote_file(
         "freeimage/" + fname, resource_dir, force_download=True
     )
-
-    # Load ffmpeg
-    # fname = imageio.plugins.ffmpeg.FNAME_PER_PLATFORM[platform]
-    # imageio.core.get_remote_file('ffmpeg/'+fname, resource_dir,
-    #                             force_download=True)
 
 
 class test_command(Command):
@@ -201,8 +195,8 @@ setup(
     version=__version__,
     author="imageio contributors",
     author_email="almar.klein@gmail.com",
-    license="(new) BSD",
-    url="http://imageio.github.io/",
+    license="BSD-2-Clause",
+    url="https://github.com/imageio/imageio",
     download_url="http://pypi.python.org/pypi/imageio",
     keywords="image video volume imread imwrite io animation ffmpeg",
     description=description,
