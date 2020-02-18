@@ -71,7 +71,7 @@ long_description = """
 
 __doc__
 
-Release notes: http://imageio.readthedocs.io/en/latest/releasenotes.html
+Release notes: hhttps://github.com/imageio/imageio/blob/master/CHANGELOG.md
 
 Example:
 
