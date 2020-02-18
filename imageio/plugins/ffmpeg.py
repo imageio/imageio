@@ -286,6 +286,10 @@ class FfmpegFormat(Format):
             self.request._video = None
             if self.request.filename in ["<video%i>" % i for i in range(10)]:
                 self.request._video = self.request.filename
+            # Specify input framerate?
+            if self.request._video:
+                if "-framerate" not in str(self._arg_input_params):
+                    self._arg_input_params.extend(["-framerate", str(float(fps or 15))])
             # Get local filename
             if self.request._video:
                 index = int(self.request._video[-2])
