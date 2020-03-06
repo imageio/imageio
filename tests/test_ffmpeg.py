@@ -8,7 +8,7 @@ import sys
 import gc
 import time
 import threading
-
+import platform
 import psutil
 
 import numpy as np
@@ -42,22 +42,24 @@ def setup_module():
 
 
 def test_get_exe_installed():
-    import imageio_ffmpeg
-
-    # backup any user-defined path
-    if "IMAGEIO_FFMPEG_EXE" in os.environ:
-        oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
+    if platform.machine() == "aarch64":
+        skip("Skip for aarch64")
     else:
-        oldpath = ""
-    # Test if download works
-    os.environ["IMAGEIO_FFMPEG_EXE"] = ""
-    path = imageio_ffmpeg.get_ffmpeg_exe()
-    # cleanup
-    os.environ.pop("IMAGEIO_FFMPEG_EXE")
-    if oldpath:
-        os.environ["IMAGEIO_FFMPEG_EXE"] = oldpath
-    print(path)
-    assert os.path.isfile(path)
+        import imageio_ffmpeg
+        # backup any user-defined path
+        if "IMAGEIO_FFMPEG_EXE" in os.environ:
+            oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
+        else:
+            oldpath = ""
+        # Test if download works
+        os.environ["IMAGEIO_FFMPEG_EXE"] = ""
+        path = imageio_ffmpeg.get_ffmpeg_exe()
+        # cleanup
+        os.environ.pop("IMAGEIO_FFMPEG_EXE")
+        if oldpath:
+            os.environ["IMAGEIO_FFMPEG_EXE"] = oldpath
+        print(path)
+        assert os.path.isfile(path)
 
 
 def test_get_exe_env():

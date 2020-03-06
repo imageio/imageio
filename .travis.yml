@@ -6,6 +6,7 @@ addons:
   apt:
     packages:
     - libfreeimage3
+    - ffmpeg
 
 # Only run travis build on push for master branch
 branches:
@@ -33,9 +34,17 @@ matrix:
     - os: linux
       python: "3.5"
       env: TEST_UNIT=1 TEST_INSTALL=0
+    - os: linux
+      python: "3.5"
+      arch: arm64
+      env: TEST_UNIT=1 TEST_INSTALL=0
     # NOTE -------------------------/\ turned off for now
     - os: linux
       python: "3.6"
+      env: TEST_UNIT=1 TEST_COVER=1
+    - os: linux
+      python: "3.6"
+      arch: arm64
       env: TEST_UNIT=1 TEST_COVER=1
     - os: linux
       dist: xenial
@@ -44,6 +53,18 @@ matrix:
       env: TEST_UNIT=1 TEST_FULL=1
     - os: linux
       dist: xenial
+      arch: arm64
+      sudo: true
+      python: "3.7"
+      env: TEST_UNIT=1  #Skipping few tests ("TEST_FULL=1")as it uses "simpleitk" which is taking too long to build.
+    - os: linux
+      dist: xenial
+      sudo: true
+      python: "3.8-dev"
+      env: TEST_UNIT=1
+    - os: linux
+      dist: xenial
+      arch: arm64
       sudo: true
       python: "3.8-dev"
       env: TEST_UNIT=1
@@ -95,7 +116,7 @@ install:
     - invoke clean
     - if [ "${TEST_UNIT}" == "1" ]; then
         pip install -q --upgrade imageio-ffmpeg;
-        pip install -q numpy pillow psutil coveralls;
+        pip install -q numpy==1.15 pillow psutil coveralls;
         pip install -q --upgrade pytest pytest-cov;
       fi;
     - if [ "${TEST_STYLE}" == "1" ]; then

@@ -52,7 +52,6 @@ def test_webcam_parse_device_names():
 
 
 def test_overload_fps():
-
     need_internet()
 
     # Native
@@ -60,7 +59,7 @@ def test_overload_fps():
     assert r.count_frames() == 280  # native
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 280
     ims = [im for im in r]
-    assert len(ims) == 280
+    assert len(ims) in (280, 281)
     # imageio.mimwrite('~/parot280.gif', ims[:30])
 
     # Less
@@ -76,7 +75,7 @@ def test_overload_fps():
     # assert r.count_frames() == 336  # cant :(
     ims = [im for im in r]
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 336
-    assert len(ims) == 336
+    assert len(ims) in (336, 337)
     # imageio.mimwrite('~/parot336.gif', ims[:30])
 
     # Do we calculate nframes correctly? To be fair, the reader wont try to
@@ -94,6 +93,5 @@ def test_overload_fps():
             pass
         # print(r._meta['duration'], r._meta['fps'], r._meta['duration'] * fps, r._meta['nframes'], n)
         assert n - 2 <= i <= n + 2
-
 
 run_tests_if_main()

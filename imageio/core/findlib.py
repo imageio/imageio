@@ -41,6 +41,7 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
         "/lib",
         "/usr/lib",
         "/usr/lib/x86_64-linux-gnu",
+        "/usr/lib/aarch64-linux-gnu",
         "/usr/local/lib",
         "/opt/local/lib",
     ]
