@@ -289,7 +289,7 @@ class FfmpegFormat(Format):
             # Specify input framerate?
             if self.request._video:
                 if "-framerate" not in str(self._arg_input_params):
-                    self._arg_input_params.extend(["-framerate", str(float(fps or 15))])
+                    self._arg_input_params.extend(["-framerate", str(float(fps or 30))])
             # Get local filename
             if self.request._video:
                 index = int(self.request._video[-2])
@@ -458,7 +458,7 @@ class FfmpegFormat(Format):
                                 "support for cameras."
                             )
                     raise IndexError(
-                        "No camera at {}.\n\n{}".format(self.request._video, err_text)
+                        "No (working) camera at {}.\n\n{}".format(self.request._video, err_text)
                     )
                 else:
                     self._meta.update(meta)
