@@ -26,13 +26,13 @@ Here's a minimal example of how to use imageio. See the docs for
 ```python
 import imageio
 im = imageio.imread('imageio:chelsea.png')  # read a standard image
-im.shape  # im is a numpy array
+im.shape  # im is a NumPy array
 >> (300, 451, 3)
 imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
 ```
 
 <h2>API in a nutshell</h2>
-As a user, you just have to remember a handfull of functions:
+As a user, you just have to remember a handful of functions:
 
 <ul>
     <li>imread() and imwrite() - for single images</li>
@@ -46,14 +46,14 @@ As a user, you just have to remember a handfull of functions:
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a consise set of functions.</li>
-    <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/installation.html'>install</a> using conda or pip.</li>
-    <li>Few dependencies (only Numpy and Pillow).</li>
-    <li>Pure Python, runs on Python 3.5+, and Pypy</li>
+    <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/installation.html'>install</a> using Conda or pip</li>
+    <li>Few dependencies (only NumPy and Pillow)</li>
+    <li>Pure Python, runs on Python 3.5+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
-    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats.html'>formats</a>.</li>
-    <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes.</li>
-    <li>Easy to extend using plugins.</li>
-    <li>Code quality is maintained with many tests and continuous integration.</li>
+    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats.html'>formats</a></li>
+    <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes</li>
+    <li>Easy to extend using plugins</li>
+    <li>Code quality is maintained with many tests and continuous integration</li>
 </ul>
 
 
@@ -62,7 +62,7 @@ As a user, you just have to remember a handfull of functions:
 Minimal requirements:
 <ul>
     <li>Python 3.5+</li>
-    <li>Numpy</li>
+    <li>NumPy</li>
     <li>Pillow</li>
 </ul>
 
@@ -93,7 +93,7 @@ Tidelift will coordinate the fix and disclosure.
 
 <h2>imageio for enterprise</h2>
 
-Available as part of the Tidelift Subscription
+Available as part of the Tidelift Subscription.
 
 The maintainers of imageio and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use.
 <a href='https://tidelift.com/subscription/pkg/pypi-imageio?utm_source=pypi-imageio&utm_medium=referral&utm_campaign=readme'>Learn more</a>.
