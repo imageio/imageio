@@ -22,13 +22,14 @@ Python 3.5+, and is easy to install.
 <h2>Example</h2>
 Here's a minimal example of how to use imageio. See the docs for
 <a href='https://imageio.readthedocs.io/en/stable/examples.html'>more examples</a>.
-<pre>
+
+```python
 import imageio
 im = imageio.imread('imageio:chelsea.png')  # read a standard image
 im.shape  # im is a numpy array
 >> (300, 451, 3)
 imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
-</pre>
+```
 
 <h2>API in a nutshell</h2>
 As a user, you just have to remember a handfull of functions:
@@ -118,10 +119,10 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 <p>Install a complete development environment:</p>
 
-<pre>
+```bash
 pip install -r requirements.txt
 pip install -e .
-</pre>
+```
 
 <p><i>N.B. this does not include GDAL because it has awkward compiled dependencies</i></p>
 
@@ -132,7 +133,7 @@ On ubuntu, do <code>sudo apt install libfreeimage3</code></p>
 Style checks, unit tests and coverage are controlled by <code>invoke</code>.
 Before committing, check these with:</p>
 
-<pre>
+```bash
 # reformat code on python 3.6+
 invoke autoformat
 # check there are no style errors
@@ -141,4 +142,4 @@ invoke test --style
 invoke test --unit
 # check test coverage (re-runs tests)
 invoke test --cover
-</pre>
+```
