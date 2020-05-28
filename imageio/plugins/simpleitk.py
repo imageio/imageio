@@ -112,10 +112,11 @@ class ItkFormat(Format):
         def _open(self, pixel_type=None, fallback_only=None, **kwargs):
             if not _itk:
                 load_lib()
-            if fallback_only is None:
-                args = (pixel_type,)
-            else:
-                args = (pixel_type, fallback_only)
+            args = ()
+            if pixel_type is not None:
+                args += (pixel_type,)
+                if fallback_only is not None:
+                    args += (fallback_only,)
             self._img = _read_function(self.request.get_local_filename(), *args)
 
         def _get_length(self):
