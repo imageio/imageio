@@ -47,26 +47,62 @@ def get_dcmdjpeg_exe():
     ):
         filename = os.path.join(dir, fname)
         if os.path.isfile(filename):
-            return filename
+            return [filename]
 
     try:
         subprocess.check_call([fname, "--version"])
-        return fname
+        return [fname]
     except Exception:
         return None
+
+
+def get_gdcmconv_exe():
+    fname = "gdcmconv" + ".exe" * sys.platform.startswith("win")
+    # Maybe it's on the path
+    try:
+        subprocess.check_call([fname, "--version"])
+        return [fname, "--raw"]
+    except Exception:
+        pass
+    # Select directories where it could be
+    candidates = []
+    base_dirs = [r"c:\Program Files"]
+    for base_dir in base_dirs:
+        if os.path.isdir(base_dir):
+            for dname in os.listdir(base_dir):
+                if dname.lower().startswith("gdcm"):
+                    suffix = dname[4:].strip()
+                    candidates.append((suffix, os.path.join(base_dir, dname)))
+    # Sort, so higher versions are tried earlier
+    candidates.sort(reverse=True)
+    # Select executable
+    filename = None
+    for _, dirname in candidates:
+        exe1 = os.path.join(dirname, "gdcmconv.exe")
+        exe2 = os.path.join(dirname, "bin", "gdcmconv.exe")
+        if os.path.isfile(exe1):
+            filename = exe1
+            break
+        if os.path.isfile(exe2):
+            filename = exe2
+            break
+    else:
+        return None
+    return [filename, "--raw"]
 
 
 class DicomFormat(Format):
     """ A format for reading DICOM images: a common format used to store
     medical image data, such as X-ray, CT and MRI.
 
-    This format borrows some code (and ideas) from the pydicom project,
-    and (to the best of our knowledge) has the same limitations as
-    pydicom with regard to the type of files that it can handle. However,
+    This format borrows some code (and ideas) from the pydicom project. However,
     only a predefined subset of tags are extracted from the file. This allows
     for great simplifications allowing us to make a stand-alone reader, and
-    also results in a much faster read time. We plan to allow reading all
-    tags in the future (by using pydicom).
+    also results in a much faster read time.
+
+    By default, only uncompressed and deflated transfer syntaxes are supported.
+    If gdcm or dcmtk is installed, these will be used to automatically convert
+    the data. See https://github.com/malaterre/GDCM/releases for installing GDCM.
 
     This format provides functionality to group images of the same
     series together, thus extracting volumes (and multiple volumes).
@@ -107,6 +143,9 @@ class DicomFormat(Format):
     # --
 
     class Reader(Format.Reader):
+
+        _compressed_warning_dirs = set()
+
         def _open(self, progress=True):
             if not _dicom:
                 load_lib()
@@ -119,23 +158,32 @@ class DicomFormat(Format):
                 try:
                     dcm = _dicom.SimpleDicomReader(self.request.get_file())
                 except _dicom.CompressedDicom as err:
-                    if "JPEG" in str(err):
-                        exe = get_dcmdjpeg_exe()
-                        if not exe:
-                            raise
+                    # We cannot do this on our own. Perhaps with some help ...
+                    cmd = get_gdcmconv_exe()
+                    if not cmd and "JPEG" in str(err):
+                        cmd = get_dcmdjpeg_exe()
+                    if not cmd:
+                        msg = err.args[0].replace("using", "installing")
+                        msg = msg.replace("convert", "auto-convert")
+                        err.args = (msg,)
+                        raise
+                    else:
                         fname1 = self.request.get_local_filename()
                         fname2 = fname1 + ".raw"
                         try:
-                            subprocess.check_call([exe, fname1, fname2])
+                            subprocess.check_call(cmd + [fname1, fname2])
                         except Exception:
                             raise err
-                        logger.warning(
-                            "DICOM file contained compressed data. "
-                            "Used dcmtk to convert it."
-                        )
+                        d = os.path.dirname(fname1)
+                        if d not in self._compressed_warning_dirs:
+                            self._compressed_warning_dirs.add(d)
+                            logger.warning(
+                                "DICOM file contained compressed data. "
+                                + "Autoconverting with "
+                                + cmd[0]
+                                + " (this warning is shown once for each directory)"
+                            )
                         dcm = _dicom.SimpleDicomReader(fname2)
-                    else:
-                        raise
 
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()

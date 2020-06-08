@@ -458,7 +458,9 @@ class FfmpegFormat(Format):
                                 "support for cameras."
                             )
                     raise IndexError(
-                        "No (working) camera at {}.\n\n{}".format(self.request._video, err_text)
+                        "No (working) camera at {}.\n\n{}".format(
+                            self.request._video, err_text
+                        )
                     )
                 else:
                     self._meta.update(meta)
