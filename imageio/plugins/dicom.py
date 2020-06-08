@@ -66,11 +66,13 @@ def get_gdcmconv_exe():
         pass
     # Select directories where it could be
     candidates = []
-    base_dir = r"c:\Program Files"
-    for dname in os.listdir(base_dir):
-        if dname.lower().startswith("gdcm"):
-            suffix = dname[4:].strip()
-            candidates.append((suffix, os.path.join(base_dir, dname)))
+    base_dirs = [r"c:\Program Files"]
+    for base_dir in base_dirs:
+        if os.path.isdir(base_dir):
+            for dname in os.listdir(base_dir):
+                if dname.lower().startswith("gdcm"):
+                    suffix = dname[4:].strip()
+                    candidates.append((suffix, os.path.join(base_dir, dname)))
     # Sort, so higher versions are tried earlier
     candidates.sort(reverse=True)
     # Select executable
