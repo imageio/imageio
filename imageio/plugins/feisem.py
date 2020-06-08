@@ -56,10 +56,10 @@ class FEISEMFormat(TiffFormat):
             current_tag = "root"
             reading_metadata = False
             filename = self.request.get_local_filename()
-            with open(filename, encoding='utf8', errors='ignore') as fin:
+            with open(filename, encoding="utf8", errors="ignore") as fin:
                 for line in fin:
                     if not reading_metadata:
-                        if not line.startswith('Date='):
+                        if not line.startswith("Date="):
                             continue
                         else:
                             reading_metadata = True
@@ -68,8 +68,8 @@ class FEISEMFormat(TiffFormat):
                         current_tag = line.lstrip("[").rstrip("]")
                         md[current_tag] = {}
                     else:
-                        if "=" in line: #ignore empty and irrelevant lines
-                            key, val = line.split("=",maxsplit=1)
+                        if "=" in line:  # ignore empty and irrelevant lines
+                            key, val = line.split("=", maxsplit=1)
                             for tag_type in (int, float):
                                 try:
                                     val = tag_type(val)

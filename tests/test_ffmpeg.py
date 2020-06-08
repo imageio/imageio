@@ -46,6 +46,7 @@ def test_get_exe_installed():
         skip("Skip for aarch64")
     else:
         import imageio_ffmpeg
+
         # backup any user-defined path
         if "IMAGEIO_FFMPEG_EXE" in os.environ:
             oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
