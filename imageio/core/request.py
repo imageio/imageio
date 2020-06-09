@@ -344,7 +344,10 @@ class Request(object):
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
-            self._file = urlopen(self.filename, timeout=5)
+            timeout = os.getenv('IMAGEIO_REQUEST_TIMEOUT')
+            if timeout is None or not timeout.isdigit():
+                timeout = 5
+            self._file = urlopen(self.filename, timeout=float(timeout))
             self._file = SeekableFileObject(self._file)
 
         return self._file
