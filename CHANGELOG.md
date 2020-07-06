@@ -6,10 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [planned]
 
 * Improved handling and support for meta data.
 * New animated gif based on ffmpeg
+
+
+## [2.9.0] - 2020-07-06
+
+### Fixed
+
+* More robust loading of  FEI SEM data (#529 by jon-lab).
+* Fix webcam not working on Win10 (#525).
+
+### Added
+
+* Add a few standard images useful to 3D visualization.
+* The timeout used in HTTP requests can now be set with an environment variable (#534 by Johann Neuhauser).
+* The DICOM plugin can now used gdcm for compressed transfer formats.
+* Better support for itk/sitk plugins (#530 by Jonathan Daniel).
+* Test coverage and CI for ARM (#518 by odidev).
 
 
 ## [2.8.0] - 2020-02-19
@@ -24,16 +40,16 @@ released, which fixes several (stability) issues for video io.
 * Better support for reading from http (some formats needed seek, we now deal with that).
 * Make `Reader.__len__` work again when length is inf (stream/unknown).
 * Set `-framerate` input param for ffmpeg when using webcam, fixing webcam support on macOS.
-* Fix for handling TIFF predictor value of 1 (NONE), by Miloš Komarčević.
-* Fix false-positive zip detection, by Vsevolod Poletaev.
-* Fix SPE filesize check for SPE v3, by Antony Lee.
-* Fix that SPE plugin failed on spe3 files with dtype uint32, by Michael Schneider.
+* Fix for handling TIFF predictor value of 1 (NONE) (by Miloš Komarčević).
+* Fix false-positive zip detection (by Vsevolod Poletaev).
+* Fix SPE filesize check for SPE v3 (by Antony Lee).
+* Fix that SPE plugin failed on spe3 files with dtype uint32 (by Michael Schneider).
 * Fix deprecation warning for numpy.
 
 ### Added
 
-* Expose SPE3 xml footer, by Antony Lee.
-* Expose TIFF predictor tag for reading and writing, by Miloš Komarčević.
+* Expose SPE3 xml footer (by Antony Lee).
+* Expose TIFF predictor tag for reading and writing (by Miloš Komarčević).
 * Improve error message regarding modes.
 
 ### Removed
