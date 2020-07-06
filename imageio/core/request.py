@@ -37,6 +37,8 @@ EXAMPLE_IMAGES = {
     "astronaut.png": "Image of the astronaut Eileen Collins",
     "camera.png": "Classic grayscale image of a photographer",
     "checkerboard.png": "Black and white image of a chekerboard",
+    "wood.jpg": "A (repeatable) texture of wooden planks",
+    "bricks.jpg": "A (repeatable) texture of stone bricks",
     "clock.png": "Photo of a clock with motion blur (Stefan van der Walt)",
     "coffee.png": "Image of a cup of coffee (Rachel Michetti)",
     "chelsea.png": "Image of Stefan's cat",
@@ -53,6 +55,7 @@ EXAMPLE_IMAGES = {
     "newtonscradle.gif": "Animated GIF of a newton's cradle",
     "cockatoo.mp4": "Video file of a cockatoo",
     "stent.npz": "Volumetric image showing a stented abdominal aorta",
+    "meadow_cube.jpg": "A cubemap image of a meadow, e.g. to render a skybox.",
 }
 
 
