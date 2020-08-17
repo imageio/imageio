@@ -20,7 +20,7 @@ Python 3.5+, and is easy to install.
 </p>
 
 <p>
-Professional support is available via [Tidelift](tidelift.com/funding/github/pypi/imageio) and [xs:code](https://xscode.com/almarklein/imageio).
+    Professional support is available via <a href='https://tidelift.com/funding/github/pypi/imageio'>Tidelift</a> and <a href='https://xscode.com/almarklein/imageio'>xs:code</a>.
 </p>
 
 <h2>Example</h2>
