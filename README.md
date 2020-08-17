@@ -19,6 +19,10 @@ volumetric data, and scientific formats. It is cross-platform, runs on
 Python 3.5+, and is easy to install.
 </p>
 
+<p>
+Professional support is available via [Tidelift](tidelift.com/funding/github/pypi/imageio) and [xs:code](https://xscode.com/almarklein/imageio).
+</p>
+
 <h2>Example</h2>
 Here's a minimal example of how to use imageio. See the docs for
 <a href='https://imageio.readthedocs.io/en/stable/examples.html'>more examples</a>.
