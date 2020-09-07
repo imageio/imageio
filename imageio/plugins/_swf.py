@@ -68,7 +68,7 @@ class BitArray:
         return self._len  # self.data.shape[0]
 
     def __repr__(self):
-        return self.data[: self._len].tostring().decode("ascii")
+        return self.data[: self._len].tobytes().decode("ascii")
 
     def _checkSize(self):
         # check length... grow if necessary
@@ -462,7 +462,7 @@ class BitmapTag(DefinitionTag):
 
         # we changed the image to uint8 4 channels.
         # now compress!
-        self._data = zlib.compress(tmp.tostring(), zlib.DEFLATED)
+        self._data = zlib.compress(tmp.tobytes(), zlib.DEFLATED)
         self.imshape = im.shape
 
     def process_tag(self):

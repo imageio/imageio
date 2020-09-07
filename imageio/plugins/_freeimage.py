@@ -773,7 +773,7 @@ class FIBaseBitmap(object):
                                     "determine tag type of %r." % tag_name
                                 )
                                 continue
-                            tag_bytes = tag_val.tostring()
+                            tag_bytes = tag_val.tobytes()
                             tag_count = tag_val.size
                         # Set properties
                         lib.FreeImage_SetTagKey(tag, tag_name.encode("utf-8"))
