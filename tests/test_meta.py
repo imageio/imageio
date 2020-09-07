@@ -14,7 +14,7 @@ import imageio
 
 
 def run_subprocess(command, return_code=False, **kwargs):
-    """ Run command in subprocess and return stdout and stderr.
+    """Run command in subprocess and return stdout and stderr.
     Raise CalledProcessError if the process returned non-zero.
     """
     use_kwargs = dict(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -30,7 +30,7 @@ def run_subprocess(command, return_code=False, **kwargs):
 
 
 def loaded_modules(import_module, depth=None, all_modules=False):
-    """ Import the given module in subprocess and return set of loaded modules
+    """Import the given module in subprocess and return set of loaded modules
 
     Import a certain module in a clean subprocess and return the
     modules that are subsequently loaded. The given depth indicates the
@@ -95,7 +95,7 @@ def test_import_nothing():
 
 
 def test_import_modules():
-    """ Test that importing imageio does not import modules that should
+    """Test that importing imageio does not import modules that should
     not be imported.
     """
     modnames = loaded_modules("imageio", 3)
@@ -112,7 +112,7 @@ def test_import_modules():
 
 
 def test_import_dependencies():
-    """ Test that importing imageio is not dragging in anything other
+    """Test that importing imageio is not dragging in anything other
     than the known dependencies.
     """
 

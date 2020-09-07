@@ -125,7 +125,7 @@ def to_nbytes(arg, default=None):
 
 
 def help(name=None):
-    """ help(name=None)
+    """help(name=None)
 
     Print the documentation of the format specified by name, or a list
     of supported formats if name is omitted.
@@ -146,7 +146,7 @@ def help(name=None):
 
 
 def get_reader(uri, format=None, mode="?", **kwargs):
-    """ get_reader(uri, format=None, mode='?', **kwargs)
+    """get_reader(uri, format=None, mode='?', **kwargs)
 
     Returns a :class:`.Reader` object which can be used to read data
     and meta data from the specified file.
@@ -187,7 +187,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
-    """ get_writer(uri, format=None, mode='?', **kwargs)
+    """get_writer(uri, format=None, mode='?', **kwargs)
 
     Returns a :class:`.Writer` object which can be used to write data
     and meta data to the specified file.
@@ -235,7 +235,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
 
 
 def imread(uri, format=None, **kwargs):
-    """ imread(uri, format=None, **kwargs)
+    """imread(uri, format=None, **kwargs)
 
     Reads an image from the specified file. Returns a numpy array, which
     comes with a dict of meta data at its 'meta' attribute.
@@ -268,7 +268,7 @@ def imread(uri, format=None, **kwargs):
 
 
 def imwrite(uri, im, format=None, **kwargs):
-    """ imwrite(uri, im, format=None, **kwargs)
+    """imwrite(uri, im, format=None, **kwargs)
 
     Write an image to the specified file.
 
@@ -312,7 +312,7 @@ def imwrite(uri, im, format=None, **kwargs):
 
 
 def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
-    """ mimread(uri, format=None, memtest="256MB", **kwargs)
+    """mimread(uri, format=None, memtest="256MB", **kwargs)
 
     Reads multiple images from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
@@ -375,7 +375,7 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
 
 
 def mimwrite(uri, ims, format=None, **kwargs):
-    """ mimwrite(uri, ims, format=None, **kwargs)
+    """mimwrite(uri, ims, format=None, **kwargs)
 
     Write multiple images to the specified file.
 
@@ -431,7 +431,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
 
 
 def volread(uri, format=None, **kwargs):
-    """ volread(uri, format=None, **kwargs)
+    """volread(uri, format=None, **kwargs)
 
     Reads a volume from the specified file. Returns a numpy array, which
     comes with a dict of meta data at its 'meta' attribute.
@@ -456,7 +456,7 @@ def volread(uri, format=None, **kwargs):
 
 
 def volwrite(uri, im, format=None, **kwargs):
-    """ volwrite(uri, vol, format=None, **kwargs)
+    """volwrite(uri, vol, format=None, **kwargs)
 
     Write a volume to the specified file.
 
@@ -500,7 +500,7 @@ def volwrite(uri, im, format=None, **kwargs):
 
 
 def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
-    """ mvolread(uri, format=None, memtest='1GB', **kwargs)
+    """mvolread(uri, format=None, memtest='1GB', **kwargs)
 
     Reads multiple volumes from the specified file. Returns a list of
     numpy arrays, each with a dict of meta data at its 'meta' attribute.
@@ -562,7 +562,7 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
 
 
 def mvolwrite(uri, ims, format=None, **kwargs):
-    """ mvolwrite(uri, vols, format=None, **kwargs)
+    """mvolwrite(uri, vols, format=None, **kwargs)
 
     Write multiple volumes to the specified file.
 

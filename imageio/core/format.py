@@ -47,21 +47,21 @@ MODENAMES = {
 
 
 class Format(object):
-    """ Represents an implementation to read/write a particular file format
-    
+    """Represents an implementation to read/write a particular file format
+
     A format instance is responsible for 1) providing information about
     a format; 2) determining whether a certain file can be read/written
     with this format; 3) providing a reader/writer class.
-    
+
     Generally, imageio will select the right format and use that to
     read/write an image. A format can also be explicitly chosen in all
     read/write functions. Use ``print(format)``, or ``help(format_name)``
     to see its documentation.
-    
+
     To implement a specific format, one should create a subclass of
     Format and the Format.Reader and Format.Writer classes. see
     :doc:`plugins` for details.
-    
+
     Parameters
     ----------
     name : str
@@ -119,8 +119,7 @@ class Format(object):
 
     @property
     def doc(self):
-        """ The documentation for this format (name + description + docstring).
-        """
+        """The documentation for this format (name + description + docstring)."""
         # Our docsring is assumed to be indented by four spaces. The
         # first line needs special attention.
         return "%s - %s\n\n    %s\n" % (
@@ -131,32 +130,29 @@ class Format(object):
 
     @property
     def name(self):
-        """ The name of this format.
-        """
+        """The name of this format."""
         return self._name
 
     @property
     def description(self):
-        """ A short description of this format.
-        """
+        """A short description of this format."""
         return self._description
 
     @property
     def extensions(self):
-        """ A list of file extensions supported by this plugin.
+        """A list of file extensions supported by this plugin.
         These are all lowercase with a leading dot.
         """
         return self._extensions
 
     @property
     def modes(self):
-        """ A string specifying the modes that this format can handle.
-        """
+        """A string specifying the modes that this format can handle."""
         return self._modes
 
     def get_reader(self, request):
-        """ get_reader(request)
-        
+        """get_reader(request)
+
         Return a reader object that can be used to read data and info
         from the given file. Users are encouraged to use
         imageio.get_reader() instead.
@@ -170,8 +166,8 @@ class Format(object):
         return self.Reader(self, request)
 
     def get_writer(self, request):
-        """ get_writer(request)
-        
+        """get_writer(request)
+
         Return a writer object that can be used to write data and info
         to the given file. Users are encouraged to use
         imageio.get_writer() instead.
@@ -185,15 +181,15 @@ class Format(object):
         return self.Writer(self, request)
 
     def can_read(self, request):
-        """ can_read(request)
-        
+        """can_read(request)
+
         Get whether this format can read data from the specified uri.
         """
         return self._can_read(request)
 
     def can_write(self, request):
-        """ can_write(request)
-        
+        """can_write(request)
+
         Get whether this format can write data to the speciefed uri.
         """
         return self._can_write(request)
@@ -207,7 +203,7 @@ class Format(object):
     # -----
 
     class _BaseReaderWriter(object):
-        """ Base class for the Reader and Writer class to implement common 
+        """Base class for the Reader and Writer class to implement common
         functionality. It implements a similar approach for opening/closing
         and context management as Python's file objects.
         """
@@ -222,14 +218,14 @@ class Format(object):
 
         @property
         def format(self):
-            """ The :class:`.Format` object corresponding to the current
+            """The :class:`.Format` object corresponding to the current
             read/write operation.
             """
             return self._format
 
         @property
         def request(self):
-            """ The :class:`.Request` object corresponding to the
+            """The :class:`.Request` object corresponding to the
             current read/write operation.
             """
             return self._request
@@ -250,7 +246,7 @@ class Format(object):
                 pass  # Supress noise when called during interpreter shutdown
 
         def close(self):
-            """ Flush and close the reader/writer.
+            """Flush and close the reader/writer.
             This method has no effect if it is already closed.
             """
             if self.__closed:
@@ -262,13 +258,11 @@ class Format(object):
 
         @property
         def closed(self):
-            """ Whether the reader/writer is closed.
-            """
+            """Whether the reader/writer is closed."""
             return self.__closed
 
         def _checkClosed(self, msg=None):
-            """Internal: raise an ValueError if reader/writer is closed
-            """
+            """Internal: raise an ValueError if reader/writer is closed"""
             if self.closed:
                 what = self.__class__.__name__
                 msg = msg or ("I/O operation on closed %s." % what)
@@ -277,10 +271,10 @@ class Format(object):
         # To implement
 
         def _open(self, **kwargs):
-            """ _open(**kwargs)
-            
+            """_open(**kwargs)
+
             Plugins should probably implement this.
-            
+
             It is called when reader/writer is created. Here the
             plugin can do its initialization. The given keyword arguments
             are those that were given by the user at imageio.read() or
@@ -289,13 +283,13 @@ class Format(object):
             raise NotImplementedError()
 
         def _close(self):
-            """ _close()
-            
+            """_close()
+
             Plugins should probably implement this.
-            
+
             It is called when the reader/writer is closed. Here the plugin
             can do a cleanup, flush, etc.
-            
+
             """
             raise NotImplementedError()
 
@@ -304,24 +298,24 @@ class Format(object):
     class Reader(_BaseReaderWriter):
         """
         The purpose of a reader object is to read data from an image
-        resource, and should be obtained by calling :func:`.get_reader`. 
-        
+        resource, and should be obtained by calling :func:`.get_reader`.
+
         A reader can be used as an iterator to read multiple images,
         and (if the format permits) only reads data from the file when
         new data is requested (i.e. streaming). A reader can also be
         used as a context manager so that it is automatically closed.
-        
+
         Plugins implement Reader's for different formats. Though rare,
         plugins may provide additional functionality (beyond what is
         provided by the base reader class).
         """
 
         def get_length(self):
-            """ get_length()
-            
+            """get_length()
+
             Get the number of images in the file. (Note: you can also
             use ``len(reader_object)``.)
-            
+
             The result can be:
                 * 0 for files that only have meta data
                 * 1 for singleton images (e.g. in PNG, JPEG, etc.)
@@ -331,12 +325,12 @@ class Format(object):
             return self._get_length()
 
         def get_data(self, index, **kwargs):
-            """ get_data(index, **kwargs)
-            
+            """get_data(index, **kwargs)
+
             Read image data from the file, using the image index. The
             returned image has a 'meta' attribute with the meta data.
             Raises IndexError if the index is out of range.
-            
+
             Some formats may support additional keyword arguments. These are
             listed in the documentation of those formats.
             """
@@ -349,17 +343,17 @@ class Format(object):
             return Array(im, meta)  # Array tests im and meta
 
         def get_next_data(self, **kwargs):
-            """ get_next_data(**kwargs)
-            
+            """get_next_data(**kwargs)
+
             Read the next image from the series.
-            
+
             Some formats may support additional keyword arguments. These are
             listed in the documentation of those formats.
             """
             return self.get_data(self._BaseReaderWriter_last_index + 1, **kwargs)
 
         def set_image_index(self, index, **kwargs):
-            """ set_image_index(index)
+            """set_image_index(index)
 
             Set the internal pointer such that the next call to
             get_next_data() returns the image specified by the index
@@ -370,14 +364,14 @@ class Format(object):
                 self._BaseReaderWriter_last_index = index - 1
 
         def get_meta_data(self, index=None):
-            """ get_meta_data(index=None)
-            
+            """get_meta_data(index=None)
+
             Read meta data from the file. using the image index. If the
             index is omitted or None, return the file's (global) meta data.
-            
+
             Note that ``get_data`` also provides the meta data for the returned
             image as an atrribute of that image.
-            
+
             The meta data is a dict, which shape depends on the format.
             E.g. for JPEG, the dict maps group names to subdicts and each
             group is a dict with name-value pairs. The groups represent
@@ -392,11 +386,11 @@ class Format(object):
             return meta
 
         def iter_data(self):
-            """ iter_data()
-            
+            """iter_data()
+
             Iterate over all images in the series. (Note: you can also
             iterate over the reader object.)
-            
+
             """
             self._checkClosed()
             n = self.get_length()
@@ -427,30 +421,30 @@ class Format(object):
         # To implement
 
         def _get_length(self):
-            """ _get_length()
-            
+            """_get_length()
+
             Plugins must implement this.
-            
+
             The retured scalar specifies the number of images in the series.
             See Reader.get_length for more information.
             """
             raise NotImplementedError()
 
         def _get_data(self, index):
-            """ _get_data()
-            
+            """_get_data()
+
             Plugins must implement this, but may raise an IndexError in
             case the plugin does not support random access.
-            
+
             It should return the image and meta data: (ndarray, dict).
             """
             raise NotImplementedError()
 
         def _get_meta_data(self, index):
-            """ _get_meta_data(index)
-            
-            Plugins must implement this. 
-            
+            """_get_meta_data(index)
+
+            Plugins must implement this.
+
             It should return the meta data as a dict, corresponding to the
             given index, or to the file's (global) meta data if index is
             None.
@@ -460,23 +454,23 @@ class Format(object):
     # -----
 
     class Writer(_BaseReaderWriter):
-        """ 
+        """
         The purpose of a writer object is to write data to an image
-        resource, and should be obtained by calling :func:`.get_writer`. 
-        
+        resource, and should be obtained by calling :func:`.get_writer`.
+
         A writer will (if the format permits) write data to the file
         as soon as new data is provided (i.e. streaming). A writer can
         also be used as a context manager so that it is automatically
         closed.
-        
+
         Plugins implement Writer's for different formats. Though rare,
         plugins may provide additional functionality (beyond what is
         provided by the base writer class).
         """
 
         def append_data(self, im, meta=None):
-            """ append_data(im, meta={})
-            
+            """append_data(im, meta={})
+
             Append an image (and meta data) to the file. The final meta
             data that is used consists of the meta data on the given
             image (if applicable), updated with the given meta data.
@@ -502,14 +496,14 @@ class Format(object):
             return self._append_data(im, total_meta)
 
         def set_meta_data(self, meta):
-            """ set_meta_data(meta)
-            
+            """set_meta_data(meta)
+
             Sets the file's (global) meta data. The meta data is a dict which
             shape depends on the format. E.g. for JPEG the dict maps
             group names to subdicts, and each group is a dict with
             name-value pairs. The groups represents the different
-            metadata formats (EXIF, XMP, etc.). 
-            
+            metadata formats (EXIF, XMP, etc.).
+
             Note that some meta formats may not be supported for
             writing, and individual fields may be ignored without
             warning if they are invalid.
@@ -532,14 +526,14 @@ class Format(object):
 
 
 class FormatManager(object):
-    """ 
+    """
     There is exactly one FormatManager object in imageio: ``imageio.formats``.
     Its purpose it to keep track of the registered formats.
-    
-    The format manager supports getting a format object using indexing (by 
+
+    The format manager supports getting a format object using indexing (by
     format name or extension). When used as an iterator, this object
     yields all registered format objects.
-    
+
     See also :func:`.help`.
     """
 
@@ -609,22 +603,22 @@ class FormatManager(object):
         raise IndexError("No format known by name %s." % name)
 
     def sort(self, *names):
-        """ sort(name1, name2, name3, ...)
-        
+        """sort(name1, name2, name3, ...)
+
         Sort the formats based on zero or more given names; a format with
         a name that matches one of the given names will take precedence
         over other formats. A match means an equal name, or ending with
         that name (though the former counts higher). Case insensitive.
-        
+
         Format preference will match the order of the given names: using
         ``sort('TIFF', '-FI', '-PIL')`` would prefer the FreeImage formats
         over the Pillow formats, but prefer TIFF even more. Each time
         this is called, the starting point is the default format order,
         and calling ``sort()`` with no arguments will reset the order.
-        
+
         Be aware that using the function can affect the behavior of
         other code that makes use of imageio.
-        
+
         Also see the ``IMAGEIO_FORMAT_ORDER`` environment variable.
         """
         # Check and sanitize imput
@@ -645,8 +639,8 @@ class FormatManager(object):
             self._formats_sorted.sort(key=sorter)
 
     def add_format(self, format, overwrite=False):
-        """ add_format(format, overwrite=False)
-        
+        """add_format(format, overwrite=False)
+
         Register a format, so that imageio can use it. If a format with the
         same name already exists, an error is raised, unless overwrite is True,
         in which case the current format is replaced.
@@ -670,8 +664,8 @@ class FormatManager(object):
         self._formats_sorted.append(format)
 
     def search_read_format(self, request):
-        """ search_read_format(request)
-        
+        """search_read_format(request)
+
         Search a format that can read a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
@@ -697,9 +691,9 @@ class FormatManager(object):
                     return format
 
     def search_write_format(self, request):
-        """ search_write_format(request)
-        
-        Search a format that can write a file according to the given request. 
+        """search_write_format(request)
+
+        Search a format that can write a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
         select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
@@ -725,11 +719,9 @@ class FormatManager(object):
                     return format
 
     def get_format_names(self):
-        """ Get the names of all registered formats.
-        """
+        """Get the names of all registered formats."""
         return [f.name for f in self]
 
     def show(self):
-        """ Show a nicely formatted list of available formats
-        """
+        """Show a nicely formatted list of available formats"""
         print(self)

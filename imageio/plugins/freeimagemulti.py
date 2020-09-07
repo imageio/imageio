@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class FreeimageMulti(FreeimageFormat):
-    """ Base class for freeimage formats that support multiple images.
-    """
+    """Base class for freeimage formats that support multiple images."""
 
     _modes = "iI"
     _fif = -1
@@ -98,7 +97,7 @@ class FreeimageMulti(FreeimageFormat):
 
 
 class MngFormat(FreeimageMulti):
-    """ An Mng format based on the Freeimage library.
+    """An Mng format based on the Freeimage library.
 
     Read only. Seems broken.
     """
@@ -110,7 +109,7 @@ class MngFormat(FreeimageMulti):
 
 
 class IcoFormat(FreeimageMulti):
-    """ An ICO format based on the Freeimage library.
+    """An ICO format based on the Freeimage library.
 
     This format supports grayscale, RGB and RGBA images.
 
@@ -141,7 +140,7 @@ class IcoFormat(FreeimageMulti):
 
 
 class GifFormat(FreeimageMulti):
-    """ A format for reading and writing static and animated GIF, based
+    """A format for reading and writing static and animated GIF, based
     on the Freeimage library.
 
     Images read with this format are always RGBA. Currently,

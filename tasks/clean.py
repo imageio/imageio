@@ -9,8 +9,7 @@ from ._config import ROOT_DIR, NAME
 
 @task
 def clean(ctx):
-    """ clear all .pyc modules and __pycache__ dirs
-    """
+    """clear all .pyc modules and __pycache__ dirs"""
     count1, count2 = 0, 0
 
     for root, dirnames, filenames in os.walk(ROOT_DIR):

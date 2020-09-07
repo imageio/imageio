@@ -92,7 +92,7 @@ def get_gdcmconv_exe():
 
 
 class DicomFormat(Format):
-    """ A format for reading DICOM images: a common format used to store
+    """A format for reading DICOM images: a common format used to store
     medical image data, such as X-ray, CT and MRI.
 
     This format borrows some code (and ideas) from the pydicom project. However,

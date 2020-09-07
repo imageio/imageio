@@ -74,7 +74,7 @@ ALL_FORMATS = ITK_FORMATS + (
 
 
 class ItkFormat(Format):
-    """ The ItkFormat uses the ITK or SimpleITK library to support a range of
+    """The ItkFormat uses the ITK or SimpleITK library to support a range of
     ITK-related formats. It also supports a few common formats that are
     also supported by the freeimage plugin (e.g. PNG and JPEG).
 

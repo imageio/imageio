@@ -23,7 +23,7 @@ THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def urlopen(*args, **kwargs):
-    """ Compatibility function for the urlopen function. Raises an
+    """Compatibility function for the urlopen function. Raises an
     RuntimeError if urlopen could not be imported (which can occur in
     frozen applications.
     """
@@ -43,7 +43,7 @@ def _precision_warn(p1, p2, extra=""):
 
 
 def image_as_uint(im, bitdepth=None):
-    """ Convert the given image to uint (default: uint8)
+    """Convert the given image to uint (default: uint8)
 
     If the dtype already matches the desired format, it is returned
     as-is. If the image is float, and all values are between 0 and 1,
@@ -109,7 +109,7 @@ def image_as_uint(im, bitdepth=None):
 
 
 class Array(np.ndarray):
-    """ Array(array, meta=None)
+    """Array(array, meta=None)
 
     A subclass of np.ndarray that has a meta attribute. Get the dictionary
     that contains the meta data using ``im.meta``. Convert to a plain numpy
@@ -134,8 +134,7 @@ class Array(np.ndarray):
         return ob
 
     def _copy_meta(self, meta):
-        """ Make a 2-level deep copy of the meta dictionary.
-        """
+        """Make a 2-level deep copy of the meta dictionary."""
         self._meta = Dict()
         for key, val in meta.items():
             if isinstance(val, dict):
@@ -144,12 +143,11 @@ class Array(np.ndarray):
 
     @property
     def meta(self):
-        """ The dict with the meta data of this image.
-        """
+        """The dict with the meta data of this image."""
         return self._meta
 
     def __array_finalize__(self, ob):
-        """ So the meta info is maintained when doing calculations with
+        """So the meta info is maintained when doing calculations with
         the array.
         """
         if isinstance(ob, Array):
@@ -158,7 +156,7 @@ class Array(np.ndarray):
             self._copy_meta({})
 
     def __array_wrap__(self, out, context=None):
-        """ So that we return a native numpy array (or scalar) when a
+        """So that we return a native numpy array (or scalar) when a
         reducting ufunc is applied (such as sum(), std(), etc.)
         """
         if not out.shape:
@@ -173,7 +171,7 @@ Image = Array  # Alias for backwards compatibility
 
 
 def asarray(a):
-    """ Pypy-safe version of np.asarray. Pypy's np.asarray consumes a
+    """Pypy-safe version of np.asarray. Pypy's np.asarray consumes a
     *lot* of memory if the given array is an ndarray subclass. This
     function does not.
     """
@@ -189,7 +187,7 @@ from collections import OrderedDict
 
 
 class Dict(OrderedDict):
-    """ A dict in which the keys can be get and set as if they were
+    """A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
 
     This Dict still behaves as much as possible as a normal dict, and
@@ -231,7 +229,7 @@ class Dict(OrderedDict):
 
 
 class BaseProgressIndicator(object):
-    """ BaseProgressIndicator(name)
+    """BaseProgressIndicator(name)
 
     A progress indicator helps display the progres of a task to the
     user. Progress can be pending, running, finished or failed.
@@ -257,7 +255,7 @@ class BaseProgressIndicator(object):
         self._last_progress_update = 0
 
     def start(self, action="", unit="", max=0):
-        """ start(action='', unit='', max=0)
+        """start(action='', unit='', max=0)
 
         Start the progress. Optionally specify an action, a unit,
         and a maxium progress value.
@@ -273,7 +271,7 @@ class BaseProgressIndicator(object):
         self._start()
 
     def status(self):
-        """ status()
+        """status()
 
         Get the status of the progress - 0: pending, 1: in progress,
         2: finished, 3: failed
@@ -281,7 +279,7 @@ class BaseProgressIndicator(object):
         return self._status
 
     def set_progress(self, progress=0, force=False):
-        """ set_progress(progress=0, force=False)
+        """set_progress(progress=0, force=False)
 
         Set the current progress. To avoid unnecessary progress updates
         this will only have a visual effect if the time since the last
@@ -309,14 +307,14 @@ class BaseProgressIndicator(object):
         self._update_progress(progressText)
 
     def increase_progress(self, extra_progress):
-        """ increase_progress(extra_progress)
+        """increase_progress(extra_progress)
 
         Increase the progress by a certain amount.
         """
         self.set_progress(self._progress + extra_progress)
 
     def finish(self, message=None):
-        """ finish(message=None)
+        """finish(message=None)
 
         Finish the progress, optionally specifying a message. This will
         not set the progress to the maximum.
@@ -328,7 +326,7 @@ class BaseProgressIndicator(object):
             self._write(message)
 
     def fail(self, message=None):
-        """ fail(message=None)
+        """fail(message=None)
 
         Stop the progress with a failure, optionally specifying a message.
         """
@@ -339,7 +337,7 @@ class BaseProgressIndicator(object):
         self._write(message)
 
     def write(self, message):
-        """ write(message)
+        """write(message)
 
         Write a message during progress (such as a warning).
         """
@@ -365,7 +363,7 @@ class BaseProgressIndicator(object):
 
 
 class StdoutProgressIndicator(BaseProgressIndicator):
-    """ StdoutProgressIndicator(name)
+    """StdoutProgressIndicator(name)
 
     A progress indicator that shows the progress in stdout. It
     assumes that the tty can appropriately deal with backspace
@@ -410,7 +408,7 @@ class StdoutProgressIndicator(BaseProgressIndicator):
 
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
 def appdata_dir(appname=None, roaming=False):
-    """ appdata_dir(appname=None, roaming=False)
+    """appdata_dir(appname=None, roaming=False)
 
     Get the path to the application directory, where applications are allowed
     to write user specific files (e.g. configurations). For non-user specific
@@ -467,7 +465,7 @@ def appdata_dir(appname=None, roaming=False):
 
 
 def resource_dirs():
-    """ resource_dirs()
+    """resource_dirs()
 
     Get a list of directories where imageio resources may be located.
     The first directory in this list is the "resources" directory in
@@ -492,7 +490,7 @@ def resource_dirs():
 
 
 def resource_package_dir():
-    """ package_dir
+    """package_dir
 
     Get the resources directory in the imageio package installation
     directory.
@@ -521,7 +519,7 @@ def resource_package_dir():
 
 
 def get_platform():
-    """ get_platform()
+    """get_platform()
 
     Get a string that specifies the platform more specific than
     sys.platform does. The result can be: linux32, linux64, win32,
@@ -543,8 +541,7 @@ def get_platform():
 
 
 def has_module(module_name):
-    """Check to see if a python module is available.
-    """
+    """Check to see if a python module is available."""
     if sys.version_info > (3, 4):
         import importlib
 

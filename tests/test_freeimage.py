@@ -55,7 +55,7 @@ fnamebase = os.path.join(test_dir, "test")
 
 
 def get_ref_im(colors, crop, isfloat):
-    """ Get reference image with
+    """Get reference image with
     * colors: 0, 1, 3, 4
     * cropping: 0-> none, 1-> crop, 2-> crop with non-contiguous data
     * float: False, True

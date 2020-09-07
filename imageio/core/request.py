@@ -60,7 +60,7 @@ EXAMPLE_IMAGES = {
 
 
 class Request(object):
-    """ Request(uri, mode, **kwargs)
+    """Request(uri, mode, **kwargs)
 
     Represents a request for reading or saving an image resource. This
     object wraps information to that request and acts as an interface
@@ -131,8 +131,7 @@ class Request(object):
             self._extension = "." + ext.split(".")[-1].lower()
 
     def _parse_uri(self, uri):
-        """ Try to figure our what we were given
-        """
+        """Try to figure our what we were given"""
         is_read_request = self.mode[0] == "r"
         is_write_request = self.mode[0] == "w"
 
@@ -266,7 +265,7 @@ class Request(object):
 
     @property
     def filename(self):
-        """ The uri for which reading/saving was requested. This
+        """The uri for which reading/saving was requested. This
         can be a filename, an http address, or other resource
         identifier. Do not rely on the filename to obtain the data,
         but use ``get_file()`` or ``get_local_filename()`` instead.
@@ -275,7 +274,7 @@ class Request(object):
 
     @property
     def extension(self):
-        """ The (lowercase) extension of the requested filename.
+        """The (lowercase) extension of the requested filename.
         Suffixes in url's are stripped. Can be None if the request is
         not based on a filename.
         """
@@ -283,7 +282,7 @@ class Request(object):
 
     @property
     def mode(self):
-        """ The mode of the request. The first character is "r" or "w",
+        """The mode of the request. The first character is "r" or "w",
         indicating a read or write request. The second character is
         used to indicate the kind of data:
         "i" for an image, "I" for multiple images, "v" for a volume,
@@ -293,14 +292,13 @@ class Request(object):
 
     @property
     def kwargs(self):
-        """ The dict of keyword arguments supplied by the user.
-        """
+        """The dict of keyword arguments supplied by the user."""
         return self._kwargs
 
     ## For obtaining data
 
     def get_file(self):
-        """ get_file()
+        """get_file()
         Get a file object for the resource associated with this request.
         If this is a reading request, the file is in read mode,
         otherwise in write mode. This method is not thread safe. Plugins
@@ -347,7 +345,7 @@ class Request(object):
 
         elif self._uri_type in [URI_HTTP or URI_FTP]:
             assert not want_to_write  # This should have been tested in init
-            timeout = os.getenv('IMAGEIO_REQUEST_TIMEOUT')
+            timeout = os.getenv("IMAGEIO_REQUEST_TIMEOUT")
             if timeout is None or not timeout.isdigit():
                 timeout = 5
             self._file = urlopen(self.filename, timeout=float(timeout))
@@ -356,7 +354,7 @@ class Request(object):
         return self._file
 
     def get_local_filename(self):
-        """ get_local_filename()
+        """get_local_filename()
         If the filename is an existing file on this filesystem, return
         that. Otherwise a temporary file is created on the local file
         system which can be used by the format to read from or write to.
@@ -378,7 +376,7 @@ class Request(object):
             return self._filename_local
 
     def finish(self):
-        """ finish()
+        """finish()
         For internal use (called when the context of the reader/writer
         exits). Finishes this request. Close open files and process
         results.
@@ -427,7 +425,7 @@ class Request(object):
         self._bytes = None
 
     def get_result(self):
-        """ For internal use. In some situations a write action can have
+        """For internal use. In some situations a write action can have
         a result (bytes data). That is obtained with this function.
         """
         self._result, res = None, self._result
@@ -435,7 +433,7 @@ class Request(object):
 
     @property
     def firstbytes(self):
-        """ The first 256 bytes of the file. These can be used to
+        """The first 256 bytes of the file. These can be used to
         parse the header to determine the file-format.
         """
         if self._firstbytes is None:
@@ -474,7 +472,7 @@ class Request(object):
 
 
 def read_n_bytes(f, N):
-    """ read_n_bytes(file, n)
+    """read_n_bytes(file, n)
 
     Read n bytes from the given file, or less if the file has less
     bytes. Returns zero bytes if the file is closed.
@@ -489,7 +487,7 @@ def read_n_bytes(f, N):
 
 
 class SeekableFileObject:
-    """ A readonly wrapper file object that add support for seeking, even if
+    """A readonly wrapper file object that add support for seeking, even if
     the wrapped file object does not. The allows us to stream from http and
     still use Pillow.
     """

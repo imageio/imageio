@@ -20,7 +20,7 @@ class TIFFFormat(PillowFormat):
 
 
 class GIFFormat(PillowFormat):
-    """ A format for reading and writing static and animated GIF, based
+    """A format for reading and writing static and animated GIF, based
     on Pillow.
 
     Images read with this format are always RGBA. Currently,
@@ -122,7 +122,7 @@ intToBin = lambda i: i.to_bytes(2, byteorder="little")
 
 
 class GifWriter:
-    """ Class that for helping write the animated GIF file. This is based on
+    """Class that for helping write the animated GIF file. This is based on
     code from images2gif.py (part of visvis). The version here is modified
     to allow streamed writing.
     """
@@ -223,8 +223,7 @@ class GifWriter:
             fp.write(d)
 
     def getheaderAnim(self, im):
-        """ Get animation header. To replace PILs getheader()[0]
-        """
+        """Get animation header. To replace PILs getheader()[0]"""
         bb = b"GIF89a"
         bb += intToBin(im.size[0])
         bb += intToBin(im.size[1])
@@ -232,7 +231,7 @@ class GifWriter:
         return bb
 
     def getImageDescriptor(self, im, xy=None):
-        """ Used for the local color table properties per image.
+        """Used for the local color table properties per image.
         Otherwise global color table applies to all frames irrespective of
         whether additional colors comes in play that require a redefined
         palette. Still a maximum of 256 color per frame, obviously.
@@ -262,7 +261,7 @@ class GifWriter:
         return bb
 
     def getAppExt(self, loop):
-        """ Application extension. This part specifies the amount of loops.
+        """Application extension. This part specifies the amount of loops.
         If loop is 0 or inf, it goes on infinitely.
         """
         if loop == 1:
@@ -279,16 +278,16 @@ class GifWriter:
         return bb
 
     def getGraphicsControlExt(self, duration=0.1, dispose=2):
-        """ Graphics Control Extension. A sort of header at the start of
+        """Graphics Control Extension. A sort of header at the start of
         each image. Specifies duration and transparancy.
 
         Dispose
         -------
           * 0 - No disposal specified.
           * 1 - Do not dispose. The graphic is to be left in place.
-          * 2 -	Restore to background color. The area used by the graphic
+          * 2 - Restore to background color. The area used by the graphic
             must be restored to the background color.
-          * 3 -	Restore to previous. The decoder is required to restore the
+          * 3 - Restore to previous. The decoder is required to restore the
             area overwritten by the graphic with what was there prior to
             rendering the graphic.
           * 4-7 -To be defined.
@@ -305,7 +304,7 @@ class GifWriter:
         return bb
 
     def getSubRectangle(self, im):
-        """ Calculate the minimal rectangle that need updating. Returns
+        """Calculate the minimal rectangle that need updating. Returns
         a two-element tuple containing the cropped image and an x-y tuple.
 
         Calculating the subrectangles takes extra time, obviously. However,

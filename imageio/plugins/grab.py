@@ -11,8 +11,7 @@ from ..core import Format
 
 
 class BaseGrabFormat(Format):
-    """ Base format for grab formats.
-    """
+    """Base format for grab formats."""
 
     _pillow_imported = False
     _ImageGrab = None
@@ -51,7 +50,7 @@ class BaseGrabFormat(Format):
 
 
 class ScreenGrabFormat(BaseGrabFormat):
-    """ The ScreenGrabFormat provided a means to grab screenshots using
+    """The ScreenGrabFormat provided a means to grab screenshots using
     the uri of "<screen>".
 
     This functionality is provided via Pillow. Note that "<screen>" is
@@ -80,7 +79,7 @@ class ScreenGrabFormat(BaseGrabFormat):
 
 
 class ClipboardGrabFormat(BaseGrabFormat):
-    """ The ClipboardGrabFormat provided a means to grab image data from
+    """The ClipboardGrabFormat provided a means to grab image data from
     the clipboard, using the uri "<clipboard>"
 
     This functionality is provided via Pillow. Note that "<clipboard>" is

@@ -15,8 +15,7 @@ from ._config import DOC_DIR, DOC_BUILD_DIR
     )
 )
 def docs(ctx, clean=False, build=False, show=False, **kwargs):
-    """ make API documentation
-    """
+    """make API documentation"""
     # Prepare
 
     if not (clean or build or show):

@@ -52,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 
 class BitArray:
-    """ Dynamic array of bits that automatically resizes
+    """Dynamic array of bits that automatically resizes
     with factors of two.
     Append bits using .append() or +=
     You can reverse bits using .reverse()
@@ -104,7 +104,7 @@ class BitArray:
         self.data[: self._len] = tmp[::-1]
 
     def tobytes(self):
-        """ Convert to bytes. If necessary,
+        """Convert to bytes. If necessary,
         zeros are padded to the end (right side).
         """
         bits = str(self)
@@ -139,8 +139,8 @@ def int2uint8(i):
 
 
 def int2bits(i, n=None):
-    """ convert int to a string of bits (0's and 1's in a string),
-    pad to n elements. Convert back using int(ss,2). """
+    """convert int to a string of bits (0's and 1's in a string),
+    pad to n elements. Convert back using int(ss,2)."""
     ii = i
 
     # make bits
@@ -176,7 +176,7 @@ def bits2int(bb, n=8):
 
 
 def get_type_and_len(bb):
-    """ bb should be 6 bytes at least
+    """bb should be 6 bytes at least
     Return (type, length, length_of_full_tag)
     """
     # Init
@@ -210,7 +210,7 @@ def get_type_and_len(bb):
 
 
 def signedint2bits(i, n=None):
-    """ convert signed int to a string of bits (0's and 1's in a string),
+    """convert signed int to a string of bits (0's and 1's in a string),
     pad to n elements. Negative numbers are stored in 2's complement bit
     patterns, thus positive numbers always start with a 0.
     """
@@ -244,7 +244,7 @@ def signedint2bits(i, n=None):
 
 
 def twits2bits(arr):
-    """ Given a few (signed) numbers, store them
+    """Given a few (signed) numbers, store them
     as compactly as possible in the wat specifief by the swf format.
     The numbers are multiplied by 20, assuming they
     are twits.
@@ -267,7 +267,7 @@ def twits2bits(arr):
 
 
 def floats2bits(arr):
-    """ Given a few (signed) numbers, convert them to bits,
+    """Given a few (signed) numbers, convert them to bits,
     stored as FB (float bit values). We always use 16.16.
     Negative numbers are not (yet) possible, because I don't
     know how the're implemented (ambiguity).
@@ -315,8 +315,8 @@ class Tag:
         return bb
 
     def make_rect_record(self, xmin, xmax, ymin, ymax):
-        """ Simply uses makeCompactArray to produce
-        a RECT Record. """
+        """Simply uses makeCompactArray to produce
+        a RECT Record."""
         return twits2bits([xmin, xmax, ymin, ymax])
 
     def make_matrix_record(self, scale_xy=None, rot_xy=None, trans_xy=None):
@@ -629,8 +629,7 @@ class ShapeTag(DefinitionTag):
 
 
 def read_pixels(bb, i, tagType, L1):
-    """ With pf's seed after the recordheader, reads the pixeldata.
-    """
+    """With pf's seed after the recordheader, reads the pixeldata."""
 
     # Get info
     charId = bb[i : i + 2]  # noqa
@@ -684,7 +683,7 @@ def read_pixels(bb, i, tagType, L1):
 
 
 def checkImages(images):  # pragma: no cover
-    """ checkImages(images)
+    """checkImages(images)
     Check numpy images and correct intensity range etc.
     The same for all movie formats.
     """

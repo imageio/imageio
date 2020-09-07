@@ -164,8 +164,7 @@ def test_lytro_lfp_format():
 
 
 def test_lytro_lfr_reading():
-    """ Test reading of lytro .lfr file
-    """
+    """Test reading of lytro .lfr file"""
     # Get test images
     need_internet()
     lfr_file = get_remote_file(LFR_FILENAME)
@@ -427,8 +426,7 @@ def test_lytro_lfr_reading():
 
 
 def test_lytro_lfp_reading():
-    """ Test reading of lytro .lfr file
-    """
+    """Test reading of lytro .lfr file"""
     # Get test images
     need_internet()
     lfp_file = get_remote_file(LFP_FILENAME)
@@ -572,8 +570,7 @@ def test_lytro_lfp_reading():
 
 
 def test_lytro_raw_illum_reading():
-    """ Test reading of lytro .raw file
-    """
+    """Test reading of lytro .raw file"""
     # Get test images
     need_internet()
     raw_file = get_remote_file(RAW_ILLUM_FILENAME)
@@ -606,8 +603,7 @@ def test_lytro_raw_illum_reading():
 
 
 def test_lytro_raw_f0_reading():
-    """ Test reading of lytro .raw file
-    """
+    """Test reading of lytro .raw file"""
     # Get test images
     need_internet()
     raw_file = get_remote_file(RAW_F0_FILENAME)

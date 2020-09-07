@@ -28,7 +28,7 @@ def load_lib():
 
 
 class SWFFormat(Format):
-    """ Shockwave flash (SWF) is a media format designed for rich and
+    """Shockwave flash (SWF) is a media format designed for rich and
     interactive animations. This plugin makes use of this format to
     store a series of images in a lossless format with good compression
     (zlib). The resulting images can be shown as an animation using

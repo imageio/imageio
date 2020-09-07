@@ -48,7 +48,7 @@ DATA_CHUNKS_F01 = 3
 
 
 class LytroFormat(Format):
-    """ Base class for Lytro format.
+    """Base class for Lytro format.
     The subclasses LytroLfrFormat, LytroLfpFormat, LytroIllumRawFormat and
     LytroF01RawFormat implement the Lytro-LFR, Lytro-LFP and Lytro-RAW format
     for the Illum and original F01 camera respectively.
@@ -84,7 +84,7 @@ class LytroFormat(Format):
 
 
 class LytroIllumRawFormat(LytroFormat):
-    """ This is the Lytro Illum RAW format.
+    """This is the Lytro Illum RAW format.
     The raw format is a 10bit image format as used by the Lytro Illum
     light field camera. The format will read the specified raw file and will
     try to load a .txt or .json file with the associated meta data.
@@ -196,7 +196,7 @@ class LytroIllumRawFormat(LytroFormat):
 
 
 class LytroLfrFormat(LytroFormat):
-    """ This is the Lytro Illum LFR format.
+    """This is the Lytro Illum LFR format.
     The lfr is a image and meta data container format as used by the
     Lytro Illum light field camera.
     The format will read the specified lfr file.
@@ -392,7 +392,7 @@ class LytroLfrFormat(LytroFormat):
 
 
 class LytroF01RawFormat(LytroFormat):
-    """ This is the Lytro RAW format for the original F01 Lytro camera.
+    """This is the Lytro RAW format for the original F01 Lytro camera.
     The raw format is a 12bit image format as used by the Lytro F01
     light field camera. The format will read the specified raw file and will
     try to load a .txt or .json file with the associated meta data.
@@ -495,7 +495,7 @@ class LytroF01RawFormat(LytroFormat):
 
 
 class LytroLfpFormat(LytroFormat):
-    """ This is the Lytro Illum LFP format.
+    """This is the Lytro Illum LFP format.
     The lfp is a image and meta data container format as used by the
     Lytro F01 light field camera.
     The format will read the specified lfp file.

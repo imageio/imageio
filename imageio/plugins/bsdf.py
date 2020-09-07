@@ -14,8 +14,7 @@ def get_bsdf_serializer(options):
     from . import _bsdf as bsdf
 
     class NDArrayExtension(bsdf.Extension):
-        """ Copy of BSDF's NDArrayExtension but deal with lazy blobs.
-        """
+        """Copy of BSDF's NDArrayExtension but deal with lazy blobs."""
 
         name = "ndarray"
         cls = np.ndarray
@@ -27,8 +26,7 @@ def get_bsdf_serializer(options):
             return v  # return as dict, because of lazy blobs, decode in Image
 
     class ImageExtension(bsdf.Extension):
-        """ We implement two extensions that trigger on the Image classes.
-        """
+        """We implement two extensions that trigger on the Image classes."""
 
         def encode(self, s, v):
             return dict(array=v.array, meta=v.meta)
@@ -53,7 +51,7 @@ def get_bsdf_serializer(options):
 
 
 class Image:
-    """ Class in which we wrap the array and meta data. By using an extension
+    """Class in which we wrap the array and meta data. By using an extension
     we can make BSDF trigger on these classes and thus encode the images.
     as actual images.
     """
@@ -85,7 +83,7 @@ class Image3D(Image):
 
 
 class BsdfFormat(Format):
-    """ The BSDF format enables reading and writing of image data in the
+    """The BSDF format enables reading and writing of image data in the
     BSDF serialization format. This format allows storage of images, volumes,
     and series thereof. Data can be of any numeric data type, and can
     optionally be compressed. Each image/volume can have associated

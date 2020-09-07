@@ -18,7 +18,7 @@ PLUGINS_WITH_BINARIES = ["freeimage"]
 
 
 def download_bin(plugin_names=["all"], package_dir=False):
-    """ Download binary dependencies of plugins
+    """Download binary dependencies of plugins
 
     This is a convenience method for downloading the binaries
     (e.g. for freeimage) from the imageio-binaries
@@ -96,7 +96,7 @@ def download_bin_main():
 
 
 def remove_bin(plugin_names=["all"]):
-    """ Remove binary dependencies of plugins
+    """Remove binary dependencies of plugins
 
     This is a convenience method that removes all binaries
     dependencies for plugins downloaded by imageio.

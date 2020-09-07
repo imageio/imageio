@@ -50,8 +50,7 @@ def _write(fname, text):
 
 
 def prepare_reader_and_witer():
-    """ Prepare Format.Reader and Format.Writer for doc generation.
-    """
+    """Prepare Format.Reader and Format.Writer for doc generation."""
 
     # Create Reader and Writer subclasses that are going to be placed
     # in the format module so that autoclass can find them. They need
@@ -79,8 +78,7 @@ def prepare_reader_and_witer():
 
 
 def prepare_core_docs():
-    """ Prepare imageio.core for doc generation.
-    """
+    """Prepare imageio.core for doc generation."""
     # Set __all__ and add to __doc__ in imageio.core module,
     # so that the documentation gets generated correctly.
 
@@ -115,8 +113,7 @@ def prepare_core_docs():
 
 
 def create_plugin_docs():
-    """ Create docs for creating plugins.
-    """
+    """Create docs for creating plugins."""
 
     # Build main plugin dir
     title = "Creating imageio plugins"
@@ -147,8 +144,7 @@ methods are specified in the documentation for each format.
 
 
 def create_format_docs():
-    """ Create documentation for the formats.
-    """
+    """Create documentation for the formats."""
 
     # Build main plugin dir
     title = "Imageio formats"
@@ -211,8 +207,7 @@ def create_format_docs():
 
 
 def create_standard_images_docs():
-    """ Create documentation for imageio's standard images.
-    """
+    """Create documentation for imageio's standard images."""
 
     title = "Imageio standard images"
     text = "%s\n%s\n%s\n\n" % ("=" * len(title), title, "=" * len(title))

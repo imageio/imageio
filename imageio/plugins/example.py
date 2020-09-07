@@ -11,7 +11,7 @@ from ..core import Format
 
 
 class DummyFormat(Format):
-    """ The dummy format is an example format that does nothing.
+    """The dummy format is an example format that does nothing.
     It will never indicate that it can read or write a file. When
     explicitly asked to read, it will simply read the bytes. When
     explicitly asked to write, it will raise an error.
