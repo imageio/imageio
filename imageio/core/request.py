@@ -204,9 +204,10 @@ class Request(object):
                 if zip_i > 0:
                     zip_i += 4
                     zip_path = self._filename[:zip_i]
-                    if is_write_request or os.path.isfile(zip_path):
+                    if os.path.isdir(zip_path):
+                        pass  # is an existing dir (see #548)
+                    elif is_write_request or os.path.isfile(zip_path):
                         self._uri_type = URI_ZIPPED
-
                         self._filename_zip = (
                             zip_path,
                             self._filename[zip_i:].lstrip("/\\"),
