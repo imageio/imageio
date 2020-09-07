@@ -63,7 +63,7 @@ READ_METADATA_KEYS = (
 
 
 class TiffFormat(Format):
-    """ Provides support for a wide range of Tiff images.
+    """Provides support for a wide range of Tiff images.
 
     Images that contain multiple pages can be read using ``imageio.mimread()``
     to read the individual pages, or ``imageio.volread()`` to obtain a

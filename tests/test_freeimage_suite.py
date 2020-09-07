@@ -54,7 +54,7 @@ ZIPDIR = os.path.join(THISDIR, "zipped")
 
 
 def run_feeimage_test_suite():
-    """ Run freeimage test suite.
+    """Run freeimage test suite.
     Lots of images. Berrer done locally and then checking the result.
     Not so much suited for CI, I think.
     """

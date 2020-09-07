@@ -45,7 +45,7 @@ FNAME_PER_PLATFORM = {
 
 
 def download(directory=None, force_download=False):
-    """ Download the FreeImage library to your computer.
+    """Download the FreeImage library to your computer.
 
     Parameters
     ----------
@@ -68,8 +68,7 @@ def download(directory=None, force_download=False):
 
 
 def get_freeimage_lib():
-    """ Ensure we have our version of the binary freeimage lib.
-    """
+    """Ensure we have our version of the binary freeimage lib."""
 
     lib = os.getenv("IMAGEIO_FREEIMAGE_LIB", None)
     if lib:  # pragma: no cover
@@ -332,7 +331,7 @@ class METADATA_DATATYPE(object):
 
 
 class Freeimage(object):
-    """ Class to represent an interface to the FreeImage library.
+    """Class to represent an interface to the FreeImage library.
     This class is relatively thin. It provides a Pythonic API that converts
     Freeimage objects to Python objects, but that's about it.
     The actual implementation should be provided by the plugins.
@@ -454,7 +453,7 @@ class Freeimage(object):
         return True
 
     def load_freeimage(self):
-        """ Try to load the freeimage lib from the system. If not successful,
+        """Try to load the freeimage lib from the system. If not successful,
         try to download the imageio version and try again.
         """
         # Load library and register API
@@ -531,13 +530,13 @@ class Freeimage(object):
         self._lock.release()
 
     def _reset_log(self):
-        """ Reset the list of output messages. Call this before
+        """Reset the list of output messages. Call this before
         loading or saving an image with the FreeImage API.
         """
         self._messages = []
 
     def _get_error_message(self):
-        """ Get the output messages produced since the last reset as
+        """Get the output messages produced since the last reset as
         one string. Returns 'No known reason.' if there are no messages.
         Also resets the log.
         """
@@ -549,7 +548,7 @@ class Freeimage(object):
             return "No known reason."
 
     def _show_any_warnings(self):
-        """ If there were any messages since the last reset, show them
+        """If there were any messages since the last reset, show them
         as a warning. Otherwise do nothing. Also resets the messages.
         """
         if self._messages:
@@ -557,14 +556,14 @@ class Freeimage(object):
             self._reset_log()
 
     def get_output_log(self):
-        """ Return a list of the last 256 output messages
+        """Return a list of the last 256 output messages
         (warnings and errors) produced by the FreeImage library.
         """
         # This message log is not cleared/reset, but kept to 256 elements.
         return [m for m in self._messages]
 
     def getFIF(self, filename, mode, bb=None):
-        """ Get the freeimage Format (FIF) from a given filename.
+        """Get the freeimage Format (FIF) from a given filename.
         If mode is 'r', will try to determine the format by reading
         the file, otherwise only the filename is used.
 
@@ -603,13 +602,13 @@ class Freeimage(object):
             return ftype
 
     def create_bitmap(self, filename, ftype, flags=0):
-        """ create_bitmap(filename, ftype, flags=0)
+        """create_bitmap(filename, ftype, flags=0)
         Create a wrapped bitmap object.
         """
         return FIBitmap(self, filename, ftype, flags)
 
     def create_multipage_bitmap(self, filename, ftype, flags=0):
-        """ create_multipage_bitmap(filename, ftype, flags=0)
+        """create_multipage_bitmap(filename, ftype, flags=0)
         Create a wrapped multipage bitmap object.
         """
         return FIMultipageBitmap(self, filename, ftype, flags)
@@ -640,8 +639,7 @@ class FIBaseBitmap(object):
             self._bitmap = None
 
     def _set_bitmap(self, bitmap, close_func=None):
-        """ Function to set the bitmap and specify the function to unload it.
-        """
+        """Function to set the bitmap and specify the function to unload it."""
         if self._bitmap is not None:
             pass  # bitmap is converted
         if close_func is None:
@@ -798,8 +796,7 @@ class FIBaseBitmap(object):
 
 
 class FIBitmap(FIBaseBitmap):
-    """ Wrapper for the FI bitmap object.
-    """
+    """Wrapper for the FI bitmap object."""
 
     def allocate(self, array):
 
@@ -1083,8 +1080,7 @@ class FIBitmap(FIBaseBitmap):
                 return array
 
     def _finish_wrapped_array(self, array):  # IS_PYPY
-        """ Hardcore way to inject numpy array in bitmap.
-        """
+        """Hardcore way to inject numpy array in bitmap."""
         # Get bitmap info
         with self._fi as lib:
             pitch = lib.FreeImage_GetPitch(self._bitmap)
@@ -1163,7 +1159,7 @@ class FIBitmap(FIBaseBitmap):
         return numpy.dtype(dtype), extra_dims + [w, h], bpp
 
     def quantize(self, quantizer=0, palettesize=256):
-        """ Quantize the bitmap to make it 8-bit (paletted). Returns a new
+        """Quantize the bitmap to make it 8-bit (paletted). Returns a new
         FIBitmap object.
         Only for 24 bit images.
         """
@@ -1209,8 +1205,7 @@ class FIBitmap(FIBaseBitmap):
 
 
 class FIMultipageBitmap(FIBaseBitmap):
-    """ Wrapper for the multipage FI bitmap object.
-    """
+    """Wrapper for the multipage FI bitmap object."""
 
     def load_from_filename(self, filename=None):
         if filename is None:  # pragma: no cover
@@ -1299,7 +1294,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             return lib.FreeImage_GetPageCount(self._bitmap)
 
     def get_page(self, index):
-        """ Return the sub-bitmap for the given page index.
+        """Return the sub-bitmap for the given page index.
         Please close the returned bitmap when done.
         """
         with self._fi as lib:
@@ -1321,8 +1316,7 @@ class FIMultipageBitmap(FIBaseBitmap):
             return bm
 
     def append_bitmap(self, bitmap):
-        """ Add a sub-bitmap to the multi-page bitmap.
-        """
+        """Add a sub-bitmap to the multi-page bitmap."""
         with self._fi as lib:
             # no return value
             lib.FreeImage_AppendPage(self._bitmap, bitmap._bitmap)

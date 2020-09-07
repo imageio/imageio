@@ -146,7 +146,7 @@ class Spec:
 
 
 class SpeFormat(Format):
-    """ Some CCD camera software produces images in the Princeton Instruments
+    """Some CCD camera software produces images in the Princeton Instruments
     SPE file format. This plugin supports reading such files.
 
     Parameters for reading

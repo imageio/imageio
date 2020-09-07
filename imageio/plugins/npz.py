@@ -12,7 +12,7 @@ from ..core import Format
 
 
 class NpzFormat(Format):
-    """ NPZ is a file format by numpy that provides storage of array
+    """NPZ is a file format by numpy that provides storage of array
     data using gzip compression. This imageio plugin supports data of any
     shape, and also supports multiple images per file.
 

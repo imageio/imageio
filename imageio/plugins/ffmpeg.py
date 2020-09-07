@@ -42,8 +42,7 @@ def download(directory=None, force_download=False):  # pragma: no cover
 
 # For backwards compatibility - we dont use this ourselves
 def get_exe():  # pragma: no cover
-    """ Wrapper for imageio_ffmpeg.get_ffmpeg_exe()
-    """
+    """Wrapper for imageio_ffmpeg.get_ffmpeg_exe()"""
     import imageio_ffmpeg
 
     return imageio_ffmpeg.get_ffmpeg_exe()
@@ -67,7 +66,7 @@ def _get_ffmpeg_api():
 
 
 class FfmpegFormat(Format):
-    """ The ffmpeg format provides reading and writing for a wide range
+    """The ffmpeg format provides reading and writing for a wide range
     of movie formats such as .avi, .mpeg, .mp4, etc. And also to read
     streams from webcams and USB cameras.
 
@@ -344,7 +343,7 @@ class FfmpegFormat(Format):
                 self._read_gen = None
 
         def count_frames(self):
-            """ Count the number of frames. Note that this can take a few
+            """Count the number of frames. Note that this can take a few
             seconds for large files. Also note that it counts the number
             of frames in the original video and does not take a given fps
             into account.
@@ -361,11 +360,11 @@ class FfmpegFormat(Format):
             return self._nframes  # only not inf if loop is True
 
         def _get_data(self, index):
-            """ Reads a frame at index. Note for coders: getting an
+            """Reads a frame at index. Note for coders: getting an
             arbitrary frame in the video with ffmpeg can be painfully
             slow if some decoding has to be done. This function tries
             to avoid fectching arbitrary frames whenever possible, by
-            moving between adjacent frames. """
+            moving between adjacent frames."""
             # Modulo index (for looping)
             if self._arg_loop and self._nframes < float("inf"):
                 index %= self._nframes
@@ -620,7 +619,7 @@ class FfmpegFormat(Format):
 
 
 class FrameCatcher(threading.Thread):
-    """ Thread to keep reading the frame data from stdout. This is
+    """Thread to keep reading the frame data from stdout. This is
     useful when streaming from a webcam. Otherwise, if the user code
     does not grab frames fast enough, the buffer will fill up, leading
     to lag, and ffmpeg can also stall (experienced on Linux). The

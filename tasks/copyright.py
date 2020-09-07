@@ -7,8 +7,8 @@ from invoke import task
 
 @task
 def copyright(ctx):
-    """ list usage of copyright notices
-    
+    """list usage of copyright notices
+
     The use of copyright notices should be limited to files that are likely
     to be used in other projects, or to make appropriate attributions for code
     taken from other projects. Other than that, git geeps track of what person

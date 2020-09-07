@@ -21,8 +21,7 @@ _prepared = None
 
 
 def _prepare():
-    """ Create two dirs, one with one dataset and one with two datasets
-    """
+    """Create two dirs, one with one dataset and one with two datasets"""
     need_internet()
 
     global _prepared

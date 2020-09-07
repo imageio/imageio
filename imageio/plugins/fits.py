@@ -25,7 +25,7 @@ def load_lib():
 
 class FitsFormat(Format):
 
-    """ Flexible Image Transport System (FITS) is an open standard defining a
+    """Flexible Image Transport System (FITS) is an open standard defining a
     digital file format useful for storage, transmission and processing of
     scientific and other images. FITS is the most commonly used digital
     file format in astronomy.

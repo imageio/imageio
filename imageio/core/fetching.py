@@ -17,7 +17,7 @@ from . import StdoutProgressIndicator, urlopen
 
 
 class InternetNotAllowedError(IOError):
-    """ Plugins that need resources can just use get_remote_file(), but
+    """Plugins that need resources can just use get_remote_file(), but
     should catch this error and silently ignore it.
     """
 
@@ -25,13 +25,13 @@ class InternetNotAllowedError(IOError):
 
 
 class NeedDownloadError(IOError):
-    """ Is raised when a remote file is requested that is not locally
+    """Is raised when a remote file is requested that is not locally
     available, but which needs to be explicitly downloaded by the user.
     """
 
 
 def get_remote_file(fname, directory=None, force_download=False, auto=True):
-    """ Get a the filename for the local version of a file from the web
+    """Get a the filename for the local version of a file from the web
 
     Parameters
     ----------

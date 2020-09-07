@@ -71,8 +71,7 @@ class PillowFormat(Format):
 
     @property
     def plugin_id(self):
-        """ The PIL plugin id.
-        """
+        """The PIL plugin id."""
         return self._plugin_id  # Set when format is created
 
     def _init_pillow(self):
@@ -223,16 +222,16 @@ class PillowFormat(Format):
 
 class PNGFormat(PillowFormat):
     """A PNG format based on Pillow.
-    
+
     This format supports grayscale, RGB and RGBA images.
-    
+
     Parameters for reading
     ----------------------
     ignoregamma : bool
         Avoid gamma correction. Default True.
     pilmode : str
         From the Pillow documentation:
-        
+
         * 'L' (8-bit pixels, grayscale)
         * 'P' (8-bit pixels, mapped to any other mode using a color palette)
         * 'RGB' (3x8-bit pixels, true color)
@@ -241,28 +240,28 @@ class PNGFormat(PillowFormat):
         * 'YCbCr' (3x8-bit pixels, color video format)
         * 'I' (32-bit signed integer pixels)
         * 'F' (32-bit floating point pixels)
-        
+
         PIL also provides limited support for a few special modes, including
         'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
         (true color with premultiplied alpha).
-        
+
         When translating a color image to grayscale (mode 'L', 'I' or 'F'),
         the library uses the ITU-R 601-2 luma transform::
-        
+
             L = R * 299/1000 + G * 587/1000 + B * 114/1000
     as_gray : bool
         If True, the image is converted using mode 'F'. When `mode` is
         not None and `as_gray` is True, the image is first converted
         according to `mode`, and the result is then "flattened" using
         mode 'F'.
-    
+
     Parameters for saving
     ---------------------
     optimize : bool
         If present and true, instructs the PNG writer to make the output file
         as small as possible. This includes extra processing in order to find
         optimal encoder settings.
-    transparency: 
+    transparency:
         This option controls what color image to mark as transparent.
     dpi: tuple of two scalars
         The desired dpi in each direction.
@@ -281,7 +280,7 @@ class PNGFormat(PillowFormat):
     bits (experimental): int
         This option controls how many bits to store. If omitted,
         the PNG writer uses 8 bits (256 colors).
-    quantize: 
+    quantize:
         Compatibility with the freeimage PNG format. If given, it overrides
         bits. In this case, given as a number between 1-256.
     dictionary (experimental): dict
@@ -366,16 +365,16 @@ class PNGFormat(PillowFormat):
 
 class JPEGFormat(PillowFormat):
     """A JPEG format based on Pillow.
-    
+
     This format supports grayscale, RGB and RGBA images.
-    
+
     Parameters for reading
     ----------------------
     exifrotate : bool
         Automatically rotate the image according to exif flag. Default True.
     pilmode : str
         From the Pillow documentation:
-        
+
         * 'L' (8-bit pixels, grayscale)
         * 'P' (8-bit pixels, mapped to any other mode using a color palette)
         * 'RGB' (3x8-bit pixels, true color)
@@ -384,21 +383,21 @@ class JPEGFormat(PillowFormat):
         * 'YCbCr' (3x8-bit pixels, color video format)
         * 'I' (32-bit signed integer pixels)
         * 'F' (32-bit floating point pixels)
-        
+
         PIL also provides limited support for a few special modes, including
         'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
         (true color with premultiplied alpha).
-        
+
         When translating a color image to grayscale (mode 'L', 'I' or 'F'),
         the library uses the ITU-R 601-2 luma transform::
-        
+
             L = R * 299/1000 + G * 587/1000 + B * 114/1000
     as_gray : bool
         If True, the image is converted using mode 'F'. When `mode` is
         not None and `as_gray` is True, the image is first converted
         according to `mode`, and the result is then "flattened" using
         mode 'F'.
-    
+
     Parameters for saving
     ---------------------
     quality : scalar
@@ -455,7 +454,7 @@ class JPEGFormat(PillowFormat):
             return im, info
 
         def _rotate(self, im, meta):
-            """ Use Orientation information from EXIF meta data to 
+            """Use Orientation information from EXIF meta data to
             orient the image correctly. Similar code as in FreeImage plugin.
             """
             if self.request.kwargs.get("exifrotate", True):
@@ -505,14 +504,14 @@ class JPEGFormat(PillowFormat):
 
 class JPEG2000Format(PillowFormat):
     """A JPEG 2000 format based on Pillow.
-    
+
     This format supports grayscale and RGB images.
-    
+
     Parameters for reading
     ----------------------
     pilmode : str
         From the Pillow documentation:
-        
+
         * 'L' (8-bit pixels, grayscale)
         * 'P' (8-bit pixels, mapped to any other mode using a color palette)
         * 'RGB' (3x8-bit pixels, true color)
@@ -521,37 +520,37 @@ class JPEG2000Format(PillowFormat):
         * 'YCbCr' (3x8-bit pixels, color video format)
         * 'I' (32-bit signed integer pixels)
         * 'F' (32-bit floating point pixels)
-        
+
         PIL also provides limited support for a few special modes, including
         'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
         (true color with premultiplied alpha).
-        
+
         When translating a color image to grayscale (mode 'L', 'I' or 'F'),
         the library uses the ITU-R 601-2 luma transform::
-        
+
             L = R * 299/1000 + G * 587/1000 + B * 114/1000
     as_gray : bool
         If True, the image is converted using mode 'F'. When `mode` is
         not None and `as_gray` is True, the image is first converted
         according to `mode`, and the result is then "flattened" using
         mode 'F'.
-    
+
     Parameters for saving
-    ---------------------    
+    ---------------------
     **quality_mode**
         Either `"rates"` or `"dB"` depending on the units you want to use to
         specify image quality.
-    
+
     **quality**
         Approximate size reduction (if quality mode is `rates`) or a signal to noise ratio
-        in decibels (if quality mode is `dB`).  
-    
+        in decibels (if quality mode is `dB`).
+
     .. note::
-    
+
        To enable JPEG 2000 support, you need to build and install the OpenJPEG
        library, version 2.0.0 or higher, before building the Python Imaging
        Library.
-    
+
        Windows users can install the OpenJPEG binaries available on the
        OpenJPEG website, but must add them to their PATH in order to use PIL (if
        you fail to do this, you will get errors about not being able to load the
@@ -590,7 +589,7 @@ class JPEG2000Format(PillowFormat):
             return im, info
 
         def _rotate(self, im, meta):
-            """ Use Orientation information from EXIF meta data to 
+            """Use Orientation information from EXIF meta data to
             orient the image correctly. Similar code as in FreeImage plugin.
             """
             if self.request.kwargs.get("exifrotate", True):
@@ -696,7 +695,7 @@ def _palette_is_grayscale(pil_image):
 
 
 def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
-    """ 
+    """
     is_gray: Whether the image *is* gray (by inspecting its palette).
     as_gray: Whether the resulting image must be converted to gaey.
     mode: The mode to convert to.

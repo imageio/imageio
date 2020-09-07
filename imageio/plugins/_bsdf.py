@@ -72,8 +72,7 @@ strunpack = struct.unpack
 
 
 def lencode(x):
-    """ Encode an unsigned integer into a variable sized blob of bytes.
-    """
+    """Encode an unsigned integer into a variable sized blob of bytes."""
     # We could support 16 bit and 32 bit as well, but the gain is low, since
     # 9 bytes for collections with over 250 elements is marginal anyway.
     if x <= 250:
@@ -88,8 +87,7 @@ def lencode(x):
 
 # Include len decoder for completeness; we've inlined it for performance.
 def lendecode(f):
-    """ Decode an unsigned integer from a file.
-    """
+    """Decode an unsigned integer from a file."""
     n = strunpack("<B", f.read(1))[0]
     if n == 253:
         n = strunpack("<Q", f.read(8))[0]  # noqa
@@ -97,8 +95,7 @@ def lendecode(f):
 
 
 def encode_type_id(b, ext_id):
-    """ Encode the type identifier, with or without extension id.
-    """
+    """Encode the type identifier, with or without extension id."""
     if ext_id is not None:
         bb = ext_id.encode("UTF-8")
         return b.upper() + lencode(len(bb)) + bb  # noqa
@@ -107,8 +104,7 @@ def encode_type_id(b, ext_id):
 
 
 def _isidentifier(s):  # pragma: no cover
-    """ Use of str.isidentifier() for Legacy Python, but slower.
-    """
+    """Use of str.isidentifier() for Legacy Python, but slower."""
     # http://stackoverflow.com/questions/2544972/
     return (
         isinstance(s, string_types)
@@ -118,7 +114,7 @@ def _isidentifier(s):  # pragma: no cover
 
 
 class BsdfSerializer(object):
-    """ Instances of this class represent a BSDF encoder/decoder.
+    """Instances of this class represent a BSDF encoder/decoder.
 
     It acts as a placeholder for a set of extensions and encoding/decoding
     options. Use this to predefine extensions and options for high
@@ -183,7 +179,7 @@ class BsdfSerializer(object):
         self._lazy_blob = bool(lazy_blob)
 
     def add_extension(self, extension_class):
-        """ Add an extension to this serializer instance, which must be
+        """Add an extension to this serializer instance, which must be
         a subclass of Extension. Can be used as a decorator.
         """
         # Check class
@@ -226,8 +222,7 @@ class BsdfSerializer(object):
         return extension_class
 
     def remove_extension(self, name):
-        """ Remove a converted by its unique name.
-        """
+        """Remove a converted by its unique name."""
         if not isinstance(name, str):
             raise TypeError("Extension name must be str.")
         if name in self._extensions:
@@ -237,8 +232,7 @@ class BsdfSerializer(object):
                 self._extensions_by_cls.pop(cls)
 
     def _encode(self, f, value, streams, ext_id):
-        """ Main encoder function.
-        """
+        """Main encoder function."""
         x = encode_type_id
 
         if value is None:
@@ -329,8 +323,7 @@ class BsdfSerializer(object):
                 raise TypeError(t % value.__class__.__name__)
 
     def _decode(self, f):
-        """ Main decoder function.
-        """
+        """Main decoder function."""
 
         # Get value
         char = f.read(1)
@@ -420,15 +413,13 @@ class BsdfSerializer(object):
         return value
 
     def encode(self, ob):
-        """ Save the given object to bytes.
-        """
+        """Save the given object to bytes."""
         f = BytesIO()
         self.save(f, ob)
         return f.getvalue()
 
     def save(self, f, ob):
-        """ Write the given object to the given file object.
-        """
+        """Write the given object to the given file object."""
         f.write(b"BSDF")
         f.write(struct.pack("<B", VERSION[0]))
         f.write(struct.pack("<B", VERSION[1]))
@@ -447,14 +438,12 @@ class BsdfSerializer(object):
                 )
 
     def decode(self, bb):
-        """ Load the data structure that is BSDF-encoded in the given bytes.
-        """
+        """Load the data structure that is BSDF-encoded in the given bytes."""
         f = BytesIO(bb)
         return self.load(f)
 
     def load(self, f):
-        """ Load a BSDF-encoded object from the given file object.
-        """
+        """Load a BSDF-encoded object from the given file object."""
         # Check magic string
         f4 = f.read(4)
         if f4 != b"BSDF":
@@ -483,8 +472,7 @@ class BsdfSerializer(object):
 
 
 class BaseStream(object):
-    """ Base class for streams.
-    """
+    """Base class for streams."""
 
     def __init__(self, mode="w"):
         self._i = 0
@@ -509,31 +497,29 @@ class BaseStream(object):
 
     @property
     def mode(self):
-        """ The mode of this stream: 'r' or 'w'.
-        """
+        """The mode of this stream: 'r' or 'w'."""
         return self._mode
 
 
 class ListStream(BaseStream):
-    """ A streamable list object used for writing or reading.
+    """A streamable list object used for writing or reading.
     In read mode, it can also be iterated over.
     """
 
     @property
     def count(self):
-        """ The number of elements in the stream (can be -1 for unclosed
+        """The number of elements in the stream (can be -1 for unclosed
         streams in read-mode).
         """
         return self._count
 
     @property
     def index(self):
-        """ The current index of the element to read/write.
-        """
+        """The current index of the element to read/write."""
         return self._i
 
     def append(self, item):
-        """ Append an item to the streaming list. The object is immediately
+        """Append an item to the streaming list. The object is immediately
         serialized and written to the underlying file.
         """
         # if self._mode != 'w':
@@ -549,7 +535,7 @@ class ListStream(BaseStream):
         self._count += 1
 
     def close(self, unstream=False):
-        """ Close the stream, marking the number of written elements. New
+        """Close the stream, marking the number of written elements. New
         elements may still be appended, but they won't be read during decoding.
         If ``unstream`` is False, the stream is turned into a regular list
         (not streaming).
@@ -569,7 +555,7 @@ class ListStream(BaseStream):
         self._f.seek(i)
 
     def next(self):
-        """ Read and return the next element in the streaming list.
+        """Read and return the next element in the streaming list.
         Raises StopIteration if the stream is exhausted.
         """
         if self._mode != "r":
@@ -603,7 +589,7 @@ class ListStream(BaseStream):
 
 
 class Blob(object):
-    """ Object to represent a blob of bytes. When used to write a BSDF file,
+    """Object to represent a blob of bytes. When used to write a BSDF file,
     it's a wrapper for bytes plus properties such as what compression to apply.
     When used to read a BSDF file, it can be used to read the data lazily, and
     also modify the data if reading in 'r+' mode and the blob isn't compressed.
@@ -628,8 +614,7 @@ class Blob(object):
             raise TypeError("Wrong argument to create Blob.")
 
     def _from_bytes(self, value, compression):
-        """ When used to wrap bytes in a blob.
-        """
+        """When used to wrap bytes in a blob."""
         if compression == 0:
             compressed = value
         elif compression == 1:
@@ -644,8 +629,7 @@ class Blob(object):
         return compressed
 
     def _to_file(self, f):
-        """ Private friend method called by encoder to write a blob to a file.
-        """
+        """Private friend method called by encoder to write a blob to a file."""
         # Write sizes - write at least in a size that allows resizing
         if self.allocated_size <= 250 and self.compression == 0:
             f.write(spack("<B", self.allocated_size))
@@ -673,8 +657,7 @@ class Blob(object):
         f.write(b"\x00" * (self.allocated_size - self.used_size))
 
     def _from_file(self, f, allow_seek):
-        """ Used when a blob is read by the decoder.
-        """
+        """Used when a blob is read by the decoder."""
         # Read blob header data (5 to 42 bytes)
         # Size
         allocated_size = strunpack("<B", f.read(1))[0]
@@ -713,8 +696,7 @@ class Blob(object):
         self.data_size = data_size
 
     def seek(self, p):
-        """ Seek to the given position (relative to the blob start).
-        """
+        """Seek to the given position (relative to the blob start)."""
         if self._f is None:
             raise RuntimeError(
                 "Cannot seek in a blob " "that is not created by the BSDF decoder."
@@ -726,8 +708,7 @@ class Blob(object):
         self._f.seek(self.start_pos + p)
 
     def tell(self):
-        """ Get the current file pointer position (relative to the blob start).
-        """
+        """Get the current file pointer position (relative to the blob start)."""
         if self._f is None:
             raise RuntimeError(
                 "Cannot tell in a blob " "that is not created by the BSDF decoder."
@@ -735,8 +716,7 @@ class Blob(object):
         return self._f.tell() - self.start_pos
 
     def write(self, bb):
-        """ Write bytes to the blob.
-        """
+        """Write bytes to the blob."""
         if self._f is None:
             raise RuntimeError(
                 "Cannot write in a blob " "that is not created by the BSDF decoder."
@@ -749,8 +729,7 @@ class Blob(object):
         return self._f.write(bb)
 
     def read(self, n):
-        """ Read n bytes from the blob.
-        """
+        """Read n bytes from the blob."""
         if self._f is None:
             raise RuntimeError(
                 "Cannot read in a blob " "that is not created by the BSDF decoder."
@@ -762,8 +741,7 @@ class Blob(object):
         return self._f.read(n)
 
     def get_bytes(self):
-        """ Get the contents of the blob as bytes.
-        """
+        """Get the contents of the blob as bytes."""
         if self.compressed is not None:
             compressed = self.compressed
         else:
@@ -782,7 +760,7 @@ class Blob(object):
         return value
 
     def update_checksum(self):
-        """ Reset the blob's checksum if present. Call this after modifying
+        """Reset the blob's checksum if present. Call this after modifying
         the data.
         """
         # or ... should the presence of a checksum mean that data is proteced?
@@ -797,7 +775,7 @@ class Blob(object):
 
 
 def encode(ob, extensions=None, **options):
-    """ Save (BSDF-encode) the given object to bytes.
+    """Save (BSDF-encode) the given object to bytes.
     See `BSDFSerializer` for details on extensions and options.
     """
     s = BsdfSerializer(extensions, **options)
@@ -805,7 +783,7 @@ def encode(ob, extensions=None, **options):
 
 
 def save(f, ob, extensions=None, **options):
-    """ Save (BSDF-encode) the given object to the given filename or
+    """Save (BSDF-encode) the given object to the given filename or
     file object. See` BSDFSerializer` for details on extensions and options.
     """
     s = BsdfSerializer(extensions, **options)
@@ -817,7 +795,7 @@ def save(f, ob, extensions=None, **options):
 
 
 def decode(bb, extensions=None, **options):
-    """ Load a (BSDF-encoded) structure from bytes.
+    """Load a (BSDF-encoded) structure from bytes.
     See `BSDFSerializer` for details on extensions and options.
     """
     s = BsdfSerializer(extensions, **options)
@@ -825,7 +803,7 @@ def decode(bb, extensions=None, **options):
 
 
 def load(f, extensions=None, **options):
-    """ Load a (BSDF-encoded) structure from the given filename or file object.
+    """Load a (BSDF-encoded) structure from the given filename or file object.
     See `BSDFSerializer` for details on extensions and options.
     """
     s = BsdfSerializer(extensions, **options)
@@ -851,7 +829,7 @@ dumps = encode
 
 
 class Extension(object):
-    """ Base class to implement BSDF extensions for special data types.
+    """Base class to implement BSDF extensions for special data types.
 
     Extension classes are provided to the BSDF serializer, which
     instantiates the class. That way, the extension can be somewhat dynamic:

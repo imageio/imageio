@@ -10,8 +10,7 @@ from ._config import ROOT_DIR
 
 @task
 def lint(ctx):
-    """ alias for "invoke test --style"
-    """
+    """alias for "invoke test --style" """
     flake8_wrapper()  # exits on fail
     black_wrapper(False)  # always exits
 
@@ -27,8 +26,7 @@ def lint(ctx):
     ),
 )
 def test(ctx, unit=False, installed=False, style=False, cover=False):
-    """ run tests (unit, style)
-    """
+    """run tests (unit, style)"""
 
     from imageio import testing
 
@@ -64,14 +62,12 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
 
 @task
 def autoformat(ctx):
-    """ Format the code using the Black uncompromising formatter.
-    """
+    """Format the code using the Black uncompromising formatter."""
     black_wrapper(True)
 
 
 def flake8_wrapper():
-    """ Helper function to catch the worst style errors (e.g. unused variables).
-    """
+    """Helper function to catch the worst style errors (e.g. unused variables)."""
     # http://pep8.readthedocs.io/en/latest/intro.html#error-codes
     cmd = [sys.executable, "-m", "flake8", "--select=F,E11", "imageio", "tests"]
     ret_code = subprocess.call(cmd, cwd=ROOT_DIR)
@@ -82,8 +78,7 @@ def flake8_wrapper():
 
 
 def black_wrapper(writeback):
-    """ Helper function to invoke black programatically.
-    """
+    """Helper function to invoke black programatically."""
 
     check = [] if writeback else ["--check"]
     exclude = "|".join(["_tifffile\.py"])

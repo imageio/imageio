@@ -25,7 +25,7 @@ for i in range(9):
 
 
 def run_tests_if_main(show_coverage=False):
-    """ Run tests in a given file if it is run as a script
+    """Run tests in a given file if it is run as a script
 
     Coverage is reported for running this single test. Set show_coverage to
     launch the report in the web browser.
@@ -96,8 +96,7 @@ def need_internet():
 
 
 def test_unit(cov_report="term"):
-    """ Run all unit tests. Returns exit code.
-    """
+    """Run all unit tests. Returns exit code."""
     orig_dir = os.getcwd()
     os.chdir(ROOT_DIR)
     try:
@@ -126,7 +125,7 @@ def test_unit(cov_report="term"):
 
 
 def _enable_faulthandler():
-    """ Enable faulthandler (if we can), so that we get tracebacks
+    """Enable faulthandler (if we can), so that we get tracebacks
     on segfaults.
     """
     try:

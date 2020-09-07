@@ -17,7 +17,7 @@ SYSTEM_LIBS_ONLY = False
 
 
 def looks_lib(fname):
-    """ Returns True if the given filename looks like a dynamic library.
+    """Returns True if the given filename looks like a dynamic library.
     Based on extension, but cross-platform and more flexible.
     """
     fname = fname.lower()
@@ -30,7 +30,7 @@ def looks_lib(fname):
 
 
 def generate_candidate_libs(lib_names, lib_dirs=None):
-    """ Generate a list of candidate filenames of what might be the dynamic
+    """Generate a list of candidate filenames of what might be the dynamic
     library corresponding with the given list of names.
     Returns (lib_dirs, lib_paths)
     """
@@ -83,7 +83,7 @@ def generate_candidate_libs(lib_names, lib_dirs=None):
 
 
 def load_lib(exact_lib_names, lib_names, lib_dirs=None):
-    """ load_lib(exact_lib_names, lib_names, lib_dirs=None)
+    """load_lib(exact_lib_names, lib_names, lib_dirs=None)
 
     Load a dynamic library.
 

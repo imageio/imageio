@@ -17,7 +17,7 @@ from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
 
 
 class FreeimageFormat(Format):
-    """ This is the default format used for FreeImage. Each Freeimage
+    """This is the default format used for FreeImage. Each Freeimage
     format has the 'flags' keyword argument. See the Freeimage
     documentation for more information.
 
@@ -142,7 +142,7 @@ class FreeimageFormat(Format):
 
 
 class FreeimageBmpFormat(FreeimageFormat):
-    """ A BMP format based on the Freeimage library.
+    """A BMP format based on the Freeimage library.
 
     This format supports grayscale, RGB and RGBA images.
 
@@ -179,7 +179,7 @@ class FreeimageBmpFormat(FreeimageFormat):
 
 
 class FreeimagePngFormat(FreeimageFormat):
-    """ A PNG format based on the Freeimage library.
+    """A PNG format based on the Freeimage library.
 
     This format supports grayscale, RGB and RGBA images.
 
@@ -260,7 +260,7 @@ class FreeimagePngFormat(FreeimageFormat):
 
 
 class FreeimageJpegFormat(FreeimageFormat):
-    """ A JPEG format based on the Freeimage library.
+    """A JPEG format based on the Freeimage library.
 
     This format supports grayscale and RGB images.
 
@@ -314,7 +314,7 @@ class FreeimageJpegFormat(FreeimageFormat):
             return im, meta
 
         def _rotate(self, im, meta):
-            """ Use Orientation information from EXIF meta data to
+            """Use Orientation information from EXIF meta data to
             orient the image correctly. Freeimage is also supposed to
             support that, and I am pretty sure it once did, but now it
             does not, so let's just do it in Python.
@@ -369,7 +369,7 @@ class FreeimageJpegFormat(FreeimageFormat):
 
 
 class FreeimagePnmFormat(FreeimageFormat):
-    """ A PNM format based on the Freeimage library.
+    """A PNM format based on the Freeimage library.
 
     This format supports single bit (PBM), grayscale (PGM) and RGB (PPM)
     images, even with ASCII or binary coding.
@@ -478,7 +478,7 @@ def _create_predefined_freeimage_formats():
 
 
 def create_freeimage_formats():
-    """ By default, imageio registers a list of predefined formats
+    """By default, imageio registers a list of predefined formats
     that freeimage can handle. If your version of imageio can handle
     more formats, you can call this function to register them.
     """
