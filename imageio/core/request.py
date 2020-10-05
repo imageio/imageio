@@ -35,7 +35,7 @@ RETURN_BYTES = "<bytes>"
 # Example images that will be auto-downloaded
 EXAMPLE_IMAGES = {
     "astronaut.png": "Image of the astronaut Eileen Collins",
-    "camera.png": "Classic grayscale image of a photographer",
+    "camera.png": "A grayscale image of a photographer",
     "checkerboard.png": "Black and white image of a chekerboard",
     "wood.jpg": "A (repeatable) texture of wooden planks",
     "bricks.jpg": "A (repeatable) texture of stone bricks",
