@@ -246,8 +246,16 @@ class TiffFormat(Format):
                     raise IndexError('Tiff support no more than 1 "volume" per file')
                 # There is self._tf.asarray(), but it picks the first series by
                 # default, so this seems more reliable. See #558.
-                ims = [p.asarray() for p in self._tf.pages]
-                im = np.stack(ims, 0)
+                ims = []
+                for i in range(len(self._tf.pages)):
+                    im = self._tf.pages[i].asarray()
+                    if ims and ims[0].shape != im.shape:
+                        break
+                    ims.append(im)
+                if ims:
+                    im = np.stack(ims, 0)
+                else:
+                    im = self._tf.asarray()
                 meta = self._meta
             else:
                 # Read as 2D image
