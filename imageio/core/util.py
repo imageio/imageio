@@ -124,7 +124,7 @@ class Array(np.ndarray):
         if not (meta is None or isinstance(meta, dict)):
             raise ValueError("Array expects meta data to be a dict.")
         # Convert and return
-        meta = meta if meta is not None else {}
+        meta = meta if meta is not None else getattr(array, "meta", {})
         try:
             ob = array.view(cls)
         except AttributeError:  # pragma: no cover

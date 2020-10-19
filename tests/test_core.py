@@ -388,6 +388,10 @@ def test_util_image():
     isinstance(im, np.ndarray)
     isinstance(im.meta, dict)
     assert str(im) == str(a)
+    # Preserve after copy
+    im2 = core.util.Image(im)
+    assert isinstance(im2, core.util.Image)
+    assert im2.meta == im.meta
     # Preserve after action
     im2 = im + 1
     assert isinstance(im2, core.util.Image)
