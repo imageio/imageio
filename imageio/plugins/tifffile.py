@@ -246,8 +246,9 @@ class TiffFormat(Format):
                     raise IndexError('Tiff support no more than 1 "volume" per file')
                 # There is self._tf.asarray(), but it picks the first series by
                 # default, so this seems more reliable. See #558.
+                number_of_slices = len(self._tf.pages)
                 ims = []
-                for i in range(len(self._tf.pages)):
+                for i in range(number_of_slices):
                     im = self._tf.pages[i].asarray()
                     if ims and ims[0].shape != im.shape:
                         break
