@@ -244,7 +244,19 @@ class TiffFormat(Format):
                 # Read data as single 3D (+ color channels) array
                 if index != 0:
                     raise IndexError('Tiff support no more than 1 "volume" per file')
-                im = self._tf.asarray()  # request as singleton image
+                # There is self._tf.asarray(), but it picks the first series by
+                # default, so this seems more reliable. See #558.
+                number_of_slices = len(self._tf.pages)
+                ims = []
+                for i in range(number_of_slices):
+                    im = self._tf.pages[i].asarray()
+                    if ims and ims[0].shape != im.shape:
+                        break
+                    ims.append(im)
+                if ims:
+                    im = np.stack(ims, 0)
+                else:
+                    im = self._tf.asarray()
                 meta = self._meta
             else:
                 # Read as 2D image
