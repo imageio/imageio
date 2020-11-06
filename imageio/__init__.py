@@ -37,6 +37,8 @@ from .core.functions import imsave, mimsave, volsave, mvolsave
 # Load all the plugins
 from . import plugins
 
+from .core.sequence import ImageSequence
+
 # expose the show method of formats
 show_formats = formats.show
 
