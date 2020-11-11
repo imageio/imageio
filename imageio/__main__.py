@@ -1,7 +1,6 @@
-""" 
+"""
 Console scripts and associated helper methods for imageio.
 """
-from __future__ import print_function
 
 import argparse
 import os
@@ -15,16 +14,16 @@ from .core import util
 
 # A list of plugins that require binaries from the imageio-binaries
 # repository. These plugins must implement the `download` method.
-PLUGINS_WITH_BINARIES = ["avbin", "ffmpeg", "freeimage"]
+PLUGINS_WITH_BINARIES = ["freeimage"]
 
 
 def download_bin(plugin_names=["all"], package_dir=False):
-    """ Download binary dependencies of plugins
-    
+    """Download binary dependencies of plugins
+
     This is a convenience method for downloading the binaries
-    (e.g. `ffmpeg.win32.exe` for Windows) from the imageio-binaries
+    (e.g. for freeimage) from the imageio-binaries
     repository.
-    
+
     Parameters
     ----------
     plugin_names: list
@@ -40,10 +39,10 @@ def download_bin(plugin_names=["all"], package_dir=False):
     if plugin_names.count("all"):
         # Use all plugins
         plugin_names = PLUGINS_WITH_BINARIES
-    
+
     plugin_names.sort()
     print("Ascertaining binaries for: {}.".format(", ".join(plugin_names)))
-    
+
     if package_dir:
         # Download the binaries to the `resources` directory
         # of imageio. If imageio comes as an .egg, then a cache
@@ -53,7 +52,7 @@ def download_bin(plugin_names=["all"], package_dir=False):
         directory = util.resource_package_dir()
     else:
         directory = None
-    
+
     for plg in plugin_names:
         if plg not in PLUGINS_WITH_BINARIES:
             msg = "Plugin {} not registered for binary download!".format(plg)
@@ -65,33 +64,43 @@ def download_bin(plugin_names=["all"], package_dir=False):
 def download_bin_main():
     """ Argument-parsing wrapper for `download_bin` """
     description = "Download plugin binary dependencies"
-    phelp = "Plugin name for which to download the binary. "\
-            + "If no argument is given, all binaries are downloaded."
-    dhelp = "Download the binaries to the package directory "\
-            + "(default is the users application data directory). "\
-            + "This might require administrative rights."
-    example_text = "examples:\n"\
-                   + "  imageio_download_bin all\n"\
-                   + "  imageio_download_bin ffmpeg\n"\
-                   + "  imageio_download_bin avbin ffmpeg\n"
+    phelp = (
+        "Plugin name for which to download the binary. "
+        + "If no argument is given, all binaries are downloaded."
+    )
+    dhelp = (
+        "Download the binaries to the package directory "
+        + "(default is the users application data directory). "
+        + "This might require administrative rights."
+    )
+    example_text = (
+        "examples:\n"
+        + "  imageio_download_bin all\n"
+        + "  imageio_download_bin freeimage\n"
+    )
     parser = argparse.ArgumentParser(
         description=description,
         epilog=example_text,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("plugin", type=str, nargs="*", default="all",
-                        help=phelp)
-    parser.add_argument("--package-dir", dest="package_dir",
-                        action="store_true", default=False, help=dhelp)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("plugin", type=str, nargs="*", default="all", help=phelp)
+    parser.add_argument(
+        "--package-dir",
+        dest="package_dir",
+        action="store_true",
+        default=False,
+        help=dhelp,
+    )
     args = parser.parse_args()
     download_bin(plugin_names=args.plugin, package_dir=args.package_dir)
 
 
 def remove_bin(plugin_names=["all"]):
-    """ Remove binary dependencies of plugins
-    
+    """Remove binary dependencies of plugins
+
     This is a convenience method that removes all binaries
     dependencies for plugins downloaded by imageio.
-    
+
     Notes
     -----
     It only makes sense to use this method if the binaries
@@ -109,7 +118,7 @@ def remove_bin(plugin_names=["all"]):
         if plg not in PLUGINS_WITH_BINARIES:
             msg = "Plugin {} not registered for binary download!".format(plg)
             raise Exception(msg)
-    
+
     not_removed = []
     for rd in rdirs:
         # plugin name is in subdirectories
@@ -122,34 +131,39 @@ def remove_bin(plugin_names=["all"]):
                     not_removed.append(plgdir)
     if not_removed:
         nrs = ",".join(not_removed)
-        msg2 = "These plugins files could not be removed: {}\n".format(nrs) \
-               + "Make sure they are not used by any program and try again."
+        msg2 = (
+            "These plugins files could not be removed: {}\n".format(nrs)
+            + "Make sure they are not used by any program and try again."
+        )
         raise Exception(msg2)
 
 
 def remove_bin_main():
     """ Argument-parsing wrapper for `remove_bin` """
     description = "Remove plugin binary dependencies"
-    phelp = "Plugin name for which to remove the binary. "\
-            + "If no argument is given, all binaries are removed."
-    example_text = "examples:\n"\
-                   + "  imageio_remove_bin all\n"\
-                   + "  imageio_remove_bin ffmpeg\n"\
-                   + "  imageio_remove_bin avbin ffmpeg\n"
+    phelp = (
+        "Plugin name for which to remove the binary. "
+        + "If no argument is given, all binaries are removed."
+    )
+    example_text = (
+        "examples:\n"
+        + "  imageio_remove_bin all\n"
+        + "  imageio_remove_bin freeimage\n"
+    )
     parser = argparse.ArgumentParser(
         description=description,
         epilog=example_text,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("plugin", type=str, nargs="*", default="all",
-                        help=phelp)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("plugin", type=str, nargs="*", default="all", help=phelp)
     args = parser.parse_args()
     remove_bin(plugin_names=args.plugin)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == 'download_bin':
+    if len(sys.argv) > 1 and sys.argv[1] == "download_bin":
         download_bin_main()
-    elif len(sys.argv) > 1 and sys.argv[1] == 'remove_bin':
+    elif len(sys.argv) > 1 and sys.argv[1] == "remove_bin":
         remove_bin_main()
     else:
-        raise RuntimeError('Invalid use of the imageio CLI')
+        raise RuntimeError("Invalid use of the imageio CLI")

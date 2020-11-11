@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # Based on code from the vispy project
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
 """Data downloading and reading functions
 """
-
-from __future__ import absolute_import, print_function, division
 
 from math import log
 import os
@@ -16,24 +13,25 @@ import shutil
 import time
 
 from . import appdata_dir, resource_dirs
-from . import StdoutProgressIndicator, string_types, urlopen
+from . import StdoutProgressIndicator, urlopen
 
 
 class InternetNotAllowedError(IOError):
-    """ Plugins that need resources can just use get_remote_file(), but
+    """Plugins that need resources can just use get_remote_file(), but
     should catch this error and silently ignore it.
     """
+
     pass
 
 
 class NeedDownloadError(IOError):
-    """ Is raised when a remote file is requested that is not locally
+    """Is raised when a remote file is requested that is not locally
     available, but which needs to be explicitly downloaded by the user.
     """
 
 
 def get_remote_file(fname, directory=None, force_download=False, auto=True):
-    """ Get a the filename for the local version of a file from the web
+    """Get a the filename for the local version of a file from the web
 
     Parameters
     ----------
@@ -61,12 +59,12 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
     fname : str
         The path to the file on the local system.
     """
-    _url_root = 'https://github.com/imageio/imageio-binaries/raw/master/'
+    _url_root = "https://github.com/imageio/imageio-binaries/raw/master/"
     url = _url_root + fname
     nfname = op.normcase(fname)  # convert to native
     # Get dirs to look for the resource
     given_directory = directory
-    directory = given_directory or appdata_dir('imageio')
+    directory = given_directory or appdata_dir("imageio")
     dirs = resource_dirs()
     dirs.insert(0, directory)  # Given dir has preference
     # Try to find the resource locally
@@ -82,8 +80,8 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                     shutil.copy(filename, filename2)
                     return filename2
                 return filename
-            if isinstance(force_download, string_types):
-                ntime = time.strptime(force_download, '%Y-%m-%d')
+            if isinstance(force_download, str):
+                ntime = time.strptime(force_download, "%Y-%m-%d")
                 ftime = time.gmtime(op.getctime(filename))
                 if ftime >= ntime:
                     if given_directory and given_directory != dir:
@@ -95,25 +93,27 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
                         return filename2
                     return filename
                 else:
-                    print('File older than %s, updating...' % force_download)
+                    print("File older than %s, updating..." % force_download)
                     break
-    
+
     # If we get here, we're going to try to download the file
-    if os.getenv('IMAGEIO_NO_INTERNET', '').lower() in ('1', 'true', 'yes'):
-        raise InternetNotAllowedError('Will not download resource from the '
-                                      'internet because enironment variable '
-                                      'IMAGEIO_NO_INTERNET is set.')
-    
+    if os.getenv("IMAGEIO_NO_INTERNET", "").lower() in ("1", "true", "yes"):
+        raise InternetNotAllowedError(
+            "Will not download resource from the "
+            "internet because environment variable "
+            "IMAGEIO_NO_INTERNET is set."
+        )
+
     # Can we proceed with auto-download?
     if not auto:
         raise NeedDownloadError()
-    
+
     # Get filename to store to and make sure the dir exists
     filename = op.join(directory, nfname)
     if not op.isdir(op.dirname(filename)):
         os.makedirs(op.abspath(op.dirname(filename)))
     # let's go get the file
-    if os.getenv('CONTINUOUS_INTEGRATION', False):  # pragma: no cover
+    if os.getenv("CONTINUOUS_INTEGRATION", False):  # pragma: no cover
         # On Travis, we retry a few times ...
         for i in range(2):
             try:
@@ -146,10 +146,12 @@ def _fetch_file(url, file_name, print_destination=True):
     """
     # Adapted from NISL:
     # https://github.com/nisl/tutorial/blob/master/nisl/datasets.py
-    
-    print('Imageio: %r was not found on your computer; '
-          'downloading it now.' % os.path.basename(file_name))
-    
+
+    print(
+        "Imageio: %r was not found on your computer; "
+        "downloading it now." % os.path.basename(file_name)
+    )
+
     temp_file_name = file_name + ".part"
     local_file = None
     initial_size = 0
@@ -157,10 +159,10 @@ def _fetch_file(url, file_name, print_destination=True):
     for tries in range(4):
         try:
             # Checking file size and displaying it alongside the download url
-            remote_file = urlopen(url, timeout=5.)
-            file_size = int(remote_file.headers['Content-Length'].strip())
+            remote_file = urlopen(url, timeout=5.0)
+            file_size = int(remote_file.headers["Content-Length"].strip())
             size_str = _sizeof_fmt(file_size)
-            print('Try %i. Download from %s (%s)' % (tries+1, url, size_str))
+            print("Try %i. Download from %s (%s)" % (tries + 1, url, size_str))
             # Downloading data (can be extended to resume if need be)
             local_file = open(temp_file_name, "wb")
             _chunk_read(remote_file, local_file, initial_size=initial_size)
@@ -169,19 +171,21 @@ def _fetch_file(url, file_name, print_destination=True):
                 local_file.close()
             shutil.move(temp_file_name, file_name)
             if print_destination is True:
-                sys.stdout.write('File saved as %s.\n' % file_name)
+                sys.stdout.write("File saved as %s.\n" % file_name)
             break
         except Exception as e:
             errors.append(e)
-            print('Error while fetching file: %s.' % str(e))
+            print("Error while fetching file: %s." % str(e))
         finally:
             if local_file is not None:
                 if not local_file.closed:
                     local_file.close()
     else:
-        raise IOError('Unable to download %r. Perhaps there is a no internet '
-                      'connection? If there is, please report this problem.' %
-                      os.path.basename(file_name))
+        raise IOError(
+            "Unable to download %r. Perhaps there is a no internet "
+            "connection? If there is, please report this problem."
+            % os.path.basename(file_name)
+        )
 
 
 def _chunk_read(response, local_file, chunk_size=8192, initial_size=0):
@@ -206,31 +210,31 @@ def _chunk_read(response, local_file, chunk_size=8192, initial_size=0):
     bytes_so_far = initial_size
     # Returns only amount left to download when resuming, not the size of the
     # entire file
-    total_size = int(response.headers['Content-Length'].strip())
+    total_size = int(response.headers["Content-Length"].strip())
     total_size += initial_size
-    
-    progress = StdoutProgressIndicator('Downloading')
-    progress.start('', 'bytes', total_size)
-    
+
+    progress = StdoutProgressIndicator("Downloading")
+    progress.start("", "bytes", total_size)
+
     while True:
         chunk = response.read(chunk_size)
         bytes_so_far += len(chunk)
         if not chunk:
             break
         _chunk_write(chunk, local_file, progress)
-    progress.finish('Done')
+    progress.finish("Done")
 
 
 def _chunk_write(chunk, local_file, progress):
     """Write a chunk to file and update the progress bar"""
     local_file.write(chunk)
     progress.increase_progress(len(chunk))
-    time.sleep(0.0001)
+    time.sleep(0)  # Give other threads a chance, e.g. those that handle stdout pipes
 
 
 def _sizeof_fmt(num):
     """Turn number of bytes into human-readable str"""
-    units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB']
+    units = ["bytes", "kB", "MB", "GB", "TB", "PB"]
     decimals = [0, 0, 1, 2, 2, 2]
     """Human friendly file size"""
     if num > 1:
@@ -238,6 +242,6 @@ def _sizeof_fmt(num):
         quotient = float(num) / 1024 ** exponent
         unit = units[exponent]
         num_decimals = decimals[exponent]
-        format_string = '{0:.%sf} {1}' % num_decimals
+        format_string = "{0:.%sf} {1}" % num_decimals
         return format_string.format(quotient, unit)
-    return '0 bytes' if num == 0 else '1 byte'
+    return "0 bytes" if num == 0 else "1 byte"

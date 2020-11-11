@@ -1,4 +1,7 @@
 
+The below list is incomplete.
+The most up-to-date info is in https://github.com/imageio/imageio/graphs/contributors
+
 - Almar Klein
   Plugin system
   Most plugins so far
@@ -11,6 +14,9 @@
 
 - Arash Rai
   Animated GIF looping
+
+- Chris Dusold
+  Improvements to ffmpeg plugin
 
 - Felix Kohlgrüber
   FFMPEG improvements
@@ -30,8 +36,24 @@
 - legionaryu
   Fixes for the GIF plugin
 
+- Marcin Konowalczyk
+  added `set_image_index()` to Reader object
+
+- Mark Harfouche
+  Speedups to pillow and ffpmeg by avoiding memory copies and conversions.
+
+- Matt McCormick
+  Improvements to simpleITK plugin
+
 - Niklas Rosenstein
   Fixes for using Pillow plugin in threads
+
+- OrganicIrradiation
+  Added support for 16 bit PNG's
+
+- Paul Müller
+  Fixes for frozen applications
+  Improvements to download mechanisms and entry points
 
 - Peter Lee
   Fixes to animated GIF
@@ -43,9 +65,15 @@
   Tiffile plugin
   GDal, simpleitk, and fits plugins
 
+- Tim D. Smith
+  Improvements to ffmpeg plugin
+
 - Zach Pincus and others from the scikit-image team
   Initial version of freeimage plugin
   Initial code for findlib and lib downloading
 
 - Zulko
   Various contribution related to the ffmpeg plugin.
+
+- Addison Elliott
+  Add support for 8-bit paletted BMPs

@@ -2,6 +2,7 @@
 """
 
 import os
+import datetime
 
 import numpy as np
 
@@ -65,7 +66,7 @@ def test_tifffile_reading_writing():
 
     # Mixed
     W = imageio.save(filename1)
-    W.set_meta_data({'planarconfig': 'planar'})
+    W.set_meta_data({'planarconfig': 'SEPARATE'})  # was "planar"
     assert W.format.name == 'TIFF'
     W.append_data(im2)
     W.append_data(im2)
@@ -75,8 +76,8 @@ def test_tifffile_reading_writing():
     assert R.format.name == 'TIFF'
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
-    meta = R.get_meta_data()
-    assert meta['orientation'] == 'top_left'
+    # meta = R.get_meta_data()
+    # assert meta['orientation'] == 'top_left'  # not there in later version
     # Fail
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
@@ -98,6 +99,29 @@ def test_tifffile_reading_writing():
     assert im1.ndim == 4
     assert im1.shape == im3.shape
     assert (im1 == im3).all()
+
+    # Read metadata
+    md = imageio.get_reader(filename2).get_meta_data()
+    assert md['is_imagej'] is None
+    assert md['description'] == 'shape=(2,3,10,10)'
+    assert md['description1'] == ''
+    assert md['datetime'] == datetime.datetime(2015, 5, 9, 9, 8, 29)
+    assert md['software'] == 'tifffile.py'
+
+    # Write metadata
+    dt = datetime.datetime(2018, 8, 6, 15, 35, 5)
+    w = imageio.get_writer(filename1, software='testsoftware')
+    w.append_data(np.zeros((10, 10)), meta={'description': 'test desc',
+                                            'datetime': dt})
+    w.close()
+    r = imageio.get_reader(filename1)
+    md = r.get_meta_data()
+    assert 'datetime' in md
+    assert md['datetime'] == dt
+    assert 'software' in md
+    assert md['software'] == 'testsoftware'
+    assert 'description' in md
+    assert md['description'] == 'test desc'
 
 
 run_tests_if_main()

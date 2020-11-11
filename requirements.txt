@@ -1,0 +1,26 @@
+# core
+
+numpy
+pillow
+
+# extras
+
+astropy
+# gdal
+simpleitk
+imageio-ffmpeg
+
+# development
+
+invoke
+pytest
+pytest-cov
+coveralls
+psutil
+flake8
+black; python_version >= "3.6"
+
+# docs
+
+sphinx
+numpydoc

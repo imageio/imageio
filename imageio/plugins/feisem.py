@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2016, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
-
-from __future__ import absolute_import, unicode_literals
 
 from .tifffile import TiffFormat
 
@@ -30,8 +27,7 @@ class FEISEMFormat(TiffFormat):
         return False  # FEI-SEM only supports reading
 
     class Reader(TiffFormat.Reader):
-        def _get_data(self, index=0, discard_watermark=True,
-                      watermark_height=70):
+        def _get_data(self, index=0, discard_watermark=True, watermark_height=70):
             """Get image and metadata from given index.
 
             FEI images usually (always?) contain a watermark at the
@@ -56,24 +52,24 @@ class FEISEMFormat(TiffFormat):
             metadata : dict
                 Dictionary of metadata.
             """
-            md = {'root': {}}
-            current_tag = 'root'
+            md = {"root": {}}
+            current_tag = "root"
             reading_metadata = False
             filename = self.request.get_local_filename()
-            with open(filename, 'rb') as fin:
+            with open(filename, encoding="utf8", errors="ignore") as fin:
                 for line in fin:
                     if not reading_metadata:
-                        if not line.startswith(b'Date='):
+                        if not line.startswith("Date="):
                             continue
                         else:
                             reading_metadata = True
-                    line = line.rstrip().decode()
-                    if line.startswith('['):
-                        current_tag = line.lstrip('[').rstrip(']')
+                    line = line.rstrip()
+                    if line.startswith("["):
+                        current_tag = line.lstrip("[").rstrip("]")
                         md[current_tag] = {}
                     else:
-                        if line and line != '\x00':  # ignore blank lines
-                            key, val = line.split('=')
+                        if "=" in line:  # ignore empty and irrelevant lines
+                            key, val = line.split("=", maxsplit=1)
                             for tag_type in (int, float):
                                 try:
                                     val = tag_type(val)
@@ -82,15 +78,14 @@ class FEISEMFormat(TiffFormat):
                                 else:
                                     break
                             md[current_tag][key] = val
-            if not md['root'] and len(md) == 1:
-                raise ValueError(
-                    'Input file %s contains no FEI metadata.' % filename)
+            if not md["root"] and len(md) == 1:
+                raise ValueError("Input file %s contains no FEI metadata." % filename)
             self._meta.update(md)
             return md
 
 
 # Register plugin
-format = FEISEMFormat('fei', 'FEI-SEM TIFF format',
-                      extensions=['.tif', '.tiff'],
-                      modes='iv')
+format = FEISEMFormat(
+    "fei", "FEI-SEM TIFF format", extensions=[".tif", ".tiff"], modes="iv"
+)
 formats.add_format(format)

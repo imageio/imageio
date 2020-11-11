@@ -1,16 +1,23 @@
 # CI on Windows via appveyor
 # This file was based on Olivier Grisel's python-appveyor-demo
 
+
+# https://github.com/appveyor/ci/issues/882#issuecomment-248063991
+skip_branch_with_pr: true
+
+
+# Caching to reduce time waiting for downloads
+# https://www.appveyor.com/docs/build-cache/
+cache:
+  - '%APPDATA%\imageio\images'
+
+
 environment:
 
   matrix:
 
-    - PYTHON: "C:\\Python35-conda64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python27-conda64"
-      PYTHON_VERSION: "2.7"
+    - PYTHON: "C:\\Python36-conda64"
+      PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
 
 install:
@@ -33,8 +40,10 @@ install:
   # Install the build dependencies of the project. 
   #- "%CMD_IN_ENV% pip install -r dev-requirements.txt"
   - "python -m pip install invoke"
-  - "python -m pip install pytest pytest-cov"
+  - "python -m pip install --upgrade pytest pytest-cov"
   - "python -m pip install wheel"
+  - "python -m pip install psutil"
+  - "python -m pip install --upgrade imageio-ffmpeg"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
@@ -42,14 +51,14 @@ test_script:
   # Run the project tests
   - invoke test --unit"
 
-after_test:
-  # If tests are successful, create a whl package for the project.
-  - python setup.py bdist_wheel bdist_wininst"
-  - ps: "ls dist"
+#after_test:
+#  # If tests are successful, create a whl package for the project.
+#  - python setup.py bdist_wheel bdist_wininst"
+#  - ps: "ls dist"
 
-artifacts:
-  # Archive the generated wheel package in the ci.appveyor.com build report.
-  - path: dist\*
+#artifacts:
+#  # Archive the generated wheel package in the ci.appveyor.com build report.
+#  - path: dist\*
 
 #on_success:
 #  - TODO: upload the content of dist/*.whl to a public wheelhouse

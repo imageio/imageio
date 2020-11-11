@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 # flake8: noqa
@@ -15,9 +14,9 @@ imageio codebase!
 What is a plugin
 ----------------
 
-In imageio, a plugin provides one or more :class:`.Format` objects, and 
+In imageio, a plugin provides one or more :class:`.Format` objects, and
 corresponding :class:`.Reader` and :class:`.Writer` classes.
-Each Format object represents an implementation to read/write a 
+Each Format object represents an implementation to read/write a
 particular file format. Its Reader and Writer classes do the actual
 reading/saving.
 
@@ -30,12 +29,12 @@ data.
 Registering
 -----------
 
-Strictly speaking a format can be used stand alone. However, to allow 
+Strictly speaking a format can be used stand alone. However, to allow
 imageio to automatically select it for a specific file, the format must
-be registered using ``imageio.formats.add_format()``. 
+be registered using ``imageio.formats.add_format()``.
 
 Note that a plugin is not required to be part of the imageio package; as
-long as a format is registered, imageio can use it. This makes imageio very 
+long as a format is registered, imageio can use it. This makes imageio very
 easy to extend.
 
 
@@ -55,12 +54,12 @@ For the Format class, the following needs to be implemented/specified:
   * Use a docstring to provide more detailed information about the
     format/plugin, such as parameters for reading and saving that the user
     can supply via keyword arguments.
-  * Implement ``_can_read(request)``, return a bool. 
+  * Implement ``_can_read(request)``, return a bool.
     See also the :class:`.Request` class.
   * Implement ``_can_write(request)``, dito.
 
 For the Format.Reader class:
-  
+
   * Implement ``_open(**kwargs)`` to initialize the reader. Deal with the
     user-provided keyword arguments here.
   * Implement ``_close()`` to clean up.
@@ -71,18 +70,12 @@ For the Format.Reader class:
     is None, it should return the 'global' meta-data.
 
 For the Format.Writer class:
-    
+
   * Implement ``_open(**kwargs)`` to initialize the writer. Deal with the
     user-provided keyword arguments here.
   * Implement ``_close()`` to clean up.
   * Implement ``_append_data(im, meta)`` to add data (and meta-data).
   * Implement ``_set_meta_data(meta)`` to set the global meta-data.
-
-If the plugin requires a binary download from the imageio-binaries
-repository, implement the ``download`` method (see e.g. the ffmpeg
-plugin). Make sure that the download directory base name matches the
-plugin name. Otherwise, the download and removal command line scripts
-(see `__main__.py`) might not work.
 
 """
 
@@ -95,24 +88,25 @@ from . import freeimage
 from . import freeimagemulti
 
 from . import ffmpeg
-from . import avbin
 
+from . import bsdf
 from . import dicom
 from . import npz
 from . import swf
 from . import feisem  # special kind of tiff, uses _tiffile
 
 from . import fits  # depends on astropy
-from . import simpleitk  # depends on SimpleITK
+from . import simpleitk  # depends on itk or SimpleITK
 from . import gdal  # depends on gdal
 
 from . import lytro
+from . import spe
 
 from . import example
 
 # Sort
 import os
 from .. import formats
-formats.sort(*os.getenv('IMAGEIO_FORMAT_ORDER', '').split(','))
-del os, formats
 
+formats.sort(*os.getenv("IMAGEIO_FORMAT_ORDER", "").split(","))
+del os, formats

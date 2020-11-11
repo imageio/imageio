@@ -1,9 +1,160 @@
--------------
-Release notes
--------------
+# Changelog / release notes
 
-Version 2.2.0 (25-05-2017)
-==========================
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+
+## [planned]
+
+* Improved handling and support for meta data.
+* New animated gif based on ffmpeg
+
+
+## [2.9.0] - 2020-07-06
+
+### Fixed
+
+* More robust loading of  FEI SEM data (#529 by jon-lab).
+* Fix webcam not working on Win10 (#525).
+
+### Added
+
+* Add a few standard images useful to 3D visualization.
+* The timeout used in HTTP requests can now be set with an environment variable (#534 by Johann Neuhauser).
+* The DICOM plugin can now used gdcm for compressed transfer formats.
+* Better support for itk/sitk plugins (#530 by Jonathan Daniel).
+* Test coverage and CI for ARM (#518 by odidev).
+
+
+## [2.8.0] - 2020-02-19
+
+(skipping version 2.7 to avoid confusion with Python v2.7.)
+
+Mentioning here for completeness: imageio-ffmpeg 0.4.0 was also recently
+released, which fixes several (stability) issues for video io.
+
+### Fixed
+
+* Better support for reading from http (some formats needed seek, we now deal with that).
+* Make `Reader.__len__` work again when length is inf (stream/unknown).
+* Set `-framerate` input param for ffmpeg when using webcam, fixing webcam support on macOS.
+* Fix for handling TIFF predictor value of 1 (NONE) (by Miloš Komarčević).
+* Fix false-positive zip detection (by Vsevolod Poletaev).
+* Fix SPE filesize check for SPE v3 (by Antony Lee).
+* Fix that SPE plugin failed on spe3 files with dtype uint32 (by Michael Schneider).
+* Fix deprecation warning for numpy.
+
+### Added
+
+* Expose SPE3 xml footer (by Antony Lee).
+* Expose TIFF predictor tag for reading and writing (by Miloš Komarčević).
+* Improve error message regarding modes.
+
+### Removed
+
+* Drop support for Python 2.7 and Python 3.4.
+* Drop support for AVbin, use ffmpeg instead.
+
+
+## [2.6.1] - 2019-10-08
+
+* Fixed potential error when creating a new appdata directory.
+
+
+## [2.6.0] - 2019-10-07
+
+This will likely be the last release to support Python 2.7.
+
+Fixed:
+
+* Fixed a security vulnerability for Windows users that have dcmtk installed,
+  and where an attacker can set the filename.
+* Fixed bug in ``image_as_uint`` (#451 by clintg6).
+* Fix that only one webcam could be used when two cameras are connected that have the same name.
+* Prevent paletted image with transparency to be converted to grayscale.
+
+Added:
+
+* Optimise 16-bit PNG write performance for newer versions of Pillow (#440 by Ariel Ladegaard).
+* More flexible setting of memory limit in ``mimread`` and ``mvolread`` (#442 by Chris Barnes).
+* Support for ASCII PNM files (#447 by Tobias Baumann).
+* Improved support for JPEG2000 (can now provide parameters) (#456 by Pawel Korus).
+* Added support for compressed FITS images (#458 by Joe Singleton).
+* Improve imageio import time by avoiding pkg_resources import (#462 by Mark Harfouche).
+* Added example for compressing GIFs using pygifsicle (#481 by Luca Cappelletti).
+
+
+## [2.5.0] - 2019-02-06
+
+The ffmpeg plugin has been refactored:
+
+* The core has been moved to a new library: imageio-ffmpeg.
+* That library provides platform-specific wheels that includes ffmpeg,
+  so just ``pip install imageio-ffmpeg`` instead of the download step.
+* Note that this new library is py3k only.
+* Termination of ffmpeg subprocess is now more reliable.
+* The reader of the ffmpeg plugin now always reports ``inf`` as the number of
+  frames. Use ``reader.count_frames()`` to get the actual number, or estimate
+  it from the fps and duration in the meta data.
+* Removed ``CannotReadFrameError``.
+
+Other changes:
+
+* The avbin plugin has been depreacted and will be removed in a future version.
+* Imnproved speed for PIL and FFMPEG plugsins by avoiding memory copies.
+* Update the included tiffile library.
+* Support for SimpleITK.
+* Speed up tiffile plugin when writing to something else than a filename.
+* Fix that writing to a file object would not work for some plugins.
+* Can now pass image data to the write functions as anything that resolves to
+  a numpy array with a numeric dtype.
+* One can now read from a memoryview.
+* Fix error related to paletted BMP with the Pillow plugin.
+* Improved logging.
+
+
+## [2.4.1] - 2018-09-06
+
+* Fix installation issue on flavors of Ubuntu 14.04 /w Python 2.7  (#378).
+* Use `np.frombuffer` instead of `np.fromstring` in some cases.
+
+
+## [2.4.0] - 2019-09-06
+
+* Renamed ``Image`` class to ``Array`` and add documentation for this ndarray subclass.
+* Reading from HTTP and zipfiles has been improved and better documented.
+* Improvements to reading and writing of Tiff metadata (by Lukas Schrangl).
+* Better dealing of tifffile dependencies on Python 2.7 (#330 and #337 by Chris Barnes).
+* Reader for the SPE format (#358 by lschr).
+* Better termination of FFMPEG when reading from webcam (#346 by Dennis Vang).
+* FFMPEG support for reading 16bit videos (#342 by Peter Minin).
+
+
+## [2.3.0] - 2018-03-20
+
+* Console entry points for binary downloads (by Paul Mueller).
+* Dropped support for Python 2.6, 3.2 and 3.3.
+* Reading images from a url can now also have "suffixes" like "?query=foo".
+* The ``mimwrite()`` and ``mvolwrite()`` functions also work with generators.
+* Fix rounding of float data.
+* New Lytro plugin (by Maximilian Schambach).
+* New plugin based on BSDF format (for images/volumes and series thereof,
+  including support for random access and streaming).
+* TIFFFILE update to latest ``tifffile.py`` implementation.
+* DICOM fix that could fail in the presence of a directory.
+* PILLOW improvements to API to provide same functionality as Scipy's ``imread()``.
+* PILLOW fix for Gamma correction (#302).
+* PILLOW now allows JPEG images to be read from a url.
+* PILLOW fix determining of grayscale in 1 bit paletted images.
+* FFMPEG improved device name parsing (by Dennis van Gerwen).
+* FFMPEG now allows more control of position of extra parameters.
+* FFMPEG improved parsing of fps from ffmpeg info.
+* FFMPEG reader allows has ``fps`` argument to force reading at a specific FPS.
+
+
+## [2.2.0] - 2017-05-25
 
 * New format for grabbing screenshots (for Windows and OS X).
 * New format for grabbing image data from clipboard (Window only).
@@ -21,8 +172,7 @@ Version 2.2.0 (25-05-2017)
 * Updated version of tiffile plugin.
 
 
-Version 2.1.2 (02-02-2017)
-==========================
+## [2.1.2] - 2017-02-02
 
 A bugfix release:
 
@@ -35,14 +185,12 @@ A bugfix release:
 * Use invoke to run development tasks instead of custom "make" module.
 
 
-Version 2.1.1 (24-12-2016)
-==========================
+## [2.1.1] - 2016-12-24
 
 Minor improvements related to Debian packaging.
 
 
-Version 2.1 (22-12-2016)
-========================
+## [2.1.0] - 2016-12-22
 
 * Standard images now have to be specified using e.g.
   ``imageio.imread('imageio:chelsea.png')`` to be more explicit about being
@@ -52,8 +200,7 @@ Version 2.1 (22-12-2016)
   build system.
 
 
-Version 2.0 (10-12-2016)
-========================
+## [2.0.0] - 2016-12-10
 
 This release introduces a new plugin based on Pillow, which will take care of
 the "common formats" like PNG and JPEG, which was previously the role of the
@@ -72,8 +219,7 @@ is no longer distributed by default.
 * New FEI format (for images produced by the FEI SEM microscope).
 
 
-Version 1.6 (19-09-2016)
-========================
+## [1.6.0] - 2016-09-19
 
 * Got rid of Lena image because it can be regarded offensive and is not (explicitly) publicly licensed.
 * Fix issue with ffmpeg reader being slow on particular systems (#152).
@@ -85,8 +231,7 @@ Version 1.6 (19-09-2016)
 * Better ffmpeg verbosity and exe detection ( #138, #139, by Tim D. Smith).
 
 
-Version 1.5 (31-01-2016)
-========================
+## [1.5] - 2016-01-31
 
 * Freeimage conda package (in main channel) is updated and works on all
   major OS's.
@@ -95,8 +240,7 @@ Version 1.5 (31-01-2016)
 * Fix how dicom uses dcmtk for JPEG compressed files.
 
 
-Version 1.4 (18-11-2015)
-========================
+## [1.4.0] - 2015-11-18
 
 * Various improvements to the ffmpeg plugin.
 * New tiffile plugin that should support most scientific formats.
@@ -109,8 +253,7 @@ Version 1.4 (18-11-2015)
 * Travis also tests Python 3.5.
 
 
-Version 1.3 (02-07-2015)
-========================
+## [1.3.0] - 2015-07-02
 
 This release features several fixes and small improvements, especially
 to the ffmpeg plugin.
@@ -132,27 +275,25 @@ to the ffmpeg plugin.
   being automatically downloaded.
 
 
-Version 1.2 (23-02-2015)
-========================
+## [1.2.0] - 2015-02-23
 
 Basically a hotfix release. But some new features were introduced.
 
 * Fixed that pip-installing would put README.md and other files in sys.prefix.
-* The used ffmpeg exe can be overridden with an environment variable 
+* The used ffmpeg exe can be overridden with an environment variable
   'IMAGEIO_FFMPEG_EXE'.
 * Relative paths work again.
 * FFMPEG plugin moved to correct timeframe when seeking (thanks Zulko)
 
 
-Version 1.1 (04-02-2015)
-========================
+## [1.1.0] - 2015-02-04
 
-Imageio is now a dependency of `Moviepy <https://github.com/Zulko/moviepy/>`_, 
+Imageio is now a dependency of `Moviepy <https://github.com/Zulko/moviepy/>`_,
 which exposed a few issues to fix. Imageio is now also available as a
 Debian package (thanks Ghislain!). Furher, we tweaked our function names
 to be cleared and more consistent (the old names still work).
 
-* All ``Xsave()`` functions are renamed to ``Xwrite()``. 
+* All ``Xsave()`` functions are renamed to ``Xwrite()``.
   Also ``read()`` and ``save()`` are now ``get_reader()`` and ``get_writer()``.
   The old names are available as aliases (and will be for the foreseable
   future) for backward compatibility.
@@ -165,14 +306,13 @@ to be cleared and more consistent (the old names still work).
 * Better handling on NaN and Inf when converting to uint8.
 * Provide dist packages that include freeimage lib and a few example images.
 * Several changes to ease building into Debian package.
-* Fixed segfault when saving gif 
+* Fixed segfault when saving gif
   (thanks levskaya, https://github.com/imageio/imageio/pull/53).
 * Don't fail when userdir is not writable.
 * Gif plugin writer has fps param for consistency with avi/mp4 etc.
 
 
-Version 1.0 (13-11-2014)
-========================
+## [1.0.0] - 2014-11-13
 
 In this release we did a lot of work to push imageio to a new level.
 The code is now properly tested, and we have several more formats.
@@ -198,7 +338,7 @@ Further:
 
 * New simple website to act as a front page (http://imageio.github.io).
 * Compatibility with Pypy.
-* We provide a range of :doc:`standard images <standardimages>` that are 
+* We provide a range of :doc:`standard images <standardimages>` that are
   automatically downloaded.
 * Binaries (libs and executables) that plugins of imageio uses are now
   downloaded at runtime, not at build/install time. This simplifies
@@ -211,17 +351,15 @@ Further:
 * Many improvements and fixes overall.
 
 
-Version 0.5.1 (23-06-2014)
-==========================
+## [0.5.1] - 2014-06-23
 
-* DICOM reader closes file after reading pixel data 
+* DICOM reader closes file after reading pixel data
   (avoid too-many-open-files error)
 * Support for video data (import and export) via ffmpeg
 * Read images from usb camera via ffmpeg (experimental)
 
 
-Version 0.4.1 (26-10-2013)
-==========================
+## [0.4.1] - 2013-10-26
 
 * We moved to github!
 * Raise error if URI could not be understood.
@@ -229,8 +367,7 @@ Version 0.4.1 (26-10-2013)
 * FIxes in mvolread and DICOM plugin
 
 
-Version 0.4 (27-03-2013)
-========================
+## [0.4.0] - 2013-03-27
 
 Some more thorough testing resulted in several fixes and improvements over
 the last release.
@@ -243,27 +380,24 @@ the last release.
 * Better __repr__ for the Image class.
 
 
-Version 0.3.2
-=============
+## [0.3.2] - date unknown
 
 * Fix in dicom reader (RescaleSlope and RescaleIntercept were not found)
 * Fixed that progress indicator made things slow
 
 
-Version 0.3.1
-=============
+## [0.3.1] - date unknown
 
 * Fix installation/distribution issue.
 
 
-Version 0.3.0
-=============
+## [0.3.0] - date unknown
 
 This was a long haul. Implemented several plugins for animation and
-volumetric data to give an idea of what sort of API's work and which 
-do not. 
+volumetric data to give an idea of what sort of API's work and which
+do not.
 
-* Refactored for more conventional package layout 
+* Refactored for more conventional package layout
   (but importing without installing still supported)
 * Put Reader and Writer classes in the namespace of the format. This
   makes a format a unified whole, and gets rid of the
@@ -279,36 +413,31 @@ do not.
 * Implemented standalone DICOM plugin.
 
 
-Version 0.2.3
-=============
+## [0.2.3] - date unknown
 
 * Fixed issue 2 (fail at instal, introduced when implementing freezing)
 
 
-Version 0.2.2
-=============
+## [0.2.2] - date unknown
 
 * Improved documentation.
 * Worked on distribution.
 * Freezing should work now.
 
 
-Version 0.2.1
-=============
+## [0.2.1] - date unknown
 
 * Introduction of the imageio.help function.
 * Wrote a lot of documentation.
 * Added example (dummy) plugin.
 
 
-Version 0.2
-===========
+## [0.2.0] - date unknown
 
 * New plugin system implemented after discussions in group.
 * Access to format information.
 
 
-Version 0.1
-===========
+## [0.1.0] - date unknown
 
 * First version with a preliminary plugin system.

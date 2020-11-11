@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Storage of image data in tiff format.
 """
 
-from __future__ import absolute_import, print_function, division
+import datetime
 
 from .. import formats
 from ..core import Format
@@ -24,21 +23,48 @@ def load_lib():
     return _tifffile
 
 
-TIFF_FORMATS = ('.tif', '.tiff', '.stk', '.lsm')
-WRITE_METADATA_KEYS = ('photometric', 'planarconfig', 'resolution',
-                       'description', 'compress', 'volume', 'writeshape',
-                       'extratags')
-READ_METADATA_KEYS = ('planar_configuration', 'is_fluoview', 'is_nih',
-                      'is_contig', 'is_micromanager', 'is_ome', 'is_lsm'
-                      'is_palette', 'is_reduced', 'is_rgb', 'is_sgi',
-                      'is_shaped', 'is_stk', 'is_tiled', 'is_mdgel'
-                      'resolution_unit', 'compression', 'is_mediacy',
-                      'orientation')
+TIFF_FORMATS = (".tif", ".tiff", ".stk", ".lsm")
+WRITE_METADATA_KEYS = (
+    "photometric",
+    "planarconfig",
+    "resolution",
+    "description",
+    "compress",
+    "predictor",
+    "volume",
+    "writeshape",
+    "extratags",
+    "datetime",
+)
+READ_METADATA_KEYS = (
+    "planar_configuration",
+    "is_fluoview",
+    "is_nih",
+    "is_contig",
+    "is_micromanager",
+    "is_ome",
+    "is_lsm" "is_palette",
+    "is_reduced",
+    "is_rgb",
+    "is_sgi",
+    "is_shaped",
+    "is_stk",
+    "is_tiled",
+    "is_mdgel" "resolution_unit",
+    "compression",
+    "predictor",
+    "is_mediacy",
+    "orientation",
+    "description",
+    "description1",
+    "is_imagej",
+    "software",
+)
 
 
 class TiffFormat(Format):
-    """ Provides support for a wide range of Tiff images.
-    
+    """Provides support for a wide range of Tiff images.
+
     Images that contain multiple pages can be read using ``imageio.mimread()``
     to read the individual pages, or ``imageio.volread()`` to obtain a
     single (higher dimensional) array.
@@ -80,8 +106,13 @@ class TiffFormat(Format):
     resolution_unit : (float, float) or ((int, int), (int, int))
         X and Y resolution in dots per inch as float or rational numbers.
     compression : int
-        Values from 0 to 9 indicating the level of zlib compression.
-        If 0, data is uncompressed.
+        Value indicating the compression algorithm used, e.g. 5 is LZW,
+        7 is JPEG, 8 is deflate.
+        If 1, data are uncompressed.
+    predictor : int
+        Value 2 indicates horizontal differencing was used before compression,
+        while 3 indicates floating point horizontal differencing.
+        If 1, no prediction scheme was used before compression.
     orientation : {'top_left', 'bottom_right', ...}
         Oriented of image array.
     is_rgb : bool
@@ -116,6 +147,16 @@ class TiffFormat(Format):
         True if page contains UIC2Tag tag.
     is_lsm : bool
         True if page contains LSM CZ_LSM_INFO tag.
+    description : str
+        Image description
+    description1 : str
+        Additional description
+    is_imagej : None or str
+        ImageJ metadata
+    software : str
+        Software used to create the TIFF file
+    datetime : datetime.datetime
+        Creation date and time
 
     Metadata for writing
     --------------------
@@ -132,8 +173,12 @@ class TiffFormat(Format):
     description : str
         The subject of the image. Saved with the first page only.
     compress : int
-        Values from 0 to 9 controlling the level of zlib compression.
+        Values from 0 to 9 controlling the level of zlib (deflate) compression.
         If 0, data are written uncompressed (default).
+    predictor : bool
+        If True, horizontal differencing is applied before compression.
+        Note that using an int literal 1 actually means no prediction scheme
+        will be used.
     volume : bool
         If True, volume data are stored in one tile (if applicable) using
         the SGI image_depth and tile_depth tags.
@@ -160,68 +205,107 @@ class TiffFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(self.extensions)
+        return request.extension in self.extensions
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.filename.lower().endswith(self.extensions)
+        return request.extension in self.extensions
 
     # -- reader
 
     class Reader(Format.Reader):
-
         def _open(self, **kwargs):
             if not _tifffile:
                 load_lib()
-            self._tf = _tifffile.TiffFile(self.request.get_file(), **kwargs)
+            # Allow loading from http; tifffile uses seek, so download first
+            if self.request.filename.startswith(("http://", "https://")):
+                self._f = f = open(self.request.get_local_filename(), "rb")
+            else:
+                self._f = None
+                f = self.request.get_file()
+            self._tf = _tifffile.TiffFile(f, **kwargs)
 
             # metadata is the same for all images
             self._meta = {}
 
         def _close(self):
             self._tf.close()
-        
+            if self._f is not None:
+                self._f.close()
+
         def _get_length(self):
-            if self.request.mode[1] in 'vV':
+            if self.request.mode[1] in "vV":
                 return 1  # or can there be pages in pages or something?
             else:
-                return len(self._tf)
-        
+                return len(self._tf.pages)
+
         def _get_data(self, index):
-            if self.request.mode[1] in 'vV':
+            if self.request.mode[1] in "vV":
                 # Read data as single 3D (+ color channels) array
                 if index != 0:
-                    raise IndexError(
-                        'Tiff support no more than 1 "volume" per file')
-                im = self._tf.asarray()  # request as singleton image
+                    raise IndexError('Tiff support no more than 1 "volume" per file')
+                # There is self._tf.asarray(), but it picks the first series by
+                # default, so this seems more reliable. See #558.
+                number_of_slices = len(self._tf.pages)
+                ims = []
+                for i in range(number_of_slices):
+                    im = self._tf.pages[i].asarray()
+                    if ims and ims[0].shape != im.shape:
+                        break
+                    ims.append(im)
+                if ims:
+                    im = np.stack(ims, 0)
+                else:
+                    im = self._tf.asarray()
                 meta = self._meta
             else:
                 # Read as 2D image
-                if index < 0 or index >= len(self._tf):
-                    raise IndexError(
-                        'Index out of range while reading from tiff file')
-                im = self._tf[index].asarray()
+                if index < 0 or index >= self._get_length():
+                    raise IndexError("Index out of range while reading from tiff file")
+                im = self._tf.pages[index].asarray()
                 meta = self._meta or self._get_meta_data(index)
             # Return array and empty meta data
             return im, meta
 
         def _get_meta_data(self, index):
-            page = self._tf[index or 0]
+            page = self._tf.pages[index or 0]
             for key in READ_METADATA_KEYS:
                 try:
                     self._meta[key] = getattr(page, key)
                 except Exception:
                     pass
+
+            # tifffile <= 0.12.1 use datetime, newer use DateTime
+            for key in ("datetime", "DateTime"):
+                try:
+                    self._meta["datetime"] = datetime.datetime.strptime(
+                        page.tags[key].value, "%Y:%m:%d %H:%M:%S"
+                    )
+                    break
+                except Exception:
+                    pass
+
             return self._meta
 
     # -- writer
     class Writer(Format.Writer):
-
         def _open(self, bigtiff=None, byteorder=None, software=None):
             if not _tifffile:
                 load_lib()
-            self._tf = _tifffile.TiffWriter(self.request.get_local_filename(),
-                                            bigtiff, byteorder, software)
+
+            try:
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_file(), bigtiff, byteorder, software=software
+                )
+                self._software = None
+            except TypeError:
+                # In tifffile >= 0.15, the `software` arg is passed to
+                # TiffWriter.save
+                self._tf = _tifffile.TiffWriter(
+                    self.request.get_file(), bigtiff, byteorder
+                )
+                self._software = software
+
             self._meta = {}
 
         def _close(self):
@@ -230,17 +314,26 @@ class TiffFormat(Format):
         def _append_data(self, im, meta):
             if meta:
                 self.set_meta_data(meta)
-            # No need to check self.request.mode; tiffile figures out whether
+            # No need to check self.request.mode; tifffile figures out whether
             # this is a single page, or all page data at once.
-            self._tf.save(np.asanyarray(im), **self._meta)
+            if self._software is None:
+                self._tf.save(np.asanyarray(im), **self._meta)
+            else:
+                # tifffile >= 0.15
+                self._tf.save(np.asanyarray(im), software=self._software, **self._meta)
 
         def set_meta_data(self, meta):
             self._meta = {}
             for (key, value) in meta.items():
                 if key in WRITE_METADATA_KEYS:
-                    self._meta[key] = value
+                    # Special case of previously read `predictor` int value
+                    # 1(=NONE) translation to False expected by TiffWriter.save
+                    if key == "predictor" and not isinstance(value, bool):
+                        self._meta[key] = value > 1
+                    else:
+                        self._meta[key] = value
 
 
 # Register
-format = TiffFormat('tiff', "TIFF format", TIFF_FORMATS, 'iIvV')
+format = TiffFormat("tiff", "TIFF format", TIFF_FORMATS, "iIvV")
 formats.add_format(format)

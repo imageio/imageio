@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin for multi-image freeimafe formats, like animated GIF and ico.
 """
 
-from __future__ import absolute_import, print_function, division
-
+import logging
 import numpy as np
 
 from .. import formats
@@ -14,35 +12,37 @@ from ..core import Format, image_as_uint
 from ._freeimage import fi, IO_FLAGS
 from .freeimage import FreeimageFormat
 
+logger = logging.getLogger(__name__)
+
 
 class FreeimageMulti(FreeimageFormat):
-    """ Base class for freeimage formats that support multiple images.
-    """
-    
-    _modes = 'iI'
+    """Base class for freeimage formats that support multiple images."""
+
+    _modes = "iI"
     _fif = -1
-    
+
     class Reader(Format.Reader):
         def _open(self, flags=0):
             flags = int(flags)
             # Create bitmap
-            self._bm = fi.create_multipage_bitmap(self.request.filename, 
-                                                  self.format.fif, flags)
+            self._bm = fi.create_multipage_bitmap(
+                self.request.filename, self.format.fif, flags
+            )
             self._bm.load_from_filename(self.request.get_local_filename())
-        
+
         def _close(self):
             self._bm.close()
-        
+
         def _get_length(self):
             return len(self._bm)
-        
+
         def _get_data(self, index):
             sub = self._bm.get_page(index)
             try:
                 return sub.get_image_data(), sub.get_meta_data()
             finally:
                 sub.close()
-        
+
         def _get_meta_data(self, index):
             index = index or 0
             if index < 0 or index >= len(self._bm):
@@ -52,23 +52,23 @@ class FreeimageMulti(FreeimageFormat):
                 return sub.get_meta_data()
             finally:
                 sub.close()
-    
+
     # --
-    
+
     class Writer(FreeimageFormat.Writer):
-        
         def _open(self, flags=0):
             # Set flags
             self._flags = flags = int(flags)
             # Instantiate multi-page bitmap
-            self._bm = fi.create_multipage_bitmap(self.request.filename, 
-                                                  self.format.fif, flags)
+            self._bm = fi.create_multipage_bitmap(
+                self.request.filename, self.format.fif, flags
+            )
             self._bm.save_to_filename(self.request.get_local_filename())
-        
+
         def _close(self):
             # Close bitmap
             self._bm.close()
-            
+
         def _append_data(self, im, meta):
             # Prepare data
             if im.ndim == 3 and im.shape[-1] == 1:
@@ -83,7 +83,7 @@ class FreeimageMulti(FreeimageFormat):
             sub2.close()
             if sub1 is not sub2:
                 sub1.close()
-        
+
         def _append_bitmap(self, im, meta, bitmap):
             # Set data
             bitmap.allocate(im)
@@ -91,31 +91,31 @@ class FreeimageMulti(FreeimageFormat):
             bitmap.set_meta_data(meta)
             # Return that same bitmap
             return bitmap
-        
+
         def _set_meta_data(self, meta):
             pass  # ignore global meta data
 
 
 class MngFormat(FreeimageMulti):
-    """ An Mng format based on the Freeimage library.
-    
+    """An Mng format based on the Freeimage library.
+
     Read only. Seems broken.
     """
-    
+
     _fif = 6
-    
+
     def _can_write(self, request):  # pragma: no cover
         return False
-    
+
 
 class IcoFormat(FreeimageMulti):
-    """ An ICO format based on the Freeimage library.
-    
+    """An ICO format based on the Freeimage library.
+
     This format supports grayscale, RGB and RGBA images.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     is not available on the system, it can be downloaded by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -125,11 +125,11 @@ class IcoFormat(FreeimageMulti):
         Convert to 32-bit and create an alpha channel from the AND-
         mask when loading. Default False. Note that this returns wrong
         results if the image was already RGBA.
-    
+
     """
-    
+
     _fif = 1
-    
+
     class Reader(FreeimageMulti.Reader):
         def _open(self, flags=0, makealpha=False):
             # Build flags from kwargs
@@ -140,16 +140,16 @@ class IcoFormat(FreeimageMulti):
 
 
 class GifFormat(FreeimageMulti):
-    """ A format for reading and writing static and animated GIF, based
+    """A format for reading and writing static and animated GIF, based
     on the Freeimage library.
-    
+
     Images read with this format are always RGBA. Currently,
     the alpha channel is ignored when saving RGB images with this
     format.
 
     The freeimage plugin requires a `freeimage` binary. If this binary
     is not available on the system, it can be downloaded by either
-    
+
     - the command line script ``imageio_download_bin freeimage``
     - the Python method ``imageio.plugins.freeimage.download()``
 
@@ -158,7 +158,7 @@ class GifFormat(FreeimageMulti):
     playback : bool
         'Play' the GIF to generate each frame (as 32bpp) instead of
         returning raw frame data when loading. Default True.
-    
+
     Parameters for saving
     ---------------------
     loop : int
@@ -187,42 +187,51 @@ class GifFormat(FreeimageMulti):
         because FreeImage does not handle DisposalMethod correctly.
         Default False.
     """
-    
+
     _fif = 25
-    
+
     class Reader(FreeimageMulti.Reader):
-        
         def _open(self, flags=0, playback=True):
             # Build flags from kwargs
             flags = int(flags)
             if playback:
-                flags |= IO_FLAGS.GIF_PLAYBACK 
+                flags |= IO_FLAGS.GIF_PLAYBACK
             FreeimageMulti.Reader._open(self, flags)
-        
+
         def _get_data(self, index):
             im, meta = FreeimageMulti.Reader._get_data(self, index)
             # im = im[:, :, :3]  # Drop alpha channel
             return im, meta
-    
-    # -- writer 
-    
+
+    # -- writer
+
     class Writer(FreeimageMulti.Writer):
-       
+
         # todo: subrectangles
         # todo: global palette
-        
-        def _open(self, flags=0, loop=0, duration=None, fps=10, 
-                  palettesize=256, quantizer='Wu', subrectangles=False):
+
+        def _open(
+            self,
+            flags=0,
+            loop=0,
+            duration=None,
+            fps=10,
+            palettesize=256,
+            quantizer="Wu",
+            subrectangles=False,
+        ):
             # Check palettesize
             if palettesize < 2 or palettesize > 256:
-                raise ValueError('GIF quantize param must be 2..256')
+                raise ValueError("GIF quantize param must be 2..256")
             if palettesize not in [2, 4, 8, 16, 32, 64, 128, 256]:
                 palettesize = 2 ** int(np.log2(128) + 0.999)
-                print('Warning: palettesize (%r) modified to a factor of '
-                      'two between 2-256.' % palettesize)
+                logger.warning(
+                    "Warning: palettesize (%r) modified to a factor of "
+                    "two between 2-256." % palettesize
+                )
             self._palettesize = palettesize
             # Check quantizer
-            self._quantizer = {'wu': 0, 'nq': 1}.get(quantizer.lower(), None)
+            self._quantizer = {"wu": 0, "nq": 1}.get(quantizer.lower(), None)
             if self._quantizer is None:
                 raise ValueError('Invalid quantizer, must be "wu" or "nq".')
             # Check frametime
@@ -233,7 +242,7 @@ class GifFormat(FreeimageMulti):
             elif isinstance(duration, (float, int)):
                 self._frametime = [int(1000 * duration)]
             else:
-                raise ValueError('Invalid value for duration: %r' % duration)
+                raise ValueError("Invalid value for duration: %r" % duration)
             # Check subrectangles
             self._subrectangles = bool(subrectangles)
             self._prev_im = None
@@ -241,28 +250,28 @@ class GifFormat(FreeimageMulti):
             FreeimageMulti.Writer._open(self, flags)
             # Set global meta data
             self._meta = {}
-            self._meta['ANIMATION'] = {
+            self._meta["ANIMATION"] = {
                 # 'GlobalPalette': np.array([0]).astype(np.uint8),
-                'Loop': np.array([loop]).astype(np.uint32),
-                #'LogicalWidth': np.array([x]).astype(np.uint16),
-                #'LogicalHeight': np.array([x]).astype(np.uint16),
+                "Loop": np.array([loop]).astype(np.uint32),
+                # 'LogicalWidth': np.array([x]).astype(np.uint16),
+                # 'LogicalHeight': np.array([x]).astype(np.uint16),
             }
-        
+
         def _append_bitmap(self, im, meta, bitmap):
             # Prepare meta data
             meta = meta.copy()
-            meta_a = meta['ANIMATION'] = {}
+            meta_a = meta["ANIMATION"] = {}
             # If this is the first frame, assign it our "global" meta data
             if len(self._bm) == 0:
                 meta.update(self._meta)
-                meta_a = meta['ANIMATION']
+                meta_a = meta["ANIMATION"]
             # Set frame time
             index = len(self._bm)
             if index < len(self._frametime):
                 ft = self._frametime[index]
             else:
                 ft = self._frametime[-1]
-            meta_a['FrameTime'] = np.array([ft]).astype(np.uint32)
+            meta_a["FrameTime"] = np.array([ft]).astype(np.uint32)
             # Check array
             if im.ndim == 3 and im.shape[-1] == 4:
                 im = im[:, :, :3]
@@ -270,24 +279,24 @@ class GifFormat(FreeimageMulti):
             im_uncropped = im
             if self._subrectangles and self._prev_im is not None:
                 im, xy = self._get_sub_rectangles(self._prev_im, im)
-                meta_a['DisposalMethod'] = np.array([1]).astype(np.uint8)
-                meta_a['FrameLeft'] = np.array([xy[0]]).astype(np.uint16)
-                meta_a['FrameTop'] = np.array([xy[1]]).astype(np.uint16)
+                meta_a["DisposalMethod"] = np.array([1]).astype(np.uint8)
+                meta_a["FrameLeft"] = np.array([xy[0]]).astype(np.uint16)
+                meta_a["FrameTop"] = np.array([xy[1]]).astype(np.uint16)
             self._prev_im = im_uncropped
             # Set image data
             sub2 = sub1 = bitmap
             sub1.allocate(im)
             sub1.set_image_data(im)
-            # Quantize it if its RGB 
+            # Quantize it if its RGB
             if im.ndim == 3 and im.shape[-1] == 3:
                 sub2 = sub1.quantize(self._quantizer, self._palettesize)
             # If single image, omit animation data
-            if self.request.mode[1] == 'i':
-                del meta['ANIMATION']
+            if self.request.mode[1] == "i":
+                del meta["ANIMATION"]
             # Set meta data and return
             sub2.set_meta_data(meta)
             return sub2
-        
+
         def _get_sub_rectangles(self, prev, im):
             """
             Calculate the minimal rectangles that need updating each frame.
@@ -297,7 +306,7 @@ class GifFormat(FreeimageMulti):
             # Get difference, sum over colors
             diff = np.abs(im - prev)
             if diff.ndim == 3:
-                diff = diff.sum(2)  
+                diff = diff.sum(2)
             # Get begin and end for both dimensions
             X = np.argwhere(diff.sum(0))
             Y = np.argwhere(diff.sum(1))
@@ -312,9 +321,9 @@ class GifFormat(FreeimageMulti):
             return im[y0:y1, x0:x1], (x0, y0)
 
 
-# formats.add_format(MngFormat('MNG', 'Multiple network graphics', 
+# formats.add_format(MngFormat('MNG', 'Multiple network graphics',
 #                                    '.mng', 'iI'))
-formats.add_format(IcoFormat('ICO-FI', 'Windows icon', 
-                             '.ico', 'iI'))
-formats.add_format(GifFormat('GIF-FI', 'Static and animated gif (FreeImage)', 
-                             '.gif', 'iI'))
+formats.add_format(IcoFormat("ICO-FI", "Windows icon", ".ico", "iI"))
+formats.add_format(
+    GifFormat("GIF-FI", "Static and animated gif (FreeImage)", ".gif", "iI")
+)

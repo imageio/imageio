@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Plugin for reading FITS files.
 """
-
-from __future__ import absolute_import, print_function, division
 
 from .. import formats
 from ..core import Format
@@ -18,19 +15,21 @@ def load_lib():
     try:
         from astropy.io import fits as _fits
     except ImportError:
-        raise ImportError("The FITS format relies on the astropy package."
-                          "Please refer to http://www.astropy.org/ "
-                          "for further instructions.")
+        raise ImportError(
+            "The FITS format relies on the astropy package."
+            "Please refer to http://www.astropy.org/ "
+            "for further instructions."
+        )
     return _fits
 
 
 class FitsFormat(Format):
 
-    """ Flexible Image Transport System (FITS) is an open standard defining a
+    """Flexible Image Transport System (FITS) is an open standard defining a
     digital file format useful for storage, transmission and processing of
     scientific and other images. FITS is the most commonly used digital
     file format in astronomy.
-    
+
     This format requires the ``astropy`` package.
 
     Parameters for reading
@@ -78,7 +77,7 @@ class FitsFormat(Format):
     def _can_read(self, request):
         # We return True if ext matches, because this is the only plugin
         # that can. If astropy is not installed, a useful error follows.
-        return request.filename.lower().endswith(self.extensions)
+        return request.extension in self.extensions
 
     def _can_write(self, request):
         # No write support
@@ -87,17 +86,15 @@ class FitsFormat(Format):
     # -- reader
 
     class Reader(Format.Reader):
-
         def _open(self, cache=False, **kwargs):
             if not _fits:
                 load_lib()
-            hdulist = _fits.open(self.request.get_file(),
-                                 cache=cache, **kwargs)
+            hdulist = _fits.open(self.request.get_file(), cache=cache, **kwargs)
 
             self._index = []
+            allowed_hdu_types = (_fits.ImageHDU, _fits.PrimaryHDU, _fits.CompImageHDU)
             for n, hdu in zip(range(len(hdulist)), hdulist):
-                if (isinstance(hdu, _fits.ImageHDU) or
-                        isinstance(hdu, _fits.PrimaryHDU)):
+                if isinstance(hdu, allowed_hdu_types):
                     # Ignore (primary) header units with no data (use '.size'
                     # rather than '.data' to avoid actually loading the image):
                     if hdu.size > 0:
@@ -113,17 +110,18 @@ class FitsFormat(Format):
         def _get_data(self, index):
             # Get data
             if index < 0 or index >= len(self._index):
-                raise IndexError('Index out of range while reading from fits')
+                raise IndexError("Index out of range while reading from fits")
             im = self._hdulist[self._index[index]].data
             # Return array and empty meta data
             return im, {}
 
         def _get_meta_data(self, index):
             # Get the meta data for the given index
-            raise RuntimeError('The fits format does not support meta data.')
+            raise RuntimeError("The fits format does not support meta data.")
 
 
 # Register
-format = FitsFormat('fits', "Flexible Image Transport System (FITS) format",
-                    'fits fit fts', 'iIvV')
+format = FitsFormat(
+    "fits", "Flexible Image Transport System (FITS) format", "fits fit fts fz", "iIvV"
+)
 formats.add_format(format)
