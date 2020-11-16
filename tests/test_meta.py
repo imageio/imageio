@@ -75,7 +75,7 @@ def test_namespace():
         "help formats read save RETURN_BYTES "
         "get_reader imread mimread volread mvolread "
         "get_writer imwrite mimwrite volwrite mvolwrite "
-        "read save imsave mimsave volsave mvolsave "  # aliases
+        "read save imsave mimsave volsave mvolsave ImageSequence"  # aliases
     ).split(" ")
     need_names = set([n for n in need_names if n])
 

@@ -29,6 +29,11 @@ try:
     from pathlib import Path
 except ImportError:
     Path = None
+try:
+    import slicerator
+except ImportError:
+    slicerator = None
+
 
 test_dir = get_test_dir()
 
@@ -775,6 +780,196 @@ def test_imwrite_not_array_like():
         imageio.imwrite("foo.bmp", Foo())
     with raises(ValueError):
         imageio.imwrite("foo.bmp", "asd")
+
+
+class TestImageSequence:
+    @pytest.fixture
+    def seq(self, tmp_path):
+        stack = np.array([np.full((10, 20), i) for i in range(10)])
+        fname = tmp_path / "test.tiff"
+        with imageio.get_writer(fname) as wrt:
+            for i, img in enumerate(stack):
+                wrt.append_data(img, meta={"description": f"testtesttest {i}"})
+        s = imageio.ImageSequence(fname)
+        yield s
+        s.close()
+
+    def test_open_close(self, seq):
+        assert seq.closed
+        assert len(seq) == 0
+
+        try:
+            seq.open()
+            assert not seq.closed
+            assert len(seq) == 10
+            assert seq.format == "TIFF"
+        finally:
+            seq.close()
+        assert seq.closed
+        assert len(seq) == 0
+
+        class FakeException(Exception):
+            pass
+
+        try:
+            with seq:
+                assert not seq.closed
+                assert len(seq) == 10
+                assert seq.format == "TIFF"
+                raise FakeException()  # Make sure context manager closes
+        except FakeException:
+            pass
+        assert seq.closed
+        assert len(seq) == 0
+
+        with imageio.ImageSequence(seq.uri) as seq2:
+            assert not seq2.closed
+            assert len(seq2) == 10
+            assert seq2.format == "TIFF"
+
+    def test_resolve_index(self, seq):
+        with seq:
+            assert seq._resolve_index(2) == 2
+            assert seq._resolve_index(-2) == 8
+            np.testing.assert_array_equal(
+                seq._resolve_index([1, 4, -3]), [1, 4, 7])
+            np.testing.assert_array_equal(
+                seq._resolve_index(np.array([1, 4, -3])), [1, 4, 7])
+            np.testing.assert_array_equal(
+                seq._resolve_index(slice(1, 6, 2)), [1, 3, 5])
+            with pytest.raises(IndexError):
+                seq._resolve_index(15)
+            with pytest.raises(IndexError):
+                seq._resolve_index(-12)
+            with pytest.raises(IndexError):
+                seq._resolve_index([1, 2, 15])
+            with pytest.raises(IndexError):
+                seq._resolve_index([1, 2, -12])
+            with pytest.raises(IndexError):
+                seq._resolve_index(np.array([1, 2, 15]))
+            with pytest.raises(IndexError):
+                seq._resolve_index(np.array([1, 2, -12]))
+            b_idx = [True] * 5 + [False] * 5
+            np.testing.assert_array_equal(
+                seq._resolve_index(b_idx), [0, 1, 2, 3, 4])
+            with pytest.raises(IndexError):
+                seq._resolve_index(b_idx[:-1])
+            with pytest.raises(IndexError):
+                seq._resolve_index(b_idx + [True])
+
+            seq._indices = np.array([1, 2, 3])
+            assert seq._resolve_index(1) == 2
+            assert seq._resolve_index(-1) == 3
+            np.testing.assert_array_equal(
+                seq._resolve_index([0, -1]), [1, 3])
+            np.testing.assert_array_equal(
+                seq._resolve_index(np.array([0, -1])), [1, 3])
+            np.testing.assert_array_equal(
+                seq._resolve_index(slice(0, 6, 2)), [1, 3])
+            with pytest.raises(IndexError):
+                seq._resolve_index(3)
+            with pytest.raises(IndexError):
+                seq._resolve_index(-4)
+            with pytest.raises(IndexError):
+                seq._resolve_index([0, 1, 3])
+            with pytest.raises(IndexError):
+                seq._resolve_index([0, 1, -4])
+            with pytest.raises(IndexError):
+                seq._resolve_index(np.array([0, 1, 3]))
+            with pytest.raises(IndexError):
+                seq._resolve_index(np.array([0, 1, -4]))
+            np.testing.assert_array_equal(
+                seq._resolve_index([True, False, True]), [1, 3])
+            with pytest.raises(IndexError):
+                seq._resolve_index([True, False])
+            with pytest.raises(IndexError):
+                seq._resolve_index([True, False, True, False])
+
+    @staticmethod
+    def _check_sliced(seq_to_slice, idx, frames):
+        if idx is not None:
+            subseq = seq_to_slice[idx]
+        else:
+            subseq = seq_to_slice
+
+        assert len(subseq) == len(frames)
+        for i, fr in enumerate(frames):
+            s = subseq[i]
+            np.testing.assert_array_equal(s, np.full((10, 20), fr))
+            np.testing.assert_array_equal(subseq.get_data(i), s)
+            assert (s.meta["description"] ==
+                    subseq.get_meta_data(i)["description"] ==
+                    f"testtesttest {fr}")
+        return subseq
+
+    def test_slicing(self, seq):
+        with seq:
+            self._check_sliced(seq, None, list(range(10)))
+
+            seq_slc = self._check_sliced(seq, slice(1, 8, 2), [1, 3, 5, 7])
+            idx = [1, 4, 7, 9, -2]
+            for i in idx, np.array(idx):
+                seq_int = self._check_sliced(seq, i, [1, 4, 7, 9, 8])
+            idx = list(np.arange(len(seq)) % 2 == 0)
+            for i in idx, np.array(idx):
+                seq_bool = self._check_sliced(seq, i, [0, 2, 4, 6, 8])
+
+            self._check_sliced(seq_slc, slice(None, None, 2), [1, 5])
+            idx = [1, -2]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_slc, i, [3, 5])
+            idx = [True, False, False, True]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_slc, i, [1, 7])
+            self._check_sliced(seq_int, slice(None, None, 2), [1, 7, 8])
+            idx = [0, 1, -2]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_int, i, [1, 4, 9])
+            idx = [True, False, False, True, False]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_int, i, [1, 9])
+            self._check_sliced(seq_bool, slice(None, None, 2), [0, 4, 8])
+            idx = [1, 3, -2]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_bool, i, [2, 6, 6])
+            idx = [True, False, False, True, True]
+            for i in idx, np.array(idx):
+                self._check_sliced(seq_bool, i, [0, 6, 8])
+
+            for s in seq, seq_slc, seq_int, seq_bool:
+                with pytest.raises(IndexError):
+                    s[12]
+                with pytest.raises(IndexError):
+                    s[-12]
+                with pytest.raises(IndexError):
+                    s[[1, 2, 12]]
+                with pytest.raises(IndexError):
+                    s[[1, 2, -12]]
+                with pytest.raises(IndexError):
+                    s[[True] * 9]
+                with pytest.raises(IndexError):
+                    s[[True] * 11]
+
+    @pytest.mark.skipif(slicerator is None, reason="slicerator not available")
+    def test_pipeline(self, seq):
+        @slicerator.pipeline
+        def pipe(img):
+            return img + 1
+
+        def check_pipe(pipe, frames):
+            assert isinstance(pipe,
+                              (slicerator.Pipeline, slicerator.Slicerator))
+            assert len(pipe) == len(frames)
+            for p, f in zip(pipe, frames):
+                np.testing.assert_array_equal(p, np.full((10, 20), f+1))
+
+        with seq:
+            seq_pipe = pipe(seq)
+            check_pipe(seq_pipe, list(range(len(seq))))
+            check_pipe(seq_pipe[1::2], list(range(1, len(seq), 2)))
+            subseq_pipe = pipe(seq[::3])
+            check_pipe(subseq_pipe, list(range(0, len(seq), 3)))
+            check_pipe(subseq_pipe[::2], list(range(0, len(seq), 6)))
 
 
 run_tests_if_main()
