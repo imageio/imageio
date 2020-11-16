@@ -93,7 +93,8 @@ class LytroIllumRawFormat(LytroFormat):
 
     Parameters for reading
     ----------------------
-    None
+    meta_only : bool
+        Whether to only read the metadata.
     """
 
     def _can_read(self, request):
@@ -138,9 +139,10 @@ class LytroIllumRawFormat(LytroFormat):
     # -- reader
 
     class Reader(Format.Reader):
-        def _open(self):
+        def _open(self, meta_only=False):
             self._file = self.request.get_file()
             self._data = None
+            self._meta_only = meta_only
 
         def _close(self):
             # Close the reader.
@@ -157,15 +159,20 @@ class LytroIllumRawFormat(LytroFormat):
             if index not in [0, "None"]:
                 raise IndexError("Lytro file contains only one dataset")
 
-            # Read all bytes
-            if self._data is None:
-                self._data = self._file.read()
+            if not self._meta_only:
+                # Read all bytes
+                if self._data is None:
+                    self._data = self._file.read()
 
-            # Read bytes from string and convert to uint16
-            raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
+                # Read bytes from string and convert to uint16
+                raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
 
-            # Rearrange bits
-            img = LytroIllumRawFormat.rearrange_bits(raw)
+                # Rearrange bits
+                img = LytroIllumRawFormat.rearrange_bits(raw)
+
+            else:
+                # Return empty image
+                img = np.array([])
 
             # Return image and meta data
             return img, self._get_meta_data(index=0)
@@ -204,7 +211,10 @@ class LytroLfrFormat(LytroFormat):
 
     Parameters for reading
     ----------------------
-    None
+    meta_only : bool
+        Whether to only read the metadata.
+    include_thumbnail : bool
+        Whether to include an image thumbnail in the metadata.
     """
 
     def _can_read(self, request):
@@ -216,12 +226,14 @@ class LytroLfrFormat(LytroFormat):
     # -- reader
 
     class Reader(Format.Reader):
-        def _open(self):
+        def _open(self, meta_only=False, include_thumbnail=True):
             self._file = self.request.get_file()
             self._data = None
             self._chunks = {}
             self.metadata = {}
             self._content = None
+            self._meta_only = meta_only
+            self._include_thumbnail = include_thumbnail
 
             self._find_header()
             self._find_chunks()
@@ -235,11 +247,11 @@ class LytroLfrFormat(LytroFormat):
                     and chunk_dict["imageRef"] in self._chunks
                     and chunk_dict["privateMetadataRef"] in self._chunks
                 ):
-
-                    # Read raw image data byte buffer
-                    data_pos, size = self._chunks[chunk_dict["imageRef"]]
-                    self._file.seek(data_pos, 0)
-                    self.raw_image_data = self._file.read(size)
+                    if not self._meta_only:
+                        # Read raw image data byte buffer
+                        data_pos, size = self._chunks[chunk_dict["imageRef"]]
+                        self._file.seek(data_pos, 0)
+                        self.raw_image_data = self._file.read(size)
 
                     # Read meta data
                     data_pos, size = self._chunks[chunk_dict["metadataRef"]]
@@ -257,24 +269,25 @@ class LytroLfrFormat(LytroFormat):
                     self.metadata["privateMetadata"] = self.serial_numbers
 
                 # Read image preview thumbnail
-                chunk_dict = self._content["thumbnails"][0]
-                if chunk_dict["imageRef"] in self._chunks:
-                    # Read thumbnail image from thumbnail chunk
-                    data_pos, size = self._chunks[chunk_dict["imageRef"]]
-                    self._file.seek(data_pos, 0)
-                    # Read binary data, read image as jpeg
-                    thumbnail_data = self._file.read(size)
-                    thumbnail_img = imread(thumbnail_data, format="jpeg")
+                if self._include_thumbnail:
+                    chunk_dict = self._content["thumbnails"][0]
+                    if chunk_dict["imageRef"] in self._chunks:
+                        # Read thumbnail image from thumbnail chunk
+                        data_pos, size = self._chunks[chunk_dict["imageRef"]]
+                        self._file.seek(data_pos, 0)
+                        # Read binary data, read image as jpeg
+                        thumbnail_data = self._file.read(size)
+                        thumbnail_img = imread(thumbnail_data, format="jpeg")
 
-                    thumbnail_height = chunk_dict["height"]
-                    thumbnail_width = chunk_dict["width"]
+                        thumbnail_height = chunk_dict["height"]
+                        thumbnail_width = chunk_dict["width"]
 
-                    # Add thumbnail to metadata
-                    self.metadata["thumbnail"] = {
-                        "image": thumbnail_img,
-                        "height": thumbnail_height,
-                        "width": thumbnail_width,
-                    }
+                        # Add thumbnail to metadata
+                        self.metadata["thumbnail"] = {
+                            "image": thumbnail_img,
+                            "height": thumbnail_height,
+                            "width": thumbnail_width,
+                        }
 
             except KeyError:
                 raise RuntimeError("The specified file is not a valid LFR file.")
@@ -375,9 +388,12 @@ class LytroLfrFormat(LytroFormat):
             if index not in [0, None]:
                 raise IndexError("Lytro lfr file contains only one dataset")
 
-            # Read bytes from string and convert to uint16
-            raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
-            im = LytroIllumRawFormat.rearrange_bits(raw)
+            if not self._meta_only:
+                # Read bytes from string and convert to uint16
+                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
+                im = LytroIllumRawFormat.rearrange_bits(raw)
+            else:
+                im = np.array([])
 
             # Return array and dummy meta data
             return im, self.metadata
@@ -401,7 +417,8 @@ class LytroF01RawFormat(LytroFormat):
 
     Parameters for reading
     ----------------------
-    None
+    meta_only : bool
+        Whether to only read the metadata.
 
     """
 
@@ -437,9 +454,10 @@ class LytroF01RawFormat(LytroFormat):
     # -- reader
 
     class Reader(Format.Reader):
-        def _open(self):
+        def _open(self, meta_only=False):
             self._file = self.request.get_file()
             self._data = None
+            self._meta_only = meta_only
 
         def _close(self):
             # Close the reader.
@@ -456,15 +474,19 @@ class LytroF01RawFormat(LytroFormat):
             if index not in [0, "None"]:
                 raise IndexError("Lytro file contains only one dataset")
 
-            # Read all bytes
-            if self._data is None:
-                self._data = self._file.read()
+            if not self._meta_only:
+                # Read all bytes
+                if self._data is None:
+                    self._data = self._file.read()
 
-            # Read bytes from string and convert to uint16
-            raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
+                # Read bytes from string and convert to uint16
+                raw = np.frombuffer(self._data, dtype=np.uint8).astype(np.uint16)
 
-            # Rearrange bits
-            img = LytroF01RawFormat.rearrange_bits(raw)
+                # Rearrange bits
+                img = LytroF01RawFormat.rearrange_bits(raw)
+
+            else:
+                img = np.array([])
 
             # Return image and meta data
             return img, self._get_meta_data(index=0)
@@ -503,7 +525,10 @@ class LytroLfpFormat(LytroFormat):
 
     Parameters for reading
     ----------------------
-    None
+    meta_only : bool
+        Whether to only read the metadata.
+    include_thumbnail : bool
+        Whether to include an image thumbnail in the metadata.
     """
 
     def _can_read(self, request):
@@ -515,12 +540,13 @@ class LytroLfpFormat(LytroFormat):
     # -- reader
 
     class Reader(Format.Reader):
-        def _open(self):
+        def _open(self, meta_only=False):
             self._file = self.request.get_file()
             self._data = None
             self._chunks = {}
             self.metadata = {}
             self._content = None
+            self._meta_only = meta_only
 
             self._find_header()
             self._find_meta()
@@ -534,11 +560,11 @@ class LytroLfpFormat(LytroFormat):
                     and chunk_dict["imageRef"] in self._chunks
                     and chunk_dict["privateMetadataRef"] in self._chunks
                 ):
-
-                    # Read raw image data byte buffer
-                    data_pos, size = self._chunks[chunk_dict["imageRef"]]
-                    self._file.seek(data_pos, 0)
-                    self.raw_image_data = self._file.read(size)
+                    if not self._meta_only:
+                        # Read raw image data byte buffer
+                        data_pos, size = self._chunks[chunk_dict["imageRef"]]
+                        self._file.seek(data_pos, 0)
+                        self.raw_image_data = self._file.read(size)
 
                     # Read meta data
                     data_pos, size = self._chunks[chunk_dict["metadataRef"]]
@@ -657,9 +683,12 @@ class LytroLfpFormat(LytroFormat):
             if index not in [0, None]:
                 raise IndexError("Lytro lfp file contains only one dataset")
 
-            # Read bytes from string and convert to uint16
-            raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
-            im = LytroF01RawFormat.rearrange_bits(raw)
+            if not self._meta_only:
+                # Read bytes from string and convert to uint16
+                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
+                im = LytroF01RawFormat.rearrange_bits(raw)
+            else:
+                im = np.array([])
 
             # Return array and dummy meta data
             return im, self.metadata

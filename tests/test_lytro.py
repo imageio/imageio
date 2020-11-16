@@ -419,6 +419,20 @@ def test_lytro_lfr_reading():
     assert img._meta["metadata"] == metadata_gt
     assert img._meta["privateMetadata"] == private_metadata_gt
 
+    # Read metadata only (with thumbnail)
+    img = imageio.imread(lfr_file, format="lytro-lfr", meta_only=True)
+    assert np.array_equal(img, [])
+    assert img._meta["metadata"] == metadata_gt
+    assert img._meta["privateMetadata"] == private_metadata_gt
+    assert np.array_equal(img._meta["thumbnail"]["image"], thumb_gt)
+
+    # Read metadata only (without thumbnail)
+    img = imageio.imread(lfr_file, format="lytro-lfr", meta_only=True, include_thumbnail=False)
+    assert np.array_equal(img, [])
+    assert img._meta["metadata"] == metadata_gt
+    assert img._meta["privateMetadata"] == private_metadata_gt
+    assert "thumbnail" not in img._meta.keys()
+
     # Test fail
     test_reader = imageio.read(lfr_file, "lytro-lfr")
     raises(IndexError, test_reader.get_data, -1)
@@ -563,6 +577,12 @@ def test_lytro_lfp_reading():
     assert img._meta["metadata"] == metadata_gt
     assert img._meta["privateMetadata"] == private_metadata_gt
 
+    # Read metadata only
+    img = imageio.imread(lfp_file, format="lytro-lfp", meta_only=True)
+    assert np.array_equal(img, [])
+    assert img._meta["metadata"] == metadata_gt
+    assert img._meta["privateMetadata"] == private_metadata_gt
+
     # Test fail
     test_reader = imageio.read(lfp_file, "lytro-lfp")
     raises(IndexError, test_reader.get_data, -1)
@@ -596,6 +616,11 @@ def test_lytro_raw_illum_reading():
     # Test extracted metadata against extracted metadata from .txt file
     assert img._meta == meta_gt
 
+    # Read metadata only
+    img = imageio.imread(raw_file, format="lytro-illum-raw", meta_only=True)
+    assert np.array_equal(img, [])
+    assert img._meta == meta_gt
+
     # Test fail
     test_reader = imageio.read(raw_file, "lytro-illum-raw")
     raises(IndexError, test_reader.get_data, -1)
@@ -627,6 +652,11 @@ def test_lytro_raw_f0_reading():
     assert round(img[1546, 1243], 15) == 0.227350427350427
 
     # Test extracted metadata against extracted metadata from .txt file
+    assert img._meta == meta_gt
+
+    # Read metadata only
+    img = imageio.imread(raw_file, format="lytro-f01-raw", meta_only=True)
+    assert np.array_equal(img, [])
     assert img._meta == meta_gt
 
     # Test fail
