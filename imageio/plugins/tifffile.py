@@ -225,9 +225,6 @@ class TiffFormat(Format):
                 f = self.request.get_file()
             self._tf = _tifffile.TiffFile(f, **kwargs)
 
-            # metadata is the same for all images
-            self._meta = {}
-
         def _close(self):
             self._tf.close()
             if self._f is not None:
@@ -257,35 +254,36 @@ class TiffFormat(Format):
                     im = np.stack(ims, 0)
                 else:
                     im = self._tf.asarray()
-                meta = self._meta
+                meta = self._get_meta_data(0)
             else:
                 # Read as 2D image
                 if index < 0 or index >= self._get_length():
                     raise IndexError("Index out of range while reading from tiff file")
                 im = self._tf.pages[index].asarray()
-                meta = self._meta or self._get_meta_data(index)
+                meta = self._get_meta_data(index)
             # Return array and empty meta data
             return im, meta
 
         def _get_meta_data(self, index):
+            meta = {}
             page = self._tf.pages[index or 0]
             for key in READ_METADATA_KEYS:
                 try:
-                    self._meta[key] = getattr(page, key)
+                    meta[key] = getattr(page, key)
                 except Exception:
                     pass
 
             # tifffile <= 0.12.1 use datetime, newer use DateTime
             for key in ("datetime", "DateTime"):
                 try:
-                    self._meta["datetime"] = datetime.datetime.strptime(
+                    meta["datetime"] = datetime.datetime.strptime(
                         page.tags[key].value, "%Y:%m:%d %H:%M:%S"
                     )
                     break
                 except Exception:
                     pass
 
-            return self._meta
+            return meta
 
     # -- writer
     class Writer(Format.Writer):
@@ -312,26 +310,30 @@ class TiffFormat(Format):
             self._tf.close()
 
         def _append_data(self, im, meta):
-            if meta:
-                self.set_meta_data(meta)
+            meta = self._sanitize_meta(meta) if meta is not None else self._meta
             # No need to check self.request.mode; tifffile figures out whether
             # this is a single page, or all page data at once.
             if self._software is None:
-                self._tf.save(np.asanyarray(im), **self._meta)
+                self._tf.save(np.asanyarray(im), **meta)
             else:
                 # tifffile >= 0.15
-                self._tf.save(np.asanyarray(im), software=self._software, **self._meta)
+                self._tf.save(np.asanyarray(im), software=self._software, **meta)
 
-        def set_meta_data(self, meta):
-            self._meta = {}
+        @staticmethod
+        def _sanitize_meta(meta):
+            ret = {}
             for (key, value) in meta.items():
                 if key in WRITE_METADATA_KEYS:
                     # Special case of previously read `predictor` int value
                     # 1(=NONE) translation to False expected by TiffWriter.save
                     if key == "predictor" and not isinstance(value, bool):
-                        self._meta[key] = value > 1
+                        ret[key] = value > 1
                     else:
-                        self._meta[key] = value
+                        ret[key] = value
+            return ret
+
+        def set_meta_data(self, meta):
+            self._meta = self._sanitize_meta(meta)
 
 
 # Register
