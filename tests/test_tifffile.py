@@ -24,9 +24,9 @@ def test_tifffile_format():
 
 def test_tifffile_reading_writing():
     """ Test reading and saving tiff """
-    
+
     need_internet()  # We keep a test image in the imageio-binary repo
-    
+
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
     filename1 = os.path.join(test_dir, 'test_tiff.tiff')
@@ -38,7 +38,7 @@ def test_tifffile_reading_writing():
     assert im.shape == im2.shape
     assert (im == im2).all()
     assert len(ims) == 1
-    
+
     # Multiple images
     imageio.mimsave(filename1, [im2, im2, im2])
     im = imageio.imread(filename1)
@@ -57,7 +57,7 @@ def test_tifffile_reading_writing():
     assert len(vols) == 1 and vol.shape == vols[0].shape
     for i in range(3):
         assert (vol[i] == im2).all()
-    
+
     # remote multipage rgb file
     filename2 = get_remote_file('images/multipage_rgb.tif')
     img = imageio.mimread(filename2)
@@ -81,7 +81,7 @@ def test_tifffile_reading_writing():
     # Fail
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
-    
+
     # Ensure imread + imwrite works round trip
     filename3 = os.path.join(test_dir, 'test_tiff2.tiff')
     im1 = imageio.imread(filename1)
@@ -90,7 +90,7 @@ def test_tifffile_reading_writing():
     assert im1.ndim == 3
     assert im1.shape == im3.shape
     assert (im1 == im3).all()
-    
+
     # Ensure imread + imwrite works round trip - volume like
     filename3 = os.path.join(test_dir, 'test_tiff2.tiff')
     im1 = imageio.volread(filename1)
@@ -110,18 +110,22 @@ def test_tifffile_reading_writing():
 
     # Write metadata
     dt = datetime.datetime(2018, 8, 6, 15, 35, 5)
-    w = imageio.get_writer(filename1, software='testsoftware')
-    w.append_data(np.zeros((10, 10)), meta={'description': 'test desc',
-                                            'datetime': dt})
-    w.close()
-    r = imageio.get_reader(filename1)
-    md = r.get_meta_data()
-    assert 'datetime' in md
-    assert md['datetime'] == dt
-    assert 'software' in md
-    assert md['software'] == 'testsoftware'
-    assert 'description' in md
-    assert md['description'] == 'test desc'
+    with imageio.get_writer(filename1, software='testsoftware') as w:
+        w.append_data(np.zeros((10, 10)), meta={'description': 'test desc',
+                                                'datetime': dt})
+        w.append_data(np.zeros((10, 10)), meta={'description': 'another desc'})
+    with imageio.get_reader(filename1) as r:
+        for md in r.get_meta_data(), r.get_meta_data(0):
+            assert 'datetime' in md
+            assert md['datetime'] == dt
+            assert 'software' in md
+            assert md['software'] == 'testsoftware'
+            assert 'description' in md
+            assert md['description'] == 'test desc'
+
+        md = r.get_meta_data(1)
+        assert 'description' in md
+        assert md['description'] == 'another desc'
 
 
 run_tests_if_main()
