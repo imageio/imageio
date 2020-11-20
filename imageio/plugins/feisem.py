@@ -52,6 +52,9 @@ class FEISEMFormat(TiffFormat):
             metadata : dict
                 Dictionary of metadata.
             """
+            if hasattr(self, "_fei_meta"):
+                return self._fei_meta
+
             md = {"root": {}}
             current_tag = "root"
             reading_metadata = False
@@ -80,7 +83,8 @@ class FEISEMFormat(TiffFormat):
                             md[current_tag][key] = val
             if not md["root"] and len(md) == 1:
                 raise ValueError("Input file %s contains no FEI metadata." % filename)
-            self._meta.update(md)
+
+            self._fei_meta = md
             return md
 
 
