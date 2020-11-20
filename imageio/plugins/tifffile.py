@@ -325,7 +325,12 @@ class TiffFormat(Format):
                 meta["software"] = self._software
             # No need to check self.request.mode; tifffile figures out whether
             # this is a single page, or all page data at once.
-            self._tf.save(np.asanyarray(im), contiguous=False, **meta)
+            try:
+                # TiffWriter.save has been deprecated in version 2020.9.30
+                write_meth = self._tf.write
+            except AttributeError:
+                write_meth = self._tf.save
+            write_meth(np.asanyarray(im), contiguous=False, **meta)
             self._frames_written += 1
 
         @staticmethod
