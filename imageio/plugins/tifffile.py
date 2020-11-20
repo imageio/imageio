@@ -69,6 +69,11 @@ class TiffFormat(Format):
     to read the individual pages, or ``imageio.volread()`` to obtain a
     single (higher dimensional) array.
 
+    Note that global metadata is stored with the first frame in a TIFF file.
+    Thus calling :py:meth:`Format.Writer.set_meta_data` after the first frame
+    was written has no effect. Also, global metadata is ignored if metadata is
+    provided via the `meta` argument of :py:meth:`Format.Writer.append_data`.
+
     Parameters for reading
     ----------------------
     offset : int
@@ -305,19 +310,23 @@ class TiffFormat(Format):
                 self._software = software
 
             self._meta = {}
+            self._frames_written = 0
 
         def _close(self):
             self._tf.close()
 
         def _append_data(self, im, meta):
-            meta = self._sanitize_meta(meta) if meta is not None else self._meta
+            if meta is not None:
+                meta = self._sanitize_meta(meta)
+            else:
+                # Use global metadata for first frame
+                meta = self._meta if self._frames_written == 0 else {}
+            if self._software is not None and self._frames_written == 0:
+                meta["software"] = self._software
             # No need to check self.request.mode; tifffile figures out whether
             # this is a single page, or all page data at once.
-            if self._software is None:
-                self._tf.save(np.asanyarray(im), **meta)
-            else:
-                # tifffile >= 0.15
-                self._tf.save(np.asanyarray(im), software=self._software, **meta)
+            self._tf.save(np.asanyarray(im), **meta)
+            self._frames_written += 1
 
         @staticmethod
         def _sanitize_meta(meta):
