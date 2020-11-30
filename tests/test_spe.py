@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import numpy as np
 import pytest
 
@@ -38,7 +40,7 @@ def test_spe_reading():
     np.testing.assert_equal(vols, [[fr1, fr2]])
 
     # Test get_reader
-    r = imageio.get_reader(fname)
+    r = imageio.get_reader(fname, sdt_meta=False)
 
     np.testing.assert_equal(r.get_data(1), fr2)
     np.testing.assert_equal(list(r), [fr1, fr2])
@@ -64,6 +66,20 @@ def test_spe_reading():
     ]
     assert md["comments"] == cmt
     np.testing.assert_equal(md["frame_shape"], fr1.shape)
+
+    # Check reading SDT-control metadata
+    with imageio.get_reader(fname) as r2:
+        sdt_meta = r2.get_meta_data()
+
+    assert sdt_meta["delay_shutter"] == pytest.approx(0.001)
+    assert sdt_meta["delay_macro"] == pytest.approx(0.048)
+    assert sdt_meta["exposure_time"] == pytest.approx(0.002)
+    assert sdt_meta["comment"] == "OD 1.0 in r, g"
+    assert sdt_meta["datetime"] == datetime(2018, 7, 2, 9, 46, 15)
+    assert sdt_meta["sdt_major_version"] == 2
+    assert sdt_meta["sdt_minor_version"] == 18
+    assert isinstance(sdt_meta["modulation_script"], str)
+    assert sdt_meta["sequence_type"] == "standard"
 
 
 run_tests_if_main()

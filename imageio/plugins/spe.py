@@ -4,8 +4,11 @@
 """ SPE file reader
 """
 
-import os
+from collections import namedtuple
+from datetime import datetime
 import logging
+import os
+from typing import Dict, Mapping, Sequence, Union
 
 import numpy as np
 
@@ -145,6 +148,161 @@ class Spec:
     no_decode = ["spare_4"]
 
 
+class SDTControlSpec:
+    """Extract metadata written by the SDT-control software
+
+    Some of it is encoded in the comment strings
+    (see :py:meth:`parse_comments`). Also, date and time are encoded in a
+    peculiar way (see :py:meth:`get_datetime`). Use :py:meth:`extract_metadata`
+    to update the metadata dict.
+    """
+    months = {
+        # Convert SDT-control month strings to month numbers
+        "Jän": 1, "Jan": 1, "Feb": 2, "Mär": 3, "Mar": 3, "Apr": 4, "Mai": 5,
+        "May": 5, "Jun": 6, "Jul": 7, "Aug": 8, "Sep": 9, "Okt": 10, "Oct": 10,
+        "Nov": 11, "Dez": 12, "Dec": 12
+    }
+
+    sequence_types = {
+        # TODO: complete
+        "SEQU": "standard", "SETO": "TOCCSL", "KINE": "kinetics",
+        "SEAR": "arbitrary"
+    }
+
+    # n: Which of the 5 comment fields to use
+    # slice: Which characters from the selected comment
+    # cvt: Callable to convert characters to something useful
+    # scale (optional): Scaling factor for numbers
+    CommentDesc = namedtuple("CommendDesc", ["n", "slice", "cvt", "scale"],
+                             defaults=[None])
+
+    comments = {
+        "sdt_major_version": CommentDesc(4, slice(66, 68), int),
+        "sdt_minor_version": CommentDesc(4, slice(68, 70), int),
+        "sdt_controller_name": CommentDesc(4, slice(0, 6), str),
+        "exposure_time": CommentDesc(1, slice(64, 73), float, 10**-6),
+        "color_code": CommentDesc(4, slice(10, 14), str),
+        "detection_channels": CommentDesc(4, slice(15, 16), int),
+        "background_subtraction": CommentDesc(4, 14, lambda x: x == "B"),
+        "em_active": CommentDesc(4, 32, lambda x: x == "E"),
+        "em_gain": CommentDesc(4, slice(28, 32), int),
+        "modulation_active": CommentDesc(4, 33, lambda x: x == "A"),
+        "pixel_size": CommentDesc(4, slice(25, 28), float, 0.1),
+        "sequence_type": CommentDesc(
+            4, slice(6, 10), lambda x: __class__.sequence_types[x]),
+        "grid": CommentDesc(4, slice(16, 25), float, 10**-6),
+        "n_macro": CommentDesc(1, slice(0, 4), int),
+        "delay_macro": CommentDesc(1, slice(10, 19), float, 10**-3),
+        "n_mini": CommentDesc(1, slice(4, 7), int),
+        "delay_mini": CommentDesc(1, slice(19, 28), float, 10**-6),
+        "n_micro": CommentDesc(1, slice(7, 10), int),
+        "delay_micro": CommentDesc(1, slice(28, 37), float, 10**-6),
+        "n_subpics": CommentDesc(1, slice(7, 10), int),
+        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10**-6),
+        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10**-6),
+        "bleach_time": CommentDesc(1, slice(46, 55), float, 10**-6),
+        "recovery_time": CommentDesc(1, slice(55, 64), float, 10**-6)
+    }
+
+    @staticmethod
+    def parse_comments(comments: Sequence[str]) -> Union[Dict, None]:
+        """Extract SDT-control metadata from comments
+
+        Parameters
+        ----------
+        comments
+            List of SPE file comments, typically ``metadata["comments"]``.
+
+        Returns
+        -------
+        If SDT-control comments were detected, return a dict of metadata, else
+        `None`.
+        """
+        sdt_md = {}
+        if comments[4][70:] != "COMVER0500":
+            logger.debug("SDT-control comments not found.")
+            return None
+
+        sdt_md = {}
+        for name, spec in SDTControlSpec.comments.items():
+            try:
+                v = spec.cvt(comments[spec.n][spec.slice])
+                if spec.scale is not None:
+                    v *= spec.scale
+            except Exception as e:
+                logger.debug("Failed to decode SDT-control metadata "
+                             f'field "{name}": {e}')
+            sdt_md[name] = v
+        comment = comments[0] + comments[2]
+        sdt_md["comment"] = comment.strip()
+        return sdt_md
+
+    @staticmethod
+    def get_datetime(date: str, time: str) -> Union[datetime, None]:
+        """Turn date and time saved by SDT-control into proper datetime object
+
+        Parameters
+        ----------
+        date
+            SPE file date, typically ``metadata["date"]``.
+        time
+            SPE file date, typically ``metadata["time_local"]``.
+
+        Returns
+        -------
+        File's datetime if parsing was succsessful, else None.
+        """
+        try:
+            month = __class__.months[date[2:5]]
+            return datetime(
+                int(date[5:9]), month, int(date[0:2]), int(time[0:2]),
+                int(time[2:4]), int(time[4:6]))
+        except Exception as e:
+            logger.info(
+                f"Failed to decode date from SDT-control metadata: {e}.")
+
+    @staticmethod
+    def extract_metadata(meta: Mapping, char_encoding: str = "latin1"):
+        """Extract SDT-control metadata from SPE metadata
+
+        SDT-control stores some metadata in comments and other fields.
+        Extract them and remove unused entries.
+
+        Parameters
+        ----------
+        meta
+            SPE file metadata. Modified in place.
+        char_encoding
+            Character encoding used to decode strings in the metadata.
+        """
+        sdt_meta = __class__.parse_comments(meta["comments"])
+        if not sdt_meta:
+            return
+        # This file has SDT-control metadata
+        meta.pop("comments")
+        meta.update(sdt_meta)
+
+        # Get date and time in a usable format
+        dt = __class__.get_datetime(
+            meta["date"], meta["time_local"])
+        if dt:
+            meta["datetime"] = dt
+            meta.pop("date")
+            meta.pop("time_local")
+
+        sp4 = meta["spare_4"]
+        try:
+            meta["modulation_script"] = sp4.decode(char_encoding)
+            meta.pop("spare_4")
+        except UnicodeDecodeError:
+            logger.warning("Failed to decode SDT-control laser "
+                           "modulation script. Bad char_encoding?")
+
+        # Get rid of unused data
+        meta.pop("time_utc")
+        meta.pop("exposure_sec")
+
+
 class SpeFormat(Format):
     """Some CCD camera software produces images in the Princeton Instruments
     SPE file format. This plugin supports reading such files.
@@ -159,6 +317,10 @@ class SpeFormat(Format):
         this number may be wrong for certain software. If this is `True`
         (default), derive the number of frames also from the file size and
         raise a warning if the two values do not match.
+    sdt_meta : bool
+        If set to `True` (default), check for special metadata written by the
+        `SDT-control` software. Does not have an effect for files written by
+        other software.
 
     Metadata for reading
     --------------------
@@ -249,7 +411,62 @@ class SpeFormat(Format):
         Post pixels in x and y dimensions
     geometric : list of {"rotate", "reverse", "flip"}
         Geometric operations
-    """
+    sdt_major_version : int (only for files created by SDT-control)
+        Major version of SDT-control software
+    sdt_minor_version : int (only for files created by SDT-control)
+        Minor version of SDT-control software
+    sdt_controller_name : str (only for files created by SDT-control)
+        Controller name
+    exposure_time : float (only for files created by SDT-control)
+        Exposure time in seconds
+    color_code : str (only for files created by SDT-control)
+        Color channels used
+    detection_channels : int (only for files created by SDT-control)
+        Number of channels
+    background_subtraction : bool (only for files created by SDT-control)
+        Whether background subtraction war turned on
+    em_active : bool (only for files created by SDT-control)
+        Whether EM was turned on
+    em_gain : int (only for files created by SDT-control)
+        EM gain
+    modulation_active : bool (only for files created by SDT-control)
+        Whether laser modulation (“attenuate”) was turned on
+    pixel_size : float (only for files created by SDT-control)
+        Camera pixel size
+    sequence_type : str (only for files created by SDT-control)
+        Type of sequnce (standard, TOCCSL, arbitrary, …)
+    grid : float (only for files created by SDT-control)
+        Sequence time unit (“grid size”) in seconds
+    n_macro : int (only for files created by SDT-control)
+        Number of macro loops
+    delay_macro : float (only for files created by SDT-control)
+        Time between macro loops in seconds
+    n_mini : int (only for files created by SDT-control)
+        Number of mini loops
+    delay_mini : float (only for files created by SDT-control)
+        Time between mini loops in seconds
+    n_micro : int (only for files created by SDT-control)
+        Number of micro loops
+    delay_micro : float (only for files created by SDT-control)
+        Time between micro loops in seconds
+    n_subpics : int (only for files created by SDT-control)
+        Number of sub-pictures
+    delay_shutter : float (only for files created by SDT-control)
+        Camera shutter delay in seconds
+    delay_prebleach : float (only for files created by SDT-control)
+        Pre-bleach delay in seconds
+    bleach_time : float (only for files created by SDT-control)
+        Bleaching time in seconds
+    recovery_time : float (only for files created by SDT-control)
+        Recovery time in seconds
+    comment : str (only for files created by SDT-control)
+        User-entered comment. This replaces the "comments" field.
+    datetime : datetime.datetime (only for files created by SDT-control)
+        Combines the "date" and "time_local" keys. The latter two plus
+        "time_utc" are removed.
+    modulation_script : str (only for files created by SDT-control)
+        Laser modulation script. Replaces the "spare_4" key.
+     """
 
     def _can_read(self, request):
         return (
@@ -260,7 +477,8 @@ class SpeFormat(Format):
         return False
 
     class Reader(Format.Reader):
-        def _open(self, char_encoding="latin1", check_filesize=True):
+        def _open(self, char_encoding="latin1", check_filesize=True,
+                  sdt_meta=True):
             self._file = self.request.get_file()
             self._char_encoding = char_encoding
 
@@ -269,6 +487,7 @@ class SpeFormat(Format):
             self._dtype = Spec.dtypes[info["datatype"]]
             self._shape = (info["ydim"], info["xdim"])
             self._len = info["NumFrames"]
+            self._sdt_meta = sdt_meta
 
             if check_filesize:
                 # Some software writes incorrect `NumFrames` metadata.
@@ -368,6 +587,11 @@ class SpeFormat(Format):
 
             # frame shape
             self._meta["frame_shape"] = self._shape
+
+            # Extract SDT-control metadata if desired
+            if self._sdt_meta:
+                SDTControlSpec.extract_metadata(self._meta,
+                                                self._char_encoding)
 
         def _parse_header(self, spec):
             ret = {}
