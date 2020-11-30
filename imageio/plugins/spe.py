@@ -8,7 +8,7 @@ from collections import namedtuple
 from datetime import datetime
 import logging
 import os
-from typing import Dict, Mapping, Sequence, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
 import numpy as np
 
@@ -169,12 +169,23 @@ class SDTControlSpec:
         "SEAR": "arbitrary"
     }
 
-    # n: Which of the 5 comment fields to use
-    # slice: Which characters from the selected comment
-    # cvt: Callable to convert characters to something useful
-    # scale (optional): Scaling factor for numbers
-    CommentDesc = namedtuple("CommendDesc", ["n", "slice", "cvt", "scale"],
-                             defaults=[None])
+    class CommentDesc:
+        """Describe how to extract a metadata entry from a comment string"""
+        n: int
+        """Which of the 5 SPE comment fields to use."""
+        slice: slice
+        """Which characters from the `n`-th comment to use."""
+        cvt: Callable[[str], Any]
+        """How to convert characters to something useful."""
+        scale: Union[None, float]
+        """Optional scaling factor for numbers"""
+        def __init__(self, n: int, slice: slice,
+                     cvt: Callable[[str], Any] = str,
+                     scale: Optional[float] = None):
+            self.n = n
+            self.slice = slice
+            self.cvt = cvt
+            self.scale = scale
 
     comments = {
         "sdt_major_version": CommentDesc(4, slice(66, 68), int),
