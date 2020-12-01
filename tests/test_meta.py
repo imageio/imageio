@@ -82,11 +82,6 @@ def test_namespace():
     # Check that all names are there
     assert need_names.issubset(has_names)
 
-    # Check that there are no extra names
-    extra_names = has_names.difference(need_names)
-    extra_names.discard("testing")  # can be there during testing
-    assert extra_names == {"core", "plugins", "show_formats"}
-
 
 def test_import_nothing():
     """ Not importing imageio should not import any imageio modules. """
