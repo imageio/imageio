@@ -24,6 +24,9 @@ from .core import FormatManager, RETURN_BYTES
 # Instantiate format manager
 formats = FormatManager()
 
+# v3.0.0 API
+from .core.imopen import imopen
+
 # Load the functions
 from .core.functions import help
 from .core.functions import get_reader, get_writer
