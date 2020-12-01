@@ -485,7 +485,6 @@ class JPEGFormat(PillowFormat):
             quality = int(quality)
             if quality < 1 or quality > 100:
                 raise ValueError("JPEG quality should be between 1 and 100.")
-            quality = min(95, max(1, quality))
 
             kwargs["quality"] = quality
             kwargs["progressive"] = bool(progressive)
