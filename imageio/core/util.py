@@ -6,6 +6,8 @@ Various utilities for imageio
 """
 
 
+from collections import OrderedDict
+import numpy as np
 import os
 import re
 import struct
@@ -15,8 +17,6 @@ import logging
 
 logger = logging.getLogger("imageio")
 
-
-import numpy as np
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -71,7 +71,8 @@ def image_as_uint(im, bitdepth=None):
         return im
     if dtype_str1.startswith("float") and np.nanmin(im) >= 0 and np.nanmax(im) <= 1:
         _precision_warn(dtype_str1, dtype_str2, "Range [0, 1].")
-        im = im.astype(np.float64) * (np.power(2.0, bitdepth) - 1) + 0.499999999
+        im = im.astype(np.float64) * \
+            (np.power(2.0, bitdepth) - 1) + 0.499999999
     elif im.dtype == np.uint16 and bitdepth == 8:
         _precision_warn(dtype_str1, dtype_str2, "Losing 8 bits of resolution.")
         im = np.right_shift(im, 8)
@@ -98,11 +99,13 @@ def image_as_uint(im, bitdepth=None):
             raise ValueError("Maximum image value is not finite")
         if ma == mi:
             return im.astype(out_type)
-        _precision_warn(dtype_str1, dtype_str2, "Range [{}, {}].".format(mi, ma))
+        _precision_warn(dtype_str1, dtype_str2,
+                        "Range [{}, {}].".format(mi, ma))
         # Now make float copy before we scale
         im = im.astype("float64")
         # Scale the values between 0 and 1 then multiply by the max value
-        im = (im - mi) / (ma - mi) * (np.power(2.0, bitdepth) - 1) + 0.499999999
+        im = (im - mi) / (ma - mi) * \
+            (np.power(2.0, bitdepth) - 1) + 0.499999999
     assert np.nanmin(im) >= 0
     assert np.nanmax(im) < np.power(2.0, bitdepth)
     return im.astype(out_type)
@@ -183,9 +186,6 @@ def asarray(a):
     return np.asarray(a)
 
 
-from collections import OrderedDict
-
-
 class Dict(OrderedDict):
     """A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
@@ -215,16 +215,17 @@ class Dict(OrderedDict):
                 return OrderedDict.__setattr__(self, key, val)
             else:
                 raise AttributeError(
-                    "Reserved name, this key can only "
-                    + "be set via ``d[%r] = X``" % key
+                    "Reserved name, this key can only " +
+                    "be set via ``d[%r] = X``" % key
                 )
         else:
             # if isinstance(val, dict): val = Dict(val) -> no, makes a copy!
             self[key] = val
 
     def __dir__(self):
-        isidentifier = lambda x: bool(re.match(r"[a-z_]\w*$", x, re.I))
-        names = [k for k in self.keys() if (isinstance(k, str) and isidentifier(k))]
+        def isidentifier(x): return bool(re.match(r"[a-z_]\w*$", x, re.I))
+        names = [k for k in self.keys() if (
+            isinstance(k, str) and isidentifier(k))]
         return Dict.__reserved_names__ + names
 
 
@@ -297,7 +298,8 @@ class BaseProgressIndicator(object):
             progressText = "%2.1f%%" % progress
         elif self._max > 0:
             percent = 100 * float(progress) / self._max
-            progressText = "%i/%i %s (%2.1f%%)" % (progress, self._max, unit, percent)
+            progressText = "%i/%i %s (%2.1f%%)" % (progress,
+                                                   self._max, unit, percent)
         elif progress > 0:
             if isinstance(progress, float):
                 progressText = "%0.4g %s" % (progress, unit)
@@ -558,3 +560,20 @@ def has_module(module_name):
         except ImportError:
             return False
         return True
+
+
+class Singleton(type):
+    """
+        A helper (meta-)class to facilitate easy creation of singletons.
+
+        This class is used as a type for ``format.FormatManager`` to ensure
+        that only a single instance of it is created.
+    """
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(
+                Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]

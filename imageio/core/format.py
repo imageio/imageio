@@ -35,6 +35,7 @@ import sys
 import numpy as np
 
 from . import Array, asarray
+from .util import Singleton
 
 
 MODENAMES = {
@@ -525,10 +526,9 @@ class Format(object):
             raise NotImplementedError()
 
 
-class FormatManager(object):
+class FormatManager(metaclass=Singleton):
     """
-    There is exactly one FormatManager object in imageio: ``imageio.formats``.
-    Its purpose it to keep track of the registered formats.
+    The FormatManager is a singleton plugin factory.
 
     The format manager supports getting a format object using indexing (by
     format name or extension). When used as an iterator, this object
@@ -635,7 +635,7 @@ class FormatManager(object):
         self._formats_sorted = list(self._formats)
         # Sort
         for name in reversed(names):
-            sorter = lambda f: -((f.name == name) + (f.name.endswith(name)))
+            def sorter(f): return -((f.name == name) + (f.name.endswith(name)))
             self._formats_sorted.sort(key=sorter)
 
     def add_format(self, format, overwrite=False):
