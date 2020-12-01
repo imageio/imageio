@@ -481,11 +481,10 @@ class JPEGFormat(PillowFormat):
     class Writer(PillowFormat.Writer):
         def _open(self, quality=75, progressive=False, optimize=False, **kwargs):
 
-            # Check quality - in Pillow it should be no higher than 95
+            # The JPEG quality can be between 0 (worst) and 100 (best)
             quality = int(quality)
-            if quality < 1 or quality > 100:
-                raise ValueError("JPEG quality should be between 1 and 100.")
-            quality = min(95, max(1, quality))
+            if quality < 0 or quality > 100:
+                raise ValueError("JPEG quality should be between 0 and 100.")
 
             kwargs["quality"] = quality
             kwargs["progressive"] = bool(progressive)
