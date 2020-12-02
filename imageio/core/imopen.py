@@ -49,7 +49,7 @@ imopen = _imopen()
 
 
 class LegacyPlugin(object):
-    def __init__(self, uri, *args, plugin=None, **kwargs):
+    def __init__(self, uri, plugin=None):
         self._uri = uri
         self._plugin = None if plugin is None else FormatManager()[plugin]
 
@@ -103,6 +103,17 @@ class LegacyPlugin(object):
             :func:`.help` to see what arguments are available for a particular
             format.
         """
+
+        if index is None:
+            images = [image for image in self.iter(
+                iio_mode=iio_mode, **kwargs)]
+            if len(images) > 1:
+                raise IOError(
+                    "The image contains more than one image."
+                    " Use iter(...) or use index=n"
+                    " to load the n-th image instead."
+                )
+            return images[0]
 
         reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
         return reader.get_data(index)
