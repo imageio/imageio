@@ -203,8 +203,25 @@ class imopen(object):
         else:
             raise NotImplementedError
 
-    def get_meta(self):
-        raise NotImplementedError
+    def get_meta(self, *, index=None):
+        if self._legacy:
+            mode = "r?"
+            request = Request(self._uri, mode)
+            plugin = self._plugin
+
+            if plugin is None:
+                plugin = FormatManager().search_read_format(request)
+
+            if plugin is None:
+                modename = MODENAMES.get(mode, mode)
+                raise ValueError(
+                    "Could not find a format to read the specified file"
+                    " in %s mode" % modename
+                )
+
+            return plugin.get_meta_data(index=index)
+        else:
+            raise NotImplementedError
 
     def __enter__(self):
         return self

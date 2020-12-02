@@ -355,7 +355,6 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
             images.append(image)
             nbytes += image.nbytes
             if nbytes > nbyte_limit:
-                images[:] = list()  # clear to free the memory
                 raise RuntimeError(
                     "imageio.mimread() has read over {}B of "
                     "image data.\nStopped to avoid memory problems."
@@ -504,7 +503,6 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
             images.append(image)
             nbytes += image.nbytes
             if nbytes > nbyte_limit:
-                images[:] = list()  # clear to free the memory
                 raise RuntimeError(
                     "imageio.mimread() has read over {}B of "
                     "image data.\nStopped to avoid memory problems."
