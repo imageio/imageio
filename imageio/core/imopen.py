@@ -4,14 +4,54 @@ import numpy as np
 
 from .format import FormatManager, MODENAMES
 from .request import Request, RETURN_BYTES
+from .util import Singleton
 
-class imopen(object):
-    def __init__(self, uri, *args, plugin=None, api='legacy', **kwargs):
+
+class _imopen(metaclass=Singleton):
+    def __init__(self):
+        self._known_plugins = list()
+
+    def __call__(self, uri, *args, plugin=None, api='legacy', **kwargs):
+        if api == "legacy":
+            return LegacyPlugin(uri, *args, plugin=plugin, **kwargs)
+
+        if plugin is not None:
+            candidate_plugins = filter(
+                lambda x: x.name == plugin,
+                self._known_plugins
+            )
+
+            if len(candidate_plugins) == 0:
+                raise ValueError(
+                    f"'{plugin}' is not a registered plugin name.")
+
+            return candidate_plugins[0](uri, *args, **kwargs)
+
+        else:
+            candidate_plugins = filter(
+                lambda x: x.can_read(uri) and x.can_write(uri),
+                self._known_plugins
+            )
+
+            if len(candidate_plugins) > 0:
+                return candidate_plugins[0]
+
+            raise IOError(f"No registered plugin can read {uri}")
+
+        raise NotImplementedError
+
+    def register_plugin(self, plugin):
+        self._known_plugins.append(plugin)
+
+
+# this is still not ideal, because the variable is a little unexpected
+imopen = _imopen()
+
+
+class LegacyPlugin(object):
+    def __init__(self, uri, *args, plugin=None, **kwargs):
         self._uri = uri
         self._plugin = None if plugin is None else FormatManager()[plugin]
-
-        # legacy support removed from v3.0.0
-        self._legacy = True if api == "legacy" else False
 
     def legacy_get_reader(self, iio_mode='?', **kwargs):
         if iio_mode is None:
@@ -22,7 +62,7 @@ class imopen(object):
         mode = "r" + iio_mode
 
         request = Request(self._uri, mode, **kwargs)
-        
+
         plugin = self._plugin
         if plugin is None:
             plugin = FormatManager().search_read_format(request)
@@ -64,12 +104,8 @@ class imopen(object):
             format.
         """
 
-        if self._legacy:
-            reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
-            return reader.get_data(index)
-
-        else:
-            raise NotImplementedError
+        reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+        return reader.get_data(index)
 
     def legacy_get_writer(self, *, iio_mode='?', **kwargs):
         if iio_mode is None:
@@ -117,50 +153,46 @@ class imopen(object):
             :func:`.help` to see what arguments are available for a
             particular format.
         """
-
-        if self._legacy:
-            with self.legacy_get_writer(iio_mode=iio_mode, **kwargs) as writer:
-                if iio_mode in "iv?":
-                    writer.append_data(image)
-                else:
-                    written = None
-                    for written, image in enumerate(image):
-                        # Test image
-                        imt = type(image)
-                        image = np.asanyarray(image)
-                        if not np.issubdtype(image.dtype, np.number):
+        with self.legacy_get_writer(iio_mode=iio_mode, **kwargs) as writer:
+            if iio_mode in "iv?":
+                writer.append_data(image)
+            else:
+                written = None
+                for written, image in enumerate(image):
+                    # Test image
+                    imt = type(image)
+                    image = np.asanyarray(image)
+                    if not np.issubdtype(image.dtype, np.number):
+                        raise ValueError(
+                            "Image is not numeric, but {}.".format(imt.__name__))
+                    elif iio_mode == "I":
+                        if image.ndim == 2:
+                            pass
+                        elif image.ndim == 3 and image.shape[2] in [1, 3, 4]:
+                            pass
+                        else:
                             raise ValueError(
-                                "Image is not numeric, but {}.".format(imt.__name__))
-                        elif iio_mode == "I":
-                            if image.ndim == 2:
-                                pass
-                            elif image.ndim == 3 and image.shape[2] in [1, 3, 4]:
-                                pass
-                            else:
-                                raise ValueError(
-                                    "Image must be 2D "
-                                    "(grayscale, RGB, or RGBA)."
-                                )
-                        else:  # iio_mode == "V"
-                            if image.ndim == 3:
-                                pass
-                            elif image.ndim == 4 and image.shape[3] < 32:
-                                pass  # How large can a tuple be?
-                            else:
-                                raise ValueError(
-                                    "Image must be 3D,"
-                                    " or 4D if each voxel is a tuple."
-                                )
+                                "Image must be 2D "
+                                "(grayscale, RGB, or RGBA)."
+                            )
+                    else:  # iio_mode == "V"
+                        if image.ndim == 3:
+                            pass
+                        elif image.ndim == 4 and image.shape[3] < 32:
+                            pass  # How large can a tuple be?
+                        else:
+                            raise ValueError(
+                                "Image must be 3D,"
+                                " or 4D if each voxel is a tuple."
+                            )
 
-                        # Add image
-                        writer.append_data(image)
+                    # Add image
+                    writer.append_data(image)
 
-                    if written is None:
-                        raise RuntimeError("Zero images were written.")
+                if written is None:
+                    raise RuntimeError("Zero images were written.")
 
-            return writer.request.get_result()
-        else:
-            raise NotImplementedError
+        return writer.request.get_result()
 
     # this could also be __iter__
     def iter(self, *, iio_mode='?', **kwargs):
@@ -183,33 +215,26 @@ class imopen(object):
             format.
         """
 
-        if self._legacy:
-            reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
-            for image in reader:
-                yield image
-
-        else:
-            raise NotImplementedError
+        reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+        for image in reader:
+            yield image
 
     def get_meta(self, *, index=None):
-        if self._legacy:
-            mode = "r?"
-            request = Request(self._uri, mode)
-            plugin = self._plugin
+        mode = "r?"
+        request = Request(self._uri, mode)
+        plugin = self._plugin
 
-            if plugin is None:
-                plugin = FormatManager().search_read_format(request)
+        if plugin is None:
+            plugin = FormatManager().search_read_format(request)
 
-            if plugin is None:
-                modename = MODENAMES.get(mode, mode)
-                raise ValueError(
-                    "Could not find a format to read the specified file"
-                    " in %s mode" % modename
-                )
+        if plugin is None:
+            modename = MODENAMES.get(mode, mode)
+            raise ValueError(
+                "Could not find a format to read the specified file"
+                " in %s mode" % modename
+            )
 
-            return plugin.get_meta_data(index=index)
-        else:
-            raise NotImplementedError
+        return plugin.get_meta_data(index=index)
 
     def __enter__(self):
         return self
