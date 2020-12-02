@@ -345,8 +345,26 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
         to see what arguments are available for a particular format.
     """
 
+    # used for mimread and mvolread
+    nbyte_limit = to_nbytes(memtest, MEMTEST_DEFAULT_MIM)
+
+    images = list()
+    nbytes = 0
     with imopen(uri, plugin=format) as file:
-        return file.read(iio_mode='I', memtest=memtest, **kwargs)
+        for image in file.iter(iio_mode='I', **kwargs):
+            images.append(image)
+            nbytes += image.nbytes
+            if nbytes > nbyte_limit:
+                images[:] = list()  # clear to free the memory
+                raise RuntimeError(
+                    "imageio.mimread() has read over {}B of "
+                    "image data.\nStopped to avoid memory problems."
+                    " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                        int(nbyte_limit)
+                    )
+                )
+
+    return images
 
 
 def mimwrite(uri, ims, format=None, **kwargs):
@@ -476,9 +494,26 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Get reader and read all
+    # used for mimread and mvolread
+    nbyte_limit = to_nbytes(memtest, MEMTEST_DEFAULT_MVOL)
+
+    images = list()
+    nbytes = 0
     with imopen(uri, plugin=format) as file:
-        return file.read(iio_mode='V', memtest=memtest, **kwargs)
+        for image in file.iter(iio_mode='V', **kwargs):
+            images.append(image)
+            nbytes += image.nbytes
+            if nbytes > nbyte_limit:
+                images[:] = list()  # clear to free the memory
+                raise RuntimeError(
+                    "imageio.mimread() has read over {}B of "
+                    "image data.\nStopped to avoid memory problems."
+                    " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                        int(nbyte_limit)
+                    )
+                )
+
+    return images
 
 
 def mvolwrite(uri, ims, format=None, **kwargs):
@@ -506,6 +541,7 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         return file.write(ims, iio_mode="V", **kwargs)
 
 # Aliases
+
 
 read = get_reader
 save = get_writer

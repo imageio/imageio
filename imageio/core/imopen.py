@@ -10,43 +10,6 @@ from .request import Request, RETURN_BYTES
 Convenience wrappers are found in core/functions.py
 """
 
-MEMTEST_DEFAULT = "1GB"
-
-mem_re = re.compile(r"^(\d+\.?\d*)\s*([kKMGTPEZY]?i?)B?$")
-sizes = {"": 1, None: 1}
-for i, si in enumerate([""] + list("kMGTPEZY")):
-    sizes[si] = 1000 ** i
-    if si:
-        sizes[si.upper() + "i"] = 1024 ** i
-
-
-def to_nbytes(arg, default=None):
-    if not arg:
-        return None
-
-    if arg is True:
-        return default
-
-    if isinstance(arg, Number):
-        return arg
-
-    match = mem_re.match(arg)
-    if match is None:
-        raise ValueError(
-            "Memory size could not be parsed "
-            "(is your capitalisation correct?): {}".format(arg)
-        )
-
-    num, unit = match.groups()
-
-    try:
-        return float(num) * sizes[unit]
-    except KeyError:
-        raise ValueError(
-            "Memory size unit not recognised "
-            "(is your capitalisation correct?): {}".format(unit)
-        )
-
 
 class imopen(object):
     def __init__(self, uri, *args, plugin=None, mode='legacy', **kwargs):
@@ -62,7 +25,6 @@ class imopen(object):
 
         .. deprecated:: 2.9.0
           `iio_mode='?'` will be replaced by `iio_mode=None` in imageio v3.0.0 .
-          This makes the new style API default.
 
         Parameters
         ----------
@@ -74,11 +36,10 @@ class imopen(object):
                 New-style API: stack list into ndimage along the 0-th dimension
                     (equivalent to np.stack(imgs, axis=0))
 
-        iio_mode : {'i', 'I', 'v', 'V', '?', None}
+        iio_mode : {'i', 'v', '?', None}
             Used to give the reader a hint on what the user expects (default "?"):
-            "i" for an image, "I" for multiple images, "v" for a volume,
-            "V" for multiple volumes, "?" for don't care, and "None" to use the
-            new API prior to imageio v3.0.0.
+            "i" for an image, "v" for a volume, "?" for don't care,
+            and "None" to use the new API.
         kwargs : ...
             Further keyword arguments are passed to the reader. See :func:`.help`
             to see what arguments are available for a particular format.
@@ -93,11 +54,6 @@ class imopen(object):
             mode = "r" + iio_mode
             index = 0 if index is None else index
 
-            # used for mimread and mvolread
-            nbyte_limit = MEMTEST_DEFAULT
-            if "memtest" in kwargs:
-                nbyte_limit = to_nbytes(kwargs.pop("memtest"), MEMTEST_DEFAULT)
-
             request = Request(self._uri, mode, **kwargs)
 
             plugin = self._plugin
@@ -111,30 +67,7 @@ class imopen(object):
                     " in %s mode" % modename
                 )
 
-            reader = plugin.get_reader(request)
-
-            # read single ndimage
-            if iio_mode in "iv?":
-                return reader.get_data(index)
-
-            # read list of ndimages
-            # TODO: refactor into iter()
-            images = list()
-            nbytes = 0
-            for image in reader:
-                images.append(image)
-                nbytes += image.nbytes
-                if nbytes > nbyte_limit:
-                    images[:] = list()  # clear to free the memory
-                    raise RuntimeError(
-                        "imageio.mimread() has read over {}B of "
-                        "image data.\nStopped to avoid memory problems."
-                        " Use imageio.get_reader(), increase threshold, or memtest=False".format(
-                            int(nbyte_limit)
-                        )
-                    )
-
-            return images
+            return plugin.get_reader(request).get_data(index)
 
         else:
             raise NotImplementedError
@@ -226,8 +159,49 @@ class imopen(object):
             raise NotImplementedError
 
     # this could also be __iter__
-    def iter(self):
-        raise NotImplementedError
+    def iter(self, *, iio_mode='?', **kwargs):
+        """
+        Iterate over a list of ndimages given by the URI
+
+        .. deprecated:: 2.9.0
+          `iio_mode='?'` will be replaced by `iio_mode=None` in imageio v3.0.0 .
+
+        Parameters
+        ----------
+        iio_mode : {'I', 'V', '?', None}
+            Used to give the reader a hint on what the user expects (default "?"):
+            "I" for multiple images, "V" for multiple volumes, "?" for don't care,
+            and "None" to use the new API.
+        kwargs : ...
+            Further keyword arguments are passed to the reader. See :func:`.help`
+            to see what arguments are available for a particular format.
+        """
+
+        if self._legacy:
+            if iio_mode is None:
+                raise ValueError(
+                    "mode=None is not supported"
+                    " for legacy API calls."
+                )
+            mode = "r" + iio_mode
+            request = Request(self._uri, mode, **kwargs)
+
+            plugin = self._plugin
+            if plugin is None:
+                plugin = FormatManager().search_read_format(request)
+
+            if plugin is None:
+                modename = MODENAMES.get(mode, mode)
+                raise ValueError(
+                    "Could not find a format to read the specified file"
+                    " in %s mode" % modename
+                )
+
+            for image in plugin.get_reader(request):
+                yield image
+
+        else:
+            raise NotImplementedError
 
     def get_meta(self):
         raise NotImplementedError
