@@ -27,15 +27,30 @@ formats = FormatManager()
 # v3.0.0 API
 from .core.imopen import imopen
 
-# Load the functions
-from .core.functions import help
-from .core.functions import get_reader, get_writer
-from .core.functions import imread, mimread, volread, mvolread
-from .core.functions import imwrite, mimwrite, volwrite, mvolwrite
+# Load legacy API
+from .core.functions import (
+    imread,
+    mimread,
+    volread,
+    mvolread,
+    imwrite,
+    mimwrite,
+    volwrite,
+    mvolwrite,
 
-# Load function aliases
-from .core.functions import read, save
-from .core.functions import imsave, mimsave, volsave, mvolsave
+    # aliases
+    get_reader as read,
+    get_writer as save,
+    imwrite as imsave,
+    mimwrite as mimsave,
+    volwrite as volsave,
+    mvolwrite as mvolsave,
+
+    # misc
+    help,
+    get_reader,
+    get_writer
+)
 
 # Load all the plugins
 from . import plugins

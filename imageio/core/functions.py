@@ -505,13 +505,3 @@ def mvolwrite(uri, ims, format=None, **kwargs):
 
     with imopen(uri, plugin=format) as file:
         return file.write(ims, iio_mode="V", **kwargs)
-
-# Aliases
-
-
-read = get_reader
-save = get_writer
-imsave = imwrite
-mimsave = mimwrite
-volsave = volwrite
-mvolsave = mvolwrite
