@@ -169,22 +169,8 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Create request object
-    request = Request(uri, "r" + mode, **kwargs)
-
-    # Get format
-    if format is not None:
-        format = formats[format]
-    else:
-        format = formats.search_read_format(request)
-    if format is None:
-        modename = MODENAMES.get(mode, mode)
-        raise ValueError(
-            "Could not find a format to read the specified file in %s mode" % modename
-        )
-
-    # Return its reader object
-    return format.get_reader(request)
+    image_file = imopen(uri, plugin=format)
+    return image_file.legacy_get_reader(iio_mode=mode, **kwargs)
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
@@ -210,26 +196,8 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Signal extension when returning as bytes, needed by e.g. ffmpeg
-    if uri == RETURN_BYTES and isinstance(format, str):
-        uri = RETURN_BYTES + "." + format.strip(". ")
-
-    # Create request object
-    request = Request(uri, "w" + mode, **kwargs)
-
-    # Get format
-    if format is not None:
-        format = formats[format]
-    else:
-        format = formats.search_write_format(request)
-    if format is None:
-        modename = MODENAMES.get(mode, mode)
-        raise ValueError(
-            "Could not find a format to write the specified file in %s mode" % modename
-        )
-
-    # Return its writer object
-    return format.get_writer(request)
+    image_file = imopen(uri, plugin=format)
+    return image_file.legacy_get_writer(iio_mode=mode, **kwargs)
 
 
 # Images

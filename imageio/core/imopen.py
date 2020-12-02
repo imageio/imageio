@@ -5,26 +5,44 @@ import numpy as np
 from .format import FormatManager, MODENAMES
 from .request import Request, RETURN_BYTES
 
-"""
-
-Convenience wrappers are found in core/functions.py
-"""
-
-
 class imopen(object):
-    def __init__(self, uri, *args, plugin=None, mode='legacy', **kwargs):
+    def __init__(self, uri, *args, plugin=None, api='legacy', **kwargs):
         self._uri = uri
         self._plugin = None if plugin is None else FormatManager()[plugin]
 
         # legacy support removed from v3.0.0
-        self._legacy = True if mode == "legacy" else False
+        self._legacy = True if api == "legacy" else False
+
+    def legacy_get_reader(self, iio_mode='?', **kwargs):
+        if iio_mode is None:
+            raise ValueError(
+                "mode=None is not supported"
+                " for legacy API calls."
+            )
+        mode = "r" + iio_mode
+
+        request = Request(self._uri, mode, **kwargs)
+        
+        plugin = self._plugin
+        if plugin is None:
+            plugin = FormatManager().search_read_format(request)
+
+        if plugin is None:
+            modename = MODENAMES.get(mode, mode)
+            raise ValueError(
+                "Could not find a format to read the specified file"
+                " in %s mode" % modename
+            )
+
+        return plugin.get_reader(request)
 
     def read(self, *, index=None, iio_mode='?', **kwargs):
         """
         Parses the given URI and creates a ndarray from it.
 
         .. deprecated:: 2.9.0
-          `iio_mode='?'` will be replaced by `iio_mode=None` in imageio v3.0.0 .
+          `iio_mode='?'` will be replaced by `iio_mode=None` in
+          imageio v3.0.0 .
 
         Parameters
         ----------
@@ -37,40 +55,45 @@ class imopen(object):
                     (equivalent to np.stack(imgs, axis=0))
 
         iio_mode : {'i', 'v', '?', None}
-            Used to give the reader a hint on what the user expects (default "?"):
-            "i" for an image, "v" for a volume, "?" for don't care,
-            and "None" to use the new API.
+            Used to give the reader a hint on what the user expects
+            (default "?"): "i" for an image, "v" for a volume, "?" for don't
+            care, and "None" to use the new API.
         kwargs : ...
-            Further keyword arguments are passed to the reader. See :func:`.help`
-            to see what arguments are available for a particular format.
+            Further keyword arguments are passed to the reader. See
+            :func:`.help` to see what arguments are available for a particular
+            format.
         """
 
         if self._legacy:
-            if iio_mode is None:
-                raise ValueError(
-                    "mode=None is not supported"
-                    " for legacy API calls."
-                )
-            mode = "r" + iio_mode
-            index = 0 if index is None else index
-
-            request = Request(self._uri, mode, **kwargs)
-
-            plugin = self._plugin
-            if plugin is None:
-                plugin = FormatManager().search_read_format(request)
-
-            if plugin is None:
-                modename = MODENAMES.get(mode, mode)
-                raise ValueError(
-                    "Could not find a format to read the specified file"
-                    " in %s mode" % modename
-                )
-
-            return plugin.get_reader(request).get_data(index)
+            reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+            return reader.get_data(index)
 
         else:
             raise NotImplementedError
+
+    def legacy_get_writer(self, *, iio_mode='?', **kwargs):
+        if iio_mode is None:
+            raise ValueError(
+                "mode=None is not supported"
+                " for legacy API calls."
+            )
+        mode = "w" + iio_mode
+
+        plugin = self._plugin
+        uri = self._uri
+
+        request = Request(uri, mode, **kwargs)
+        if plugin is None:
+            plugin = FormatManager().search_write_format(request)
+
+        if plugin is None:
+            modename = MODENAMES.get(mode, mode)
+            raise ValueError(
+                "Could not find a format to write the specified file"
+                " in %s mode" % modename
+            )
+
+        return plugin.get_writer(request)
 
     def write(self, image, *, iio_mode='?', **kwargs):
         """
@@ -85,41 +108,18 @@ class imopen(object):
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
         iio_mode : {'i', 'I', 'v', 'V', '?', None}
-            Used to give the reader a hint on what the user expects (default "?"):
-            "i" for an image, "I" for multiple images, "v" for a volume,
-            "V" for multiple volumes, "?" for don't care, and "None" to use the
-            new API prior to imageio v3.0.0.
+            Used to give the reader a hint on what the user expects
+            (default "?"): "i" for an image, "I" for multiple images,
+            "v" for a volume, "V" for multiple volumes, "?" for don't
+            care, and "None" to use the new API prior to imageio v3.0.0.
         kwargs : ...
-            Further keyword arguments are passed to the writer. See :func:`.help`
-            to see what arguments are available for a particular format.
+            Further keyword arguments are passed to the writer. See
+            :func:`.help` to see what arguments are available for a
+            particular format.
         """
 
         if self._legacy:
-            if iio_mode is None:
-                raise ValueError(
-                    "mode=None is not supported"
-                    " for legacy API calls."
-                )
-            mode = "w" + iio_mode
-
-            plugin = self._plugin
-            uri = self._uri
-            # Signal extension when returning as bytes, needed by e.g. ffmpeg
-            if uri == RETURN_BYTES and isinstance(plugin, str):
-                uri = RETURN_BYTES + "." + plugin.strip(". ")
-
-            request = Request(uri, mode, **kwargs)
-            if plugin is None:
-                plugin = FormatManager().search_write_format(request)
-
-            if plugin is None:
-                modename = MODENAMES.get(mode, mode)
-                raise ValueError(
-                    "Could not find a format to write the specified file in %s mode" % modename
-                )
-
-            writer = plugin.get_writer(request)
-            with writer:
+            with self.legacy_get_writer(iio_mode=iio_mode, **kwargs) as writer:
                 if iio_mode in "iv?":
                     writer.append_data(image)
                 else:
@@ -138,7 +138,9 @@ class imopen(object):
                                 pass
                             else:
                                 raise ValueError(
-                                    "Image must be 2D " "(grayscale, RGB, or RGBA).")
+                                    "Image must be 2D "
+                                    "(grayscale, RGB, or RGBA)."
+                                )
                         else:  # iio_mode == "V"
                             if image.ndim == 3:
                                 pass
@@ -146,7 +148,9 @@ class imopen(object):
                                 pass  # How large can a tuple be?
                             else:
                                 raise ValueError(
-                                    "Image must be 3D, or 4D if each voxel is a tuple.")
+                                    "Image must be 3D,"
+                                    " or 4D if each voxel is a tuple."
+                                )
 
                         # Add image
                         writer.append_data(image)
@@ -164,40 +168,24 @@ class imopen(object):
         Iterate over a list of ndimages given by the URI
 
         .. deprecated:: 2.9.0
-          `iio_mode='?'` will be replaced by `iio_mode=None` in imageio v3.0.0 .
+          `iio_mode='?'` will be replaced by `iio_mode=None` in
+          imageio v3.0.0 .
 
         Parameters
         ----------
         iio_mode : {'I', 'V', '?', None}
-            Used to give the reader a hint on what the user expects (default "?"):
-            "I" for multiple images, "V" for multiple volumes, "?" for don't care,
-            and "None" to use the new API.
+            Used to give the reader a hint on what the user expects (default
+            "?"): "I" for multiple images, "V" for multiple volumes, "?" for
+            don't care, and "None" to use the new API.
         kwargs : ...
-            Further keyword arguments are passed to the reader. See :func:`.help`
-            to see what arguments are available for a particular format.
+            Further keyword arguments are passed to the reader. See
+            :func:`.help` to see what arguments are available for a particular
+            format.
         """
 
         if self._legacy:
-            if iio_mode is None:
-                raise ValueError(
-                    "mode=None is not supported"
-                    " for legacy API calls."
-                )
-            mode = "r" + iio_mode
-            request = Request(self._uri, mode, **kwargs)
-
-            plugin = self._plugin
-            if plugin is None:
-                plugin = FormatManager().search_read_format(request)
-
-            if plugin is None:
-                modename = MODENAMES.get(mode, mode)
-                raise ValueError(
-                    "Could not find a format to read the specified file"
-                    " in %s mode" % modename
-                )
-
-            for image in plugin.get_reader(request):
+            reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+            for image in reader:
                 yield image
 
         else:
