@@ -49,7 +49,7 @@ As a user, you just have to remember a handful of functions:
 
 <h2>Features</h2>
 <ul>
-    <li>Simple interface via a concise set of functions.</li>
+    <li>Simple interface via a concise set of functions</li>
     <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/installation.html'>install</a> using Conda or pip</li>
     <li>Few dependencies (only NumPy and Pillow)</li>
     <li>Pure Python, runs on Python 3.5+, and PyPy</li>
