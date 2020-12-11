@@ -44,7 +44,7 @@ def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
     """
     Documentation Here.
     """
-    return _imopen()(uri, *args, plugin=None, api='legacy', **kwargs)
+    return _imopen()(uri, *args, plugin=plugin, api=api, **kwargs)
 
 
 class LegacyPlugin(object):
