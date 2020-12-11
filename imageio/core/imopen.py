@@ -9,43 +9,42 @@ from .util import Singleton
 
 class _imopen(metaclass=Singleton):
     def __init__(self):
-        self._known_plugins = list()
+        self._known_plugins = dict()
 
     def __call__(self, uri, *args, plugin=None, api='legacy', **kwargs):
+        plugin_instance = None
+
         if api == "legacy":
-            return LegacyPlugin(uri, *args, plugin=plugin, **kwargs)
+            kwargs["plugin"] = plugin
+            plugin_instance = LegacyPlugin
 
-        if plugin is not None:
-            candidate_plugins = filter(
-                lambda x: x.name == plugin,
-                self._known_plugins
-            )
-
-            if len(candidate_plugins) == 0:
+        elif plugin is not None:
+            try:
+                plugin_instance = self._known_plugins[plugin]
+            except KeyError:
                 raise ValueError(
                     f"'{plugin}' is not a registered plugin name.")
 
-            return candidate_plugins[0](uri, *args, **kwargs)
-
         else:
-            candidate_plugins = filter(
-                lambda x: x.can_read(uri) and x.can_write(uri),
-                self._known_plugins
-            )
+            for candidate_plugin in self._known_plugins.values():
+                if (candidate_plugin.can_read(uri)
+                        and candidate_plugin.can_write(uri)):
+                    plugin_instance = candidate_plugin
+                    break
+            else:
+                raise IOError(f"No registered plugin can read {uri}")
 
-            if len(candidate_plugins) > 0:
-                return candidate_plugins[0]
-
-            raise IOError(f"No registered plugin can read {uri}")
-
-        raise NotImplementedError
+        return plugin_instance(uri, *args, **kwargs)
 
     def register_plugin(self, plugin):
         self._known_plugins.append(plugin)
 
 
-# this is still not ideal, because the variable is a little unexpected
-imopen = _imopen()
+def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
+    """
+    Documentation Here.
+    """
+    return _imopen()(uri, *args, plugin=None, api='legacy', **kwargs)
 
 
 class LegacyPlugin(object):
