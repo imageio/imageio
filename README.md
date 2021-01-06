@@ -76,6 +76,7 @@ Optional Python packages:
     <li>itk or SimpleITK (for ITK formats)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
+    <li><a href='https://codeberg.org/monilophyta/imageio-flif'>imageio-flif</a> (for working with <a href='https://github.com/FLIF-hub/FLIF'>FLIF</a> image files)</li>
 </ul>
 
 Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
