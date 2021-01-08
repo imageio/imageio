@@ -23,8 +23,8 @@ Developers
 ----------
 
 For developers, we provide a simple mechanism to allow importing
-imageio from the cloned repository. See the file ``imageio.proxy.py`` for
-details.
+imageio from the cloned repository <https://github.com/imageio/imageio.git>.
+See the file ``imageio.proxy.py`` for details.
 
 Further imageio has the following dev-dependencies:
 
