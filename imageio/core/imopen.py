@@ -4,19 +4,23 @@ import numpy as np
 
 from .format import FormatManager, MODENAMES
 from .request import Request, RETURN_BYTES
-from .util import Singleton
 
 
-class _imopen(metaclass=Singleton):
-    def __init__(self):
-        self._known_plugins = dict()
+class _imopen(object):
+    _known_plugins = dict()
+    _legacy_format_manager = FormatManager()
 
     def __call__(self, uri, *args, plugin=None, api='legacy', **kwargs):
         plugin_instance = None
 
         if api == "legacy":
             kwargs["plugin"] = plugin
-            plugin_instance = LegacyPlugin
+            return LegacyPlugin(
+                uri,
+                self._legacy_format_manager,
+                *args,
+                **kwargs
+            )
 
         elif plugin is not None:
             try:
@@ -48,11 +52,51 @@ def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
 
 
 class LegacyPlugin(object):
-    def __init__(self, uri, plugin=None):
+    """ A plugin to expose v2.9 plugins in the v3.0 API
+
+    This plugin is a wrapper around the old FormatManager class and exposes
+    all the old plugins via the new API. On top of this it has
+    ``legacy_get_reader`` and ``legacy__get_writer`` methods to allow using
+    it with the v2.9 API.
+    """
+
+    def __init__(self, uri, plugin_manager, plugin=None):
+        """ Instantiate a new Legacy Plugin
+
+        Parameters
+        ----------
+        uri : {str, pathlib.Path, bytes, file}
+            The resource to load the image from, e.g. a filename, pathlib.Path,
+            http address or file object, see the docs for more info.
+        plugin_manager : {format.FormatManager instance}
+            An instance of the legacy format manager used to find an appropriate
+            plugin to load the image. It has to be the reference to the one
+            global instance.
+        format : str
+            The format to use to read the file. If None imageio selects
+            the appropriate for you based on the filename and its contents.
+
+        """
         self._uri = uri
-        self._plugin = FormatManager()[plugin]
+        self._plugin_manager = plugin_manager
+        self._plugin = plugin_manager[plugin]
 
     def legacy_get_reader(self, iio_mode='?', **kwargs):
+        """legacy_get_reader( iio_mode='?' **kwargs)
+
+        a utility method to provide support vor the V2.9 API
+
+        Parameters
+        ----------
+        iio_mode : {'i', 'I', 'v', 'V', '?'}
+            Used to give the reader a hint on what the user expects (default "?"):
+            "i" for an image, "I" for multiple images, "v" for a volume,
+            "V" for multiple volumes, "?" for don't care.
+        kwargs : ...
+            Further keyword arguments are passed to the reader. See :func:`.help`
+            to see what arguments are available for a particular format.
+        """
+
         if iio_mode is None:
             raise ValueError(
                 "mode=None is not supported"
@@ -64,7 +108,7 @@ class LegacyPlugin(object):
 
         plugin = self._plugin
         if plugin is None:
-            plugin = FormatManager().search_read_format(request)
+            plugin = self._plugin_manager.search_read_format(request)
 
         if plugin is None:
             modename = MODENAMES.get(mode, mode)
@@ -118,6 +162,22 @@ class LegacyPlugin(object):
         return reader.get_data(index)
 
     def legacy_get_writer(self, *, iio_mode='?', **kwargs):
+        """legacy_get_writer(iio_mode='?', **kwargs)
+
+        Returns a :class:`.Writer` object which can be used to write data
+        and meta data to the specified file.
+
+        Parameters
+        ----------
+        mode : {'i', 'I', 'v', 'V', '?'}
+            Used to give the writer a hint on what the user expects (default '?'):
+            "i" for an image, "I" for multiple images, "v" for a volume,
+            "V" for multiple volumes, "?" for don't care.
+        kwargs : ...
+            Further keyword arguments are passed to the writer. See :func:`.help`
+            to see what arguments are available for a particular format.
+        """
+
         if iio_mode is None:
             raise ValueError(
                 "mode=None is not supported"
@@ -130,7 +190,7 @@ class LegacyPlugin(object):
 
         request = Request(uri, mode, **kwargs)
         if plugin is None:
-            plugin = FormatManager().search_write_format(request)
+            plugin = self._plugin_manager.search_write_format(request)
 
         if plugin is None:
             modename = MODENAMES.get(mode, mode)
@@ -154,7 +214,7 @@ class LegacyPlugin(object):
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
         iio_mode : {'i', 'I', 'v', 'V', '?', None}
-            Used to give the reader a hint on what the user expects
+            Used to give the writer a hint on what the user expects
             (default "?"): "i" for an image, "I" for multiple images,
             "v" for a volume, "V" for multiple volumes, "?" for don't
             care, and "None" to use the new API prior to imageio v3.0.0.
@@ -235,7 +295,7 @@ class LegacyPlugin(object):
         plugin = self._plugin
 
         if plugin is None:
-            plugin = FormatManager().search_read_format(request)
+            plugin = self._plugin_manager.search_read_format(request)
 
         if plugin is None:
             modename = MODENAMES.get(mode, mode)

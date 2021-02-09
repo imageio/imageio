@@ -560,20 +560,3 @@ def has_module(module_name):
         except ImportError:
             return False
         return True
-
-
-class Singleton(type):
-    """
-        A helper (meta-)class to facilitate easy creation of singletons.
-
-        This class is used as a type for ``format.FormatManager`` to ensure
-        that only a single instance of it is created.
-    """
-
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(
-                Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]

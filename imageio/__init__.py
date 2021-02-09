@@ -18,14 +18,14 @@ Main website: https://imageio.github.io
 
 __version__ = "2.9.0"
 
+# v3.0.0 API
+from .core.imopen import imopen, _imopen
+
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
 # Instantiate format manager
-formats = FormatManager()
-
-# v3.0.0 API
-from .core.imopen import imopen
+formats = _imopen._legacy_format_manager
 
 # Load legacy API
 from .core.functions import (

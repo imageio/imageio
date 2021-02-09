@@ -35,7 +35,6 @@ import sys
 import numpy as np
 
 from . import Array, asarray
-from .util import Singleton
 
 
 MODENAMES = {
@@ -526,7 +525,7 @@ class Format(object):
             raise NotImplementedError()
 
 
-class FormatManager(metaclass=Singleton):
+class FormatManager(object):
     """
     The FormatManager is a singleton plugin factory.
 
