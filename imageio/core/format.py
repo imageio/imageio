@@ -559,10 +559,14 @@ class FormatManager(metaclass=Singleton):
         return "\n".join(ss)
 
     def __getitem__(self, name):
+        if name is None:
+            return None
+
         # Check
         if not isinstance(name, str):
             raise ValueError(
-                "Looking up a format should be done by name " "or by extension."
+                "Looking up a format should be done by name "
+                "or by extension."
             )
         if not name:
             raise ValueError("No format matches the empty string.")

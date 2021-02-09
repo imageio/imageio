@@ -50,7 +50,7 @@ def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
 class LegacyPlugin(object):
     def __init__(self, uri, plugin=None):
         self._uri = uri
-        self._plugin = None if plugin is None else FormatManager()[plugin]
+        self._plugin = FormatManager()[plugin]
 
     def legacy_get_reader(self, iio_mode='?', **kwargs):
         if iio_mode is None:
