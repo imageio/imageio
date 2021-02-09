@@ -7,10 +7,40 @@ from .request import Request, RETURN_BYTES
 
 
 class imopen(object):
+    """ Open a URI and return a plugin instance that can read its content.
+
+    Imopen is the plugin manager of imopen. It acts as a factory for Plugin
+    objects implementing the v3.0 API. It is the core of the v3.0 API and the
+    functional API provides convenient wrappers around this object.
+
+    Note for library maintainers: If you call imopen from inside the library,
+    you will first need to first create an instance, i.e.
+    ``imopen()(uri, ...)``. Note the double parentheses.
+
+    """
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
     def __call__(self, uri, *args, plugin=None, api='legacy', **kwargs):
+        """ Instantiate a plugin capable of opening URI
+
+        Parameters
+        ----------
+        uri : {str, pathlib.Path, bytes, file}
+            The resource to load the image from, e.g. a filename, pathlib.Path,
+            http address or file object, see the docs for more info.
+        *args : 
+            Additional positional arguments will be passed to the plugin instance
+            upon object creation.
+        plugin : {str, None}
+            The plugin to be used. If None, performs a search for a matching plugin.
+        api : {str}
+            The API to be used. If 'legacy' use the v2.9 API, otherwise use the new
+            v3.0 API.
+        **kwargs :
+            Additional keyword arguments will be passed to the plugin instance.
+        """
+
         plugin_instance = None
 
         if api == "legacy":
@@ -31,8 +61,8 @@ class imopen(object):
 
         else:
             for candidate_plugin in self._known_plugins.values():
-                if (candidate_plugin.can_read(uri)
-                        and candidate_plugin.can_write(uri)):
+                if (candidate_plugin.can_read(uri) and
+                        candidate_plugin.can_write(uri)):
                     plugin_instance = candidate_plugin
                     break
             else:
@@ -41,18 +71,16 @@ class imopen(object):
         return plugin_instance(uri, *args, **kwargs)
 
     def register_plugin(self, plugin):
+        """ Register a new plugin to be used when opening URIs.
+
+        Parameters
+        ----------
+        plugin : callable
+            A callable that returns an instance of a plugin that conforms
+            to the v3.0 API. It has to implement `read`, `write`, and `iter`.
+        """
+
         self._known_plugins.append(plugin)
-
-
-# def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
-#     """ Open a URI and return a plugin instance that can read its content.
-
-
-#     This is the core of the v3.0 API and the functional API provides convenient
-#     wrappers around this object.
-    
-#     """
-#     return _imopen()(uri, *args, plugin=plugin, api=api, **kwargs)
 
 
 class LegacyPlugin(object):
