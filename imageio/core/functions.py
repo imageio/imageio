@@ -169,7 +169,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, plugin=format)
+    image_file = imopen()(uri, plugin=format)
     return image_file.legacy_get_reader(iio_mode=mode, **kwargs)
 
 
@@ -196,7 +196,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, plugin=format)
+    image_file = imopen()(uri, plugin=format)
     return image_file.legacy_get_writer(iio_mode=mode, **kwargs)
 
 
@@ -231,7 +231,7 @@ def imread(uri, format=None, **kwargs):
             'perhaps you mean "pilmode"?'
         )
 
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.read(index=0, iio_mode='i', **kwargs)
 
 
@@ -267,7 +267,7 @@ def imwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.write(im, iio_mode='i', **kwargs)
 
 
@@ -318,7 +318,7 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
 
     images = list()
     nbytes = 0
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         for image in file.iter(iio_mode='I', **kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -353,7 +353,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.write(ims, iio_mode="I", **kwargs)
 
 
@@ -379,7 +379,7 @@ def volread(uri, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.read(index=0, iio_mode='v', **kwargs)
 
 
@@ -415,7 +415,7 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.write(im, iio_mode='v', **kwargs)
 
 
@@ -466,7 +466,7 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
 
     images = list()
     nbytes = 0
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         for image in file.iter(iio_mode='V', **kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -503,5 +503,5 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen(uri, plugin=format) as file:
+    with imopen()(uri, plugin=format) as file:
         return file.write(ims, iio_mode="V", **kwargs)

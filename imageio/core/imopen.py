@@ -6,7 +6,7 @@ from .format import FormatManager, MODENAMES
 from .request import Request, RETURN_BYTES
 
 
-class _imopen(object):
+class imopen(object):
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
@@ -44,11 +44,15 @@ class _imopen(object):
         self._known_plugins.append(plugin)
 
 
-def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
-    """
-    Documentation Here.
-    """
-    return _imopen()(uri, *args, plugin=plugin, api=api, **kwargs)
+# def imopen(uri, *args, plugin=None, api='legacy', **kwargs):
+#     """ Open a URI and return a plugin instance that can read its content.
+
+
+#     This is the core of the v3.0 API and the functional API provides convenient
+#     wrappers around this object.
+    
+#     """
+#     return _imopen()(uri, *args, plugin=plugin, api=api, **kwargs)
 
 
 class LegacyPlugin(object):
