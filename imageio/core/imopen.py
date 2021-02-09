@@ -29,7 +29,7 @@ class imopen(object):
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image from, e.g. a filename, pathlib.Path,
             http address or file object, see the docs for more info.
-        *args : 
+        *args :
             Additional positional arguments will be passed to the plugin instance
             upon object creation.
         plugin : {str, None}
