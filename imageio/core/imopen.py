@@ -111,7 +111,7 @@ class Plugin(object):
         """
         raise NotImplementedError
 
-    def write(self, image, *, **kwargs):
+    def write(self, image, **kwargs):
         """
         Write an ndimage to the specified URI.
 
@@ -132,7 +132,7 @@ class Plugin(object):
             "Try using a different plugin."
         )
 
-    def iter(self, *, **kwargs):
+    def iter(self, **kwargs):
         """
         Iterate over a list of ndimages given by the URI
 
