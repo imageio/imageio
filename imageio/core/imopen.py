@@ -83,7 +83,84 @@ class imopen(object):
         self._known_plugins.append(plugin)
 
 
-class LegacyPlugin(object):
+class Plugin(object):
+    def read(self, *, index=None, iio_mode=None, **kwargs):
+        """
+        Parses the given URI and creates a ndarray from it.
+
+        Parameters
+        ----------
+        index : {integer}
+            If the URI contains a list of ndimages return the index-th image. If
+            None, read all ndimages in the URI and attempt to stack them along
+            a new 0-th axis (equivalent to np.stack(imgs, axis=0))
+        iio_mode : {'i', 'v', None}
+            Used to give the plugin a hint on what the user expects: "i" for an
+            image, "v" for a volume, and "None" to let the plugin decide.
+        kwargs : ...
+            To be replaced by the implementing plugin. Custom plugin arguments
+            go here.
+        """
+        raise NotImplementedError
+
+    def write(self, image, *, iio_mode='?', **kwargs):
+        """
+        Write an ndimage to the URI specified in path.
+
+        If the URI points to a file on the current host and the file does not
+        yet exist it will be created. If the file exists already, it will be
+        appended if possible; otherwise, it will be replaced.
+
+        Parameters
+        ----------
+        image : numpy.ndarray
+            The ndimage or list of ndimages to write.
+        iio_mode : {'i', 'I', 'v', 'V', None}
+            Used to give the plugin a hint on what the user expects: "i" for an
+            image, "I" for multiple images, "v" for a volume, "V" for multiple
+            volumes, and "None" to let the plugin decide.
+        kwargs : ...
+            To be replaced by the implementing plugin. Custom plugin arguments
+            go here.
+        """
+        raise NotImplementedError
+
+    def iter(self, *, iio_mode=None, **kwargs):
+        """
+        Iterate over a list of ndimages given by the URI
+
+        Parameters
+        ----------
+        iio_mode : {'I', 'V', None} Used to give the plugin a hint on what the
+            user expects: "I" for multiple images, "V" for multiple volumes,
+            and "None" to let the plugin decide.
+        kwargs : ... To be replaced by the
+            implementing plugin. Custom plugin arguments go here.
+        """
+
+        raise NotImplementedError
+
+    def get_meta(self, *, index=None):
+        """ Read ndimage metadata from the URI
+
+        Parameters
+        ----------
+        index : {integer, None}
+            If the URI contains a list of ndimages return the metadata
+            corresponding to the index-th image. If None, behavior is decided
+            by the plugin. Typically, it returns the metadata for the 0-th
+            ndimage.
+        """
+        raise NotImplementedError
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+
+class LegacyPlugin(Plugin):
     """ A plugin to expose v2.9 plugins in the v3.0 API
 
     This plugin is a wrapper around the old FormatManager class and exposes
@@ -161,7 +238,7 @@ class LegacyPlugin(object):
 
         Parameters
         ----------
-        index : {integer}
+        index : {integer, None}
             If the URI contains a list of ndimages return the index-th
             image. If None, behavior depends on the used api::
 
@@ -298,8 +375,7 @@ class LegacyPlugin(object):
 
     # this could also be __iter__
     def iter(self, *, iio_mode='?', **kwargs):
-        """
-        Iterate over a list of ndimages given by the URI
+        """ Iterate over a list of ndimages given by the URI
 
         .. deprecated:: 2.9.0
           `iio_mode='?'` will be replaced by `iio_mode=None` in
@@ -322,6 +398,19 @@ class LegacyPlugin(object):
             yield image
 
     def get_meta(self, *, index=None):
+        """ Read ndimage metadata from the URI
+
+        Parameters
+        ----------
+        index : {integer, None}
+            If the URI contains a list of ndimages return the metadata
+            corresponding to the index-th image. If None, behavior depends on
+            the used api
+
+            Legacy-style API: return metadata of the first element (index=0)
+            New-style API: Behavior depends on the used Plugin.
+        """
+
         mode = "r?"
         request = Request(self._uri, mode)
         plugin = self._plugin
@@ -337,9 +426,3 @@ class LegacyPlugin(object):
             )
 
         return plugin.get_meta_data(index=index)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
