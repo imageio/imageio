@@ -61,8 +61,7 @@ class imopen(object):
 
         else:
             for candidate_plugin in self._known_plugins.values():
-                if (candidate_plugin.can_read(uri) and
-                        candidate_plugin.can_write(uri)):
+                if (candidate_plugin.can_open(uri)):
                     plugin_instance = candidate_plugin
                     break
             else:
@@ -84,7 +83,19 @@ class imopen(object):
 
 
 class Plugin(object):
-    def read(self, *, index=None, iio_mode=None, **kwargs):
+    def __init__(self, uri):
+        """ Instantiate a new Legacy Plugin
+
+        Parameters
+        ----------
+        uri : {str, pathlib.Path, bytes, file}
+            The resource to load the image from, e.g. a filename, pathlib.Path,
+            http address or file object, see the docs for more info.
+
+        """
+        self._uri = uri
+
+    def read(self, *, index=None, **kwargs):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -94,18 +105,15 @@ class Plugin(object):
             If the URI contains a list of ndimages return the index-th image. If
             None, read all ndimages in the URI and attempt to stack them along
             a new 0-th axis (equivalent to np.stack(imgs, axis=0))
-        iio_mode : {'i', 'v', None}
-            Used to give the plugin a hint on what the user expects: "i" for an
-            image, "v" for a volume, and "None" to let the plugin decide.
         kwargs : ...
             To be replaced by the implementing plugin. Custom plugin arguments
             go here.
         """
         raise NotImplementedError
 
-    def write(self, image, *, iio_mode='?', **kwargs):
+    def write(self, image, *, **kwargs):
         """
-        Write an ndimage to the URI specified in path.
+        Write an ndimage to the specified URI.
 
         If the URI points to a file on the current host and the file does not
         yet exist it will be created. If the file exists already, it will be
@@ -115,25 +123,21 @@ class Plugin(object):
         ----------
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
-        iio_mode : {'i', 'I', 'v', 'V', None}
-            Used to give the plugin a hint on what the user expects: "i" for an
-            image, "I" for multiple images, "v" for a volume, "V" for multiple
-            volumes, and "None" to let the plugin decide.
         kwargs : ...
             To be replaced by the implementing plugin. Custom plugin arguments
             go here.
         """
-        raise NotImplementedError
+        raise IOError(
+            f"The {self.__name__} plugin can not write to the given URI. "
+            "Try using a different plugin."
+        )
 
-    def iter(self, *, iio_mode=None, **kwargs):
+    def iter(self, *, **kwargs):
         """
         Iterate over a list of ndimages given by the URI
 
         Parameters
         ----------
-        iio_mode : {'I', 'V', None} Used to give the plugin a hint on what the
-            user expects: "I" for multiple images, "V" for multiple volumes,
-            and "None" to let the plugin decide.
         kwargs : ... To be replaced by the
             implementing plugin. Custom plugin arguments go here.
         """
@@ -153,8 +157,32 @@ class Plugin(object):
         """
         raise NotImplementedError
 
-    def can_read(self, uri):
-        """ Verify that plugin can read the given URI
+    @classmethod
+    def can_open(cls, uri):
+        """ Verify that plugin can open the given URI
+
+        Verifying that the plugin a URI doesn't make a specific claim on whether
+        or not the plugin can read or write the file. Most plugins support both,
+        but some may only support reading or writing. E.g. if the location is on
+        a remote host (web URL), writing may not be supported. This rules out
+        any plugins that are definitely incapable of handling the URI.
+
+        Parameters
+        ----------
+        uri : {str, pathlib.Path, bytes, file}
+            The resource to load the image from, e.g. a filename, pathlib.Path,
+            http address or file object, see the docs for more info.
+
+        Returns
+        -------
+        readable : bool
+            True if the URI can be read by the plugin. False otherwise.
+
+        """
+        raise NotImplementedError
+
+    def can_write(self, uri):
+        """ Verify that plugin can write to the given URI
 
         Parameters
         ----------
@@ -198,9 +226,9 @@ class LegacyPlugin(Plugin):
             An instance of the legacy format manager used to find an appropriate
             plugin to load the image. It has to be the reference to the one
             global instance.
-        format : str
-            The format to use to read the file. If None imageio selects
-            the appropriate for you based on the filename and its contents.
+        plugin : {object, None}
+            The plugin to use to interface with the URI. If None imageio selects
+            the appropriate plugin for you based on the URI.
 
         """
         self._uri = uri
