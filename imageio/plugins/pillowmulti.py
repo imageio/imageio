@@ -6,7 +6,7 @@ import logging
 
 import numpy as np
 
-from .pillow import PillowFormat, ndarray_to_pil, image_as_uint
+from .pillow_legacy import PillowFormat, ndarray_to_pil, image_as_uint
 
 
 logger = logging.getLogger(__name__)

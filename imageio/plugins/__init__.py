@@ -81,7 +81,7 @@ For the Format.Writer class:
 
 # First import plugins that we want to take precedence over freeimage
 from . import tifffile
-from . import pillow
+from . import pillow_legacy
 from . import grab
 
 from . import freeimage
