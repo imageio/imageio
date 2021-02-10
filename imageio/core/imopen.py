@@ -153,6 +153,23 @@ class Plugin(object):
         """
         raise NotImplementedError
 
+    def can_read(self, uri):
+        """ Verify that plugin can read the given URI
+
+        Parameters
+        ----------
+        uri : {str, pathlib.Path, bytes, file}
+            The resource to load the image from, e.g. a filename, pathlib.Path,
+            http address or file object, see the docs for more info.
+
+        Returns
+        -------
+        readable : bool
+            True if the URI can be read by the plugin. False otherwise.
+
+        """
+        raise NotImplementedError
+
     def __enter__(self):
         return self
 
