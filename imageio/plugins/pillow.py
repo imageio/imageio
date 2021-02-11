@@ -7,7 +7,7 @@
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence
 
-from .core import Plugin
+from ..core.imopen import Plugin
 
 
 class PillowPlugin(Plugin):
@@ -28,7 +28,7 @@ class PillowPlugin(Plugin):
         if self._image:
             self._image.close()
 
-    def read(self, *, index=None, as_gray=False, formats=None):
+    def read(self, *, index=None, mode=None, formats=None):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -39,17 +39,29 @@ class PillowPlugin(Plugin):
             index-th image/frame. If None, read all ndimages (frames) in the URI
             and attempt to stack them along a new 0-th axis (equivalent to
             np.stack(imgs, axis=0))
-        as_gray : bool
-            If True, the image is converted using mode 'F'. When `mode` is
-            not None and `as_gray` is True, the image is first converted
-            according to `mode`, and the result is then "flattened" using
-            mode 'F'.
+        mode : {str, None}
+            Convert the image to the given mode before returning it. If None,
+            the mode will be left unchanged. Possible modes can be found at:
+            https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         formats : {iterable, None}
             A list or tuple of format strings to attempt to load the file in.
             This can be used to restrict the set of formats checked. Pass
             ``None`` to try all supported formats. You can print the set of
             available formats by running ``python -m PIL`` or using the
             ``PIL.features.pilinfo`` function.
+
+        Returns
+        -------
+        ndimage : ndarray
+            A numpy array containing the loaded image data
+
+        Notes
+        -----
+        If you open a GIF - or any other format using color pallets - you may
+        wish to manually set the `mode` parameter. Otherwise, the numbers in
+        the returned image will refer to the entries in the color pallet, which
+        is discarded during conversion to ndarray.
+
         """
         if not self._image:
             self._image = Image.open(self._uri, formats=None)
@@ -57,10 +69,44 @@ class PillowPlugin(Plugin):
         if index is not None:
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-            return np.asarray(self._image, copy=False)
+
+            if mode is not None:
+                image = np.asarray(self._image.convert(mode))
+            else:
+                image = np.asarray(self._image)
+
+            return image
         else:
-            frames = [frame for frame in ImageSequence.Iterator(self._image)]
-            return np.stack(frames, axis=0)
+            iterator = self.iter(mode=mode, formats=formats)
+            return np.stack([im for im in iterator], axis=0)
+
+    def iter(self, *, mode=None, formats=None):
+        """
+        Iterate over all ndimages/frames in the URI
+
+        Parameters
+        ----------
+        mode : {str, None}
+            Convert the image to the given mode before returning it. If None,
+            the mode will be left unchanged. Possible modes can be found at:
+            https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
+        formats : {iterable, None}
+            A list or tuple of format strings to attempt to load the file in.
+            This can be used to restrict the set of formats checked. Pass
+            ``None`` to try all supported formats. You can print the set of
+            available formats by running ``python -m PIL`` or using the
+            ``PIL.features.pilinfo`` function.
+        """
+
+        if not self._image:
+            self._image = Image.open(self._uri, formats=None)
+
+        if mode is not None:
+            for im in ImageSequence.Iterator(self._image):
+                yield np.asarray(im.convert(mode))
+        else:
+            for im in ImageSequence.Iterator(self._image):
+                yield np.asarray(im)
 
     def write(self, image, *, format=None, **kwargs):
         """
@@ -84,29 +130,11 @@ class PillowPlugin(Plugin):
             are described in the :doc:`image format documentation
             (https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html)
             for each writer.
+
         """
 
         pil_image = Image.fromarray(image)
         pil_image.save(self._uri, format=format, **kwargs)
-
-    def iter(self, *, formats=None):
-        """
-        Iterate over all ndimages/frames in the URI
-
-        Parameters
-        ----------
-        formats : {iterable, None}
-            A list or tuple of format strings to attempt to load the file in.
-            This can be used to restrict the set of formats checked. Pass
-            ``None`` to try all supported formats. You can print the set of
-            available formats by running ``python -m PIL`` or using the
-            ``PIL.features.pilinfo`` function.
-        """
-
-        if not self._image:
-            self._image = Image.open(self._uri, formats=None)
-
-        yield from ImageSequence.Iterator(self._image)
 
     def get_meta(self, *, index=None, formats=None):
         """ Read ndimage metadata from the URI
@@ -127,7 +155,10 @@ class PillowPlugin(Plugin):
         if not self._image:
             self._image = Image.open(self._uri, formats=None)
 
-        return self._image._info
+        if index is not None:
+            self._image.seek(index)
+
+        return self._image.info
 
     @classmethod
     def can_open(cls, uri):
@@ -146,7 +177,7 @@ class PillowPlugin(Plugin):
 
         """
         try:
-            with cls._Image.open(uri):
+            with Image.open(uri):
                 # Check if it is generally possible to read the image.
                 # This will not read any data and merely try to find a
                 # compatible pillow plugin as per the pillow docs.
