@@ -21,7 +21,7 @@ class imopen(object):
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
-    def __call__(self, uri, *args, plugin=None, api='legacy', **kwargs):
+    def __call__(self, uri, *args, plugin=None, legacy_api=True, **kwargs):
         """ Instantiate a plugin capable of opening URI
 
         Parameters
@@ -34,8 +34,8 @@ class imopen(object):
             upon object creation.
         plugin : {str, None}
             The plugin to be used. If None, performs a search for a matching plugin.
-        api : {str}
-            The API to be used. If 'legacy' use the v2.9 API, otherwise use the new
+        legacy_api : {bool}
+            The API to be used. If true use the v2.9 API, otherwise use the new
             v3.0 API.
         **kwargs :
             Additional keyword arguments will be passed to the plugin instance.
@@ -43,7 +43,7 @@ class imopen(object):
 
         plugin_instance = None
 
-        if api == "legacy":
+        if legacy_api:
             kwargs["plugin"] = plugin
             return LegacyPlugin(
                 uri,
@@ -52,7 +52,7 @@ class imopen(object):
                 **kwargs
             )
 
-        elif plugin is not None:
+        if plugin is not None:
             try:
                 plugin_instance = self._known_plugins[plugin]
             except KeyError:
@@ -69,17 +69,21 @@ class imopen(object):
 
         return plugin_instance(uri, *args, **kwargs)
 
-    def register_plugin(self, plugin):
+    @classmethod
+    def register_plugin(cls, plugin_name, plugin_class):
         """ Register a new plugin to be used when opening URIs.
 
         Parameters
         ----------
-        plugin : callable
+        plugin_name : str
+            The name of the plugin to be registered. If the name already exists
+            it will be overwritten.
+        plugin_class : callable
             A callable that returns an instance of a plugin that conforms
-            to the v3.0 API. It has to implement `read`, `write`, and `iter`.
+            to the v3.0 API.
         """
 
-        self._known_plugins.append(plugin)
+        cls._known_plugins[plugin_name] = plugin_class
 
 
 class Plugin(object):
