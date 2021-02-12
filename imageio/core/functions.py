@@ -183,7 +183,15 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         )
 
     # Return its reader object
-    return format.get_reader(request)
+    # We call down to pillow here, so we must ensure exceptions
+    # are caught.
+    try:
+        reader = format.get_reader(request)
+    except:
+        raise ValueError(
+            "Could not create reader" % reader
+        )
+    return reader
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):

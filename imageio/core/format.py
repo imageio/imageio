@@ -185,7 +185,16 @@ class Format(object):
 
         Get whether this format can read data from the specified uri.
         """
-        return self._can_read(request)
+        # We call down to pillow here, so we must ensure exceptions
+        # are caught.
+        try:
+            _can_read = self._can_read(request)
+        except:
+            raise RuntimeError(
+                "Cannot read %s" % request
+            )
+
+        return _can_read
 
     def can_write(self, request):
         """can_write(request)
