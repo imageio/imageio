@@ -21,14 +21,17 @@ logger = logging.getLogger(__name__)
 
 # todo: Pillow ImageGrab module supports grabbing the screen on Win and OSX.
 
+# Formats that we're confident that Pillow can handle
+FORMATS_ACCEPTED_BY_DEFAULT = ["tga"]
+
 
 GENERIC_DOCS = """
     Parameters for reading
     ----------------------
-    
+
     pilmode : str
         From the Pillow documentation:
-        
+
         * 'L' (8-bit pixels, grayscale)
         * 'P' (8-bit pixels, mapped to any other mode using a color palette)
         * 'RGB' (3x8-bit pixels, true color)
@@ -37,14 +40,14 @@ GENERIC_DOCS = """
         * 'YCbCr' (3x8-bit pixels, color video format)
         * 'I' (32-bit signed integer pixels)
         * 'F' (32-bit floating point pixels)
-        
+
         PIL also provides limited support for a few special modes, including
         'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
         (true color with premultiplied alpha).
-        
+
         When translating a color image to grayscale (mode 'L', 'I' or 'F'),
         the library uses the ITU-R 601-2 luma transform::
-        
+
             L = R * 299/1000 + G * 587/1000 + B * 114/1000
     as_gray : bool
         If True, the image is converted using mode 'F'. When `mode` is
@@ -101,9 +104,16 @@ class PillowFormat(Format):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + "?"):
             if self.plugin_id in Image.OPEN:
-                factory, accept = Image.OPEN[self.plugin_id]
+                try:
+                    factory, accept = Image.OPEN[self.plugin_id]
+                except Exception:  # can hapen, see e.g. #588
+                    factory, accept = None, None
                 if accept:
                     if request.firstbytes and accept(request.firstbytes):
+                        return True
+                elif factory:
+                    ext = request.filename.split(".")[-1].lower()
+                    if ext in FORMATS_ACCEPTED_BY_DEFAULT:
                         return True
 
     def _can_write(self, request):

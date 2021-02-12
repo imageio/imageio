@@ -4,7 +4,6 @@
 """ SPE file reader
 """
 
-from collections import namedtuple
 from datetime import datetime
 import logging
 import os
@@ -156,21 +155,39 @@ class SDTControlSpec:
     peculiar way (see :py:meth:`get_datetime`). Use :py:meth:`extract_metadata`
     to update the metadata dict.
     """
+
     months = {
         # Convert SDT-control month strings to month numbers
-        "Jän": 1, "Jan": 1, "Feb": 2, "Mär": 3, "Mar": 3, "Apr": 4, "Mai": 5,
-        "May": 5, "Jun": 6, "Jul": 7, "Aug": 8, "Sep": 9, "Okt": 10, "Oct": 10,
-        "Nov": 11, "Dez": 12, "Dec": 12
+        "Jän": 1,
+        "Jan": 1,
+        "Feb": 2,
+        "Mär": 3,
+        "Mar": 3,
+        "Apr": 4,
+        "Mai": 5,
+        "May": 5,
+        "Jun": 6,
+        "Jul": 7,
+        "Aug": 8,
+        "Sep": 9,
+        "Okt": 10,
+        "Oct": 10,
+        "Nov": 11,
+        "Dez": 12,
+        "Dec": 12,
     }
 
     sequence_types = {
         # TODO: complete
-        "SEQU": "standard", "SETO": "TOCCSL", "KINE": "kinetics",
-        "SEAR": "arbitrary"
+        "SEQU": "standard",
+        "SETO": "TOCCSL",
+        "KINE": "kinetics",
+        "SEAR": "arbitrary",
     }
 
     class CommentDesc:
         """Describe how to extract a metadata entry from a comment string"""
+
         n: int
         """Which of the 5 SPE comment fields to use."""
         slice: slice
@@ -179,9 +196,14 @@ class SDTControlSpec:
         """How to convert characters to something useful."""
         scale: Union[None, float]
         """Optional scaling factor for numbers"""
-        def __init__(self, n: int, slice: slice,
-                     cvt: Callable[[str], Any] = str,
-                     scale: Optional[float] = None):
+
+        def __init__(
+            self,
+            n: int,
+            slice: slice,
+            cvt: Callable[[str], Any] = str,
+            scale: Optional[float] = None,
+        ):
             self.n = n
             self.slice = slice
             self.cvt = cvt
@@ -191,7 +213,7 @@ class SDTControlSpec:
         "sdt_major_version": CommentDesc(4, slice(66, 68), int),
         "sdt_minor_version": CommentDesc(4, slice(68, 70), int),
         "sdt_controller_name": CommentDesc(4, slice(0, 6), str),
-        "exposure_time": CommentDesc(1, slice(64, 73), float, 10**-6),
+        "exposure_time": CommentDesc(1, slice(64, 73), float, 10 ** -6),
         "color_code": CommentDesc(4, slice(10, 14), str),
         "detection_channels": CommentDesc(4, slice(15, 16), int),
         "background_subtraction": CommentDesc(4, 14, lambda x: x == "B"),
@@ -200,19 +222,20 @@ class SDTControlSpec:
         "modulation_active": CommentDesc(4, 33, lambda x: x == "A"),
         "pixel_size": CommentDesc(4, slice(25, 28), float, 0.1),
         "sequence_type": CommentDesc(
-            4, slice(6, 10), lambda x: __class__.sequence_types[x]),
-        "grid": CommentDesc(4, slice(16, 25), float, 10**-6),
+            4, slice(6, 10), lambda x: __class__.sequence_types[x]
+        ),
+        "grid": CommentDesc(4, slice(16, 25), float, 10 ** -6),
         "n_macro": CommentDesc(1, slice(0, 4), int),
-        "delay_macro": CommentDesc(1, slice(10, 19), float, 10**-3),
+        "delay_macro": CommentDesc(1, slice(10, 19), float, 10 ** -3),
         "n_mini": CommentDesc(1, slice(4, 7), int),
-        "delay_mini": CommentDesc(1, slice(19, 28), float, 10**-6),
+        "delay_mini": CommentDesc(1, slice(19, 28), float, 10 ** -6),
         "n_micro": CommentDesc(1, slice(7, 10), int),
-        "delay_micro": CommentDesc(1, slice(28, 37), float, 10**-6),
+        "delay_micro": CommentDesc(1, slice(28, 37), float, 10 ** -6),
         "n_subpics": CommentDesc(1, slice(7, 10), int),
-        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10**-6),
-        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10**-6),
-        "bleach_time": CommentDesc(1, slice(46, 55), float, 10**-6),
-        "recovery_time": CommentDesc(1, slice(55, 64), float, 10**-6)
+        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10 ** -6),
+        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10 ** -6),
+        "bleach_time": CommentDesc(1, slice(46, 55), float, 10 ** -6),
+        "recovery_time": CommentDesc(1, slice(55, 64), float, 10 ** -6),
     }
 
     @staticmethod
@@ -241,8 +264,9 @@ class SDTControlSpec:
                 if spec.scale is not None:
                     v *= spec.scale
             except Exception as e:
-                logger.debug("Failed to decode SDT-control metadata "
-                             f'field "{name}": {e}')
+                logger.debug(
+                    "Failed to decode SDT-control metadata " f'field "{name}": {e}'
+                )
             sdt_md[name] = v
         comment = comments[0] + comments[2]
         sdt_md["comment"] = comment.strip()
@@ -266,11 +290,15 @@ class SDTControlSpec:
         try:
             month = __class__.months[date[2:5]]
             return datetime(
-                int(date[5:9]), month, int(date[0:2]), int(time[0:2]),
-                int(time[2:4]), int(time[4:6]))
+                int(date[5:9]),
+                month,
+                int(date[0:2]),
+                int(time[0:2]),
+                int(time[2:4]),
+                int(time[4:6]),
+            )
         except Exception as e:
-            logger.info(
-                f"Failed to decode date from SDT-control metadata: {e}.")
+            logger.info(f"Failed to decode date from SDT-control metadata: {e}.")
 
     @staticmethod
     def extract_metadata(meta: Mapping, char_encoding: str = "latin1"):
@@ -294,8 +322,7 @@ class SDTControlSpec:
         meta.update(sdt_meta)
 
         # Get date and time in a usable format
-        dt = __class__.get_datetime(
-            meta["date"], meta["time_local"])
+        dt = __class__.get_datetime(meta["date"], meta["time_local"])
         if dt:
             meta["datetime"] = dt
             meta.pop("date")
@@ -306,8 +333,10 @@ class SDTControlSpec:
             meta["modulation_script"] = sp4.decode(char_encoding)
             meta.pop("spare_4")
         except UnicodeDecodeError:
-            logger.warning("Failed to decode SDT-control laser "
-                           "modulation script. Bad char_encoding?")
+            logger.warning(
+                "Failed to decode SDT-control laser "
+                "modulation script. Bad char_encoding?"
+            )
 
         # Get rid of unused data
         meta.pop("time_utc")
@@ -477,7 +506,7 @@ class SpeFormat(Format):
         "time_utc" are removed.
     modulation_script : str (only for files created by SDT-control)
         Laser modulation script. Replaces the "spare_4" key.
-     """
+    """
 
     def _can_read(self, request):
         return (
@@ -488,8 +517,7 @@ class SpeFormat(Format):
         return False
 
     class Reader(Format.Reader):
-        def _open(self, char_encoding="latin1", check_filesize=True,
-                  sdt_meta=True):
+        def _open(self, char_encoding="latin1", check_filesize=True, sdt_meta=True):
             self._file = self.request.get_file()
             self._char_encoding = char_encoding
 
@@ -601,8 +629,7 @@ class SpeFormat(Format):
 
             # Extract SDT-control metadata if desired
             if self._sdt_meta:
-                SDTControlSpec.extract_metadata(self._meta,
-                                                self._char_encoding)
+                SDTControlSpec.extract_metadata(self._meta, self._char_encoding)
 
         def _parse_header(self, spec):
             ret = {}

@@ -390,7 +390,9 @@ class LytroLfrFormat(LytroFormat):
 
             if not self._meta_only:
                 # Read bytes from string and convert to uint16
-                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
+                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(
+                    np.uint16
+                )
                 im = LytroIllumRawFormat.rearrange_bits(raw)
             else:
                 im = np.array([])
@@ -685,7 +687,9 @@ class LytroLfpFormat(LytroFormat):
 
             if not self._meta_only:
                 # Read bytes from string and convert to uint16
-                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(np.uint16)
+                raw = np.frombuffer(self.raw_image_data, dtype=np.uint8).astype(
+                    np.uint16
+                )
                 im = LytroF01RawFormat.rearrange_bits(raw)
             else:
                 im = np.array([])
