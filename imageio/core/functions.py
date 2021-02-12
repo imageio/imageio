@@ -189,7 +189,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         return format.get_reader(request)
     except:
         raise ValueError(
-            "Could not get reader for request %s" % request
+            "Could not get reader"
         )
 
 
