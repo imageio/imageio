@@ -427,7 +427,9 @@ def test_lytro_lfr_reading():
     assert np.array_equal(img._meta["thumbnail"]["image"], thumb_gt)
 
     # Read metadata only (without thumbnail)
-    img = imageio.imread(lfr_file, format="lytro-lfr", meta_only=True, include_thumbnail=False)
+    img = imageio.imread(
+        lfr_file, format="lytro-lfr", meta_only=True, include_thumbnail=False
+    )
     assert np.array_equal(img, [])
     assert img._meta["metadata"] == metadata_gt
     assert img._meta["privateMetadata"] == private_metadata_gt

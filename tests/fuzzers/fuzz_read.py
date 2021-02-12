@@ -5,9 +5,10 @@ import atheris
 
 import imageio
 
+
 def TestOneInput(data):
     with open("/tmp/img1.file", "wb+") as img1_f:
-       img1_f.write(data)
+        img1_f.write(data)
     try:
         imageio.imread("/tmp/img1.file")
     except ValueError:
