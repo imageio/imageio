@@ -104,13 +104,13 @@ class PillowFormat(Format):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + "?"):
             if self.plugin_id in Image.OPEN:
-                try:
-                    factory, accept = Image.OPEN[self.plugin_id]
-                except Exception:  # can hapen, see e.g. #588
-                    factory, accept = None, None
+                factory, accept = Image.OPEN[self.plugin_id]
                 if accept:
-                    if request.firstbytes and accept(request.firstbytes):
-                        return True
+                    if request.firstbytes:
+                        try:
+                            return bool(accept(request.firstbytes))
+                        except Exception:
+                            return False  # can hapen, see e.g. #588
                 elif factory:
                     ext = request.filename.split(".")[-1].lower()
                     if ext in FORMATS_ACCEPTED_BY_DEFAULT:
