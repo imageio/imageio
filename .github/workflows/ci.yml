@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    TEST_STYLE: '0'
+    TEST_UNIT: '1'
+    TEST_FULL: '0'
+    strategy:
+      matrix:
+        include:
+          - name: Linting
+            os: ubuntu-latest
+            pyversion: '3.7'
+            TEST_STYLE: '1'
+            TEST_UNIT: '0'
+          # Main tests for Python versions
+          - name: Linux py35
+            os: ubuntu-latest
+            pyversion: '3.5'
+          - name: Linux py36
+            os: ubuntu-latest
+            pyversion: '3.6'
+          - name: Linux py37 full
+            os: ubuntu-latest
+            pyversion: '3.7'
+            TEST_FULL: '1'
+          - name: Linux py38
+            os: ubuntu-latest
+            pyversion: '3.8'
+          - name: Linux py39
+            os: ubuntu-latest
+            pyversion: '3.9'
+          # Special OS's and interpreters
+          - name: Linux pypy3
+            os: ubuntu-latest
+            pyversion: 'pypy3'
+          - name: MacOS py36
+            os: macos-latest
+            pyversion: '3.6'
+          - name: MacOS py39
+            os: macos-latest
+            pyversion: '3.9'
+          - name: Windows py36
+            os: windows-latest
+            pyversion: '3.6'
+          - name: Windows py39
+            os: windows-latest
+            pyversion: '3.9'
+
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.pyversion }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.pyversion }}
+
+      - name: Install dev dependencies
+        run: |
+            python -m pip install -q -U pip
+            pip install -q -U invoke
+
+      - name: Install optional dependencies
+        run: |
+            pip install -q -U simpleitk astropy
+
+      - name: Lint (black and flake8)
+        if: matrix.TEST_STYLE == 1
+        run: |
+            pip install -q -U flake8 black
+            invoke test --lint
+
+      - name: Test docbuilding
+        if: matrix.TEST_STYLE == 1
+        run: |
+            pip install -q -U sphinx numpydoc
+            invoke docs --clean --build
+
+      - name: PR size check
+        uses: ookami-kb/gh-pr-size-watcher@v1
+        if: matrix.TEST_STYLE == 1
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }} # required
+          errorSize: 500
+          warningSize: 300
+          excludeTitle: 'PR_SIZE_SKIP'
+
+      - name: Unit tests
+        if: matrix.TEST_UNIT == 1
+        shell: bash
+        run: |
+            pip install -q -U pytest pytest-cov psutils
+            pip install .
+            rm -rf ./imageio ./build ./egg-info
+            pytest -v --cov=imageio
+
