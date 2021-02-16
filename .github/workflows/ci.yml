@@ -101,7 +101,7 @@ jobs:
         if: matrix.TEST_UNIT == 1
         shell: bash
         run: |
-            pip install -q -U pytest pytest-cov psutils
+            pip install -q -U pytest pytest-cov psutil
             pip install .
             rm -rf ./imageio ./build ./egg-info
             pytest -v --cov=imageio

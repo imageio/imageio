@@ -80,8 +80,7 @@ def checkformat(ctx):
 
 @task
 def lint(ctx):
-    """ Check for linting errors using flake8.
-    """
+    """Check for linting errors using flake8."""
     flake8_wrapper()  # exits on fail
 
 
