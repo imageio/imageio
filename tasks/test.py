@@ -62,8 +62,27 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
 
 @task
 def autoformat(ctx):
+    """Alias for format."""
+    black_wrapper(True)
+
+
+@task
+def format(ctx):
     """Format the code using the Black uncompromising formatter."""
     black_wrapper(True)
+
+
+@task
+def checkformat(ctx):
+    """Check for formatting errors using Black."""
+    black_wrapper(False)
+
+
+@task
+def lint(ctx):
+    """ Check for linting errors using flake8.
+    """
+    flake8_wrapper()  # exits on fail
 
 
 def flake8_wrapper():
