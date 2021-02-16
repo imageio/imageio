@@ -16,42 +16,46 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        TEST_STYLE: [0]
-        TEST_UNIT: [1]
-        TEST_FULL: [0]
         include:
           - name: Meta tests (lint, pr-size, docs)
             os: ubuntu-latest
             pyversion: '3.8'
             TEST_STYLE: 1
-            TEST_UNIT: 0
           # Main tests for Python versions
           - name: Linux py35
             os: ubuntu-latest
             pyversion: '3.5'
+            TEST_UNIT: 1
           - name: Linux py36
             os: ubuntu-latest
             pyversion: '3.6'
+            TEST_UNIT: 1
           - name: Linux py37 full
             os: ubuntu-latest
             pyversion: '3.7'
+            TEST_UNIT: 1
             TEST_FULL: 1
           - name: Linux py38
             os: ubuntu-latest
             pyversion: '3.8'
+            TEST_UNIT: 1
           - name: Linux py39
             os: ubuntu-latest
             pyversion: '3.9'
+            TEST_UNIT: 1
           # Special OS's and interpreters
           - name: Linux pypy3
             os: ubuntu-latest
             pyversion: 'pypy3'
+            TEST_UNIT: 1
           - name: MacOS py38
             os: macos-latest
             pyversion: '3.8'
+            TEST_UNIT: 1
           - name: Windows py38
             os: windows-latest
             pyversion: '3.8'
+            TEST_UNIT: 1
 
     steps:
 
@@ -75,7 +79,8 @@ jobs:
         if: matrix.TEST_STYLE == 1
         run: |
             pip install -q -U flake8 black
-            invoke test --style
+            invoke lint
+            invoke checkformat
 
       - name: Test docbuilding
         if: matrix.TEST_STYLE == 1
