@@ -2,27 +2,25 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [ main ]
   pull_request:
-    branches:
-      - master
+    branches: [ main ]
 
 jobs:
   build:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    TEST_STYLE: '0'
-    TEST_UNIT: '1'
-    TEST_FULL: '0'
     strategy:
       matrix:
+        TEST_STYLE: [0]
+        TEST_UNIT: [1]
+        TEST_FULL: [0]
         include:
           - name: Linting
             os: ubuntu-latest
             pyversion: '3.7'
-            TEST_STYLE: '1'
-            TEST_UNIT: '0'
+            TEST_STYLE: 1
+            TEST_UNIT: 0
           # Main tests for Python versions
           - name: Linux py35
             os: ubuntu-latest
@@ -33,7 +31,7 @@ jobs:
           - name: Linux py37 full
             os: ubuntu-latest
             pyversion: '3.7'
-            TEST_FULL: '1'
+            TEST_FULL: 1
           - name: Linux py38
             os: ubuntu-latest
             pyversion: '3.8'
