@@ -71,6 +71,9 @@ def test_reading_saving():
     W.set_meta_data({"foo": 3})
     W.close()
 
+    # Just make sure mimread works
+    assert len(imageio.mimread(fname1)) = 10
+
     # Write and re-read, now without loop, and with html page
     imageio.mimsave(fname2, ims1, loop=False, html=True)
     ims2 = imageio.mimread(fname2)
@@ -101,7 +104,7 @@ def test_reading_saving():
     html = """<!DOCTYPE html>
             <html>
             <body>
-            
+
             Original:
             <embed src="%s">
             <br ><br >
