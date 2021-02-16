@@ -68,6 +68,7 @@ jobs:
             pip install -q -U invoke
 
       - name: Install optional dependencies
+        if: matrix.TEST_FULL == 1
         run: |
             pip install -q -U simpleitk astropy
 
