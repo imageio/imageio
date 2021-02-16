@@ -1,13 +1,17 @@
 name: CI
 
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
+
 jobs:
+
   build:
+
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -103,4 +107,3 @@ jobs:
             pip install .
             rm -rf ./imageio ./build ./egg-info
             pytest -v --cov=imageio
-
