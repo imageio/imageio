@@ -22,10 +22,6 @@ jobs:
             pyversion: '3.8'
             TEST_STYLE: 1
           # Main tests for Python versions
-          - name: Linux py35
-            os: ubuntu-latest
-            pyversion: '3.5'
-            TEST_UNIT: 1
           - name: Linux py36
             os: ubuntu-latest
             pyversion: '3.6'
