@@ -20,9 +20,9 @@ jobs:
         TEST_UNIT: [1]
         TEST_FULL: [0]
         include:
-          - name: Linting
+          - name: Meta tests (lint, pr-size, docs)
             os: ubuntu-latest
-            pyversion: '3.7'
+            pyversion: '3.8'
             TEST_STYLE: 1
             TEST_UNIT: 0
           # Main tests for Python versions
@@ -46,19 +46,12 @@ jobs:
           - name: Linux pypy3
             os: ubuntu-latest
             pyversion: 'pypy3'
-          - name: MacOS py36
+          - name: MacOS py38
             os: macos-latest
-            pyversion: '3.6'
-          - name: MacOS py39
-            os: macos-latest
-            pyversion: '3.9'
-          - name: Windows py36
+            pyversion: '3.8'
+          - name: Windows py38
             os: windows-latest
-            pyversion: '3.6'
-          - name: Windows py39
-            os: windows-latest
-            pyversion: '3.9'
-
+            pyversion: '3.8'
 
     steps:
 
@@ -82,7 +75,7 @@ jobs:
         if: matrix.TEST_STYLE == 1
         run: |
             pip install -q -U flake8 black
-            invoke test --lint
+            invoke test --style
 
       - name: Test docbuilding
         if: matrix.TEST_STYLE == 1
