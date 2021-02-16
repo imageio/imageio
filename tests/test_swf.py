@@ -72,7 +72,7 @@ def test_reading_saving():
     W.close()
 
     # Just make sure mimread works
-    assert len(imageio.mimread(fname1)) = 10
+    assert len(imageio.mimread(fname1)) == 10
 
     # Write and re-read, now without loop, and with html page
     imageio.mimsave(fname2, ims1, loop=False, html=True)
