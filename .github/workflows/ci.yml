@@ -83,6 +83,7 @@ jobs:
         if: matrix.TEST_STYLE == 1
         run: |
             pip install -q -U sphinx numpydoc
+            pip install -q -U numpy pillow
             invoke docs --clean --build
 
       - name: PR size check
