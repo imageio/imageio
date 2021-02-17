@@ -34,7 +34,7 @@ jobs:
           - name: Linux py38
             os: ubuntu-latest
             pyversion: '3.8'
-            TEST_UNIT: 1
+            TEST_UNIT_NO_INTERNET: 1
           - name: Linux py39
             os: ubuntu-latest
             pyversion: '3.9'
@@ -72,7 +72,7 @@ jobs:
             pip install -q -U numpy pillow
 
       - name: Install dependencies for tests
-        if: matrix.TEST_UNIT == 1
+        if: matrix.TEST_UNIT == 1 || matrix.TEST_UNIT_NO_INTERNET == 1
         shell: bash
         run: |
             python -m pip install -q -U pip
@@ -110,4 +110,9 @@ jobs:
       - name: Unit tests
         if: matrix.TEST_UNIT == 1
         run: |
-            pytest -v --cov=imageio
+            invoke test --unit
+
+      - name: Unit tests without internet
+        if: matrix.TEST_UNIT_NO_INTERNET == 1
+        run: |
+            invoke test --installer
