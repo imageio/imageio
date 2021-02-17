@@ -79,6 +79,7 @@ jobs:
             pip install -q -U invoke
             pip install -q -U pytest pytest-cov psutil
             pip install -q -U imageio-ffmpeg
+            pip install -q -U numpy pillow
             python setup.py sdist
             pip install imageio --no-index --find-links file:///./dist
             rm -rf ./imageio ./build ./egg-info
