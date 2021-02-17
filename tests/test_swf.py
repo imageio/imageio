@@ -76,7 +76,7 @@ def test_reading_saving():
 
     # I'm not sure why, but the below does not work on pypy, which is weird,
     # because the file *is* closed, but somehow it's not flushed? Ah well ...
-    if not IS_PYPY:
+    if IS_PYPY:
         return
 
     # Write and re-read, now without loop, and with html page

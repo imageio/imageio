@@ -72,12 +72,13 @@ jobs:
             pip install -q -U numpy pillow
 
       - name: Install dependencies for tests
+        if: matrix.TEST_UNIT == 1
         shell: bash
         run: |
             python -m pip install -q -U pip
             pip install -q -U invoke
             pip install -q -U pytest pytest-cov psutil
-            pip install imageio-ffmpeg
+            pip install -q -U imageio-ffmpeg
             pip install .
             rm -rf ./imageio ./build ./egg-info
 
