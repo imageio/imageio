@@ -115,4 +115,4 @@ jobs:
       - name: Unit tests without internet
         if: matrix.TEST_UNIT_NO_INTERNET == 1
         run: |
-            invoke test --installer
+            invoke test --installed
