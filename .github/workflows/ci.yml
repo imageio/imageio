@@ -72,6 +72,7 @@ jobs:
             pip install -q -U numpy pillow
 
       - name: Install dependencies for tests
+        shell: bash
         run: |
             python -m pip install -q -U pip
             pip install -q -U invoke
@@ -107,6 +108,5 @@ jobs:
 
       - name: Unit tests
         if: matrix.TEST_UNIT == 1
-        shell: bash
         run: |
             pytest -v --cov=imageio
