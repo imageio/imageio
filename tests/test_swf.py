@@ -2,6 +2,7 @@
 """
 
 import os
+import time
 
 import numpy as np
 
@@ -76,6 +77,7 @@ def test_reading_saving():
 
     # Write and re-read, now without loop, and with html page
     imageio.mimsave(fname2, ims1, loop=False, html=True)
+    time.sleep(0.1)
     ims2 = imageio.mimread(fname2)
 
     # Check images. We can expect exact match, since
@@ -104,7 +106,6 @@ def test_reading_saving():
     html = """<!DOCTYPE html>
             <html>
             <body>
-
             Original:
             <embed src="%s">
             <br ><br >
