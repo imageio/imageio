@@ -62,12 +62,25 @@ jobs:
         with:
           python-version: ${{ matrix.pyversion }}
 
-      - name: Install dev dependencies
+      - name: Install dependencies for style build
+        if: matrix.TEST_STYLE == 1
         run: |
             python -m pip install -q -U pip
             pip install -q -U invoke
+            pip install -q -U flake8 black
+            pip install -q -U sphinx numpydoc
+            pip install -q -U numpy pillow
 
-      - name: Install optional dependencies
+      - name: Install dependencies for tests
+        run: |
+            python -m pip install -q -U pip
+            pip install -q -U invoke
+            pip install -q -U pytest pytest-cov psutil
+            pip install imageio-ffmpeg
+            pip install .
+            rm -rf ./imageio ./build ./egg-info
+
+      - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
             pip install -q -U simpleitk astropy
@@ -75,15 +88,12 @@ jobs:
       - name: Lint (black and flake8)
         if: matrix.TEST_STYLE == 1
         run: |
-            pip install -q -U flake8 black
             invoke lint
             invoke checkformat
 
       - name: Test docbuilding
         if: matrix.TEST_STYLE == 1
         run: |
-            pip install -q -U sphinx numpydoc
-            pip install -q -U numpy pillow
             invoke docs --clean --build
 
       - name: PR size check
@@ -99,8 +109,4 @@ jobs:
         if: matrix.TEST_UNIT == 1
         shell: bash
         run: |
-            pip install -q -U pytest pytest-cov psutil
-            pip install imageio-ffmpeg
-            pip install .
-            rm -rf ./imageio ./build ./egg-info
             pytest -v --cov=imageio
