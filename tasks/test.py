@@ -120,3 +120,4 @@ def pytest_wrapper(cov_report="term"):
             cov_report,
             os.path.join(ROOT_DIR, "tests"),
         ]
+    )
