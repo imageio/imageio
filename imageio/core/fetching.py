@@ -114,7 +114,7 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
         os.makedirs(op.abspath(op.dirname(filename)))
     # let's go get the file
     if os.getenv("CONTINUOUS_INTEGRATION", False):  # pragma: no cover
-        # On Travis, we retry a few times ...
+        # On CI, we retry a few times ...
         for i in range(2):
             try:
                 _fetch_file(url, filename)

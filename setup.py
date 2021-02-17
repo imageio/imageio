@@ -62,16 +62,15 @@ for line in open(initFile).readlines():
         __doc__ += line.rstrip() + "\n"
 
 # Template for long description. __doc__ gets inserted here
-long_description = """
-.. image:: https://travis-ci.org/imageio/imageio.svg?branch=master
-    :target: https://travis-ci.org/imageio/imageio'
+![CI](https://github.com/imageio/imageio/workflows/CI/badge.svg)
 
-.. image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
-  :target: https://coveralls.io/r/imageio/imageio?branch=master
+long_description = """
+.. image:: https://github.com/imageio/imageio/workflows/CI/badge.svg
+    :target: https://github.com/imageio/imageio/actions
 
 __doc__
 
-Release notes: hhttps://github.com/imageio/imageio/blob/master/CHANGELOG.md
+Release notes: https://github.com/imageio/imageio/blob/master/CHANGELOG.md
 
 Example:
 

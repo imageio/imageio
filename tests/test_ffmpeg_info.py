@@ -9,12 +9,6 @@ from imageio.testing import run_tests_if_main, need_internet
 import imageio
 
 
-if os.getenv("TRAVIS_OS_NAME") == "windows":
-    skip(
-        "Skip this on the Travis Windows run for now, see #408", allow_module_level=True
-    )
-
-
 def dedent(text, dedent=8):
     lines = [line[dedent:] for line in text.splitlines()]
     text = "\n".join(lines)

@@ -116,9 +116,7 @@ def test_import_dependencies():
     than the known dependencies.
     """
 
-    # Skip when we know there's more imports
-    if os.getenv("TRAVIS") and os.getenv("TEST_FULL"):
-        return
+    # todo: Skip when we know there's more imports?
 
     # Get loaded modules when numpy is imported and when imageio is imported
     modnames_ref1 = loaded_modules("numpy", 1, True)
