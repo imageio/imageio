@@ -79,9 +79,9 @@ jobs:
             pip install -q -U invoke
             pip install -q -U pytest pytest-cov psutil
             pip install -q -U imageio-ffmpeg
-            pip install -q -U numpy pillow
+            pip install .
             python setup.py sdist
-            pip install imageio --no-index --find-links file:///./dist
+            pip install .
             rm -rf ./imageio ./build ./egg-info
 
       - name: Install optional dependencies for tests
