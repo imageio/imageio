@@ -23,7 +23,6 @@ from imageio.core import get_remote_file, IS_PYPY
 test_dir = get_test_dir()
 
 
-
 def get_ffmpeg_pids():
     pids = set()
     for p in psutil.process_iter():

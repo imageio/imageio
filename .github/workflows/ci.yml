@@ -80,6 +80,7 @@ jobs:
             pip install -q -U pytest pytest-cov psutil
             pip install -q -U imageio-ffmpeg
             pip install .
+            python setup.py build_with_images install
             rm -rf ./imageio ./build ./egg-info
 
       - name: Install optional dependencies for tests

@@ -2,8 +2,6 @@
 """ Tests specific to parsing ffmpeg info.
 """
 
-import os
-from pytest import skip
 from imageio.testing import run_tests_if_main, need_internet
 
 import imageio
