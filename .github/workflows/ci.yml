@@ -76,8 +76,9 @@ jobs:
             # Build to force downloading images (but this step needs numpy and pillow)
             pip install -q -U numpy pillow
             python setup.py sdist
-            # Install
-            pip install .[ffmpeg,dev]
+            # Install. Can't use [dev], because black does not build on pypy ...
+            pip install .[ffmpeg]
+            pip install -q -U invoke pytest pytest-cov psutil
             # Delete the local copy, so we're actually using the installed version
             rm -rf ./imageio ./build ./egg-info
 
