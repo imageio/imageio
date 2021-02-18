@@ -124,14 +124,12 @@ def test_findlib2():
         os.mkdir(fi_dir)
     dirs, paths = core.findlib.generate_candidate_libs(["libfreeimage"], [fi_dir])
     # assert fi_dir in dirs -> Cannot test: lib may not exist
-    # assert paths
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
 
     # Loading libs
     gllib = ctypes.util.find_library("GL")
     core.load_lib([gllib], [])
-    # core.load_lib([], ["libfreeimage"], [fi_dir])
     # Fail
     raises(ValueError, core.load_lib, [], [])  # Nothing given
     raises(ValueError, core.load_lib, ["", None], [])  # Nothing given

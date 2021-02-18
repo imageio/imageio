@@ -121,29 +121,27 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 <h2>Contributing</h2>
 
-<p>Install a complete development environment:</p>
-
+<p>Install imageio in edit mode:</p>
 ```bash
-pip install -r requirements.txt
 pip install -e .
 ```
 
-<p><i>N.B. this does not include GDAL because it has awkward compiled dependencies</i></p>
+<p>Install developer tools:</p>
+```bash
+pip install -U invoke black flake8 pytest-cov psutil
+```
 
-<p>You may see failing test(s) due to missing installed components.
-On ubuntu, do <code>sudo apt install libfreeimage3</code></p>
-
-<p>
-Style checks, unit tests and coverage are controlled by <code>invoke</code>.
-Before committing, check these with:</p>
+<p>Most developer command are done via <code>invoke</code>.</p>
 
 ```bash
-# reformat code on python 3.6+
-invoke autoformat
-# check there are no style errors
-invoke test --style
-# check the tests pass
+# Check all available commands
+invoke -l
+# Reformat code (using Black)
+invoke format
+# Check for style errors
+invoke lint
+# Run unit tests
 invoke test --unit
-# check test coverage (re-runs tests)
+# Check test coverage (re-runs tests)
 invoke test --cover
 ```
