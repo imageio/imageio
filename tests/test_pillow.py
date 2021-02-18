@@ -1,45 +1,77 @@
 """ Tests for imageio's pillow plugin
 """
 
+import pytest
 import os
-import sys
-from zipfile import ZipFile
 import numpy as np
+from pathlib import Path
+import urllib
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-
-import imageio
-from imageio import core
-from imageio.core import get_remote_file
-
-test_dir = get_test_dir()
+import imageio as iio
 
 
-def setup_module():
-    # Make sure format order is the default
-    imageio.formats.sort()
+@pytest.fixture
+def tmp_dir(tmp_path):
+    return tmp_path
 
 
-# Create test images LUMINANCE
-im0 = np.zeros((42, 32), np.uint8)
-im0[:16, :] = 200
-im1 = np.zeros((42, 32, 1), np.uint8)
-im1[:16, :] = 200
-# Create test image RGB
-im3 = np.zeros((42, 32, 3), np.uint8)
-im3[:16, :, 0] = 250
-im3[:, :16, 1] = 200
-im3[50:, :16, 2] = 100
-# Create test image RGBA
-im4 = np.zeros((42, 32, 4), np.uint8)
-im4[:16, :, 0] = 250
-im4[:, :16, 1] = 200
-im4[50:, :16, 2] = 100
-im4[:, :, 3] = 255
-im4[20:, :, 3] = 120
+@pytest.fixture
+def test_image(request) -> np.array:
+    im = np.zeros((1, 1, 3), dtype=np.uint8)
 
-fnamebase = os.path.join(test_dir, "test")
+    if request.param == "rgb":
+        im = np.zeros((42, 32, 3), np.uint8)
+        im[:16, :, 0] = 250
+        im[:, :16, 1] = 200
+        im[50:, :16, 2] = 100
+    elif request.param == "rgba":
+        im = np.zeros((42, 32, 4), np.uint8)
+        im[:16, :, 0] = 250
+        im[:, :16, 1] = 200
+        im[50:, :16, 2] = 100
+        im[:, :, 3] = 255
+        im[20:, :, 3] = 120
+    elif request.param == "luminance0":
+        im = np.zeros((42, 32), np.uint8)
+        im[:16, :] = 200
+    elif request.param == "luminance1":
+        im = np.zeros((42, 32, 1), np.uint8)
+        im[:16, :] = 200
+    elif request.param == "chelsea":
+        # explicitly don't rely on imageio for download
+        # (presumed to be broken at all times while testing)
+        pass
+
+    return im
+
+# --- Reading Tests ---
+
+
+@pytest.mark.parametrize(
+    "format,test_image",
+    [("png", ["rgb"]), ("png", "rgba"),
+     ("jpg", "rgb"),
+     ("jpeg", "rgb")
+     ],
+    indirect=["test_image"]
+)
+def test_write(tmp_path: Path, format: str, test_image: np.array):
+    im_path = tmp_path / f"test.{format}"
+    with iio.imopen(im_path, plugin="pillow", legacy_api=False) as im_file:
+        im_file.write(test_image)
+
+    assert os.path.exists(im_path)
+
+
+def test_lossless(tmp_path: Path, format: str, test_image: np.array):
+    im_path = tmp_path / f"test.{format}"
+    with iio.imopen(im_path, plugin="pillow", legacy_api=False) as im_file:
+        im_file.write(test_image)
+    iio.new_api.imread(im_path)
+
+
+def test_write_gif():
+    pass
 
 
 def get_ref_im(colors, crop, isfloat):
@@ -75,29 +107,7 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-def test_pillow_format():
-
-    # Format - Pillow is the default!
-    F = imageio.formats["PNG"]
-    assert F.name == "PNG-PIL"
-
-    # Reader
-    R = F.get_reader(core.Request("imageio:chelsea.png", "ri"))
-    assert len(R) == 1
-    assert isinstance(R.get_meta_data(), dict)
-    assert isinstance(R.get_meta_data(0), dict)
-    assert raises(IndexError, R.get_data, 2)
-    assert raises(IndexError, R.get_meta_data, 2)
-
-    # Writer
-    W = F.get_writer(core.Request(fnamebase + ".png", "wi"))
-    W.append_data(im0)
-    W.set_meta_data({"foo": 3})
-    assert raises(RuntimeError, W.append_data, im0)
-
-
 def test_png():
-
     for isfloat in (False, True):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3, 4):
@@ -149,7 +159,8 @@ def test_png():
     assert im2.dtype == np.uint16
 
     # issue #352 - prevent low-luma uint16 truncation to uint8
-    arr = np.full((32, 32), 255, dtype=np.uint16)  # values within range of uint8
+    # values within range of uint8
+    arr = np.full((32, 32), 255, dtype=np.uint16)
     preferences_dtypes = [
         [{}, np.uint8],
         [{"prefer_uint8": True}, np.uint8],
@@ -165,8 +176,8 @@ def test_png_remote():
     # issue #202
     need_internet()
     im = imageio.imread(
-        "https://raw.githubusercontent.com/imageio/"
-        + "imageio-binaries/master/images/astronaut.png"
+        "https://raw.githubusercontent.com/imageio/" +
+        "imageio-binaries/master/images/astronaut.png"
     )
     assert im.shape == (512, 512, 3)
 
@@ -372,8 +383,10 @@ def test_inside_zipfile():
 
     fname = os.path.join(test_dir, "pillowtest.zip")
     with ZipFile(fname, "w") as z:
-        z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
-        z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())
+        z.writestr("x.png", open(get_remote_file(
+            "images/chelsea.png"), "rb").read())
+        z.writestr("x.jpg", open(get_remote_file(
+            "images/rommel.jpg"), "rb").read())
 
     for name in ("x.png", "x.jpg"):
         imageio.imread(fname + "/" + name)
