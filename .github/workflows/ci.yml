@@ -126,7 +126,8 @@ jobs:
       - name: MacOS Numpy Fix
         if: ${{ matrix.os }} == "macos-latest"
         run: |
-            pypy3 -m pip install -U --only-binary :all: numpy
+            brew install openblas
+            OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
       - name: Install dependencies
         shell: bash
         run: |
