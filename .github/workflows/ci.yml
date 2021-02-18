@@ -123,6 +123,10 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "pypy3"
+      - name: MacOS Numpy Fix
+        if: ${{ matrix.os }} == "macos-latest"
+        run: |
+            pypy3 -m pip install -U --only-binary :all: numpy
       - name: Install dependencies
         shell: bash
         run: |
