@@ -66,26 +66,18 @@ jobs:
         if: matrix.TEST_STYLE == 1
         run: |
             python -m pip install -q -U pip
-            pip install -q -U invoke
-            pip install -q -U flake8 black
-            pip install -q -U sphinx numpydoc
-            pip install -q -U numpy pillow
+            pip install .[dev,docs]
 
       - name: Install dependencies for tests
         if: matrix.TEST_UNIT == 1 || matrix.TEST_UNIT_NO_INTERNET == 1
         shell: bash
         run: |
             python -m pip install -q -U pip
-            pip install -q -U invoke
-            pip install -q -U pytest pytest-cov psutil
-            # Install imagio-ffmpeg because its optional but we still want to test it
-            pip install -q -U imageio-ffmpeg
-            # The first local install is really to get the dependencies (as specified in setup.py)
-            pip install .
-            # This step is to force the download of standard images
+            # Build to force downloading images (but this step needs numpy and pillow)
+            pip install -q -U numpy pillow
             python setup.py sdist
-            # Install again (with images)
-            pip install .
+            # Install
+            pip install .[ffmpeg,dev]
             # Delete the local copy, so we're actually using the installed version
             rm -rf ./imageio ./build ./egg-info
 
