@@ -138,7 +138,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pip install -e .[dev, ffmpeg]
+            pip install -e .[dev,ffmpeg]
       - name: Run Unit tests
         run: |
             invoke test --installed
