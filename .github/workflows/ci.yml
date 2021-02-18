@@ -75,7 +75,7 @@ jobs:
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
         run: |
-            invoke test --install
+            invoke test --installed
 
   cpython:
     name: "CPython Test OS: ${{ matrix.os }} Python: ${{ matrix.pyversion }}"
