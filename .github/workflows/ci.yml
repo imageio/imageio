@@ -100,7 +100,7 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install -e .[dev,ffmpeg]
+            pip install .[dev,ffmpeg]
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
@@ -138,7 +138,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pip install -e .[dev,ffmpeg]
+            pip install .[dev,ffmpeg]
       - name: Run Unit tests
         run: |
             invoke test --installed
