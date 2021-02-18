@@ -9,110 +9,136 @@ on:
 
 
 jobs:
-
-  build:
-
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - name: Meta tests (lint, pr-size, docs)
-            os: ubuntu-latest
-            pyversion: '3.8'
-            TEST_STYLE: 1
-          # Main tests for Python versions
-          - name: Linux py36
-            os: ubuntu-latest
-            pyversion: '3.6'
-            TEST_UNIT: 1
-          - name: Linux py37 full
-            os: ubuntu-latest
-            pyversion: '3.7'
-            TEST_UNIT: 1
-            TEST_FULL: 1
-          - name: Linux py38
-            os: ubuntu-latest
-            pyversion: '3.8'
-            TEST_UNIT_NO_INTERNET: 1
-          - name: Linux py39
-            os: ubuntu-latest
-            pyversion: '3.9'
-            TEST_UNIT: 1
-          # Special OS's and interpreters
-          - name: Linux pypy3
-            os: ubuntu-latest
-            pyversion: 'pypy3'
-            TEST_UNIT: 1
-          - name: MacOS py38
-            os: macos-latest
-            pyversion: '3.8'
-            TEST_UNIT: 1
-          - name: Windows py38
-            os: windows-latest
-            pyversion: '3.8'
-            TEST_UNIT: 1
-
+  docs:
+    name: "Documentation"
+    runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v2
-
-      - name: Set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.pyversion }}
-
-      - name: Install dependencies for style build
-        if: matrix.TEST_STYLE == 1
+          python-version: '3.8'
+      - name: Build Docs
         run: |
-            python -m pip install -q -U pip
-            pip install .[dev,docs]
-
-      - name: Install dependencies for tests
-        if: matrix.TEST_UNIT == 1 || matrix.TEST_UNIT_NO_INTERNET == 1
-        shell: bash
-        run: |
-            python -m pip install -q -U pip
-            # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q -U numpy pillow
-            python setup.py sdist
-            # Install. Can't use [dev], because black does not build on pypy ...
-            pip install .[ffmpeg]
-            pip install -q -U invoke pytest pytest-cov psutil
-            # Delete the local copy, so we're actually using the installed version
-            rm -rf ./imageio ./build ./egg-info
-
-      - name: Install optional dependencies for tests
-        if: matrix.TEST_FULL == 1
-        run: |
-            pip install -q -U simpleitk astropy
-
-      - name: Lint (black and flake8)
-        if: matrix.TEST_STYLE == 1
-        run: |
-            invoke lint
-            invoke checkformat
-
+            pip install -e .[dev,docs]
       - name: Test docbuilding
-        if: matrix.TEST_STYLE == 1
         run: |
             invoke docs --clean --build
+      # TODO: Upload the docs to some place
+      # where they can be served. Potentially build
+      # this in a different CI tool that can serve
+      # html artifacts
 
+  pr-size:
+    # Note: Might be deleted / unwanted
+    name: "PR File Size"
+    runs-on: ubuntu-latest
+    steps:
       - name: PR size check
         uses: ookami-kb/gh-pr-size-watcher@v1
-        if: matrix.TEST_STYLE == 1
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }} # required
           errorSize: 500
           warningSize: 300
           excludeTitle: 'PR_SIZE_SKIP'
 
+  style:
+    name: "Linting"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install Dependenceis
+        run: |
+            pip install -e .[dev]
+      - name: Lint (black and flake8)
+        run: |
+            invoke lint
+            invoke checkformat
+
+  no-internet:
+    name: "No-Internet Install"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install Dependenceis
+        run: |
+            # Build to force downloading images (but this step needs numpy and pillow)
+            pip install -q -U numpy pillow
+            python setup.py sdist
+            pip install .[dev,ffmpeg]
+            # Delete the local copy, so we're actually using the installed version
+            rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
-        if: matrix.TEST_UNIT == 1
         run: |
             invoke test --unit
 
-      - name: Unit tests without internet
-        if: matrix.TEST_UNIT_NO_INTERNET == 1
+  cpython:
+    name: "CPython Test OS: ${{ matrix.os }} Python: ${{ matrix.pyversion }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        pyversion: ["3.6", "3.7", "3.8", "3.9"]
+        include:
+          - name: Linux py37 full
+            os: ubuntu-latest
+            pyversion: '3.7'
+            TEST_UNIT: 1
+            TEST_FULL: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.pyversion }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.pyversion }}
+      - name: Install dependencies for tests
+        shell: bash
+        run: |
+            pip install -e .[dev,ffmpeg]
+      - name: Install optional dependencies for tests
+        if: matrix.TEST_FULL == 1
+        run: |
+            pip install -q -U simpleitk astropy
+      - name: Run All Unit tests
+        run: |
+            invoke test --installed
+
+  pypy:
+    name: "Pypy Test OS: ${{ matrix.os }} Python: ${{ matrix.pyversion }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        pyversion: ["pypy-3.6", "pypy-3.7"]
+        include:
+          # Main tests for Python versions
+          - name: Linux py37 full
+            os: ubuntu-latest
+            pyversion: '3.7'
+            TEST_UNIT: 1
+            TEST_FULL: 1
+          # Special OS's and interpreters
+          - name: Linux pypy3
+            os: ubuntu-latest
+            pyversion: 'pypy3'
+            TEST_UNIT: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up pypy
+        uses: actions/setup-python@v2
+        with:
+          python-version: "pypy3"
+      - name: Install dependencies
+        shell: bash
+        run: |
+            pip install -e .[dev, ffmpeg]
+      - name: Run Unit tests
         run: |
             invoke test --installed
