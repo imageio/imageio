@@ -173,7 +173,7 @@ install_requires = ["numpy", "pillow"]
 
 extras_require = {
     "linting": ["black", "flake8"],
-    "dev": ["invoke",  "pytest", "pytest-cov"],
+    "dev": ["invoke", "pytest", "pytest-cov"],
     "docs": ["sphinx", "numpydoc"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
