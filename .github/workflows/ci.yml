@@ -51,7 +51,7 @@ jobs:
           python-version: '3.8'
       - name: Install Dependenceis
         run: |
-            pip install -e .[dev]
+            pip install -e .[dev,linting]
       - name: Lint (black and flake8)
         run: |
             invoke lint

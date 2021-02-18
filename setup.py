@@ -172,9 +172,10 @@ class build_with_images(sdist):
 install_requires = ["numpy", "pillow"]
 
 extras_require = {
-    "dev": ["invoke", "black", "flake8", "pytest", "pytest-cov", "psutil"],
+    "linting": ["black", "flake8"],
+    "dev": ["invoke",  "pytest", "pytest-cov"],
     "docs": ["sphinx", "numpydoc"],
-    "ffmpeg": ["imageio-ffmpeg"],
+    "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
     "itk": ["itk"],
