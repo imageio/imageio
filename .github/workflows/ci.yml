@@ -75,7 +75,7 @@ jobs:
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
         run: |
-            invoke test --unit
+            invoke test --install
 
   cpython:
     name: "CPython Test OS: ${{ matrix.os }} Python: ${{ matrix.pyversion }}"
@@ -107,7 +107,7 @@ jobs:
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
         run: |
-            invoke test --installed
+            invoke test --unit
 
   pypy:
     name: "Pypy Test OS: ${{ matrix.os }} Python: ${{ matrix.pyversion }}"
@@ -141,4 +141,4 @@ jobs:
             pip install .[dev,ffmpeg]
       - name: Run Unit tests
         run: |
-            invoke test --installed
+            invoke test --unit
