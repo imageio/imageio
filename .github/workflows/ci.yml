@@ -78,7 +78,7 @@ jobs:
             invoke test --installed
 
   cpython:
-    name: "CPython / ${{ matrix.os }} / Python: ${{ matrix.pyversion }}"
+    name: "${{ runner.os }} / CPython ${{ matrix.pyversion }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -110,7 +110,7 @@ jobs:
             invoke test --unit
 
   pypy:
-    name: "Pypy / ${{ matrix.os }} / Python: ${{ matrix.pyversion }}"
+    name: "${{ runner.os }} / ${{ matrix.pyversion }}"
     runs-on: ${{ matrix.os }}
     strategy:
       # fail-fast: true
