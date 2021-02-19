@@ -124,15 +124,15 @@ jobs:
         with:
           python-version: "pypy3"
       - name: MacOS Numpy Fix
-        if: matrix.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
             brew install openblas
             OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
       - name: Install Windows Compile Suite
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
       - name: Windows Pillow Fix
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
             Invoke-WebRequest "https://zlib.net/zlib-1.2.11.tar.gz" -OutFile zlib-1.2.11.tar.gz
