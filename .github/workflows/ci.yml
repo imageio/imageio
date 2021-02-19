@@ -139,6 +139,7 @@ jobs:
             tar -xvzf .\zlib-1.2.11.tar.gz
             cd zlib-1.2.11
             nmake -f win32\Makefile.msc
+            echo $PWD | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Install dependencies
         shell: bash
         run: |
