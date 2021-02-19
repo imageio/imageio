@@ -78,7 +78,7 @@ jobs:
             invoke test --installed
 
   cpython:
-    name: "CPython / ${{ runner.os }} / Python ${{ matrix.pyversion }}"
+    name: "CPython | ${{ runner.os }} | Python ${{ matrix.pyversion }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
