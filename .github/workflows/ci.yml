@@ -28,19 +28,6 @@ jobs:
       # this in a different CI tool that can serve
       # html artifacts
 
-  pr-size:
-    # Note: Might be deleted / unwanted
-    name: "PR File Size"
-    runs-on: ubuntu-latest
-    steps:
-      - name: PR size check
-        uses: ookami-kb/gh-pr-size-watcher@v1
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }} # required
-          errorSize: 500
-          warningSize: 300
-          excludeTitle: 'PR_SIZE_SKIP'
-
   style:
     name: "Linting"
     runs-on: ubuntu-latest
