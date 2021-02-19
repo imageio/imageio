@@ -49,7 +49,7 @@ def test_image(request) -> np.array:
 
 @pytest.mark.parametrize(
     "format,test_image",
-    [("png", ["rgb"]), ("png", "rgba"),
+    [("png", "rgb"), ("png", "rgba"),
      ("jpg", "rgb"),
      ("jpeg", "rgb")
      ],
