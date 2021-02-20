@@ -78,7 +78,7 @@ class PillowPlugin(Plugin):
             return image
         else:
             iterator = self.iter(mode=mode, formats=formats)
-            return np.stack([im for im in iterator], axis=0)
+            return np.squeeze(np.stack([im for im in iterator], axis=0),axis=0)
 
     def iter(self, *, mode=None, formats=None):
         """
@@ -108,7 +108,7 @@ class PillowPlugin(Plugin):
             for im in ImageSequence.Iterator(self._image):
                 yield np.asarray(im)
 
-    def write(self, image, *, format=None, **kwargs):
+    def write(self, image, *, mode=None, format=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -120,6 +120,10 @@ class PillowPlugin(Plugin):
         ----------
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
+        mode : {str, None}
+            Convert the image to the given mode before returning it. If None,
+            the mode will be left unchanged. Possible modes can be found at:
+            https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         format : {str, None}
             Optional format override.  If omitted, the format to use is
             determined from the filename extension. If a file object was used
@@ -132,8 +136,12 @@ class PillowPlugin(Plugin):
             for each writer.
 
         """
+ 
+        pil_image = Image.fromarray(image, mode=mode)
 
-        pil_image = Image.fromarray(image)
+        if "bits" in kwargs:
+            pil_image = pil_image.quantize(colors=2**kwargs["bits"])
+
         pil_image.save(self._uri, format=format, **kwargs)
 
     def get_meta(self, *, index=None, formats=None):

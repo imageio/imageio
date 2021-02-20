@@ -5,18 +5,54 @@ import pytest
 import os
 import numpy as np
 from pathlib import Path
-import urllib
+import urllib.request
+import shutil
 
 import imageio as iio
 
 
-@pytest.fixture
-def tmp_dir(tmp_path):
-    return tmp_path
+@pytest.fixture(scope="module")
+def tmp_dir(tmp_path_factory):
+    # A temporary directory loaded with the test image files
+    # downloaded once in the beginning
+    tmp_path = tmp_path_factory.getbasetemp() / "image_cache"
+    tmp_path.mkdir()
+    imgs = [
+        "chelsea.bmp",
+        "chelsea.bsdf",
+        "chelsea.jpg",
+        "chelsea.npy",
+        "chelsea_jpg.npy",
+        "chelsea.png",
+        "chelsea.zip",
+        "newtonscradle_rgb.npy",
+        "newtonscradle_rgba.npy",
+        "newtonscradle.gif"
+    ]
+    base_url = "https://raw.githubusercontent.com/FirefoxMetzger/imageio-binaries/master/test-images/"
+    for im in imgs:
+        urllib.request.urlretrieve(base_url + im, tmp_path / im)
+    return tmp_path_factory.getbasetemp()
 
 
 @pytest.fixture
-def test_image(request) -> np.array:
+def image_files(tmp_dir):
+    # create a copy of the test images for the actual tests
+    # not avoid interaction between tests
+    image_dir = tmp_dir / "image_cache"
+    data_dir = tmp_dir / "data"
+    data_dir.mkdir(exist_ok=True)
+    for item in image_dir.iterdir():
+        if item.is_file():
+            shutil.copy(item, data_dir / item.name)
+
+    yield data_dir
+
+    shutil.rmtree(data_dir)
+
+
+@pytest.fixture
+def test_image(request, image_files) -> np.array:
     im = np.zeros((1, 1, 3), dtype=np.uint8)
 
     if request.param == "rgb":
@@ -38,9 +74,11 @@ def test_image(request) -> np.array:
         im = np.zeros((42, 32, 1), np.uint8)
         im[:16, :] = 200
     elif request.param == "chelsea":
-        # explicitly don't rely on imageio for download
-        # (presumed to be broken at all times while testing)
-        pass
+        im = np.load(image_files / "chelsea.npy")
+    elif request.param == "newtonscradle_rgb":
+        im = np.load(image_files / "newtonscradle_rgb.npy")
+    elif request.param == "newtonscradle_rgba":
+        im = np.load(image_files / "newtonscradle_rgba.npy")
 
     return im
 
@@ -48,31 +86,111 @@ def test_image(request) -> np.array:
 
 
 @pytest.mark.parametrize(
-    "format,test_image",
-    [("png", "rgb"), ("png", "rgba"),
-     ("jpg", "rgb"),
-     ("jpeg", "rgb")
-     ],
-    indirect=["test_image"]
+    "im_npy,im_out,im_comp",
+    [
+        ("chelsea.npy", "test.png", "chelsea.png"),
+        ("chelsea.npy", "test.jpg", "chelsea.jpg"),
+        ("chelsea.npy", "test.jpeg", "chelsea.jpg"),
+        ("newtonscradle_rgb.npy", "test.gif", "newtonscradle.gif"),
+        ("newtonscradle_rgba.npy", "test.gif", "newtonscradle.gif"),
+    ],
 )
-def test_write(tmp_path: Path, format: str, test_image: np.array):
-    im_path = tmp_path / f"test.{format}"
-    with iio.imopen(im_path, plugin="pillow", legacy_api=False) as im_file:
-        im_file.write(test_image)
+def test_write(image_files: Path, im_npy: str, im_out: str, im_comp: str):
+    im = np.load(image_files / im_npy)
+    created_file = image_files / im_out
 
-    assert os.path.exists(im_path)
+    with iio.imopen(created_file, plugin="pillow", legacy_api=False) as f:
+        f.write(im)
+
+    # file exists
+    assert os.path.exists(created_file)
+
+    # file content matches expected content
+    target = image_files / im_comp
+    assert target.read_bytes() == created_file.read_bytes()
 
 
-def test_lossless(tmp_path: Path, format: str, test_image: np.array):
-    im_path = tmp_path / f"test.{format}"
-    with iio.imopen(im_path, plugin="pillow", legacy_api=False) as im_file:
-        im_file.write(test_image)
-    iio.new_api.imread(im_path)
+@pytest.mark.parametrize(
+    "im_in,npy_comp,mode",
+    [
+        ("chelsea.png", "chelsea.npy", "RGB"),
+        ("chelsea.jpg", "chelsea_jpg.npy", "RGB"),
+        ("newtonscradle.gif", "newtonscradle_rgb.npy", "RGB"),
+        ("newtonscradle.gif", "newtonscradle_rgba.npy", "RGBA"),
+    ],
+)
+def test_read(image_files: Path, im_in: str, npy_comp: str, mode: str):
+    im_path = image_files / im_in
+    im = iio.new_api.imread(im_path, legacy_api=False, plugin="pillow")
+
+    target = np.load(image_files / npy_comp)
+    assert np.allclose(im, target)
 
 
-def test_write_gif():
-    pass
+def test_png_compression(image_files: Path):
+    # Note: Note sure if we should test this or pillow
 
+    im = np.load(image_files / "chelsea.npy")
+
+    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im, compress_level=0)
+
+    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im, compress_level=9)
+
+    size_1 = os.stat(image_files / "1.png").st_size
+    size_2 = os.stat(image_files / "2.png").st_size
+    assert size_2 < size_1
+
+
+def test_png_quantization(image_files: Path):
+    # Note: Note sure if we should test this or pillow
+
+    im = np.load(image_files / "chelsea.npy")
+
+    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im, bits=8)
+
+    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im, bits=2)
+
+    size_1 = os.stat(image_files / "1.png").st_size
+    size_2 = os.stat(image_files / "2.png").st_size
+    assert size_2 < size_1
+
+
+def test_png_16bit(image_files: Path):
+    # 16b bit images
+    im = np.load(image_files / "chelsea.npy")[..., 0]
+
+    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
+        f.write(2 * im.astype(np.uint16))
+
+    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im)
+
+    size_1 = os.stat(image_files / "1.png").st_size
+    size_2 = os.stat(image_files / "2.png").st_size
+    assert size_2 < size_1
+
+    im2 = iio.new_api.imread(image_files / "1.png")
+    assert im2.dtype == np.uint16
+
+
+# Note: There was a test here referring to issue #352 and a `prefer_uint8`
+# argument that was introduced as a consequence This argument was default=true
+# (for backwards compatibility) in the legacy plugin with the recommendation to
+# set it to False. In the new API, we literally just wrap Pillow, so we match
+# their behavior. Consequentially this test was removed.
+
+def test_png_remote():
+    # issue #202
+
+    url = ("https://raw.githubusercontent.com/imageio/"
+           "imageio-binaries/master/images/astronaut.png")
+    response = urllib.request.urlopen(url)
+    im = iio.new_api.imread(response, legacy_api=False, plugin="pillow")
+    assert im.shape == (512, 512, 3)
 
 def get_ref_im(colors, crop, isfloat):
     """Get reference image with
@@ -105,81 +223,6 @@ def assert_close(im1, im2, tol=0.0):
     assert np.abs(diff).max() <= tol
     # import visvis as vv
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
-
-
-def test_png():
-    for isfloat in (False, True):
-        for crop in (0, 1, 2):
-            for colors in (0, 1, 3, 4):
-                fname = fnamebase + "%i.%i.%i.png" % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                assert_close(rim * mul, im, 0.1)  # lossless
-
-    # Parameters
-    im = imageio.imread("imageio:chelsea.png", ignoregamma=True)
-    imageio.imsave(fnamebase + ".png", im, interlaced=True)
-
-    # Parameter fail
-    raises(TypeError, imageio.imread, "imageio:chelsea.png", notavalidk=True)
-    raises(TypeError, imageio.imsave, fnamebase + ".png", im, notavalidk=True)
-
-    # Compression
-    imageio.imsave(fnamebase + "1.png", im, compression=0)
-    imageio.imsave(fnamebase + "2.png", im, compression=9)
-    s1 = os.stat(fnamebase + "1.png").st_size
-    s2 = os.stat(fnamebase + "2.png").st_size
-    assert s2 < s1
-    # Fail
-    raises(ValueError, imageio.imsave, fnamebase + ".png", im, compression=12)
-
-    # Quantize
-    imageio.imsave(fnamebase + "1.png", im, quantize=256)
-    imageio.imsave(fnamebase + "2.png", im, quantize=4)
-
-    im = imageio.imread(fnamebase + "2.png")  # touch palette read code
-    s1 = os.stat(fnamebase + "1.png").st_size
-    s2 = os.stat(fnamebase + "2.png").st_size
-    assert s1 > s2
-    # Fail
-    fname = fnamebase + "1.png"
-    raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
-    raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
-
-    # 16b bit images
-    im = imageio.imread("imageio:chelsea.png")[:, :, 0]
-    imageio.imsave(fnamebase + "1.png", im.astype("uint16") * 2)
-    imageio.imsave(fnamebase + "2.png", im)
-    s1 = os.stat(fnamebase + "1.png").st_size
-    s2 = os.stat(fnamebase + "2.png").st_size
-    assert s2 < s1
-    im2 = imageio.imread(fnamebase + "1.png")
-    assert im2.dtype == np.uint16
-
-    # issue #352 - prevent low-luma uint16 truncation to uint8
-    # values within range of uint8
-    arr = np.full((32, 32), 255, dtype=np.uint16)
-    preferences_dtypes = [
-        [{}, np.uint8],
-        [{"prefer_uint8": True}, np.uint8],
-        [{"prefer_uint8": False}, np.uint16],
-    ]
-    for preference, dtype in preferences_dtypes:
-        imageio.imwrite(fnamebase + ".png", arr, **preference)
-        im = imageio.imread(fnamebase + ".png")
-        assert im.dtype == dtype
-
-
-def test_png_remote():
-    # issue #202
-    need_internet()
-    im = imageio.imread(
-        "https://raw.githubusercontent.com/imageio/" +
-        "imageio-binaries/master/images/astronaut.png"
-    )
-    assert im.shape == (512, 512, 3)
 
 
 def test_jpg():
