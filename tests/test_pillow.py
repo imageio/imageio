@@ -192,6 +192,23 @@ def test_png_remote():
     im = iio.new_api.imread(response, legacy_api=False, plugin="pillow")
     assert im.shape == (512, 512, 3)
 
+
+def test_jpg_compression(image_files: Path):
+    # Note: Note sure if we should test this or pillow
+
+    im = np.load(image_files / "chelsea.npy")
+
+    with iio.imopen(image_files / "1.jpg", legacy_api=False, plugin="pillow") as f:
+        f.write(im, quality=90)
+
+    with iio.imopen(image_files / "2.jpg", legacy_api=False, plugin="pillow") as f:
+        f.write(im, quality=10)
+
+    size_1 = os.stat(image_files / "1.jpg").st_size
+    size_2 = os.stat(image_files / "2.jpg").st_size
+    assert size_2 < size_1
+
+
 def get_ref_im(colors, crop, isfloat):
     """Get reference image with
     * colors: 0, 1, 3, 4
@@ -223,40 +240,6 @@ def assert_close(im1, im2, tol=0.0):
     assert np.abs(diff).max() <= tol
     # import visvis as vv
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
-
-
-def test_jpg():
-
-    for isfloat in (False, True):
-        for crop in (0, 1, 2):
-            for colors in (0, 1, 3):
-                fname = fnamebase + "%i.%i.%i.jpg" % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                assert_close(rim * mul, im, 1.1)  # lossy
-
-    # No alpha in JPEG
-    fname = fnamebase + ".jpg"
-    raises(Exception, imageio.imsave, fname, im4)
-
-    # Parameters
-    imageio.imsave(
-        fnamebase + ".jpg", im3, progressive=True, optimize=True, baseline=True
-    )
-
-    # Parameter fail - We let Pillow kwargs thorugh
-    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
-    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
-
-    # Compression
-    imageio.imsave(fnamebase + "1.jpg", im3, quality=10)
-    imageio.imsave(fnamebase + "2.jpg", im3, quality=90)
-    s1 = os.stat(fnamebase + "1.jpg").st_size
-    s2 = os.stat(fnamebase + "2.jpg").st_size
-    assert s2 > s1
-    raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
 
 
 def test_jpg_more():
