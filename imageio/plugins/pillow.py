@@ -78,7 +78,10 @@ class PillowPlugin(Plugin):
             return image
         else:
             iterator = self.iter(mode=mode, formats=formats)
-            return np.squeeze(np.stack([im for im in iterator], axis=0),axis=0)
+            image = np.stack([im for im in iterator], axis=0)
+            if image.shape[0] == 1:
+                image = np.squeeze(image, axis=0)
+            return image
 
     def iter(self, *, mode=None, formats=None):
         """
