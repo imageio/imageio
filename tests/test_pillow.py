@@ -258,6 +258,13 @@ def test_gif():
     raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
     raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
 
+def test_gif_pilmode():
+    # Bug found in issue #600
+    image = np.asarray(imageio.mimread("imageio:newtonscradle.gif", pilmode="RGB"))
+    assert np.array_equal(image.shape, (36, 150, 200, 3))
+
+    image = np.asarray(imageio.mimread("imageio:newtonscradle.gif", pilmode="RGBA"))
+    assert np.array_equal(image.shape, (36, 150, 200, 4))
 
 def test_animated_gif():
 
