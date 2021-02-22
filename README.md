@@ -2,8 +2,7 @@
 
 [![PyPI Version](https://img.shields.io/pypi/v/imageio.svg)](https://pypi.python.org/pypi/imageio/)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/imageio.svg)](https://pypi.python.org/pypi/imageio/)
-[![Build Status](https://travis-ci.org/imageio/imageio.svg?branch=master)](https://travis-ci.org/imageio/imageio)
-[![Coverage Status](https://coveralls.io/repos/github/imageio/imageio/badge.svg?branch=master)](https://coveralls.io/github/imageio/imageio?branch=master)
+[![Build Status]![CI](https://github.com/imageio/imageio/workflows/CI/badge.svg)](https://github.com/imageio/imageio/actions)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.io)
 [![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1488561.svg)](https://doi.org/10.5281/zenodo.1488561)
@@ -122,29 +121,22 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 
 <h2>Contributing</h2>
 
-<p>Install a complete development environment:</p>
-
+<p>Install imageio in edit mode, with dev tools:</p>
 ```bash
-pip install -r requirements.txt
-pip install -e .
+pip install -e .[dev,docs]
 ```
 
-<p><i>N.B. this does not include GDAL because it has awkward compiled dependencies</i></p>
-
-<p>You may see failing test(s) due to missing installed components.
-On ubuntu, do <code>sudo apt install libfreeimage3</code></p>
-
-<p>
-Style checks, unit tests and coverage are controlled by <code>invoke</code>.
-Before committing, check these with:</p>
+<p>Most developer command are done via <code>invoke</code>.</p>
 
 ```bash
-# reformat code on python 3.6+
-invoke autoformat
-# check there are no style errors
-invoke test --style
-# check the tests pass
+# Check all available commands
+invoke -l
+# Reformat code (using Black)
+invoke format
+# Check for style errors
+invoke lint
+# Run unit tests
 invoke test --unit
-# check test coverage (re-runs tests)
+# Check test coverage (re-runs tests)
 invoke test --cover
 ```
