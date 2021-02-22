@@ -703,7 +703,7 @@ def parse_device_names(ffmpeg_output):
 format = FfmpegFormat(
     "ffmpeg",
     "Many video formats and cameras (via ffmpeg)",
-    ".mov .avi .mpg .mpeg .mp4 .mkv .wmv",
+    ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv",
     "I",
 )
 formats.add_format(format)
