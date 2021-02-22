@@ -18,42 +18,42 @@ def _exif_orientation_transform(orientation, mode):
 
     # -1 if the mode has color channel, 0 otherwise
     axis_offset = {
-        "1": 0,
-        "L": 0,
-        "P": 0,
-        "RGB": -1,
-        "RGBA": -1,
-        "CMYK": -1,
-        "YCbCr": -1,
-        "LAB": -1,
-        "HSV": -1,
-        "I": 0,
-        "F": 0,
-        "LA": -1,
-        "PA": -1,
-        "RGBX": -1,
-        "RGBa": -1,
-        "La": 0,
-        "I;16": 0,
-        "I:16L": 0,
-        "I;16N": 0,
-        "BGR;15": -1,
-        "BGR;16": -1,
-        "BGR;24": -1,
-        "BGR;32": -1
+        "1": -1,
+        "L": -1,
+        "P": -1,
+        "RGB": -2,
+        "RGBA": -2,
+        "CMYK": -2,
+        "YCbCr": -2,
+        "LAB": -2,
+        "HSV": -2,
+        "I": -1,
+        "F": -1,
+        "LA": -2,
+        "PA": -2,
+        "RGBX": -2,
+        "RGBa": -2,
+        "La": -1,
+        "I;16": -1,
+        "I:16L": -1,
+        "I;16N": -1,
+        "BGR;15": -2,
+        "BGR;16": -2,
+        "BGR;24": -2,
+        "BGR;32": -2
     }
 
     axis = axis_offset[mode]
 
     EXIF_ORIENTATION = {
         1: lambda x: x,
-        2: lambda x: np.flip(x, axis=axis - 1),
+        2: lambda x: np.flip(x, axis=axis),
         3: lambda x: np.rot90(x, k=2),
-        4: lambda x: np.flip(x, axis=axis),
-        5: lambda x: np.rot90(np.flip(x, axis=axis - 1), k=-3),
-        6: lambda x: np.rot90(x, k=-1),
-        7: lambda x: np.rot90(np.flip(x, axis=axis - 1), k=-1),
-        8: lambda x: np.rot90(x, k=-3)
+        4: lambda x: np.flip(x, axis=axis - 1),
+        5: lambda x: np.flip(np.rot90(x, k=3), axis=axis),
+        6: lambda x: np.rot90(x, k=1),
+        7: lambda x: np.flip(np.rot90(x, k=1), axis=axis),
+        8: lambda x: np.rot90(x, k=3)
     }
 
     return EXIF_ORIENTATION[orientation]
