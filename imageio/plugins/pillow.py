@@ -12,9 +12,56 @@ from PIL import (
 from ..core.imopen import Plugin
 
 
+def _exif_orientation_transform(orientation, mode):
+    # get transformation that transforms an image from a
+    # given EXIF orientation into the standard orientation
+
+    # -1 if the mode has color channel, 0 otherwise
+    axis_offset = {
+        "1": 0,
+        "L": 0,
+        "P": 0,
+        "RGB": -1,
+        "RGBA": -1,
+        "CMYK": -1,
+        "YCbCr": -1,
+        "LAB": -1,
+        "HSV": -1,
+        "I": 0,
+        "F": 0,
+        "LA": -1,
+        "PA": -1,
+        "RGBX": -1,
+        "RGBa": -1,
+        "La": 0,
+        "I;16": 0,
+        "I:16L": 0,
+        "I;16N": 0,
+        "BGR;15": -1,
+        "BGR;16": -1,
+        "BGR;24": -1,
+        "BGR;32": -1
+    }
+
+    axis = axis_offset[mode]
+
+    EXIF_ORIENTATION = {
+        1: lambda x: x,
+        2: lambda x: np.flip(x, axis=axis - 1),
+        3: lambda x: np.rot90(x, k=2),
+        4: lambda x: np.flip(x, axis=axis),
+        5: lambda x: np.rot90(np.flip(x, axis=axis - 1), k=-3),
+        6: lambda x: np.rot90(x, k=-1),
+        7: lambda x: np.rot90(np.flip(x, axis=axis - 1), k=-1),
+        8: lambda x: np.rot90(x, k=-3)
+    }
+
+    return EXIF_ORIENTATION[orientation]
+
+
 class PillowPlugin(Plugin):
     def __init__(self, uri):
-        """ Instantiate a new Legacy Plugin
+        """ Instantiate a new Pillow Plugin Object
 
         Parameters
         ----------
@@ -30,7 +77,7 @@ class PillowPlugin(Plugin):
         if self._image:
             self._image.close()
 
-    def read(self, *, index=None, mode=None, formats=None):
+    def read(self, *, index=None, mode=None, rotate=False, formats=None):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -45,6 +92,9 @@ class PillowPlugin(Plugin):
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
+        rotate : {bool}
+            If set to ``True`` and the image contains an EXIF orientation tag,
+            apply the orientation before returning the ndimage.
         formats : {iterable, None}
             A list or tuple of format strings to attempt to load the file in.
             This can be used to restrict the set of formats checked. Pass
@@ -77,15 +127,22 @@ class PillowPlugin(Plugin):
             else:
                 image = np.asarray(self._image)
 
+            meta = self.get_meta()
+            if rotate and "Orientation" in meta:
+                transformation = _exif_orientation_transform(
+                    meta["Orientation"],
+                    self._image.mode
+                )
+                image = transformation(image)
             return image
         else:
-            iterator = self.iter(mode=mode, formats=formats)
+            iterator = self.iter(mode=mode, formats=formats, rotate=rotate)
             image = np.stack([im for im in iterator], axis=0)
             if image.shape[0] == 1:
                 image = np.squeeze(image, axis=0)
             return image
 
-    def iter(self, *, mode=None, formats=None):
+    def iter(self, *, mode=None, rotate=False, formats=None):
         """
         Iterate over all ndimages/frames in the URI
 
@@ -95,6 +152,9 @@ class PillowPlugin(Plugin):
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
+        rotate : {bool}
+            If set to ``True`` and the image contains an EXIF orientation tag,
+            apply the orientation before returning the ndimage.
         formats : {iterable, None}
             A list or tuple of format strings to attempt to load the file in.
             This can be used to restrict the set of formats checked. Pass
@@ -106,12 +166,21 @@ class PillowPlugin(Plugin):
         if not self._image:
             self._image = Image.open(self._uri, formats=None)
 
-        if mode is not None:
-            for im in ImageSequence.Iterator(self._image):
-                yield np.asarray(im.convert(mode))
-        else:
-            for im in ImageSequence.Iterator(self._image):
-                yield np.asarray(im)
+        for im in ImageSequence.Iterator(self._image):
+            # import pdb; pdb.set_trace()
+            if mode is not None:
+                im = im.convert(mode)
+            im = np.asarray(im)
+
+            meta = self.get_meta()
+            if rotate and "Orientation" in meta:
+                transformation = _exif_orientation_transform(
+                    meta["Orientation"],
+                    self._image.mode
+                )
+                im = transformation(im)
+
+            yield im
 
     def write(self, image, *, mode=None, format=None, **kwargs):
         """

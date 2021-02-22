@@ -209,6 +209,35 @@ def test_jpg_compression(image_files: Path):
     assert size_2 < size_1
 
 
+def test_exif_orientation(image_files: Path):
+    from PIL.Image import Exif
+    im = np.load(image_files / "chelsea.npy")
+
+    # original image is has landscape format
+    assert im.shape[0] < im.shape[1]
+
+    im_flipped = np.rot90(im, -1)
+    exif_tag = Exif()
+    exif_tag[274] = 6  # Set Orientation to 6
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im_flipped, exif=exif_tag)
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        im_reloaded = f.read()
+        im_meta = f.get_meta()
+
+    # ensure raw image is now portrait
+    assert im_reloaded.shape[0] > im_reloaded.shape[1]
+    # ensure that the Exif tag is set in the file
+    assert "Orientation" in im_meta and im_meta["Orientation"] == 6
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        im_rotated = f.read(rotate=True)
+
+    assert np.array_equal(im, im_rotated)
+
+
 def get_ref_im(colors, crop, isfloat):
     """Get reference image with
     * colors: 0, 1, 3, 4
@@ -245,24 +274,7 @@ def assert_close(im1, im2, tol=0.0):
 def test_jpg_more():
     need_internet()
 
-    # Test broken JPEG
-    fname = fnamebase + "_broken.jpg"
-    open(fname, "wb").write(b"this is not an image")
-    raises(Exception, imageio.imread, fname)
-    #
-    bb = imageio.imsave(imageio.RETURN_BYTES, get_ref_im(3, 0, 0), "JPEG")
-    with open(fname, "wb") as f:
-        f.write(bb[:400])
-        f.write(b" ")
-        f.write(bb[400:])
-    raises(Exception, imageio.imread, fname)
-
     # Test EXIF stuff
-    fname = get_remote_file("images/rommel.jpg")
-    im = imageio.imread(fname)
-    assert im.shape[0] > im.shape[1]
-    im = imageio.imread(fname, exifrotate=False)
-    assert im.shape[0] < im.shape[1]
     im = imageio.imread(fname, exifrotate=2)  # Rotation in Python
     assert im.shape[0] > im.shape[1]
     # Write the jpg and check that exif data is maintained
