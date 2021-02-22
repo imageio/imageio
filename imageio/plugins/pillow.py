@@ -5,7 +5,9 @@
 """
 
 import numpy as np
-from PIL import Image, UnidentifiedImageError, ImageSequence
+from PIL import (
+    Image, UnidentifiedImageError, ImageSequence, ExifTags
+)
 
 from ..core.imopen import Plugin
 
@@ -139,7 +141,7 @@ class PillowPlugin(Plugin):
             for each writer.
 
         """
- 
+
         pil_image = Image.fromarray(image, mode=mode)
 
         if "bits" in kwargs:
@@ -168,6 +170,16 @@ class PillowPlugin(Plugin):
 
         if index is not None:
             self._image.seek(index)
+
+        metadata = self._image.info
+
+        if self._image.getexif():
+            exif_data = {
+                ExifTags.TAGS.get(key, "unknown"): value
+                for key, value in dict(self._image.getexif()).items()
+            }
+            exif_data.pop("unknown", None)
+            metadata.update(exif_data)
 
         return self._image.info
 
