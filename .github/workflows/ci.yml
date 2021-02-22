@@ -19,7 +19,7 @@ jobs:
           python-version: '3.8'
       - name: Build Docs
         run: |
-            pip install -e .[dev,docs]
+            pip install -e .[test,docs]
       - name: Test docbuilding
         run: |
             invoke docs --clean --build
@@ -38,7 +38,7 @@ jobs:
           python-version: '3.8'
       - name: Install Dependenceis
         run: |
-            pip install -e .[dev,linting]
+            pip install -e .[test,linting]
       - name: Lint (black and flake8)
         run: |
             invoke lint
@@ -57,7 +57,7 @@ jobs:
             # Build to force downloading images (but this step needs numpy and pillow)
             pip install -q -U numpy pillow
             python setup.py sdist
-            pip install .[dev,ffmpeg]
+            pip install .[test,ffmpeg]
             # Delete the local copy, so we're actually using the installed version
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
@@ -87,7 +87,7 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[dev,ffmpeg]
+            pip install .[test,ffmpeg]
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
@@ -118,7 +118,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pypy3 -m pip install .[dev,ffmpeg]
+            pypy3 -m pip install .[test,ffmpeg]
       - name: Run Unit tests
         run: |
             invoke test --unit

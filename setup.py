@@ -173,7 +173,7 @@ install_requires = ["numpy", "pillow"]
 
 extras_require = {
     "linting": ["black", "flake8"],
-    "dev": ["invoke", "pytest", "pytest-cov"],
+    "test": ["invoke", "pytest", "pytest-cov"],
     "docs": ["sphinx", "numpydoc"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
@@ -181,6 +181,7 @@ extras_require = {
     "itk": ["itk"],
 }
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
+extras_require["dev"] = extras_require["test"] + extras_require["linting"]
 
 
 setup(
