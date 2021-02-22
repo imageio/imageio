@@ -21,20 +21,18 @@ def lint(ctx):
         unit="run unit tests (pytest)",
         installed="like unit, but prefer using installed package, "
         + "and do not allow the use of internet.",
-        style="run style tests (flake8)",
+        style="run style tests (flake8 and black)",
         cover="show test coverage",
     ),
 )
 def test(ctx, unit=False, installed=False, style=False, cover=False):
     """run tests (unit, style)"""
 
-    from imageio import testing
-
     if not (unit or installed or style or cover):
         sys.exit("Test task needs --unit, --style or --cover")
 
     if unit:
-        sys.exit(testing.test_unit())
+        sys.exit(pytest_wrapper())
 
     if style:
         flake8_wrapper()  # exits on fail
@@ -47,10 +45,10 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
             elif p == ROOT_DIR or p == os.path.dirname(ROOT_DIR):
                 sys.path.remove(p)
         os.environ["IMAGEIO_NO_INTERNET"] = "1"
-        sys.exit(testing.test_unit())
+        sys.exit(pytest_wrapper())
 
     if cover:
-        res = testing.test_unit(cov_report="html")
+        res = pytest_wrapper(cov_report="html")
         if res:
             raise RuntimeError("Cannot show coverage, tests failed.")
         print("Launching browser.")
@@ -62,8 +60,26 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
 
 @task
 def autoformat(ctx):
+    """Alias for format."""
+    black_wrapper(True)
+
+
+@task
+def format(ctx):
     """Format the code using the Black uncompromising formatter."""
     black_wrapper(True)
+
+
+@task
+def checkformat(ctx):
+    """Check for formatting errors using Black."""
+    black_wrapper(False)
+
+
+@task
+def lint(ctx):
+    """Check for linting errors using flake8."""
+    flake8_wrapper()  # exits on fail
 
 
 def flake8_wrapper():
@@ -87,3 +103,21 @@ def black_wrapper(writeback):
     import black
 
     black.main()
+
+
+def pytest_wrapper(cov_report="term"):
+    """ Helper function to run tests."""
+    import pytest
+
+    return pytest.main(
+        [
+            "-v",
+            "--cov",
+            "imageio",
+            "--cov-config",
+            ".coveragerc",
+            "--cov-report",
+            cov_report,
+            os.path.join(ROOT_DIR, "tests"),
+        ]
+    )
