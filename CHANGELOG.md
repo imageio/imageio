@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [planned]
 
+* Enable WebM reading and writing support through ffmpeg.
 * Improved handling and support for meta data.
 * New animated gif based on ffmpeg
 
