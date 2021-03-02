@@ -192,6 +192,52 @@ def test_png_remote():
     im = iio.new_api.imread(response, legacy_api=False, plugin="pillow")
     assert im.shape == (512, 512, 3)
 
+
+def test_jpg_compression(image_files: Path):
+    # Note: Note sure if we should test this or pillow
+
+    im = np.load(image_files / "chelsea.npy")
+
+    with iio.imopen(image_files / "1.jpg", legacy_api=False, plugin="pillow") as f:
+        f.write(im, quality=90)
+
+    with iio.imopen(image_files / "2.jpg", legacy_api=False, plugin="pillow") as f:
+        f.write(im, quality=10)
+
+    size_1 = os.stat(image_files / "1.jpg").st_size
+    size_2 = os.stat(image_files / "2.jpg").st_size
+    assert size_2 < size_1
+
+
+def test_exif_orientation(image_files: Path):
+    from PIL.Image import Exif
+    im = np.load(image_files / "chelsea.npy")
+
+    # original image is has landscape format
+    assert im.shape[0] < im.shape[1]
+
+    im_flipped = np.rot90(im, -1)
+    exif_tag = Exif()
+    exif_tag[274] = 6  # Set Orientation to 6
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        f.write(im_flipped, exif=exif_tag)
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        im_reloaded = f.read()
+        im_meta = f.get_meta()
+
+    # ensure raw image is now portrait
+    assert im_reloaded.shape[0] > im_reloaded.shape[1]
+    # ensure that the Exif tag is set in the file
+    assert "Orientation" in im_meta and im_meta["Orientation"] == 6
+
+    with iio.imopen(image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow") as f:
+        im_rotated = f.read(rotate=True)
+
+    assert np.array_equal(im, im_rotated)
+
+
 def get_ref_im(colors, crop, isfloat):
     """Get reference image with
     * colors: 0, 1, 3, 4
