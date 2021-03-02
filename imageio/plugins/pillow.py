@@ -182,7 +182,7 @@ class PillowPlugin(Plugin):
 
             yield im
 
-    def write(self, image, *, mode=None, format=None, **kwargs):
+    def write(self, image, *, mode="RGB", format=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -195,8 +195,8 @@ class PillowPlugin(Plugin):
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
         mode : {str, None}
-            Convert the image to the given mode before returning it. If None,
-            the mode will be left unchanged. Possible modes can be found at:
+            Specify the image's color format; default is RGB. Possible modes can
+            be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         format : {str, None}
             Optional format override.  If omitted, the format to use is
@@ -241,6 +241,9 @@ class PillowPlugin(Plugin):
             self._image.seek(index)
 
         metadata = self._image.info
+
+        if self._image.mode == "P":
+            metadata["palette"] = self._image.pallette
 
         if self._image.getexif():
             exif_data = {
