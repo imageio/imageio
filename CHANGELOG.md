@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [planned]
 
+* Enable WebM reading and writing support through ffmpeg.
 * Improved handling and support for meta data.
 * New animated gif based on ffmpeg
 
@@ -121,7 +122,7 @@ Other changes:
 * Use `np.frombuffer` instead of `np.fromstring` in some cases.
 
 
-## [2.4.0] - 2019-09-06
+## [2.4.0] - 2018-09-06
 
 * Renamed ``Image`` class to ``Array`` and add documentation for this ndarray subclass.
 * Reading from HTTP and zipfiles has been improved and better documented.

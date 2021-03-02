@@ -63,15 +63,12 @@ for line in open(initFile).readlines():
 
 # Template for long description. __doc__ gets inserted here
 long_description = """
-.. image:: https://travis-ci.org/imageio/imageio.svg?branch=master
-    :target: https://travis-ci.org/imageio/imageio'
-
-.. image:: https://coveralls.io/repos/imageio/imageio/badge.png?branch=master
-  :target: https://coveralls.io/r/imageio/imageio?branch=master
+.. image:: https://github.com/imageio/imageio/workflows/CI/badge.svg
+    :target: https://github.com/imageio/imageio/actions
 
 __doc__
 
-Release notes: hhttps://github.com/imageio/imageio/blob/master/CHANGELOG.md
+Release notes: https://github.com/imageio/imageio/blob/master/CHANGELOG.md
 
 Example:
 
@@ -172,15 +169,19 @@ class build_with_images(sdist):
         sdist.run(self)
 
 
+install_requires = ["numpy", "pillow"]
+
 extras_require = {
+    "linting": ["black", "flake8"],
+    "test": ["invoke", "pytest", "pytest-cov"],
+    "docs": ["sphinx", "numpydoc"],
+    "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
     "itk": ["itk"],
-    "ffmpeg": ["imageio-ffmpeg"],
 }
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
-
-install_requires = ["numpy", "pillow"]
+extras_require["dev"] = extras_require["test"] + extras_require["linting"]
 
 
 setup(
@@ -226,9 +227,9 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
 )

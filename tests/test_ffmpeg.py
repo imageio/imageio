@@ -23,12 +23,6 @@ from imageio.core import get_remote_file, IS_PYPY
 test_dir = get_test_dir()
 
 
-if os.getenv("TRAVIS_OS_NAME") == "windows":
-    skip(
-        "Skip this on the Travis Windows run for now, see #408", allow_module_level=True
-    )
-
-
 def get_ffmpeg_pids():
     pids = set()
     for p in psutil.process_iter():

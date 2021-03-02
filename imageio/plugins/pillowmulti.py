@@ -55,9 +55,7 @@ class GIFFormat(PillowFormat):
     _modes = "iI"
     _description = "Static and animated gif (Pillow)"
 
-    class Reader(PillowFormat.Reader):
-        def _open(self, playback=None):  # compat with FI format
-            return PillowFormat.Reader._open(self)
+    # GIF reader needs no modifications compared to base pillow reader
 
     class Writer(PillowFormat.Writer):
         def _open(
