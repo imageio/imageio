@@ -270,7 +270,6 @@ def assert_close(im1, im2, tol=0.0):
     # import visvis as vv
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
-# TODO: Recover JPEG tests from old PC's hard drive
 
 def test_gif_rgb_vs_rgba(image_files: Path):
     # Note: I don't understand the point of this test
@@ -316,19 +315,26 @@ def test_gif_loop_and_fps(image_files: Path):
     # This test had no assert; how to assert fps and loop count?
 
 def test_gif_subrectangles(image_files: Path):
+    # feature might be made obsolete by upstream (pillow) supporting it natively
+    # related issues: https://github.com/python-pillow/Pillow/issues/4977
     im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
-    im = np.stack((im, im[-1]), axis=0)
+    im = np.stack((*im, im[-1]), axis=0)
+    print(im.dtype)
 
-    # TODO: Copy filesize test from JPG tests
-    # # Test subrectangles
-    # imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False)
-    # imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True)
-    # s1 = os.stat(fnamebase + ".subno.gif").st_size
-    # s2 = os.stat(fnamebase + ".subyes.gif").st_size
-    # assert s2 < s1
+    with iio.imopen(image_files / "1.gif", legacy_api=False, plugin="pillow") as f:
+        f.write(im, subrectangles=False, mode="RGBA")
+
+    with iio.imopen(image_files / "2.gif", legacy_api=False, plugin="pillow") as f:
+        f.write(im, subrectangles=True, mode="RGBA")
+
+    size_1 = os.stat(image_files / "1.gif").st_size
+    size_2 = os.stat(image_files / "2.gif").st_size
+    assert size_2 < size_1
+
 
 def test_gif_transparent_pixel(image_files: Path):
     # see issue #245
+    pass
 
 def test_images_with_transparency():
     # Not alpha channel, but transparent pixels, see issue #245 and #246
