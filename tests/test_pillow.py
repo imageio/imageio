@@ -224,166 +224,65 @@ def assert_close(im1, im2, tol=0.0):
     # import visvis as vv
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
+# TODO: Recover JPEG tests from old PC's hard drive
 
-def test_jpg():
+def test_gif_rgb_vs_rgba(image_files: Path):
+    # Note: I don't understand the point of this test
+    im_rgb = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGB")
+    im_rgba = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
 
-    for isfloat in (False, True):
-        for crop in (0, 1, 2):
-            for colors in (0, 1, 3):
-                fname = fnamebase + "%i.%i.%i.jpg" % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                assert_close(rim * mul, im, 1.1)  # lossy
+    assert np.allclose(im_rgb, im_rgba[..., :3])
 
-    # No alpha in JPEG
-    fname = fnamebase + ".jpg"
-    raises(Exception, imageio.imsave, fname, im4)
+def test_gif_gray(image_files: Path):
+    # Note: There was no assert here; we test that it doesn't crash?
+    im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="L")
 
-    # Parameters
-    imageio.imsave(
-        fnamebase + ".jpg", im3, progressive=True, optimize=True, baseline=True
-    )
+    with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
+        file.save(im[..., 0], duration=0.2)
 
-    # Parameter fail - We let Pillow kwargs thorugh
-    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
-    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
+def test_gif_irregular_duration(image_files: Path):
+    im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
+    duration = [0.5 if x in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
-    # Compression
-    imageio.imsave(fnamebase + "1.jpg", im3, quality=10)
-    imageio.imsave(fnamebase + "2.jpg", im3, quality=90)
-    s1 = os.stat(fnamebase + "1.jpg").st_size
-    s2 = os.stat(fnamebase + "2.jpg").st_size
-    assert s2 > s1
-    raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
+    with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
+        for frame, duration in zip(im, duration):
+            file.save(frame, duration=duration)
 
+    # how to assert duration here
 
-def test_jpg_more():
-    need_internet()
+def test_gif_palletsize(image_files: Path):
+    im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
 
-    # Test broken JPEG
-    fname = fnamebase + "_broken.jpg"
-    open(fname, "wb").write(b"this is not an image")
-    raises(Exception, imageio.imread, fname)
-    #
-    bb = imageio.imsave(imageio.RETURN_BYTES, get_ref_im(3, 0, 0), "JPEG")
-    with open(fname, "wb") as f:
-        f.write(bb[:400])
-        f.write(b" ")
-        f.write(bb[400:])
-    raises(Exception, imageio.imread, fname)
+    with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
+        file.save(im, palettesize=100)
+    
+    # TODO: assert pallet size is 128
 
-    # Test EXIF stuff
-    fname = get_remote_file("images/rommel.jpg")
-    im = imageio.imread(fname)
-    assert im.shape[0] > im.shape[1]
-    im = imageio.imread(fname, exifrotate=False)
-    assert im.shape[0] < im.shape[1]
-    im = imageio.imread(fname, exifrotate=2)  # Rotation in Python
-    assert im.shape[0] > im.shape[1]
-    # Write the jpg and check that exif data is maintained
-    if sys.platform.startswith("darwin"):
-        return  # segfaults on my osx VM, why?
-    imageio.imsave(fnamebase + "rommel.jpg", im)
-    im = imageio.imread(fname)
-    assert im.meta.EXIF_MAIN
+def test_gif_loop_and_fps(image_files: Path):
+    # Note: I think this test tests pillow kwargs, not imageio functionality
+    # maybe we should drop it?
 
+    im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
 
-def test_gif():
-    # The not-animated gif
+    with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
+        file.save(im, palettesize=100, fps=20, loop=2)
 
-    for isfloat in (False, True):
-        for crop in (0, 1, 2):
-            for colors in (0, 3, 4):
-                if colors > 1 and sys.platform.startswith("darwin"):
-                    continue  # quantize fails, see also png
-                fname = fnamebase + "%i.%i.%i.gif" % (isfloat, crop, colors)
-                rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
-                mul = 255 if isfloat else 1
-                if colors not in (0, 1):
-                    im = im[:, :, :3]
-                    rim = rim[:, :, :3]
-                assert_close(rim * mul, im, 1.1)  # lossless
+    # This test had no assert; how to assert fps and loop count?
 
-    # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
+def test_gif_subrectangles(image_files: Path):
+    im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
+    im = np.stack((im, im[-1]), axis=0)
 
+    # TODO: Copy filesize test from JPG tests
+    # # Test subrectangles
+    # imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False)
+    # imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True)
+    # s1 = os.stat(fnamebase + ".subno.gif").st_size
+    # s2 = os.stat(fnamebase + ".subyes.gif").st_size
+    # assert s2 < s1
 
-def test_animated_gif():
-
-    # Read newton's cradle
-    ims = imageio.mimread("imageio:newtonscradle.gif")
-    assert len(ims) == 36
-    for im in ims:
-        assert im.shape == (150, 200, 4)
-        assert im.min() > 0
-        assert im.max() <= 255
-
-    # Get images
-    im = get_ref_im(4, 0, 0)
-    ims = []
-    for i in range(10):
-        im = im.copy()
-        im[:, -5:, 0] = i * 20
-        ims.append(im)
-
-    # Store - animated GIF always poops out RGB
-    for isfloat in (False, True):
-        for colors in (3, 4):
-            ims1 = ims[:]
-            if isfloat:
-                ims1 = [x.astype(np.float32) / 256 for x in ims1]
-            ims1 = [x[:, :, :colors] for x in ims1]
-            fname = fnamebase + ".animated.%i.gif" % colors
-            imageio.mimsave(fname, ims1, duration=0.2)
-            # Retrieve
-            print("fooo", fname, isfloat, colors)
-            ims2 = imageio.mimread(fname)
-            ims1 = [x[:, :, :3] for x in ims]  # fresh ref
-            ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
-            for im1, im2 in zip(ims1, ims2):
-                assert_close(im1, im2, 1.1)
-
-    # We can also store grayscale
-    fname = fnamebase + ".animated.%i.gif" % 1
-    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
-    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2)
-
-    # Irragular duration. You probably want to check this manually (I did)
-    duration = [0.1 for i in ims]
-    for i in [2, 5, 7]:
-        duration[i] = 0.5
-    imageio.mimsave(fnamebase + ".animated_irr.gif", ims, duration=duration)
-
-    # Other parameters
-    imageio.mimsave(fnamebase + ".animated.loop2.gif", ims, loop=2, fps=20)
-    R = imageio.read(fnamebase + ".animated.loop2.gif")
-    W = imageio.save(fnamebase + ".animated.palettes100.gif", palettesize=100)
-    assert W._writer.opt_palette_size == 128
-    # Fail
-    assert raises(IndexError, R.get_meta_data, -1)
-    assert raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    assert raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo")
-    assert raises(ValueError, imageio.mimsave, fname, ims, duration="foo")
-
-    # Add one duplicate image to ims to touch subractangle with not change
-    ims.append(ims[-1])
-
-    # Test subrectangles
-    imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False)
-    imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True)
-    s1 = os.stat(fnamebase + ".subno.gif").st_size
-    s2 = os.stat(fnamebase + ".subyes.gif").st_size
-    assert s2 < s1
-
-    # Meta (dummy, because always {})
-    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
-    assert isinstance(imageio.read(fname).get_meta_data(), dict)
-
+def test_gif_transparent_pixel(image_files: Path):
+    # see issue #245
 
 def test_images_with_transparency():
     # Not alpha channel, but transparent pixels, see issue #245 and #246
