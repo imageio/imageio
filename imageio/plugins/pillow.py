@@ -74,6 +74,9 @@ class PillowPlugin(Plugin):
         self._uri = uri
         self._image = None
 
+    def open(self):
+        self._image = Image.open(self._uri, formats=None)
+
     def close(self):
         if self._image:
             self._image.close()
@@ -119,32 +122,11 @@ class PillowPlugin(Plugin):
         is discarded during conversion to ndarray.
 
         """
-        if not self._image:
-            self._image = Image.open(self._uri, formats=None)
 
         if index is not None:
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-
-            if mode is not None:
-                image = np.asarray(self._image.convert(mode))
-            else:
-                image = np.asarray(self._image)
-
-            meta = self.get_meta()
-            if rotate and "Orientation" in meta:
-                transformation = _exif_orientation_transform(
-                    meta["Orientation"],
-                    self._image.mode
-                )
-                image = transformation(image)
-
-            if apply_gamma and "gamma" in meta:
-                gamma = float(info["gamma"])
-                scale = float(65536 if image.dtype == np.uint16 else 255)
-                gain = 1.0
-                image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
-
+            image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
             return image
         else:
             iterator = self.iter(mode=mode, formats=formats, rotate=rotate)
@@ -177,29 +159,29 @@ class PillowPlugin(Plugin):
             ``PIL.features.pilinfo`` function.
         """
 
-        if not self._image:
-            self._image = Image.open(self._uri, formats=None)
-
         for im in ImageSequence.Iterator(self._image):
-            if mode is not None:
-                im = im.convert(mode)
-            im = np.asarray(im)
+            yield self._apply_transforms(im, mode, rotate, apply_gamma)
 
-            meta = self.get_meta()
-            if rotate and "Orientation" in meta:
-                transformation = _exif_orientation_transform(
-                    meta["Orientation"],
-                    self._image.mode
-                )
-                im = transformation(im)
+    def _apply_transforms(self, image, mode, rotate, apply_gamma):
+        if mode is not None:
+            image = image.convert(mode)
+        image = np.asarray(image)
 
-            if apply_gamma and "gamma" in meta:
-                gamma = float(info["gamma"])
-                scale = float(65536 if image.dtype == np.uint16 else 255)
-                gain = 1.0
-                image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
+        meta = self.get_meta()
+        if rotate and "Orientation" in meta:
+            transformation = _exif_orientation_transform(
+                meta["Orientation"],
+                self._image.mode
+            )
+            image = transformation(image)
 
-            yield im
+        if apply_gamma and "gamma" in meta:
+            gamma = float(info["gamma"])
+            scale = float(65536 if image.dtype == np.uint16 else 255)
+            gain = 1.0
+            image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
+
+        return image
 
     def write(self, image, *, mode="RGB", format=None, **kwargs):
         """
@@ -254,8 +236,6 @@ class PillowPlugin(Plugin):
             available formats by running ``python -m PIL`` or using the
             ``PIL.features.pilinfo`` function.
         """
-        if not self._image:
-            self._image = Image.open(self._uri, formats=None)
 
         if index is not None:
             self._image.seek(index)
@@ -303,6 +283,7 @@ class PillowPlugin(Plugin):
         return True
 
     def __enter__(self):
+        self.open()
         return self
 
     def __exit__(self, type, value, traceback):
