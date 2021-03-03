@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+from pathlib import Path
 from PIL import (
     Image, UnidentifiedImageError, ImageSequence, ExifTags
 )
@@ -77,7 +78,7 @@ class PillowPlugin(Plugin):
         if self._image:
             self._image.close()
 
-    def read(self, *, index=None, mode=None, rotate=False, formats=None):
+    def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False, formats=None):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -95,6 +96,9 @@ class PillowPlugin(Plugin):
         rotate : {bool}
             If set to ``True`` and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
+        apply_gamma : {bool}
+            If ``True`` and the image contains metadata about gamma, apply gamma
+            correction to the image.
         formats : {iterable, None}
             A list or tuple of format strings to attempt to load the file in.
             This can be used to restrict the set of formats checked. Pass
@@ -134,6 +138,13 @@ class PillowPlugin(Plugin):
                     self._image.mode
                 )
                 image = transformation(image)
+
+            if apply_gamma and "gamma" in meta:
+                gamma = float(info["gamma"])
+                scale = float(65536 if image.dtype == np.uint16 else 255)
+                gain = 1.0
+                image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
+
             return image
         else:
             iterator = self.iter(mode=mode, formats=formats, rotate=rotate)
@@ -142,7 +153,7 @@ class PillowPlugin(Plugin):
                 image = np.squeeze(image, axis=0)
             return image
 
-    def iter(self, *, mode=None, rotate=False, formats=None):
+    def iter(self, *, mode=None, rotate=False, apply_gamma=False, formats=None):
         """
         Iterate over all ndimages/frames in the URI
 
@@ -155,6 +166,9 @@ class PillowPlugin(Plugin):
         rotate : {bool}
             If set to ``True`` and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
+        apply_gamma : {bool}
+            If ``True`` and the image contains metadata about gamma, apply gamma
+            correction to the image.
         formats : {iterable, None}
             A list or tuple of format strings to attempt to load the file in.
             This can be used to restrict the set of formats checked. Pass
@@ -167,7 +181,6 @@ class PillowPlugin(Plugin):
             self._image = Image.open(self._uri, formats=None)
 
         for im in ImageSequence.Iterator(self._image):
-            # import pdb; pdb.set_trace()
             if mode is not None:
                 im = im.convert(mode)
             im = np.asarray(im)
@@ -179,6 +192,12 @@ class PillowPlugin(Plugin):
                     self._image.mode
                 )
                 im = transformation(im)
+
+            if apply_gamma and "gamma" in meta:
+                gamma = float(info["gamma"])
+                scale = float(65536 if image.dtype == np.uint16 else 255)
+                gain = 1.0
+                image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
 
             yield im
 
@@ -203,9 +222,10 @@ class PillowPlugin(Plugin):
             determined from the filename extension. If a file object was used
             instead of a filename, this parameter must always be used.
         kwargs : ...
-            Extra arguments to pass to the writer. If a writer doesn't
-            recognise an option, it is silently ignored. The available options
-            are described in the :doc:`image format documentation
+            Extra arguments to pass to pillow. If a
+            writer doesn't recognise an option, it is silently ignored. The
+            available options are described in the :doc:`image format
+            documentation
             (https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html)
             for each writer.
 
@@ -243,7 +263,7 @@ class PillowPlugin(Plugin):
         metadata = self._image.info
 
         if self._image.mode == "P":
-            metadata["palette"] = self._image.pallette
+            metadata["palette"] = self._image.palette
 
         if self._image.getexif():
             exif_data = {
