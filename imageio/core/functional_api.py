@@ -6,7 +6,7 @@ def imread(uri, *, index=None, plugin=None, **kwargs):
     """ Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
-    depends on both, the file type and plugin used to open the file. To learn
+    depends on both the file type and plugin used to open the file. To learn
     about the exact behavior, check the documentation of the relevant plugin.
     Typically, imread attempts to read all data stored in the URI.
 
