@@ -21,7 +21,7 @@ class imopen(object):
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
-    def __call__(self, uri, *args, plugin=None, legacy_api=True, **kwargs):
+    def __call__(self, uri, *, plugin=None, legacy_api=True, **kwargs):
         """ Instantiate a plugin capable of opening URI
 
         Parameters
@@ -29,9 +29,6 @@ class imopen(object):
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image from, e.g. a filename, pathlib.Path,
             http address or file object, see the docs for more info.
-        *args :
-            Additional positional arguments will be passed to the plugin instance
-            upon object creation.
         plugin : {str, None}
             The plugin to be used. If None, performs a search for a matching plugin.
         legacy_api : {bool}
@@ -48,7 +45,6 @@ class imopen(object):
             return LegacyPlugin(
                 uri,
                 self._legacy_format_manager,
-                *args,
                 **kwargs
             )
 
@@ -67,7 +63,7 @@ class imopen(object):
             else:
                 raise IOError(f"No registered plugin can read {uri}")
 
-        return plugin_instance(uri, *args, **kwargs)
+        return plugin_instance(uri, **kwargs)
 
     @classmethod
     def register_plugin(cls, plugin_name, plugin_class):

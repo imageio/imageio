@@ -2,7 +2,7 @@ from .imopen import imopen
 import numpy as np
 
 
-def imread(uri, *args, index=None, plugin=None, legacy_api=True,
+def imread(uri, *, index=None, plugin=None, legacy_api=True,
            extra_kwargs_plugin=None, **extra_kwargs_read):
     """ Read an ndimage from a URI.
 
@@ -16,9 +16,6 @@ def imread(uri, *args, index=None, plugin=None, legacy_api=True,
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
-    *args :
-        Additional positional arguments will be passed to the plugin instance
-        upon object creation.
     index : {int, None}
         If the URI contains multiple ndimages, select the index-th ndimage
         from among them and return it. The exact behavior is plugin dependent.
@@ -45,11 +42,11 @@ def imread(uri, *args, index=None, plugin=None, legacy_api=True,
     if extra_kwargs_plugin is not None:
         plugin_kwargs.update(extra_kwargs_plugin)
 
-    with imopen()(uri, *args, **plugin_kwargs) as img_file:
+    with imopen()(uri, **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **extra_kwargs_read))
 
 
-def imiter(uri, *args, plugin=None, legacy_api=True,
+def imiter(uri, *, plugin=None, legacy_api=True,
            extra_kwargs_plugin=None, **extra_kwargs_iter):
     """ Read a sequence of ndimages from a URI.
 
@@ -63,9 +60,6 @@ def imiter(uri, *args, plugin=None, legacy_api=True,
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
-    *args :
-        Additional positional arguments will be passed to the plugin instance
-        upon object creation.
     plugin : {str, None}
         The plugin to be used. If None, performs a search for a matching
         plugin.
@@ -91,7 +85,7 @@ def imiter(uri, *args, plugin=None, legacy_api=True,
     if extra_kwargs_plugin is not None:
         plugin_kwargs.update(extra_kwargs_plugin)
 
-    with imopen()(uri, *args, **plugin_kwargs) as img_file:
+    with imopen()(uri, **plugin_kwargs) as img_file:
         for image in img_file.iter(**extra_kwargs_iter):
             # Note: casting to ndarray here to ensure compatibility
             # with the v2.9 API
