@@ -7,11 +7,12 @@ from .request import Request, RETURN_BYTES
 
 
 class imopen(object):
-    """ Open a URI and return a plugin instance that can read its content.
+    """ Open a URI and return a plugin instance that can read/write its content.
 
-    Imopen is the plugin manager of imopen. It acts as a factory for Plugin
-    objects implementing the v3.0 API. It is the core of the v3.0 API and the
-    functional API provides convenient wrappers around this object.
+    ``imopen`` takes a URI and searches for a plugin capable of opening it.
+    Once a suitable plugin is found, a plugin instance is created that exposes
+    read/write/iter methods to interact with the image data. The search can be 
+    skipped by providing a valid plugin name as optional input argument.
 
     Note for library maintainers: If you call imopen from inside the library,
     you will first need to first create an instance, i.e.
@@ -22,7 +23,7 @@ class imopen(object):
     _legacy_format_manager = FormatManager()
 
     def __call__(self, uri, *, plugin=None, legacy_api=True, **kwargs):
-        """ Instantiate a plugin capable of opening URI
+        """ Instantiate a plugin capable of interacting with the given URI
 
         Parameters
         ----------
