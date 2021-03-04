@@ -42,6 +42,7 @@ def _is_multichannel(mode):
 
     return multichannel[mode]
 
+
 def _exif_orientation_transform(orientation, mode):
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
@@ -76,17 +77,13 @@ class PillowPlugin(Plugin):
         """
         self._uri = uri
         self._image = None
-        self._file = None
 
     def open(self):
-        self._file = open(self._uri, "ab+")
+        return
 
     def close(self):
         if self._image:
             self._image.close()
-        elif self._file:
-            self._file.close()
-        
 
     def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False):
         """
@@ -124,15 +121,17 @@ class PillowPlugin(Plugin):
 
         """
         if self._image is None:
-            self._image = Image.open(self._file)
+            self._image = Image.open(self._uri)
 
         if index is not None:
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-            image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
+            image = self._apply_transforms(
+                self._image, mode, rotate, apply_gamma)
             return image
         else:
-            iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
+            iterator = self.iter(mode=mode, rotate=rotate,
+                                 apply_gamma=apply_gamma)
             image = np.stack([im for im in iterator], axis=0)
             if image.shape[0] == 1:
                 image = np.squeeze(image, axis=0)
@@ -156,7 +155,7 @@ class PillowPlugin(Plugin):
             correction to the image.
         """
         if self._image is None:
-            self._image = Image.open(self._file)
+            self._image = Image.open(self._uri)
 
         for im in ImageSequence.Iterator(self._image):
             yield self._apply_transforms(im, mode, rotate, apply_gamma)
@@ -190,7 +189,7 @@ class PillowPlugin(Plugin):
         If the URI points to a file on the current host and the file does not
         yet exist it will be created. If the file exists already, it will be
         appended if possible; otherwise, it will be replaced.
-        
+
         If necessary, the image is broken down along the leading dimension to
         fit into individual frames of the chosen format. If the format doesn't
         support multiple frames, and IOError is raised.
@@ -220,16 +219,23 @@ class PillowPlugin(Plugin):
         # ensure that the image has (at least) one batch dimension
         if image.ndim == 3 and _is_multichannel(mode):
             image = image[None, ...]
+            save_all = False
         elif image.ndim == 2 and not _is_multichannel(mode):
             image = image[None, ...]
+            save_all = False
+        else:
+            save_all = True
 
+        pil_images = list()
         for frame in image:
-            pil_image = Image.fromarray(frame, mode=mode)
-
+            pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
-                pil_image = pil_image.quantize(colors=2**kwargs["bits"])
+                pil_frame = pil_frame.quantize(colors=2**kwargs["bits"])
 
-            pil_image.save(self._file, format=format, **kwargs)
+            pil_images.append(pil_frame)
+
+        pil_images[0].save(self._uri, save_all=save_all,
+                           append_images=pil_images[1:], format=format, **kwargs)
 
     def get_meta(self, *, index=None):
         """ Read ndimage metadata from the URI
@@ -242,7 +248,7 @@ class PillowPlugin(Plugin):
             for the last read ndimage/frame.
         """
         if self._image is None:
-            self._image = Image.open(self._file)
+            self._image = Image.open(self._uri)
 
         if index is not None:
             self._image.seek(index)
