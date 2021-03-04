@@ -13,38 +13,41 @@ from PIL import (
 from ..core.imopen import Plugin
 
 
+def _is_multichannel(mode):
+    multichannel = {
+        "1": False,
+        "L": False,
+        "P": False,
+        "RGB": True,
+        "RGBA": True,
+        "CMYK": True,
+        "YCbCr": True,
+        "LAB": True,
+        "HSV": True,
+        "I": False,
+        "F": False,
+        "LA": True,
+        "PA": True,
+        "RGBX": True,
+        "RGBa": True,
+        "La": False,
+        "I;16": False,
+        "I:16L": False,
+        "I;16N": False,
+        "BGR;15": True,
+        "BGR;16": True,
+        "BGR;24": True,
+        "BGR;32": True
+    }
+
+    return multichannel[mode]
+
 def _exif_orientation_transform(orientation, mode):
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
 
     # -1 if the mode has color channel, 0 otherwise
-    axis_offset = {
-        "1": -1,
-        "L": -1,
-        "P": -1,
-        "RGB": -2,
-        "RGBA": -2,
-        "CMYK": -2,
-        "YCbCr": -2,
-        "LAB": -2,
-        "HSV": -2,
-        "I": -1,
-        "F": -1,
-        "LA": -2,
-        "PA": -2,
-        "RGBX": -2,
-        "RGBa": -2,
-        "La": -1,
-        "I;16": -1,
-        "I:16L": -1,
-        "I;16N": -1,
-        "BGR;15": -2,
-        "BGR;16": -2,
-        "BGR;24": -2,
-        "BGR;32": -2
-    }
-
-    axis = axis_offset[mode]
+    axis = -2 if _is_multichannel(mode) else -1
 
     EXIF_ORIENTATION = {
         1: lambda x: x,
@@ -73,15 +76,19 @@ class PillowPlugin(Plugin):
         """
         self._uri = uri
         self._image = None
+        self._file = None
 
     def open(self):
-        self._image = Image.open(self._uri, formats=None)
+        self._file = open(self._uri, "ab+")
 
     def close(self):
         if self._image:
             self._image.close()
+        elif self._file:
+            self._file.close()
+        
 
-    def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False, formats=None):
+    def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -102,12 +109,6 @@ class PillowPlugin(Plugin):
         apply_gamma : {bool}
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
-        formats : {iterable, None}
-            A list or tuple of format strings to attempt to load the file in.
-            This can be used to restrict the set of formats checked. Pass
-            ``None`` to try all supported formats. You can print the set of
-            available formats by running ``python -m PIL`` or using the
-            ``PIL.features.pilinfo`` function.
 
         Returns
         -------
@@ -122,6 +123,8 @@ class PillowPlugin(Plugin):
         is discarded during conversion to ndarray.
 
         """
+        if self._image is None:
+            self._image = Image.open(self._file)
 
         if index is not None:
             # will raise IO error if index >= number of frames in image
@@ -129,13 +132,13 @@ class PillowPlugin(Plugin):
             image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
             return image
         else:
-            iterator = self.iter(mode=mode, formats=formats, rotate=rotate)
+            iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
             image = np.stack([im for im in iterator], axis=0)
             if image.shape[0] == 1:
                 image = np.squeeze(image, axis=0)
             return image
 
-    def iter(self, *, mode=None, rotate=False, apply_gamma=False, formats=None):
+    def iter(self, *, mode=None, rotate=False, apply_gamma=False):
         """
         Iterate over all ndimages/frames in the URI
 
@@ -151,13 +154,9 @@ class PillowPlugin(Plugin):
         apply_gamma : {bool}
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
-        formats : {iterable, None}
-            A list or tuple of format strings to attempt to load the file in.
-            This can be used to restrict the set of formats checked. Pass
-            ``None`` to try all supported formats. You can print the set of
-            available formats by running ``python -m PIL`` or using the
-            ``PIL.features.pilinfo`` function.
         """
+        if self._image is None:
+            self._image = Image.open(self._file)
 
         for im in ImageSequence.Iterator(self._image):
             yield self._apply_transforms(im, mode, rotate, apply_gamma)
@@ -176,10 +175,11 @@ class PillowPlugin(Plugin):
             image = transformation(image)
 
         if apply_gamma and "gamma" in meta:
-            gamma = float(info["gamma"])
+            gamma = float(meta["gamma"])
             scale = float(65536 if image.dtype == np.uint16 else 255)
             gain = 1.0
-            image[:] = ((image / scale) ** gamma) * scale * gain + 0.4999
+            image = ((image / scale) ** gamma) * scale * gain + 0.4999
+            image = np.round(image).astype(np.uint8)
 
         return image
 
@@ -190,12 +190,16 @@ class PillowPlugin(Plugin):
         If the URI points to a file on the current host and the file does not
         yet exist it will be created. If the file exists already, it will be
         appended if possible; otherwise, it will be replaced.
+        
+        If necessary, the image is broken down along the leading dimension to
+        fit into individual frames of the chosen format. If the format doesn't
+        support multiple frames, and IOError is raised.
 
         Parameters
         ----------
         image : numpy.ndarray
-            The ndimage or list of ndimages to write.
-        mode : {str, None}
+            The ndimage to write.
+        mode : {str}
             Specify the image's color format; default is RGB. Possible modes can
             be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
@@ -213,14 +217,21 @@ class PillowPlugin(Plugin):
 
         """
 
-        pil_image = Image.fromarray(image, mode=mode)
+        # ensure that the image has (at least) one batch dimension
+        if image.ndim == 3 and _is_multichannel(mode):
+            image = image[None, ...]
+        elif image.ndim == 2 and not _is_multichannel(mode):
+            image = image[None, ...]
 
-        if "bits" in kwargs:
-            pil_image = pil_image.quantize(colors=2**kwargs["bits"])
+        for frame in image:
+            pil_image = Image.fromarray(frame, mode=mode)
 
-        pil_image.save(self._uri, format=format, **kwargs)
+            if "bits" in kwargs:
+                pil_image = pil_image.quantize(colors=2**kwargs["bits"])
 
-    def get_meta(self, *, index=None, formats=None):
+            pil_image.save(self._file, format=format, **kwargs)
+
+    def get_meta(self, *, index=None):
         """ Read ndimage metadata from the URI
 
         Parameters
@@ -229,13 +240,9 @@ class PillowPlugin(Plugin):
             If the URI contains a list of ndimages return the metadata
             corresponding to the index-th image. If None, return the metadata
             for the last read ndimage/frame.
-        formats : {iterable, None}
-            A list or tuple of format strings to attempt to load the file in.
-            This can be used to restrict the set of formats checked. Pass
-            ``None`` to try all supported formats. You can print the set of
-            available formats by running ``python -m PIL`` or using the
-            ``PIL.features.pilinfo`` function.
         """
+        if self._image is None:
+            self._image = Image.open(self._file)
 
         if index is not None:
             self._image.seek(index)

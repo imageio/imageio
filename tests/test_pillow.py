@@ -6,6 +6,7 @@ import os
 import numpy as np
 from pathlib import Path
 import shutil
+import urllib.request
 
 import imageio as iio
 
@@ -126,10 +127,10 @@ def test_png_16bit(image_files: Path):
     im = np.load(image_files / "chelsea.npy")[..., 0]
 
     with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
-        f.write(2 * im.astype(np.uint16))
+        f.write(2 * im.astype(np.uint16), mode="I;16")
 
     with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im)
+        f.write(im, mode="L")
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -157,24 +158,27 @@ def test_png_remote():
 
 def test_png_transparent_pixel(image_files: Path):
     # see issue #245
-    im = iio.new_api.imread(
-        image_files / "imageio_issue246.png", legacy_api=False, plugin="pillow")
+    im = iio.new_api.imread( image_files / "imageio_issue246.png", 
+    legacy_api=False, plugin="pillow", mode="RGBA")
     assert im.shape == (24, 30, 4)
 
 
 def test_png_gamma_correction(image_files: Path):
-    with open(image_files / "kodim03.png", legacy_api=False, plugin="pillow") as f:
-        im1 = f.read(image_files / "kodim03.png")
+    with iio.imopen(image_files / "kodim03.png", legacy_api=False, plugin="pillow") as f:
+        im1 = f.read()
         im1_meta = f.get_meta()
     
-    im2 = imageio.new_api.imread(image_files / "kodim03.png", legacy_api=False, plugin="pillow", apply_gamma=True)
+    with iio.imopen(image_files / "kodim03.png", legacy_api=False, plugin="pillow") as f:
+        im2 = f.read(apply_gamma=True)
 
     # Test result depending of application of gamma
-    assert im1_meta.meta["gamma"] < 1
-    assert im1.mean() < im3.mean()
+    assert im1_meta["gamma"] < 1
+    assert im1.mean() < im2.mean()
 
-    assert im1.shape == (512, 768, 3) and im1.dtype == "uint8"
-    assert im2.shape == (512, 768, 3) and im2.dtype == "uint8"
+    assert im1.shape == (512, 768, 3) 
+    assert im1.dtype == "uint8"
+    assert im2.shape == (512, 768, 3) 
+    assert im2.dtype == "uint8"
 
 
 def test_jpg_compression(image_files: Path):
@@ -238,17 +242,17 @@ def test_gif_gray(image_files: Path):
                             legacy_api=False, plugin="pillow", mode="L")
 
     with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
-        file.save(im[..., 0], duration=0.2)
+        file.write(im[..., 0], duration=0.2, mode="L")
 
 
 def test_gif_irregular_duration(image_files: Path):
     im = iio.new_api.imread(image_files / "newtonscradle.gif",
                             legacy_api=False, plugin="pillow", mode="RGBA")
-    duration = [0.5 if x in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
+    duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
     with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
         for frame, duration in zip(im, duration):
-            file.save(frame, duration=duration)
+            file.write(frame, duration=duration)
 
     # how to assert duration here
 
@@ -258,7 +262,7 @@ def test_gif_palletsize(image_files: Path):
                             legacy_api=False, plugin="pillow", mode="RGBA")
 
     with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
-        file.save(im, palettesize=100)
+        file.write(im, palettesize=100)
 
     # TODO: assert pallet size is 128
 
@@ -271,7 +275,8 @@ def test_gif_loop_and_fps(image_files: Path):
                             legacy_api=False, plugin="pillow", mode="RGBA")
 
     with iio.imopen(image_files / "test.gif", legacy_api=False, plugin="pillow") as file:
-        file.save(im, palettesize=100, fps=20, loop=2)
+        for frame in im:
+            file.write(frame, palettesize=100, fps=20, loop=2)
 
     # This test had no assert; how to assert fps and loop count?
 
@@ -299,8 +304,8 @@ def test_gif_loop_and_fps(image_files: Path):
 
 def test_gif_transparent_pixel(image_files: Path):
     # see issue #245
-    im = iio.new_api.imread(
-        image_files / "imageio_issue245.gif", legacy_api=False, plugin="pillow")
+    im = iio.new_api.imread(image_files / "imageio_issue245.gif", 
+        legacy_api=False, plugin="pillow", mode="RGBA")
     assert im.shape == (24, 30, 4)
 
 # TODO: Pillow actually doesn't read zip. This should be a different plugin.
