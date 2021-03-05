@@ -5,7 +5,6 @@
 """
 
 import numpy as np
-from pathlib import Path
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 
 from ..core.imopen import Plugin

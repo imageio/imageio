@@ -1,9 +1,7 @@
-from numbers import Number
-import re
 import numpy as np
 
 from .format import FormatManager, MODENAMES
-from .request import Request, RETURN_BYTES
+from .request import Request
 
 
 class imopen(object):

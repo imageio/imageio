@@ -1,9 +1,8 @@
 """ Tests for imageio's pillow plugin
 """
 
-import io
-import pytest
 import os
+import pytest
 import numpy as np
 from pathlib import Path
 import shutil

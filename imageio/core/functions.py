@@ -79,9 +79,7 @@ import re
 
 import numpy as np
 
-from . import Request, RETURN_BYTES
 from .. import formats
-from .format import MODENAMES
 from .imopen import imopen
 
 
