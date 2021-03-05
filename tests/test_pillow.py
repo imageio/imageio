@@ -7,7 +7,7 @@ import numpy as np
 from pathlib import Path
 import shutil
 import urllib.request
-from PIL import Image
+from PIL import Image, ImageSequence
 
 import imageio as iio
 
@@ -106,21 +106,29 @@ def test_write_multiframe(image_files: Path, im_npy: str, im_out: str, im_comp: 
 
 
 @pytest.mark.parametrize(
-    "im_in,npy_comp,mode",
+    "im_in,mode",
     [
-        ("chelsea.png", "chelsea.npy", "RGB"),
-        ("chelsea.jpg", "chelsea_jpg.npy", "RGB"),
-        ("chelsea.bmp", "chelsea.npy", "RGB"),
-        ("newtonscradle.gif", "newtonscradle_rgb.npy", "RGB"),
-        ("newtonscradle.gif", "newtonscradle_rgba.npy", "RGBA"),
+        ("chelsea.png", "RGB"),
+        ("chelsea.jpg", "RGB"),
+        ("chelsea.bmp", "RGB"),
+        ("newtonscradle.gif", "RGB"),
+        ("newtonscradle.gif", "RGBA"),
     ],
 )
-def test_read(image_files: Path, im_in: str, npy_comp: str, mode: str):
+def test_read(image_files: Path, im_in: str, mode: str):
     im_path = image_files / im_in
-    im = iio.new_api.imread(im_path, plugin="pillow", mode=mode)
+    iio_im = iio.new_api.imread(im_path, plugin="pillow", mode=mode)
 
-    target = np.load(image_files / npy_comp)
-    assert np.allclose(im, target)
+    pil_im = np.asarray(
+        [
+            np.array(frame.convert(mode))
+            for frame in ImageSequence.Iterator(Image.open(im_path))
+        ]
+    )
+    if pil_im.shape[0] == 1:
+        pil_im = pil_im.squeeze(axis=0)
+
+    assert np.allclose(iio_im, pil_im)
 
 
 def test_png_compression(image_files: Path):
