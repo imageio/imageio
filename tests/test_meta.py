@@ -135,6 +135,7 @@ def test_import_dependencies():
         "tempfile",
         "distutils",
         "urllib",
+        "xml",
         # Apparently needed on CI
         "uu",
         "pkgutil",
