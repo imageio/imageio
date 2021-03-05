@@ -8,6 +8,7 @@ import numpy as np
 from pathlib import Path
 import shutil
 import urllib.request
+from PIL import Image
 
 import imageio as iio
 
@@ -50,31 +51,58 @@ def image_files(tmp_dir):
 @pytest.mark.parametrize(
     "im_npy,im_out,im_comp",
     [
-        ("chelsea.npy", "test.png", "chelsea.png"),
-        ("chelsea.npy", "test.jpg", "chelsea.jpg"),
-        ("chelsea.npy", "test.jpeg", "chelsea.jpg"),
-        ("chelsea.npy", "test.bmp", "chelsea.bmp"),
-
-        # Note: There might be a problem with reading/writing frames
-        # Tracking Issue: https://github.com/python-pillow/Pillow/issues/5307
-        # ("newtonscradle_rgb.npy", "test.gif", "newtonscradle.gif"),
-        # ("newtonscradle_rgba.npy", "test.gif", "newtonscradle.gif"),
+        ("chelsea.npy", "iio.png", "pil.png"),
+        ("chelsea.npy", "iio.jpg", "pil.jpg"),
+        ("chelsea.npy", "iio.jpeg", "pil.jpg"),
+        ("chelsea.npy", "iio.bmp", "pil.bmp")
     ],
 )
-def test_write(image_files: Path, im_npy: str, im_out: str, im_comp: str):
+def test_write_single_frame(image_files: Path, im_npy: str, im_out: str, im_comp: str):
+    # the base image as numpy array
     im = np.load(image_files / im_npy)
-    created_file = image_files / im_out
-
-    with iio.imopen(created_file, plugin="pillow", legacy_api=False) as f:
+    # written with imageio
+    iio_file = image_files / im_out
+    with iio.imopen(iio_file, plugin="pillow", legacy_api=False) as f:
         f.write(im)
 
+    # written with pillow directly
+    pil_file = image_files / im_comp
+    Image.fromarray(im).save(pil_file)
+
     # file exists
-    assert os.path.exists(created_file)
+    assert os.path.exists(iio_file)
 
-    # file content matches expected content
-    target = image_files / im_comp
-    assert target.read_bytes() == created_file.read_bytes()
+    # imageio content matches pillow content
+    assert iio_file.read_bytes() == pil_file.read_bytes()
 
+
+@pytest.mark.parametrize(
+    "im_npy,im_out,im_comp",
+    [
+        # Note: There might be a problem with reading/writing frames
+        # Tracking Issue: https://github.com/python-pillow/Pillow/issues/5307
+        ("newtonscradle_rgb.npy", "iio.gif", "pil.gif"),
+        # ("newtonscradle_rgba.npy", "iio.gif", "pil.gif"),
+    ],
+)
+def test_write_multiframe(image_files: Path, im_npy: str, im_out: str, im_comp: str):
+    # the base image as numpy array
+    im = np.load(image_files / im_npy)
+    # written with imageio
+    iio_file = image_files / im_out
+    with iio.imopen(iio_file, plugin="pillow", legacy_api=False) as f:
+        f.write(im)
+
+    # written with pillow directly
+    pil_file = image_files / im_comp
+    pil_images = [Image.fromarray(frame) for frame in im]
+    pil_images[0].save(pil_file, save_all=True, append_images=pil_images[1:])
+
+    # file exists
+    assert os.path.exists(iio_file)
+
+    # imageio content matches pillow content
+    assert iio_file.read_bytes() == pil_file.read_bytes()
 
 @pytest.mark.parametrize(
     "im_in,npy_comp,mode",
