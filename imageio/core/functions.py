@@ -227,12 +227,11 @@ def imread(uri, format=None, **kwargs):
 
     if "mode" in kwargs:
         raise TypeError(
-            'Invalid keyword argument "mode", '
-            'perhaps you mean "pilmode"?'
+            'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
         )
 
     with imopen()(uri, plugin=format) as file:
-        return file.read(index=0, iio_mode='i', **kwargs)
+        return file.read(index=0, iio_mode="i", **kwargs)
 
 
 def imwrite(uri, im, format=None, **kwargs):
@@ -268,7 +267,7 @@ def imwrite(uri, im, format=None, **kwargs):
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
     with imopen()(uri, plugin=format) as file:
-        return file.write(im, iio_mode='i', **kwargs)
+        return file.write(im, iio_mode="i", **kwargs)
 
 
 # Multiple images
@@ -319,7 +318,7 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
     images = list()
     nbytes = 0
     with imopen()(uri, plugin=format) as file:
-        for image in file.iter(iio_mode='I', **kwargs):
+        for image in file.iter(iio_mode="I", **kwargs):
             images.append(image)
             nbytes += image.nbytes
             if nbytes > nbyte_limit:
@@ -380,7 +379,7 @@ def volread(uri, format=None, **kwargs):
     """
 
     with imopen()(uri, plugin=format) as file:
-        return file.read(index=0, iio_mode='v', **kwargs)
+        return file.read(index=0, iio_mode="v", **kwargs)
 
 
 def volwrite(uri, im, format=None, **kwargs):
@@ -416,7 +415,7 @@ def volwrite(uri, im, format=None, **kwargs):
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
     with imopen()(uri, plugin=format) as file:
-        return file.write(im, iio_mode='v', **kwargs)
+        return file.write(im, iio_mode="v", **kwargs)
 
 
 # Multiple volumes
@@ -467,7 +466,7 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
     images = list()
     nbytes = 0
     with imopen()(uri, plugin=format) as file:
-        for image in file.iter(iio_mode='V', **kwargs):
+        for image in file.iter(iio_mode="V", **kwargs):
             images.append(image)
             nbytes += image.nbytes
             if nbytes > nbyte_limit:

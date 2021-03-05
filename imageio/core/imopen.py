@@ -7,11 +7,11 @@ from .request import Request, RETURN_BYTES
 
 
 class imopen(object):
-    """ Open a URI and return a plugin instance that can read/write its content.
+    """Open a URI and return a plugin instance that can read/write its content.
 
     ``imopen`` takes a URI and searches for a plugin capable of opening it.
     Once a suitable plugin is found, a plugin instance is created that exposes
-    read/write/iter methods to interact with the image data. The search can be 
+    read/write/iter methods to interact with the image data. The search can be
     skipped by providing a valid plugin name as optional input argument.
 
     Note for library maintainers: If you call imopen from inside the library,
@@ -19,11 +19,12 @@ class imopen(object):
     ``imopen()(uri, ...)``. Note the double parentheses.
 
     """
+
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
     def __call__(self, uri, *, plugin=None, legacy_api=True, **kwargs):
-        """ Instantiate a plugin capable of interacting with the given URI
+        """Instantiate a plugin capable of interacting with the given URI
 
         Parameters
         ----------
@@ -43,22 +44,17 @@ class imopen(object):
 
         if legacy_api:
             kwargs["plugin"] = plugin
-            return LegacyPlugin(
-                uri,
-                self._legacy_format_manager,
-                **kwargs
-            )
+            return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
 
         if plugin is not None:
             try:
                 plugin_instance = self._known_plugins[plugin]
             except KeyError:
-                raise ValueError(
-                    f"'{plugin}' is not a registered plugin name.")
+                raise ValueError(f"'{plugin}' is not a registered plugin name.")
 
         else:
             for candidate_plugin in self._known_plugins.values():
-                if (candidate_plugin.can_open(uri)):
+                if candidate_plugin.can_open(uri):
                     plugin_instance = candidate_plugin
                     break
             else:
@@ -68,7 +64,7 @@ class imopen(object):
 
     @classmethod
     def register_plugin(cls, plugin_name, plugin_class):
-        """ Register a new plugin to be used when opening URIs.
+        """Register a new plugin to be used when opening URIs.
 
         Parameters
         ----------
@@ -85,7 +81,7 @@ class imopen(object):
 
 class Plugin(object):
     def __init__(self, uri):
-        """ Instantiate a new Legacy Plugin
+        """Instantiate a new Legacy Plugin
 
         Parameters
         ----------
@@ -146,7 +142,7 @@ class Plugin(object):
         raise NotImplementedError
 
     def get_meta(self, *, index=None):
-        """ Read ndimage metadata from the URI
+        """Read ndimage metadata from the URI
 
         Parameters
         ----------
@@ -160,7 +156,7 @@ class Plugin(object):
 
     @classmethod
     def can_open(cls, uri):
-        """ Verify that plugin can open the given URI
+        """Verify that plugin can open the given URI
 
         Verifying that the plugin a URI doesn't make a specific claim on whether
         or not the plugin can read or write the file. Most plugins support both,
@@ -183,7 +179,7 @@ class Plugin(object):
         raise NotImplementedError
 
     def can_write(self, uri):
-        """ Verify that plugin can write to the given URI
+        """Verify that plugin can write to the given URI
 
         Parameters
         ----------
@@ -207,7 +203,7 @@ class Plugin(object):
 
 
 class LegacyPlugin(Plugin):
-    """ A plugin to expose v2.9 plugins in the v3.0 API
+    """A plugin to expose v2.9 plugins in the v3.0 API
 
     This plugin is a wrapper around the old FormatManager class and exposes
     all the old plugins via the new API. On top of this it has
@@ -216,7 +212,7 @@ class LegacyPlugin(Plugin):
     """
 
     def __init__(self, uri, plugin_manager, plugin=None):
-        """ Instantiate a new Legacy Plugin
+        """Instantiate a new Legacy Plugin
 
         Parameters
         ----------
@@ -236,7 +232,7 @@ class LegacyPlugin(Plugin):
         self._plugin_manager = plugin_manager
         self._plugin = plugin_manager[plugin]
 
-    def legacy_get_reader(self, iio_mode='?', **kwargs):
+    def legacy_get_reader(self, iio_mode="?", **kwargs):
         """legacy_get_reader( iio_mode='?' **kwargs)
 
         a utility method to provide support vor the V2.9 API
@@ -253,10 +249,7 @@ class LegacyPlugin(Plugin):
         """
 
         if iio_mode is None:
-            raise ValueError(
-                "mode=None is not supported"
-                " for legacy API calls."
-            )
+            raise ValueError("mode=None is not supported" " for legacy API calls.")
         mode = "r" + iio_mode
 
         request = Request(self._uri, mode, **kwargs)
@@ -274,7 +267,7 @@ class LegacyPlugin(Plugin):
 
         return plugin.get_reader(request)
 
-    def read(self, *, index=None, iio_mode='?', **kwargs):
+    def read(self, *, index=None, iio_mode="?", **kwargs):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -303,8 +296,7 @@ class LegacyPlugin(Plugin):
         """
 
         if index is None:
-            images = [image for image in self.iter(
-                iio_mode=iio_mode, **kwargs)]
+            images = [image for image in self.iter(iio_mode=iio_mode, **kwargs)]
             if len(images) > 1:
                 raise IOError(
                     "The image contains more than one image."
@@ -316,7 +308,7 @@ class LegacyPlugin(Plugin):
         reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
         return reader.get_data(index)
 
-    def legacy_get_writer(self, *, iio_mode='?', **kwargs):
+    def legacy_get_writer(self, *, iio_mode="?", **kwargs):
         """legacy_get_writer(iio_mode='?', **kwargs)
 
         Returns a :class:`.Writer` object which can be used to write data
@@ -334,10 +326,7 @@ class LegacyPlugin(Plugin):
         """
 
         if iio_mode is None:
-            raise ValueError(
-                "mode=None is not supported"
-                " for legacy API calls."
-            )
+            raise ValueError("mode=None is not supported" " for legacy API calls.")
         mode = "w" + iio_mode
 
         plugin = self._plugin
@@ -356,7 +345,7 @@ class LegacyPlugin(Plugin):
 
         return plugin.get_writer(request)
 
-    def write(self, image, *, iio_mode='?', **kwargs):
+    def write(self, image, *, iio_mode="?", **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -389,7 +378,8 @@ class LegacyPlugin(Plugin):
                     image = np.asanyarray(image)
                     if not np.issubdtype(image.dtype, np.number):
                         raise ValueError(
-                            "Image is not numeric, but {}.".format(imt.__name__))
+                            "Image is not numeric, but {}.".format(imt.__name__)
+                        )
                     elif iio_mode == "I":
                         if image.ndim == 2:
                             pass
@@ -397,8 +387,7 @@ class LegacyPlugin(Plugin):
                             pass
                         else:
                             raise ValueError(
-                                "Image must be 2D "
-                                "(grayscale, RGB, or RGBA)."
+                                "Image must be 2D " "(grayscale, RGB, or RGBA)."
                             )
                     else:  # iio_mode == "V"
                         if image.ndim == 3:
@@ -407,8 +396,7 @@ class LegacyPlugin(Plugin):
                             pass  # How large can a tuple be?
                         else:
                             raise ValueError(
-                                "Image must be 3D,"
-                                " or 4D if each voxel is a tuple."
+                                "Image must be 3D," " or 4D if each voxel is a tuple."
                             )
 
                     # Add image
@@ -420,8 +408,8 @@ class LegacyPlugin(Plugin):
         return writer.request.get_result()
 
     # this could also be __iter__
-    def iter(self, *, iio_mode='?', **kwargs):
-        """ Iterate over a list of ndimages given by the URI
+    def iter(self, *, iio_mode="?", **kwargs):
+        """Iterate over a list of ndimages given by the URI
 
         .. deprecated:: 2.9.0
           `iio_mode='?'` will be replaced by `iio_mode=None` in
@@ -444,7 +432,7 @@ class LegacyPlugin(Plugin):
             yield image
 
     def get_meta(self, *, index=None):
-        """ Read ndimage metadata from the URI
+        """Read ndimage metadata from the URI
 
         Parameters
         ----------

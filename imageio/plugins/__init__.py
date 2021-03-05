@@ -84,6 +84,7 @@ from ..core.imopen import imopen
 try:
     import PIL
     from .pillow import PillowPlugin
+
     imopen.register_plugin("pillow", PillowPlugin)
 except ImportError:
     pass  # Pillow not installed

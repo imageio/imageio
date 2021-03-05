@@ -38,7 +38,6 @@ from .core.functions import (
     mimwrite,
     volwrite,
     mvolwrite,
-
     # aliases
     get_reader as read,
     get_writer as save,
@@ -46,11 +45,10 @@ from .core.functions import (
     mimwrite as mimsave,
     volwrite as volsave,
     mvolwrite as mvolsave,
-
     # misc
     help,
     get_reader,
-    get_writer
+    get_writer,
 )
 
 from .core import functional_api as new_api

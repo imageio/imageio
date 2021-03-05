@@ -3,7 +3,7 @@ import numpy as np
 
 
 def imread(uri, *, index=None, plugin=None, **kwargs):
-    """ Read an ndimage from a URI.
+    """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
     depends on both the file type and plugin used to open the file. To learn
@@ -28,17 +28,14 @@ def imread(uri, *, index=None, plugin=None, **kwargs):
     image : ndimage
     """
 
-    plugin_kwargs = {
-        "legacy_api": False,
-        "plugin": plugin
-    }
+    plugin_kwargs = {"legacy_api": False, "plugin": plugin}
 
     with imopen()(uri, **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
 def imiter(uri, *, plugin=None, **kwargs):
-    """ Read a sequence of ndimages from a URI.
+    """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
     behavior depends on both, the file type and plugin used to open the file.
@@ -62,10 +59,7 @@ def imiter(uri, *, plugin=None, **kwargs):
     image : ndimage
     """
 
-    plugin_kwargs = {
-        "legacy_api": False,
-        "plugin": plugin
-    }
+    plugin_kwargs = {"legacy_api": False, "plugin": plugin}
 
     with imopen()(uri, **plugin_kwargs) as img_file:
         for image in img_file.iter(**kwargs):

@@ -564,8 +564,7 @@ class FormatManager(object):
         # Check
         if not isinstance(name, str):
             raise ValueError(
-                "Looking up a format should be done by name "
-                "or by extension."
+                "Looking up a format should be done by name " "or by extension."
             )
         if not name:
             raise ValueError("No format matches the empty string.")
@@ -638,7 +637,10 @@ class FormatManager(object):
         self._formats_sorted = list(self._formats)
         # Sort
         for name in reversed(names):
-            def sorter(f): return -((f.name == name) + (f.name.endswith(name)))
+
+            def sorter(f):
+                return -((f.name == name) + (f.name.endswith(name)))
+
             self._formats_sorted.sort(key=sorter)
 
     def add_format(self, format, overwrite=False):

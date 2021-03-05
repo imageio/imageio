@@ -6,9 +6,7 @@
 
 import numpy as np
 from pathlib import Path
-from PIL import (
-    Image, UnidentifiedImageError, ImageSequence, ExifTags
-)
+from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 
 from ..core.imopen import Plugin
 
@@ -37,7 +35,7 @@ def _is_multichannel(mode):
         "BGR;15": True,
         "BGR;16": True,
         "BGR;24": True,
-        "BGR;32": True
+        "BGR;32": True,
     }
 
     return multichannel[mode]
@@ -58,7 +56,7 @@ def _exif_orientation_transform(orientation, mode):
         5: lambda x: np.flip(np.rot90(x, k=3), axis=axis),
         6: lambda x: np.rot90(x, k=1),
         7: lambda x: np.flip(np.rot90(x, k=1), axis=axis),
-        8: lambda x: np.rot90(x, k=3)
+        8: lambda x: np.rot90(x, k=3),
     }
 
     return EXIF_ORIENTATION[orientation]
@@ -66,7 +64,7 @@ def _exif_orientation_transform(orientation, mode):
 
 class PillowPlugin(Plugin):
     def __init__(self, uri):
-        """ Instantiate a new Pillow Plugin Object
+        """Instantiate a new Pillow Plugin Object
 
         Parameters
         ----------
@@ -126,12 +124,10 @@ class PillowPlugin(Plugin):
         if index is not None:
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-            image = self._apply_transforms(
-                self._image, mode, rotate, apply_gamma)
+            image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
             return image
         else:
-            iterator = self.iter(mode=mode, rotate=rotate,
-                                 apply_gamma=apply_gamma)
+            iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
             image = np.stack([im for im in iterator], axis=0)
             if image.shape[0] == 1:
                 image = np.squeeze(image, axis=0)
@@ -168,8 +164,7 @@ class PillowPlugin(Plugin):
         meta = self.get_meta()
         if rotate and "Orientation" in meta:
             transformation = _exif_orientation_transform(
-                meta["Orientation"],
-                self._image.mode
+                meta["Orientation"], self._image.mode
             )
             image = transformation(image)
 
@@ -230,15 +225,20 @@ class PillowPlugin(Plugin):
         for frame in image:
             pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
-                pil_frame = pil_frame.quantize(colors=2**kwargs["bits"])
+                pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
 
             pil_images.append(pil_frame)
 
-        pil_images[0].save(self._uri, save_all=save_all,
-                           append_images=pil_images[1:], format=format, **kwargs)
+        pil_images[0].save(
+            self._uri,
+            save_all=save_all,
+            append_images=pil_images[1:],
+            format=format,
+            **kwargs
+        )
 
     def get_meta(self, *, index=None):
-        """ Read ndimage metadata from the URI
+        """Read ndimage metadata from the URI
 
         Parameters
         ----------
@@ -270,7 +270,7 @@ class PillowPlugin(Plugin):
 
     @classmethod
     def can_open(cls, uri):
-        """ Verify that plugin can read the given URI
+        """Verify that plugin can read the given URI
 
         Parameters
         ----------
