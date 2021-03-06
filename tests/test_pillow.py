@@ -194,9 +194,7 @@ def test_png_16bit(image_files: Path):
 def test_png_remote():
     # issue #202
 
-    url = (
-        "https://github.com/FirefoxMetzger/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
-    )
+    url = "https://github.com/FirefoxMetzger/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
     response = urllib.request.urlopen(url)
     im = iio.new_api.imread(response, plugin="pillow")
     assert im.shape == (300, 451, 3)
