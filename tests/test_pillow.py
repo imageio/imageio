@@ -195,12 +195,11 @@ def test_png_remote():
     # issue #202
 
     url = (
-        "https://raw.githubusercontent.com/imageio/"
-        "imageio-binaries/master/images/astronaut.png"
+        "https://github.com/FirefoxMetzger/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
     )
     response = urllib.request.urlopen(url)
     im = iio.new_api.imread(response, plugin="pillow")
-    assert im.shape == (512, 512, 3)
+    assert im.shape == (300, 451, 3)
 
 
 def test_png_transparent_pixel(image_files: Path):
