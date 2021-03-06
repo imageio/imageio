@@ -100,10 +100,7 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          env_vars: ${{matrix.os}},${{matrix.pyversion}}
-          name: codecov-imageio
           fail_ci_if_error: true
-          verbose: true
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
