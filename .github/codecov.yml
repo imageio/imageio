@@ -1,0 +1,8 @@
+coverage:
+    status:
+        patch:
+            default:
+                target: auto
+        project:
+            default:
+                target: auto
