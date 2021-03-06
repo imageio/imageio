@@ -94,7 +94,20 @@ jobs:
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
         run: |
-            invoke test --unit
+            pytest -v --cov=./imageio --cov-config=.coveragerc --cov-report="xml"
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.pyversion == '3.9'
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage1.xml,./coverage2.xml
+          directory: ./coverage/reports/
+          flags: unittests
+          env_vars: OS,PYTHON
+          name: codecov-imageio
+          fail_ci_if_error: true
+          path_to_write_report: ./coverage/codecov_report.txt
+          verbose: true
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
