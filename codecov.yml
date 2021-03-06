@@ -4,6 +4,6 @@ coverage:
             default:
                 target: auto
         project:
-            default:
+            tests: 
                 target: auto
 comment: false
