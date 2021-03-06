@@ -1,8 +1,10 @@
 coverage:
     status:
+        # coverage of the current PR/commit
         patch:
             default:
                 target: auto
+        # coverage of the full project
         project:
             tests: 
                 target: auto
