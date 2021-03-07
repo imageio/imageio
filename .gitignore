@@ -14,6 +14,7 @@ MANIFEST
 .coverage
 .cache
 .pytest_cache/
+coverage.xml
 
 # Specific folders
 imageio/lib
