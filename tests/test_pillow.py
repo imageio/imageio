@@ -62,8 +62,7 @@ def test_write_single_frame(image_files: Path, im_npy: str, im_out: str, im_comp
     im = np.load(image_files / im_npy)
     # written with imageio
     iio_file = image_files / im_out
-    with iio.imopen(iio_file, plugin="pillow", legacy_api=False) as f:
-        f.write(im)
+    iio.new_api.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = image_files / im_comp
@@ -90,8 +89,7 @@ def test_write_multiframe(image_files: Path, im_npy: str, im_out: str, im_comp: 
     im = np.load(image_files / im_npy)
     # written with imageio
     iio_file = image_files / im_out
-    with iio.imopen(iio_file, plugin="pillow", legacy_api=False) as f:
-        f.write(im)
+    iio.new_api.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = image_files / im_comp
@@ -136,11 +134,8 @@ def test_png_compression(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im, compress_level=0)
-
-    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im, compress_level=9)
+    iio.new_api.imwrite(image_files / "1.png", im, plugin="pillow", compress_level=0)
+    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", compress_level=9)
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -152,11 +147,8 @@ def test_png_quantization(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im, bits=8)
-
-    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im, bits=2)
+    iio.new_api.imwrite(image_files / "1.png", im, plugin="pillow", bits=8)
+    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", bits=2)
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -167,11 +159,8 @@ def test_png_16bit(image_files: Path):
     # 16b bit images
     im = np.load(image_files / "chelsea.npy")[..., 0]
 
-    with iio.imopen(image_files / "1.png", legacy_api=False, plugin="pillow") as f:
-        f.write(2 * im.astype(np.uint16), mode="I;16")
-
-    with iio.imopen(image_files / "2.png", legacy_api=False, plugin="pillow") as f:
-        f.write(im, mode="L")
+    iio.new_api.imwrite(image_files / "1.png", 2 * im.astype(np.uint16), plugin="pillow", mode="I;16")
+    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", mode="L")
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -210,15 +199,12 @@ def test_png_transparent_pixel(image_files: Path):
 
 def test_png_gamma_correction(image_files: Path):
     with iio.imopen(
-        image_files / "kodim03.png", legacy_api=False, plugin="pillow"
+        image_files / "kodim03.png", "r", plugin="pillow"
     ) as f:
         im1 = f.read()
         im1_meta = f.get_meta()
 
-    with iio.imopen(
-        image_files / "kodim03.png", legacy_api=False, plugin="pillow"
-    ) as f:
-        im2 = f.read(apply_gamma=True)
+    im2 = iio.new_api.imread(image_files / "kodim03.png", plugin="pillow", apply_gamma=True)
 
     # Test result depending of application of gamma
     assert im1_meta["gamma"] < 1
@@ -235,11 +221,8 @@ def test_jpg_compression(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    with iio.imopen(image_files / "1.jpg", legacy_api=False, plugin="pillow") as f:
-        f.write(im, quality=90)
-
-    with iio.imopen(image_files / "2.jpg", legacy_api=False, plugin="pillow") as f:
-        f.write(im, quality=10)
+    iio.new_api.imwrite(image_files / "1.jpg", im, plugin="pillow", quality=90)
+    iio.new_api.imwrite(image_files / "2.jpg", im, plugin="pillow", quality=10)
 
     size_1 = os.stat(image_files / "1.jpg").st_size
     size_2 = os.stat(image_files / "2.jpg").st_size
@@ -258,13 +241,10 @@ def test_exif_orientation(image_files: Path):
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
-    with iio.imopen(
-        image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow"
-    ) as f:
-        f.write(im_flipped, exif=exif_tag)
+    iio.new_api.imwrite(image_files / "chelsea_tagged.png", im_flipped, plugin="pillow", exif=exif_tag)
 
     with iio.imopen(
-        image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow"
+        image_files / "chelsea_tagged.png", "r", plugin="pillow",
     ) as f:
         im_reloaded = f.read()
         im_meta = f.get_meta()
@@ -274,12 +254,9 @@ def test_exif_orientation(image_files: Path):
     # ensure that the Exif tag is set in the file
     assert "Orientation" in im_meta and im_meta["Orientation"] == 6
 
-    with iio.imopen(
-        image_files / "chelsea_tagged.png", legacy_api=False, plugin="pillow"
-    ) as f:
-        im_rotated = f.read(rotate=True)
+    im_reloaded = iio.new_api.imread(image_files / "chelsea_tagged.png", plugin="pillow", rotate=True)
 
-    assert np.array_equal(im, im_rotated)
+    assert np.array_equal(im, im_reloaded)
 
 
 def test_gif_rgb_vs_rgba(image_files: Path):
@@ -300,10 +277,7 @@ def test_gif_gray(image_files: Path):
         image_files / "newtonscradle.gif", plugin="pillow", mode="L"
     )
 
-    with iio.imopen(
-        image_files / "test.gif", legacy_api=False, plugin="pillow"
-    ) as file:
-        file.write(im[..., 0], duration=0.2, mode="L")
+    iio.new_api.imwrite(image_files / "test.gif", im[..., 0], plugin="pillow", duration=0.2, mode="L")
 
 
 def test_gif_irregular_duration(image_files: Path):
@@ -313,7 +287,7 @@ def test_gif_irregular_duration(image_files: Path):
     duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
     with iio.imopen(
-        image_files / "test.gif", legacy_api=False, plugin="pillow"
+        image_files / "test.gif", "w", plugin="pillow"
     ) as file:
         for frame, duration in zip(im, duration):
             file.write(frame, duration=duration)
@@ -326,11 +300,7 @@ def test_gif_palletsize(image_files: Path):
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
     )
 
-    with iio.imopen(
-        image_files / "test.gif", legacy_api=False, plugin="pillow"
-    ) as file:
-        file.write(im, palettesize=100)
-
+    iio.new_api.imwrite(image_files / "test.gif", im, plugin="pillow", palletsize=100)
     # TODO: assert pallet size is 128
 
 
@@ -343,7 +313,7 @@ def test_gif_loop_and_fps(image_files: Path):
     )
 
     with iio.imopen(
-        image_files / "test.gif", legacy_api=False, plugin="pillow"
+        image_files / "test.gif", "w", plugin="pillow"
     ) as file:
         for frame in im:
             file.write(frame, palettesize=100, fps=20, loop=2)

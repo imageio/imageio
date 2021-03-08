@@ -28,9 +28,9 @@ def imread(uri, *, index=None, plugin=None, **kwargs):
     image : ndimage
     """
 
-    plugin_kwargs = {"legacy_api": False, "plugin": plugin}
+    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
-    with imopen()(uri, **plugin_kwargs) as img_file:
+    with imopen()(uri, "r", **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
@@ -59,10 +59,16 @@ def imiter(uri, *, plugin=None, **kwargs):
     image : ndimage
     """
 
-    plugin_kwargs = {"legacy_api": False, "plugin": plugin}
+    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
-    with imopen()(uri, **plugin_kwargs) as img_file:
+    with imopen()(uri, "r", **plugin_kwargs) as img_file:
         for image in img_file.iter(**kwargs):
             # Note: casting to ndarray here to ensure compatibility
             # with the v2.9 API
             yield np.asarray(image)
+
+def imwrite(uri, image, *, plugin=None, **kwargs):
+    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
+
+    with imopen()(uri, "w", **plugin_kwargs) as img_file:
+        img_file.write(image, **kwargs)

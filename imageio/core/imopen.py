@@ -21,7 +21,7 @@ class imopen(object):
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
-    def __call__(self, uri, *, plugin=None, legacy_api=True, **kwargs):
+    def __call__(self, uri, io_mode, *, plugin=None, search_legacy_only=True, **kwargs):
         """Instantiate a plugin capable of interacting with the given URI
 
         Parameters
@@ -29,34 +29,42 @@ class imopen(object):
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image from, e.g. a filename, pathlib.Path,
             http address or file object, see the docs for more info.
+        io_mode : {str}
+            The mode to open the file with. Possible values are
+                ``r`` - open the file for reading
+                ``w`` - open the file for writing
         plugin : {str, None}
             The plugin to be used. If None, performs a search for a matching plugin.
-        legacy_api : {bool}
-            The API to be used. If true use the v2.9 API, otherwise use the new
-            v3.0 API.
+        search_legacy_only : {bool}
+            If true, and the plugin is to be searched for by imageio (``plugin``
+            is None) then only seach old plugins (v2.9 and prior) and skip new
+            plugins.
         **kwargs :
             Additional keyword arguments will be passed to the plugin instance.
         """
 
         plugin_instance = None
 
-        if legacy_api:
-            kwargs["plugin"] = plugin
-            return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
+        if io_mode not in ["r", "w"]:
+            raise ValueError("io_mode must be either r for read or w for write.")
 
         if plugin is not None:
             try:
                 plugin_instance = self._known_plugins[plugin]
             except KeyError:
                 raise ValueError(f"'{plugin}' is not a registered plugin name.")
-
-        else:
+        elif not search_legacy_only:
             for candidate_plugin in self._known_plugins.values():
                 if candidate_plugin.can_open(uri):
                     plugin_instance = candidate_plugin
                     break
             else:
                 raise IOError(f"No registered plugin can read {uri}")
+        else:
+            plugin_instance = LegacyPlugin
+            kwargs["plugin_manager"] = self._legacy_format_manager
+            # return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
+
 
         return plugin_instance(uri, **kwargs)
 
@@ -86,7 +94,7 @@ class LegacyPlugin(object):
     it with the v2.9 API.
     """
 
-    def __init__(self, uri, plugin_manager, plugin=None):
+    def __init__(self, uri, plugin_manager, format=None):
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -98,14 +106,14 @@ class LegacyPlugin(object):
             An instance of the legacy format manager used to find an appropriate
             plugin to load the image. It has to be the reference to the one
             global instance.
-        plugin : {object, None}
-            The plugin to use to interface with the URI. If None imageio selects
-            the appropriate plugin for you based on the URI.
+        format : {object, None}
+            The (legacy) format to use to interface with the URI. If None
+            imageio selects the appropriate plugin for you based on the URI.
 
         """
         self._uri = uri
         self._plugin_manager = plugin_manager
-        self._plugin = plugin_manager[plugin]
+        self._plugin = plugin_manager[format]
 
     def legacy_get_reader(self, iio_mode="?", **kwargs):
         """legacy_get_reader( iio_mode='?' **kwargs)
