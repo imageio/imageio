@@ -80,6 +80,8 @@ jobs:
             TEST_FULL: 1
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
       - name: Set up Python ${{ matrix.pyversion }}
         uses: actions/setup-python@v2
         with:
@@ -97,7 +99,10 @@ jobs:
             pytest -v --cov=./ --cov-config=.coveragerc --cov-report="xml"
       - name: Upload coverage to Codecov
         run: |
-          bash <(curl -s https://codecov.io/bash)
+          curl -s https://codecov.io/bash | bash
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        shell: bash
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
