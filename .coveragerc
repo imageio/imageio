@@ -1,10 +1,15 @@
-[report]
+[run]
+branch = True
+source = imageio
 
+[report]
 # Do not test our testing file and a few modules tested elsewhere
 omit = 
     imageio/testing.py
     imageio/freeze.py
     imageio/plugins/_tifffile.py
+    tests/*
+    docs/*
 
 exclude_lines =
     # Remember that these are reg exp
@@ -30,3 +35,5 @@ exclude_lines =
     
     # In ffmpeg plugin - no video on Travis
     if self.request._video:
+
+ignore_errors = True
