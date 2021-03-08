@@ -96,12 +96,8 @@ jobs:
         run: |
             pytest -v --cov=./imageio --cov-config=.coveragerc --cov-report="xml"
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.pyversion == '3.9'
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: coverage.xml
-          fail_ci_if_error: true
+        run: |
+          bash <(curl -s https://codecov.io/bash)
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
