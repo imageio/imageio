@@ -67,6 +67,7 @@ def imiter(uri, *, plugin=None, **kwargs):
             # with the v2.9 API
             yield np.asarray(image)
 
+
 def imwrite(uri, image, *, plugin=None, **kwargs):
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 

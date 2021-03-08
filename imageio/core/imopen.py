@@ -65,7 +65,6 @@ class imopen(object):
             kwargs["plugin_manager"] = self._legacy_format_manager
             # return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
 
-
         return plugin_instance(uri, **kwargs)
 
     @classmethod

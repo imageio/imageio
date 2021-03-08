@@ -414,7 +414,6 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-
     with imopen()(uri, "w", format=format) as file:
         return file.write(im, iio_mode="v", **kwargs)
 
