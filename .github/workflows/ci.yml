@@ -96,7 +96,7 @@ jobs:
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
         run: |
-            pytest -v --cov=./ --cov-config=.coveragerc --cov-report="xml"
+            pytest -v --cov=./
       - name: Upload coverage to Codecov
         run: |
           curl -s https://codecov.io/bash | bash
