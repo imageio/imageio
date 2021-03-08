@@ -7,8 +7,6 @@
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 
-from ..core.imopen import Plugin
-
 
 def _is_multichannel(mode):
     multichannel = {
@@ -61,7 +59,7 @@ def _exif_orientation_transform(orientation, mode):
     return EXIF_ORIENTATION[orientation]
 
 
-class PillowPlugin(Plugin):
+class PillowPlugin(object):
     def __init__(self, uri):
         """Instantiate a new Pillow Plugin Object
 

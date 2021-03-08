@@ -77,130 +77,7 @@ class imopen(object):
         cls._known_plugins[plugin_name] = plugin_class
 
 
-class Plugin(object):
-    def __init__(self, uri):
-        """Instantiate a new Legacy Plugin
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-
-        """
-        self._uri = uri
-
-    def read(self, *, index=None, **kwargs):
-        """
-        Parses the given URI and creates a ndarray from it.
-
-        Parameters
-        ----------
-        index : {integer}
-            If the URI contains a list of ndimages return the index-th image. If
-            None, read all ndimages in the URI and attempt to stack them along
-            a new 0-th axis (equivalent to np.stack(imgs, axis=0))
-        kwargs : ...
-            To be replaced by the implementing plugin. Custom plugin arguments
-            go here.
-        """
-        raise NotImplementedError
-
-    def write(self, image, **kwargs):
-        """
-        Write an ndimage to the specified URI.
-
-        If the URI points to a file on the current host and the file does not
-        yet exist it will be created. If the file exists already, it will be
-        appended if possible; otherwise, it will be replaced.
-
-        Parameters
-        ----------
-        image : numpy.ndarray
-            The ndimage or list of ndimages to write.
-        kwargs : ...
-            To be replaced by the implementing plugin. Custom plugin arguments
-            go here.
-        """
-        raise IOError(
-            f"The {self.__name__} plugin can not write to the given URI. "
-            "Try using a different plugin."
-        )
-
-    def iter(self, **kwargs):
-        """
-        Iterate over a list of ndimages given by the URI
-
-        Parameters
-        ----------
-        kwargs : ... To be replaced by the
-            implementing plugin. Custom plugin arguments go here.
-        """
-
-        raise NotImplementedError
-
-    def get_meta(self, *, index=None):
-        """Read ndimage metadata from the URI
-
-        Parameters
-        ----------
-        index : {integer, None}
-            If the URI contains a list of ndimages return the metadata
-            corresponding to the index-th image. If None, behavior is decided
-            by the plugin. Typically, it returns the metadata for the 0-th
-            ndimage.
-        """
-        raise NotImplementedError
-
-    @classmethod
-    def can_open(cls, uri):
-        """Verify that plugin can open the given URI
-
-        Verifying that the plugin a URI doesn't make a specific claim on whether
-        or not the plugin can read or write the file. Most plugins support both,
-        but some may only support reading or writing. E.g. if the location is on
-        a remote host (web URL), writing may not be supported. This rules out
-        any plugins that are definitely incapable of handling the URI.
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-
-        Returns
-        -------
-        readable : bool
-            True if the URI can be read by the plugin. False otherwise.
-
-        """
-        raise NotImplementedError
-
-    def can_write(self, uri):
-        """Verify that plugin can write to the given URI
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-
-        Returns
-        -------
-        readable : bool
-            True if the URI can be read by the plugin. False otherwise.
-
-        """
-        raise NotImplementedError
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        pass
-
-
-class LegacyPlugin(Plugin):
+class LegacyPlugin(object):
     """A plugin to expose v2.9 plugins in the v3.0 API
 
     This plugin is a wrapper around the old FormatManager class and exposes
@@ -458,3 +335,9 @@ class LegacyPlugin(Plugin):
             )
 
         return plugin.get_meta_data(index=index)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
