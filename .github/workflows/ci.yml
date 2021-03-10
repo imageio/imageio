@@ -80,6 +80,8 @@ jobs:
             TEST_FULL: 1
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
       - name: Set up Python ${{ matrix.pyversion }}
         uses: actions/setup-python@v2
         with:
@@ -94,13 +96,13 @@ jobs:
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
         run: |
-            pytest -v --cov=./imageio --cov-config=.coveragerc --cov-report="xml"
+            coverage run -m pytest -v
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && matrix.pyversion == '3.9'
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+        run: |
+          curl -s https://codecov.io/bash | bash
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        shell: bash
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
