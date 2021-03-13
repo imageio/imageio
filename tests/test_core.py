@@ -815,4 +815,12 @@ def test_legacy_object_image_writing():
     with pytest.raises(ValueError):
         iio.mimwrite("foo.gif", np.array([[0]], dtype=object))
 
+
+def test_imiter(image_files: Path):
+    numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
+
+    for idx, im in enumerate(iio.new_api.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")):
+        assert np.allclose(numpy_im[idx, ...], im)
+
+
 run_tests_if_main()
