@@ -130,8 +130,6 @@ class LegacyPlugin(object):
             to see what arguments are available for a particular format.
         """
 
-        if iio_mode is None:
-            raise ValueError("mode=None is not supported" " for legacy API calls.")
         mode = "r" + iio_mode
 
         request = Request(self._uri, mode, **kwargs)
@@ -315,21 +313,7 @@ class LegacyPlugin(object):
             New-style API: Behavior depends on the used Plugin.
         """
 
-        mode = "r?"
-        request = Request(self._uri, mode)
-        plugin = self._plugin
-
-        if plugin is None:
-            plugin = self._plugin_manager.search_read_format(request)
-
-        if plugin is None:
-            modename = MODENAMES.get(mode, mode)
-            raise ValueError(
-                "Could not find a format to read the specified file"
-                " in %s mode" % modename
-            )
-
-        return plugin.get_meta_data(index=index)
+        return self.legacy_get_reader().get_meta_data(index=index)
 
     def __enter__(self):
         return self

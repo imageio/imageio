@@ -399,3 +399,39 @@ def test_gif_transparent_pixel(image_files: Path):
 
 #     for name in ("x.png", "x.jpg"):
 #         imageio.imread(fname + "/" + name)
+
+def test_legacy_exif_orientation(image_files: Path):
+    from PIL.Image import Exif
+
+    im = np.load(image_files / "chelsea.npy")
+
+    # original image is has landscape format
+    assert im.shape[0] < im.shape[1]
+
+    im_flipped = np.rot90(im, -1)
+    exif_tag = Exif()
+    exif_tag[274] = 6  # Set Orientation to 6
+
+    iio.new_api.imwrite(
+        image_files / "chelsea_tagged.png", im_flipped, plugin="pillow", exif=exif_tag
+    )
+
+    with iio.imopen(
+        image_files / "chelsea_tagged.png",
+        "r",
+        search_legacy_only=True,
+        format="PNG-PIL"
+    ) as f:
+        im_reloaded = np.asarray(f.read()[0])
+        im_meta = f.get_meta()
+
+    # ensure raw image is now portrait
+    assert im_reloaded.shape[0] > im_reloaded.shape[1]
+    # ensure that the Exif tag is set in the file
+    assert "exif" in im_meta
+
+    im_reloaded = iio.new_api.imread(
+        image_files / "chelsea_tagged.png", plugin="pillow", rotate=True
+    )
+
+    assert np.array_equal(im, im_reloaded)   

@@ -800,6 +800,6 @@ def test_imopen_unregistered_plugin(no_plugins):
 
 def test_legacy_object_image_writing():
     with pytest.raises(ValueError):
-        iio.mimwrite("", np.array([0], dtype=object))
+        iio.mimwrite("foo.bmp", np.array([[0]], dtype=object))
 
 run_tests_if_main()
