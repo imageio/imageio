@@ -3,9 +3,9 @@ coverage:
         # coverage of the current PR/commit
         patch:
             default:
-                target: auto
+                target: 100%
         # coverage of the full project
         project:
-            tests: 
+            default: 
                 target: auto
 comment: false
