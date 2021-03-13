@@ -780,26 +780,33 @@ def test_imopen_unsupported_iomode():
     with pytest.raises(ValueError):
         iio.imopen("", "unknown_iomode")
 
-@pytest.fixture
-def no_plugins():
-    plugins = iio.imopen._known_plugins
-    iio.imopen._known_plugins = dict()
-    yield
-    iio.imopen._known_plugins = plugins
 
-
-def test_imopen_no_plugin_found(no_plugins):
+def test_imopen_no_plugin_found(clear_plugins):
     with pytest.raises(IOError):
         iio.imopen("unknown.abcd", "r", search_legacy_only=False)
 
 
-def test_imopen_unregistered_plugin(no_plugins):
+def test_imopen_unregistered_plugin(clear_plugins):
     with pytest.raises(ValueError):
         iio.imopen("", "r", plugin="unknown_plugin")
+
+def test_plugin_selection(monkeypatch):
+    class DummyPlugin:
+        @classmethod
+        def can_open(cls, uri):
+            return False
+
+    monkeypatch.setattr(iio.imopen, "_known_plugins", {
+        "plugin1": DummyPlugin,
+        "plugin2": DummyPlugin
+    })
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", search_legacy_only=False)
 
 
 def test_legacy_object_image_writing():
     with pytest.raises(ValueError):
-        iio.mimwrite("foo.bmp", np.array([[0]], dtype=object))
+        iio.mimwrite("foo.gif", np.array([[0]], dtype=object))
 
 run_tests_if_main()

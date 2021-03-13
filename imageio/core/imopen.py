@@ -4,7 +4,7 @@ from .format import FormatManager, MODENAMES
 from .request import Request
 
 
-class imopen(object):
+class imopen:
     """Open a URI and return a plugin instance that can read/write its content.
 
     ``imopen`` takes a URI and searches for a plugin capable of opening it.
@@ -238,7 +238,8 @@ class LegacyPlugin:
             if iio_mode in "iv?":
                 writer.append_data(image)
             else:
-                written = None
+                if len(image) == 0:
+                    raise RuntimeError("Zero images were written.")
                 for written, image in enumerate(image):
                     # Test image
                     imt = type(image)
@@ -268,11 +269,6 @@ class LegacyPlugin:
 
                     # Add image
                     writer.append_data(image)
-
-                try:
-                    assert written is not None
-                except AssertionError:
-                    raise RuntimeError("Zero images were written.")
 
         return writer.request.get_result()
 

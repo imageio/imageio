@@ -41,8 +41,6 @@ def image_files(tmp_dir):
 
 
 @pytest.fixture
-def no_plugins():
-    plugins = iio.imopen._known_plugins
-    iio.imopen._known_plugins = dict()
+def clear_plugins(monkeypatch):
+    monkeypatch.setattr(iio.imopen, "_known_plugins", dict())
     yield
-    iio.imopen._known_plugins = plugins
