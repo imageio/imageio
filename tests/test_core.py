@@ -776,6 +776,12 @@ def test_imwrite_not_array_like():
         imageio.imwrite("foo.bmp", "asd")
 
 
+def test_legacy_empty_image():
+    with pytest.raises(RuntimeError):
+        with iio.imopen("foo.bmp", "w", format="GIF-PIL") as file:
+            file.write([], iio_mode="I")
+
+
 def test_imopen_unsupported_iomode():
     with pytest.raises(ValueError):
         iio.imopen("", "unknown_iomode")
