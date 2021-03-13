@@ -20,6 +20,7 @@ from imageio.core.functions import to_nbytes
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
+import imageio as iio
 from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
@@ -774,5 +775,31 @@ def test_imwrite_not_array_like():
     with raises(ValueError):
         imageio.imwrite("foo.bmp", "asd")
 
+
+def test_imopen_unsupported_iomode():
+    with pytest.raises(ValueError):
+        iio.imopen("", "unknown_iomode")
+
+@pytest.fixture
+def no_plugins():
+    plugins = iio.imopen._known_plugins
+    iio.imopen._known_plugins = dict()
+    yield
+    iio.imopen._known_plugins = plugins
+
+
+def test_imopen_no_plugin_found(no_plugins):
+    with pytest.raises(IOError):
+        iio.imopen("unknown.abcd", "r", search_legacy_only=False)
+
+
+def test_imopen_unregistered_plugin(no_plugins):
+    with pytest.raises(ValueError):
+        iio.imopen("", "r", plugin="unknown_plugin")
+
+
+def test_legacy_object_image_writing():
+    with pytest.raises(ValueError):
+        iio.mimwrite("", np.array([0], dtype=object))
 
 run_tests_if_main()

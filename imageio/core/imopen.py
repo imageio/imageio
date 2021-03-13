@@ -161,12 +161,8 @@ class LegacyPlugin(object):
         ----------
         index : {integer, None}
             If the URI contains a list of ndimages return the index-th
-            image. If None, behavior depends on the used api::
-
-                Legacy-style API: return the first element (index=0)
-                New-style API: stack list into ndimage along the 0-th dimension
-                    (equivalent to np.stack(imgs, axis=0))
-
+            image. If None, stack all images into an ndimage along the 
+            0-th dimension (equivalent to np.stack(imgs, axis=0)).
         iio_mode : {'i', 'v', '?', None}
             Used to give the reader a hint on what the user expects
             (default "?"): "i" for an image, "v" for a volume, "?" for don't
@@ -178,14 +174,7 @@ class LegacyPlugin(object):
         """
 
         if index is None:
-            images = [image for image in self.iter(iio_mode=iio_mode, **kwargs)]
-            if len(images) > 1:
-                raise IOError(
-                    "The image contains more than one image."
-                    " Use iter(...) or use index=n"
-                    " to load the n-th image instead."
-                )
-            return images[0]
+            return [im for im in self.iter(iio_mode=iio_mode, **kwargs)]
 
         reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
         return reader.get_data(index)
@@ -282,12 +271,13 @@ class LegacyPlugin(object):
                     # Add image
                     writer.append_data(image)
 
-                if written is None:
+                try:
+                    assert written is not None
+                except AssertionError:
                     raise RuntimeError("Zero images were written.")
 
         return writer.request.get_result()
 
-    # this could also be __iter__
     def iter(self, *, iio_mode="?", **kwargs):
         """Iterate over a list of ndimages given by the URI
 
