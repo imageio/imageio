@@ -207,8 +207,6 @@ class LegacyPlugin(object):
             to see what arguments are available for a particular format.
         """
 
-        if iio_mode is None:
-            raise ValueError("mode=None is not supported" " for legacy API calls.")
         mode = "w" + iio_mode
 
         plugin = self._plugin
