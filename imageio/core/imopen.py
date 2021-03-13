@@ -84,7 +84,7 @@ class imopen(object):
         cls._known_plugins[plugin_name] = plugin_class
 
 
-class LegacyPlugin(object):
+class LegacyPlugin:
     """A plugin to expose v2.9 plugins in the v3.0 API
 
     This plugin is a wrapper around the old FormatManager class and exposes
