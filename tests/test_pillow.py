@@ -198,9 +198,7 @@ def test_png_gamma_correction(image_files: Path):
         im1 = f.read()
         im1_meta = f.get_meta()
 
-    im2 = iio.v3.imread(
-        image_files / "kodim03.png", plugin="pillow", apply_gamma=True
-    )
+    im2 = iio.v3.imread(image_files / "kodim03.png", plugin="pillow", apply_gamma=True)
 
     # Test result depending of application of gamma
     assert im1_meta["gamma"] < 1
@@ -275,9 +273,7 @@ def test_gif_rgb_vs_rgba(image_files: Path):
 
 def test_gif_gray(image_files: Path):
     # Note: There was no assert here; we test that it doesn't crash?
-    im = iio.v3.imread(
-        image_files / "newtonscradle.gif", plugin="pillow", mode="L"
-    )
+    im = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="L")
 
     iio.v3.imwrite(
         image_files / "test.gif", im[..., 0], plugin="pillow", duration=0.2, mode="L"
@@ -285,9 +281,7 @@ def test_gif_gray(image_files: Path):
 
 
 def test_gif_irregular_duration(image_files: Path):
-    im = iio.v3.imread(
-        image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
-    )
+    im = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA")
     duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
     with iio.imopen(image_files / "test.gif", "w", plugin="pillow") as file:
@@ -298,9 +292,7 @@ def test_gif_irregular_duration(image_files: Path):
 
 
 def test_gif_palletsize(image_files: Path):
-    im = iio.v3.imread(
-        image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
-    )
+    im = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA")
 
     iio.v3.imwrite(image_files / "test.gif", im, plugin="pillow", palletsize=100)
     # TODO: assert pallet size is 128
@@ -310,9 +302,7 @@ def test_gif_loop_and_fps(image_files: Path):
     # Note: I think this test tests pillow kwargs, not imageio functionality
     # maybe we should drop it?
 
-    im = iio.v3.imread(
-        image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
-    )
+    im = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA")
 
     with iio.imopen(image_files / "test.gif", "w", plugin="pillow") as file:
         for frame in im:

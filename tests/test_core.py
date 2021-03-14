@@ -820,9 +820,7 @@ def test_imiter(image_files: Path):
     numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
 
     for idx, im in enumerate(
-        iio.v3.imiter(
-            image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
-        )
+        iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
     ):
         assert np.allclose(numpy_im[idx, ...], im)
 
