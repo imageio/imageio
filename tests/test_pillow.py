@@ -5,7 +5,6 @@ import os
 import pytest
 import numpy as np
 from pathlib import Path
-import shutil
 import urllib.request
 from PIL import Image, ImageSequence
 
