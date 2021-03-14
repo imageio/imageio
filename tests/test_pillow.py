@@ -25,7 +25,7 @@ def test_write_single_frame(image_files: Path, im_npy: str, im_out: str, im_comp
     im = np.load(image_files / im_npy)
     # written with imageio
     iio_file = image_files / im_out
-    iio.new_api.imwrite(iio_file, im, plugin="pillow")
+    iio.v3.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = image_files / im_comp
@@ -52,7 +52,7 @@ def test_write_multiframe(image_files: Path, im_npy: str, im_out: str, im_comp: 
     im = np.load(image_files / im_npy)
     # written with imageio
     iio_file = image_files / im_out
-    iio.new_api.imwrite(iio_file, im, plugin="pillow")
+    iio.v3.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = image_files / im_comp
@@ -78,7 +78,7 @@ def test_write_multiframe(image_files: Path, im_npy: str, im_out: str, im_comp: 
 )
 def test_read(image_files: Path, im_in: str, mode: str):
     im_path = image_files / im_in
-    iio_im = iio.new_api.imread(im_path, plugin="pillow", mode=mode)
+    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode)
 
     pil_im = np.asarray(
         [
@@ -128,8 +128,8 @@ def test_png_compression(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    iio.new_api.imwrite(image_files / "1.png", im, plugin="pillow", compress_level=0)
-    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", compress_level=9)
+    iio.v3.imwrite(image_files / "1.png", im, plugin="pillow", compress_level=0)
+    iio.v3.imwrite(image_files / "2.png", im, plugin="pillow", compress_level=9)
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -141,8 +141,8 @@ def test_png_quantization(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    iio.new_api.imwrite(image_files / "1.png", im, plugin="pillow", bits=8)
-    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", bits=2)
+    iio.v3.imwrite(image_files / "1.png", im, plugin="pillow", bits=8)
+    iio.v3.imwrite(image_files / "2.png", im, plugin="pillow", bits=2)
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
@@ -153,19 +153,19 @@ def test_png_16bit(image_files: Path):
     # 16b bit images
     im = np.load(image_files / "chelsea.npy")[..., 0]
 
-    iio.new_api.imwrite(
+    iio.v3.imwrite(
         image_files / "1.png", 2 * im.astype(np.uint16), plugin="pillow", mode="I;16"
     )
-    iio.new_api.imwrite(image_files / "2.png", im, plugin="pillow", mode="L")
+    iio.v3.imwrite(image_files / "2.png", im, plugin="pillow", mode="L")
 
     size_1 = os.stat(image_files / "1.png").st_size
     size_2 = os.stat(image_files / "2.png").st_size
     assert size_2 < size_1
 
-    im2 = iio.new_api.imread(image_files / "2.png")
+    im2 = iio.v3.imread(image_files / "2.png")
     assert im2.dtype == np.uint8
 
-    im3 = iio.new_api.imread(image_files / "1.png")
+    im3 = iio.v3.imread(image_files / "1.png")
     assert im3.dtype == np.int32
 
 
@@ -181,13 +181,13 @@ def test_png_remote():
 
     url = "https://github.com/FirefoxMetzger/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
     response = urllib.request.urlopen(url)
-    im = iio.new_api.imread(response, plugin="pillow")
+    im = iio.v3.imread(response, plugin="pillow")
     assert im.shape == (300, 451, 3)
 
 
 def test_png_transparent_pixel(image_files: Path):
     # see issue #245
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "imageio_issue246.png", plugin="pillow", mode="RGBA"
     )
     assert im.shape == (24, 30, 4)
@@ -198,7 +198,7 @@ def test_png_gamma_correction(image_files: Path):
         im1 = f.read()
         im1_meta = f.get_meta()
 
-    im2 = iio.new_api.imread(
+    im2 = iio.v3.imread(
         image_files / "kodim03.png", plugin="pillow", apply_gamma=True
     )
 
@@ -217,8 +217,8 @@ def test_jpg_compression(image_files: Path):
 
     im = np.load(image_files / "chelsea.npy")
 
-    iio.new_api.imwrite(image_files / "1.jpg", im, plugin="pillow", quality=90)
-    iio.new_api.imwrite(image_files / "2.jpg", im, plugin="pillow", quality=10)
+    iio.v3.imwrite(image_files / "1.jpg", im, plugin="pillow", quality=90)
+    iio.v3.imwrite(image_files / "2.jpg", im, plugin="pillow", quality=10)
 
     size_1 = os.stat(image_files / "1.jpg").st_size
     size_2 = os.stat(image_files / "2.jpg").st_size
@@ -237,7 +237,7 @@ def test_exif_orientation(image_files: Path):
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
-    iio.new_api.imwrite(
+    iio.v3.imwrite(
         image_files / "chelsea_tagged.png", im_flipped, plugin="pillow", exif=exif_tag
     )
 
@@ -254,7 +254,7 @@ def test_exif_orientation(image_files: Path):
     # ensure that the Exif tag is set in the file
     assert "Orientation" in im_meta and im_meta["Orientation"] == 6
 
-    im_reloaded = iio.new_api.imread(
+    im_reloaded = iio.v3.imread(
         image_files / "chelsea_tagged.png", plugin="pillow", rotate=True
     )
 
@@ -263,10 +263,10 @@ def test_exif_orientation(image_files: Path):
 
 def test_gif_rgb_vs_rgba(image_files: Path):
     # Note: I don't understand the point of this test
-    im_rgb = iio.new_api.imread(
+    im_rgb = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
     )
-    im_rgba = iio.new_api.imread(
+    im_rgba = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
     )
 
@@ -275,17 +275,17 @@ def test_gif_rgb_vs_rgba(image_files: Path):
 
 def test_gif_gray(image_files: Path):
     # Note: There was no assert here; we test that it doesn't crash?
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="L"
     )
 
-    iio.new_api.imwrite(
+    iio.v3.imwrite(
         image_files / "test.gif", im[..., 0], plugin="pillow", duration=0.2, mode="L"
     )
 
 
 def test_gif_irregular_duration(image_files: Path):
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
     )
     duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
@@ -298,11 +298,11 @@ def test_gif_irregular_duration(image_files: Path):
 
 
 def test_gif_palletsize(image_files: Path):
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
     )
 
-    iio.new_api.imwrite(image_files / "test.gif", im, plugin="pillow", palletsize=100)
+    iio.v3.imwrite(image_files / "test.gif", im, plugin="pillow", palletsize=100)
     # TODO: assert pallet size is 128
 
 
@@ -310,7 +310,7 @@ def test_gif_loop_and_fps(image_files: Path):
     # Note: I think this test tests pillow kwargs, not imageio functionality
     # maybe we should drop it?
 
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "newtonscradle.gif", plugin="pillow", mode="RGBA"
     )
 
@@ -327,7 +327,7 @@ def test_gif_loop_and_fps(image_files: Path):
 # def test_gif_subrectangles(image_files: Path):
 #     # feature might be made obsolete by upstream (pillow) supporting it natively
 #     # related issues: https://github.com/python-pillow/Pillow/issues/4977
-#     im = iio.new_api.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
+#     im = iio.v3.imread(image_files / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
 #     im = np.stack((*im, im[-1]), axis=0)
 #     print(im.dtype)
 
@@ -344,7 +344,7 @@ def test_gif_loop_and_fps(image_files: Path):
 
 def test_gif_transparent_pixel(image_files: Path):
     # see issue #245
-    im = iio.new_api.imread(
+    im = iio.v3.imread(
         image_files / "imageio_issue245.gif", plugin="pillow", mode="RGBA"
     )
     assert im.shape == (24, 30, 4)
@@ -377,7 +377,7 @@ def test_legacy_exif_orientation(image_files: Path):
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
-    iio.new_api.imwrite(
+    iio.v3.imwrite(
         image_files / "chelsea_tagged.png", im_flipped, plugin="pillow", exif=exif_tag
     )
 
@@ -395,7 +395,7 @@ def test_legacy_exif_orientation(image_files: Path):
     # ensure that the Exif tag is set in the file
     assert "exif" in im_meta
 
-    im_reloaded = iio.new_api.imread(
+    im_reloaded = iio.v3.imread(
         image_files / "chelsea_tagged.png", plugin="pillow", rotate=True
     )
 
