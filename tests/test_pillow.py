@@ -92,6 +92,7 @@ def test_read(image_files: Path, im_in: str, mode: str):
 
     assert np.allclose(iio_im, pil_im)
 
+
 @pytest.mark.parametrize(
     "im_in,mode",
     [
@@ -101,10 +102,10 @@ def test_read(image_files: Path, im_in: str, mode: str):
 )
 def test_gif_legacy_pillow(image_files: Path, im_in: str, mode: str):
     """
-        This test tests backwards compatibility of using the new API
-        with a legacy plugin. IN particular reading ndimages
+    This test tests backwards compatibility of using the new API
+    with a legacy plugin. IN particular reading ndimages
 
-        I'm not sure where this test should live, so it is here for now.
+    I'm not sure where this test should live, so it is here for now.
     """
 
     im_path = image_files / im_in
@@ -364,6 +365,7 @@ def test_gif_transparent_pixel(image_files: Path):
 #     for name in ("x.png", "x.jpg"):
 #         imageio.imread(fname + "/" + name)
 
+
 def test_legacy_exif_orientation(image_files: Path):
     from PIL.Image import Exif
 
@@ -384,7 +386,7 @@ def test_legacy_exif_orientation(image_files: Path):
         image_files / "chelsea_tagged.png",
         "r",
         search_legacy_only=True,
-        format="PNG-PIL"
+        format="PNG-PIL",
     ) as f:
         im_reloaded = np.asarray(f.read()[0])
         im_meta = f.get_meta()
@@ -398,4 +400,4 @@ def test_legacy_exif_orientation(image_files: Path):
         image_files / "chelsea_tagged.png", plugin="pillow", rotate=True
     )
 
-    assert np.array_equal(im, im_reloaded)   
+    assert np.array_equal(im, im_reloaded)

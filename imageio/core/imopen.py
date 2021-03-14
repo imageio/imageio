@@ -159,7 +159,7 @@ class LegacyPlugin:
         ----------
         index : {integer, None}
             If the URI contains a list of ndimages return the index-th
-            image. If None, stack all images into an ndimage along the 
+            image. If None, stack all images into an ndimage along the
             0-th dimension (equivalent to np.stack(imgs, axis=0)).
         iio_mode : {'i', 'v', '?', None}
             Used to give the reader a hint on what the user expects

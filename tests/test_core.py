@@ -796,16 +796,16 @@ def test_imopen_unregistered_plugin(clear_plugins):
     with pytest.raises(ValueError):
         iio.imopen("", "r", plugin="unknown_plugin")
 
+
 def test_plugin_selection(monkeypatch):
     class DummyPlugin:
         @classmethod
         def can_open(cls, uri):
             return False
 
-    monkeypatch.setattr(iio.imopen, "_known_plugins", {
-        "plugin1": DummyPlugin,
-        "plugin2": DummyPlugin
-    })
+    monkeypatch.setattr(
+        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+    )
 
     with pytest.raises(IOError):
         iio.imopen("", "r", search_legacy_only=False)
@@ -819,7 +819,11 @@ def test_legacy_object_image_writing():
 def test_imiter(image_files: Path):
     numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
 
-    for idx, im in enumerate(iio.new_api.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")):
+    for idx, im in enumerate(
+        iio.new_api.imiter(
+            image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
+        )
+    ):
         assert np.allclose(numpy_im[idx, ...], im)
 
 

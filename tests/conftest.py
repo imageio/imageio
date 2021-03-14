@@ -4,6 +4,7 @@ import shutil
 
 import imageio as iio
 
+
 @pytest.fixture(scope="session")
 def tmp_dir(tmp_path_factory):
     # A temporary directory loaded with the test image files
