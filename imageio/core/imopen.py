@@ -63,7 +63,6 @@ class imopen:
         else:
             plugin_instance = LegacyPlugin
             kwargs["plugin_manager"] = self._legacy_format_manager
-            # return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
 
         return plugin_instance(uri, io_mode, **kwargs)
 

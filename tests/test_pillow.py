@@ -9,6 +9,7 @@ import urllib.request
 from PIL import Image, ImageSequence
 
 import imageio as iio
+from imageio.plugins.pillow import PillowPlugin
 
 
 @pytest.mark.parametrize(
@@ -312,10 +313,21 @@ def test_gif_loop_and_fps(image_files: Path):
 
 def test_gif_indexed_read(image_files: Path):
     idx = 0
-    pillow_im = iio.v3.imread(image_files / "newtonscradle.gif", index = idx, plugin="pillow", mode="RGB")
     numpy_im = np.load(image_files / "newtonscradle_rgb.npy")[idx, ...]
 
+    with iio.imopen(image_files / "newtonscradle.gif", "r", plugin="pillow") as file:
+        # exists to touch branch, would be better two write an explicit test
+        meta = file.get_meta(index=idx)
+
+        pillow_im = file.read(index=idx, mode="RGB")
+
     assert np.allclose(pillow_im, numpy_im)
+
+def test_unknown_image(image_files: Path):
+    with open(image_files / "foo.unknown", "w") as file:
+        file.write("This image, which is actually no image, has an unknown image type.")
+
+    assert not PillowPlugin.can_open(image_files / "foo.unknown")
 
 
 # TODO: introduce new plugin for writing compressed GIF
