@@ -65,7 +65,7 @@ class imopen:
             kwargs["plugin_manager"] = self._legacy_format_manager
             # return LegacyPlugin(uri, self._legacy_format_manager, **kwargs)
 
-        return plugin_instance(uri, **kwargs)
+        return plugin_instance(uri, io_mode, **kwargs)
 
     @classmethod
     def register_plugin(cls, plugin_name, plugin_class):
@@ -93,7 +93,7 @@ class LegacyPlugin:
     it with the v2.9 API.
     """
 
-    def __init__(self, uri, plugin_manager, format=None):
+    def __init__(self, uri, io_mode, plugin_manager, format=None):
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -101,6 +101,9 @@ class LegacyPlugin:
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image from, e.g. a filename, pathlib.Path,
             http address or file object, see the docs for more info.
+        io_mode : {str}
+            Exists to ensure compatibility with imopen. For legacy plugins
+            this has no effect.
         plugin_manager : {format.FormatManager instance}
             An instance of the legacy format manager used to find an appropriate
             plugin to load the image. It has to be the reference to the one

@@ -60,7 +60,7 @@ def _exif_orientation_transform(orientation, mode):
 
 
 class PillowPlugin(object):
-    def __init__(self, uri):
+    def __init__(self, uri, io_mode):
         """Instantiate a new Pillow Plugin Object
 
         Parameters
@@ -68,13 +68,19 @@ class PillowPlugin(object):
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image from, e.g. a filename, pathlib.Path,
             http address or file object, see the docs for more info.
+        io_mode : {str}
+            The mode to open the file with. Possible values are
+                ``r`` - open the file for reading
+                ``w`` - open the file for writing
 
         """
         self._uri = uri
         self._image = None
+        self.io_mode = io_mode
 
     def open(self):
-        return
+        if self.io_mode == "r":
+            self._image = Image.open(self._uri)
 
     def close(self):
         if self._image:
@@ -115,8 +121,6 @@ class PillowPlugin(object):
         is discarded during conversion to ndarray.
 
         """
-        if self._image is None:
-            self._image = Image.open(self._uri)
 
         if index is not None:
             # will raise IO error if index >= number of frames in image
@@ -147,8 +151,6 @@ class PillowPlugin(object):
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
         """
-        if self._image is None:
-            self._image = Image.open(self._uri)
 
         for im in ImageSequence.Iterator(self._image):
             yield self._apply_transforms(im, mode, rotate, apply_gamma)
@@ -244,8 +246,6 @@ class PillowPlugin(object):
             corresponding to the index-th image. If None, return the metadata
             for the last read ndimage/frame.
         """
-        if self._image is None:
-            self._image = Image.open(self._uri)
 
         if index is not None:
             self._image.seek(index)

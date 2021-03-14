@@ -310,6 +310,13 @@ def test_gif_loop_and_fps(image_files: Path):
 
     # This test had no assert; how to assert fps and loop count?
 
+def test_gif_indexed_read(image_files: Path):
+    idx = 0
+    pillow_im = iio.v3.imread(image_files / "newtonscradle.gif", index = idx, plugin="pillow", mode="RGB")
+    numpy_im = np.load(image_files / "newtonscradle_rgb.npy")[idx, ...]
+
+    assert np.allclose(pillow_im, numpy_im)
+
 
 # TODO: introduce new plugin for writing compressed GIF
 # This is not what pillow does, and hence unexpected when explicitly calling
