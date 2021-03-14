@@ -319,6 +319,7 @@ def test_gif_indexed_read(image_files: Path):
     with iio.imopen(image_files / "newtonscradle.gif", "r", plugin="pillow") as file:
         # exists to touch branch, would be better two write an explicit test
         meta = file.get_meta(index=idx)
+        assert "version" in meta
 
         pillow_im = file.read(index=idx, mode="RGB")
 
