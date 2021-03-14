@@ -311,6 +311,7 @@ def test_gif_loop_and_fps(image_files: Path):
 
     # This test had no assert; how to assert fps and loop count?
 
+
 def test_gif_indexed_read(image_files: Path):
     idx = 0
     numpy_im = np.load(image_files / "newtonscradle_rgb.npy")[idx, ...]
@@ -322,6 +323,7 @@ def test_gif_indexed_read(image_files: Path):
         pillow_im = file.read(index=idx, mode="RGB")
 
     assert np.allclose(pillow_im, numpy_im)
+
 
 def test_unknown_image(image_files: Path):
     with open(image_files / "foo.unknown", "w") as file:
