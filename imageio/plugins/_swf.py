@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
-# This code was taken from visvis/vvmovy/images2swf.py
+# This code was taken from https://github.com/almarklein/visvis/blob/master/vvmovie/images2swf.py
 
 # styletest: ignore E261
 
