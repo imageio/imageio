@@ -21,7 +21,7 @@ class imopen:
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
-    def __call__(self, uri, io_mode, *, plugin=None, search_legacy_only=True, **kwargs):
+    def __call__(self, uri, io_mode: str, *, plugin: str = None, search_legacy_only: bool = True, **kwargs):
         """Instantiate a plugin capable of interacting with the given URI
 
         Parameters
@@ -46,13 +46,15 @@ class imopen:
         plugin_instance = None
 
         if io_mode not in ["r", "w"]:
-            raise ValueError("io_mode must be either r for read or w for write.")
+            raise ValueError(
+                "io_mode must be either r for read or w for write.")
 
         if plugin is not None:
             try:
                 plugin_instance = self._known_plugins[plugin]
             except KeyError:
-                raise ValueError(f"'{plugin}' is not a registered plugin name.")
+                raise ValueError(
+                    f"'{plugin}' is not a registered plugin name.")
         elif not search_legacy_only:
             for candidate_plugin in self._known_plugins.values():
                 if candidate_plugin.can_open(uri):
@@ -248,7 +250,8 @@ class LegacyPlugin:
                     image = np.asanyarray(image)
                     if not np.issubdtype(image.dtype, np.number):
                         raise ValueError(
-                            "Image is not numeric, but {}.".format(imt.__name__)
+                            "Image is not numeric, but {}.".format(
+                                imt.__name__)
                         )
                     elif iio_mode == "I":
                         if image.ndim == 2:

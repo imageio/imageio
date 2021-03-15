@@ -51,7 +51,7 @@ from .core.functions import (
     get_writer,
 )
 
-from .core import functional_api as v3
+from .core import v3_api as v3
 
 # Load all the plugins
 from . import plugins
