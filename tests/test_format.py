@@ -278,7 +278,7 @@ def test_format_selection():
     assert F is format
 
 
-## Format manager
+# Format manager
 
 
 def test_format_manager():

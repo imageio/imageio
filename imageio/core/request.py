@@ -296,7 +296,7 @@ class Request(object):
         """The dict of keyword arguments supplied by the user."""
         return self._kwargs
 
-    ## For obtaining data
+    # For obtaining data
 
     def get_file(self):
         """get_file()

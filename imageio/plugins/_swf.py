@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 # todo: use Pillow to support reading JPEG images from SWF?
 
 
-## Base functions and classes
+# Base functions and classes
 
 
 class BitArray:
@@ -283,7 +283,7 @@ def floats2bits(arr):
     return bits
 
 
-## Base Tag
+# Base Tag
 
 
 class Tag:
@@ -352,7 +352,7 @@ class Tag:
         return bits
 
 
-## Control tags
+# Control tags
 
 
 class ControlTag(Tag):
@@ -422,7 +422,7 @@ class DoActionTag(Tag):
         self.bytes = bb
 
 
-## Definition tags
+# Definition tags
 class DefinitionTag(Tag):
     counter = 0  # to give automatically id's
 
@@ -675,7 +675,7 @@ def read_pixels(bb, i, tagType, L1):
         return a
 
 
-## Last few functions
+# Last few functions
 
 
 # These are the original public functions, we don't use them, but we

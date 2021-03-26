@@ -519,7 +519,7 @@ class Freeimage(object):
             func.restype = restype
             func.argtypes = argtypes
 
-    ## Handling of output messages
+    # Handling of output messages
 
     def __enter__(self):
         self._lock.acquire()
