@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" 
+"""
 
 .. note::
-    imageio is under construction, some details with regard to the 
-    Reader and Writer classes may change. 
+    imageio is under construction, some details with regard to the
+    Reader and Writer classes may change.
 
 These are the main classes of imageio. They expose an interface for
 advanced users and plugin developers. A brief overview:
-  
+
   * imageio.FormatManager - for keeping track of registered formats.
   * imageio.Format - representation of a file format reader/writer
   * imageio.Format.Reader - object used during the reading of a file.
