@@ -6,7 +6,7 @@ import numpy as np
 imopen = imopen_core()
 
 
-def imread(uri, *, index:int=None, plugin:str=None, **kwargs):
+def imread(uri, *, index: int = None, plugin: str = None, **kwargs):
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -38,7 +38,7 @@ def imread(uri, *, index:int=None, plugin:str=None, **kwargs):
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
-def imiter(uri, *, plugin:str=None, **kwargs):
+def imiter(uri, *, plugin: str = None, **kwargs):
     """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
@@ -72,7 +72,7 @@ def imiter(uri, *, plugin:str=None, **kwargs):
             yield np.asarray(image)
 
 
-def imwrite(uri, image:np.ndarray, *, plugin:str=None, **kwargs):
+def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs):
     """Write an ndimage to the given URI.
 
     The exact behavior depends on the file type and plugin used. To learn about

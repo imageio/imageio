@@ -21,7 +21,15 @@ class imopen:
     _known_plugins = dict()
     _legacy_format_manager = FormatManager()
 
-    def __call__(self, uri, io_mode: str, *, plugin: str = None, search_legacy_only: bool = True, **kwargs):
+    def __call__(
+        self,
+        uri,
+        io_mode: str,
+        *,
+        plugin: str = None,
+        search_legacy_only: bool = True,
+        **kwargs,
+    ):
         """Instantiate a plugin capable of interacting with the given URI
 
         Parameters
@@ -46,18 +54,17 @@ class imopen:
         plugin_instance = None
 
         if io_mode not in ["r", "w"]:
-            raise ValueError(
-                "io_mode must be either r for read or w for write.")
+            raise ValueError("io_mode must be either r for read or w for write.")
 
         if plugin is not None:
             try:
                 plugin_instance = self._known_plugins[plugin]
             except KeyError:
-                raise ValueError(
-                    f"'{plugin}' is not a registered plugin name.")
+                raise ValueError(f"'{plugin}' is not a registered plugin name.")
         else:
             for candidate_plugin in self._known_plugins.values():
-                if search_legacy_only: continue
+                if search_legacy_only:
+                    continue
                 if candidate_plugin.can_open(uri):
                     plugin_instance = candidate_plugin
                     break
@@ -73,7 +80,7 @@ class imopen:
                         # ensure backwards compatibility and not change
                         # type of error raised to IOError
                         raise e
-                else: 
+                else:
                     try:
                         if io_mode == "r":
                             test_instance.legacy_get_reader()
@@ -85,10 +92,11 @@ class imopen:
                             # ensure backwards compatibility and not change
                             # type of error raised to IOError
                             raise e
-                    
 
         if plugin_instance is None:
-            raise IOError(f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'")
+            raise IOError(
+                f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'"
+            )
 
         return plugin_instance(uri, io_mode, **kwargs)
 
@@ -274,8 +282,7 @@ class LegacyPlugin:
                     image = np.asanyarray(image)
                     if not np.issubdtype(image.dtype, np.number):
                         raise ValueError(
-                            "Image is not numeric, but {}.".format(
-                                imt.__name__)
+                            "Image is not numeric, but {}.".format(imt.__name__)
                         )
                     elif iio_mode == "I":
                         if image.ndim == 2:

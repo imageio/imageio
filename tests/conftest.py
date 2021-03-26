@@ -44,6 +44,6 @@ def image_files(tmp_dir):
 @pytest.fixture
 def clear_plugins(monkeypatch):
     monkeypatch.setattr(iio.imopen, "_known_plugins", dict())
-    monkeypatch.setattr(iio.imopen._legacy_format_manager,"_formats", list())
-    monkeypatch.setattr(iio.imopen._legacy_format_manager,"_formats_sorted", list())
+    monkeypatch.setattr(iio.imopen._legacy_format_manager, "_formats", list())
+    monkeypatch.setattr(iio.imopen._legacy_format_manager, "_formats_sorted", list())
     yield
