@@ -135,7 +135,7 @@ def create_plugin_docs():
 
 format_doc_text = """
 This page lists all formats currently supported by imageio. Each format
-can support extra keyword arguments for reading and writing, which can be 
+can support extra keyword arguments for reading and writing, which can be
 specified in the call to ``get_reader()``, ``get_writer()``, ``imread()``,
 ``imwrite()`` etc. Further, formats are free to provide additional
 methods on their Reader and Writer objects. These parameters and extra
@@ -216,7 +216,7 @@ def create_standard_images_docs():
         Imageio provides a number of standard images. These include classic
         2D images, as well as animated and volumetric images. To the best
         of our knowledge, all the listed images are in public domain.
-        
+
         The image names can be loaded by using a special URI,
         e.g. ``imread('imageio:astronaut.png')``.
         The images are automatically downloaded (and cached in your appdata
