@@ -23,6 +23,7 @@ for i in range(9):
 
 # Functions to use in tests
 
+
 def run_tests_if_main(show_coverage=False):
     """Run tests in a given file if it is run as a script
 
