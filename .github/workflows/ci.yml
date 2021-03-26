@@ -18,6 +18,12 @@ jobs:
       - uses: psf/black@stable
         with:
           args: ". --check"
+      - name: Flake8
+        uses: suo/flake8-github-action@releases/v1
+        with:
+          checkName: 'style'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   no-internet:
     name: "No-Internet Install"
