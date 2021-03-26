@@ -55,16 +55,40 @@ class imopen:
             except KeyError:
                 raise ValueError(
                     f"'{plugin}' is not a registered plugin name.")
-        elif not search_legacy_only:
+        else:
             for candidate_plugin in self._known_plugins.values():
+                if search_legacy_only: continue
                 if candidate_plugin.can_open(uri):
                     plugin_instance = candidate_plugin
                     break
             else:
-                raise IOError(f"No registered plugin can read {uri}")
-        else:
-            plugin_instance = LegacyPlugin
-            kwargs["plugin_manager"] = self._legacy_format_manager
+                plugin_instance = LegacyPlugin
+                kwargs["plugin_manager"] = self._legacy_format_manager
+
+                try:
+                    test_instance = plugin_instance(uri, io_mode, **kwargs)
+                except (IndexError, KeyError) as e:
+                    plugin_instance = None
+                    if search_legacy_only:
+                        # ensure backwards compatibility and not change
+                        # type of error raised to IOError
+                        raise e
+                else: 
+                    try:
+                        if io_mode == "r":
+                            test_instance.legacy_get_reader()
+                        else:
+                            test_instance.legacy_get_writer()
+                    except ValueError as e:
+                        plugin_instance = None
+                        if search_legacy_only:
+                            # ensure backwards compatibility and not change
+                            # type of error raised to IOError
+                            raise e
+                    
+
+        if plugin_instance is None:
+            raise IOError(f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'")
 
         return plugin_instance(uri, io_mode, **kwargs)
 

@@ -797,7 +797,7 @@ def test_imopen_unregistered_plugin(clear_plugins):
         iio.imopen("", "r", plugin="unknown_plugin")
 
 
-def test_plugin_selection(monkeypatch):
+def test_plugin_selection(clear_plugins, monkeypatch):
     class DummyPlugin:
         @classmethod
         def can_open(cls, uri):
