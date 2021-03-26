@@ -11,7 +11,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
+import imageio
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -34,7 +36,7 @@ extensions = [
 ]
 
 # Monkey-patch numpydoc to don't do the autosummary thing
-from numpydoc.docscrape_sphinx import SphinxDocString
+from numpydoc.docscrape_sphinx import SphinxDocString  # noqa:E402
 
 assert SphinxDocString._str_member_list
 SphinxDocString._str_member_list = lambda self, name: []
@@ -59,9 +61,6 @@ copyright = u"2014-2020, imageio contributors"
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-import imageio
-
 # The short X.Y version.
 version = imageio.__version__[:3]
 # The full version, including alpha/beta/rc tags.
