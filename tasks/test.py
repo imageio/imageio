@@ -76,12 +76,6 @@ def checkformat(ctx):
     black_wrapper(False)
 
 
-@task
-def lint(ctx):
-    """Check for linting errors using flake8."""
-    flake8_wrapper()  # exits on fail
-
-
 def flake8_wrapper():
     """Helper function to catch the worst style errors (e.g. unused variables)."""
     # http://pep8.readthedocs.io/en/latest/intro.html#error-codes
