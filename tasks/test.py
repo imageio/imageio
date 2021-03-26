@@ -97,8 +97,7 @@ def black_wrapper(writeback):
     """Helper function to invoke black programatically."""
 
     check = [] if writeback else ["--check"]
-    exclude = "|".join(["_tifffile\.py"])
-    sys.argv[1:] = check + ["--exclude", exclude, ROOT_DIR]
+    sys.argv[1:] = check + ROOT_DIR
 
     import black
 
