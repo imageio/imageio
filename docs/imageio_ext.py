@@ -231,7 +231,6 @@ def create_standard_images_docs():
     def sort_by_ext_and_name(x):
         return tuple(reversed(x.rsplit(".", 1)))
 
-
     for name in sorted(EXAMPLE_IMAGES, key=sort_by_ext_and_name):
         description = EXAMPLE_IMAGES[name]
         text += "* `%s <%s>`_: %s\n\n" % (name, baseurl + name, description)
