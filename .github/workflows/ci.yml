@@ -18,11 +18,15 @@ jobs:
       - uses: psf/black@stable
         with:
           args: ". --check"
+      - name: Install Dependencies
+        shell: bash
+        run: |
+            pip install .[linting]
       - name: Flake8
         uses: liskin/gh-problem-matcher-wrap@v1
         with:
           linters: flake8
-          run: pip install flake8 && flake8 .
+          run: flake8 .
 
   no-internet:
     name: "No-Internet Install"
