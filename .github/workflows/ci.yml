@@ -22,7 +22,7 @@ jobs:
         uses: julianwachholz/flake8-action@v1.1.0
         with:
           checkName: "Linting"
-          isTest: true
+          isTest: True
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
