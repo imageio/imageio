@@ -51,8 +51,7 @@ class NpzFormat(Format):
             self._npz = np.load(self.request.get_file())
             assert isinstance(self._npz, np.lib.npyio.NpzFile)
             # Get list of names, ordered by name, but smarter
-            sorter = lambda x: x.split("_")[-1]
-            self._names = sorted(self._npz.files, key=sorter)
+            self._names = sorted(self._npz.files, key=lambda x: x.split("_")[-1])
 
         def _close(self):
             self._npz.close()
