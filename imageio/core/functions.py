@@ -617,8 +617,6 @@ def mvolwrite(uri, ims, format=None, **kwargs):
 
 # Aliases
 
-## An added line that breaks the linter
-
 read = get_reader
 save = get_writer
 imsave = imwrite
