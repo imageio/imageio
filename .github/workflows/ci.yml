@@ -21,7 +21,7 @@ jobs:
       - name: Flake8
         uses: julianwachholz/flake8-action@v1.1.0
         with:
-          checkName: "CI"
+          checkName: "flake8"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
