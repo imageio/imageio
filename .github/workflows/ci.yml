@@ -22,7 +22,7 @@ jobs:
         uses: liskin/gh-problem-matcher-wrap@v1
         with:
           linters: flake8
-          run: flake8 .
+          run: pip install flake8 && flake8 .
 
   no-internet:
     name: "No-Internet Install"
