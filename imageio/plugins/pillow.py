@@ -845,6 +845,7 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
 
 # End of code from scikit-image
 
+# this import needs to be here to prevent a circular import
 from .pillowmulti import GIFFormat, TIFFFormat  # noqa:E402
 
 
