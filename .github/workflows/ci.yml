@@ -19,11 +19,10 @@ jobs:
         with:
           args: ". --check"
       - name: Flake8
-        uses: julianwachholz/flake8-action@v1.1.0
+        uses: liskin/gh-problem-matcher-wrap@v1
         with:
-          checkName: "flake8"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          linters: flake8
+          run: flake8 .
 
   no-internet:
     name: "No-Internet Install"
