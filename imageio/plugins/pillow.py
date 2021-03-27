@@ -14,7 +14,6 @@ from ..core import Format, image_as_uint
 
 # Get info about pillow formats without having to import PIL
 from .pillow_info import pillow_formats, pillow_docs
-from .pillowmulti import GIFFormat, TIFFFormat
 
 
 logger = logging.getLogger(__name__)
@@ -845,6 +844,9 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
 
 
 # End of code from scikit-image
+
+from .pillowmulti import GIFFormat, TIFFFormat  # noqa:E402
+
 
 IGNORE_FORMATS = "MPEG"
 
