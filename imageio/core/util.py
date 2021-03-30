@@ -12,11 +12,12 @@ import struct
 import sys
 import time
 import logging
+import numpy as np
+from collections import OrderedDict
+
 
 logger = logging.getLogger("imageio")
 
-
-import numpy as np
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -183,9 +184,6 @@ def asarray(a):
     return np.asarray(a)
 
 
-from collections import OrderedDict
-
-
 class Dict(OrderedDict):
     """A dict in which the keys can be get and set as if they were
     attributes. Very convenient in combination with autocompletion.
@@ -223,7 +221,9 @@ class Dict(OrderedDict):
             self[key] = val
 
     def __dir__(self):
-        isidentifier = lambda x: bool(re.match(r"[a-z_]\w*$", x, re.I))
+        def isidentifier(x):
+            return bool(re.match(r"[a-z_]\w*$", x, re.I))
+
         names = [k for k in self.keys() if (isinstance(k, str) and isidentifier(k))]
         return Dict.__reserved_names__ + names
 

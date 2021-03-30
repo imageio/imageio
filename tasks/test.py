@@ -76,12 +76,6 @@ def checkformat(ctx):
     black_wrapper(False)
 
 
-@task
-def lint(ctx):
-    """Check for linting errors using flake8."""
-    flake8_wrapper()  # exits on fail
-
-
 def flake8_wrapper():
     """Helper function to catch the worst style errors (e.g. unused variables)."""
     # http://pep8.readthedocs.io/en/latest/intro.html#error-codes
@@ -97,8 +91,7 @@ def black_wrapper(writeback):
     """Helper function to invoke black programatically."""
 
     check = [] if writeback else ["--check"]
-    exclude = "|".join(["_tifffile\.py"])
-    sys.argv[1:] = check + ["--exclude", exclude, ROOT_DIR]
+    sys.argv[1:] = check + ROOT_DIR
 
     import black
 

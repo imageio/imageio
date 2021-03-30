@@ -116,7 +116,8 @@ class GIFFormat(PillowFormat):
             return
 
 
-intToBin = lambda i: i.to_bytes(2, byteorder="little")
+def intToBin(i):
+    return i.to_bytes(2, byteorder="little")
 
 
 class GifWriter:

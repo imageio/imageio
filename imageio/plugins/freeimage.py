@@ -135,7 +135,7 @@ class FreeimageFormat(Format):
             self._meta = meta
 
 
-## Special plugins
+# Special plugins
 
 # todo: there is also FIF_LOAD_NOPIXELS,
 # but perhaps that should be used with get_meta_data.
@@ -397,7 +397,7 @@ class FreeimagePnmFormat(FreeimageFormat):
             return FreeimageFormat.Writer._open(self, flags)
 
 
-## Create the formats
+# Create the formats
 
 SPECIAL_CLASSES = {
     "jpeg": FreeimageJpegFormat,

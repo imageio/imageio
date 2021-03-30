@@ -96,7 +96,9 @@ def get_freeimage_lib():
 
 
 # Define function to encode a filename to bytes (for the current system)
-efn = lambda x: x.encode(sys.getfilesystemencoding())
+def efn(x):
+    return x.encode(sys.getfilesystemencoding())
+
 
 # 4-byte quads of 0,v,v,v from 0,0,0,0 to 0,255,255,255
 GREY_PALETTE = numpy.arange(0, 0x01000000, 0x00010101, dtype=numpy.uint32)
@@ -519,7 +521,7 @@ class Freeimage(object):
             func.restype = restype
             func.argtypes = argtypes
 
-    ## Handling of output messages
+    # Handling of output messages
 
     def __enter__(self):
         self._lock.acquire()

@@ -142,7 +142,7 @@ def help(name=None):
         print(formats[name])
 
 
-## Base functions that return a reader/writer
+# Base functions that return a reader/writer
 
 
 def get_reader(uri, format=None, mode="?", **kwargs):
@@ -231,7 +231,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     return format.get_writer(request)
 
 
-## Images
+# Images
 
 
 def imread(uri, format=None, **kwargs):
@@ -308,7 +308,7 @@ def imwrite(uri, im, format=None, **kwargs):
     return writer.request.get_result()
 
 
-## Multiple images
+# Multiple images
 
 
 def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
@@ -427,7 +427,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
     return writer.request.get_result()
 
 
-## Volumes
+# Volumes
 
 
 def volread(uri, format=None, **kwargs):
@@ -496,7 +496,7 @@ def volwrite(uri, im, format=None, **kwargs):
     return writer.request.get_result()
 
 
-## Multiple volumes
+# Multiple volumes
 
 
 def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
@@ -615,7 +615,7 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     return writer.request.get_result()
 
 
-## Aliases
+# Aliases
 
 read = get_reader
 save = get_writer

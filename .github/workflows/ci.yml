@@ -15,15 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+      - uses: psf/black@stable
         with:
-          python-version: '3.8'
-      - name: Install Dependenceis
+          args: ". --check"
+      - name: Install Dependencies
+        shell: bash
         run: |
-            pip install -e .[test,linting]
-      - name: Lint (black and flake8)
-        run: |
-            invoke lint
-            invoke checkformat
+            pip install .[linting]
+      - name: Flake8
+        uses: liskin/gh-problem-matcher-wrap@v1
+        with:
+          linters: flake8
+          run: flake8 .
 
   no-internet:
     name: "No-Internet Install"

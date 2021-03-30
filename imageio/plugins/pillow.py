@@ -663,7 +663,7 @@ def save_pillow_close(im):
             im.close()
 
 
-## Func from skimage
+# Func from skimage
 
 # This cells contains code from scikit-image, in particular from
 # http://github.com/scikit-image/scikit-image/blob/master/
@@ -843,10 +843,11 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
         return Image.fromarray(arr, mode)
 
 
-## End of code from scikit-image
+# End of code from scikit-image
 
+# this import needs to be here to prevent a circular import
+from .pillowmulti import GIFFormat, TIFFFormat  # noqa:E402
 
-from .pillowmulti import GIFFormat, TIFFFormat
 
 IGNORE_FORMATS = "MPEG"
 
