@@ -15,7 +15,9 @@ from imageio.core import get_remote_file, IS_PYPY
 
 test_dir = get_test_dir()
 
-mean = lambda x: x.sum() / x.size  # pypy-compat mean
+
+def mean(x):
+    return x.sum() / x.size  # pypy-compat mean
 
 
 # We use need_internet; don't ship the swf image: its rather big and a

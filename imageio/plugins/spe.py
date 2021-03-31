@@ -538,17 +538,17 @@ class SpeFormat(Format):
                     if info["file_header_ver"] >= 3
                     else os.path.getsize(self.request.get_local_filename())
                 )
-                l = data_end - Spec.data_start
-                l //= self._shape[0] * self._shape[1] * self._dtype.itemsize
-                if l != self._len:
+                line = data_end - Spec.data_start
+                line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
+                if line != self._len:
                     logger.warning(
                         "The file header of %s claims there are %s frames, "
                         "but there are actually %s frames.",
                         self.request.filename,
                         self._len,
-                        l,
+                        line,
                     )
-                    self._len = min(l, self._len)
+                    self._len = min(line, self._len)
 
             self._meta = None
 
@@ -705,7 +705,7 @@ def roi_array_to_dict(a):
 
     Parameters
     ----------
-    a : numpy.ndarray
+    a : numpy.ndarray:
         Structured array containing ROI data
 
     Returns
@@ -715,16 +715,16 @@ def roi_array_to_dict(a):
         values are tuples whose first element is the x axis value and the
         second element is the y axis value.
     """
-    l = []
+    dict_list = []
     a = a[["startx", "starty", "endx", "endy", "groupx", "groupy"]]
     for sx, sy, ex, ey, gx, gy in a:
-        d = {
+        roi_dict = {
             "top_left": [int(sx), int(sy)],
             "bottom_right": [int(ex), int(ey)],
             "bin": [int(gx), int(gy)],
         }
-        l.append(d)
-    return l
+        dict_list.append(roi_dict)
+    return dict_list
 
 
 fmt = SpeFormat("spe", "SPE file format", ".spe", "iIvV")

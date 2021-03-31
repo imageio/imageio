@@ -146,7 +146,7 @@ def load_lib(exact_lib_names, lib_names, lib_dirs=None):
         if errors:
             # No library loaded, and load-errors reported for some
             # candidate libs
-            err_txt = ["%s:\n%s" % (l, str(e)) for l, e in errors]
+            err_txt = ["%s:\n%s" % (lib, str(e)) for lib, e in errors]
             msg = (
                 "One or more %s libraries were found, but "
                 + "could not be loaded due to the following errors:\n%s"

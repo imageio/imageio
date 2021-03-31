@@ -9,40 +9,24 @@ on:
 
 
 jobs:
-  docs:
-    name: "Documentation"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - name: Build Docs
-        run: |
-            pip install -e .[test,docs]
-      - name: Test docbuilding
-        run: |
-            invoke docs --clean --build
-      # TODO: Upload the docs to some place
-      # where they can be served. Potentially build
-      # this in a different CI tool that can serve
-      # html artifacts
-
   style:
     name: "Linting"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
+      - uses: psf/black@stable
         with:
-          python-version: '3.8'
-      - name: Install Dependenceis
+          args: ". --check"
+      - name: Install Dependencies
+        shell: bash
         run: |
-            pip install -e .[test,linting]
-      - name: Lint (black and flake8)
-        run: |
-            invoke lint
-            invoke checkformat
+            pip install .[linting]
+      - name: Flake8
+        uses: liskin/gh-problem-matcher-wrap@v1
+        with:
+          linters: flake8
+          run: flake8 .
 
   no-internet:
     name: "No-Internet Install"

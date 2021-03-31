@@ -21,7 +21,7 @@ for i in range(9):
         break
 
 
-## Functions to use in tests
+# Functions to use in tests
 
 
 def run_tests_if_main(show_coverage=False):
@@ -92,7 +92,7 @@ def need_internet():
         pytest.skip("No internet")
 
 
-## Functions to use from invoke tasks
+# Functions to use from invoke tasks
 
 
 def test_unit(cov_report="term"):
@@ -121,7 +121,7 @@ def test_unit(cov_report="term"):
         print("Tests were performed on", str(imageio))
 
 
-## Requirements
+# Requirements
 
 
 def _enable_faulthandler():
