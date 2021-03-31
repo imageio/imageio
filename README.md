@@ -123,6 +123,7 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 <h2>Contributing</h2>
 
 <p>Install imageio in edit mode, with dev tools:</p>
+
 ```bash
 pip install -e .[dev,docs]
 ```
