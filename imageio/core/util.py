@@ -14,8 +14,6 @@ import struct
 import sys
 import time
 import logging
-import numpy as np
-from collections import OrderedDict
 
 
 logger = logging.getLogger("imageio")
