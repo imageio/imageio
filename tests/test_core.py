@@ -142,33 +142,33 @@ def test_request():
 
     # Check uri-type, this is not a public property, so we test the private
     R = Request("http://example.com", "ri")
-    assert R._uri_type == core.request.URI_HTTP
+    assert R._uri_type == core.request.URI.HTTP
     R = Request("ftp://example.com", "ri")
-    assert R._uri_type == core.request.URI_FTP
+    assert R._uri_type == core.request.URI.FTP
     R = Request("file://~/foo.png", "wi")
-    assert R._uri_type == core.request.URI_FILENAME
+    assert R._uri_type == core.request.URI.FILENAME
     R = Request("<video0>", "rI")
-    assert R._uri_type == core.request.URI_BYTES
+    assert R._uri_type == core.request.URI.BYTES
     R = Request(imageio.RETURN_BYTES, "wi")
-    assert R._uri_type == core.request.URI_BYTES
+    assert R._uri_type == core.request.URI.BYTES
     #
     fname = get_remote_file("images/chelsea.png", test_dir)
     R = Request(fname, "ri")
-    assert R._uri_type == core.request.URI_FILENAME
+    assert R._uri_type == core.request.URI.FILENAME
     R = Request("~/filethatdoesnotexist", "wi")
-    assert R._uri_type == core.request.URI_FILENAME  # Too short to be bytes
+    assert R._uri_type == core.request.URI.FILENAME  # Too short to be bytes
     R = Request(b"x" * 600, "ri")
-    assert R._uri_type == core.request.URI_BYTES
+    assert R._uri_type == core.request.URI.BYTES
     R = Request(sys.stdin, "ri")
-    assert R._uri_type == core.request.URI_FILE
+    assert R._uri_type == core.request.URI.FILE
     R = Request(sys.stdout, "wi")
-    assert R._uri_type == core.request.URI_FILE
+    assert R._uri_type == core.request.URI.FILE
     # exapand user dir
     R = Request("~/foo", "wi")
     assert R.filename == os.path.expanduser("~/foo").replace("/", os.path.sep)
     # zip file
     R = Request("~/bar.zip/spam.png", "wi")
-    assert R._uri_type == core.request.URI_ZIPPED
+    assert R._uri_type == core.request.URI.ZIPPED
 
     # Test failing inits
     raises(ValueError, Request, "/some/file", None)  # mode must be str
@@ -209,7 +209,7 @@ def test_request():
         shutil.copy(chelsia, file_path)
 
         R = Request(file_path, "ri")
-        assert R._uri_type == core.request.URI_FILENAME
+        assert R._uri_type == core.request.URI.FILENAME
 
 
 def test_request_read_sources():

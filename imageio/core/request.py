@@ -11,6 +11,7 @@ from io import BytesIO
 import zipfile
 import tempfile
 import shutil
+import enum
 
 from ..core import urlopen, get_remote_file
 
@@ -20,12 +21,14 @@ except ImportError:
     Path = None
 
 # URI types
-URI_BYTES = 1
-URI_FILE = 2
-URI_FILENAME = 3
-URI_ZIPPED = 4
-URI_HTTP = 5
-URI_FTP = 6
+@enum.unique
+class URI(enum.Enum):
+    BYTES = 1
+    FILE = 2
+    FILENAME = 3
+    ZIPPED = 4
+    HTTP = 5
+    FTP = 6
 
 SPECIAL_READ_URIS = "<video", "<screen>", "<clipboard>"
 
@@ -146,58 +149,58 @@ class Request(object):
                     fn += ".zip"
                 if fn not in EXAMPLE_IMAGES:
                     raise ValueError("Unknown standard image %r." % fn)
-                self._uri_type = URI_FILENAME
+                self._uri_type = URI.FILENAME
                 self._filename = get_remote_file("images/" + fn, auto=True)
                 if zip_part:
                     self._filename += "/" + zip_part
             elif uri.startswith("http://") or uri.startswith("https://"):
-                self._uri_type = URI_HTTP
+                self._uri_type = URI.HTTP
                 self._filename = uri
             elif uri.startswith("ftp://") or uri.startswith("ftps://"):
-                self._uri_type = URI_FTP
+                self._uri_type = URI.FTP
                 self._filename = uri
             elif uri.startswith("file://"):
-                self._uri_type = URI_FILENAME
+                self._uri_type = URI.FILENAME
                 self._filename = uri[7:]
             elif uri.startswith(SPECIAL_READ_URIS) and is_read_request:
-                self._uri_type = URI_BYTES
+                self._uri_type = URI.BYTES
                 self._filename = uri
             elif uri.startswith(RETURN_BYTES) and is_write_request:
-                self._uri_type = URI_BYTES
+                self._uri_type = URI.BYTES
                 self._filename = uri
             else:
-                self._uri_type = URI_FILENAME
+                self._uri_type = URI.FILENAME
                 self._filename = uri
 
         elif isinstance(uri, memoryview) and is_read_request:
-            self._uri_type = URI_BYTES
+            self._uri_type = URI.BYTES
             self._filename = "<bytes>"
             self._bytes = uri.tobytes()
         elif isinstance(uri, bytes) and is_read_request:
-            self._uri_type = URI_BYTES
+            self._uri_type = URI.BYTES
             self._filename = "<bytes>"
             self._bytes = uri
         elif Path is not None and isinstance(uri, Path):
-            self._uri_type = URI_FILENAME
+            self._uri_type = URI.FILENAME
             self._filename = str(uri)
         # Files
         elif is_read_request:
             if hasattr(uri, "read") and hasattr(uri, "close"):
-                self._uri_type = URI_FILE
+                self._uri_type = URI.FILE
                 self._filename = "<file>"
                 self._file = uri  # Data must be read from here
         elif is_write_request:
             if hasattr(uri, "write") and hasattr(uri, "close"):
-                self._uri_type = URI_FILE
+                self._uri_type = URI.FILE
                 self._filename = "<file>"
                 self._file = uri  # Data must be written here
 
         # Expand user dir
-        if self._uri_type == URI_FILENAME and self._filename.startswith("~"):
+        if self._uri_type == URI.FILENAME and self._filename.startswith("~"):
             self._filename = os.path.expanduser(self._filename)
 
         # Check if a zipfile
-        if self._uri_type == URI_FILENAME:
+        if self._uri_type == URI.FILENAME:
             # Search for zip extension followed by a path separater
             for needle in [".zip/", ".zip\\"]:
                 zip_i = self._filename.lower().find(needle)
@@ -207,7 +210,7 @@ class Request(object):
                     if os.path.isdir(zip_path):
                         pass  # is an existing dir (see #548)
                     elif is_write_request or os.path.isfile(zip_path):
-                        self._uri_type = URI_ZIPPED
+                        self._uri_type = URI.ZIPPED
                         self._filename_zip = (
                             zip_path,
                             self._filename[zip_i:].lstrip("/\\"),
@@ -222,12 +225,12 @@ class Request(object):
             raise IOError("Cannot understand given URI: %s." % uri_r)
 
         # Check if this is supported
-        noWriting = [URI_HTTP, URI_FTP]
+        noWriting = [URI.HTTP, URI.FTP]
         if is_write_request and self._uri_type in noWriting:
             raise IOError("imageio does not support writing to http/ftp.")
 
         # Deprecated way to load standard images, give a sensible error message
-        if is_read_request and self._uri_type in [URI_FILENAME, URI_ZIPPED]:
+        if is_read_request and self._uri_type in [URI.FILENAME, URI.ZIPPED]:
             fn = self._filename
             if self._filename_zip:
                 fn = self._filename_zip[0]
@@ -240,7 +243,7 @@ class Request(object):
                 )
 
         # Make filename absolute
-        if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
+        if self._uri_type in [URI.FILENAME, URI.ZIPPED]:
             if self._filename_zip:
                 self._filename_zip = (
                     os.path.abspath(self._filename_zip[0]),
@@ -250,7 +253,7 @@ class Request(object):
                 self._filename = os.path.abspath(self._filename)
 
         # Check whether file name is valid
-        if self._uri_type in [URI_FILENAME, URI_ZIPPED]:
+        if self._uri_type in [URI.FILENAME, URI.ZIPPED]:
             fn = self._filename
             if self._filename_zip:
                 fn = self._filename_zip[0]
@@ -312,12 +315,12 @@ class Request(object):
         want_to_write = self.mode[0] == "w"
 
         # Is there already a file?
-        # Either _uri_type == URI_FILE, or we already opened the file,
+        # Either _uri_type == URI.FILE, or we already opened the file,
         # e.g. by using firstbytes
         if self._file is not None:
             return self._file
 
-        if self._uri_type == URI_BYTES:
+        if self._uri_type == URI.BYTES:
             if want_to_write:
                 # Create new file object, we catch the bytes in finish()
                 self._file = BytesIO()
@@ -325,13 +328,13 @@ class Request(object):
             else:
                 self._file = BytesIO(self._bytes)
 
-        elif self._uri_type == URI_FILENAME:
+        elif self._uri_type == URI.FILENAME:
             if want_to_write:
                 self._file = open(self.filename, "wb")
             else:
                 self._file = open(self.filename, "rb")
 
-        elif self._uri_type == URI_ZIPPED:
+        elif self._uri_type == URI.ZIPPED:
             # Get the correct filename
             filename, name = self._filename_zip
             if want_to_write:
@@ -344,7 +347,7 @@ class Request(object):
                 self._file = self._zipfile.open(name, "r")
                 self._file = SeekableFileObject(self._file)
 
-        elif self._uri_type in [URI_HTTP or URI_FTP]:
+        elif self._uri_type in [URI.HTTP or URI.FTP]:
             assert not want_to_write  # This should have been tested in init
             timeout = os.getenv("IMAGEIO_REQUEST_TIMEOUT")
             if timeout is None or not timeout.isdigit():
@@ -361,11 +364,11 @@ class Request(object):
         system which can be used by the format to read from or write to.
         """
 
-        if self._uri_type == URI_FILENAME:
+        if self._uri_type == URI.FILENAME:
             return self._filename
         else:
             # Get filename
-            if self._uri_type in (URI_HTTP, URI_FTP):
+            if self._uri_type in (URI.HTTP, URI.FTP):
                 ext = os.path.splitext(self._filename.split("?")[0])[1]
             else:
                 ext = os.path.splitext(self._filename)[1]
@@ -395,19 +398,19 @@ class Request(object):
 
             # Put the data in the right place
             if bytes is not None:
-                if self._uri_type == URI_BYTES:
+                if self._uri_type == URI.BYTES:
                     self._result = bytes  # Picked up by imread function
-                elif self._uri_type == URI_FILE:
+                elif self._uri_type == URI.FILE:
                     self._file.write(bytes)
-                elif self._uri_type == URI_ZIPPED:
+                elif self._uri_type == URI.ZIPPED:
                     zf = zipfile.ZipFile(self._filename_zip[0], "a")
                     zf.writestr(self._filename_zip[1], bytes)
                     zf.close()
-                # elif self._uri_type == URI_FILENAME: -> is always direct
-                # elif self._uri_type == URI_FTP/HTTP: -> write not supported
+                # elif self._uri_type == URI.FILENAME: -> is always direct
+                # elif self._uri_type == URI.FTP/HTTP: -> write not supported
 
         # Close open files that we know of (and are responsible for)
-        if self._file and self._uri_type != URI_FILE:
+        if self._file and self._uri_type != URI.FILE:
             self._file.close()
             self._file = None
         if self._zipfile:
@@ -468,7 +471,7 @@ class Request(object):
                 # Prevent get_file() from reusing the file
                 self._file = None
                 # If the given URI was a file object, we have a problem,
-                if self._uri_type == URI_FILE:
+                if self._uri_type == URI.FILE:
                     raise IOError("Cannot seek back after getting firstbytes!")
 
 
