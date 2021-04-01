@@ -15,10 +15,7 @@ import enum
 
 from ..core import urlopen, get_remote_file
 
-try:
-    from pathlib import Path
-except ImportError:
-    Path = None
+from pathlib import Path
 
 # URI types
 @enum.unique
