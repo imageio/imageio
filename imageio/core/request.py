@@ -16,6 +16,7 @@ import enum
 from ..core import urlopen, get_remote_file
 
 from pathlib import Path
+import urllib
 
 
 @enum.unique
@@ -26,6 +27,22 @@ class URI(enum.Enum):
     ZIPPED = enum.auto()
     HTTP = enum.auto()
     FTP = enum.auto()
+
+
+class IOScheme(enum.Enum):
+    """Schemes supported by ImageIO"""
+
+    imageio = "imageio"
+    video = "video"
+    screen = "screen"
+    bytes = "bytes"
+    buffer = "bytes"
+    clipboard = "clipboard"
+    http = "http"
+    https = "http"
+    ftp = "ftp"
+    ftps = "ftp"
+    file = "file"
 
 
 class IOMode(enum.Enum):
@@ -81,7 +98,7 @@ class Mode(enum.Enum):
             raise IndexError(f"Mode has no item {key}")
 
 
-SPECIAL_READ_URIS = "<video", "<screen>", "<clipboard>"
+SPECIAL_READ_URIS = ("<video", "<screen>", "<clipboard>")
 
 # The user can use this string in a write call to get the data back as bytes.
 RETURN_BYTES = "<bytes>"
@@ -181,44 +198,105 @@ class Request(object):
                 ext = ext.split("?")[0]
             self._extension = "." + ext.split(".")[-1].lower()
 
+    def _sanatize_uri(self, uri):
+        """Reformat/Refactor input URI to ensure backwards compatibility"""
+
+        # Old: some.zip/path/inside/zip.jpg
+        # New: some.zip#path/inside/zip.jpg
+        # This will natively support paths inside zip
+        # See Also: #548
+        if not os.path.exists(uri):
+            uri = uri.replace(".zip\\", ".zip#")
+            uri = uri.replace(".zip/", ".zip#")
+
+        # Needs a leading / for compatibility below python 3.9
+        # Source: https://github.com/python/cpython/commit/5a88d50ff013a64fbdb25b877c87644a9034c969
+        if uri.startswith("<video") and uri.endswith(">") and uri[6:-1].isdigit():
+            uri = "video:" + uri
+
+        if uri == "<clipboard>":
+            uri = "clipboard:" + uri
+
+        if uri == "<screen>":
+            uri = "screen:" + uri
+
+        if uri.startswith("<bytes>"):
+            uri = "buffer:" + uri
+
+        return uri
+
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
+
         is_read_request = self.mode.io_mode is IOMode.read
         is_write_request = self.mode.io_mode is IOMode.write
 
+        # import pdb; pdb.set_trace()
+
         if isinstance(uri, str):
-            # Explicit
-            if uri.startswith("imageio:"):
-                if is_write_request:
+            uri = self._sanatize_uri(uri)
+
+            if os.name == "nt" and uri[1] == ":" and uri[0].isalpha():
+                # Absolute Windows path
+                # set schema explicitly to avoid confusion with the drive letter
+                uri = "file:" + uri
+
+            parsed_uri = urllib.parse.urlsplit(uri)
+
+            # file scheme is the default scheme (if unspecified)
+            if parsed_uri.scheme == "":
+                parsed_uri = parsed_uri._replace(scheme="file")
+
+            try:
+                scheme = IOScheme[parsed_uri.scheme]
+            except ValueError:
+                raise ValueError(
+                    f"The scheme {parsed_uri.scheme}: of {uri} is currently not supported."
+                )
+
+            path = Path(parsed_uri.path)
+
+            if scheme is IOScheme.imageio:
+                if self.mode.io_mode is IOMode.write:
                     raise RuntimeError("Cannot write to the standard images.")
-                fn = uri.split(":", 1)[-1].lower()
-                fn, _, zip_part = fn.partition(".zip/")
-                if zip_part:
-                    fn += ".zip"
-                if fn not in EXAMPLE_IMAGES:
-                    raise ValueError("Unknown standard image %r." % fn)
+                if path.name not in EXAMPLE_IMAGES:
+                    raise ValueError(f"Unknown standard image {path.name}.")
+
                 self._uri_type = URI.FILENAME
-                self._filename = get_remote_file("images/" + fn, auto=True)
-                if zip_part:
-                    self._filename += "/" + zip_part
-            elif uri.startswith("http://") or uri.startswith("https://"):
+                path = Path(get_remote_file(str("images" / path), auto=True))
+                self._filename = str(path.expanduser().absolute())
+            elif scheme is IOScheme.http:
                 self._uri_type = URI.HTTP
-                self._filename = uri
-            elif uri.startswith("ftp://") or uri.startswith("ftps://"):
+                self._filename = urllib.parse.urlunsplit(parsed_uri)
+                # import pdb; pdb.set_trace()
+            elif scheme is IOScheme.ftp:
                 self._uri_type = URI.FTP
-                self._filename = uri
-            elif uri.startswith("file://"):
+                self._filename = urllib.parse.urlunsplit(parsed_uri)
+            elif scheme is IOScheme.file:
                 self._uri_type = URI.FILENAME
-                self._filename = uri[7:]
-            elif uri.startswith(SPECIAL_READ_URIS) and is_read_request:
+                self._filename = str(path.expanduser().absolute())
+            elif scheme in [
+                IOScheme.video,
+                IOScheme.clipboard,
+                IOScheme.screen,
+                IOScheme.buffer,
+            ]:
                 self._uri_type = URI.BYTES
-                self._filename = uri
-            elif uri.startswith(RETURN_BYTES) and is_write_request:
-                self._uri_type = URI.BYTES
-                self._filename = uri
+                self._filename = str(path)
             else:
                 self._uri_type = URI.FILENAME
-                self._filename = uri
+                self._filename = str(path.expanduser().absolute())
+
+            if path.suffix == ".zip":
+                self._uri_type = URI.ZIPPED
+                self._filename_zip = (
+                    self._filename,
+                    Path(parsed_uri.fragment).as_posix(),
+                )
+                # self._filename must be native-style but fragment must be posix-style
+                self._filename += "/" + Path(parsed_uri.fragment).as_posix()
+
+            # import pdb; pdb.set_trace()
 
         elif isinstance(uri, memoryview) and is_read_request:
             self._uri_type = URI.BYTES
@@ -242,28 +320,6 @@ class Request(object):
                 self._uri_type = URI.FILE
                 self._filename = "<file>"
                 self._file = uri  # Data must be written here
-
-        # Expand user dir
-        if self._uri_type == URI.FILENAME and self._filename.startswith("~"):
-            self._filename = os.path.expanduser(self._filename)
-
-        # Check if a zipfile
-        if self._uri_type == URI.FILENAME:
-            # Search for zip extension followed by a path separater
-            for needle in [".zip/", ".zip\\"]:
-                zip_i = self._filename.lower().find(needle)
-                if zip_i > 0:
-                    zip_i += 4
-                    zip_path = self._filename[:zip_i]
-                    if os.path.isdir(zip_path):
-                        pass  # is an existing dir (see #548)
-                    elif is_write_request or os.path.isfile(zip_path):
-                        self._uri_type = URI.ZIPPED
-                        self._filename_zip = (
-                            zip_path,
-                            self._filename[zip_i:].lstrip("/\\"),
-                        )
-                        break
 
         # Check if we could read it
         if self._uri_type is None:
@@ -289,16 +345,6 @@ class Request(object):
                     "standard images have to be specified using "
                     '"imageio:%s".' % (fn, fn)
                 )
-
-        # Make filename absolute
-        if self._uri_type in [URI.FILENAME, URI.ZIPPED]:
-            if self._filename_zip:
-                self._filename_zip = (
-                    os.path.abspath(self._filename_zip[0]),
-                    self._filename_zip[1],
-                )
-            else:
-                self._filename = os.path.abspath(self._filename)
 
         # Check whether file name is valid
         if self._uri_type in [URI.FILENAME, URI.ZIPPED]:
