@@ -81,7 +81,6 @@ import numpy as np
 
 from . import Request, RETURN_BYTES
 from .. import formats
-from .format import MODENAMES
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
@@ -177,9 +176,8 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     else:
         format = formats.search_read_format(request)
     if format is None:
-        modename = MODENAMES.get(mode, mode)
         raise ValueError(
-            "Could not find a format to read the specified file in %s mode" % modename
+            f"Could not find a format to read the specified file in {request.mode.image_mode} mode"
         )
 
     # Return its reader object
@@ -222,9 +220,8 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     else:
         format = formats.search_write_format(request)
     if format is None:
-        modename = MODENAMES.get(mode, mode)
         raise ValueError(
-            "Could not find a format to write the specified file in %s mode" % modename
+            f"Could not find a format to write the specified file in {request.mode.image_mode} mode"
         )
 
     # Return its writer object

@@ -20,12 +20,68 @@ from pathlib import Path
 # URI types
 @enum.unique
 class URI(enum.Enum):
-    BYTES = 1
-    FILE = 2
-    FILENAME = 3
-    ZIPPED = 4
-    HTTP = 5
-    FTP = 6
+    BYTES = enum.auto()
+    FILE = enum.auto()
+    FILENAME = enum.auto()
+    ZIPPED = enum.auto()
+    HTTP = enum.auto()
+    FTP = enum.auto()
+
+
+class IOMode(enum.Enum):
+    read = "r"
+    write = "w"
+
+
+class ImageMode(str, enum.Enum):
+    """Available Image modes"""
+
+    single_image = "i"
+    multi_image = "I"
+    single_volume = "v"
+    multi_volume = "V"
+    any_mode = "?"
+
+    def __getitem__(self, key):
+        """For backwards compatibility with the old non-enum ImageMode"""
+        if isinstance(key, str):
+            return self.io_mode
+        elif key == 1:
+            return self.image_mode
+        else:
+            raise IndexError(f"Mode has no item {key}")
+
+
+@enum.unique
+class Mode(enum.Enum):
+    read_single_image = "ri"
+    read_multi_image = "rI"
+    read_single_volume = "rv"
+    read_multi_volume = "rV"
+    read_any = "r?"
+    write_single_image = "wi"
+    write_multi_image = "wI"
+    write_single_volume = "wv"
+    write_multi_volume = "wV"
+    write_any = "w?"
+
+    @property
+    def io_mode(self) -> IOMode:
+        return IOMode(self.value[0])
+
+    @property
+    def image_mode(self) -> ImageMode:
+        return ImageMode(self.value[1])
+
+    def __getitem__(self, key):
+        """For backwards compatibility with the old non-enum modes"""
+        if key == 0:
+            return self.io_mode
+        elif key == 1:
+            return self.image_mode
+        else:
+            raise IndexError(f"Mode has no item {key}")
+
 
 SPECIAL_READ_URIS = "<video", "<screen>", "<clipboard>"
 
@@ -110,15 +166,12 @@ class Request(object):
         # self._potential_formats = []
 
         # Check mode
-        self._mode = mode
-        if not isinstance(mode, str):
-            raise ValueError("Request requires mode must be a string")
-        if not len(mode) == 2:
-            raise ValueError("Request requires mode to have two chars")
-        if mode[0] not in "rw":
-            raise ValueError('Request requires mode[0] to be "r" or "w"')
-        if mode[1] not in "iIvV?":
-            raise ValueError('Request requires mode[1] to be in "iIvV?"')
+        if isinstance(mode, str):
+            self._mode = Mode(mode)
+        elif isinstance(mode, Mode):
+            self._mode = mode
+        else:
+            raise ValueError("Mode must be either string or iio.Mode")
 
         # Parse what was given
         self._parse_uri(uri)
@@ -132,8 +185,8 @@ class Request(object):
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
-        is_read_request = self.mode[0] == "r"
-        is_write_request = self.mode[0] == "w"
+        is_read_request = self.mode.io_mode is IOMode.read
+        is_write_request = self.mode.io_mode is IOMode.write
 
         if isinstance(uri, str):
             # Explicit
@@ -309,7 +362,7 @@ class Request(object):
         format cannot handle file-like objects, they should use
         ``get_local_filename()``.
         """
-        want_to_write = self.mode[0] == "w"
+        want_to_write = self.mode.io_mode is IOMode.write
 
         # Is there already a file?
         # Either _uri_type == URI.FILE, or we already opened the file,
@@ -371,7 +424,7 @@ class Request(object):
                 ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, "imageio_")
             # Write stuff to it?
-            if self.mode[0] == "r":
+            if self.mode.io_mode == IOMode.read:
                 with open(self._filename_local, "wb") as file:
                     shutil.copyfileobj(self.get_file(), file)
             return self._filename_local
@@ -383,7 +436,7 @@ class Request(object):
         results.
         """
 
-        if self.mode[0] == "w":
+        if self.mode.io_mode == IOMode.write:
 
             # See if we "own" the data and must put it somewhere
             bytes = None
