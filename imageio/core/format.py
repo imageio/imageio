@@ -161,7 +161,7 @@ class Format(object):
         if select_mode not in self.modes:
             modename = MODENAMES.get(select_mode, select_mode)
             raise RuntimeError(
-                "Format %s cannot read in %s mode" % (self.name, modename)
+                f"Format {self.name} cannot read in {modename} mode"
             )
         return self.Reader(self, request)
 
@@ -672,7 +672,7 @@ class FormatManager(object):
         Search a format that can read a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
+        select_mode = request.mode.value[1] if request.mode.value[1] in "iIvV" else ""
 
         # Select formats that seem to be able to read it
         selected_formats = []
@@ -699,7 +699,7 @@ class FormatManager(object):
         Search a format that can write a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
+        select_mode = request.mode.value[1] if request.mode.value[1] in "iIvV" else ""
 
         # Select formats that seem to be able to write it
         selected_formats = []
