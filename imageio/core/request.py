@@ -43,6 +43,7 @@ class IOScheme(enum.Enum):
     ftp = "ftp"
     ftps = "ftp"
     file = "file"
+    fileobj = "fileobj"
 
 
 class IOMode(enum.Enum):
@@ -162,7 +163,6 @@ class Request(object):
         # General
         self._uri_type = None
         self._filename = None
-        self._extension = None
         self._kwargs = kwargs
         self._result = None  # Some write actions may have a result
 
@@ -181,22 +181,17 @@ class Request(object):
         # self._potential_formats = []
 
         # Check mode
-        if isinstance(mode, str):
+        try:
             self._mode = Mode(mode)
-        elif isinstance(mode, Mode):
-            self._mode = mode
-        else:
+        except ValueError:
             raise ValueError("Mode must be either string or iio.Mode")
 
         # Parse what was given
-        self._parse_uri(uri)
+        self._uri = self._parse_uri(uri)
 
-        # Set extension
-        if self._filename is not None:
-            ext = self._filename
-            if self._filename.startswith(("http://", "https://", "ftp://", "ftps://")):
-                ext = ext.split("?")[0]
-            self._extension = "." + ext.split(".")[-1].lower()
+        # Cache Extension
+        suffix = Path(self._uri.path).suffix
+        self._extension = suffix if suffix else None
 
     def _sanatize_uri(self, uri):
         """Reformat/Refactor input URI to ensure backwards compatibility"""
@@ -231,97 +226,95 @@ class Request(object):
         is_read_request = self.mode.io_mode is IOMode.read
         is_write_request = self.mode.io_mode is IOMode.write
 
-        if isinstance(uri, str):
-            uri = self._sanatize_uri(uri)
-
-            if os.name == "nt" and uri[1] == ":" and uri[0].isalpha():
-                # Absolute Windows path
-                # set schema explicitly to avoid confusion with the drive letter
-                uri = "file:" + uri
-
-            parsed_uri = urllib.parse.urlsplit(uri)
-
-            # file scheme is the default scheme (if unspecified)
-            if parsed_uri.scheme == "":
-                parsed_uri = parsed_uri._replace(scheme="file")
-
-            try:
-                scheme = IOScheme[parsed_uri.scheme]
-            except ValueError:
-                raise ValueError(
-                    f"The scheme {parsed_uri.scheme}: of {uri} is currently not supported."
-                )
-
-            path = Path(parsed_uri.path)
-
-            if scheme is IOScheme.imageio:
-                if self.mode.io_mode is IOMode.write:
-                    raise RuntimeError("Cannot write to the standard images.")
-                if path.name not in EXAMPLE_IMAGES:
-                    raise ValueError(f"Unknown standard image {path.name}.")
-
-                self._uri_type = URI.FILENAME
-                path = Path(get_remote_file(str("images" / path), auto=True))
-                self._filename = str(path.expanduser().absolute())
-            elif scheme is IOScheme.http:
-                self._uri_type = URI.HTTP
-                self._filename = urllib.parse.urlunsplit(parsed_uri)
-            elif scheme is IOScheme.ftp:
-                self._uri_type = URI.FTP
-                self._filename = urllib.parse.urlunsplit(parsed_uri)
-            elif scheme is IOScheme.file:
-                self._uri_type = URI.FILENAME
-                self._filename = str(path.expanduser().absolute())
-            elif scheme in [
-                IOScheme.video,
-                IOScheme.clipboard,
-                IOScheme.screen,
-                IOScheme.buffer,
-            ]:
-                self._uri_type = URI.BYTES
-                self._filename = str(path)
-            else:
-                self._uri_type = URI.FILENAME
-                self._filename = str(path.expanduser().absolute())
-
-            if path.suffix == ".zip":
-                self._uri_type = URI.ZIPPED
-                self._filename_zip = (
-                    self._filename,
-                    Path(parsed_uri.fragment).as_posix(),
-                )
-                # self._filename must be native-style but fragment must be posix-style
-                self._filename += "/" + Path(parsed_uri.fragment).as_posix()
-
-        elif isinstance(uri, memoryview) and is_read_request:
-            self._uri_type = URI.BYTES
-            self._filename = "<bytes>"
+        if isinstance(uri, memoryview) and is_read_request:
             self._bytes = uri.tobytes()
-        elif isinstance(uri, bytes) and is_read_request:
-            self._uri_type = URI.BYTES
-            self._filename = "<bytes>"
-            self._bytes = uri
-        elif Path is not None and isinstance(uri, Path):
-            self._uri_type = URI.FILENAME
-            self._filename = str(uri)
-        # Files
-        elif is_read_request:
-            if hasattr(uri, "read") and hasattr(uri, "close"):
-                self._uri_type = URI.FILE
-                self._filename = "<file>"
-                self._file = uri  # Data must be read from here
-        elif is_write_request:
-            if hasattr(uri, "write") and hasattr(uri, "close"):
-                self._uri_type = URI.FILE
-                self._filename = "<file>"
-                self._file = uri  # Data must be written here
+            uri = "buffer:<bytes>"
 
-        # Check if we could read it
-        if self._uri_type is None:
+        if isinstance(uri, bytes) and is_read_request:
+            self._bytes = uri
+            uri = "buffer:<bytes>"
+
+        if isinstance(uri, Path):
+            uri = str(uri)
+
+        if is_read_request and hasattr(uri, "read") and hasattr(uri, "close"):
+            self._file = uri  # Data must be read from here
+            uri = "fileobj:<file>"
+
+        if is_write_request and hasattr(uri, "write") and hasattr(uri, "close"):
+            self._file = uri  # Data must be written here
+            uri = "fileobj:<file>"
+
+        if not isinstance(uri, str):
+            # at this point we failed to make sense of the URI
             uri_r = repr(uri)
             if len(uri_r) > 60:
                 uri_r = uri_r[:57] + "..."
             raise IOError("Cannot understand given URI: %s." % uri_r)
+
+        uri = self._sanatize_uri(uri)
+
+        if os.name == "nt" and uri[1] == ":" and uri[0].isalpha():
+            # Absolute Windows path
+            # set schema explicitly to avoid confusion with the drive letter
+            uri = "file:" + uri
+
+        parsed_uri = urllib.parse.urlsplit(uri)
+
+        # file scheme is the default scheme (if unspecified)
+        if parsed_uri.scheme == "":
+            parsed_uri = parsed_uri._replace(scheme="file")
+
+        try:
+            scheme = IOScheme[parsed_uri.scheme]
+        except ValueError:
+            raise ValueError(
+                f"The scheme {parsed_uri.scheme}: of {uri} is currently not supported."
+            )
+
+        path = Path(parsed_uri.path)
+
+        if scheme is IOScheme.imageio:
+            if self.mode.io_mode is IOMode.write:
+                raise RuntimeError("Cannot write to the standard images.")
+            if path.name not in EXAMPLE_IMAGES:
+                raise ValueError(f"Unknown standard image {path.name}.")
+
+            self._uri_type = URI.FILENAME
+            path = Path(get_remote_file(str("images" / path), auto=True))
+            self._filename = str(path.expanduser().absolute())
+        elif scheme is IOScheme.http:
+            self._uri_type = URI.HTTP
+            self._filename = urllib.parse.urlunsplit(parsed_uri)
+        elif scheme is IOScheme.ftp:
+            self._uri_type = URI.FTP
+            self._filename = urllib.parse.urlunsplit(parsed_uri)
+        elif scheme is IOScheme.file:
+            self._uri_type = URI.FILENAME
+            self._filename = str(path.expanduser().absolute())
+        elif scheme in [
+            IOScheme.video,
+            IOScheme.clipboard,
+            IOScheme.screen,
+            IOScheme.buffer,
+        ]:
+            self._uri_type = URI.BYTES
+            self._filename = str(path)
+        elif scheme is IOScheme.fileobj:
+            self._uri_type = URI.FILE
+            self._filename = "<file>"
+        else:
+            self._uri_type = URI.FILENAME
+            self._filename = str(path.expanduser().absolute())
+
+        if path.suffix == ".zip":
+            self._uri_type = URI.ZIPPED
+            self._filename_zip = (
+                self._filename,
+                Path(parsed_uri.fragment).as_posix(),
+            )
+            # self._filename must be native-style but fragment must be posix-style
+            self._filename += "/" + Path(parsed_uri.fragment).as_posix()
 
         # Check if this is supported
         noWriting = [URI.HTTP, URI.FTP]
@@ -355,6 +348,8 @@ class Request(object):
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
                     raise FileNotFoundError("The directory %r does not exist" % dn)
+
+        return parsed_uri
 
     @property
     def filename(self):
@@ -436,7 +431,7 @@ class Request(object):
                 self._file = self._zipfile.open(name, "r")
                 self._file = SeekableFileObject(self._file)
 
-        elif self._uri_type in [URI.HTTP or URI.FTP]:
+        elif self._scheme in [IOScheme.http, IOScheme.ftp]:
             assert not want_to_write  # This should have been tested in init
             timeout = os.getenv("IMAGEIO_REQUEST_TIMEOUT")
             if timeout is None or not timeout.isdigit():
@@ -499,7 +494,7 @@ class Request(object):
                 # elif self._uri_type == URI.FTP/HTTP: -> write not supported
 
         # Close open files that we know of (and are responsible for)
-        if self._file and self._uri_type != URI.FILE:
+        if self._file and self._scheme != IOScheme.fileobj:
             self._file.close()
             self._file = None
         if self._zipfile:
@@ -533,6 +528,10 @@ class Request(object):
             self._read_first_bytes()
         return self._firstbytes
 
+    @property
+    def _scheme(self):
+        return IOScheme[self._uri.scheme]
+
     def _read_first_bytes(self, N=256):
         if self._bytes is not None:
             self._firstbytes = self._bytes[:N]
@@ -560,7 +559,7 @@ class Request(object):
                 # Prevent get_file() from reusing the file
                 self._file = None
                 # If the given URI was a file object, we have a problem,
-                if self._uri_type == URI.FILE:
+                if self._scheme == IOScheme.fileobj:
                     raise IOError("Cannot seek back after getting firstbytes!")
 
 
