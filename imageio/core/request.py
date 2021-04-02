@@ -17,7 +17,7 @@ from ..core import urlopen, get_remote_file
 
 from pathlib import Path
 
-# URI types
+
 @enum.unique
 class URI(enum.Enum):
     BYTES = enum.auto()
@@ -34,8 +34,6 @@ class IOMode(enum.Enum):
 
 
 class ImageMode(str, enum.Enum):
-    """Available Image modes"""
-
     single_image = "i"
     multi_image = "I"
     single_volume = "v"
