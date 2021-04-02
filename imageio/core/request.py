@@ -266,7 +266,6 @@ class Request(object):
             elif scheme is IOScheme.http:
                 self._uri_type = URI.HTTP
                 self._filename = urllib.parse.urlunsplit(parsed_uri)
-                # import pdb; pdb.set_trace()
             elif scheme is IOScheme.ftp:
                 self._uri_type = URI.FTP
                 self._filename = urllib.parse.urlunsplit(parsed_uri)
@@ -293,8 +292,6 @@ class Request(object):
                 )
                 # self._filename must be native-style but fragment must be posix-style
                 self._filename += "/" + Path(parsed_uri.fragment).as_posix()
-
-            # import pdb; pdb.set_trace()
 
         elif isinstance(uri, memoryview) and is_read_request:
             self._uri_type = URI.BYTES
