@@ -231,8 +231,6 @@ class Request(object):
         is_read_request = self.mode.io_mode is IOMode.read
         is_write_request = self.mode.io_mode is IOMode.write
 
-        # import pdb; pdb.set_trace()
-
         if isinstance(uri, str):
             uri = self._sanatize_uri(uri)
 
