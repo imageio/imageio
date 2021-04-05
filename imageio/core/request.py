@@ -27,12 +27,41 @@ URI_FTP = 6
 
 
 class IOMode(enum.Enum):
+    """Available Image modes
+
+    This is a helper enum for ``Request.Mode`` which is a composite of a
+    ``Request.ImageMode`` and ``Request.IOMode``. The IOMode that tells the
+    plugin if the resource should be read from or written to. Available values are
+
+    - read ("r"): Read from the specified resource
+    - write ("w"): Write to the specified resource
+
+    """
+
     read = "r"
     write = "w"
 
 
 class ImageMode(str, enum.Enum):
-    """Available Image modes"""
+    """Available Image modes
+
+    This is a helper enum for ``Request.Mode`` which is a composite of a
+    ``Request.ImageMode`` and ``Request.IOMode``. The image mode that tells the
+    plugin the desired (and expected) image shape. Available values are
+
+    - single_image ("i"): Return a single image extending in two spacial
+      dimensions
+    - multi_image ("I"): Return a list of images extending in two spacial
+      dimensions
+    - single_volume ("v"): Return an image extending into multiple dimensions.
+      E.g. three spacial dimensions for image stacks, or two spatial and one
+      time dimension for videos
+    - multi_volume ("V"): Return a list of images extending into multiple
+      dimensions.
+    - any_mode ("?"): Return an image in any format (the plugin decides the
+      appropriate action).
+
+    """
 
     single_image = "i"
     multi_image = "I"
@@ -40,18 +69,38 @@ class ImageMode(str, enum.Enum):
     multi_volume = "V"
     any_mode = "?"
 
-    def __getitem__(self, key):
-        """For backwards compatibility with the old non-enum ImageMode"""
-        if isinstance(key, str):
-            return self.io_mode
-        elif key == 1:
-            return self.image_mode
-        else:
-            raise IndexError(f"Mode has no item {key}")
-
 
 @enum.unique
 class Mode(enum.Enum):
+    """The mode to use when interacting with the resource
+
+    ``Request.Mode`` is a composite of ``Request.ImageMode`` and
+    ``Request.IOMode``. The image mode that tells the plugin the desired (and
+    expected) image shape and the ``Request.IOMode`` tells the plugin the way
+    the resource should be interacted with. For a detailed description of the
+    available modes, see the documentation for ``Request.ImageMode`` and
+    ``Request.IOMode`` respectively.
+
+    Available modes are all combinations of ``Request.IOMode`` and ``Request.ImageMode``:
+
+    - read_single_image ("ri")
+    - read_multi_image ("rI")
+    - read_single_volume ("rv")
+    - read_multi_volume ("rV")
+    - read_any ("r?")
+    - write_single_image ("wi")
+    - write_multi_image ("wI")
+    - write_single_volume ("wv")
+    - write_multi_volume ("wV")
+    - write_any ("w?")
+
+    Examples
+    --------
+    >>> Request.Mode("rI")  # a list of simple images should be read from the resource
+    >>> Request.Mode("wv")  # a single volume should be written to the resource
+
+    """
+
     read_single_image = "ri"
     read_multi_image = "rI"
     read_single_volume = "rv"
@@ -164,12 +213,10 @@ class Request(object):
         # self._potential_formats = []
 
         # Check mode
-        if isinstance(mode, str):
+        try:
             self._mode = Mode(mode)
-        elif isinstance(mode, Mode):
-            self._mode = mode
-        else:
-            raise ValueError("Mode must be either string or iio.Mode")
+        except ValueError:
+            raise ValueError(f"Invalid Request.Mode: {mode}")
 
         # Parse what was given
         self._parse_uri(uri)
