@@ -15,10 +15,7 @@ import enum
 
 from ..core import urlopen, get_remote_file
 
-try:
-    from pathlib import Path
-except ImportError:
-    Path = None
+from pathlib import Path
 
 # URI types
 URI_BYTES = 1
@@ -231,7 +228,7 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"
             self._bytes = uri
-        elif Path is not None and isinstance(uri, Path):
+        elif isinstance(uri, Path):
             self._uri_type = URI_FILENAME
             self._filename = str(uri)
         # Files
