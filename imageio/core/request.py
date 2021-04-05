@@ -26,7 +26,7 @@ URI_HTTP = 5
 URI_FTP = 6
 
 
-class IOMode(enum.Enum):
+class IOMode(str, enum.Enum):
     """Available Image modes
 
     This is a helper enum for ``Request.Mode`` which is a composite of a
@@ -71,7 +71,7 @@ class ImageMode(str, enum.Enum):
 
 
 @enum.unique
-class Mode(enum.Enum):
+class Mode(str, enum.Enum):
     """The mode to use when interacting with the resource
 
     ``Request.Mode`` is a composite of ``Request.ImageMode`` and
