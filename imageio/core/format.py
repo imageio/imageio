@@ -35,15 +35,13 @@ import sys
 import numpy as np
 
 from . import Array, asarray
+from .request import ImageMode
 
 
-MODENAMES = {
-    "i": "single-image",
-    "I": "multi-image",
-    "v": "single-volume",
-    "V": "multi-volume",
-    "?": "any-mode",
-}
+# survived for backwards compatibility
+# I don't know if external plugin code depends on it existing
+# We no longer do
+MODENAMES = ImageMode
 
 
 class Format(object):
@@ -159,9 +157,8 @@ class Format(object):
         """
         select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
-            modename = MODENAMES.get(select_mode, select_mode)
             raise RuntimeError(
-                "Format %s cannot read in %s mode" % (self.name, modename)
+                f"Format {self.name} cannot read in {request.mode.image_mode} mode"
             )
         return self.Reader(self, request)
 
@@ -174,9 +171,8 @@ class Format(object):
         """
         select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
         if select_mode not in self.modes:
-            modename = MODENAMES.get(select_mode, select_mode)
             raise RuntimeError(
-                "Format %s cannot write in %s mode" % (self.name, modename)
+                f"Format {self.name} cannot write in {request.mode.image_mode} mode"
             )
         return self.Writer(self, request)
 

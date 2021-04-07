@@ -11,13 +11,11 @@ from io import BytesIO
 import zipfile
 import tempfile
 import shutil
+import enum
 
 from ..core import urlopen, get_remote_file
 
-try:
-    from pathlib import Path
-except ImportError:
-    Path = None
+from pathlib import Path
 
 # URI types
 URI_BYTES = 1
@@ -26,6 +24,111 @@ URI_FILENAME = 3
 URI_ZIPPED = 4
 URI_HTTP = 5
 URI_FTP = 6
+
+
+class IOMode(str, enum.Enum):
+    """Available Image modes
+
+    This is a helper enum for ``Request.Mode`` which is a composite of a
+    ``Request.ImageMode`` and ``Request.IOMode``. The IOMode that tells the
+    plugin if the resource should be read from or written to. Available values are
+
+    - read ("r"): Read from the specified resource
+    - write ("w"): Write to the specified resource
+
+    """
+
+    read = "r"
+    write = "w"
+
+
+class ImageMode(str, enum.Enum):
+    """Available Image modes
+
+    This is a helper enum for ``Request.Mode`` which is a composite of a
+    ``Request.ImageMode`` and ``Request.IOMode``. The image mode that tells the
+    plugin the desired (and expected) image shape. Available values are
+
+    - single_image ("i"): Return a single image extending in two spacial
+      dimensions
+    - multi_image ("I"): Return a list of images extending in two spacial
+      dimensions
+    - single_volume ("v"): Return an image extending into multiple dimensions.
+      E.g. three spacial dimensions for image stacks, or two spatial and one
+      time dimension for videos
+    - multi_volume ("V"): Return a list of images extending into multiple
+      dimensions.
+    - any_mode ("?"): Return an image in any format (the plugin decides the
+      appropriate action).
+
+    """
+
+    single_image = "i"
+    multi_image = "I"
+    single_volume = "v"
+    multi_volume = "V"
+    any_mode = "?"
+
+
+@enum.unique
+class Mode(str, enum.Enum):
+    """The mode to use when interacting with the resource
+
+    ``Request.Mode`` is a composite of ``Request.ImageMode`` and
+    ``Request.IOMode``. The image mode that tells the plugin the desired (and
+    expected) image shape and the ``Request.IOMode`` tells the plugin the way
+    the resource should be interacted with. For a detailed description of the
+    available modes, see the documentation for ``Request.ImageMode`` and
+    ``Request.IOMode`` respectively.
+
+    Available modes are all combinations of ``Request.IOMode`` and ``Request.ImageMode``:
+
+    - read_single_image ("ri")
+    - read_multi_image ("rI")
+    - read_single_volume ("rv")
+    - read_multi_volume ("rV")
+    - read_any ("r?")
+    - write_single_image ("wi")
+    - write_multi_image ("wI")
+    - write_single_volume ("wv")
+    - write_multi_volume ("wV")
+    - write_any ("w?")
+
+    Examples
+    --------
+    >>> Request.Mode("rI")  # a list of simple images should be read from the resource
+    >>> Request.Mode("wv")  # a single volume should be written to the resource
+
+    """
+
+    read_single_image = "ri"
+    read_multi_image = "rI"
+    read_single_volume = "rv"
+    read_multi_volume = "rV"
+    read_any = "r?"
+    write_single_image = "wi"
+    write_multi_image = "wI"
+    write_single_volume = "wv"
+    write_multi_volume = "wV"
+    write_any = "w?"
+
+    @property
+    def io_mode(self) -> IOMode:
+        return IOMode(self.value[0])
+
+    @property
+    def image_mode(self) -> ImageMode:
+        return ImageMode(self.value[1])
+
+    def __getitem__(self, key):
+        """For backwards compatibility with the old non-enum modes"""
+        if key == 0:
+            return self.io_mode
+        elif key == 1:
+            return self.image_mode
+        else:
+            raise IndexError(f"Mode has no item {key}")
+
 
 SPECIAL_READ_URIS = "<video", "<screen>", "<clipboard>"
 
@@ -110,15 +213,10 @@ class Request(object):
         # self._potential_formats = []
 
         # Check mode
-        self._mode = mode
-        if not isinstance(mode, str):
-            raise ValueError("Request requires mode must be a string")
-        if not len(mode) == 2:
-            raise ValueError("Request requires mode to have two chars")
-        if mode[0] not in "rw":
-            raise ValueError('Request requires mode[0] to be "r" or "w"')
-        if mode[1] not in "iIvV?":
-            raise ValueError('Request requires mode[1] to be in "iIvV?"')
+        try:
+            self._mode = Mode(mode)
+        except ValueError:
+            raise ValueError(f"Invalid Request.Mode: {mode}")
 
         # Parse what was given
         self._parse_uri(uri)
@@ -132,8 +230,8 @@ class Request(object):
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
-        is_read_request = self.mode[0] == "r"
-        is_write_request = self.mode[0] == "w"
+        is_read_request = self.mode.io_mode is IOMode.read
+        is_write_request = self.mode.io_mode is IOMode.write
 
         if isinstance(uri, str):
             # Explicit
@@ -177,7 +275,7 @@ class Request(object):
             self._uri_type = URI_BYTES
             self._filename = "<bytes>"
             self._bytes = uri
-        elif Path is not None and isinstance(uri, Path):
+        elif isinstance(uri, Path):
             self._uri_type = URI_FILENAME
             self._filename = str(uri)
         # Files
@@ -309,7 +407,7 @@ class Request(object):
         format cannot handle file-like objects, they should use
         ``get_local_filename()``.
         """
-        want_to_write = self.mode[0] == "w"
+        want_to_write = self.mode.io_mode is IOMode.write
 
         # Is there already a file?
         # Either _uri_type == URI_FILE, or we already opened the file,
@@ -371,7 +469,7 @@ class Request(object):
                 ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, "imageio_")
             # Write stuff to it?
-            if self.mode[0] == "r":
+            if self.mode.io_mode == IOMode.read:
                 with open(self._filename_local, "wb") as file:
                     shutil.copyfileobj(self.get_file(), file)
             return self._filename_local
@@ -383,7 +481,7 @@ class Request(object):
         results.
         """
 
-        if self.mode[0] == "w":
+        if self.mode.io_mode == IOMode.write:
 
             # See if we "own" the data and must put it somewhere
             bytes = None
