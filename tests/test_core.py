@@ -780,6 +780,7 @@ def test_request_mode_backwards_compatibility():
     mode = Mode("ri")
     assert mode == "ri"
     assert mode[0] == "r"
-    assert mode[1] == "i" 
+    assert mode[1] == "i"
+
 
 run_tests_if_main()
