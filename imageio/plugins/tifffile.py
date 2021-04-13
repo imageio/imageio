@@ -63,7 +63,7 @@ READ_METADATA_KEYS = (
 
 
 class TiffFormat(Format):
-    """Provides support for a wide range of Tiff images using the ``tifffile`` 
+    """Provides support for a wide range of Tiff images using the tifffile 
     plugin.
 
     Images that contain multiple pages can be read using ``imageio.mimread()``
@@ -75,9 +75,9 @@ class TiffFormat(Format):
     was written has no effect. Also, global metadata is ignored if metadata is
     provided via the `meta` argument of :py:meth:`Format.Writer.append_data`.
     
-    If you have installed ``tifffile`` as a Python package, imageio will 
-    attempt to use that instead of the bundled version from this plugin. Doing
-    so can provide access to performance improvements and bug fixes.
+    If you have installed tifffile as a Python package, imageio will attempt 
+    to use that instead of the bundled version from this plugin. Doing so can 
+    provide access to new performance improvements and bug fixes.
 
     Parameters for reading
     ----------------------
