@@ -76,7 +76,7 @@ class TiffFormat(Format):
     provided via the `meta` argument of :py:meth:`Format.Writer.append_data`.
 
     If you have installed tifffile as a Python package, imageio will attempt
-    to use that instead of the bundled version from this plugin. Doing so can
+    to use that as backend instead of the bundled backend. Doing so can
     provide access to new performance improvements and bug fixes.
 
     Parameters for reading
