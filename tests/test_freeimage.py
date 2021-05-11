@@ -88,7 +88,7 @@ def assert_close(im1, im2, tol=0.0):
 
 
 def test_get_ref_im():
-    """ A test for our function to get test images """
+    """A test for our function to get test images"""
 
     crop = 0
     for f in (False, True):

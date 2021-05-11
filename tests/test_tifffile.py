@@ -23,7 +23,7 @@ def test_tifffile_format():
 
 
 def test_tifffile_reading_writing():
-    """ Test reading and saving tiff """
+    """Test reading and saving tiff"""
 
     need_internet()  # We keep a test image in the imageio-binary repo
 

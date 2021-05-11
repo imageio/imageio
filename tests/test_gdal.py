@@ -17,7 +17,7 @@ except ImportError:
 
 @pytest.mark.skipif("gdal is None")
 def test_gdal_reading():
-    """ Test reading gdal"""
+    """Test reading gdal"""
     need_internet()
 
     filename = get_remote_file("images/geotiff.tif")

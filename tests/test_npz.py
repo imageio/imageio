@@ -29,7 +29,7 @@ def test_npz_format():
 
 
 def test_npz_reading_writing():
-    """ Test reading and saveing npz """
+    """Test reading and saveing npz"""
 
     if IS_PYPY:
         return  # no support for npz format :(
