@@ -14,7 +14,8 @@ Imageio makes use of variety of plugins to support reading images (and volumes/m
 from many different formats. Fortunately, Pillow is the main plugin for common images,
 which is the same library as used by  Scipy's ``imread``. Note that Imageio
 automatically selects a plugin based on the image to read (unless a format is
-explicitly specified), but uses Pillow where possible. 
+explicitly specified), but uses Pillow where possible. An exception to this is the .tif
+format, for which the tifffile plugin is preferred due to its broader compatibility.
 
 In short terms: For images previously read by Scipy's imread, imageio should
 generally use Pillow as well, and imageio provides the same functionality as Scipy

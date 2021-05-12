@@ -24,6 +24,7 @@ import imageio as iio
 from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
+from imageio.core.request import Mode
 
 
 try:
@@ -823,6 +824,17 @@ def test_imiter(image_files: Path):
         iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
     ):
         assert np.allclose(numpy_im[idx, ...], im)
+def test_request_mode_backwards_compatibility():
+    mode = Mode("ri")
+    assert mode == "ri"
+    assert mode[0] == "r"
+    assert mode[1] == "i"
+
+
+def test_faulty_legacy_mode_access():
+    mode = Mode("ri")
+    with pytest.raises(IndexError):
+        mode[3]  # has no third component
 
 
 run_tests_if_main()

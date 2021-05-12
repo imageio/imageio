@@ -175,7 +175,7 @@ class LegacyPlugin:
             plugin = self._plugin_manager.search_read_format(request)
 
         if plugin is None:
-            modename = MODENAMES.get(mode, mode)
+            modename = MODENAMES(mode)
             raise ValueError(
                 "Could not find a format to read the specified file"
                 " in %s mode" % modename
@@ -240,7 +240,7 @@ class LegacyPlugin:
             plugin = self._plugin_manager.search_write_format(request)
 
         if plugin is None:
-            modename = MODENAMES.get(mode, mode)
+            modename = MODENAMES(mode)
             raise ValueError(
                 "Could not find a format to write the specified file"
                 " in %s mode" % modename
