@@ -112,6 +112,13 @@ class Mode(str, enum.Enum):
     write_multi_volume = "wV"
     write_any = "w?"
 
+    @classmethod
+    def _missing_(cls, value):
+        if value == "r":
+            return cls("r?")
+        elif value == "w":
+            return cls("w?")
+
     @property
     def io_mode(self) -> IOMode:
         return IOMode(self.value[0])

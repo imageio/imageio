@@ -172,11 +172,17 @@ def test_request():
     R = Request("~/bar.zip/spam.png", "wi")
     assert R._uri_type == core.request.URI_ZIPPED
 
+    R = Request(b"x", "r")
+    assert R._mode == "r?"
+
+    R = Request("~/bar.zip/spam.png", "w")
+    assert R._mode == "w?"
+
     # Test failing inits
     raises(ValueError, Request, "/some/file", None)  # mode must be str
     raises(ValueError, Request, "/some/file", 3)  # mode must be str
     raises(ValueError, Request, "/some/file", "")  # mode must be len 2
-    raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
+    # raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "rii")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "xi")  # mode[0] must be in rw
     raises(ValueError, Request, "/some/file", "rx")  # mode[1] must be in iIvV?
