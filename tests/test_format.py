@@ -24,7 +24,7 @@ def teardown_module():
 
 
 class MyFormat(Format):
-    """ TEST DOCS """
+    """TEST DOCS"""
 
     _closed = []
 
@@ -83,7 +83,7 @@ class MyFormat(Format):
 
 
 def test_format():
-    """ Test the working of the Format class """
+    """Test the working of the Format class"""
 
     filename1 = get_remote_file("images/chelsea.png", test_dir)
     filename2 = filename1 + ".out"
@@ -282,7 +282,7 @@ def test_format_selection():
 
 
 def test_format_manager():
-    """ Test working of the format manager """
+    """Test working of the format manager"""
 
     formats = imageio.formats
 

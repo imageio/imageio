@@ -99,7 +99,7 @@ def black_wrapper(writeback):
 
 
 def pytest_wrapper(cov_report="term"):
-    """ Helper function to run tests."""
+    """Helper function to run tests."""
     import pytest
 
     return pytest.main(

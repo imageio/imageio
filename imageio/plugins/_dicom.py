@@ -618,12 +618,12 @@ class DicomSeries(object):
 
     @property
     def shape(self):
-        """ The shape of the data (nz, ny, nx). """
+        """The shape of the data (nz, ny, nx)."""
         return self._info["shape"]
 
     @property
     def sampling(self):
-        """ The sampling (voxel distances) of the data (dz, dy, dx). """
+        """The sampling (voxel distances) of the data (dz, dy, dx)."""
         return self._info["sampling"]
 
     @property
@@ -772,7 +772,7 @@ class DicomSeries(object):
 
 
 def list_files(files, path):
-    """List all files in the directory, recursively. """
+    """List all files in the directory, recursively."""
     for item in os.listdir(path):
         item = os.path.join(path, item)
         if os.path.isdir(item):

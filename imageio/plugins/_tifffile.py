@@ -1287,7 +1287,7 @@ class TiffWriter(object):
             tags.append((code, b"".join(ifdentry), ifdvalue, writeonce))
 
         def rational(arg, max_denominator=1000000):
-            """"Return nominator and denominator from float or two integers."""
+            """ "Return nominator and denominator from float or two integers."""
             from fractions import Fraction  # delayed import
 
             try:

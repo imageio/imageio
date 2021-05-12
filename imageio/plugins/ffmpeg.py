@@ -469,7 +469,7 @@ class FfmpegFormat(Format):
                 self._read_gen.__next__()  # we already have meta data
 
         def _skip_frames(self, n=1):
-            """ Reads and throws away n frames """
+            """Reads and throws away n frames"""
             for i in range(n):
                 self._read_gen.__next__()
             self._pos += n
@@ -663,7 +663,7 @@ class FrameCatcher(threading.Thread):
 
 
 def parse_device_names(ffmpeg_output):
-    """ Parse the output of the ffmpeg -list-devices command"""
+    """Parse the output of the ffmpeg -list-devices command"""
     # Collect device names - get [friendly_name, alt_name] of each
     device_names = []
     in_video_devices = False
