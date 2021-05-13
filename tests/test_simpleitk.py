@@ -28,7 +28,7 @@ except ImportError:
 
 @pytest.mark.skipif("itk is None")
 def test_simpleitk_reading_writing():
-    """ Test reading and saveing tiff """
+    """Test reading and saveing tiff"""
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
     filename1 = os.path.join(test_dir, "test_tiff.tiff")

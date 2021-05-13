@@ -62,7 +62,7 @@ def download_bin(plugin_names=["all"], package_dir=False):
 
 
 def download_bin_main():
-    """ Argument-parsing wrapper for `download_bin` """
+    """Argument-parsing wrapper for `download_bin`"""
     description = "Download plugin binary dependencies"
     phelp = (
         "Plugin name for which to download the binary. "
@@ -139,7 +139,7 @@ def remove_bin(plugin_names=["all"]):
 
 
 def remove_bin_main():
-    """ Argument-parsing wrapper for `remove_bin` """
+    """Argument-parsing wrapper for `remove_bin`"""
     description = "Remove plugin binary dependencies"
     phelp = (
         "Plugin name for which to remove the binary. "

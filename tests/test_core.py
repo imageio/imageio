@@ -36,7 +36,7 @@ test_dir = get_test_dir()
 
 
 def test_fetching():
-    """ Test fetching of files """
+    """Test fetching of files"""
 
     need_internet()
 
@@ -140,7 +140,7 @@ def test_findlib2():
 
 
 def test_request():
-    """ Test request object """
+    """Test request object"""
 
     # Check uri-type, this is not a public property, so we test the private
     R = Request("http://example.com", "ri")
@@ -467,7 +467,7 @@ def test_util_asarray():
 
 
 def test_util_progres_bar(sleep=0):
-    """ Test the progress bar """
+    """Test the progress bar"""
     # This test can also be run on itself to *see* the result
 
     # Progress bar
@@ -512,7 +512,7 @@ def test_util_progres_bar(sleep=0):
 
 
 def test_util_image_as_uint():
-    """ Tests the various type conversions when writing to uint"""
+    """Tests the various type conversions when writing to uint"""
     raises(ValueError, core.image_as_uint, 4)
     raises(ValueError, core.image_as_uint, "not an image")
     raises(ValueError, core.image_as_uint, np.array([0, 1]), bitdepth=13)
@@ -588,7 +588,7 @@ def test_util_has_has_module():
 
 
 def test_functions():
-    """ Test the user-facing API functions """
+    """Test the user-facing API functions"""
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
@@ -739,7 +739,7 @@ def test_memtest():
 
 
 def test_example_plugin():
-    """ Test the example plugin """
+    """Test the example plugin"""
 
     fname = os.path.join(test_dir, "out.png")
     r = Request("imageio:chelsea.png", "r?")

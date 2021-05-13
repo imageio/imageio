@@ -66,7 +66,7 @@ def loaded_modules(import_module, depth=None, all_modules=False):
 
 
 def test_namespace():
-    """ Test that all names from the public API are in the main namespace """
+    """Test that all names from the public API are in the main namespace"""
 
     has_names = dir(imageio)
     has_names = set([n for n in has_names if not n.startswith("_")])
@@ -84,7 +84,7 @@ def test_namespace():
 
 
 def test_import_nothing():
-    """ Not importing imageio should not import any imageio modules. """
+    """Not importing imageio should not import any imageio modules."""
     modnames = loaded_modules("os", 2)
     assert modnames == set()
 

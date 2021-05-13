@@ -42,7 +42,7 @@ def test_fits_format():
 
 @pytest.mark.skipif("astropy is None")
 def test_fits_reading():
-    """ Test reading fits """
+    """Test reading fits"""
 
     need_internet()  # We keep the fits files in the imageio-binary repo
 
