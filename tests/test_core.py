@@ -826,7 +826,9 @@ def test_imiter(image_files: Path):
     # maybe it would be better to load the image without using imageio, e.g.
     # numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
 
-    full_image = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
+    full_image = iio.v3.imread(
+        image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
+    )
 
     for idx, im in enumerate(
         iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
