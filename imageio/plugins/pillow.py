@@ -6,6 +6,7 @@
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
+from ..core.request import Request, IOMode
 
 
 def _is_multichannel(mode):
@@ -60,27 +61,32 @@ def _exif_orientation_transform(orientation, mode):
 
 
 class PillowPlugin(object):
-    def __init__(self, uri, io_mode):
+    def __init__(self, request: Request):
         """Instantiate a new Pillow Plugin Object
 
         Parameters
         ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-        io_mode : {str}
-            The mode to open the file with. Possible values are
-                ``r`` - open the file for reading
-                ``w`` - open the file for writing
+        request : {Request}
+            A request object representing the resource to be operated on.
 
         """
-        self._uri = uri
+
+        if request.mode.io_mode == IOMode.read:
+            try:
+                with Image.open(request.get_file()):
+                    # Check if it is generally possible to read the image.
+                    # This will not read any data and merely try to find a
+                    # compatible pillow plugin as per the pillow docs.
+                    pass
+            except UnidentifiedImageError:
+                raise ValueError(f"Pillow can not read {request}.") from None
+
+        self._request = request
         self._image = None
-        self.io_mode = io_mode
 
     def open(self):
-        if self.io_mode == "r":
-            self._image = Image.open(self._uri)
+        if self._request.mode.io_mode == IOMode.read:
+            self._image = Image.open(self._request.get_file())
 
     def close(self):
         if self._image:
@@ -229,7 +235,7 @@ class PillowPlugin(object):
             pil_images.append(pil_frame)
 
         pil_images[0].save(
-            self._uri,
+            self._request.get_file(),
             save_all=save_all,
             append_images=pil_images[1:],
             format=format,
@@ -264,33 +270,6 @@ class PillowPlugin(object):
             metadata.update(exif_data)
 
         return self._image.info
-
-    @classmethod
-    def can_open(cls, uri):
-        """Verify that plugin can read the given URI
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-
-        Returns
-        -------
-        readable : bool
-            True if the URI can be read by the plugin. False otherwise.
-
-        """
-        try:
-            with Image.open(uri):
-                # Check if it is generally possible to read the image.
-                # This will not read any data and merely try to find a
-                # compatible pillow plugin as per the pillow docs.
-                pass
-        except UnidentifiedImageError:
-            return False
-
-        return True
 
     def __enter__(self):
         self.open()

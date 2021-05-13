@@ -1,7 +1,7 @@
 import numpy as np
 
 from .format import FormatManager, MODENAMES
-from .request import Request
+from .request import IOMode, Request
 
 
 class imopen:
@@ -34,27 +34,33 @@ class imopen:
 
         Parameters
         ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-        io_mode : {str}
-            The mode to open the file with. Possible values are
-                ``r`` - open the file for reading
-                ``w`` - open the file for writing
-        plugin : {str, None}
-            The plugin to be used. If None, performs a search for a matching plugin.
-        search_legacy_only : {bool}
-            If true, and the plugin is to be searched for by imageio (``plugin``
-            is None) then only seach old plugins (v2.9 and prior) and skip new
-            plugins.
-        **kwargs :
-            Additional keyword arguments will be passed to the plugin instance.
+        uri : {str, pathlib.Path, bytes, file} 
+            The resource to load the image
+            from, e.g. a filename, pathlib.Path, http address or file object,
+            see the docs for more info. io_mode : {str} The mode to open the
+            file with. Possible values are ``r`` - open the file for reading
+            ``w`` - open the file for writing
+
+            Depreciated since v 2.9:
+            A second character can be added to indicate to give the reader a
+            hint on what the user expects. This will be ignored by new plugins
+            and will only have an effect on legacy plugins. The default value
+            is "?" and possible values are
+                "i" for an image, 
+                "I" for multiple images, 
+                "v" for a volume,
+                "V" for multiple volumes,
+                "?" for don't care
+        plugin : {str, None} The plugin to be used. If None, performs a search
+            for a matching plugin. search_legacy_only : {bool} If true, and the
+            plugin is to be searched for by imageio (``plugin`` is None) then
+            only seach old plugins (v2.9 and prior) and skip new plugins.
+            **kwargs : Additional keyword arguments will be passed to the
+            plugin instance.
         """
 
+        request = Request(uri, io_mode)
         plugin_instance = None
-
-        if io_mode not in ["r", "w"]:
-            raise ValueError("io_mode must be either r for read or w for write.")
 
         if plugin is not None:
             try:
@@ -65,7 +71,11 @@ class imopen:
             for candidate_plugin in self._known_plugins.values():
                 if search_legacy_only:
                     continue
-                if candidate_plugin.can_open(uri):
+                try:
+                    candidate_plugin(request)
+                except ValueError:
+                    continue
+                else:
                     plugin_instance = candidate_plugin
                     break
             else:
@@ -73,32 +83,25 @@ class imopen:
                 kwargs["plugin_manager"] = self._legacy_format_manager
 
                 try:
-                    test_instance = plugin_instance(uri, io_mode, **kwargs)
-                except (IndexError, KeyError) as e:
+                    test_instance = plugin_instance(request, **kwargs)
+                except (ValueError, IndexError, KeyError) as e:
                     plugin_instance = None
                     if search_legacy_only:
                         # ensure backwards compatibility and not change
                         # type of error raised to IOError
                         raise e
                 else:
-                    try:
-                        if io_mode == "r":
-                            test_instance.legacy_get_reader()
-                        else:
-                            test_instance.legacy_get_writer()
-                    except ValueError as e:
+                    if io_mode == "r" and not test_instance._plugin.can_read(request):
                         plugin_instance = None
-                        if search_legacy_only:
-                            # ensure backwards compatibility and not change
-                            # type of error raised to IOError
-                            raise e
+                    elif io_mode == "w" and not test_instance._plugin.can_write(request):
+                        plugin_instance = None
 
         if plugin_instance is None:
             raise IOError(
                 f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'"
             )
 
-        return plugin_instance(uri, io_mode, **kwargs)
+        return plugin_instance(request, **kwargs)
 
     @classmethod
     def register_plugin(cls, plugin_name, plugin_class):
@@ -126,7 +129,7 @@ class LegacyPlugin:
     it with the v2.9 API.
     """
 
-    def __init__(self, uri, io_mode, plugin_manager, format=None):
+    def __init__(self, request, plugin_manager, format=None):
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -146,50 +149,46 @@ class LegacyPlugin:
             imageio selects the appropriate plugin for you based on the URI.
 
         """
-        self._uri = uri
+        self._request = request
         self._plugin_manager = plugin_manager
-        self._plugin = plugin_manager[format]
 
-    def legacy_get_reader(self, iio_mode="?", **kwargs):
-        """legacy_get_reader( iio_mode='?' **kwargs)
-
-        a utility method to provide support vor the V2.9 API
-
-        Parameters
-        ----------
-        iio_mode : {'i', 'I', 'v', 'V', '?'}
-            Used to give the reader a hint on what the user expects (default "?"):
-            "i" for an image, "I" for multiple images, "v" for a volume,
-            "V" for multiple volumes, "?" for don't care.
-        kwargs : ...
-            Further keyword arguments are passed to the reader. See :func:`.help`
-            to see what arguments are available for a particular format.
-        """
-
-        mode = "r" + iio_mode
-
-        request = Request(self._uri, mode, **kwargs)
-
-        plugin = self._plugin
-        if plugin is None:
+        plugin = plugin_manager[format]
+        if plugin is None and self._request.mode.io_mode == IOMode.read:
             plugin = self._plugin_manager.search_read_format(request)
+        elif plugin is None and self._request.mode.io_mode == IOMode.write:
+            plugin = self._plugin_manager.search_write_format(request)
 
         if plugin is None:
-            modename = MODENAMES(mode)
+            modename = MODENAMES(self._request.mode[1])
             raise ValueError(
                 "Could not find a format to read the specified file"
                 " in %s mode" % modename
             )
 
-        return plugin.get_reader(request)
+        self._plugin = plugin
 
-    def read(self, *, index=None, iio_mode="?", **kwargs):
+    def legacy_get_reader(self, **kwargs):
+        """legacy_get_reader(**kwargs)
+
+        a utility method to provide support vor the V2.9 API
+
+        Parameters
+        ----------
+        kwargs : ...
+            Further keyword arguments are passed to the reader. See :func:`.help`
+            to see what arguments are available for a particular format.
+        """
+
+        if self._request.mode.io_mode != IOMode.read:
+            raise RuntimeError("Can not get reader, because the uri was not opened for reading.")
+
+        self._request._kwargs.update(kwargs)
+
+        return self._plugin.get_reader(self._request)
+
+    def read(self, *, index=None, **kwargs):
         """
         Parses the given URI and creates a ndarray from it.
-
-        .. deprecated:: 2.9.0
-          `iio_mode='?'` will be replaced by `iio_mode=None` in
-          imageio v3.0.0 .
 
         Parameters
         ----------
@@ -197,10 +196,6 @@ class LegacyPlugin:
             If the URI contains a list of ndimages return the index-th
             image. If None, stack all images into an ndimage along the
             0-th dimension (equivalent to np.stack(imgs, axis=0)).
-        iio_mode : {'i', 'v', '?', None}
-            Used to give the reader a hint on what the user expects
-            (default "?"): "i" for an image, "v" for a volume, "?" for don't
-            care, and "None" to use the new API.
         kwargs : ...
             Further keyword arguments are passed to the reader. See
             :func:`.help` to see what arguments are available for a particular
@@ -208,47 +203,32 @@ class LegacyPlugin:
         """
 
         if index is None:
-            return [im for im in self.iter(iio_mode=iio_mode, **kwargs)]
+            return [im for im in self.iter(**kwargs)]
 
-        reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+        reader = self.legacy_get_reader(**kwargs)
         return reader.get_data(index)
 
-    def legacy_get_writer(self, *, iio_mode="?", **kwargs):
-        """legacy_get_writer(iio_mode='?', **kwargs)
+    def legacy_get_writer(self, **kwargs):
+        """legacy_get_writer(**kwargs)
 
         Returns a :class:`.Writer` object which can be used to write data
         and meta data to the specified file.
 
         Parameters
         ----------
-        mode : {'i', 'I', 'v', 'V', '?'}
-            Used to give the writer a hint on what the user expects (default '?'):
-            "i" for an image, "I" for multiple images, "v" for a volume,
-            "V" for multiple volumes, "?" for don't care.
         kwargs : ...
             Further keyword arguments are passed to the writer. See :func:`.help`
             to see what arguments are available for a particular format.
         """
 
-        mode = "w" + iio_mode
+        if self._request.mode.io_mode != IOMode.write:
+            raise RuntimeError("Can not get writer, because the uri was not opened for writing.")
 
-        plugin = self._plugin
-        uri = self._uri
+        self._request._kwargs.update(kwargs)
 
-        request = Request(uri, mode, **kwargs)
-        if plugin is None:
-            plugin = self._plugin_manager.search_write_format(request)
+        return self._plugin.get_writer(self._request)
 
-        if plugin is None:
-            modename = MODENAMES(mode)
-            raise ValueError(
-                "Could not find a format to write the specified file"
-                " in %s mode" % modename
-            )
-
-        return plugin.get_writer(request)
-
-    def write(self, image, *, iio_mode="?", **kwargs):
+    def write(self, image, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -260,18 +240,13 @@ class LegacyPlugin:
         ----------
         image : numpy.ndarray
             The ndimage or list of ndimages to write.
-        iio_mode : {'i', 'I', 'v', 'V', '?', None}
-            Used to give the writer a hint on what the user expects
-            (default "?"): "i" for an image, "I" for multiple images,
-            "v" for a volume, "V" for multiple volumes, "?" for don't
-            care, and "None" to use the new API prior to imageio v3.0.0.
         kwargs : ...
             Further keyword arguments are passed to the writer. See
             :func:`.help` to see what arguments are available for a
             particular format.
         """
-        with self.legacy_get_writer(iio_mode=iio_mode, **kwargs) as writer:
-            if iio_mode in "iv?":
+        with self.legacy_get_writer(**kwargs) as writer:
+            if self._request.mode.image_mode in "iv?":
                 writer.append_data(image)
             else:
                 if len(image) == 0:
@@ -284,7 +259,7 @@ class LegacyPlugin:
                         raise ValueError(
                             "Image is not numeric, but {}.".format(imt.__name__)
                         )
-                    elif iio_mode == "I":
+                    elif self._request.mode.image_mode == "I":
                         if image.ndim == 2:
                             pass
                         elif image.ndim == 3 and image.shape[2] in [1, 3, 4]:
@@ -293,7 +268,7 @@ class LegacyPlugin:
                             raise ValueError(
                                 "Image must be 2D " "(grayscale, RGB, or RGBA)."
                             )
-                    else:  # iio_mode == "V"
+                    else:  # self._request.mode.image_mode == "V"
                         if image.ndim == 3:
                             pass
                         elif image.ndim == 4 and image.shape[3] < 32:
@@ -308,26 +283,18 @@ class LegacyPlugin:
 
         return writer.request.get_result()
 
-    def iter(self, *, iio_mode="?", **kwargs):
+    def iter(self, **kwargs):
         """Iterate over a list of ndimages given by the URI
-
-        .. deprecated:: 2.9.0
-          `iio_mode='?'` will be replaced by `iio_mode=None` in
-          imageio v3.0.0 .
 
         Parameters
         ----------
-        iio_mode : {'I', 'V', '?', None}
-            Used to give the reader a hint on what the user expects (default
-            "?"): "I" for multiple images, "V" for multiple volumes, "?" for
-            don't care, and "None" to use the new API.
         kwargs : ...
             Further keyword arguments are passed to the reader. See
             :func:`.help` to see what arguments are available for a particular
             format.
         """
 
-        reader = self.legacy_get_reader(iio_mode=iio_mode, **kwargs)
+        reader = self.legacy_get_reader(**kwargs)
         for image in reader:
             yield image
 

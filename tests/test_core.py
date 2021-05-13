@@ -785,8 +785,8 @@ def test_imwrite_not_array_like():
 
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
-        with iio.imopen("foo.bmp", "w", format="GIF-PIL") as file:
-            file.write([], iio_mode="I")
+        with iio.imopen("foo.bmp", "wI", format="GIF-PIL") as file:
+            file.write([])
 
 
 def test_imopen_unsupported_iomode():
@@ -806,9 +806,8 @@ def test_imopen_unregistered_plugin(clear_plugins):
 
 def test_plugin_selection(clear_plugins, monkeypatch):
     class DummyPlugin:
-        @classmethod
-        def can_open(cls, uri):
-            return False
+        def __init__(self, request):
+            raise ValueError("Can not read anything")
 
     monkeypatch.setattr(
         iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}

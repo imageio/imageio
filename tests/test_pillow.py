@@ -1,11 +1,11 @@
 """ Tests for imageio's pillow plugin
 """
 
+from imageio.core.request import Request
 import os
 import pytest
 import numpy as np
 from pathlib import Path
-import urllib.request
 from PIL import Image, ImageSequence
 
 import imageio as iio
@@ -163,10 +163,10 @@ def test_png_16bit(image_files: Path):
     size_2 = os.stat(image_files / "2.png").st_size
     assert size_2 < size_1
 
-    im2 = iio.v3.imread(image_files / "2.png")
+    im2 = iio.v3.imread(image_files / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    im3 = iio.v3.imread(image_files / "1.png")
+    im3 = iio.v3.imread(image_files / "1.png", plugin="pillow")
     assert im3.dtype == np.int32
 
 
@@ -181,8 +181,7 @@ def test_png_remote():
     # issue #202
 
     url = "https://github.com/FirefoxMetzger/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
-    response = urllib.request.urlopen(url)
-    im = iio.v3.imread(response, plugin="pillow")
+    im = iio.v3.imread(url, plugin="pillow")
     assert im.shape == (300, 451, 3)
 
 
@@ -330,7 +329,9 @@ def test_unknown_image(image_files: Path):
     with open(image_files / "foo.unknown", "w") as file:
         file.write("This image, which is actually no image, has an unknown image type.")
 
-    assert not PillowPlugin.can_open(image_files / "foo.unknown")
+    with pytest.raises(ValueError):
+        r = Request(image_files / "foo.unknown", "r")
+        PillowPlugin(r)
 
 
 # TODO: introduce new plugin for writing compressed GIF
