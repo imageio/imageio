@@ -118,6 +118,8 @@ class Mode(str, enum.Enum):
             return cls("r?")
         elif value == "w":
             return cls("w?")
+        else:
+            raise ValueError(f"{value} is no valid Mode.")
 
     @property
     def io_mode(self) -> IOMode:
