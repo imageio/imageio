@@ -823,12 +823,15 @@ def test_legacy_object_image_writing():
 
 
 def test_imiter(image_files: Path):
-    numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
+    # maybe it would be better to load the image without using imageio, e.g.
+    # numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
+
+    full_image = iio.v3.imread(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
 
     for idx, im in enumerate(
         iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
     ):
-        assert np.allclose(numpy_im[idx, ...], im)
+        assert np.allclose(full_image[idx, ...], im)
 
 
 def test_request_mode_backwards_compatibility():
