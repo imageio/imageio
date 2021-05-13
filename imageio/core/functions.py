@@ -167,7 +167,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen()(uri, "r"+mode, format=format)
+    image_file = imopen()(uri, "r" + mode, format=format)
     return image_file.legacy_get_reader(**kwargs)
 
 
@@ -194,7 +194,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen()(uri, "w"+mode, format=format)
+    image_file = imopen()(uri, "w" + mode, format=format)
     return image_file.legacy_get_writer(**kwargs)
 
 

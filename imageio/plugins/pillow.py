@@ -239,7 +239,7 @@ class PillowPlugin(object):
             save_all=save_all,
             append_images=pil_images[1:],
             format=format,
-            **kwargs
+            **kwargs,
         )
 
     def get_meta(self, *, index=None):

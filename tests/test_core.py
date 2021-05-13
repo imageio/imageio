@@ -829,6 +829,8 @@ def test_imiter(image_files: Path):
         iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
     ):
         assert np.allclose(numpy_im[idx, ...], im)
+
+
 def test_request_mode_backwards_compatibility():
     mode = Mode("ri")
     assert mode == "ri"

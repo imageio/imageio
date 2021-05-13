@@ -34,7 +34,7 @@ class imopen:
 
         Parameters
         ----------
-        uri : {str, pathlib.Path, bytes, file} 
+        uri : {str, pathlib.Path, bytes, file}
             The resource to load the image
             from, e.g. a filename, pathlib.Path, http address or file object,
             see the docs for more info. io_mode : {str} The mode to open the
@@ -46,8 +46,8 @@ class imopen:
             hint on what the user expects. This will be ignored by new plugins
             and will only have an effect on legacy plugins. The default value
             is "?" and possible values are
-                "i" for an image, 
-                "I" for multiple images, 
+                "i" for an image,
+                "I" for multiple images,
                 "v" for a volume,
                 "V" for multiple volumes,
                 "?" for don't care
@@ -93,7 +93,9 @@ class imopen:
                 else:
                     if io_mode == "r" and not test_instance._plugin.can_read(request):
                         plugin_instance = None
-                    elif io_mode == "w" and not test_instance._plugin.can_write(request):
+                    elif io_mode == "w" and not test_instance._plugin.can_write(
+                        request
+                    ):
                         plugin_instance = None
 
         if plugin_instance is None:
@@ -180,7 +182,9 @@ class LegacyPlugin:
         """
 
         if self._request.mode.io_mode != IOMode.read:
-            raise RuntimeError("Can not get reader, because the uri was not opened for reading.")
+            raise RuntimeError(
+                "Can not get reader, because the uri was not opened for reading."
+            )
 
         self._request._kwargs.update(kwargs)
 
@@ -222,7 +226,9 @@ class LegacyPlugin:
         """
 
         if self._request.mode.io_mode != IOMode.write:
-            raise RuntimeError("Can not get writer, because the uri was not opened for writing.")
+            raise RuntimeError(
+                "Can not get writer, because the uri was not opened for writing."
+            )
 
         self._request._kwargs.update(kwargs)
 
