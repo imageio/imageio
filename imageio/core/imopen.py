@@ -102,7 +102,7 @@ class imopen:
                 kwargs["plugin_manager"] = self._legacy_format_manager
 
                 try:
-                    test_instance = plugin_instance(request, **kwargs)
+                    plugin_instance(request, **kwargs)
                 except (ValueError, IndexError, KeyError) as e:
                     plugin_instance = None
                     if search_legacy_only:

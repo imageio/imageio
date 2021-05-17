@@ -804,7 +804,7 @@ def test_imopen_unregistered_plugin(clear_plugins):
         iio.imopen("", "r", plugin="unknown_plugin")
 
 
-def test_plugin_selection(clear_plugins, monkeypatch):
+def test_plugin_selection_failure(clear_plugins, monkeypatch):
     class DummyPlugin:
         def __init__(self, request):
             raise ValueError("Can not read anything")
@@ -815,6 +815,18 @@ def test_plugin_selection(clear_plugins, monkeypatch):
 
     with pytest.raises(IOError):
         iio.imopen("", "r", search_legacy_only=False)
+
+
+def test_plugin_selection_success(clear_plugins, monkeypatch):
+    class DummyPlugin:
+        def __init__(self, request):
+            """Can read anything"""
+
+    monkeypatch.setattr(iio.imopen, "_known_plugins", {"plugin1": DummyPlugin})
+
+    instance = iio.imopen("", "r", search_legacy_only=False)
+
+    assert isinstance(instance, DummyPlugin)
 
 
 def test_legacy_object_image_writing():
@@ -847,6 +859,11 @@ def test_faulty_legacy_mode_access():
     mode = Mode("ri")
     with pytest.raises(IndexError):
         mode[3]  # has no third component
+
+
+def test_mvolread_out_of_bytes():
+    with pytest.raises(RuntimeError):
+        imageio.mvolread("imageio:chelsea.png", memtest="1B")
 
 
 run_tests_if_main()
