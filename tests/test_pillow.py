@@ -401,6 +401,12 @@ def test_legacy_exif_orientation(image_files: Path):
         format="PNG-PIL",
     ) as f:
         im_reloaded = np.asarray(f.read()[0])
+    with iio.imopen(
+        image_files / "chelsea_tagged.png",
+        "r",
+        search_legacy_only=True,
+        format="PNG-PIL",
+    ) as f:
         im_meta = f.get_meta()
 
     # ensure raw image is now portrait
