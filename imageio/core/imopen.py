@@ -106,16 +106,9 @@ class imopen:
                 except (ValueError, IndexError, KeyError) as e:
                     plugin_instance = None
                     if search_legacy_only:
-                        # ensure backwards compatibility and not change
+                        # ensure backwards compatibility and do not change
                         # type of error raised to IOError
                         raise e
-                else:
-                    if io_mode == "r" and not test_instance._plugin.can_read(request):
-                        plugin_instance = None
-                    elif io_mode == "w" and not test_instance._plugin.can_write(
-                        request
-                    ):
-                        plugin_instance = None
 
         if plugin_instance is None:
             raise IOError(
