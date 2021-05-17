@@ -863,7 +863,10 @@ def test_faulty_legacy_mode_access():
 
 def test_mvolread_out_of_bytes():
     with pytest.raises(RuntimeError):
-        imageio.mvolread("https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true", memtest="1B")
+        imageio.mvolread(
+            "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
+            memtest="1B",
+        )
 
 
 run_tests_if_main()
