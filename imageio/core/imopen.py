@@ -14,7 +14,7 @@ class imopen:
 
     Notes
     -----
-    
+
     For library maintainers: If you call imopen from inside the library, you
     will first need to first create an instance, i.e. ``imopen()(uri, ...)``
     (Notice the double parentheses).
@@ -50,11 +50,11 @@ class imopen:
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image
             from, e.g. a filename, pathlib.Path, http address or file object,
-            see the docs for more info. 
-        io_mode : {str} 
+            see the docs for more info.
+        io_mode : {str}
             The mode to open the file with. Possible values are::
 
-                ``r`` - open the file for reading 
+                ``r`` - open the file for reading
                 ``w`` - open the file for writing
 
             Depreciated since v2.9:
@@ -68,10 +68,10 @@ class imopen:
                 ``V`` for multiple volumes,
                 ``?`` for don't care (default)
 
-        plugin : {str, None} 
+        plugin : {str, None}
             The plugin to be used. If None (default), performs a search for a
             matching plugin.
-        search_legacy_only : {bool} 
+        search_legacy_only : {bool}
             If true (default), and ``plugin=None`` then only legacy plugins
             (v2.9 and prior) are searched. New plugins (v3.0+) are skipped.
         **kwargs : {any}
