@@ -222,11 +222,6 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
-        if self._request.mode.io_mode != IOMode.read:
-            raise RuntimeError(
-                "Can not get reader, because the uri was not opened for reading."
-            )
-
         self._request._kwargs.update(kwargs)
 
         return self._plugin.get_reader(self._request)
@@ -265,11 +260,6 @@ class LegacyPlugin:
             Further keyword arguments are passed to the writer. See :func:`.help`
             to see what arguments are available for a particular format.
         """
-
-        if self._request.mode.io_mode != IOMode.write:
-            raise RuntimeError(
-                "Can not get writer, because the uri was not opened for writing."
-            )
 
         self._request._kwargs.update(kwargs)
 
