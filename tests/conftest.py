@@ -16,7 +16,7 @@ def tmp_dir(tmp_path_factory):
     current_path = os.getcwd()
     os.chdir(tmp_path)
     os.system(
-        "git clone --sparse --filter=blob:none https://github.com/FirefoxMetzger/imageio-binaries.git ."
+        "git clone --sparse --filter=blob:none https://github.com/imageio/imageio-binaries.git ."
     )
     os.system("git sparse-checkout init --cone")
     os.system("git sparse-checkout add test-images")
