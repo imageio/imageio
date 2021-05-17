@@ -5,16 +5,29 @@ from .request import IOMode, Request
 
 
 class imopen:
-    """Open a URI and return a plugin instance that can read/write its content.
+    """Open a URI and return a plugin instance that can read/write the URIs content.
 
-    ``imopen`` takes a URI and searches for a plugin capable of opening it.
-    Once a suitable plugin is found, a plugin instance is created that exposes
-    read/write/iter methods to interact with the image data. The search can be
-    skipped by providing a valid plugin name as optional input argument.
+    ``imopen`` takes a URI and searches for a plugin capable of opening it. Once
+    a suitable plugin is found, a plugin instance is created that implements the
+    imageio API to interact with the image data. The search can be skipped using
+    the optional ``plugin="plugin_name"`` argument.
 
-    Note for library maintainers: If you call imopen from inside the library,
-    you will first need to first create an instance, i.e.
-    ``imopen()(uri, ...)``. Note the double parentheses.
+    Notes
+    -----
+    
+    For library maintainers: If you call imopen from inside the library, you
+    will first need to first create an instance, i.e. ``imopen()(uri, ...)``
+    (Notice the double parentheses).
+
+    Examples
+    --------
+
+    >>> import imageio.v3 as iio
+    >>> with iio.imopen("/path/to/image.png", "r") as file:
+    >>>     im = file.read()
+
+    >>> with iio.imopen("/path/to/output.jpg", "w") as file:
+    >>>     file.write(im)
 
     """
 
@@ -37,26 +50,32 @@ class imopen:
         uri : {str, pathlib.Path, bytes, file}
             The resource to load the image
             from, e.g. a filename, pathlib.Path, http address or file object,
-            see the docs for more info. io_mode : {str} The mode to open the
-            file with. Possible values are ``r`` - open the file for reading
-            ``w`` - open the file for writing
+            see the docs for more info. 
+        io_mode : {str} 
+            The mode to open the file with. Possible values are::
 
-            Depreciated since v 2.9:
-            A second character can be added to indicate to give the reader a
-            hint on what the user expects. This will be ignored by new plugins
-            and will only have an effect on legacy plugins. The default value
-            is "?" and possible values are
-                "i" for an image,
-                "I" for multiple images,
-                "v" for a volume,
-                "V" for multiple volumes,
-                "?" for don't care
-        plugin : {str, None} The plugin to be used. If None, performs a search
-            for a matching plugin. search_legacy_only : {bool} If true, and the
-            plugin is to be searched for by imageio (``plugin`` is None) then
-            only seach old plugins (v2.9 and prior) and skip new plugins.
-            **kwargs : Additional keyword arguments will be passed to the
-            plugin instance.
+                ``r`` - open the file for reading 
+                ``w`` - open the file for writing
+
+            Depreciated since v2.9:
+            A second character can be added to give the reader a hint on what
+            the user expects. This will be ignored by new plugins and will
+            only have an effect on legacy plugins. Possible values are::
+
+                ``i`` for an image,
+                ``I`` for multiple images,
+                ``v`` for a volume,
+                ``V`` for multiple volumes,
+                ``?`` for don't care (default)
+
+        plugin : {str, None} 
+            The plugin to be used. If None (default), performs a search for a
+            matching plugin.
+        search_legacy_only : {bool} 
+            If true (default), and ``plugin=None`` then only legacy plugins
+            (v2.9 and prior) are searched. New plugins (v3.0+) are skipped.
+        **kwargs : {any}
+            Additional keyword arguments will be passed to the plugin instance.
         """
 
         request = Request(uri, io_mode)
@@ -113,22 +132,51 @@ class imopen:
         ----------
         plugin_name : str
             The name of the plugin to be registered. If the name already exists
-            it will be overwritten.
+            the given plugin will overwrite the old one.
         plugin_class : callable
             A callable that returns an instance of a plugin that conforms
-            to the v3.0 API.
+            to the imageio API.
         """
 
         cls._known_plugins[plugin_name] = plugin_class
 
 
 class LegacyPlugin:
-    """A plugin to expose v2.9 plugins in the v3.0 API
+    """A plugin to  make old (v2.9) plugins compatible with v3.0
+
+    .. depreciated:: 2.9
+        `legacy_get_reader` will be removed in a future version of imageio.
+        `legacy_get_writer` will be removed in a future version of imageio.
 
     This plugin is a wrapper around the old FormatManager class and exposes
     all the old plugins via the new API. On top of this it has
-    ``legacy_get_reader`` and ``legacy__get_writer`` methods to allow using
+    ``legacy_get_reader`` and ``legacy_get_writer`` methods to allow using
     it with the v2.9 API.
+
+    Methods
+    -------
+    read(index=None, **kwargs)
+        Read the image at position ``index``.
+    write(image, **kwargs)
+        Write image to the URI.
+    iter(**kwargs)
+        Iteratively yield images from the given URI.
+    get_meta(index=None)
+        Return the metadata for the image at position ``index``.
+    legacy_get_reader(**kwargs)
+        Returns the v2.9 image reader. (depreciated)
+    legacy_get_writer(**kwargs)
+        Returns the v2.9 image writer. (depreciated)
+
+    Examples
+    --------
+
+    >>> import imageio.v3 as iio
+    >>> with iio.imopen("/path/to/image.tiff", "r", search_legacy_only=True) as file:
+    >>>     reader = file.legacy_get_reader()  # depreciated
+    >>>     for im in file.iter():
+    >>>         print(im.shape)
+
     """
 
     def __init__(self, request, plugin_manager, format=None):
