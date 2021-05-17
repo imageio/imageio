@@ -92,6 +92,8 @@ class PillowPlugin(object):
         if self._image:
             self._image.close()
 
+        self._request.finish()
+
     def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False):
         """
         Parses the given URI and creates a ndarray from it.

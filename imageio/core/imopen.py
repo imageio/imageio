@@ -100,6 +100,8 @@ class imopen:
             else:
                 plugin_instance = LegacyPlugin
                 kwargs["plugin_manager"] = self._legacy_format_manager
+                kwargs["io_mode"] = io_mode
+                kwargs["uri"] = uri
 
                 try:
                     plugin_instance(request, **kwargs)
@@ -172,7 +174,7 @@ class LegacyPlugin:
 
     """
 
-    def __init__(self, request, plugin_manager, format=None):
+    def __init__(self, request, plugin_manager, uri, io_mode, format=None):
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -210,6 +212,10 @@ class LegacyPlugin:
 
         self._plugin = plugin
 
+        # for backwards compatibility with get_reader/get_writer
+        self._uri = uri
+        self._io_mode = io_mode
+
     def legacy_get_reader(self, **kwargs):
         """legacy_get_reader(**kwargs)
 
@@ -222,9 +228,10 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
-        self._request._kwargs.update(kwargs)
+        # create a throw-away request
+        req = Request(self._uri, self._io_mode, **kwargs)
 
-        return self._plugin.get_reader(self._request)
+        return self._plugin.get_reader(req)
 
     def read(self, *, index=None, **kwargs):
         """
@@ -261,9 +268,10 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
-        self._request._kwargs.update(kwargs)
+        # create a throw-away request
+        req = Request(self._uri, self._io_mode, **kwargs)
 
-        return self._plugin.get_writer(self._request)
+        return self._plugin.get_writer(req)
 
     def write(self, image, **kwargs):
         """
@@ -355,4 +363,4 @@ class LegacyPlugin:
         return self
 
     def __exit__(self, type, value, traceback):
-        pass
+        self._request.finish()
