@@ -8,7 +8,7 @@
 [![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1488561.svg)](https://doi.org/10.5281/zenodo.1488561)
 
-Website: https://imageio.github.io
+Website: https://imageio.readthedocs.io/
 
 <!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
 
