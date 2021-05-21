@@ -100,11 +100,6 @@ def test_fits_get_reader(tmp_path):
     ihdu = fits.ImageHDU(img)
     hdul = fits.HDUList([phdu,ihdu])
     hdul.writeto(tmp_path / 'test.fits')
-    try:
-        im = imageio.get_reader('test.fits')
-        os.remove('test.fits')
-    except ValueError:
-        os.remove('test.fits')
-        pytest.fail('imageio.get_reader failed to find FITS loader')
+    im = imageio.get_reader(tmp_path / 'test.fits')
 
 run_tests_if_main()
