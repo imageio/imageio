@@ -99,7 +99,7 @@ def test_fits_get_reader(tmp_path):
     phdu = fits.PrimaryHDU()
     ihdu = fits.ImageHDU(img)
     hdul = fits.HDUList([phdu,ihdu])
-    hdul.writeto('test.fits')
+    hdul.writeto(tmp_path / 'test.fits')
     try:
         im = imageio.get_reader('test.fits')
         os.remove('test.fits')
