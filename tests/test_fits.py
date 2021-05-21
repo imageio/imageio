@@ -6,6 +6,8 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 import imageio
 from imageio.core import get_remote_file, Request, IS_PYPY
 
+import numpy as np
+
 test_dir = get_test_dir()
 
 try:
@@ -79,25 +81,24 @@ def test_fits_reading():
     im = imageio.imread(compressed)
     assert im.shape == (2042, 3054)
 
+
 @pytest.mark.skipif("astropy is None")
+@pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
 def test_fits_get_reader(tmp_path):
-    """Test reading fits with get_reader method"""
+    """Test reading fits with get_reader method
+       This is a regression test that closes GitHub issue #636
+    """
     
     #Set precedence as normal
-    teardown_module()
+    imageio.formats.sort()
     
-    if IS_PYPY:
-        return  # no support for fits format :(
-
-    import numpy as np
-    from astropy.io import fits
     sigma = 10
     xx, yy = np.meshgrid(np.arange(512),np.arange(512))
     z = (1/(2*np.pi*(sigma**2)))*np.exp(-((xx**2)+(yy**2))/(2*(sigma**2)))
     img = np.log(z)
-    phdu = fits.PrimaryHDU()
-    ihdu = fits.ImageHDU(img)
-    hdul = fits.HDUList([phdu,ihdu])
+    phdu = astropy.io.fits.PrimaryHDU()
+    ihdu = astropy.io.fits.ImageHDU(img)
+    hdul = astropy.io.fits.HDUList([phdu,ihdu])
     hdul.writeto(tmp_path / 'test.fits')
     im = imageio.get_reader(tmp_path / 'test.fits')
 
