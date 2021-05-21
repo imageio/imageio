@@ -1,5 +1,6 @@
 """ Test fits plugin functionality.
 """
+import os
 import pytest
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
@@ -79,5 +80,31 @@ def test_fits_reading():
     im = imageio.imread(compressed)
     assert im.shape == (2042, 3054)
 
+@pytest.mark.skipif("astropy is None")
+def test_fits_get_reader():
+    """Test reading fits with get_reader method"""
+    
+    #Set precedence as normal
+    teardown_module()
+    
+    if IS_PYPY:
+        return  # no support for fits format :(
+
+    import numpy as np
+    from astropy.io import fits
+    sigma = 10
+    xx, yy = np.meshgrid(np.arange(512),np.arange(512))
+    z = (1/(2*np.pi*(sigma**2)))*np.exp(-((xx**2)+(yy**2))/(2*(sigma**2)))
+    img = np.log(z)
+    phdu = fits.PrimaryHDU()
+    ihdu = fits.ImageHDU(img)
+    hdul = fits.HDUList([phdu,ihdu])
+    hdul.writeto('test.fits')
+    try:
+        im = imageio.get_reader('test.fits')
+        os.remove('test.fits')
+    except ValueError:
+        os.remove('test.fits')
+        pytest.fail('imageio.get_reader failed to find FITS loader')
 
 run_tests_if_main()
