@@ -1,6 +1,5 @@
 """ Test fits plugin functionality.
 """
-import os
 import pytest
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
