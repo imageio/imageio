@@ -81,7 +81,7 @@ def test_fits_reading():
     assert im.shape == (2042, 3054)
 
 @pytest.mark.skipif("astropy is None")
-def test_fits_get_reader():
+def test_fits_get_reader(tmp_path):
     """Test reading fits with get_reader method"""
     
     #Set precedence as normal
