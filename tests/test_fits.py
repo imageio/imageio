@@ -86,20 +86,23 @@ def test_fits_reading():
 @pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
 def test_fits_get_reader(tmp_path):
     """Test reading fits with get_reader method
-       This is a regression test that closes GitHub issue #636
+    This is a regression test that closes GitHub issue #636
     """
-    
-    #Set precedence as normal
+
+    # Set precedence as normal
     imageio.formats.sort()
-    
+
     sigma = 10
-    xx, yy = np.meshgrid(np.arange(512),np.arange(512))
-    z = (1/(2*np.pi*(sigma**2)))*np.exp(-((xx**2)+(yy**2))/(2*(sigma**2)))
+    xx, yy = np.meshgrid(np.arange(512), np.arange(512))
+    z = (1 / (2 * np.pi * (sigma ** 2))) * np.exp(
+        -((xx ** 2) + (yy ** 2)) / (2 * (sigma ** 2))
+    )
     img = np.log(z)
     phdu = astropy.io.fits.PrimaryHDU()
     ihdu = astropy.io.fits.ImageHDU(img)
-    hdul = astropy.io.fits.HDUList([phdu,ihdu])
-    hdul.writeto(tmp_path / 'test.fits')
-    im = imageio.get_reader(tmp_path / 'test.fits')
+    hdul = astropy.io.fits.HDUList([phdu, ihdu])
+    hdul.writeto(tmp_path / "test.fits")
+    imageio.get_reader(tmp_path / "test.fits")
+
 
 run_tests_if_main()
