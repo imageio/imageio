@@ -26,6 +26,15 @@ def teardown_module():
     imageio.formats.sort()
 
 
+@pytest.fixture
+def normal_plugin_order():
+    # Use fixture to temporarily set context of normal plugin order for
+    # tests and return to module setup afterwards
+    teardown_module()
+    yield
+    setup_module()
+
+
 @pytest.mark.skipif("astropy is None")
 def test_fits_format():
     need_internet()  # We keep the fits files in the imageio-binary repo
@@ -84,13 +93,10 @@ def test_fits_reading():
 
 @pytest.mark.skipif("astropy is None")
 @pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
-def test_fits_get_reader(tmp_path):
+def test_fits_get_reader(normal_plugin_order, tmp_path):
     """Test reading fits with get_reader method
     This is a regression test that closes GitHub issue #636
     """
-
-    # Set precedence as normal
-    imageio.formats.sort()
 
     sigma = 10
     xx, yy = np.meshgrid(np.arange(512), np.arange(512))
