@@ -83,28 +83,28 @@ class imopen:
 
         if plugin is not None:
             try:
-                plugin_instance = self._known_plugins[plugin]
+                candidate_plugin = self._known_plugins[plugin]
             except KeyError:
                 raise ValueError(f"'{plugin}' is not a registered plugin name.")
+                
+            plugin_instance = candidate_plugin(request, **kwargs)
         else:
             for candidate_plugin in self._known_plugins.values():
                 if search_legacy_only:
                     continue
                 try:
-                    candidate_plugin(request)
+                    plugin_instance = candidate_plugin(request, **kwargs)
                 except ValueError:
                     continue
                 else:
-                    plugin_instance = candidate_plugin
                     break
             else:
-                plugin_instance = LegacyPlugin
                 kwargs["plugin_manager"] = self._legacy_format_manager
                 kwargs["io_mode"] = io_mode
                 kwargs["uri"] = uri
 
                 try:
-                    plugin_instance(request, **kwargs)
+                    plugin_instance = LegacyPlugin(request, **kwargs)
                 except (ValueError, IndexError, KeyError) as e:
                     plugin_instance = None
                     if search_legacy_only:
@@ -117,7 +117,7 @@ class imopen:
                 f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'"
             )
 
-        return plugin_instance(request, **kwargs)
+        return plugin_instance
 
     @classmethod
     def register_plugin(cls, plugin_name, plugin_class):
