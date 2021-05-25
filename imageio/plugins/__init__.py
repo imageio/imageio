@@ -92,6 +92,7 @@ except ImportError:
 
 # First import plugins that we want to take precedence over freeimage
 from . import tifffile
+from . import fits  # depends on astropy
 from . import pillow_legacy
 from . import grab
 
@@ -104,9 +105,8 @@ from . import bsdf
 from . import dicom
 from . import npz
 from . import swf
-from . import feisem  # special kind of tiff, uses _tiffile
 
-from . import fits  # depends on astropy
+from . import feisem  # special kind of tiff, uses _tiffile
 from . import simpleitk  # depends on itk or SimpleITK
 from . import gdal  # depends on gdal
 
