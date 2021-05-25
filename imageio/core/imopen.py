@@ -86,7 +86,7 @@ class imopen:
                 candidate_plugin = self._known_plugins[plugin]
             except KeyError:
                 raise ValueError(f"'{plugin}' is not a registered plugin name.")
-                
+
             plugin_instance = candidate_plugin(request, **kwargs)
         else:
             for candidate_plugin in self._known_plugins.values():
