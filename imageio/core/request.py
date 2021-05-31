@@ -114,6 +114,17 @@ class Mode(str, enum.Enum):
 
     @classmethod
     def _missing_(cls, value):
+        """Enable Mode("r") and Mode("w")
+
+        The sunder method ``_missing_`` is called whenever the constructor fails
+        to directly look up the corresponding enum value from the given input.
+        In our case, we use it to convert the modes "r" and "w" (from the v3
+        API) into their legacy versions "r?" and "w?".
+
+        More info on _missing_:
+        https://docs.python.org/3/library/enum.html#supported-sunder-names
+        """
+
         if value == "r":
             return cls("r?")
         elif value == "w":
