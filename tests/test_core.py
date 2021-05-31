@@ -24,7 +24,7 @@ import imageio as iio
 from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
-from imageio.core.request import Mode
+from imageio.core.request import Mode, InitializationError
 
 
 try:
@@ -807,7 +807,7 @@ def test_imopen_unregistered_plugin(clear_plugins):
 def test_plugin_selection_failure(clear_plugins, monkeypatch):
     class DummyPlugin:
         def __init__(self, request):
-            raise ValueError("Can not read anything")
+            raise InitializationError("Can not read anything")
 
     monkeypatch.setattr(
         iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
@@ -867,6 +867,19 @@ def test_mvolread_out_of_bytes():
             "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
             memtest="1B",
         )
+
+
+def test_invalid_explicit_plugin(clear_plugins, monkeypatch):
+    class DummyPlugin:
+        def __init__(self, request):
+            raise InitializationError("Can not read anything")
+
+    monkeypatch.setattr(
+        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", plugin="plugin1")
 
 
 run_tests_if_main()

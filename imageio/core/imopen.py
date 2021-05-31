@@ -1,7 +1,7 @@
 import numpy as np
 
 from .format import FormatManager, MODENAMES
-from .request import IOMode, Request
+from .request import IOMode, Request, InitializationError
 
 
 class imopen:
@@ -87,14 +87,18 @@ class imopen:
             except KeyError:
                 raise ValueError(f"'{plugin}' is not a registered plugin name.")
 
-            plugin_instance = candidate_plugin(request, **kwargs)
+            try:
+                plugin_instance = candidate_plugin(request, **kwargs)
+            except InitializationError:
+                raise IOError(f"'{plugin}' can not handle the given uri.")
+
         else:
             for candidate_plugin in self._known_plugins.values():
                 if search_legacy_only:
                     continue
                 try:
                     plugin_instance = candidate_plugin(request, **kwargs)
-                except ValueError:
+                except InitializationError:
                     continue
                 else:
                     break

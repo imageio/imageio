@@ -6,7 +6,7 @@
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
-from ..core.request import Request, IOMode
+from ..core.request import Request, IOMode, InitializationError
 
 
 def _is_multichannel(mode):
@@ -79,7 +79,7 @@ class PillowPlugin(object):
                     # compatible pillow plugin as per the pillow docs.
                     pass
             except UnidentifiedImageError:
-                raise ValueError(f"Pillow can not read {request}.") from None
+                raise InitializationError(f"Pillow can not read {request}.") from None
 
         self._request = request
         self._image = None

@@ -692,3 +692,15 @@ class SeekableFileObject:
 
     def seekable(self):
         return True
+
+
+class InitializationError(Exception):
+    """The plugin could not initialize from the given request.
+
+    This is a _internal_ error that is raised by plugins that fail to handle
+    a given request. We use this to differentiate incompatibility between
+    a plugin and a request from an actual error/bug inside a plugin.
+
+    """
+
+    pass

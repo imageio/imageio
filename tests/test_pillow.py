@@ -10,6 +10,7 @@ from PIL import Image, ImageSequence
 
 import imageio as iio
 from imageio.plugins.pillow import PillowPlugin
+from imageio.core.request import InitializationError
 
 
 @pytest.mark.parametrize(
@@ -329,7 +330,7 @@ def test_unknown_image(image_files: Path):
     with open(image_files / "foo.unknown", "w") as file:
         file.write("This image, which is actually no image, has an unknown image type.")
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InitializationError):
         r = Request(image_files / "foo.unknown", "r")
         PillowPlugin(r)
 
