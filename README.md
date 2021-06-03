@@ -79,6 +79,14 @@ Optional Python packages:
     <li><a href='https://codeberg.org/monilophyta/imageio-flif'>imageio-flif</a> (for working with <a href='https://github.com/FLIF-hub/FLIF'>FLIF</a> image files)</li>
 </ul>
 
+These extras can easily be installed along with imageio:
+
+```bash
+pip install 'imageio[ffmpeg,itk,fits,gdal]'
+# or for all of the above
+pip install 'imageio[formats]'
+```
+
 Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
 
 
@@ -125,7 +133,9 @@ for maximum test coverage (100% for the core, >95% for each plugin).
 <p>Install imageio in edit mode, with dev tools:</p>
 
 ```bash
-pip install -e .[dev,docs]
+pip install -e '.[dev,docs]'
+# or, to additionally include all user-facing extras too
+pip install -e '.[full]'
 ```
 
 <p>Most developer command are done via <code>invoke</code>.</p>

@@ -172,17 +172,23 @@ class build_with_images(sdist):
 install_requires = ["numpy", "pillow"]
 
 extras_require = {
-    "linting": ["black", "flake8"],
-    "test": ["invoke", "pytest", "pytest-cov"],
-    "docs": ["sphinx", "numpydoc"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
     "itk": ["itk"],
 }
-extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
-extras_require["dev"] = extras_require["test"] + extras_require["linting"]
+extras_require["formats"] = sorted(set(chain.from_iterable(extras_require.values())))
 
+extras_require.update(
+    {
+        "linting": ["black", "flake8"],
+        "test": ["invoke", "pytest", "pytest-cov"],
+        "docs": ["sphinx", "numpydoc"],
+    }
+)
+extras_require["dev"] = sorted(set(extras_require["test"] + extras_require["linting"]))
+
+extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 
 setup(
     cmdclass={  # 'bdist_wheel_all': bdist_wheel_all,
