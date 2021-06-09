@@ -414,3 +414,8 @@ def test_legacy_exif_orientation(image_files: Path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+
+def test_incomatible_write_format(tmp_path):
+    with pytest.raises(IOError):
+        iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow")

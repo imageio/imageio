@@ -98,10 +98,25 @@ class PillowPlugin(object):
                 with Image.open(request.get_file()):
                     # Check if it is generally possible to read the image.
                     # This will not read any data and merely try to find a
-                    # compatible pillow plugin as per the pillow docs.
+                    # compatible pillow plugin (ref: the pillow docs).
                     pass
             except UnidentifiedImageError:
                 raise InitializationError(f"Pillow can not read {request}.") from None
+        elif request.mode.io_mode == IOMode.write:
+            # it would be nice if pillow would expose a
+            # function to check if an extension can be written
+            # instead of us digging in the internals
+
+            Image.preinit()
+            if request.extension not in Image.EXTENSION:
+                Image.init()
+
+            try:
+                Image.EXTENSION[request.extension]
+            except KeyError:
+                raise InitializationError(
+                    f"Pillow can not write .{request.extension} files"
+                ) from None
 
         self._request = request
         self._image = None
