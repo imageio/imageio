@@ -9,7 +9,29 @@ from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError
 
 
-def _is_multichannel(mode):
+def _is_multichannel(mode: str) -> bool:
+    """Returns true if the color mode uses more than one channel.
+
+    We need an easy way to test for this to, for example, figure out which
+    dimension to rotate when we encounter an exif rotation flag. I didn't find a
+    good way to do this using pillow, so instead we have a local list of all
+    (currently) supported modes.
+
+    If somebody comes across a better way to do this, in particular if it
+    automatically grabs available modes from pillow a PR is very welcome :)
+
+    Parameters
+    ----------
+    mode : str
+        A valid pillow mode string
+
+    Returns
+    -------
+    is_multichannel : bool
+        True if the image uses more than one channel to represent a color, False
+        otherwise.
+
+    """
     multichannel = {
         "1": False,
         "L": False,
@@ -279,3 +301,9 @@ class PillowPlugin(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
+
+    def _try_read(self):
+        pass
+
+    def _try_write(self):
+        pass
