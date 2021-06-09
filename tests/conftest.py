@@ -47,3 +47,12 @@ def clear_plugins(monkeypatch):
     monkeypatch.setattr(iio.imopen._legacy_format_manager, "_formats", list())
     monkeypatch.setattr(iio.imopen._legacy_format_manager, "_formats_sorted", list())
     yield
+
+
+@pytest.fixture()
+def invalid_file(tmp_path, request):
+    ext = request.param
+    with open(tmp_path / ("foo" + ext), "w") as file:
+        file.write("Actually not a file.")
+
+    return tmp_path / ("foo" + ext)

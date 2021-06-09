@@ -46,14 +46,9 @@ def _prepare():
     return dname1, dname2, fname1, fname2
 
 
-def test_read_empty_dir():
-    # Create an empty dir
-    empty = os.path.join(test_dir, "empty_dir")
-    if not os.path.isdir(empty):
-        os.mkdir(empty)
-
+def test_read_empty_dir(tmp_path):
     # Test that no format is found, but no error is raised
-    request = core.Request(empty, "ri")
+    request = core.Request(tmp_path, "ri")
     assert imageio.formats.search_read_format(request) is None
 
 

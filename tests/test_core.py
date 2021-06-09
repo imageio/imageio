@@ -799,9 +799,10 @@ def test_imopen_no_plugin_found(clear_plugins):
         iio.imopen("unknown.abcd", "r", search_legacy_only=False)
 
 
-def test_imopen_unregistered_plugin(clear_plugins):
+@pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
+def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
     with pytest.raises(ValueError):
-        iio.imopen("", "r", plugin="unknown_plugin")
+        iio.imopen(invalid_file, "r", plugin="unknown_plugin")
 
 
 def test_plugin_selection_failure(clear_plugins, monkeypatch):
@@ -817,14 +818,15 @@ def test_plugin_selection_failure(clear_plugins, monkeypatch):
         iio.imopen("", "r", search_legacy_only=False)
 
 
-def test_plugin_selection_success(clear_plugins, monkeypatch):
+@pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
+def test_plugin_selection_success(clear_plugins, monkeypatch, invalid_file):
     class DummyPlugin:
         def __init__(self, request):
             """Can read anything"""
 
     monkeypatch.setattr(iio.imopen, "_known_plugins", {"plugin1": DummyPlugin})
 
-    instance = iio.imopen("", "r", search_legacy_only=False)
+    instance = iio.imopen(invalid_file, "r", search_legacy_only=False)
 
     assert isinstance(instance, DummyPlugin)
 
