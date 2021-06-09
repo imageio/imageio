@@ -85,11 +85,13 @@ class imopen:
             try:
                 candidate_plugin = self._known_plugins[plugin]
             except KeyError:
+                request.finish()
                 raise ValueError(f"'{plugin}' is not a registered plugin name.")
 
             try:
                 plugin_instance = candidate_plugin(request, **kwargs)
             except InitializationError:
+                request.finish()
                 raise IOError(f"'{plugin}' can not handle the given uri.")
 
         else:
@@ -114,9 +116,11 @@ class imopen:
                     if search_legacy_only:
                         # ensure backwards compatibility and do not change
                         # type of error raised to IOError
+                        request.finish()
                         raise e
 
         if plugin_instance is None:
+            request.finish()
             raise IOError(
                 f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'"
             )
