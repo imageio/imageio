@@ -79,8 +79,8 @@ import re
 
 import numpy as np
 
-from . import Request, RETURN_BYTES
 from .. import formats
+from .imopen import imopen
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
@@ -167,21 +167,8 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Create request object
-    request = Request(uri, "r" + mode, **kwargs)
-
-    # Get format
-    if format is not None:
-        format = formats[format]
-    else:
-        format = formats.search_read_format(request)
-    if format is None:
-        raise ValueError(
-            f"Could not find a format to read the specified file in {request.mode.image_mode} mode"
-        )
-
-    # Return its reader object
-    return format.get_reader(request)
+    image_file = imopen()(uri, "r" + mode, format=format)
+    return image_file.legacy_get_reader(**kwargs)
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
@@ -207,25 +194,8 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Signal extension when returning as bytes, needed by e.g. ffmpeg
-    if uri == RETURN_BYTES and isinstance(format, str):
-        uri = RETURN_BYTES + "." + format.strip(". ")
-
-    # Create request object
-    request = Request(uri, "w" + mode, **kwargs)
-
-    # Get format
-    if format is not None:
-        format = formats[format]
-    else:
-        format = formats.search_write_format(request)
-    if format is None:
-        raise ValueError(
-            f"Could not find a format to write the specified file in {request.mode.image_mode} mode"
-        )
-
-    # Return its writer object
-    return format.get_writer(request)
+    image_file = imopen()(uri, "w" + mode, format=format)
+    return image_file.legacy_get_writer(**kwargs)
 
 
 # Images
@@ -258,10 +228,8 @@ def imread(uri, format=None, **kwargs):
             'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
         )
 
-    # Get reader and read first
-    reader = read(uri, format, "i", **kwargs)
-    with reader:
-        return reader.get_data(0)
+    with imopen()(uri, "ri", format=format) as file:
+        return file.read(index=0, **kwargs)
 
 
 def imwrite(uri, im, format=None, **kwargs):
@@ -296,13 +264,8 @@ def imwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
-    # Get writer and write first
-    writer = get_writer(uri, format, "i", **kwargs)
-    with writer:
-        writer.append_data(im)
-
-    # Return a result if there is any
-    return writer.request.get_result()
+    with imopen()(uri, "wi", format=format) as file:
+        return file.write(im, **kwargs)
 
 
 # Multiple images
@@ -347,28 +310,26 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Get reader
-    reader = read(uri, format, "I", **kwargs)
+    # used for mimread and mvolread
     nbyte_limit = to_nbytes(memtest, MEMTEST_DEFAULT_MIM)
 
-    # Read
-    ims = []
+    images = list()
     nbytes = 0
-    for im in reader:
-        ims.append(im)
-        # Memory check
-        nbytes += im.nbytes
-        if nbyte_limit and nbytes > nbyte_limit:
-            ims[:] = []  # clear to free the memory
-            raise RuntimeError(
-                "imageio.mimread() has read over {}B of "
-                "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader(), increase threshold, or memtest=False".format(
-                    int(nbyte_limit)
-                )
-            )
 
-    return ims
+    with imopen()(uri, "rI", format=format) as file:
+        for image in file.iter(**kwargs):
+            images.append(image)
+            nbytes += image.nbytes
+            if nbytes > nbyte_limit:
+                raise RuntimeError(
+                    "imageio.mimread() has read over {}B of "
+                    "image data.\nStopped to avoid memory problems."
+                    " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                        int(nbyte_limit)
+                    )
+                )
+
+    return images
 
 
 def mimwrite(uri, ims, format=None, **kwargs):
@@ -390,38 +351,9 @@ def mimwrite(uri, ims, format=None, **kwargs):
         Further keyword arguments are passed to the writer. See :func:`.help`
         to see what arguments are available for a particular format.
     """
-    # Get writer
-    writer = get_writer(uri, format, "I", **kwargs)
-    written = 0
 
-    with writer:
-
-        # Iterate over images (ims may be a generator)
-        for im in ims:
-
-            # Test image
-            imt = type(im)
-            im = np.asanyarray(im)
-            if not np.issubdtype(im.dtype, np.number):
-                raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
-            elif im.ndim == 2:
-                pass
-            elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
-                pass
-            else:
-                raise ValueError("Image must be 2D " "(grayscale, RGB, or RGBA).")
-
-            # Add image
-            writer.append_data(im)
-            written += 1
-
-    # Check that something was written. Check after writing, because ims might
-    # be a generator. The damage is done, but we want to error when it happens.
-    if not written:
-        raise RuntimeError("Zero images were written.")
-
-    # Return a result if there is any
-    return writer.request.get_result()
+    with imopen()(uri, "wI", format=format) as file:
+        return file.write(ims, **kwargs)
 
 
 # Volumes
@@ -446,10 +378,8 @@ def volread(uri, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Get reader and read first
-    reader = read(uri, format, "v", **kwargs)
-    with reader:
-        return reader.get_data(0)
+    with imopen()(uri, "rv", format=format) as file:
+        return file.read(index=0, **kwargs)
 
 
 def volwrite(uri, im, format=None, **kwargs):
@@ -484,13 +414,8 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-    # Get writer and write first
-    writer = get_writer(uri, format, "v", **kwargs)
-    with writer:
-        writer.append_data(im)
-
-    # Return a result if there is any
-    return writer.request.get_result()
+    with imopen()(uri, "wv", format=format) as file:
+        return file.write(im, **kwargs)
 
 
 # Multiple volumes
@@ -535,27 +460,25 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Get reader and read all
-    reader = read(uri, format, "V", **kwargs)
+    # used for mimread and mvolread
     nbyte_limit = to_nbytes(memtest, MEMTEST_DEFAULT_MVOL)
 
-    ims = []
+    images = list()
     nbytes = 0
-    for im in reader:
-        ims.append(im)
-        # Memory check
-        nbytes += im.nbytes
-        if nbyte_limit and nbytes > nbyte_limit:  # pragma: no cover
-            ims[:] = []  # clear to free the memory
-            raise RuntimeError(
-                "imageio.mvolread() has read over {}B of "
-                "image data.\nStopped to avoid memory problems."
-                " Use imageio.get_reader(), increase threshold, or memtest=False".format(
-                    int(nbyte_limit)
+    with imopen()(uri, "rV", format=format) as file:
+        for image in file.iter(**kwargs):
+            images.append(image)
+            nbytes += image.nbytes
+            if nbytes > nbyte_limit:
+                raise RuntimeError(
+                    "imageio.mimread() has read over {}B of "
+                    "image data.\nStopped to avoid memory problems."
+                    " Use imageio.get_reader(), increase threshold, or memtest=False".format(
+                        int(nbyte_limit)
+                    )
                 )
-            )
 
-    return ims
+    return images
 
 
 def mvolwrite(uri, ims, format=None, **kwargs):
@@ -579,44 +502,5 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    # Get writer
-    writer = get_writer(uri, format, "V", **kwargs)
-    written = 0
-
-    with writer:
-
-        # Iterate over images (ims may be a generator)
-        for im in ims:
-            # Test image
-            imt = type(im)
-            im = np.asanyarray(im)
-            if not np.issubdtype(im.dtype, np.number):
-                raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
-            elif im.ndim == 3:
-                pass
-            elif im.ndim == 4 and im.shape[3] < 32:
-                pass  # How large can a tuple be?
-            else:
-                raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
-
-            # Add image
-            writer.append_data(im)
-            written += 1
-
-    # Check that something was written. Check after writing, because ims might
-    # be a generator. The damage is done, but we want to error when it happens.
-    if not written:
-        raise RuntimeError("Zero volumes were written.")
-
-    # Return a result if there is any
-    return writer.request.get_result()
-
-
-# Aliases
-
-read = get_reader
-save = get_writer
-imsave = imwrite
-mimsave = mimwrite
-volsave = volwrite
-mvolsave = mvolwrite
+    with imopen()(uri, "wV", format=format) as file:
+        return file.write(ims, **kwargs)

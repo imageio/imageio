@@ -112,6 +112,26 @@ class Mode(str, enum.Enum):
     write_multi_volume = "wV"
     write_any = "w?"
 
+    @classmethod
+    def _missing_(cls, value):
+        """Enable Mode("r") and Mode("w")
+
+        The sunder method ``_missing_`` is called whenever the constructor fails
+        to directly look up the corresponding enum value from the given input.
+        In our case, we use it to convert the modes "r" and "w" (from the v3
+        API) into their legacy versions "r?" and "w?".
+
+        More info on _missing_:
+        https://docs.python.org/3/library/enum.html#supported-sunder-names
+        """
+
+        if value == "r":
+            return cls("r?")
+        elif value == "w":
+            return cls("w?")
+        else:
+            raise ValueError(f"{value} is no valid Mode.")
+
     @property
     def io_mode(self) -> IOMode:
         return IOMode(self.value[0])
@@ -672,3 +692,15 @@ class SeekableFileObject:
 
     def seekable(self):
         return True
+
+
+class InitializationError(Exception):
+    """The plugin could not initialize from the given request.
+
+    This is a _internal_ error that is raised by plugins that fail to handle
+    a given request. We use this to differentiate incompatibility between
+    a plugin and a request from an actual error/bug inside a plugin.
+
+    """
+
+    pass

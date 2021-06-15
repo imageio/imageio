@@ -20,10 +20,11 @@ from imageio.core.functions import to_nbytes
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
+import imageio as iio
 from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
-from imageio.core.request import Mode
+from imageio.core.request import Mode, InitializationError
 
 
 try:
@@ -171,11 +172,17 @@ def test_request():
     R = Request("~/bar.zip/spam.png", "wi")
     assert R._uri_type == core.request.URI_ZIPPED
 
+    R = Request(b"x", "r")
+    assert R._mode == "r?"
+
+    R = Request("~/bar.zip/spam.png", "w")
+    assert R._mode == "w?"
+
     # Test failing inits
     raises(ValueError, Request, "/some/file", None)  # mode must be str
     raises(ValueError, Request, "/some/file", 3)  # mode must be str
     raises(ValueError, Request, "/some/file", "")  # mode must be len 2
-    raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
+    # raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "rii")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "xi")  # mode[0] must be in rw
     raises(ValueError, Request, "/some/file", "rx")  # mode[1] must be in iIvV?
@@ -776,6 +783,73 @@ def test_imwrite_not_array_like():
         imageio.imwrite("foo.bmp", "asd")
 
 
+def test_legacy_empty_image():
+    with pytest.raises(RuntimeError):
+        with iio.imopen("foo.bmp", "wI", format="GIF-PIL") as file:
+            file.write([])
+
+
+def test_imopen_unsupported_iomode():
+    with pytest.raises(ValueError):
+        iio.imopen("", "unknown_iomode")
+
+
+def test_imopen_no_plugin_found(clear_plugins):
+    with pytest.raises(IOError):
+        iio.imopen("unknown.abcd", "r", search_legacy_only=False)
+
+
+@pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
+def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
+    with pytest.raises(ValueError):
+        iio.imopen(invalid_file, "r", plugin="unknown_plugin")
+
+
+def test_plugin_selection_failure(clear_plugins, monkeypatch):
+    class DummyPlugin:
+        def __init__(self, request):
+            raise InitializationError("Can not read anything")
+
+    monkeypatch.setattr(
+        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", search_legacy_only=False)
+
+
+@pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
+def test_plugin_selection_success(clear_plugins, monkeypatch, invalid_file):
+    class DummyPlugin:
+        def __init__(self, request):
+            """Can read anything"""
+
+    monkeypatch.setattr(iio.imopen, "_known_plugins", {"plugin1": DummyPlugin})
+
+    instance = iio.imopen(invalid_file, "r", search_legacy_only=False)
+
+    assert isinstance(instance, DummyPlugin)
+
+
+def test_legacy_object_image_writing():
+    with pytest.raises(ValueError):
+        iio.mimwrite("foo.gif", np.array([[0]], dtype=object))
+
+
+def test_imiter(image_files: Path):
+    # maybe it would be better to load the image without using imageio, e.g.
+    # numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
+
+    full_image = iio.v3.imread(
+        image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
+    )
+
+    for idx, im in enumerate(
+        iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
+    ):
+        assert np.allclose(full_image[idx, ...], im)
+
+
 def test_request_mode_backwards_compatibility():
     mode = Mode("ri")
     assert mode == "ri"
@@ -787,6 +861,27 @@ def test_faulty_legacy_mode_access():
     mode = Mode("ri")
     with pytest.raises(IndexError):
         mode[3]  # has no third component
+
+
+def test_mvolread_out_of_bytes():
+    with pytest.raises(RuntimeError):
+        imageio.mvolread(
+            "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
+            memtest="1B",
+        )
+
+
+def test_invalid_explicit_plugin(clear_plugins, monkeypatch):
+    class DummyPlugin:
+        def __init__(self, request):
+            raise InitializationError("Can not read anything")
+
+    monkeypatch.setattr(
+        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", plugin="plugin1")
 
 
 run_tests_if_main()

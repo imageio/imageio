@@ -523,8 +523,7 @@ class Format(object):
 
 class FormatManager(object):
     """
-    There is exactly one FormatManager object in imageio: ``imageio.formats``.
-    Its purpose it to keep track of the registered formats.
+    The FormatManager is a singleton plugin factory.
 
     The format manager supports getting a format object using indexing (by
     format name or extension). When used as an iterator, this object
@@ -555,6 +554,9 @@ class FormatManager(object):
         return "\n".join(ss)
 
     def __getitem__(self, name):
+        if name is None:
+            return None
+
         # Check
         if not isinstance(name, str):
             raise ValueError(

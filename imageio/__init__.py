@@ -18,21 +18,40 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.9.0"
 
+# v3.0.0 API
+from .core.imopen import imopen as imopen_obj
+
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
-# Instantiate format manager
-formats = FormatManager()
+# Instantiate format managers
+imopen = imopen_obj()
+formats = imopen._legacy_format_manager
 
-# Load the functions
-from .core.functions import help
-from .core.functions import get_reader, get_writer
-from .core.functions import imread, mimread, volread, mvolread
-from .core.functions import imwrite, mimwrite, volwrite, mvolwrite
+# Load legacy API
+from .core.functions import (
+    imread,
+    mimread,
+    volread,
+    mvolread,
+    imwrite,
+    mimwrite,
+    volwrite,
+    mvolwrite,
+    # aliases
+    get_reader as read,
+    get_writer as save,
+    imwrite as imsave,
+    mimwrite as mimsave,
+    volwrite as volsave,
+    mvolwrite as mvolsave,
+    # misc
+    help,
+    get_reader,
+    get_writer,
+)
 
-# Load function aliases
-from .core.functions import read, save
-from .core.functions import imsave, mimsave, volsave, mvolsave
+from .core import v3_api as v3
 
 # Load all the plugins
 from . import plugins

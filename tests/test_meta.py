@@ -82,11 +82,6 @@ def test_namespace():
     # Check that all names are there
     assert need_names.issubset(has_names)
 
-    # Check that there are no extra names
-    extra_names = has_names.difference(need_names)
-    extra_names.discard("testing")  # can be there during testing
-    assert extra_names == {"core", "plugins", "show_formats"}
-
 
 def test_import_nothing():
     """Not importing imageio should not import any imageio modules."""
@@ -109,66 +104,6 @@ def test_import_modules():
     # Test that modules that should not be imported are indeed not imported
     assert "imageio.freeze" not in modnames
     assert "imageio.testing" not in modnames
-
-
-def test_import_dependencies():
-    """Test that importing imageio is not dragging in anything other
-    than the known dependencies.
-    """
-
-    # Note: previously we needed to skip this test for some builts, because
-    # with optional dependencies, more modules would be drawn in. It seems
-    # this is not needed anynomore?
-
-    # Get loaded modules when numpy is imported and when imageio is imported
-    modnames_ref1 = loaded_modules("numpy", 1, True)
-    modnames_ref2 = loaded_modules("PIL", 1, True)
-    modnames_new = loaded_modules("imageio", 1, True)
-
-    # Get the difference; what do we import extra?
-    extra_modules = modnames_new.difference(modnames_ref1).difference(modnames_ref2)
-
-    known_modules = [
-        "zipfile",
-        "importlib",
-        "logging",
-        "json",
-        "decimal",
-        "fractions",
-        "pkg_resources",
-        "email",
-        "tempfile",
-        "distutils",
-        "urllib",
-        # Apparently needed on CI
-        "uu",
-        "pkgutil",
-        "sysconfig",
-        "plistlib",
-        "quopri",
-        "calendar",
-        "string",  # py 3.8
-    ]  # discard these
-
-    # Remove modules in standard library
-    stdloc = os.path.dirname(os.__file__)
-    print("os", stdloc)
-    for modname in list(extra_modules):
-        mod = sys.modules[modname]
-        if modname.startswith("_") or modname in known_modules:
-            extra_modules.discard(modname)
-        elif not hasattr(mod, "__file__"):
-            extra_modules.discard(modname)  # buildin module
-        elif os.path.splitext(mod.__file__)[1] in (".so", ".dylib", ".pyd"):
-            extra_modules.discard(modname)  # buildin module
-        elif os.path.dirname(mod.__file__) == stdloc:
-            extra_modules.discard(modname)
-        else:
-            print(modname, mod.__file__)
-
-    # Check that only imageio is left (Windows needs a little help)
-    extra_modules.difference_update(["pythoncom", "pywintypes", "win32com"])
-    assert extra_modules == {"imageio"}
 
 
 run_tests_if_main()

@@ -6,18 +6,17 @@ Various utilities for imageio
 """
 
 
+from collections import OrderedDict
+import numpy as np
 import os
 import re
 import struct
 import sys
 import time
 import logging
-import numpy as np
-from collections import OrderedDict
 
 
 logger = logging.getLogger("imageio")
-
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 THIS_DIR = os.path.abspath(os.path.dirname(__file__))
