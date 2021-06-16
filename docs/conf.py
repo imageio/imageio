@@ -107,10 +107,6 @@ pygments_style = "sphinx"
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
 html_logo = "_static/imageio_logo.png"
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
 html_theme_options = {
     "external_links": [],
     "icon_links": [
@@ -125,6 +121,14 @@ html_theme_options = {
             "icon": "fas fa-box",
         },
     ],
+    "use_edit_page_button": True,
+}
+html_context = {
+    # "github_url": "https://github.com", # or your GitHub Enterprise interprise
+    "github_user": "imageio",
+    "github_repo": "imageio",
+    "github_version": "master",
+    "doc_path": "docs/",
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
