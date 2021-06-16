@@ -10,5 +10,6 @@ Contents:
   :maxdepth: 2
   
   sec_gettingstarted
-  sec_reference
+  Examples <examples>
+  API Reference <userapi>
   sec_developer
