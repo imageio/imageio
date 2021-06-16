@@ -174,7 +174,7 @@ install_requires = ["numpy", "pillow"]
 extras_require = {
     "linting": ["black", "flake8"],
     "test": ["invoke", "pytest", "pytest-cov"],
-    "docs": ["sphinx", "numpydoc"],
+    "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
