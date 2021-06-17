@@ -1,4 +1,4 @@
-Imageio usage examples
+Imageio Usage Examples
 ======================
 
 Some of these examples use Visvis to visualize the image data,
