@@ -6,7 +6,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/imageio/imageio/badge.svg?branch=master)](https://coveralls.io/github/imageio/imageio?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/imageio/badge/?version=latest)](https://imageio.readthedocs.io)
 [![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1488561.svg)](https://doi.org/10.5281/zenodo.1488561)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4972048.svg)](https://doi.org/10.5281/zenodo.4972048)
+
+
 
 Website: https://imageio.github.io
 
