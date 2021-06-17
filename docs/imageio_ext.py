@@ -129,7 +129,7 @@ def create_plugin_docs():
     text += code
 
     # Write
-    _write("plugins.rst", text)
+    _write("development/plugins.rst", text)
 
 
 format_doc_text = """
@@ -235,4 +235,4 @@ def create_standard_images_docs():
         description = EXAMPLE_IMAGES[name]
         text += "* `%s <%s>`_: %s\n\n" % (name, baseurl + name, description)
 
-    _write("standardimages.rst", text)
+    _write("getting_started/standardimages.rst", text)

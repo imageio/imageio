@@ -9,7 +9,8 @@ Contents:
 .. toctree::
   :maxdepth: 2
   
-  sec_gettingstarted
+  Getting Started <getting_started/index>
   Examples <examples>
+  Formats & Backends <formats>
   API Reference <userapi>
-  sec_developer
+  Development <development/index>
