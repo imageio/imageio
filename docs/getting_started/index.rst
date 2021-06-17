@@ -11,7 +11,7 @@ Getting started
   Environment Variables <envvariables>
 
 
-Upgrading to Imageio
+Upgrading to ImageIO
 --------------------
 
 .. toctree::
