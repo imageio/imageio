@@ -56,14 +56,16 @@ New Plugins
 
 If you end up writing a new plugin, we very much welcome you to contribute it
 back to us so that we can offer as expansive a list of backends and supported
-formats as possible. In return, we help you maintain the plugin - note: a plugin is
-typically different from the backend - and make sure that changes to ImageIO
+formats as possible. In return, we help you maintain the plugin - note: a plugin
+is typically different from the backend - and make sure that changes to ImageIO
 don't break your plugin. This we can only guarantee if it is part of the
 codebase, because we can (a) write unit tests for it and (b) update your plugin
 to take advantage of new features. That said, we generally try to be
 backward-compatible whenever possible.
 
-The backend itself will live elsewhere, usually in a different repository. This
-keeps things lightweight yet powerful. Often backends are already actively
-maintained elsewhere, and depending on that is gives us access to the latest
-features and bug fixes.
+The backend itself lives elsewhere, usually in a different repository. Not
+vendoring backends and storing a copy here keeps things lightweight yet
+powerful. We can, first of all, directly access any new updates or features that
+a backend may introduce. Second, we avoid forcing users that won't use a
+specific backend to go through its, potentially complicated, installation
+process.
