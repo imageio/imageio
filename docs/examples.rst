@@ -59,6 +59,24 @@ for all formats (some plugins "seek" the file object, which HTTP/zip streams do 
 In such a case one can download/extract the file first. For HTTP one can use something like
 ``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
 
+Read all Images in a Folder
+---------------------------
+
+One common scenario is that you want to read all images in a folder, e.g. for a scientific analysis, or
+because these are all your training examples. Assuming the folder only contains image files, you can
+read it using a snippet like
+
+.. code-block:: python
+
+    import imageio as iio
+    from pathlib import Path
+
+    images = list()
+    for file in Path("path/to/folder").iterdir():
+        im = iio.imread(file)
+        images.append(im)
+
+
 Iterate over frames in a movie
 ------------------------------
 
@@ -287,3 +305,39 @@ Putting everything together:
             writer.append_data(iio.imread(frames_path.format(i=i)))
             
     optimize(gif_path)
+
+Reading Images from ZIP archives
+--------------------------------
+
+.. note::
+
+    In the future, this syntax will change to better match the URI
+    standard by using fragments. The updated syntax will be 
+    ``"Path/to/file.zip#path/inside/zip/to/image.png"``.
+
+.. code-block:: python
+
+    import imageio as iio
+
+    image = iio.imread("Path/to/file.zip/path/inside/zip/to/image.png")
+
+
+
+
+Reading Multiple Files from a ZIP archive
+-----------------------------------------
+
+Assuming there is only image files in the ZIP archive, you can iterate
+over them with a simple script like the one below.
+
+.. code-block:: python
+
+    import os
+    from zipfile import ZipFile
+    import imageio as iio
+
+    images = list()
+    with ZipFile("imageio.zip") as zf:
+        for name in zf.namelist():
+            im = iio.imread(name)
+            images.append(im)
