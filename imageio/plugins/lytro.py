@@ -3,7 +3,7 @@
 # imageio is distributed under the terms of the (new) BSD License.
 #
 
-""" Lytro Illum Plugin.
+""" Read/Write LFR files (Lytro Illum).
     Plugin to read Lytro Illum .lfr and .raw files as produced
     by the Lytro Illum light field camera.
 """

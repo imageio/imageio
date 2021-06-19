@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" SWF plugin. Most of the actual work is done in _swf.py.
+""" Read/Write SWF files.
+
+SWF plugin. Most of the actual work is done in _swf.py.
 """
 
 import os

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Storage of image data in npz format. Not a great format, but at least
+""" Read/Write NPZ files.
+
+Storage of image data in npz format. Not a great format, but at least
 it supports volumetric data. And its less than 100 lines.
 """
 

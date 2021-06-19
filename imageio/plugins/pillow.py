@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that wraps the the Pillow library.
+""" Read/Write images using Pillow/PIL.
+
+Plugin that wraps the the Pillow library.
 """
 
 import numpy as np

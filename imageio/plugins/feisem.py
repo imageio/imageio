@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
+""" Read/Write TIFF from FEI SEM microscopes
+
+"""
+
+
 from .tifffile import TiffFormat
 
 from .. import formats

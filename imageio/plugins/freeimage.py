@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that wraps the freeimage lib. The wrapper for Freeimage is
+""" Read/Write images using FreeImage.
+
+Plugin that wraps the freeimage lib. The wrapper for Freeimage is
 part of the core of imageio, but it's functionality is exposed via
 the plugin system (therefore this plugin is very thin).
 """

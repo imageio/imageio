@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that uses ffmpeg to read and write series of images to
-a wide range of video formats.
+""" Read/Write video using FFMPEG
 
 Code inspired/based on code from moviepy: https://github.com/Zulko/moviepy/
 by Zulko

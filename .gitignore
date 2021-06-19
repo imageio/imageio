@@ -19,6 +19,7 @@ coverage.xml
 # Specific folders
 imageio/lib
 docs/_build
+docs/reference/_backends
 tests/zipped
 tests/freezing/frozen
 imageio/resources/images

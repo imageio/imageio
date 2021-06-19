@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin for reading FITS files.
+""" Read/Write FITS files.
 """
 
 from .. import formats

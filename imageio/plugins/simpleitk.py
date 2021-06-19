@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Storage of image data in multiple formats.
+""" Read/Write images using SimpleITK.
+
+Storage of image data in multiple formats.
 """
 
 from .. import formats

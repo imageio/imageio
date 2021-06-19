@@ -2,6 +2,7 @@
 """
 
 import os
+from pathlib import Path
 
 import imageio
 
@@ -150,6 +151,9 @@ def create_format_docs():
     text = "%s\n%s\n%s\n\n" % ("=" * len(title), title, "=" * len(title))
 
     text += format_doc_text
+
+    with open(Path(__file__).parents[0] / "formats.rst.template", "r") as file:
+        text = file.read()
 
     # Get bullet list of all formats
     ss = ["\n"]
