@@ -182,7 +182,7 @@ def _fetch_file(url, file_name, print_destination=True):
                     local_file.close()
     else:
         raise IOError(
-            "Unable to download %r. Perhaps there is a no internet "
+            "Unable to download %r. Perhaps there is no internet "
             "connection? If there is, please report this problem."
             % os.path.basename(file_name)
         )
