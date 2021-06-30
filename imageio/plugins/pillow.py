@@ -119,11 +119,10 @@ class PillowPlugin(object):
                 ) from None
 
         self._request = request
-        self._image = None
-
-    def open(self):
         if self._request.mode.io_mode == IOMode.read:
             self._image = Image.open(self._request.get_file())
+        else:
+            self._image = None
 
     def close(self):
         if self._image:
@@ -311,7 +310,6 @@ class PillowPlugin(object):
         return self._image.info
 
     def __enter__(self):
-        self.open()
         return self
 
     def __exit__(self, type, value, traceback):
