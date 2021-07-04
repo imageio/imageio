@@ -168,7 +168,7 @@ class build_with_images(sdist):
         # Build as  normal
         sdist.run(self)
 
-
+# avoid pillow 8.3 because it doesn't respect numpy API
 install_requires = ["numpy", "pillow != 8.3.0"]
 
 extras_require = {
