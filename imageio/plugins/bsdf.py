@@ -2,6 +2,43 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Read/Write BSDF files.
+
+Backend: internal
+
+The BSDF format enables reading and writing of image data in the
+BSDF serialization format. This format allows storage of images, volumes,
+and series thereof. Data can be of any numeric data type, and can
+optionally be compressed. Each image/volume can have associated
+meta data, which can consist of any data type supported by BSDF.
+
+By default, image data is lazily loaded; the actual image data is
+not read until it is requested. This allows storing multiple images
+in a single file and still have fast access to individual images.
+Alternatively, a series of images can be read in streaming mode, reading
+images as they are read (e.g. from http).
+
+BSDF is a simple generic binary format. It is easy to extend and there
+are standard extension definitions for 2D and 3D image data.
+Read more at http://bsdf.io.
+
+
+Additional kwargs
+-----------------
+random_access : bool
+    Whether individual images in the file can be read in random order.
+    Defaults to True for normal files, and to False when reading from HTTP.
+    If False, the file is read in "streaming mode", allowing reading
+    files as they are read, but without support for "rewinding".
+    Note that setting this to True when reading from HTTP, the whole file
+    is read upon opening it (since lazy loading is not possible over HTTP).
+
+compression : int
+    Use ``0`` or "no" for no compression, ``1`` or "zlib" for Zlib
+    compression (same as zip files and PNG), and ``2`` or "bz2" for Bz2
+    compression (more compact but slower). Default 1 (zlib).
+    Note that some BSDF implementations may not support compression
+    (e.g. JavaScript).
+
 """
 
 import numpy as np
