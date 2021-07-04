@@ -38,11 +38,16 @@ Backend
     up to you to decide which backends to install depending on your needs. Examples
     for backends are pillow, tifffile, or ffmpeg.
 
+ImageResource
+    A blob of data that contains image data. Typically, this is a file on your
+    drive that is read by ImageIO. However, other sources such as HTTP or file
+    objects are possible, too. 
+
 
 Issues
 ------
 
-In this repo, we maintain iio.core as well as all the plugins. So, if you find a
+In this repo, we maintain ImageIO Core as well as all the plugins. If you find a
 bug or have a plroblem with either the core or any plugin, please open a new
 issue `here <https://github.com/imageio/imageio/issues>`_.
 
