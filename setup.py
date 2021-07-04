@@ -169,7 +169,7 @@ class build_with_images(sdist):
         sdist.run(self)
 
 
-install_requires = ["numpy", "pillow"]
+install_requires = ["numpy", "pillow != 8.3.0"]
 
 extras_require = {
     "linting": ["black", "flake8"],
