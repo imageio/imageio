@@ -54,38 +54,6 @@ array using ``np.asarray(im)``.
 
 ----
 
-Supported resource URI's:
-
-All functions described here accept a URI to describe the resource to
-read from or write to. These can be a wide range of things. (Imageio
-takes care of handling the URI so that plugins can access the data in
-an easy way.)
-
-For reading and writing:
-
-* a normal filename, e.g. ``'c:\\foo\\bar.png'``
-* a file in a zipfile, e.g. ``'c:\\foo\\bar.zip\\eggs.png'``
-* a file object with a ``read()`` / ``write()`` method.
-
-For reading:
-
-* an http/ftp address, e.g. ``'http://example.com/foo.png'``
-* the raw bytes of an image file
-* ``get_reader("<video0>")`` to grab images from a (web) camera.
-* ``imread("<screen>")`` to grab a screenshot (on Windows or OS X).
-* ``imread("<clipboard>")`` to grab an image from the clipboard (on Windows).
-
-For writing one can also use ``'<bytes>'`` or ``imageio.RETURN_BYTES`` to
-make a write function return the bytes instead of writing to a file.
-
-Note that reading from HTTP and zipfiles works for many formats including
-png and jpeg, but may not work for all formats (some plugins "seek" the
-file object, which HTTP/zip streams do not support). In such a case one
-can download/extract the file first. For HTTP one can use something
-like ``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
-
-
-----
 
 .. autofunction:: imageio.help
 
