@@ -45,14 +45,14 @@ As a user, you just have to remember a handful of functions:
     <li>mimread() and mimwrite() - for image series (animations)</li>
     <li>volread() and volwrite() - for volumetric image data</li>
     <li>get_reader() and get_writer() - for more control (e.g. streaming or compression)</li>
-    <li>See the <a href='https://imageio.readthedocs.io/en/stable/userapi.html'>user api</a> for more information</li>
+    <li>See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>API docs</a> for more information</li>
 </ul>
 
 
 <h2>Features</h2>
 <ul>
     <li>Simple interface via a concise set of functions</li>
-    <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/installation.html'>install</a> using Conda or pip</li>
+    <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/getting_started/installation.html'>install</a> using Conda or pip</li>
     <li>Few dependencies (only NumPy and Pillow)</li>
     <li>Pure Python, runs on Python 3.5+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
