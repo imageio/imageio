@@ -11,6 +11,14 @@ arguments, which are passed on to the backend that does the actual work.
 To see what keyword arguments are supported by a specific format, use
 the :func:`.help` function.
 
+
+.. note::
+    All read-functions return images as numpy arrays, and have a ``meta``
+    attribute; the meta-data dictionary can be accessed with ``im.meta``.
+    To make this work, imageio actually makes use of a subclass of
+    ``np.ndarray``. If needed, the image can be converted to a plain numpy
+    array using ``np.asarray(im)``.
+
 Functions for reading
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -44,13 +52,6 @@ be used to read/write data and meta data in a more controlled manner.
 This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
 
-----
-
-All read-functions return images as numpy arrays, and have a ``meta``
-attribute; the meta-data dictionary can be accessed with ``im.meta``.
-To make this work, imageio actually makes use of a subclass of
-``np.ndarray``. If needed, the image can be converted to a plain numpy
-array using ``np.asarray(im)``.
 
 ----
 
