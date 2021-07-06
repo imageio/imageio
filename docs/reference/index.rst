@@ -10,9 +10,9 @@ Core API (Basic Usage)
 The API documented in this section is shared by all plugins
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    Basic API v2.9 <../userapi>
+    Core API v2.9 <userapi>
 
 
 Plugins & Backends (Advanced Usage)
