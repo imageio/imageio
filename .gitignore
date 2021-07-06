@@ -20,6 +20,7 @@ coverage.xml
 imageio/lib
 docs/_build
 docs/reference/_backends
+docs/reference/_core_29
 tests/zipped
 tests/freezing/frozen
 imageio/resources/images
