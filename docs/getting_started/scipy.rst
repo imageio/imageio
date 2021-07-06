@@ -7,7 +7,7 @@ their image I/O functionality.
 This document is intended to help people coming from
 `Scipy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html>`_
 to adapt to ImageIO's :func:`imread <imageio.imread>` function.
-We recommend reading the :doc:`user api <../userapi>` and checking out some
+We recommend reading the :doc:`user api <../reference/userapi>` and checking out some
 :doc:`examples <../examples>` to get a feel of ImageIO.
 
 ImageIO makes use of a variety of backends to support reading images (and
