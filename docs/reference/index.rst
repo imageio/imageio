@@ -20,7 +20,7 @@ Plugins & Backends (Advanced Usage)
 
 Sometimes, you need to do more than just "load an image, done". Sometimes you
 need to use a very specific feature of a very specific backend. ImageIOs allows
-you to do so by allowing its plugins to extend the core API.Typically this is
+you to do so by allowing its plugins to extend the core API. Typically this is
 done in the form of additional keyword arguments (``kwarg``). Below you can find
 a list of available plugins and which arguments they support.
 
