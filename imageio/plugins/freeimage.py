@@ -3,9 +3,26 @@
 
 """ Read/Write images using FreeImage.
 
-Plugin that wraps the freeimage lib. The wrapper for Freeimage is
-part of the core of imageio, but it's functionality is exposed via
-the plugin system (therefore this plugin is very thin).
+Backend Library: `FreeImage <https://freeimage.sourceforge.io/>`_
+
+.. note::
+    To use this plugin you have to install its backend::
+
+        imageio_download_bin freeimage
+
+    or you can download the backend using the function::
+
+        imageio.plugins.freeimage.download()
+
+Each Freeimage format has the ``flags`` keyword argument. See the `Freeimage
+documentation <https://freeimage.sourceforge.io/>`_ for more information.
+
+Parameters
+----------
+flags : int
+    A freeimage-specific option. In most cases we provide explicit
+    parameters for influencing image reading.
+
 """
 
 import numpy as np
@@ -19,28 +36,7 @@ from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
 
 
 class FreeimageFormat(Format):
-    """This is the default format used for FreeImage. Each Freeimage
-    format has the 'flags' keyword argument. See the Freeimage
-    documentation for more information.
-
-    The freeimage plugin requires a `freeimage` binary. If this binary
-    not available on the system, it can be downloaded manually from
-    <https://github.com/imageio/imageio-binaries> by either
-
-    - the command line script ``imageio_download_bin freeimage``
-    - the Python method ``imageio.plugins.freeimage.download()``
-
-    Parameters for reading
-    ----------------------
-    flags : int
-        A freeimage-specific option. In most cases we provide explicit
-        parameters for influencing image reading.
-
-    Parameters for saving
-    ----------------------
-    flags : int
-        A freeimage-specific option. In most cases we provide explicit
-        parameters for influencing image saving.
+    """ See :mod:`imageio.plugins.freeimage`
     """
 
     _modes = "i"
