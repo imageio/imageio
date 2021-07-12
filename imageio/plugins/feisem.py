@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read TIFF from FEI SEM microscopes.
+"""Read TIFF from FEI SEM microscopes.
 
 Backend Library: internal
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write NPZ files.
+"""Read/Write NPZ files.
 
 Backend: `Numpy <https://numpy.org/doc/stable/reference/generated/numpy.savez.html>`_
 

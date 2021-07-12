@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write video using FFMPEG
+"""Read/Write video using FFMPEG
 
 Backend Library: https://github.com/imageio/imageio-ffmpeg
 
