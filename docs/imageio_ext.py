@@ -152,7 +152,7 @@ def create_format_docs():
 
     text += format_doc_text
 
-    with open(Path(__file__).parents[0] / "formats.rst.template", "r") as file:
+    with open(Path(__file__).parents[0] / "_templates/formats.rst.template", "r") as file:
         text = file.read()
 
     # Get bullet list of all formats
