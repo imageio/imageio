@@ -175,7 +175,9 @@ def _get_ffmpeg_api():
 
 
 class FfmpegFormat(Format):
-    """Read/Write ImageResources using FFMPEG
+    """Read/Write ImageResources using FFMPEG.
+
+    See :mod:`imageio.plugins.ffmpeg`
     """
 
     def _can_read(self, request):
