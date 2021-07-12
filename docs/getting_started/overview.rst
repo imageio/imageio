@@ -31,7 +31,7 @@ Plugin
     plugin is also aware if its backend is or isn't installed and handles this case
     appropriately, e.g., it deactivates itself if the backend isn't present.
 
-Backend 
+Backend Library
     A (potentially 3d party) library that can read and/or write
     images or image-like objects (videos, etc.). Every backend is optional, so it is
     up to you to decide which backends to install depending on your needs. Examples

@@ -15,8 +15,8 @@ The API documented in this section is shared by all plugins
     Core API v2.9 <userapi>
 
 
-Plugins & Backends (Advanced Usage)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Plugins & Backend Libraries (Advanced Usage)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes, you need to do more than just "load an image, done". Sometimes you
 need to use a very specific feature of a very specific backend. ImageIOs allows
