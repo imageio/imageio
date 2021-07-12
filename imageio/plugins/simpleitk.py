@@ -3,7 +3,20 @@
 
 """ Read/Write images using SimpleITK.
 
-Storage of image data in multiple formats.
+Backend: `Insight Toolkit <https://itk.org/>`_
+
+.. note::
+    To use this plugin you have to install its backend::
+    
+        pip install imageio[itk]
+
+The ItkFormat uses the ITK or SimpleITK library to support a range of
+ITK-related formats. It also supports a few common formats (e.g. PNG and JPEG).
+
+Parameters
+----------
+None
+
 """
 
 from .. import formats
@@ -76,20 +89,7 @@ ALL_FORMATS = ITK_FORMATS + (
 
 
 class ItkFormat(Format):
-    """The ItkFormat uses the ITK or SimpleITK library to support a range of
-    ITK-related formats. It also supports a few common formats that are
-    also supported by the freeimage plugin (e.g. PNG and JPEG).
-
-    This format requires the ``itk`` or ``SimpleITK`` package.
-
-    Parameters for reading
-    ----------------------
-    None.
-
-    Parameters for saving
-    ---------------------
-    None.
-
+    """ See :mod:`imageio.plugins.simpleitk`
     """
 
     def _can_read(self, request):
