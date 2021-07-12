@@ -1,7 +1,25 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write TIFF from FEI SEM microscopes
+""" Read TIFF from FEI SEM microscopes.
+
+Backend Library: internal
+
+This format is based on :mod:`TIFF <imageio.plugins.tifffile>`, and supports the
+same parameters. FEI microscopes append metadata as ASCII text at the end of the
+file, which this reader correctly extracts.
+
+Parameters
+----------
+discard_watermark : bool
+    If True (default), discard the bottom rows of the image, which
+    contain no image data, only a watermark with metadata.
+watermark_height : int
+    The height in pixels of the FEI watermark. The default is 70.
+
+See Also
+--------
+    :mod:`imageio.plugins.tifffile`
 
 """
 
@@ -12,20 +30,7 @@ from .. import formats
 
 
 class FEISEMFormat(TiffFormat):
-    """Provide read support for TIFFs produced by an FEI SEM microscope.
-
-    This format is based on TIFF, and supports the same parameters.
-
-    FEI microscopes append metadata as ASCII text at the end of the file,
-    which this reader correctly extracts.
-
-    Parameters for get_data
-    -----------------------
-    discard_watermark : bool
-        If True (default), discard the bottom rows of the image, which
-        contain no image data, only a watermark with metadata.
-    watermark_height : int
-        The height in pixels of the FEI watermark. The default is 70.
+    """ See :mod:`imageio.plugins.feisem`
     """
 
     def _can_write(self, request):
