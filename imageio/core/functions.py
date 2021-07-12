@@ -172,7 +172,7 @@ def imwrite(uri, im, format=None, **kwargs):
     im : numpy.ndarray
         The image data. Must be NxM, NxMx3 or NxMx4.
     format : str
-        The format to use to read the file. By default imageio selects
+        The format to use to write the file. By default imageio selects
         the appropriate for you based on the filename and its contents.
     kwargs : ...
         Further keyword arguments are passed to the writer. See :func:`.help`
