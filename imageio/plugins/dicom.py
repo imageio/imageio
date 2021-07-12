@@ -2,6 +2,35 @@
 # imageio is distributed under the terms of the (new) BSD License.
 
 """ Read DICOM files.
+
+Backend Library: internal
+
+A format for reading DICOM images: a common format used to store
+medical image data, such as X-ray, CT and MRI.
+
+This format borrows some code (and ideas) from the pydicom project. However,
+only a predefined subset of tags are extracted from the file. This allows
+for great simplifications allowing us to make a stand-alone reader, and
+also results in a much faster read time.
+
+By default, only uncompressed and deflated transfer syntaxes are supported.
+If gdcm or dcmtk is installed, these will be used to automatically convert
+the data. See https://github.com/malaterre/GDCM/releases for installing GDCM.
+
+This format provides functionality to group images of the same
+series together, thus extracting volumes (and multiple volumes).
+Using volread will attempt to yield a volume. If multiple volumes
+are present, the first one is given. Using mimread will simply yield
+all images in the given directory (not taking series into account).
+
+Parameters
+----------
+progress : {True, False, BaseProgressIndicator}
+    Whether to show progress when reading from multiple files.
+    Default True. By passing an object that inherits from
+    BaseProgressIndicator, the way in which progress is reported
+    can be costumized.
+
 """
 
 # todo: Use pydicom:
@@ -92,32 +121,7 @@ def get_gdcmconv_exe():
 
 
 class DicomFormat(Format):
-    """A format for reading DICOM images: a common format used to store
-    medical image data, such as X-ray, CT and MRI.
-
-    This format borrows some code (and ideas) from the pydicom project. However,
-    only a predefined subset of tags are extracted from the file. This allows
-    for great simplifications allowing us to make a stand-alone reader, and
-    also results in a much faster read time.
-
-    By default, only uncompressed and deflated transfer syntaxes are supported.
-    If gdcm or dcmtk is installed, these will be used to automatically convert
-    the data. See https://github.com/malaterre/GDCM/releases for installing GDCM.
-
-    This format provides functionality to group images of the same
-    series together, thus extracting volumes (and multiple volumes).
-    Using volread will attempt to yield a volume. If multiple volumes
-    are present, the first one is given. Using mimread will simply yield
-    all images in the given directory (not taking series into account).
-
-    Parameters for reading
-    ----------------------
-    progress : {True, False, BaseProgressIndicator}
-        Whether to show progress when reading from multiple files.
-        Default True. By passing an object that inherits from
-        BaseProgressIndicator, the way in which progress is reported
-        can be costumized.
-
+    """ See :mod:`imageio.plugins.dicom`
     """
 
     def _can_read(self, request):
