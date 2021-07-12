@@ -21,9 +21,8 @@ an image.
 ImageIO Core 
     The user-facing APIs (legacy + v3) and a plugin manager. You
     send requests to iio.core and it uses a set of plugins (see below) to figure out
-    which backend (see below) to use to fulfill your request. It does so by directly
-    sending the request to the plugin you specified or by (intelligently) searching
-    all plugins if you didn't specify one explicitly.
+    which backend (see below) to use to fulfill your request. It does so by
+    (intelligently) searching a matching plugin, or by sending the request to the plugin you specified explicitly.
 
 Plugin
     A backend-facing adapter/wrapper that responds to a request from
@@ -48,7 +47,7 @@ Issues
 ------
 
 In this repo, we maintain ImageIO Core as well as all the plugins. If you find a
-bug or have a plroblem with either the core or any plugin, please open a new
+bug or have a problem with either the core or any of the plugins, please open a new
 issue `here <https://github.com/imageio/imageio/issues>`_.
 
 If you find a bug or have problems with a specific backend, e.g. reading is very

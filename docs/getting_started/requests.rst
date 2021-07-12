@@ -41,8 +41,8 @@ Alternatively, you can use the full URI to the resource on your disk ::
 Byte Streams
 ------------
 
-ImageIO can directly handle (binary) file objects and BytesIO objects. This includes
-subclasses of the above as well as generic objects that implement ``close`` and a ``read`` and/or ``write`` function.
+ImageIO can directly handle (binary) file objects. This includes ``BytesIO`` objects (and subclasses thereof)
+as well as generic objects that implement ``close`` and a ``read`` and/or ``write`` function.
 Simply pass them into ImageIO the same way you would pass a URI::
 
     file_handle = open("some/image.jpg", "rb")
