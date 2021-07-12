@@ -3,7 +3,7 @@
 
 """ Read/Write BSDF files.
 
-Backend: internal
+Backend Library: internal
 
 The BSDF format enables reading and writing of image data in the
 BSDF serialization format. This format allows storage of images, volumes,
@@ -22,8 +22,8 @@ are standard extension definitions for 2D and 3D image data.
 Read more at http://bsdf.io.
 
 
-Additional kwargs
------------------
+Parameters
+----------
 random_access : bool
     Whether individual images in the file can be read in random order.
     Defaults to True for normal files, and to False when reading from HTTP.
