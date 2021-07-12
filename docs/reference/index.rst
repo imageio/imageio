@@ -26,6 +26,7 @@ a list of available plugins and which arguments they support.
 
 .. autosummary::
     :toctree: _backends/
+    :template: plugin.rst
 
     imageio.plugins.bsdf
     imageio.plugins.dicom
