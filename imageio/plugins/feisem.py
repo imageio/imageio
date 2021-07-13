@@ -30,8 +30,7 @@ from .. import formats
 
 
 class FEISEMFormat(TiffFormat):
-    """ See :mod:`imageio.plugins.feisem`
-    """
+    """See :mod:`imageio.plugins.feisem`"""
 
     def _can_write(self, request):
         return False  # FEI-SEM only supports reading

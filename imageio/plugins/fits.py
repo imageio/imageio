@@ -79,8 +79,7 @@ def load_lib():
 
 
 class FitsFormat(Format):
-    """ See :mod:`imageio.plugins.fits`
-    """
+    """See :mod:`imageio.plugins.fits`"""
 
     def _can_read(self, request):
         # We return True if ext matches, because this is the only plugin

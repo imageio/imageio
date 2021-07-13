@@ -535,8 +535,7 @@ class SDTControlSpec:
 
 
 class SpeFormat(Format):
-    """ See :mod:`imageio.plugins.spe`
-    """
+    """See :mod:`imageio.plugins.spe`"""
 
     def _can_read(self, request):
         return (

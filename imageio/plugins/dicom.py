@@ -121,8 +121,7 @@ def get_gdcmconv_exe():
 
 
 class DicomFormat(Format):
-    """ See :mod:`imageio.plugins.dicom`
-    """
+    """See :mod:`imageio.plugins.dicom`"""
 
     def _can_read(self, request):
         # If user URI was a directory, we check whether it has a DICOM file

@@ -38,8 +38,7 @@ GDAL_FORMATS = (".tiff", " .tif", ".img", ".ecw", ".jpg", ".jpeg")
 
 
 class GdalFormat(Format):
-    """ See :mod:`imageio.plugins.gdal`
-    """
+    """See :mod:`imageio.plugins.gdal`"""
 
     def _can_read(self, request):
         if request.extension in (".ecw",):

@@ -36,8 +36,7 @@ from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
 
 
 class FreeimageFormat(Format):
-    """ See :mod:`imageio.plugins.freeimage`
-    """
+    """See :mod:`imageio.plugins.freeimage`"""
 
     _modes = "i"
 

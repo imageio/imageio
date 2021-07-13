@@ -89,8 +89,7 @@ ALL_FORMATS = ITK_FORMATS + (
 
 
 class ItkFormat(Format):
-    """ See :mod:`imageio.plugins.simpleitk`
-    """
+    """See :mod:`imageio.plugins.simpleitk`"""
 
     def _can_read(self, request):
         # If the request is a format that only this plugin can handle,

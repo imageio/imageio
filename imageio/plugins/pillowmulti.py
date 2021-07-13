@@ -20,8 +20,7 @@ class TIFFFormat(PillowFormat):
 
 
 class GIFFormat(PillowFormat):
-    """See :mod:`imageio.plugins.pillow_legacy`
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     _modes = "iI"
     _description = "Static and animated gif (Pillow)"

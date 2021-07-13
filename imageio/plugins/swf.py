@@ -66,8 +66,7 @@ def load_lib():
 
 
 class SWFFormat(Format):
-    """See :mod:`imageio.plugins.swf`
-    """
+    """See :mod:`imageio.plugins.swf`"""
 
     def _can_read(self, request):
         if request.mode[1] in (self.modes + "?"):

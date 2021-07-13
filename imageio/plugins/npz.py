@@ -29,8 +29,7 @@ from ..core import Format
 
 
 class NpzFormat(Format):
-    """ See :mod:`imageio.plugins.npz`
-    """
+    """See :mod:`imageio.plugins.npz`"""
 
     def _can_read(self, request):
         # We support any kind of image data

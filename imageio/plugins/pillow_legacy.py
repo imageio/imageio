@@ -384,8 +384,7 @@ class PillowFormat(Format):
 
 
 class PNGFormat(PillowFormat):
-    """See :mod:`imageio.plugins.pillow_legacy`
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False, ignoregamma=True):
@@ -459,8 +458,7 @@ class PNGFormat(PillowFormat):
 
 
 class JPEGFormat(PillowFormat):
-    """See :mod:`imageio.plugins.pillow_legacy`
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False, exifrotate=True):
@@ -541,9 +539,7 @@ class JPEGFormat(PillowFormat):
 
 
 class JPEG2000Format(PillowFormat):
-    """See :mod:`imageio.plugins.pillow_legacy`
-
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False):
