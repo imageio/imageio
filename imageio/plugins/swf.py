@@ -3,7 +3,43 @@
 
 """ Read/Write SWF files.
 
-SWF plugin. Most of the actual work is done in _swf.py.
+Backend: internal
+
+Shockwave flash (SWF) is a media format designed for rich and
+interactive animations. This plugin makes use of this format to
+store a series of images in a lossless format with good compression
+(zlib). The resulting images can be shown as an animation using
+a flash player (such as the browser).
+
+SWF stores images in RGBA format. RGB or grayscale images are
+automatically converted. SWF does not support meta data.
+
+Parameters for reading
+----------------------
+loop : bool
+    If True, the video will rewind as soon as a frame is requested
+    beyond the last frame. Otherwise, IndexError is raised. Default False.
+
+Parameters for saving
+---------------------
+fps : int
+    The speed to play the animation. Default 12.
+loop : bool
+    If True, add a tag to the end of the file to play again from
+    the first frame. Most flash players will then play the movie
+    in a loop. Note that the imageio SWF Reader does not check this
+    tag. Default True.
+html : bool
+    If the output is a file on the file system, write an html file
+    (in HTML5) that shows the animation. Default False.
+compress : bool
+    Whether to compress the swf file. Default False. You probably don't
+    want to use this. This does not decrease the file size since
+    the images are already compressed. It will result in slower
+    read and write time. The only purpose of this feature is to
+    create compressed SWF files, so that we can test the
+    functionality to read them.
+
 """
 
 import os
@@ -30,40 +66,7 @@ def load_lib():
 
 
 class SWFFormat(Format):
-    """Shockwave flash (SWF) is a media format designed for rich and
-    interactive animations. This plugin makes use of this format to
-    store a series of images in a lossless format with good compression
-    (zlib). The resulting images can be shown as an animation using
-    a flash player (such as the browser).
-
-    SWF stores images in RGBA format. RGB or grayscale images are
-    automatically converted. SWF does not support meta data.
-
-    Parameters for reading
-    ----------------------
-    loop : bool
-        If True, the video will rewind as soon as a frame is requested
-        beyond the last frame. Otherwise, IndexError is raised. Default False.
-
-    Parameters for saving
-    ---------------------
-    fps : int
-        The speed to play the animation. Default 12.
-    loop : bool
-        If True, add a tag to the end of the file to play again from
-        the first frame. Most flash players will then play the movie
-        in a loop. Note that the imageio SWF Reader does not check this
-        tag. Default True.
-    html : bool
-        If the output is a file on the file system, write an html file
-        (in HTML5) that shows the animation. Default False.
-    compress : bool
-        Whether to compress the swf file. Default False. You probably don't
-        want to use this. This does not decrease the file size since
-        the images are already compressed. It will result in slower
-        read and write time. The only purpose of this feature is to
-        create compressed SWF files, so that we can test the
-        functionality to read them.
+    """See :mod:`imageio.plugins.swf`
     """
 
     def _can_read(self, request):
