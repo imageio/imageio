@@ -20,36 +20,7 @@ class TIFFFormat(PillowFormat):
 
 
 class GIFFormat(PillowFormat):
-    """A format for reading and writing static and animated GIF, based
-    on Pillow.
-
-    Images read with this format are always RGBA. Currently,
-    the alpha channel is ignored when saving RGB images with this
-    format.
-
-    Parameters for reading
-    ----------------------
-    None
-
-    Parameters for saving
-    ---------------------
-    loop : int
-        The number of iterations. Default 0 (meaning loop indefinitely).
-    duration : {float, list}
-        The duration (in seconds) of each frame. Either specify one value
-        that is used for all frames, or one value for each frame.
-        Note that in the GIF format the duration/delay is expressed in
-        hundredths of a second, which limits the precision of the duration.
-    fps : float
-        The number of frames per second. If duration is not given, the
-        duration for each frame is set to 1/fps. Default 10.
-    palettesize : int
-        The number of colors to quantize the image to. Is rounded to
-        the nearest power of two. Default 256.
-    subrectangles : bool
-        If True, will try and optimize the GIF by storing only the
-        rectangular parts of each frame that change with respect to the
-        previous. Default False.
+    """See :mod:`imageio.plugins.pillow_legacy`
     """
 
     _modes = "iI"
