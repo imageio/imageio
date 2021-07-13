@@ -7,7 +7,7 @@ Backend Library: https://github.com/imageio/imageio-ffmpeg
 
 .. note::
     To use this plugin you have to install its backend::
-    
+
         pip install imageio[ffmpeg]
 
 

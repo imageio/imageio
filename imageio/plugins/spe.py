@@ -112,84 +112,84 @@ post_pixels : [int, int],
     Post pixels in x and y dimensions
 geometric : list of {"rotate", "reverse", "flip"}
     Geometric operations
-sdt_major_version : int 
+sdt_major_version : int
     (only for files created by SDT-control)
     Major version of SDT-control software
-sdt_minor_version : int 
+sdt_minor_version : int
     (only for files created by SDT-control)
     Minor version of SDT-control software
-sdt_controller_name : str 
+sdt_controller_name : str
     (only for files created by SDT-control)
     Controller name
-exposure_time : float 
+exposure_time : float
     (only for files created by SDT-control)
     Exposure time in seconds
-color_code : str 
+color_code : str
     (only for files created by SDT-control)
     Color channels used
-detection_channels : int 
+detection_channels : int
     (only for files created by SDT-control)
     Number of channels
-background_subtraction : bool 
+background_subtraction : bool
     (only for files created by SDT-control)
     Whether background subtraction war turned on
-em_active : bool 
+em_active : bool
     (only for files created by SDT-control)
     Whether EM was turned on
-em_gain : int 
+em_gain : int
     (only for files created by SDT-control)
     EM gain
-modulation_active : bool 
+modulation_active : bool
     (only for files created by SDT-control)
     Whether laser modulation (“attenuate”) was turned on
-pixel_size : float 
+pixel_size : float
     (only for files created by SDT-control)
     Camera pixel size
-sequence_type : str 
+sequence_type : str
     (only for files created by SDT-control)
     Type of sequnce (standard, TOCCSL, arbitrary, …)
-grid : float 
+grid : float
     (only for files created by SDT-control)
     Sequence time unit (“grid size”) in seconds
-n_macro : int 
+n_macro : int
     (only for files created by SDT-control)
     Number of macro loops
-delay_macro : float 
+delay_macro : float
     (only for files created by SDT-control)
     Time between macro loops in seconds
-n_mini : int 
+n_mini : int
     (only for files created by SDT-control)
     Number of mini loops
-delay_mini : float 
+delay_mini : float
     (only for files created by SDT-control)
     Time between mini loops in seconds
 n_micro : int (only for files created by SDT-control)
     Number of micro loops
 delay_micro : float (only for files created by SDT-control)
     Time between micro loops in seconds
-n_subpics : int 
+n_subpics : int
     (only for files created by SDT-control)
     Number of sub-pictures
-delay_shutter : float 
+delay_shutter : float
     (only for files created by SDT-control)
     Camera shutter delay in seconds
-delay_prebleach : float 
+delay_prebleach : float
     (only for files created by SDT-control)
     Pre-bleach delay in seconds
-bleach_time : float 
+bleach_time : float
     (only for files created by SDT-control)
     Bleaching time in seconds
-recovery_time : float 
+recovery_time : float
     (only for files created by SDT-control)
     Recovery time in seconds
-comment : str 
+comment : str
     (only for files created by SDT-control)
     User-entered comment. This replaces the "comments" field.
-datetime : datetime.datetime 
+datetime : datetime.datetime
     (only for files created by SDT-control)
     Combines the "date" and "time_local" keys. The latter two plus
     "time_utc" are removed.
-modulation_script : str 
+modulation_script : str
     (only for files created by SDT-control)
     Laser modulation script. Replaces the "spare_4" key.
 

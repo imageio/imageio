@@ -7,7 +7,7 @@ Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
 
 Pillow is a friendly fork of PIL (Python Image Library) and supports
 reading and writing of common formats (jpg, png, gif, tiff, ...). While
-these docs provide an overview of some of its features, pillow is 
+these docs provide an overview of some of its features, pillow is
 constantly improving. Hence, the complete list of features can be found
 in pillows official docs (see the Backend Library link).
 

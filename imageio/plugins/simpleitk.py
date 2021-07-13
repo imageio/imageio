@@ -7,7 +7,7 @@ Backend: `Insight Toolkit <https://itk.org/>`_
 
 .. note::
     To use this plugin you have to install its backend::
-    
+
         pip install imageio[itk]
 
 The ItkFormat uses the ITK or SimpleITK library to support a range of
