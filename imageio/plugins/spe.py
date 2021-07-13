@@ -1,7 +1,198 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write SPE files.
+""" Read SPE files.
+
+Backend: internal
+
+This plugin supports reading files saved in the Princeton Instruments
+SPE file format.
+
+Parameters for reading
+----------------------
+char_encoding : str
+    Character encoding used to decode strings in the metadata. Defaults
+    to "latin1".
+check_filesize : bool
+    The number of frames in the file is stored in the file header. However,
+    this number may be wrong for certain software. If this is `True`
+    (default), derive the number of frames also from the file size and
+    raise a warning if the two values do not match.
+sdt_meta : bool
+    If set to `True` (default), check for special metadata written by the
+    `SDT-control` software. Does not have an effect for files written by
+    other software.
+
+Metadata for reading
+--------------------
+ROIs : list of dict
+    Regions of interest used for recording images. Each dict has the
+    "top_left" key containing x and y coordinates of the top left corner,
+    the "bottom_right" key with x and y coordinates of the bottom right
+    corner, and the "bin" key with number of binned pixels in x and y
+    directions.
+comments : list of str
+    The SPE format allows for 5 comment strings of 80 characters each.
+controller_version : int
+    Hardware version
+logic_output : int
+    Definition of output BNC
+amp_hi_cap_low_noise : int
+    Amp switching mode
+mode : int
+    Timing mode
+exp_sec : float
+    Alternative exposure in seconds
+date : str
+    Date string
+detector_temp : float
+    Detector temperature
+detector_type : int
+    CCD / diode array type
+st_diode : int
+    Trigger diode
+delay_time : float
+    Used with async mode
+shutter_control : int
+    Normal, disabled open, or disabled closed
+absorb_live : bool
+    on / off
+absorb_mode : int
+    Reference strip or file
+can_do_virtual_chip : bool
+    True or False whether chip can do virtual chip
+threshold_min_live : bool
+    on / off
+threshold_min_val : float
+    Threshold minimum value
+threshold_max_live : bool
+    on / off
+threshold_max_val : float
+    Threshold maximum value
+time_local : str
+    Experiment local time
+time_utc : str
+    Experiment UTC time
+adc_offset : int
+    ADC offset
+adc_rate : int
+    ADC rate
+adc_type : int
+    ADC type
+adc_resolution : int
+    ADC resolution
+adc_bit_adjust : int
+    ADC bit adjust
+gain : int
+    gain
+sw_version : str
+    Version of software which created this file
+spare_4 : bytes
+    Reserved space
+readout_time : float
+    Experiment readout time
+type : str
+    Controller type
+clockspeed_us : float
+    Vertical clock speed in microseconds
+readout_mode : ["full frame", "frame transfer", "kinetics", ""]
+    Readout mode. Empty string means that this was not set by the
+    Software.
+window_size : int
+    Window size for Kinetics mode
+file_header_ver : float
+    File header version
+chip_size : [int, int]
+    x and y dimensions of the camera chip
+virt_chip_size : [int, int]
+    Virtual chip x and y dimensions
+pre_pixels : [int, int]
+    Pre pixels in x and y dimensions
+post_pixels : [int, int],
+    Post pixels in x and y dimensions
+geometric : list of {"rotate", "reverse", "flip"}
+    Geometric operations
+sdt_major_version : int 
+    (only for files created by SDT-control)
+    Major version of SDT-control software
+sdt_minor_version : int 
+    (only for files created by SDT-control)
+    Minor version of SDT-control software
+sdt_controller_name : str 
+    (only for files created by SDT-control)
+    Controller name
+exposure_time : float 
+    (only for files created by SDT-control)
+    Exposure time in seconds
+color_code : str 
+    (only for files created by SDT-control)
+    Color channels used
+detection_channels : int 
+    (only for files created by SDT-control)
+    Number of channels
+background_subtraction : bool 
+    (only for files created by SDT-control)
+    Whether background subtraction war turned on
+em_active : bool 
+    (only for files created by SDT-control)
+    Whether EM was turned on
+em_gain : int 
+    (only for files created by SDT-control)
+    EM gain
+modulation_active : bool 
+    (only for files created by SDT-control)
+    Whether laser modulation (“attenuate”) was turned on
+pixel_size : float 
+    (only for files created by SDT-control)
+    Camera pixel size
+sequence_type : str 
+    (only for files created by SDT-control)
+    Type of sequnce (standard, TOCCSL, arbitrary, …)
+grid : float 
+    (only for files created by SDT-control)
+    Sequence time unit (“grid size”) in seconds
+n_macro : int 
+    (only for files created by SDT-control)
+    Number of macro loops
+delay_macro : float 
+    (only for files created by SDT-control)
+    Time between macro loops in seconds
+n_mini : int 
+    (only for files created by SDT-control)
+    Number of mini loops
+delay_mini : float 
+    (only for files created by SDT-control)
+    Time between mini loops in seconds
+n_micro : int (only for files created by SDT-control)
+    Number of micro loops
+delay_micro : float (only for files created by SDT-control)
+    Time between micro loops in seconds
+n_subpics : int 
+    (only for files created by SDT-control)
+    Number of sub-pictures
+delay_shutter : float 
+    (only for files created by SDT-control)
+    Camera shutter delay in seconds
+delay_prebleach : float 
+    (only for files created by SDT-control)
+    Pre-bleach delay in seconds
+bleach_time : float 
+    (only for files created by SDT-control)
+    Bleaching time in seconds
+recovery_time : float 
+    (only for files created by SDT-control)
+    Recovery time in seconds
+comment : str 
+    (only for files created by SDT-control)
+    User-entered comment. This replaces the "comments" field.
+datetime : datetime.datetime 
+    (only for files created by SDT-control)
+    Combines the "date" and "time_local" keys. The latter two plus
+    "time_utc" are removed.
+modulation_script : str 
+    (only for files created by SDT-control)
+    Laser modulation script. Replaces the "spare_4" key.
+
 """
 
 from datetime import datetime
@@ -344,168 +535,7 @@ class SDTControlSpec:
 
 
 class SpeFormat(Format):
-    """Some CCD camera software produces images in the Princeton Instruments
-    SPE file format. This plugin supports reading such files.
-
-    Parameters for reading
-    ----------------------
-    char_encoding : str
-        Character encoding used to decode strings in the metadata. Defaults
-        to "latin1".
-    check_filesize : bool
-        The number of frames in the file is stored in the file header. However,
-        this number may be wrong for certain software. If this is `True`
-        (default), derive the number of frames also from the file size and
-        raise a warning if the two values do not match.
-    sdt_meta : bool
-        If set to `True` (default), check for special metadata written by the
-        `SDT-control` software. Does not have an effect for files written by
-        other software.
-
-    Metadata for reading
-    --------------------
-    ROIs : list of dict
-        Regions of interest used for recording images. Each dict has the
-        "top_left" key containing x and y coordinates of the top left corner,
-        the "bottom_right" key with x and y coordinates of the bottom right
-        corner, and the "bin" key with number of binned pixels in x and y
-        directions.
-    comments : list of str
-        The SPE format allows for 5 comment strings of 80 characters each.
-    controller_version : int
-        Hardware version
-    logic_output : int
-        Definition of output BNC
-    amp_hi_cap_low_noise : int
-        Amp switching mode
-    mode : int
-        Timing mode
-    exp_sec : float
-        Alternative exposure in seconds
-    date : str
-        Date string
-    detector_temp : float
-        Detector temperature
-    detector_type : int
-        CCD / diode array type
-    st_diode : int
-        Trigger diode
-    delay_time : float
-        Used with async mode
-    shutter_control : int
-        Normal, disabled open, or disabled closed
-    absorb_live : bool
-        on / off
-    absorb_mode : int
-        Reference strip or file
-    can_do_virtual_chip : bool
-        True or False whether chip can do virtual chip
-    threshold_min_live : bool
-        on / off
-    threshold_min_val : float
-        Threshold minimum value
-    threshold_max_live : bool
-        on / off
-    threshold_max_val : float
-        Threshold maximum value
-    time_local : str
-        Experiment local time
-    time_utc : str
-        Experiment UTC time
-    adc_offset : int
-        ADC offset
-    adc_rate : int
-        ADC rate
-    adc_type : int
-        ADC type
-    adc_resolution : int
-        ADC resolution
-    adc_bit_adjust : int
-        ADC bit adjust
-    gain : int
-        gain
-    sw_version : str
-        Version of software which created this file
-    spare_4 : bytes
-        Reserved space
-    readout_time : float
-        Experiment readout time
-    type : str
-        Controller type
-    clockspeed_us : float
-        Vertical clock speed in microseconds
-    readout_mode : {"full frame", "frame transfer", "kinetics", ""}
-        Readout mode. Empty string means that this was not set by the
-        Software.
-    window_size : int
-        Window size for Kinetics mode
-    file_header_ver : float
-        File header version
-    chip_size : [int, int]
-        x and y dimensions of the camera chip
-    virt_chip_size : [int, int]
-        Virtual chip x and y dimensions
-    pre_pixels : [int, int]
-        Pre pixels in x and y dimensions
-    post_pixels : [int, int],
-        Post pixels in x and y dimensions
-    geometric : list of {"rotate", "reverse", "flip"}
-        Geometric operations
-    sdt_major_version : int (only for files created by SDT-control)
-        Major version of SDT-control software
-    sdt_minor_version : int (only for files created by SDT-control)
-        Minor version of SDT-control software
-    sdt_controller_name : str (only for files created by SDT-control)
-        Controller name
-    exposure_time : float (only for files created by SDT-control)
-        Exposure time in seconds
-    color_code : str (only for files created by SDT-control)
-        Color channels used
-    detection_channels : int (only for files created by SDT-control)
-        Number of channels
-    background_subtraction : bool (only for files created by SDT-control)
-        Whether background subtraction war turned on
-    em_active : bool (only for files created by SDT-control)
-        Whether EM was turned on
-    em_gain : int (only for files created by SDT-control)
-        EM gain
-    modulation_active : bool (only for files created by SDT-control)
-        Whether laser modulation (“attenuate”) was turned on
-    pixel_size : float (only for files created by SDT-control)
-        Camera pixel size
-    sequence_type : str (only for files created by SDT-control)
-        Type of sequnce (standard, TOCCSL, arbitrary, …)
-    grid : float (only for files created by SDT-control)
-        Sequence time unit (“grid size”) in seconds
-    n_macro : int (only for files created by SDT-control)
-        Number of macro loops
-    delay_macro : float (only for files created by SDT-control)
-        Time between macro loops in seconds
-    n_mini : int (only for files created by SDT-control)
-        Number of mini loops
-    delay_mini : float (only for files created by SDT-control)
-        Time between mini loops in seconds
-    n_micro : int (only for files created by SDT-control)
-        Number of micro loops
-    delay_micro : float (only for files created by SDT-control)
-        Time between micro loops in seconds
-    n_subpics : int (only for files created by SDT-control)
-        Number of sub-pictures
-    delay_shutter : float (only for files created by SDT-control)
-        Camera shutter delay in seconds
-    delay_prebleach : float (only for files created by SDT-control)
-        Pre-bleach delay in seconds
-    bleach_time : float (only for files created by SDT-control)
-        Bleaching time in seconds
-    recovery_time : float (only for files created by SDT-control)
-        Recovery time in seconds
-    comment : str (only for files created by SDT-control)
-        User-entered comment. This replaces the "comments" field.
-    datetime : datetime.datetime (only for files created by SDT-control)
-        Combines the "date" and "time_local" keys. The latter two plus
-        "time_utc" are removed.
-    modulation_script : str (only for files created by SDT-control)
-        Laser modulation script. Replaces the "spare_4" key.
+    """ See :mod:`imageio.plugins.spe`
     """
 
     def _can_read(self, request):
