@@ -247,11 +247,10 @@ class PillowPlugin(object):
             determined from the filename extension. If a file object was used
             instead of a filename, this parameter must always be used.
         kwargs : ...
-            Extra arguments to pass to pillow. If a
-            writer doesn't recognise an option, it is silently ignored. The
-            available options are described in the :doc:`image format
-            documentation
-            (https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html)
+            Extra arguments to pass to pillow. If a writer doesn't recognise an
+            option, it is silently ignored. The available options are described
+            in pillow's :doc:`image format documentation
+            <https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html>`_
             for each writer.
 
         """
