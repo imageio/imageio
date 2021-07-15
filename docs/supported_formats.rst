@@ -520,7 +520,7 @@ wbmp (Wireless Bitmap)
 wdp (JPEG Extended Range)
     Backends: :mod:`JPEG-XR-FI <imageio.plugins.freeimage>`
 
-webm ()
+webm
     Backends: :mod:`FFMPEG <imageio.plugins.ffmpeg>`
 
 webp (Google WebP)
@@ -529,7 +529,8 @@ webp (Google WebP)
 wmf (Windows Meta File)
     Backends: :mod:`WMF-PIL <imageio.plugins.pillow_legacy>`
 
-wmv
+wmv (Windows Media Video)
+    Backends: :mod:`FFMPEG <imageio.plugins.ffmpeg>`
 
 xbm (X11 Bitmap)
     Backends: :mod:`XBM-PIL <imageio.plugins.pillow_legacy>`, :mod:`XBM-FI <imageio.plugins.freeimage>`
