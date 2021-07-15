@@ -95,6 +95,7 @@ def create_plugin_docs():
     # Write
     _write("development/plugins.rst", text)
 
+
 def create_standard_images_docs():
     """Create documentation for imageio's standard images."""
 
