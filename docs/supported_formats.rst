@@ -23,21 +23,6 @@ to open with pillow you would use ::
 
 and the backend will be listed as ``PNG-PIL``.
 
-:mod:`FreeImage <imageio.plugins.freeimage>`
-:mod:`Pillow <imageio.plugins.pillow_legacy>`
-:mod:`itk <imageio.plugins.simpleitk>`
-:mod:`FFMPEG <imageio.plugins.ffmpeg>`
-:mod:`GDAL <imageio.plugins.gdal>`
-:mod:`tiff <imageio.plugins.tifffile>`
-:mod:`fits <imageio.plugins.fits>`
-:mod:`DICOM <imageio.plugins.dicom>`
-:mod:`Lytro <imageio.plugins.lytro>`
-:mod:`FEI/SEM <imageio.plugins.feisem>`
-:mod:`npz <imageio.plugins.npz>`
-:mod:`BSDF <imageio.plugins.bsdf>`
-:mod:`SPE <imageio.plugins.spe>`
-:mod:`SWF <imageio.plugins.swf>`
-
 
 3fr (Hasselblad raw format)
     Backends: :mod:`RAW-FI <imageio.plugins.freeimage>`
