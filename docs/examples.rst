@@ -193,7 +193,7 @@ A little bit of explanation:
     * ``vf`` and ``format`` tell ffmpeg that it must upload to the dedicated
       hardware. Since vaapi only supports a subset of color formats, we ensure
       that the video is in either gray or nv12 before uploading it. The ``or``
-      operation is acheived with ``|``.
+      operation is achieved with ``|``.
 
   * ``pixelformat``: set to ``'vaapi_vld'`` to avoid a warning in ffmpeg.
   * ``codec``: the code you wish to use to encode the video. Make sure your
