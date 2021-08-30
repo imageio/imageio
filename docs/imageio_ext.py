@@ -53,8 +53,8 @@ def prepare_reader_and_witer():
 
 def rstjinja(app, docname, source):
     if docname == "supported_formats":
-        from imageio.metadata.extensions import known_extensions
-        from imageio.metadata.plugins import known_plugins
+        from imageio.config.extensions import known_extensions
+        from imageio.config.plugins import known_plugins
 
         src = source[0]
         rendered = app.builder.templates.render_string(
