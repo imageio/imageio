@@ -5,16 +5,15 @@ supporting backend.
 
 """
 
-from dataclasses import dataclass
 from typing import List
 
 
-@dataclass
 class FileExtension:
-    extension: str
-    priority: List[str]
-    name: str = None
-    description: str = None
+    def __init__(self, *, extension:str, priority:List[str], name:str = None, description: str = None) -> None:
+        self.extension = extension
+        self.priority = priority
+        self.name = name
+        self.description = description
 
 
 known_extensions = [
