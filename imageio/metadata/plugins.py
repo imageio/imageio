@@ -2,7 +2,7 @@ known_plugins = {
     "BMP-FI": "imageio.plugins.freeimage",
     "BMP-PIL": "imageio.plugins.pillow_legacy",
     "BSDF": "imageio.plugins.bsdf",
-    "BUFR-PIL" : "imageio.plugins.pillow_legacy",
+    "BUFR-PIL": "imageio.plugins.pillow_legacy",
     "CUR-PIL": "imageio.plugins.pillow_legacy",
     "CUT-FI": "imageio.plugins.freeimage",
     "DCX-PIL": "imageio.plugins.pillow_legacy",
