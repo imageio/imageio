@@ -208,7 +208,7 @@ setup(
     python_requires=">=3.5",
     install_requires=install_requires,
     extras_require=extras_require,
-    packages=["imageio", "imageio.core", "imageio.plugins"],
+    packages=["imageio", "imageio.core", "imageio.plugins", "imageio.config"],
     package_dir={"imageio": "imageio"},
     # Data in the package
     package_data={"imageio": package_data},
