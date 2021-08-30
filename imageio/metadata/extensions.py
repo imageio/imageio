@@ -821,4 +821,5 @@ known_extensions = [
         extension="XVTHUMB",
         priority=["XVTHUMB-PIL"],
     ),
-].sort(key=lambda x: x.extension)
+]
+known_extensions.sort(key=lambda x: x.extension)
