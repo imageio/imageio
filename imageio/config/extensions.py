@@ -9,7 +9,14 @@ from typing import List
 
 
 class FileExtension:
-    def __init__(self, *, extension:str, priority:List[str], name:str = None, description: str = None) -> None:
+    def __init__(
+        self,
+        *,
+        extension: str,
+        priority: List[str],
+        name: str = None,
+        description: str = None
+    ) -> None:
         self.extension = extension
         self.priority = priority
         self.name = name
