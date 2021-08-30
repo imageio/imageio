@@ -6,16 +6,9 @@ from pathlib import Path
 
 import imageio
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-DOC_DIR = THIS_DIR
-
-
-files_to_remove = []
-
 
 def setup(app):
     init()
-    app.connect("build-finished", clean)
     app.connect("source-read", rstjinja)
 
 
@@ -25,27 +18,9 @@ def init():
 
     for func in [
         prepare_reader_and_witer,
-        create_plugin_docs,
-        create_standard_images_docs,
     ]:
         print("  " + func.__doc__.strip())
         func()
-
-
-def clean(app, *args):
-    for fname in files_to_remove:
-        filename = os.path.join(DOC_DIR, fname)
-        if os.path.isfile(filename):
-            os.remove(filename)
-
-
-def _write(fname, text):
-    files_to_remove.append(fname)
-    with open(os.path.join(DOC_DIR, fname), "wb") as f:
-        f.write(text.encode("utf-8"))
-
-
-##
 
 
 def prepare_reader_and_witer():
@@ -76,73 +51,41 @@ def prepare_reader_and_witer():
     imageio.core.format.Format.Writer = None  # .__doc__ = ''
 
 
-def create_plugin_docs():
-    """Create docs for creating plugins."""
-
-    # Build main plugin dir
-    title = "Creating imageio plugins"
-    text = "%s\n%s\n\n" % (title, "=" * len(title))
-
-    text += ".. automodule:: imageio.plugins\n\n"
-
-    # Insert code from example plugin
-    text += "Example / template plugin\n-------------------------\n\n"
-    text += ".. code-block:: python\n    :linenos:\n\n"
-    filename = imageio.plugins.example.__file__.replace(".pyc", ".py")
-    code = open(filename, "rb").read().decode("utf-8")
-    code = "\n".join(["    " + line.rstrip() for line in code.splitlines()])
-    text += code
-
-    # Write
-    _write("development/plugins.rst", text)
-
-
-def create_standard_images_docs():
-    """Create documentation for imageio's standard images."""
-
-    with open(Path(DOC_DIR) / "_templates" / "standard_images.rst", "r") as file:
-        text = file.read()
-
-    from imageio.core.request import EXAMPLE_IMAGES
-
-    baseurl = "https://github.com/imageio/imageio-binaries/raw/master/images/"
-
-    def sort_by_ext_and_name(x):
-        return tuple(reversed(x.rsplit(".", 1)))
-
-    for name in sorted(EXAMPLE_IMAGES, key=sort_by_ext_and_name):
-        description = EXAMPLE_IMAGES[name]
-        text += "* `%s <%s>`_: %s\n\n" % (name, baseurl + name, description)
-
-    _write("getting_started/standardimages.rst", text)
-
-
 def rstjinja(app, docname, source):
-    # Make sure we're outputting HTML
-    if app.builder.format != 'html':
-        return
-
     if docname == "supported_formats":
         from imageio.metadata.extensions import known_extensions
         from imageio.metadata.plugins import known_plugins
+
         src = source[0]
         rendered = app.builder.templates.render_string(
-            src, {
-                "formats": known_extensions,
-                "plugins": known_plugins
-            }
+            src, {"formats": known_extensions, "plugins": known_plugins}
         )
         source[0] = rendered
 
-    # if docname == "getting_started/standardimages":
-    #     from imageio.core.request import EXAMPLE_IMAGES
+    if docname == "getting_started/standardimages":
+        from imageio.core.request import EXAMPLE_IMAGES
 
-    #     src = source[0]
-    #     rendered = app.builder.templates.render_string(
-    #         src, {
-    #             "images": EXAMPLE_IMAGES,
-    #             "ordered_keys": sorted(EXAMPLE_IMAGES, key=lambda x: tuple(reversed(x.rsplit(".", 1)))),
-    #             "base_url": "https://github.com/imageio/imageio-binaries/raw/master/images/",
-    #         }
-    #     )
-    #     source[0] = rendered
+        src = source[0]
+        rendered = app.builder.templates.render_string(
+            src,
+            {
+                "images": EXAMPLE_IMAGES,
+                "ordered_keys": sorted(
+                    EXAMPLE_IMAGES, key=lambda x: tuple(reversed(x.rsplit(".", 1)))
+                ),
+                "base_url": "https://github.com/imageio/imageio-binaries/raw/master/images/",
+            },
+        )
+        source[0] = rendered
+
+    if docname == "development/plugins":
+        example_plugin = Path(
+            imageio.plugins.example.__file__.replace(".pyc", ".py")
+        ).read_text()
+        example_plugin = [line.rstrip() for line in example_plugin.splitlines()]
+
+        src = source[0]
+        rendered = app.builder.templates.render_string(
+            src, {"example_plugin": example_plugin}
+        )
+        source[0] = rendered

@@ -10,3 +10,6 @@ e.g. ``imread('imageio:astronaut.png')``.
 The images are automatically downloaded (and cached in your appdata
 directory).
 
+{% for name in ordered_keys %}
+* `{{name}} <{{base_url+name}}>`_: {{images[name]}}
+{% endfor %}
