@@ -39,3 +39,4 @@ __pychache__
 .project
 .pydevproject
 .settings
+.vscode
