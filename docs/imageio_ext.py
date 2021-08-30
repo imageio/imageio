@@ -16,6 +16,7 @@ files_to_remove = []
 def setup(app):
     init()
     app.connect("build-finished", clean)
+    app.connect("source-read", rstjinja)
 
 
 def init():
@@ -114,3 +115,34 @@ def create_standard_images_docs():
         text += "* `%s <%s>`_: %s\n\n" % (name, baseurl + name, description)
 
     _write("getting_started/standardimages.rst", text)
+
+
+def rstjinja(app, docname, source):
+    # Make sure we're outputting HTML
+    if app.builder.format != 'html':
+        return
+
+    if docname == "supported_formats":
+        from imageio.metadata.extensions import known_extensions
+        from imageio.metadata.plugins import known_plugins
+        src = source[0]
+        rendered = app.builder.templates.render_string(
+            src, {
+                "formats": known_extensions,
+                "plugins": known_plugins
+            }
+        )
+        source[0] = rendered
+
+    # if docname == "getting_started/standardimages":
+    #     from imageio.core.request import EXAMPLE_IMAGES
+
+    #     src = source[0]
+    #     rendered = app.builder.templates.render_string(
+    #         src, {
+    #             "images": EXAMPLE_IMAGES,
+    #             "ordered_keys": sorted(EXAMPLE_IMAGES, key=lambda x: tuple(reversed(x.rsplit(".", 1)))),
+    #             "base_url": "https://github.com/imageio/imageio-binaries/raw/master/images/",
+    #         }
+    #     )
+    #     source[0] = rendered
