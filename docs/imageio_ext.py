@@ -1,7 +1,6 @@
 """ Invoke various functionality for imageio docs.
 """
 
-import os
 from pathlib import Path
 
 import imageio
