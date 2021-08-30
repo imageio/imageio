@@ -18,8 +18,6 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.9.0"
 
-from . import metadata
-
 # v3.0.0 API
 from .core.imopen import imopen as imopen_obj
 
