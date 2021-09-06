@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin for reading gdal files.
+""" Read GDAL files.
+
+Backend: `GDAL <https://gdal.org/>`_
+
+.. note::
+    To use this plugin you have to install its backend::
+
+        pip install imageio[gdal]
+
+Parameters
+----------
+none
 """
 
 from .. import formats
@@ -27,14 +38,7 @@ GDAL_FORMATS = (".tiff", " .tif", ".img", ".ecw", ".jpg", ".jpeg")
 
 
 class GdalFormat(Format):
-
-    """
-
-    Parameters for reading
-    ----------------------
-    None
-
-    """
+    """See :mod:`imageio.plugins.gdal`"""
 
     def _can_read(self, request):
         if request.extension in (".ecw",):

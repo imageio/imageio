@@ -1,7 +1,31 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that wraps the the Pillow library.
+""" Read/Write images using Pillow/PIL.
+
+Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
+
+Plugin that wraps the the Pillow library. Pillow is a friendly fork of PIL
+(Python Image Library) and supports reading and writing of common formats (jpg,
+png, gif, tiff, ...). For, the complete list of features and supported formats
+please refer to pillows official docs (see the Backend Library link).
+
+Parameters
+----------
+request : Request
+    A request object representing the resource to be operated on.
+
+Methods
+-------
+
+.. autosummary::
+    :toctree: _plugins/pillow
+
+    PillowPlugin.read
+    PillowPlugin.write
+    PillowPlugin.iter
+    PillowPlugin.get_meta
+
 """
 
 import numpy as np
@@ -234,7 +258,7 @@ class PillowPlugin(object):
 
         Parameters
         ----------
-        image : numpy.ndarray
+        image : ndarray
             The ndimage to write.
         mode : {str}
             Specify the image's color format; default is RGB. Possible modes can
@@ -245,11 +269,10 @@ class PillowPlugin(object):
             determined from the filename extension. If a file object was used
             instead of a filename, this parameter must always be used.
         kwargs : ...
-            Extra arguments to pass to pillow. If a
-            writer doesn't recognise an option, it is silently ignored. The
-            available options are described in the :doc:`image format
-            documentation
-            (https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html)
+            Extra arguments to pass to pillow. If a writer doesn't recognise an
+            option, it is silently ignored. The available options are described
+            in pillow's `image format documentation
+            <https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html>`_
             for each writer.
 
         """

@@ -1,8 +1,25 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Storage of image data in npz format. Not a great format, but at least
-it supports volumetric data. And its less than 100 lines.
+"""Read/Write NPZ files.
+
+Backend: `Numpy <https://numpy.org/doc/stable/reference/generated/numpy.savez.html>`_
+
+NPZ is a file format by numpy that provides storage of array data using gzip
+compression. This imageio plugin supports data of any shape, and also supports
+multiple images per file. However, the npz format does not provide streaming;
+all data is read/written at once. Further, there is no support for meta data.
+
+See the BSDF format for a similar (but more fully featured) format.
+
+Parameters
+----------
+None
+
+Notes
+-----
+This format is not available on Pypy.
+
 """
 
 import numpy as np
@@ -12,28 +29,7 @@ from ..core import Format
 
 
 class NpzFormat(Format):
-    """NPZ is a file format by numpy that provides storage of array
-    data using gzip compression. This imageio plugin supports data of any
-    shape, and also supports multiple images per file.
-
-    However, the npz format does not provide streaming; all data is
-    read/written at once. Further, there is no support for meta data.
-
-    Beware that the numpy npz format has a bug on a certain combination
-    of Python 2.7 and numpy, which can cause the resulting files to
-    become unreadable on Python 3. Also, this format is not available
-    on Pypy.
-
-    See the BSDF format for a similar (but more fully featured) format.
-
-    Parameters for reading
-    ----------------------
-    None
-
-    Parameters for saving
-    ---------------------
-    None
-    """
+    """See :mod:`imageio.plugins.npz`"""
 
     def _can_read(self, request):
         # We support any kind of image data

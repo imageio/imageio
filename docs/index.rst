@@ -9,6 +9,8 @@ Contents:
 .. toctree::
   :maxdepth: 2
   
-  sec_gettingstarted
-  sec_reference
-  sec_developer
+  Getting Started <getting_started/index>
+  Examples <examples>
+  Supported Formats <supported_formats>
+  API Reference <reference/index>
+  Development <development/index>

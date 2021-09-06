@@ -80,7 +80,7 @@ Example:
     (512, 512, 3)
     >>> imageio.imwrite('astronaut-gray.jpg', im[:, :, 0])
 
-See the `user API <https://imageio.readthedocs.io/en/stable/userapi.html>`_
+See the `API Reference <https://imageio.readthedocs.io/en/stable/reference/index.html>`_
 or `examples <https://imageio.readthedocs.io/en/stable/examples.html>`_
 for more information.
 """
@@ -175,7 +175,7 @@ install_requires = ["numpy", "pillow != 8.3.0"]
 extras_require = {
     "linting": ["black", "flake8"],
     "test": ["invoke", "pytest", "pytest-cov"],
-    "docs": ["sphinx", "numpydoc"],
+    "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
@@ -208,7 +208,7 @@ setup(
     python_requires=">=3.5",
     install_requires=install_requires,
     extras_require=extras_require,
-    packages=["imageio", "imageio.core", "imageio.plugins"],
+    packages=["imageio", "imageio.core", "imageio.plugins", "imageio.config"],
     package_dir={"imageio": "imageio"},
     # Data in the package
     package_data={"imageio": package_data},

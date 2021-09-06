@@ -1,10 +1,10 @@
-Imageio usage examples
+Imageio Usage Examples
 ======================
 
 Some of these examples use Visvis to visualize the image data,
 but one can also use Matplotlib to show the images.
 
-Imageio provides a range of :doc:`example images <standardimages>`,
+Imageio provides a range of :doc:`example images <getting_started/standardimages>`,
 which can be used by using a URI like ``'imageio:chelsea.png'``. The images
 are automatically downloaded if not already present on your system.
 Therefore most examples below should just work.
@@ -17,18 +17,18 @@ Probably the most important thing you'll ever need.
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
 
-    im = imageio.imread('imageio:chelsea.png')
+    im = iio.imread('imageio:chelsea.png')
     print(im.shape)
     
 If the image is a GIF:
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     
-    im = imageio.get_reader('cat.gif')
+    im = iio.get_reader('cat.gif')
     for frame in im:
         print(frame.shape)  # Each frame is a numpy matrix
     
@@ -36,9 +36,9 @@ If the GIF is stored in memory:
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     
-    im = imageio.get_reader(image_bytes, '.gif')
+    im = iio.get_reader(image_bytes, '.gif')
     
 
 Read from fancy sources
@@ -48,10 +48,10 @@ Imageio can read from filenames, file objects, http, zipfiles and bytes.
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import visvis as vv
 
-    im = imageio.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
+    im = iio.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
     vv.imshow(im)
 
 Note: reading from HTTP and zipfiles works for many formats including png and jpeg, but may not work
@@ -59,14 +59,32 @@ for all formats (some plugins "seek" the file object, which HTTP/zip streams do 
 In such a case one can download/extract the file first. For HTTP one can use something like
 ``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
 
+Read all Images in a Folder
+---------------------------
+
+One common scenario is that you want to read all images in a folder, e.g. for a scientific analysis, or
+because these are all your training examples. Assuming the folder only contains image files, you can
+read it using a snippet like
+
+.. code-block:: python
+
+    import imageio as iio
+    from pathlib import Path
+
+    images = list()
+    for file in Path("path/to/folder").iterdir():
+        im = iio.imread(file)
+        images.append(im)
+
+
 Iterate over frames in a movie
 ------------------------------
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
 
-    reader = imageio.get_reader('imageio:cockatoo.mp4')
+    reader = iio.get_reader('imageio:cockatoo.mp4')
     for i, im in enumerate(reader):
         print('Mean of frame %i is %1.1f' % (i, im.mean()))
 
@@ -78,10 +96,10 @@ Grab screenshot or image from the clipboard
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
 
-    im_screen = imageio.imread('<screen>')
-    im_clipboard = imageio.imread('<clipboard>')
+    im_screen = iio.imread('<screen>')
+    im_clipboard = iio.imread('<clipboard>')
 
 
 Grab frames from your webcam
@@ -94,10 +112,10 @@ in order to use this plugin.
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import visvis as vv
 
-    reader = imageio.get_reader('<video0>')
+    reader = iio.get_reader('<video0>')
     t = vv.imshow(reader.get_next_data(), clim=(0, 255))
     for im in reader:
         vv.processEvents()
@@ -113,12 +131,12 @@ You need to ``pip install imageio-ffmpeg`` in order to use the ffmpeg plugin.
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
 
-    reader = imageio.get_reader('imageio:cockatoo.mp4')
+    reader = iio.get_reader('imageio:cockatoo.mp4')
     fps = reader.get_meta_data()['fps']
 
-    writer = imageio.get_writer('~/cockatoo_gray.mp4', fps=fps)
+    writer = iio.get_writer('~/cockatoo_gray.mp4', fps=fps)
 
     for im in reader:
         writer.append_data(im[:, :, 1])
@@ -131,15 +149,15 @@ Read medical data (DICOM)
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     dirname = 'path/to/dicom/files'
 
     # Read as loose images
-    ims = imageio.mimread(dirname, 'DICOM')
+    ims = iio.mimread(dirname, 'DICOM')
     # Read as volume
-    vol = imageio.volread(dirname, 'DICOM')
+    vol = iio.volread(dirname, 'DICOM')
     # Read multiple volumes (multiple DICOM series)
-    vols = imageio.mvolread(dirname, 'DICOM')
+    vols = iio.mvolread(dirname, 'DICOM')
 
 
 Volume data
@@ -147,10 +165,10 @@ Volume data
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import visvis as vv
 
-    vol = imageio.volread('imageio:stent.npz')
+    vol = iio.volread('imageio:stent.npz')
     vv.volshow(vol)
 
 
@@ -165,15 +183,15 @@ Note, you will need ffmpeg compiled with vaapi for this to work.
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import numpy as np
 
     # All images must be of the same size
     image1 = np.stack([imageio.imread('imageio:camera.png')] * 3, 2)
-    image2 = imageio.imread('imageio:astronaut.png')
-    image3 = imageio.imread('imageio:immunohistochemistry.png')
+    image2 = iio.imread('imageio:astronaut.png')
+    image3 = iio.imread('imageio:immunohistochemistry.png')
 
-    w = imageio.get_writer('my_video.mp4', format='FFMPEG', mode='I', fps=1,
+    w = iio.get_writer('my_video.mp4', format='FFMPEG', mode='I', fps=1,
                            codec='h264_vaapi',
                            output_params=['-vaapi_device',
                                           '/dev/dri/renderD128',
@@ -228,7 +246,7 @@ Now, let's start by creating a gif using imageio:
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import matplotlib.pyplot as plt
     
     n = 100
@@ -243,9 +261,9 @@ Now, let's start by creating a gif using imageio:
         plt.ylim(0, 1)
         plt.savefig("{i}.jpg".format(i=i))
         
-    with imageio.get_writer(gif_path, mode='I') as writer:
+    with iio.get_writer(gif_path, mode='I') as writer:
         for i in range(n):
-            writer.append_data(imageio.imread(frames_path.format(i=i)))
+            writer.append_data(iio.imread(frames_path.format(i=i)))
             
 This way we obtain a 2.5MB gif.
 
@@ -266,7 +284,7 @@ Putting everything together:
 
 .. code-block:: python
 
-    import imageio
+    import imageio as iio
     import matplotlib.pyplot as plt
     from pygifsicle import optimize
     
@@ -282,8 +300,44 @@ Putting everything together:
         plt.ylim(0, 1)
         plt.savefig("{i}.jpg".format(i=i))
         
-    with imageio.get_writer(gif_path, mode='I') as writer:
+    with iio.get_writer(gif_path, mode='I') as writer:
         for i in range(n):
-            writer.append_data(imageio.imread(frames_path.format(i=i)))
+            writer.append_data(iio.imread(frames_path.format(i=i)))
             
     optimize(gif_path)
+
+Reading Images from ZIP archives
+--------------------------------
+
+.. note::
+
+    In the future, this syntax will change to better match the URI
+    standard by using fragments. The updated syntax will be 
+    ``"Path/to/file.zip#path/inside/zip/to/image.png"``.
+
+.. code-block:: python
+
+    import imageio as iio
+
+    image = iio.imread("Path/to/file.zip/path/inside/zip/to/image.png")
+
+
+
+
+Reading Multiple Files from a ZIP archive
+-----------------------------------------
+
+Assuming there is only image files in the ZIP archive, you can iterate
+over them with a simple script like the one below.
+
+.. code-block:: python
+
+    import os
+    from zipfile import ZipFile
+    import imageio as iio
+
+    images = list()
+    with ZipFile("imageio.zip") as zf:
+        for name in zf.namelist():
+            im = iio.imread(name)
+            images.append(im)

@@ -1,0 +1,17 @@
+Supported Formats
+=================
+
+ImageIO reads and writes images by deligating your request to one of many
+backends, e.g., pillow, ffmpeg, tifffile, etc. Each backend supports
+its own set of formats, which is how ImageIO manages to support so many
+of them.
+
+Below you can find a (non-exhaustive) list of formats that ImageIO supports
+together with the backend supporting it. This list is non-exhaustive, because it
+only lists the formats we were aware of at the time the docs were written. If
+any backend introduces support for new formats they, too, will be supported but
+our docs may take time to update and reflect this. If in doubt, check the docs
+of the respective backend.
+
+..
+    The generator will place the list of formats here

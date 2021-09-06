@@ -15,11 +15,11 @@ import sys
 import os
 import imageio
 
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("."))
-
 
 # -- General configuration -----------------------------------------------------
 
@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.abspath("."))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
-    # 'sphinx.ext.autosummary',
+    "sphinx.ext.autosummary",
     "numpydoc",
     "imageio_ext",
 ]
@@ -55,7 +55,7 @@ master_doc = "index"
 
 # General information about the project.
 project = u"imageio"
-copyright = u"2014-2020, imageio contributors"
+copyright = u"2014-2021, imageio contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -105,12 +105,31 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# html_theme = 'default'
-
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-# html_theme_options = {}
+html_theme = "pydata_sphinx_theme"
+html_logo = "_static/imageio_logo.png"
+html_theme_options = {
+    "external_links": [],
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/imageio/imageio",
+            "icon": "fab fa-github-square",
+        },
+        {
+            "name": "Pipy",
+            "url": "https://pypi.org/project/imageio/",
+            "icon": "fas fa-box",
+        },
+    ],
+    "use_edit_page_button": True,
+}
+html_context = {
+    # "github_url": "https://github.com", # or your GitHub Enterprise interprise
+    "github_user": "imageio",
+    "github_repo": "imageio",
+    "github_version": "master",
+    "doc_path": "docs/",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -134,7 +153,7 @@ pygments_style = "sphinx"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []  # ['_static']
+html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

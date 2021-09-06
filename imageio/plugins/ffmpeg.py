@@ -1,11 +1,120 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that uses ffmpeg to read and write series of images to
-a wide range of video formats.
+"""Read/Write video using FFMPEG
 
-Code inspired/based on code from moviepy: https://github.com/Zulko/moviepy/
-by Zulko
+Backend Library: https://github.com/imageio/imageio-ffmpeg
+
+.. note::
+    To use this plugin you have to install its backend::
+
+        pip install imageio[ffmpeg]
+
+
+The ffmpeg format provides reading and writing for a wide range of movie formats
+such as .avi, .mpeg, .mp4, etc. as well as the ability to read streams from
+webcams and USB cameras. It is based on ffmpeg and is inspired by/based `moviepy
+<https://github.com/Zulko/moviepy/>`_ by Zulko.
+
+Parameters for reading
+----------------------
+fps : scalar
+    The number of frames per second to read the data at. Default None (i.e.
+    read at the file's own fps). One can use this for files with a
+    variable fps, or in cases where imageio is unable to correctly detect
+    the fps.
+loop : bool
+    If True, the video will rewind as soon as a frame is requested
+    beyond the last frame. Otherwise, IndexError is raised. Default False.
+    Setting this to True will internally call ``count_frames()``,
+    and set the reader's length to that value instead of inf.
+size : str | tuple
+    The frame size (i.e. resolution) to read the images, e.g.
+    (100, 100) or "640x480". For camera streams, this allows setting
+    the capture resolution. For normal video data, ffmpeg will
+    rescale the data.
+dtype : str | type
+    The dtype for the output arrays. Determines the bit-depth that
+    is requested from ffmpeg. Supported dtypes: uint8, uint16.
+    Default: uint8.
+pixelformat : str
+    The pixel format for the camera to use (e.g. "yuyv422" or
+    "gray"). The camera needs to support the format in order for
+    this to take effect. Note that the images produced by this
+    reader are always RGB.
+input_params : list
+    List additional arguments to ffmpeg for input file options.
+    (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
+    Example ffmpeg arguments to use aggressive error handling:
+    ['-err_detect', 'aggressive']
+output_params : list
+    List additional arguments to ffmpeg for output file options (i.e. the
+    stream being read by imageio).
+print_info : bool
+    Print information about the video file as reported by ffmpeg.
+
+Parameters for writing
+----------------------
+fps : scalar
+    The number of frames per second. Default 10.
+codec : str
+    the video codec to use. Default 'libx264', which represents the
+    widely available mpeg4. Except when saving .wmv files, then the
+    defaults is 'msmpeg4' which is more commonly supported for windows
+quality : float | None
+    Video output quality. Default is 5. Uses variable bit rate. Highest
+    quality is 10, lowest is 0. Set to None to prevent variable bitrate
+    flags to FFMPEG so you can manually specify them using output_params
+    instead. Specifying a fixed bitrate using 'bitrate' disables this
+    parameter.
+bitrate : int | None
+    Set a constant bitrate for the video encoding. Default is None causing
+    'quality' parameter to be used instead.  Better quality videos with
+    smaller file sizes will result from using the 'quality'  variable
+    bitrate parameter rather than specifiying a fixed bitrate with this
+    parameter.
+pixelformat: str
+    The output video pixel format. Default is 'yuv420p' which most widely
+    supported by video players.
+input_params : list
+    List additional arguments to ffmpeg for input file options (i.e. the
+    stream that imageio provides).
+output_params : list
+    List additional arguments to ffmpeg for output file options.
+    (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
+    Example ffmpeg arguments to use only intra frames and set aspect ratio:
+    ['-intra', '-aspect', '16:9']
+ffmpeg_log_level: str
+    Sets ffmpeg output log level.  Default is "warning".
+    Values can be "quiet", "panic", "fatal", "error", "warning", "info"
+    "verbose", or "debug". Also prints the FFMPEG command being used by
+    imageio if "info", "verbose", or "debug".
+macro_block_size: int
+    Size constraint for video. Width and height, must be divisible by this
+    number. If not divisible by this number imageio will tell ffmpeg to
+    scale the image up to the next closest size
+    divisible by this number. Most codecs are compatible with a macroblock
+    size of 16 (default), some can go smaller (4, 8). To disable this
+    automatic feature set it to None or 1, however be warned many players
+    can't decode videos that are odd in size and some codecs will produce
+    poor results or fail. See https://en.wikipedia.org/wiki/Macroblock.
+
+
+Notes
+-----
+If you are using anaconda and ``anaconda/ffmpeg`` you will not be able to
+encode/decode H.264 (likely due to licensing concerns). If you need this
+format on anaconda install ``conda-forge/ffmpeg`` instead.
+
+You can use the ``IMAGEIO_FFMPEG_EXE`` environment variable to force using a
+specific ffmpeg executable.
+
+To get the number of frames before having read them all, you can use the
+``reader.count_frames()`` method (the reader will then use
+``imageio_ffmpeg.count_frames_and_secs()`` to get the exact number of frames,
+note that this operation can take a few seconds on large files). Alternatively,
+the number of frames can be estimated from the fps and duration in the meta data
+(though these values themselves are not always present/reliable).
 
 """
 
@@ -66,111 +175,9 @@ def _get_ffmpeg_api():
 
 
 class FfmpegFormat(Format):
-    """The ffmpeg format provides reading and writing for a wide range
-    of movie formats such as .avi, .mpeg, .mp4, etc. And also to read
-    streams from webcams and USB cameras.
+    """Read/Write ImageResources using FFMPEG.
 
-    To read from camera streams, supply "<video0>" as the filename,
-    where the "0" can be replaced with any index of cameras known to
-    the system.
-
-    To use this plugin, the ``imageio-ffmpeg`` library should be installed
-    (e.g. via pip). For most platforms this includes the ffmpeg executable.
-    One can use the ``IMAGEIO_FFMPEG_EXE`` environment variable to force
-    using a specific ffmpeg executable.
-
-    When reading from a video, the number of available frames is hard/expensive
-    to calculate, which is why its set to inf by default, indicating
-    "stream mode". To get the number of frames before having read them all,
-    you can use the ``reader.count_frames()`` method (the reader will then use
-    ``imageio_ffmpeg.count_frames_and_secs()`` to get the exact number of
-    frames, note that this operation can take a few seconds on large files).
-    Alternatively, the number of frames can be estimated from the fps and
-    duration in the meta data (though these values themselves are not always
-    present/reliable).
-
-    Parameters for reading
-    ----------------------
-    fps : scalar
-        The number of frames per second to read the data at. Default None (i.e.
-        read at the file's own fps). One can use this for files with a
-        variable fps, or in cases where imageio is unable to correctly detect
-        the fps.
-    loop : bool
-        If True, the video will rewind as soon as a frame is requested
-        beyond the last frame. Otherwise, IndexError is raised. Default False.
-        Setting this to True will internally call ``count_frames()``,
-        and set the reader's length to that value instead of inf.
-    size : str | tuple
-        The frame size (i.e. resolution) to read the images, e.g.
-        (100, 100) or "640x480". For camera streams, this allows setting
-        the capture resolution. For normal video data, ffmpeg will
-        rescale the data.
-    dtype : str | type
-        The dtype for the output arrays. Determines the bit-depth that
-        is requested from ffmpeg. Supported dtypes: uint8, uint16.
-        Default: uint8.
-    pixelformat : str
-        The pixel format for the camera to use (e.g. "yuyv422" or
-        "gray"). The camera needs to support the format in order for
-        this to take effect. Note that the images produced by this
-        reader are always RGB.
-    input_params : list
-        List additional arguments to ffmpeg for input file options.
-        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
-        Example ffmpeg arguments to use aggressive error handling:
-        ['-err_detect', 'aggressive']
-    output_params : list
-        List additional arguments to ffmpeg for output file options (i.e. the
-        stream being read by imageio).
-    print_info : bool
-        Print information about the video file as reported by ffmpeg.
-
-    Parameters for saving
-    ---------------------
-    fps : scalar
-        The number of frames per second. Default 10.
-    codec : str
-        the video codec to use. Default 'libx264', which represents the
-        widely available mpeg4. Except when saving .wmv files, then the
-        defaults is 'msmpeg4' which is more commonly supported for windows
-    quality : float | None
-        Video output quality. Default is 5. Uses variable bit rate. Highest
-        quality is 10, lowest is 0. Set to None to prevent variable bitrate
-        flags to FFMPEG so you can manually specify them using output_params
-        instead. Specifying a fixed bitrate using 'bitrate' disables this
-        parameter.
-    bitrate : int | None
-        Set a constant bitrate for the video encoding. Default is None causing
-        'quality' parameter to be used instead.  Better quality videos with
-        smaller file sizes will result from using the 'quality'  variable
-        bitrate parameter rather than specifiying a fixed bitrate with this
-        parameter.
-    pixelformat: str
-        The output video pixel format. Default is 'yuv420p' which most widely
-        supported by video players.
-    input_params : list
-        List additional arguments to ffmpeg for input file options (i.e. the
-        stream that imageio provides).
-    output_params : list
-        List additional arguments to ffmpeg for output file options.
-        (Can also be provided as ``ffmpeg_params`` for backwards compatibility)
-        Example ffmpeg arguments to use only intra frames and set aspect ratio:
-        ['-intra', '-aspect', '16:9']
-    ffmpeg_log_level: str
-        Sets ffmpeg output log level.  Default is "warning".
-        Values can be "quiet", "panic", "fatal", "error", "warning", "info"
-        "verbose", or "debug". Also prints the FFMPEG command being used by
-        imageio if "info", "verbose", or "debug".
-    macro_block_size: int
-        Size constraint for video. Width and height, must be divisible by this
-        number. If not divisible by this number imageio will tell ffmpeg to
-        scale the image up to the next closest size
-        divisible by this number. Most codecs are compatible with a macroblock
-        size of 16 (default), some can go smaller (4, 8). To disable this
-        automatic feature set it to None or 1, however be warned many players
-        can't decode videos that are odd in size and some codecs will produce
-        poor results or fail. See https://en.wikipedia.org/wiki/Macroblock.
+    See :mod:`imageio.plugins.ffmpeg`
     """
 
     def _can_read(self, request):

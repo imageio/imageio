@@ -1,7 +1,170 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Plugin that wraps the the Pillow library.
+""" Read/Write images using pillow/PIL (legacy).
+
+Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
+
+Pillow is a friendly fork of PIL (Python Image Library) and supports
+reading and writing of common formats (jpg, png, gif, tiff, ...). While
+these docs provide an overview of some of its features, pillow is
+constantly improving. Hence, the complete list of features can be found
+in pillows official docs (see the Backend Library link).
+
+Parameters for Reading
+----------------------
+pilmode : str
+    (Available for all formates except GIF-PIL)
+    From the Pillow documentation:
+
+    * 'L' (8-bit pixels, grayscale)
+    * 'P' (8-bit pixels, mapped to any other mode using a color palette)
+    * 'RGB' (3x8-bit pixels, true color)
+    * 'RGBA' (4x8-bit pixels, true color with transparency mask)
+    * 'CMYK' (4x8-bit pixels, color separation)
+    * 'YCbCr' (3x8-bit pixels, color video format)
+    * 'I' (32-bit signed integer pixels)
+    * 'F' (32-bit floating point pixels)
+
+    PIL also provides limited support for a few special modes, including
+    'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
+    (true color with premultiplied alpha).
+
+    When translating a color image to grayscale (mode 'L', 'I' or 'F'),
+    the library uses the ITU-R 601-2 luma transform::
+
+        L = R * 299/1000 + G * 587/1000 + B * 114/1000
+as_gray : bool
+    (Available for all formates except GIF-PIL)
+    If True, the image is converted using mode 'F'. When `mode` is
+    not None and `as_gray` is True, the image is first converted
+    according to `mode`, and the result is then "flattened" using
+    mode 'F'.
+ignoregamma : bool
+    (Only available in PNG-PIL)
+    Avoid gamma correction. Default True.
+exifrotate : bool
+    (Only available in JPEG-PIL)
+    Automatically rotate the image according to exif flag. Default True.
+
+
+Parameters for saving
+---------------------
+optimize : bool
+    (Only available in PNG-PIL)
+    If present and true, instructs the PNG writer to make the output file
+    as small as possible. This includes extra processing in order to find
+    optimal encoder settings.
+transparency:
+    (Only available in PNG-PIL)
+    This option controls what color image to mark as transparent.
+dpi: tuple of two scalars
+    (Only available in PNG-PIL)
+    The desired dpi in each direction.
+pnginfo: PIL.PngImagePlugin.PngInfo
+    (Only available in PNG-PIL)
+    Object containing text tags.
+compress_level: int
+    (Only available in PNG-PIL)
+    ZLIB compression level, a number between 0 and 9: 1 gives best speed,
+    9 gives best compression, 0 gives no compression at all. Default is 9.
+    When ``optimize`` option is True ``compress_level`` has no effect
+    (it is set to 9 regardless of a value passed).
+compression: int
+    (Only available in PNG-PIL)
+    Compatibility with the freeimage PNG format. If given, it overrides
+    compress_level.
+icc_profile:
+    (Only available in PNG-PIL)
+    The ICC Profile to include in the saved file.
+bits (experimental): int
+    (Only available in PNG-PIL)
+    This option controls how many bits to store. If omitted,
+    the PNG writer uses 8 bits (256 colors).
+quantize:
+    (Only available in PNG-PIL)
+    Compatibility with the freeimage PNG format. If given, it overrides
+    bits. In this case, given as a number between 1-256.
+dictionary (experimental): dict
+    (Only available in PNG-PIL)
+    Set the ZLIB encoder dictionary.
+prefer_uint8: bool
+    (Only available in PNG-PIL)
+    Let the PNG writer truncate uint16 image arrays to uint8 if their values fall
+    within the range [0, 255]. Defaults to true for legacy compatibility, however
+    it is recommended to set this to false to avoid unexpected behavior when
+    saving e.g. weakly saturated images.
+
+quality : scalar
+    (Only available in JPEG-PIL)
+    The compression factor of the saved image (1..100), higher
+    numbers result in higher quality but larger file size. Default 75.
+progressive : bool
+    (Only available in JPEG-PIL)
+    Save as a progressive JPEG file (e.g. for images on the web).
+    Default False.
+optimize : bool
+    (Only available in JPEG-PIL)
+    On saving, compute optimal Huffman coding tables (can reduce a few
+    percent of file size). Default False.
+dpi : tuple of int
+    (Only available in JPEG-PIL)
+    The pixel density, ``(x,y)``.
+icc_profile : object
+    (Only available in JPEG-PIL)
+    If present and true, the image is stored with the provided ICC profile.
+    If this parameter is not provided, the image will be saved with no
+    profile attached.
+exif : dict
+    (Only available in JPEG-PIL)
+    If present, the image will be stored with the provided raw EXIF data.
+subsampling : str
+    (Only available in JPEG-PIL)
+    Sets the subsampling for the encoder. See Pillow docs for details.
+qtables : object
+    (Only available in JPEG-PIL)
+    Set the qtables for the encoder. See Pillow docs for details.
+quality_mode : str
+    (Only available in JPEG2000-PIL)
+    Either `"rates"` or `"dB"` depending on the units you want to use to
+    specify image quality.
+quality : float
+    (Only available in JPEG2000-PIL)
+    Approximate size reduction (if quality mode is `rates`) or a signal to noise ratio
+    in decibels (if quality mode is `dB`).
+loop : int
+    (Only available in GIF-PIL)
+    The number of iterations. Default 0 (meaning loop indefinitely).
+duration : {float, list}
+    (Only available in GIF-PIL)
+    The duration (in seconds) of each frame. Either specify one value
+    that is used for all frames, or one value for each frame.
+    Note that in the GIF format the duration/delay is expressed in
+    hundredths of a second, which limits the precision of the duration.
+fps : float
+    (Only available in GIF-PIL)
+    The number of frames per second. If duration is not given, the
+    duration for each frame is set to 1/fps. Default 10.
+palettesize : int
+    (Only available in GIF-PIL)
+    The number of colors to quantize the image to. Is rounded to
+    the nearest power of two. Default 256.
+subrectangles : bool
+    (Only available in GIF-PIL)
+    If True, will try and optimize the GIF by storing only the
+    rectangular parts of each frame that change with respect to the
+    previous. Default False.
+
+Notes
+-----
+To enable JPEG 2000 support, you need to build and install the OpenJPEG library,
+version 2.0.0 or higher, before building the Python Imaging Library. Windows
+users can install the OpenJPEG binaries available on the OpenJPEG website, but
+must add them to their PATH in order to use PIL (if you fail to do this, you
+will get errors about not being able to load the ``_imaging`` DLL).
+
+GIF images read with this plugin are always RGBA. The alpha channel is ignored
+when saving RGB images.
 """
 
 import logging
@@ -221,76 +384,7 @@ class PillowFormat(Format):
 
 
 class PNGFormat(PillowFormat):
-    """A PNG format based on Pillow.
-
-    This format supports grayscale, RGB and RGBA images.
-
-    Parameters for reading
-    ----------------------
-    ignoregamma : bool
-        Avoid gamma correction. Default True.
-    pilmode : str
-        From the Pillow documentation:
-
-        * 'L' (8-bit pixels, grayscale)
-        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
-        * 'RGB' (3x8-bit pixels, true color)
-        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
-        * 'CMYK' (4x8-bit pixels, color separation)
-        * 'YCbCr' (3x8-bit pixels, color video format)
-        * 'I' (32-bit signed integer pixels)
-        * 'F' (32-bit floating point pixels)
-
-        PIL also provides limited support for a few special modes, including
-        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
-        (true color with premultiplied alpha).
-
-        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
-        the library uses the ITU-R 601-2 luma transform::
-
-            L = R * 299/1000 + G * 587/1000 + B * 114/1000
-    as_gray : bool
-        If True, the image is converted using mode 'F'. When `mode` is
-        not None and `as_gray` is True, the image is first converted
-        according to `mode`, and the result is then "flattened" using
-        mode 'F'.
-
-    Parameters for saving
-    ---------------------
-    optimize : bool
-        If present and true, instructs the PNG writer to make the output file
-        as small as possible. This includes extra processing in order to find
-        optimal encoder settings.
-    transparency:
-        This option controls what color image to mark as transparent.
-    dpi: tuple of two scalars
-        The desired dpi in each direction.
-    pnginfo: PIL.PngImagePlugin.PngInfo
-        Object containing text tags.
-    compress_level: int
-        ZLIB compression level, a number between 0 and 9: 1 gives best speed,
-        9 gives best compression, 0 gives no compression at all. Default is 9.
-        When ``optimize`` option is True ``compress_level`` has no effect
-        (it is set to 9 regardless of a value passed).
-    compression: int
-        Compatibility with the freeimage PNG format. If given, it overrides
-        compress_level.
-    icc_profile:
-        The ICC Profile to include in the saved file.
-    bits (experimental): int
-        This option controls how many bits to store. If omitted,
-        the PNG writer uses 8 bits (256 colors).
-    quantize:
-        Compatibility with the freeimage PNG format. If given, it overrides
-        bits. In this case, given as a number between 1-256.
-    dictionary (experimental): dict
-        Set the ZLIB encoder dictionary.
-    prefer_uint8: bool
-        Let the PNG writer truncate uint16 image arrays to uint8 if their values fall
-        within the range [0, 255]. Defaults to true for legacy compatibility, however
-        it is recommended to set this to false to avoid unexpected behavior when
-        saving e.g. weakly saturated images.
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False, ignoregamma=True):
@@ -364,64 +458,7 @@ class PNGFormat(PillowFormat):
 
 
 class JPEGFormat(PillowFormat):
-    """A JPEG format based on Pillow.
-
-    This format supports grayscale, RGB and RGBA images.
-
-    Parameters for reading
-    ----------------------
-    exifrotate : bool
-        Automatically rotate the image according to exif flag. Default True.
-    pilmode : str
-        From the Pillow documentation:
-
-        * 'L' (8-bit pixels, grayscale)
-        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
-        * 'RGB' (3x8-bit pixels, true color)
-        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
-        * 'CMYK' (4x8-bit pixels, color separation)
-        * 'YCbCr' (3x8-bit pixels, color video format)
-        * 'I' (32-bit signed integer pixels)
-        * 'F' (32-bit floating point pixels)
-
-        PIL also provides limited support for a few special modes, including
-        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
-        (true color with premultiplied alpha).
-
-        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
-        the library uses the ITU-R 601-2 luma transform::
-
-            L = R * 299/1000 + G * 587/1000 + B * 114/1000
-    as_gray : bool
-        If True, the image is converted using mode 'F'. When `mode` is
-        not None and `as_gray` is True, the image is first converted
-        according to `mode`, and the result is then "flattened" using
-        mode 'F'.
-
-    Parameters for saving
-    ---------------------
-    quality : scalar
-        The compression factor of the saved image (1..100), higher
-        numbers result in higher quality but larger file size. Default 75.
-    progressive : bool
-        Save as a progressive JPEG file (e.g. for images on the web).
-        Default False.
-    optimize : bool
-        On saving, compute optimal Huffman coding tables (can reduce a few
-        percent of file size). Default False.
-    dpi : tuple of int
-        The pixel density, ``(x,y)``.
-    icc_profile : object
-        If present and true, the image is stored with the provided ICC profile.
-        If this parameter is not provided, the image will be saved with no
-        profile attached.
-    exif : dict
-        If present, the image will be stored with the provided raw EXIF data.
-    subsampling : str
-        Sets the subsampling for the encoder. See Pillow docs for details.
-    qtables : object
-        Set the qtables for the encoder. See Pillow docs for details.
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False, exifrotate=True):
@@ -502,60 +539,7 @@ class JPEGFormat(PillowFormat):
 
 
 class JPEG2000Format(PillowFormat):
-    """A JPEG 2000 format based on Pillow.
-
-    This format supports grayscale and RGB images.
-
-    Parameters for reading
-    ----------------------
-    pilmode : str
-        From the Pillow documentation:
-
-        * 'L' (8-bit pixels, grayscale)
-        * 'P' (8-bit pixels, mapped to any other mode using a color palette)
-        * 'RGB' (3x8-bit pixels, true color)
-        * 'RGBA' (4x8-bit pixels, true color with transparency mask)
-        * 'CMYK' (4x8-bit pixels, color separation)
-        * 'YCbCr' (3x8-bit pixels, color video format)
-        * 'I' (32-bit signed integer pixels)
-        * 'F' (32-bit floating point pixels)
-
-        PIL also provides limited support for a few special modes, including
-        'LA' ('L' with alpha), 'RGBX' (true color with padding) and 'RGBa'
-        (true color with premultiplied alpha).
-
-        When translating a color image to grayscale (mode 'L', 'I' or 'F'),
-        the library uses the ITU-R 601-2 luma transform::
-
-            L = R * 299/1000 + G * 587/1000 + B * 114/1000
-    as_gray : bool
-        If True, the image is converted using mode 'F'. When `mode` is
-        not None and `as_gray` is True, the image is first converted
-        according to `mode`, and the result is then "flattened" using
-        mode 'F'.
-
-    Parameters for saving
-    ---------------------
-    **quality_mode**
-        Either `"rates"` or `"dB"` depending on the units you want to use to
-        specify image quality.
-
-    **quality**
-        Approximate size reduction (if quality mode is `rates`) or a signal to noise ratio
-        in decibels (if quality mode is `dB`).
-
-    .. note::
-
-       To enable JPEG 2000 support, you need to build and install the OpenJPEG
-       library, version 2.0.0 or higher, before building the Python Imaging
-       Library.
-
-       Windows users can install the OpenJPEG binaries available on the
-       OpenJPEG website, but must add them to their PATH in order to use PIL (if
-       you fail to do this, you will get errors about not being able to load the
-       ``_imaging`` DLL).
-
-    """
+    """See :mod:`imageio.plugins.pillow_legacy`"""
 
     class Reader(PillowFormat.Reader):
         def _open(self, pilmode=None, as_gray=False):

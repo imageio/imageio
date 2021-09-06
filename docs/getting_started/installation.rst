@@ -14,18 +14,6 @@ To install imageio, use one of the following methods:
 * Good old ``python setup.py install``
 
 After installation, checkout the
-:doc:`examples  <examples>` and :doc:`user api <userapi>`.
+:doc:`examples <../examples>` and :doc:`user api <../reference/userapi>`.
 
 Still running Python 2.7? Read :doc:`here <drop27>`.
-
-
-Developers
-----------
-
-For developers, we provide a simple mechanism to allow importing
-imageio from the cloned repository <https://github.com/imageio/imageio.git>.
-See the file ``imageio.proxy.py`` for details.
-
-Further imageio has the following dev-dependencies:
-
-``pip install black flake8 pytest pytest-cov sphinx numpydoc``
