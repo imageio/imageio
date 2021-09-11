@@ -199,6 +199,7 @@ from datetime import datetime
 import logging
 import os
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
+from xml.etree import ElementTree as ET
 
 import numpy as np
 
@@ -707,26 +708,32 @@ class SpeFormat(Format):
             if index >= self._len:
                 raise IndexError("Image index %i > %i" % (index, self._len))
 
+            frame_size = self._shape[0] * self._shape[1]
+            stride = frame_size * self._dtype.itemsize  # Default stride.
+            meta = self._get_meta_data(index)
+            if "__xml" in meta:
+                et = ET.fromstring(meta["xml"])
+                strides = {
+                    int(e.attrib["stride"])
+                    for e in et.findall(".//{*}DataBlock[@type='Frame'][@stride]")
+                }
+                if len(strides) == 1:
+                    (stride,) = strides
+                elif len(strides) > 1:
+                    raise ValueError("Unsupported irregular DataBlock spacing")
+            dtype = [
+                ("data", self._dtype, self._shape[:2]),
+                ("pad", "u1", stride - frame_size * self._dtype.itemsize),
+            ]
+            self._file.seek(Spec.data_start + index * stride)
+
             if self.request.mode[1] in "vV":
                 if index != 0:
                     raise IndexError("Index has to be 0 in v and V modes")
-                self._file.seek(Spec.data_start)
-                data = np.fromfile(
-                    self._file,
-                    dtype=self._dtype,
-                    count=self._shape[0] * self._shape[1] * self._len,
-                )
-                data = data.reshape((self._len,) + self._shape)
+                read = np.fromfile(self._file, dtype, count=self._len)
             else:
-                self._file.seek(
-                    Spec.data_start
-                    + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
-                )
-                data = np.fromfile(
-                    self._file, dtype=self._dtype, count=self._shape[0] * self._shape[1]
-                )
-                data = data.reshape(self._shape)
-            return data, self._get_meta_data(index)
+                read = np.fromfile(self._file, dtype, count=1).squeeze(0)
+            return read["data"], meta
 
 
 def roi_array_to_dict(a):
