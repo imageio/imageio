@@ -15,12 +15,14 @@ class FileExtension:
         extension: str,
         priority: List[str],
         name: str = None,
-        description: str = None
+        description: str = None,
+        external_link: str = None
     ) -> None:
         self.extension = extension
         self.priority = priority
         self.name = name
         self.description = description
+        self.external_link = external_link
 
 
 known_extensions = [
@@ -45,12 +47,10 @@ known_extensions = [
         priority=["RAW-FI"],
     ),
     FileExtension(
-        description="""
-    See also: https://en.wikipedia.org/wiki/BMP_file_format
-    """,
         name="Bitmap",
         extension="bmp",
         priority=["BMP-PIL", "BMP-FI", "itk"],
+        external_link="https://en.wikipedia.org/wiki/BMP_file_format",
     ),
     FileExtension(
         name="Re-Volt mipmap",
@@ -58,12 +58,10 @@ known_extensions = [
         priority=["RAW-FI"],
     ),
     FileExtension(
-        description="""
-    See Also: http://bsdf.io/
-    """,
         name="Binary Structured Data Format",
         extension="bsdf",
         priority=["BSDF"],
+        external_link="http://bsdf.io/",
     ),
     FileExtension(
         name="Binary Universal Form for the Representation of meteorological data",
@@ -81,12 +79,10 @@ known_extensions = [
         priority=["RAW-FI"],
     ),
     FileExtension(
-        description="""
-        See Also: https://phantomhighspeed-knowledge.secure.force.com/servlet/fileField?id=0BE1N000000kD2i#:~:text=Cine%20is%20a%20video%20file,camera%20model%20and%20image%20resolution.
-    """,
         name="AMETEK High Speed Camera Format",
         extension="cine",
         priority=["RAW-FI"],
+        external_link="https://phantomhighspeed-knowledge.secure.force.com/servlet/fileField?id=0BE1N000000kD2i#:~:text=Cine%20is%20a%20video%20file,camera%20model%20and%20image%20resolution",
     ),
     FileExtension(extension="cr2", priority=["RAW-FI"]),
     FileExtension(
@@ -439,12 +435,10 @@ known_extensions = [
         priority=["itk", "tiff"],
     ),
     FileExtension(
-        description="""
-    See Also: https://www.ssec.wisc.edu/mcidas/doc/prog_man/2003print/progman2003-formats.html
-    """,
         name="McIdas area file",
         extension="MCIDAS",
         priority=["MCIDAS-PIL"],
+        external_link="https://www.ssec.wisc.edu/mcidas/doc/prog_man/2003print/progman2003-formats.html",
     ),
     FileExtension(
         extension="mdc",

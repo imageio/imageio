@@ -15,24 +15,34 @@ of the respective backend.
 
 Known Formats
 -------------
-Each backend listed here is listed using the format string you would use to call
-the respective backend explicitly. For example, if you have a PNG file that you wish
-to open with pillow you would use ::
+Below you can find an alphabetically sorted list of *all*
+extensions/file-formats that ImageIO is aware of. If an extension is listed
+here, it is supported. If an extension is not listed here, it may still be
+supported if one of the backends supports the extension/format. If you encoutner
+the latter, please `create a new issue
+<https://github.com/imageio/imageio/issues>`_ so that we can keep below list up
+to date and add support for any missing formats.
+
+Each entry in the list below follows the following format::
+
+    - <extension> (<format name>): <plugin> <plugin> ...
+
+where ``<plugin>`` is the name of a plugin that can handle the format. If you
+wish to use a specific plugin to load a format, you would use the name as
+specified. For example, if you have a PNG file that you wish to open with pillow
+and the ``<plugin>`` is called ``PNG-PIL`` you would call ::
 
     iio.imread("image.png", format="PNG-PIL")
 
-and the backend will be listed as ``PNG-PIL``.
-
-
 {% for format in formats %}
-.. rubric:: {{ format.extension }} {%if format.name %}({{ format.name }}){%endif%}
-
-{% if format.description %}{{ format.description.strip("\n ") }}{% endif %}
-
-Backends: {% for name in format.priority %} :mod:`{{name}} <{{plugins[name]}}>` {% endfor %}
-    
+{% if format.external_link %}
+- **{{ format.extension }}** (`{{ format.name }} <{{format.external_link}}>`_): {% for name in format.priority %} :mod:`{{name}} <{{plugins[name]}}>` {% endfor %}
+{% elif format.name %}
+- **{{ format.extension }}** ({{ format.name }}): {% for name in format.priority %} :mod:`{{name}} <{{plugins[name]}}>` {% endfor %}
+{% else %}
+- **{{ format.extension }}**: {% for name in format.priority %} :mod:`{{name}} <{{plugins[name]}}>` {% endfor %}
+{%endif%}
 {% endfor %}
-
 
 Formats by Plugin
 -----------------
