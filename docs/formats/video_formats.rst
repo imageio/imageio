@@ -26,7 +26,7 @@ and the ``<plugin>`` is called ``FFMPEG`` you would call::
     To complete this list we are looking for the following information:
 
         - The full name of each extension
-        - A link to the spec/wikipedia/format-homepage
+        - A link to the spec, wikipedia page, or format homepage
         - extensions/formats supported by ImageIO but not listed here
 
     If you come across any of the above, please `share this information
