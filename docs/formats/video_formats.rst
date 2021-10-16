@@ -1,31 +1,8 @@
-Supported Formats
-=================
+Video Formats
+-------------
 
-.. note::
-    If you just want to know if a specific extension/format is supported
-    you can search this page using ``Ctrl+F`` and then type the name of
-    the extension or format.
-
-ImageIO reads and writes images by deligating your request to one of many
-backends. Example backends are pillow, ffmpeg, tifffile among others. Each
-backend supports its own set of formats, which is how ImageIO manages to support
-so many of them.
-
-To help you navigate this format jungle, ImageIO provides various curated lists of formats
-depending on your use-case
-
-.. toctree::
-    :maxdepth: 1
-
-    formats_by_plugin
-    video_formats
-
-
-All Formats
------------
-
-Below you can find an alphabetically sorted list of *all*
-extensions/file-formats that ImageIO is aware of. If an extension is listed
+Below you can find an alphabetically sorted list of the video
+extensions/formats that ImageIO is aware of. If an extension is listed
 here, it is supported. If an extension is not listed here, it may still be
 supported if one of the backends supports the extension/format. If you encoutner
 the latter, please `create a new issue
@@ -38,10 +15,10 @@ Each entry in the list below follows the following format::
 
 where ``<plugin>`` is the name of a plugin that can handle the format. If you
 wish to use a specific plugin to load a format, you would use the name as
-specified. For example, if you have a PNG file that you wish to open with pillow
-and the ``<plugin>`` is called ``PNG-PIL`` you would call::
+specified. For example, if you have a MOV file that you wish to open with FFMPEG
+and the ``<plugin>`` is called ``FFMPEG`` you would call::
 
-    iio.imread("image.png", format="PNG-PIL")
+    iio.imread("image.mov", format="FFMPEG")
 
 .. rubric:: Format List
 

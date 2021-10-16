@@ -5,7 +5,7 @@ supporting backend.
 
 """
 
-from typing import List
+from typing import List, Dict
 
 
 class FileExtension:
@@ -823,3 +823,33 @@ known_extensions = [
     ),
 ]
 known_extensions.sort(key=lambda x: x.extension)
+
+
+_extension_dict: Dict[str, List[FileExtension]] = dict()
+for ext in known_extensions:
+    if ext.extension not in _extension_dict:
+        _extension_dict[ext.extension] = list()
+    _extension_dict[ext.extension].append(ext)
+
+
+_video_extension_strings = [
+    "avi",
+    "mkv",
+    "mov",
+    "mp4",
+    "mpeg",
+    "mpg",
+    "webm",
+    "wmv",
+    "gif",
+]
+video_extensions: List[FileExtension] = list()
+for ext_string in _video_extension_strings:
+    formats = _extension_dict[ext_string]
+    if len(formats) != 1:
+        # placeholder for ambigous extensions
+        # currently none known for video formats
+        pass
+    else:
+        video_extensions.append(formats[0])
+video_extensions.sort(key=lambda x: x.extension)

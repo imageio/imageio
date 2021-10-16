@@ -61,6 +61,16 @@ def rstjinja(app, docname, source):
         )
         source[0] = rendered
 
+    if docname == "formats/video_formats":
+        from imageio.config.extensions import video_extensions
+        from imageio.config.plugins import known_plugins
+
+        src = source[0]
+        rendered = app.builder.templates.render_string(
+            src, {"formats": video_extensions, "plugins": known_plugins}
+        )
+        source[0] = rendered
+
     if docname == "getting_started/standardimages":
         from imageio.core.request import EXAMPLE_IMAGES
 
