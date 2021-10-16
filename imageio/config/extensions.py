@@ -846,10 +846,5 @@ _video_extension_strings = [
 video_extensions: List[FileExtension] = list()
 for ext_string in _video_extension_strings:
     formats = _extension_dict[ext_string]
-    if len(formats) != 1:
-        # placeholder for ambigous extensions
-        # currently none known for video formats
-        pass
-    else:
-        video_extensions.append(formats[0])
+    video_extensions.append(formats[0])
 video_extensions.sort(key=lambda x: x.extension)
