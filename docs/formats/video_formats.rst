@@ -4,7 +4,7 @@ Video Formats
 Below you can find an alphabetically sorted list of the video
 extensions/formats that ImageIO is aware of. If an extension is listed
 here, it is supported. If an extension is not listed here, it may still be
-supported if one of the backends supports the extension/format. If you encoutner
+supported if one of the backends supports the extension/format. If you encounter
 the latter, please `create a new issue
 <https://github.com/imageio/imageio/issues>`_ so that we can keep below list up
 to date and add support for any missing formats.
