@@ -1,0 +1,21 @@
+name: CD
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # run at 2 AM UTC
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  initial_check:
+    name: "Should release?"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install Dependencies
+        run: |
+          pip install python-semantic-release
+      - run: semantic-release print-version
