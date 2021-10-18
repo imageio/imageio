@@ -22,7 +22,7 @@ and the ``<plugin>`` is called ``FFMPEG`` you would call::
 
 .. rubric:: Format List
 
-.. warning::
+.. note::
     To complete this list we are looking for the following information:
 
         - The full name of each extension
