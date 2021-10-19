@@ -16,7 +16,9 @@ def tmp_dir(tmp_path_factory):
     # download the (only) test images via git's sparse-checkout
     current_path = os.getcwd()
     os.chdir(tmp_path)
-    git_version = subprocess.run(["git", "--version"], stdout=subprocess.PIPE).stdout.decode("utf-8")[12:18]
+    git_version = subprocess.run(
+        ["git", "--version"], stdout=subprocess.PIPE
+    ).stdout.decode("utf-8")[12:18]
     major, minor, _ = git_version.split(".")
 
     if int(major) == 2 and int(minor) < 30:
