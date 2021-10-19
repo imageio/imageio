@@ -10,6 +10,8 @@ jobs:
   initial_check:
     name: "Should release?"
     runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{steps.skippy.outputs.release}} 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -18,12 +20,26 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install python-semantic-release
-      - name: Skip Build
+      - name: skippy
         run: |
-          if [[ ! $(semantic-release print-version) ]]; then
-            echo "Skipping Release"
+          if [[ ! $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
+            echo "::set-output name=release::0"
           else
-            semantic-release print-version
+            echo "::set-output name=release::1"
           fi
       - name: cancelling
+        if: steps.skippy.outputs.release
         uses: andymckay/cancel-action@0.2
+  docs:
+    name: "Build Docs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install Dependencies
+        run: |
+          pip install -e .[docs]
+      - name: Build Docs
+        run: sphinx-build -W .\docs .\build
