@@ -25,16 +25,16 @@ jobs:
     - name: skippy
       run: |
         if [[ $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
-          echo "::set-output name=release::0"
+          echo "::set-output name=release::true"
         else
-          echo "::set-output name=release::1"
+          echo "::set-output name=release::false"
         fi
     - name: Skipping Release
       if: ${{ ! steps.skippy.outputs.release }}
-      run: echo "No need to create a new Release"
+      run: semantic-release print-version
     - name: Releasing New Version
       if: ${{ steps.skippy.outputs.release }}
-      run: echo "Creating a new Release"
+      run: semantic-release print-version
   
   docs:
     name: Build Docs
