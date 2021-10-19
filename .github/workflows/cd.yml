@@ -23,6 +23,7 @@ jobs:
       run: |
         pip install python-semantic-release
     - name: skippy
+      id: skippy
       run: |
         if [[ $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
           echo "::set-output name=release::true"
