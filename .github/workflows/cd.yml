@@ -43,8 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-      echo "The value of the check is:"
-      echo ${{needs.inital_check.outputs.should_release}}
+        echo "The value of the check is:"
+        echo ${{needs.inital_check.outputs.should_release}}
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
