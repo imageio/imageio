@@ -30,7 +30,7 @@ jobs:
           echo "::set-output name=release::0"
         fi
     - name: Skipping Release
-      if: steps.skippy.outputs.release
+      if: ${{ steps.skippy.outputs.release }}
       run: echo "No need to create a new Release"
     - name: Releasing New Version
       if: ${{ ! steps.skippy.outputs.release }}
@@ -42,9 +42,10 @@ jobs:
     # if: needs.inital_check.outputs.should_release
     runs-on: ubuntu-latest
     steps:
-    - run: |
-        echo "The value of the check is:"
-        echo ${{needs.inital_check.outputs.should_release}}
+    - run: echo "Skipping the Docs"
+      if: ${{ needs.inital_check.outputs.should_release }}
+    - run: echo "Building the Docs"
+      if: ${{ ! needs.inital_check.outputs.should_release }}
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
@@ -65,7 +66,7 @@ jobs:
         python-version: '3.9'
     - name: Install Dependencies
       run: |
-        pip install -e .[test,ffmpeg,fits,gdal,itk]
+        pip install -e .[test,ffmpeg,fits,itk]
     - name: Run Tests
       run: pytest -v
   
