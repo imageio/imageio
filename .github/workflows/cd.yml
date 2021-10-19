@@ -25,15 +25,15 @@ jobs:
     - name: skippy
       run: |
         if [[ $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
-          echo "::set-output name=release::1"
-        else
           echo "::set-output name=release::0"
+        else
+          echo "::set-output name=release::1"
         fi
     - name: Skipping Release
-      if: ${{ steps.skippy.outputs.release }}
+      if: ${{ ! steps.skippy.outputs.release }}
       run: echo "No need to create a new Release"
     - name: Releasing New Version
-      if: ${{ ! steps.skippy.outputs.release }}
+      if: ${{ steps.skippy.outputs.release }}
       run: echo "Creating a new Release"
   
   docs:
@@ -43,9 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: echo "Skipping the Docs"
-      if: ${{ needs.inital_check.outputs.should_release }}
-    - run: echo "Building the Docs"
       if: ${{ ! needs.inital_check.outputs.should_release }}
+    - run: echo "Building the Docs"
+      if: ${{ needs.inital_check.outputs.should_release }}
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
