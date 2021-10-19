@@ -34,12 +34,12 @@ to date and add support for any missing formats.
 
 Each entry in the list below follows the following format::
 
-    <extension> (<format name>): <plugin> <plugin> ...
+    extension (format_name): plugin1 plugin2 ...
 
-where ``<plugin>`` is the name of a plugin that can handle the format. If you
+where the plugins refer to imageio plugins that can handle the format. If you
 wish to use a specific plugin to load a format, you would use the name as
-specified. For example, if you have a PNG file that you wish to open with pillow
-and the ``<plugin>`` is called ``PNG-PIL`` you would call::
+specified here. For example, if you have a PNG file that you wish to open with pillow
+you would call::
 
     iio.imread("image.png", format="PNG-PIL")
 
