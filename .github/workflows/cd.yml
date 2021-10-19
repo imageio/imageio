@@ -25,10 +25,10 @@ jobs:
     - name: skippy
       id: skippy
       run: |
-        if [[ $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
-          echo "::set-output name=release::true"
-        else
+        if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
           echo "::set-output name=release::false"
+        else
+          echo "::set-output name=release::true"
         fi
     - name: Skipping Release
       if: ${{ ! steps.skippy.outputs.release }}
