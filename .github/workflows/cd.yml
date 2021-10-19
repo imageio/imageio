@@ -20,8 +20,10 @@ jobs:
           pip install python-semantic-release
       - name: Skip Build
         run: |
-          if [ $(semantic-release print-version) = "No release will be made." ]; then
+          if [[] $(semantic-release print-version) = "No release will be made." ]]; then
             echo "Skipping Release"
           else
             semantic-release print-version
           fi
+      - name: cancelling
+        uses: andymckay/cancel-action@0.2
