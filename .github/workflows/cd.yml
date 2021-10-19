@@ -29,8 +29,10 @@ jobs:
           fi
       - name: Skipping Release
         if: steps.skippy.outputs.release
+        run: echo "No need to create a new Release"
       - name: Releasing New Version
         if: ${{ ! steps.skippy.outputs.release }}
+        run: echo "Creating a new Release"
   docs:
     name: "Build Docs"
     runs-on: ubuntu-latest
