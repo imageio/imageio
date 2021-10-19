@@ -8,41 +8,71 @@ on:
 
 jobs:
   initial_check:
-    name: "Should release?"
+    name: Should release?
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{steps.skippy.outputs.release}} 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: |
-          pip install python-semantic-release
-      - name: skippy
-        run: |
-          if [[ ! $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
-            echo "::set-output name=release::0"
-          else
-            echo "::set-output name=release::1"
-          fi
-      - name: Skipping Release
-        if: steps.skippy.outputs.release
-        run: echo "No need to create a new Release"
-      - name: Releasing New Version
-        if: ${{ ! steps.skippy.outputs.release }}
-        run: echo "Creating a new Release"
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install Dependencies
+      run: |
+        pip install python-semantic-release
+    - name: skippy
+      run: |
+        if [[ $(semantic-release print-version 1>/dev/null 2>/dev/null) ]]; then
+          echo "::set-output name=release::1"
+        else
+          echo "::set-output name=release::0"
+        fi
+    - name: Skipping Release
+      if: steps.skippy.outputs.release
+      run: echo "No need to create a new Release"
+    - name: Releasing New Version
+      if: ${{ ! steps.skippy.outputs.release }}
+      run: echo "Creating a new Release"
+  
   docs:
-    name: "Build Docs"
+    name: Build Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: |
-          pip install -e .[docs]
-      - name: Build Docs
-        run: sphinx-build -W .\docs .\build
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install Dependencies
+      run: |
+        pip install -e .[docs]
+    - name: Build Docs
+      run: sphinx-build -W .\docs .\build
+  
+  tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: Install Dependencies
+      run: |
+        pip install -e .[test,ffmpeg,fits,gdal,itk]
+    - name: Run Tests
+      run: pytest -v
+  
+  release:
+    name: Release new Version
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Python Semantic Release
+      uses: relekang/python-semantic-release@master
+      # with:
+      #   github_token: ${{ secrets.GITHUB_TOKEN }}
+      #   pypi_token: ${{ secrets.PYPI_API_TOKEN }}
