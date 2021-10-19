@@ -16,6 +16,7 @@ import enum
 from ..core import urlopen, get_remote_file
 
 from pathlib import Path
+from urllib.parse import urlparse
 
 # URI types
 URI_BYTES = 1
@@ -243,10 +244,9 @@ class Request(object):
 
         # Set extension
         if self._filename is not None:
-            ext = self._filename
-            if self._filename.startswith(("http://", "https://", "ftp://", "ftps://")):
-                ext = ext.split("?")[0]
-            self._extension = "." + ext.split(".")[-1].lower()
+            parts = urlparse(self._filename)
+            ext = Path(parts.path).suffix
+            self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
