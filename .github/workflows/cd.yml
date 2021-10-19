@@ -20,7 +20,7 @@ jobs:
           pip install python-semantic-release
       - name: Skip Build
         run: |
-          if [[ $(semantic-release print-version) ]]; then
+          if [[ ! $(semantic-release print-version) ]]; then
             echo "Skipping Release"
           else
             semantic-release print-version
