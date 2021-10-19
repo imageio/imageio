@@ -11,7 +11,7 @@ jobs:
     name: Should release?
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{steps.skippy.outputs.release}} 
+      should_release: ${{ steps.skippy.outputs.release }}
     steps:
     - uses: actions/checkout@v2
       with:
@@ -43,10 +43,7 @@ jobs:
     # if: needs.inital_check.outputs.should_release
     runs-on: ubuntu-latest
     steps:
-    - run: echo "Skipping the Docs"
-      if: ${{ ! needs.inital_check.outputs.should_release }}
-    - run: echo "Building the Docs"
-      if: ${{ needs.inital_check.outputs.should_release }}
+    - run: echo ${{ needs.inital_check.outputs.should_release }}
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
