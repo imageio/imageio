@@ -16,10 +16,10 @@ def tmp_dir(tmp_path_factory):
     current_path = os.getcwd()
     os.chdir(tmp_path)
     os.system(
-        "git clone --sparse --filter=blob:none https://github.com/imageio/imageio-binaries.git ."
+        "git clone --depth 1 --filter=blob:none --no-checkout https://github.com/imageio/imageio-binaries.git ."
     )
     os.system("git sparse-checkout init --cone")
-    os.system("git sparse-checkout add test-images")
+    os.system("git sparse-checkout set test-images")
     os.chdir(current_path)
 
     return tmp_path_factory.getbasetemp()
