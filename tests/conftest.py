@@ -1,6 +1,7 @@
 import pytest
 import os
 import shutil
+import subprocess
 
 import imageio as iio
 
@@ -15,11 +16,23 @@ def tmp_dir(tmp_path_factory):
     # download the (only) test images via git's sparse-checkout
     current_path = os.getcwd()
     os.chdir(tmp_path)
-    os.system(
-        "git clone --depth 1 --filter=blob:none --no-checkout https://github.com/imageio/imageio-binaries.git ."
-    )
-    os.system("git sparse-checkout init --cone")
-    os.system("git sparse-checkout set test-images")
+    git_version = subprocess.run(["git", "--version"], stdout=subprocess.PIPE).stdout.decode("utf-8")[12:18]
+    major, minor, _ = git_version.split(".")
+
+    if int(major) == 2 and int(minor) < 30:
+        # --sparse was introduced in git 2.30.0 (I think)
+        os.system(
+            "git clone --depth 1 --filter=blob:none --no-checkout https://github.com/imageio/imageio-binaries.git ."
+        )
+        os.system("git sparse-checkout init --cone")
+        os.system("git sparse-checkout set test-images")
+    else:
+        # sparse checkout on GH Actions
+        os.system(
+            "git clone --sparse --filter=blob:none https://github.com/imageio/imageio-binaries.git ."
+        )
+        os.system("git sparse-checkout init --cone")
+        os.system("git sparse-checkout set test-images")
     os.chdir(current_path)
 
     return tmp_path_factory.getbasetemp()
