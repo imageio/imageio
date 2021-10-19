@@ -21,5 +21,7 @@ jobs:
       - name: Skip Build
         run: |
           if [ $(semantic-release print-version) = "No release will be made." ]; then
+            echo "Skipping Release"
+          else
             semantic-release print-version
           fi
