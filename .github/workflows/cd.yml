@@ -18,4 +18,6 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install python-semantic-release
-      - run: semantic-release print-version
+      - name: Skip Build
+        if: semantic-release print-version == "No release will be made."
+        run: semantic-release print-version
