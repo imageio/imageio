@@ -19,5 +19,7 @@ jobs:
         run: |
           pip install python-semantic-release
       - name: Skip Build
-        if: [ $(semantic-release print-version) == "No release will be made." ]
-        run: semantic-release print-version
+        run: |
+          if [ $(semantic-release print-version) = "No release will be made." ]; then
+            semantic-release print-version
+          fi
