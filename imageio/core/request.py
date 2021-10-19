@@ -245,7 +245,7 @@ class Request(object):
         # Set extension
         if self._filename is not None:
             parts = urlparse(self._filename)
-            ext = Path(parts.path).suffix
+            ext = Path(parts.path).suffix.lower()
             self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
