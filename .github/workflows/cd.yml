@@ -31,10 +31,10 @@ jobs:
         fi
     - name: Skipping Release
       if: ${{ ! steps.skippy.outputs.release }}
-      run: semantic-release print-version
+      run: echo ${{ steps.skippy.outputs.release }}
     - name: Releasing New Version
       if: ${{ steps.skippy.outputs.release }}
-      run: semantic-release print-version
+      run: echo ${{ steps.skippy.outputs.release }}
   
   docs:
     name: Build Docs
