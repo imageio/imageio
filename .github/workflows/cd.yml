@@ -40,10 +40,9 @@ jobs:
   docs:
     name: Build Docs
     needs: initial_check
-    # if: needs.inital_check.outputs.should_release
+    if: needs.initial_check.outputs.should_release
     runs-on: ubuntu-latest
     steps:
-    - run: echo ${{ needs.initial_check.outputs.should_release }}
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
@@ -56,6 +55,8 @@ jobs:
   
   tests:
     name: Run Unit Tests
+    needs: initial_check
+    if: needs.initial_check.outputs.should_release
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -70,6 +71,7 @@ jobs:
   
   release:
     name: Release new Version
+    needs: [tests, docs]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
