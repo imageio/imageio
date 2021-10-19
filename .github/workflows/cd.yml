@@ -27,9 +27,10 @@ jobs:
           else
             echo "::set-output name=release::1"
           fi
-      - name: cancelling
+      - name: Skipping Release
         if: steps.skippy.outputs.release
-        uses: andymckay/cancel-action@0.2
+      - name: Releasing New Version
+        if: ${{ ! steps.skippy.outputs.release }}
   docs:
     name: "Build Docs"
     runs-on: ubuntu-latest
