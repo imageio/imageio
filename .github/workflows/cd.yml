@@ -119,7 +119,7 @@ jobs:
 
   release:
     name: Release new Version
-    needs: [cpython_tests, pypy_tests, build_test, docs]
+    needs: [cpython_tests, pypy_tests, docs]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
