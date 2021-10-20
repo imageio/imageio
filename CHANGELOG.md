@@ -35,7 +35,7 @@ released, which fixes several (stability) issues for video io.
 * Better support for reading from http (some formats needed seek, we now deal with that).
 * Make `Reader.__len__` work again when length is inf (stream/unknown).
 * Set `-framerate` input param for ffmpeg when using webcam, fixing webcam support on macOS.
-* Fix for handling TIFF predictor value of 1 (NONE) (by Miloš Komarčević).
+* Fix for handling TIFF predictor value of 1 (NONE) (by Milos Komarcevic).
 * Fix false-positive zip detection (by Vsevolod Poletaev).
 * Fix SPE filesize check for SPE v3 (by Antony Lee).
 * Fix that SPE plugin failed on spe3 files with dtype uint32 (by Michael Schneider).
@@ -44,7 +44,7 @@ released, which fixes several (stability) issues for video io.
 ### Added
 
 * Expose SPE3 xml footer (by Antony Lee).
-* Expose TIFF predictor tag for reading and writing (by Miloš Komarčević).
+* Expose TIFF predictor tag for reading and writing (by Milos Komarcevic).
 * Improve error message regarding modes.
 
 ### Removed
