@@ -116,10 +116,27 @@ jobs:
       - name: Run Unit tests
         run: |
             invoke test --unit
+  
+  build_test:
+    name: Wheel Building Test
+    needs: initial_check
+    if: needs.initial_check.outputs.should_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies for tests
+        shell: bash
+        run: |
+            pip install .
+      - name: Build the wheel
+        run: python setup.py sdist bdist_wheel
 
   release:
     name: Release new Version
-    needs: [cpython_tests, pypy_tests, docs]
+    needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
