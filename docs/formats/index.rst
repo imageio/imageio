@@ -46,14 +46,9 @@ you would call::
 .. rubric:: Format List
 
 .. note::
-    To complete this list we are looking for the following information:
-
-        - The full name of each extension
-        - A link to the spec, wikipedia page, or format homepage
-        - extensions/formats supported by ImageIO but not listed here
-
-    If you come across any of the above, please `share this information
-    <https://github.com/imageio/imageio/issues>`_ so that we can add it below.
+    To complete this list we are looking for each format's full name and a link
+    to the spec. If you come across this information, please consider sharing it
+    by `creating a new issue <https://github.com/imageio/imageio/issues>`_.
 
 {% for format in formats %}
 {% if format.external_link %}
