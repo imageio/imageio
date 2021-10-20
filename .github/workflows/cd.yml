@@ -2,7 +2,7 @@ name: CD
 
 on:
   schedule:
-    - cron: '0 2 * * *' # run at 2 AM UTC
+    - cron: '42 2 * * *' # daily at 2:42am (UTC)
   pull_request:
     branches: [ master ]
 
@@ -145,10 +145,8 @@ jobs:
     - name: Install Dependencies
       run: |
         pip install python-semantic-release
-    - name: Dry Run
-      run: semantic-release -v DEBUG --noop publish
-    # - name: Python Semantic Release
-    #   uses: relekang/python-semantic-release@master
-    #   # with:
-    #   #   github_token: ${{ secrets.GITHUB_TOKEN }}
-    #   #   pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+    - name: Python Semantic Release
+      uses: relekang/python-semantic-release@master
+      # with:
+      #   github_token: ${{ secrets.GITHUB_TOKEN }}
+      #   pypi_token: ${{ secrets.PYPI_API_TOKEN }}
