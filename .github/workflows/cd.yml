@@ -130,7 +130,7 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .
+            pip install .[build]
       - name: Build the wheel
         run: python setup.py sdist bdist_wheel
 
