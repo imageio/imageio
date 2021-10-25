@@ -11,6 +11,6 @@ Contents:
   
   Getting Started <getting_started/index>
   Examples <examples>
-  Supported Formats <supported_formats>
+  Supported Formats <formats/index>
   API Reference <reference/index>
   Development <development/index>

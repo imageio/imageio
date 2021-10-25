@@ -60,7 +60,7 @@ def help(name=None):
     ----------
     name : str
         Can be the name of a format, a filename extension, or a full
-        filename. See also the :doc:`formats page <formats>`.
+        filename. See also the :doc:`formats page <../formats/index>`.
     """
     if not name:
         print(formats)
