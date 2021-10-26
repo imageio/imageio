@@ -1,5 +1,21 @@
 name: CD
 
+# This action handles ImageIOs automatic releasing. It performs the following steps:
+#
+# - check for any new commits to master in fixed intervals (if none, exit)
+# - check if they require a new semver version (if no, exit)
+# - run through full unit-tests (if they fail, exit)
+# - check if the docs build without warnings (if they fail, exit)
+# - check if the wheel can be built (if it fails, exit)
+# - bump ImageIO's version
+# - update the changelog with the changes made (breaking, feature, fix, doc,
+#   ...)
+# - commit, tag, and push the new version + changelog to master (this also
+#   pushes the new tag)
+# - build the new imageIO version
+# - release the new version to GitHub and PyPI
+
+
 on:
   schedule:
     - cron: '42 1 * * *' # daily at 1:42am (UTC)

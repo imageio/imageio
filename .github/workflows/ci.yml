@@ -1,5 +1,13 @@
 name: CI
 
+# This action runs through ImageIO's continous integration pipeline. It
+# performs the following checks:
+# 
+# - Linting/Style (Black)
+# - Invokes the unit tests in no-internet mode on python 3.8
+# - runs unit test on cypthon in matrix mode (python 3.6, 3.7, 3.8, 3.9) x (3 major OS)
+# - runs unit tests on pypy in matrix mode (pypy 3.6, 3.7) x (3 major OS)
+
 
 on:
   push:
