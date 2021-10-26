@@ -25,7 +25,8 @@ these cases. In some cases, you will need to update the keyword arguments used.
 
     * Instead of ``mode``, use the ``pilmode`` keyword argument.
     * Instead of ``flatten``, use the ``as_gray`` keyword argument.
-    * The documentation for the above arguments is not on :func:`imread <ImageIO.imread>`,
-      but on the docs of the individual plugins, e.g. :mod:`Pillow <imageio.plugins.pillow_legacy>`.
+    * The documentation for the above arguments is not on :func:`imread
+      <ImageIO.imread>`, but on the docs of the individual plugins, e.g.
+      :mod:`Pillow <imageio.plugins.pillow_legacy>`.
     * ImageIO's functions all return numpy arrays, albeit as a subclass (so that
       meta data can be attached).
