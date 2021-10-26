@@ -169,8 +169,9 @@ class build_with_images(sdist):
         sdist.run(self)
 
 
-# avoid pillow 8.3 because it doesn't respect numpy API
-install_requires = ["numpy", "pillow != 8.3.0"]
+# pinned to > 8.3.2 due to security vulnerability
+# See: https://github.com/advisories/GHSA-98vv-pw6r-q6q4
+install_requires = ["numpy", "pillow >= 8.3.2"]
 
 extras_require = {
     "build": ["wheel"],
