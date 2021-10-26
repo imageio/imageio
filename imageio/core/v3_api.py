@@ -64,6 +64,7 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
     -------
     image : ndimage
         The next ndimage located at the given URI.
+
     """
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
@@ -97,9 +98,10 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional
 
     Returns
     -------
-    bytes_string : None or Bytes
+    encoded_image : None or Bytes
         Returns ``None`` in all cases, except when ``uri`` is set to ``<bytes>``.
         In this case it returns the encoded ndimage as a bytes string.
+
     """
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
