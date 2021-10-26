@@ -218,7 +218,59 @@ A little bit of explanation:
     hardware supports the chosen codec. If your hardware supports h265, you
     may be able to encode using ``'hevc_vaapi'``
     
+
+Writing to Bytes (Encoding)
+---------------------------
+
+You can convert ndimages into byte strings. For this, you have to explicitly
+specify the desired format, as a byte string doesn't carry any information about
+the format or color space to use. Since backends differ in the way this
+information should be provided, you also have to explicitly specify the backend
+(plugin) to use. Note that, if the backend supports writing to file-like
+objects, the entire process will happen without touching your file-system. If
+you, for example, want to write with pillow, you can use:
+
+.. code-block:: python
+
+    from imageio import v3 as iio
+
+    # load an example image
+    img = iio.imread('imageio:astronaut.png')
+
+    # png-encoded bytes string
+    # Note: defaults to RGB color space
+    png_encoded = iio.imwrite("<bytes>", img, plugin="pillow", format="PNG")
     
+    # jpg-encoded bytes string
+    # Note: defaults to RGB color space
+    jpg_encoded = iio.imwrite("<bytes>", img, plugin="pillow", format="JPEG")
+
+    # RGBA bytes string
+    # Important Note: omitting mode="RGBA" would result in a corrupted byte string
+    img = iio.imread('imageio:astronaut.png', mode="RGBA")
+    jpg_encoded = iio.imwrite("<bytes>", img, plugin="pillow", format="JPEG", mode="RGBA")
+
+Writing to BytesIO
+------------------
+
+Similar to writing to byte strings, you can also write to BytesIO directly.
+
+.. code-block:: python
+
+    from imageio import v3 as iio
+    import io
+
+    # load an example image
+    img = iio.imread('imageio:astronaut.png')
+
+    # write as PNG
+    output = io.BytesIO()
+    iio.imwrite(output, img, plugin="pillow", format="PNG")
+    
+    # write as JPG
+    output = io.BytesIO()
+    iio.imwrite(output, img, plugin="pillow", format="JPEG")
+
 Optimizing a GIF using pygifsicle
 ------------------------------------
 When creating a `GIF <https://it.wikipedia.org/wiki/Graphics_Interchange_Format>`_

@@ -3,6 +3,7 @@
 
 from imageio.core.request import Request
 import os
+import io
 import pytest
 import numpy as np
 from pathlib import Path
@@ -419,3 +420,63 @@ def test_legacy_exif_orientation(image_files: Path):
 def test_incomatible_write_format(tmp_path):
     with pytest.raises(IOError):
         iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow")
+
+
+def test_write_to_bytes():
+    image = (np.random.rand(600, 800, 3) * 255).astype(np.uint8)
+
+    # writing to bytes with pillow
+    with io.BytesIO() as output:
+        Image.fromarray(image).save(output, format="PNG")
+        contents = output.getvalue()
+
+    # writing to bytes with imageIO
+    with io.BytesIO() as output:
+        iio.v3.imwrite(output, image, plugin="pillow", format="PNG")
+        iio_contents = output.getvalue()
+
+    assert iio_contents == contents
+
+
+def test_write_to_bytes_rgba():
+    image = (np.random.rand(600, 800, 4) * 255).astype(np.uint8)
+
+    # writing to bytes with pillow
+    with io.BytesIO() as output:
+        Image.fromarray(image).save(output, format="PNG")
+        contents = output.getvalue()
+
+    # writing to bytes with imageIO
+    with io.BytesIO() as output:
+        iio.v3.imwrite(output, image, plugin="pillow", format="PNG", mode="RGBA")
+        iio_contents = output.getvalue()
+
+    assert iio_contents == contents
+
+
+def test_write_to_bytes_imwrite():
+    image = (np.random.rand(600, 800, 3) * 255).astype(np.uint8)
+
+    # writing to bytes with pillow
+    with io.BytesIO() as output:
+        Image.fromarray(image).save(output, format="PNG")
+        contents = output.getvalue()
+
+    # write with ImageIO
+    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="PNG")
+
+    assert contents == bytes_string
+
+
+def test_write_to_bytes_jpg():
+    image = (np.random.rand(600, 800, 3) * 255).astype(np.uint8)
+
+    # writing to bytes with pillow
+    with io.BytesIO() as output:
+        Image.fromarray(image).save(output, format="JPEG")
+        contents = output.getvalue()
+
+    # write with ImageIO
+    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="JPEG")
+
+    assert contents == bytes_string

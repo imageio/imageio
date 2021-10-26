@@ -1,12 +1,13 @@
 from .imopen import imopen as imopen_core
 import numpy as np
+from typing import Optional, Iterator
 
 
 # create name in this namespace to allow ``import imageio.v3 as iio``
 imopen = imopen_core()
 
 
-def imread(uri, *, index: int = None, plugin: str = None, **kwargs):
+def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarray:
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -30,6 +31,7 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs):
     Returns
     -------
     image : ndimage
+        The ndimage located at the given URI.
     """
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
@@ -38,7 +40,7 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs):
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
-def imiter(uri, *, plugin: str = None, **kwargs):
+def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
     """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
@@ -58,9 +60,11 @@ def imiter(uri, *, plugin: str = None, **kwargs):
         Additional keyword arguments will be passed to the plugin's ``iter``
         call.
 
-    Returns
+    Yields
     -------
     image : ndimage
+        The next ndimage located at the given URI.
+
     """
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
@@ -72,7 +76,7 @@ def imiter(uri, *, plugin: str = None, **kwargs):
             yield np.asarray(image)
 
 
-def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs):
+def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional[bytes]:
     """Write an ndimage to the given URI.
 
     The exact behavior depends on the file type and plugin used. To learn about
@@ -94,9 +98,15 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs):
 
     Returns
     -------
-    None
+    encoded_image : None or Bytes
+        Returns ``None`` in all cases, except when ``uri`` is set to ``<bytes>``.
+        In this case it returns the encoded ndimage as a bytes string.
+
     """
+
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
     with imopen_core()(uri, "w", **plugin_kwargs) as img_file:
-        img_file.write(image, **kwargs)
+        encoded = img_file.write(image, **kwargs)
+
+    return encoded

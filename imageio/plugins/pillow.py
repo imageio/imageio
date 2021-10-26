@@ -30,7 +30,7 @@ Methods
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
-from ..core.request import Request, IOMode, InitializationError
+from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
 
 
 def _is_multichannel(mode: str) -> bool:
@@ -126,7 +126,7 @@ class PillowPlugin(object):
                     pass
             except UnidentifiedImageError:
                 raise InitializationError(f"Pillow can not read {request}.") from None
-        elif request.mode.io_mode == IOMode.write:
+        else:
             # it would be nice if pillow would expose a
             # function to check if an extension can be written
             # instead of us digging in the internals
@@ -135,11 +135,15 @@ class PillowPlugin(object):
             if request.extension not in Image.EXTENSION:
                 Image.init()
 
-            try:
-                Image.EXTENSION[request.extension]
-            except KeyError:
+            if request._uri_type == URI_FILE:
+                pass  # OK, is file-like object
+            elif request._uri_type == URI_BYTES:
+                pass  # OK, is bytes string
+            elif request.extension in Image.EXTENSION:
+                pass  # OK, is extension known to pillow
+            else:
                 raise InitializationError(
-                    f"Pillow can not write .{request.extension} files"
+                    f"Pillow can not write `{request.extension}` files"
                 ) from None
 
         self._request = request
@@ -303,6 +307,9 @@ class PillowPlugin(object):
             **kwargs,
         )
 
+        if self._request._uri_type == URI_BYTES:
+            return self._request.get_file().getvalue()
+
     def get_meta(self, *, index=None):
         """Read ndimage metadata from the URI
 
@@ -337,9 +344,3 @@ class PillowPlugin(object):
 
     def __exit__(self, type, value, traceback):
         self.close()
-
-    def _try_read(self):
-        pass
-
-    def _try_write(self):
-        pass
