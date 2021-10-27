@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.0 (2021-10-27)
+### Feature
+* Allow pillow to write/encode to byte strings ([#669](https://github.com/imageio/imageio/issues/669)) ([`b5df806`](https://github.com/imageio/imageio/commit/b5df8065d980ce1a664cea3c22dc90f066653497))
+* Add CD pipeline ([#667](https://github.com/imageio/imageio/issues/667)) ([`6dce3ab`](https://github.com/imageio/imageio/commit/6dce3ab5581a3049658304ef04d3c748ae2b4384))
+* Fail PIL write if extension isnt supported ([`0dc33d3`](https://github.com/imageio/imageio/commit/0dc33d3e13f4c2c3f9b9f7e1622a26d0e8338ef7))
+* Make imopen use core.Request ([`c51fdb0`](https://github.com/imageio/imageio/commit/c51fdb06b21596a35e9d36f3090ccef9b710fa07))
+
+### Fix
+* Bump pillow to 8.3.2 ([#661](https://github.com/imageio/imageio/issues/661)) ([`a5ce49f`](https://github.com/imageio/imageio/commit/a5ce49f1604b15f9566e89e476b3198ef57c964f))
+* Undo previous commit ([`f4c2e74`](https://github.com/imageio/imageio/commit/f4c2e74f45c261c41e50ef97ca201b8239386ff7))
+* Bump required pillow version ([`1a4456c`](https://github.com/imageio/imageio/commit/1a4456ced83b71f6c4e47701cbf3669d2dcd6dff))
+* Avoid pillow 8.3.0 ([#656](https://github.com/imageio/imageio/issues/656)) ([`abe3cc2`](https://github.com/imageio/imageio/commit/abe3cc262c449f32087274f22fd9d24561194fb3))
+* Close request if no backend was found ([`1f8ff6b`](https://github.com/imageio/imageio/commit/1f8ff6b4728385f776b4707471c039dde8efb60d))
+* Introduce InitializationError ([`974fdc5`](https://github.com/imageio/imageio/commit/974fdc5cf977d73039b22a60e73195ddc5dc46bb))
+* Linting ([`e25f06f`](https://github.com/imageio/imageio/commit/e25f06fa942b7452f34b4c6c983dfccbc12b4384))
+* Merge master into feature ([`6576783`](https://github.com/imageio/imageio/commit/6576783456270d024057f280197eec51c9bbf476))
+* Instantiate plugins once ([`081f3e6`](https://github.com/imageio/imageio/commit/081f3e6b3740c81484fec92f5e1b13424a406e34))
+* Make FITS the preferred plugin for FITS files ([#637](https://github.com/imageio/imageio/issues/637)) ([`6fbab81`](https://github.com/imageio/imageio/commit/6fbab81e7598af847c840c93c9ebec9a94d1f242))
+* Remove compromised token ([#635](https://github.com/imageio/imageio/issues/635)) ([`7fdc558`](https://github.com/imageio/imageio/commit/7fdc5585a0b09ca0d4e6c9e08bf1039015ea8bde))
+* Get images from imageio not firefoxmetzger ([`9da8339`](https://github.com/imageio/imageio/commit/9da8339fd18dd69c00f9f2eda5dc1b29f421a7cf))
+* Throw-away requests for get_reader/get_writer ([`cf83968`](https://github.com/imageio/imageio/commit/cf839683205f409b28e7a17be3580a80be66abb3))
+* Black + flake8 ([`53ed8d8`](https://github.com/imageio/imageio/commit/53ed8d823dd4b036e5aebcd2f0529aad67ef3831))
+* Test mvolread with mvol image ([`3a03d26`](https://github.com/imageio/imageio/commit/3a03d267e832a57017c376a3c1649c0dd42d3927))
+* Investigate pypy failure ([`9d63acc`](https://github.com/imageio/imageio/commit/9d63accc8a587bff2a228c1f69dc89b5004934a4))
+* Remove dublicate checks ([`7148fa9`](https://github.com/imageio/imageio/commit/7148fa9fec72b06ac328db7246278e59e40c3d9b))
+* Remove dublicate code ([`9a99417`](https://github.com/imageio/imageio/commit/9a99417abaadf0e536ff763d8046baa78fe5c85b))
+* Flake8 + black ([`42a02ed`](https://github.com/imageio/imageio/commit/42a02edc6cd2aad51cb67b4782a643fa5fbad870))
+* Raise error for invalud modes in py3.6 ([`c91ae9c`](https://github.com/imageio/imageio/commit/c91ae9c400b12932bf213058ab48f9936fff225c))
+* Black + flake8 ([`abe7199`](https://github.com/imageio/imageio/commit/abe71996aa240bf01a926e4d0ff14f24194b96e6))
+* Pillow changed gif reading. updating test ([`2ebe936`](https://github.com/imageio/imageio/commit/2ebe936872329abc3be7e58b375f3d6e8481cd5c))
+* Flake8 ([`6debb11`](https://github.com/imageio/imageio/commit/6debb110685a26899197b8b224cc9d4ff92cee6e))
+* Blackify ([`6676a62`](https://github.com/imageio/imageio/commit/6676a628f9cacdcfcffb1fd6b7580c52fc023326))
+* New black formatting rules ([#630](https://github.com/imageio/imageio/issues/630)) ([`659f4f7`](https://github.com/imageio/imageio/commit/659f4f7a8844a7d7383d07020bd45512feb02cf6))
+* Merge master into branch ([`edad86f`](https://github.com/imageio/imageio/commit/edad86f9b8f20a88a8efa9aa79d2fd170ebfa6d2))
+* Make Request.Mode an enum ([#622](https://github.com/imageio/imageio/issues/622)) ([`dc2d06b`](https://github.com/imageio/imageio/commit/dc2d06b2358b6451164961b42a6d2f566fa5169e))
+* Fix highlighting of installation command ([#615](https://github.com/imageio/imageio/issues/615)) ([`9df61d2`](https://github.com/imageio/imageio/commit/9df61d23f398904c96c334c67dbf67c655e15c52))
+* Remove double import ([`388e57d`](https://github.com/imageio/imageio/commit/388e57d3edb582f6b2e4aadeb97e13b0809d582a))
+* Merge master into v3.0.0 ([`7443ffd`](https://github.com/imageio/imageio/commit/7443ffd5fa6d9c0a0566f1830e51ef21ec58ffcb))
+
+### Documentation
+* Refactor plugin docs ([#666](https://github.com/imageio/imageio/issues/666)) ([`787db4b`](https://github.com/imageio/imageio/commit/787db4b246c466e05197fc7007922e5dc44e2074))
+* Fix typo ([#659](https://github.com/imageio/imageio/issues/659)) ([`bb13525`](https://github.com/imageio/imageio/commit/bb13525f35300e9d924eeb23d05ef3408d1c15fa))
+* Fixed Typo ([#653](https://github.com/imageio/imageio/issues/653)) ([`eb24eaa`](https://github.com/imageio/imageio/commit/eb24eaa7fda58331ca28ecbb2709271e9db78e63))
+* Update DOI ([#650](https://github.com/imageio/imageio/issues/650)) ([`b4f186f`](https://github.com/imageio/imageio/commit/b4f186f22df4454030060fc0545cd53b85956c44))
+* Added missing docstring to function ([`6625430`](https://github.com/imageio/imageio/commit/66254303eea9c4a8ef9075e2e31dc0163955db8e))
+* Clarify _missing_ method ([`2fd5116`](https://github.com/imageio/imageio/commit/2fd5116cd5d8ac9b2495ef853a22a46d861744bc))
+* Update Website Link ([#634](https://github.com/imageio/imageio/issues/634)) ([`2f058d7`](https://github.com/imageio/imageio/commit/2f058d71251bdb53e91cd92f828ff27dbe5765f4))
+* Polish imopen docstrings ([`7052cd8`](https://github.com/imageio/imageio/commit/7052cd83b402efa0fd43540c3400a9aad75a6d76))
+* Clarify documentation on .tif handling ([#625](https://github.com/imageio/imageio/issues/625)) ([`68bb515`](https://github.com/imageio/imageio/commit/68bb515e9ba5986a22c44246396071a72ac07575))
+* Add repo location to  developer instructions ([#584](https://github.com/imageio/imageio/issues/584)) ([`2ce79b9`](https://github.com/imageio/imageio/commit/2ce79b91c5415dd3069be1050d979a5bfd4245e1))
+
 ## [2.9.0] - 2020-07-06
 
 ### Fixed
