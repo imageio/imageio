@@ -19,6 +19,7 @@ name: CD
 on:
   schedule:
     - cron: '42 1 * * *' # daily at 1:42am (UTC)
+  workflow_dispatch:
 
 jobs:
   initial_check:
