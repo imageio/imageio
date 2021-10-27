@@ -16,7 +16,7 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.10.0"
+__version__ = "2.10.1"
 
 from . import config
 

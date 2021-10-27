@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.1 (2021-10-27)
+### Fix
+* Install ImageIO dependencies during release wheel build ([#671](https://github.com/imageio/imageio/issues/671)) ([`f1ee22a`](https://github.com/imageio/imageio/commit/f1ee22ac1375e67cc8da6822326e10f6badf332c))
+
 ## v2.10.0 (2021-10-27)
 ### Feature
 * Allow pillow to write/encode to byte strings ([#669](https://github.com/imageio/imageio/issues/669)) ([`b5df806`](https://github.com/imageio/imageio/commit/b5df8065d980ce1a664cea3c22dc90f066653497))
