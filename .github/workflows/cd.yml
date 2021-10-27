@@ -151,7 +151,7 @@ jobs:
 
   release:
     name: Release new Version
-    # needs: [cpython_tests, pypy_tests, build_test, docs]
+    needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -161,4 +161,4 @@ jobs:
       uses: relekang/python-semantic-release@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        # pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
