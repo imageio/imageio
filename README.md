@@ -14,13 +14,11 @@
 
 Website: https://imageio.readthedocs.io/
 
-<!-- From below ends up on the website Keep this ---- DIVIDER ---- -->
-
 <p class='summary'>
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, video,
 volumetric data, and scientific formats. It is cross-platform, runs on
-Python 3.5+, and is easy to install.
+Python 3.6+, and is easy to install.
 </p>
 
 <p>
@@ -56,12 +54,11 @@ As a user, you just have to remember a handful of functions:
     <li>Simple interface via a concise set of functions</li>
     <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/getting_started/installation.html'>install</a> using Conda or pip</li>
     <li>Few dependencies (only NumPy and Pillow)</li>
-    <li>Pure Python, runs on Python 3.5+, and PyPy</li>
+    <li>Pure Python, runs on Python 3.6+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
-    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats.html'>formats</a></li>
-    <li>Can read from file names, file objects, zipfiles, http/ftp, and raw bytes</li>
-    <li>Easy to extend using plugins</li>
-    <li>Code quality is maintained with many tests and continuous integration</li>
+    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
+    <li>Read/Write support on various [resources](https://imageio.readthedocs.io/en/stable/getting_started/requests.html) (file names, URL, bytes(), file objects, ...)</li>
+    <li>Code quality is maintained via continuous integration and continous deployment</li>
 </ul>
 
 
@@ -69,7 +66,7 @@ As a user, you just have to remember a handful of functions:
 
 Minimal requirements:
 <ul>
-    <li>Python 3.5+</li>
+    <li>Python 3.6+</li>
     <li>NumPy</li>
     <li>Pillow</li>
 </ul>
@@ -77,14 +74,11 @@ Minimal requirements:
 Optional Python packages:
 <ul>
     <li>imageio-ffmpeg (for working with video files)</li>
-    <li>itk or SimpleITK (for ITK formats)</li>
+    <li>itk or SimpleITK (for ITK plugin)</li>
     <li>astropy (for FITS plugin)</li>
     <li>osgeo (for GDAL plugin)</li>
     <li><a href='https://codeberg.org/monilophyta/imageio-flif'>imageio-flif</a> (for working with <a href='https://github.com/FLIF-hub/FLIF'>FLIF</a> image files)</li>
 </ul>
-
-Still on an earlier version of Python? Imageio version 2.6.x supports Python 2.7 and 3.4.
-
 
 <h2>Citing imageio</h2>
 <p>
@@ -100,7 +94,7 @@ To report a security vulnerability, please use the
 Tidelift will coordinate the fix and disclosure.
 
 
-<h2>imageio for enterprise</h2>
+<h2>ImageIO for enterprise</h2>
 
 Available as part of the Tidelift Subscription.
 
@@ -110,39 +104,14 @@ The maintainers of imageio and thousands of other packages are working with Tide
 
 <h2>Details</h2>
 <p>
-Imageio has a relatively simple core that provides a common interface
-to different file formats. This core takes care of reading from different
-sources (like http), and exposes a simple API for the plugins to access
-the raw data. All file formats are implemented in plugins. Additional
-plugins can easily be registered.
-</p><p>
-Imageio provides a wide range of image formats, including scientific
-formats. Any help with implementing more formats is very welcome!
-</p><p>
-The codebase adheres to (a subset of) the PEP8 style guides. We strive
-for maximum test coverage (100% for the core, >95% for each plugin).
-</p>
-
+    The core of ImageIO is a set of user-facing APIs combined with a plugin manager. API calls choose sensible defaults and then call the plugin manager, which deduces the correct plugin/backend to use for the given resource and file format. The plugin manager then adds sensible backend-specific defaults and then calles one of ImageIOs many backends to perform the actual loading. This allows ImageIO to take care of most of the gory details of loading images for you, while still allowing you to customize the behavior when and where you need to. You can find a more detailed explanation of this process in [our documentation](https://imageio.readthedocs.io/en/stable/getting_started/overview.html).
 
 <h2>Contributing</h2>
 
-<p>Install imageio in edit mode, with dev tools:</p>
+We welcome contributions of any kind. Here are some suggestions on how you are able to contribute
 
-```bash
-pip install -e .[dev,docs]
-```
+- add missing formats to the format list
+- suggest/implement support for new backends
+- report/fix any bugs you encounter while using ImageIO
 
-<p>Most developer command are done via <code>invoke</code>.</p>
-
-```bash
-# Check all available commands
-invoke -l
-# Reformat code (using Black)
-invoke format
-# Check for style errors
-invoke lint
-# Run unit tests
-invoke test --unit
-# Check test coverage (re-runs tests)
-invoke test --cover
-```
+To assist you in getting started with contributing code, take a look at the [development section](https://imageio.readthedocs.io/en/stable/development/index.html) of the docs. You will find instructions on setting up the dev environment as well as example on how to contribute code.
