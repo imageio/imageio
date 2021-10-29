@@ -57,7 +57,7 @@ As a user, you just have to remember a handful of functions:
     <li>Pure Python, runs on Python 3.6+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
     <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
-    <li>Read/Write support on various [resources](https://imageio.readthedocs.io/en/stable/getting_started/requests.html) (file names, URL, bytes(), file objects, ...)</li>
+    <li>Read/Write support for various [resources](https://imageio.readthedocs.io/en/stable/getting_started/requests.html) (files, URLs, bytes(), file objects, ...)</li>
     <li>Code quality is maintained via continuous integration and continous deployment</li>
 </ul>
 
@@ -114,4 +114,4 @@ We welcome contributions of any kind. Here are some suggestions on how you are a
 - suggest/implement support for new backends
 - report/fix any bugs you encounter while using ImageIO
 
-To assist you in getting started with contributing code, take a look at the [development section](https://imageio.readthedocs.io/en/stable/development/index.html) of the docs. You will find instructions on setting up the dev environment as well as example on how to contribute code.
+To assist you in getting started with contributing code, take a look at the [development section](https://imageio.readthedocs.io/en/stable/development/index.html) of the docs. You will find instructions on setting up the dev environment as well as examples on how to contribute code.
