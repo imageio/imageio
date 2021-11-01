@@ -494,11 +494,11 @@ class Request(object):
                     shutil.copyfileobj(self.get_file(), file)
             return self._filename_local
 
-    def finish(self):
-        """finish()
-        For internal use (called when the context of the reader/writer
-        exits). Finishes this request. Close open files and process
-        results.
+    def finish(self) -> None:
+        """ Wrap up this request.
+
+        Finishes any pending reads or writes, closes any open files and frees
+        any resources allocated by this request.
         """
 
         if self.mode.io_mode == IOMode.write:
@@ -506,8 +506,7 @@ class Request(object):
             # See if we "own" the data and must put it somewhere
             bytes = None
             if self._filename_local:
-                with open(self._filename_local, "rb") as file:
-                    bytes = file.read()
+                bytes = Path(self._filename_local).read_bytes()
             elif self._file_is_local:
                 bytes = self._file.getvalue()
 
@@ -534,10 +533,7 @@ class Request(object):
 
         # Remove temp file
         if self._filename_local:
-            try:
-                os.remove(self._filename_local)
-            except Exception:  # pragma: no cover
-                pass
+            os.remove(self._filename_local)
             self._filename_local = None
 
         # Detach so gc can clean even if a reference of self lingers
