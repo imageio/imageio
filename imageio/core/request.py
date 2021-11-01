@@ -243,10 +243,9 @@ class Request(object):
         self._parse_uri(uri)
 
         # Set extension
-        if self._filename is not None:
-            parts = urlparse(self._filename)
-            ext = Path(parts.path).suffix.lower()
-            self._extension = ext if ext != "" else None
+        parts = urlparse(self._filename)
+        ext = Path(parts.path).suffix.lower()
+        self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
@@ -495,7 +494,7 @@ class Request(object):
             return self._filename_local
 
     def finish(self) -> None:
-        """ Wrap up this request.
+        """Wrap up this request.
 
         Finishes any pending reads or writes, closes any open files and frees
         any resources allocated by this request.
