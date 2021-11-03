@@ -28,7 +28,7 @@ from .core import FormatManager, RETURN_BYTES
 
 # Instantiate format managers
 imopen = imopen_obj()
-formats = imopen._legacy_format_manager
+formats = FormatManager()
 
 # Load legacy API
 from .core.functions import (

@@ -560,7 +560,7 @@ class FormatManager(object):
         # Check
         if not isinstance(name, str):
             raise ValueError(
-                "Looking up a format should be done by name " "or by extension."
+                "Looking up a format should be done by name or by extension."
             )
         if not name:
             raise ValueError("No format matches the empty string.")
