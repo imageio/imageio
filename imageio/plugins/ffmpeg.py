@@ -188,7 +188,7 @@ class FfmpegFormat(Format):
         # Read from video stream?
         # Note that we could write the _video flag here, but a user might
         # select this format explicitly (and this code is not run)
-        if re.match(r"<video\d+>", request):
+        if re.match(r"<video\d+>", request.filename):
             return True
 
         # Read from file that we know?
