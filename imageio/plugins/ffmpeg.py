@@ -118,6 +118,7 @@ the number of frames can be estimated from the fps and duration in the meta data
 
 """
 
+import re
 import sys
 import time
 import logging
@@ -187,7 +188,7 @@ class FfmpegFormat(Format):
         # Read from video stream?
         # Note that we could write the _video flag here, but a user might
         # select this format explicitly (and this code is not run)
-        if request.filename in ["<video%i>" % i for i in range(10)]:
+        if re.match(r"<video\d+>", request):
             return True
 
         # Read from file that we know?
