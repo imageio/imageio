@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
-## v2.11.0 (2021-10-28)
-
+## v2.10.1 (2021-10-27)
+### Fix
+* Install ImageIO dependencies during release wheel build ([#671](https://github.com/imageio/imageio/issues/671)) ([`f1ee22a`](https://github.com/imageio/imageio/commit/f1ee22ac1375e67cc8da6822326e10f6badf332c))
 
 ## v2.10.0 (2021-10-27)
 ### Feature
