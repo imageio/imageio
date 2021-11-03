@@ -333,7 +333,7 @@ def volwrite(uri, im, format=None, **kwargs):
     imt = type(im)
     im = np.asanyarray(im)
     if not np.issubdtype(im.dtype, np.number):
-        raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+        raise ValueError(f"Image is not numeric, but {imt.__name__}.")
     elif im.ndim == 3:
         pass
     elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
@@ -341,7 +341,7 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-    with imopen(uri, "wv", format=format) as file:
+    with imopen(uri, "wv", plugin=format) as file:
         return file.write(im, **kwargs)
 
 

@@ -227,10 +227,13 @@ class PillowFormat(Format):
     _modes = "i"
     _description = ""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, plugin_id:str=None, **kwargs):
+        
         super(PillowFormat, self).__init__(*args, **kwargs)
         # Used to synchronize _init_pillow(), see #244
         self._lock = threading.RLock()
+
+        self._plugin_id = plugin_id
 
     @property
     def plugin_id(self):
@@ -840,8 +843,7 @@ def register_pillow_formats():
             continue
         FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
         summary = FormatCls._description or summary
-        format = FormatCls(id + "-PIL", summary, ext, FormatCls._modes)
-        format._plugin_id = id
+        format = FormatCls(id + "-PIL", summary, ext, FormatCls._modes, plugin_id=id)
         if FormatCls is PillowFormat or not FormatCls.__doc__:
             format.__doc__ = pillow_docs[id] + GENERIC_DOCS
         formats.add_format(format)

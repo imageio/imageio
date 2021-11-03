@@ -34,7 +34,7 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarra
         The ndimage located at the given URI.
     """
 
-    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **kwargs))
@@ -67,7 +67,7 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
 
     """
 
-    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
         for image in img_file.iter(**kwargs):
@@ -104,7 +104,7 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional
 
     """
 
-    plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
     with imopen(uri, "w", **plugin_kwargs) as img_file:
         encoded = img_file.write(image, **kwargs)

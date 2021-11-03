@@ -69,36 +69,31 @@ def imopen(
 
     # complete call using the specified plugin, if specified
     if plugin is not None:
-        # Note: for backwards compatibility with v2
-        # this branch can be removed in v3
-        if legacy_mode and plugin not in known_plugins:
-            plugin_as_path = Path(plugin)
-            plugin = plugin.lower()
-
-            if plugin in _extension_dict:
+        if plugin in known_plugins:
+            pass
+        elif not legacy_mode:
+            request.finish()
+            raise ValueError(f"'{plugin}' is not a registered plugin name.")
+        elif plugin.lower() in _extension_dict:
+            # for v2 compatibility, delete in v3
+            plugin = _extension_dict[plugin.lower()][0].priority[0]
+        elif Path(plugin).suffix.lower() in _extension_dict:
+            # for v2 compatibility, delete in v3
+                plugin = Path(plugin).suffix.lower()
                 plugin = _extension_dict[plugin][0].priority[0]
-            elif plugin_as_path.suffix.lower() in _extension_dict:
-                plugin = plugin_as_path.suffix.lower()
-                plugin = _extension_dict[plugin][0].priority[0]
-            else:
-                request.finish()
-                raise IndexError(f"'{plugin}' is not a registered plugin name.")
-            candidate_plugin = known_plugins[plugin].plugin_class
         else:
+            # for v2 compatibility, delete in v3
             request.finish()
             raise IndexError(f"'{plugin}' is not a registered plugin name.")
 
-        if plugin in known_plugins:
-            candidate_plugin = known_plugins[plugin].plugin_class
-        else:
-            request.finish()
-            raise ValueError(f"'{plugin}' is not a registered plugin name.")
+        candidate_plugin = known_plugins[plugin].plugin_class
 
         try:
             plugin_instance = candidate_plugin(request, **kwargs)
         except InitializationError:
             request.finish()
-            raise IOError(f"'{plugin}' can not handle the given uri.")
+            err_type = RuntimeError if legacy_mode else IOError
+            raise err_type(f"'{plugin}' can not handle the given uri.")
 
         return plugin_instance
 

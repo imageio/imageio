@@ -40,6 +40,10 @@ class FreeimageFormat(Format):
 
     _modes = "i"
 
+    def __init__(self, name, description, extensions=None, modes=None, *, fif=None):
+        super().__init__(name, description, extensions=extensions, modes=modes)
+        self._fif = fif
+
     @property
     def fif(self):
         return self._fif  # Set when format is created
@@ -502,8 +506,7 @@ def create_freeimage_formats():
             if not FormatClass:
                 continue
             # Create Format and add
-            format = FormatClass(name + "-FI", des, ext, FormatClass._modes)
-            format._fif = i
+            format = FormatClass(name + "-FI", des, ext, FormatClass._modes, fif=i)
             formats.add_format(format, overwrite=True)
 
 
