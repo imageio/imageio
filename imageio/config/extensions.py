@@ -385,7 +385,7 @@ known_extensions = [
     FileExtension(
         name="Joint Photographic Experts Group",
         extension="jpg",
-        priority=["JPEG-FI", "JPEG-PIL", "itk", "GDAL"],
+        priority=["JPEG-PIL", "JPEG-FI", "itk", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -611,7 +611,7 @@ known_extensions = [
     FileExtension(
         name="Portable Network Graphics",
         extension="png",
-        priority=["PNG-FI", "PNG-PIL", "itk"],
+        priority=["PNG-PIL", "PNG-FI", "itk"],
     ),
     FileExtension(
         name="Pbmplus image",
