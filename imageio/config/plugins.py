@@ -13,12 +13,15 @@ class PluginConfig:
         *,
         is_legacy: bool = False,
         package_name: str = None,
+        legacy_install_name: str = None,
     ) -> None:
         self.name = name
         self.class_name = class_name
         self.module_name = module_name
         self.package_name = package_name
         self.is_legacy = is_legacy
+
+        self.install_name = legacy_install_name or self.name
 
     @property
     def plugin_class(self) -> Any:
@@ -31,7 +34,14 @@ class PluginConfig:
 
         """
 
-        module = importlib.import_module(self.module_name, self.package_name)
+        try:
+            module = importlib.import_module(self.module_name, self.package_name)
+        except ImportError:
+            raise ImportError(
+                f"The `{self.name}` plugin is not installed. "
+                f"Use `pip install -U imageio[{self.install_name}]` to install it."
+            )
+
         clazz = getattr(module, self.class_name)
 
         if self.is_legacy:
@@ -55,66 +65,77 @@ _plugin_list = [
         class_name="BsdfFormat",
         module_name="imageio.plugins.bsdf",
         is_legacy=True,
+        legacy_install_name="bsdf"
     ),
     PluginConfig(
         name="DICOM",
         class_name="DicomFormat",
         module_name="imageio.plugins.dicom",
         is_legacy=True,
+        legacy_install_name="dicom"
     ),
     PluginConfig(
         name="FEI",
         class_name="FEISEMFormat",
         module_name="imageio.plugins.feisem",
         is_legacy=True,
+        legacy_install_name="feisem"
     ),
     PluginConfig(
         name="FFMPEG",
         class_name="FfmpegFormat",
         module_name="imageio.plugins.ffmpeg",
         is_legacy=True,
+        legacy_install_name="ffmpeg"
     ),
     PluginConfig(
         name="fits",
         class_name="FitsFormat",
         module_name="imageio.plugins.fits",
         is_legacy=True,
+        legacy_install_name="fits"
     ),
     PluginConfig(
         name="GDAL",
         class_name="GdalFormat",
         module_name="imageio.plugins.gdal",
         is_legacy=True,
+        legacy_install_name="gdal"
     ),
     PluginConfig(
         name="itk",
         class_name="ItkFormat",
         module_name="imageio.plugins.simpleitk",
         is_legacy=True,
+        legacy_install_name="simpleitk"
     ),
     PluginConfig(
         name="npz",
         class_name="NpzFormat",
         module_name="imageio.plugins.npz",
         is_legacy=True,
+        legacy_install_name="numpy"
     ),
     PluginConfig(
         name="SPE",
         class_name="SpeFormat",
         module_name="imageio.plugins.spe",
         is_legacy=True,
+        legacy_install_name="spe"
     ),
     PluginConfig(
         name="SWF",
         class_name="SWFFormat",
         module_name="imageio.plugins.swf",
         is_legacy=True,
+        legacy_install_name="swf"
     ),
     PluginConfig(
         name="tiff",
         class_name="TiffFormat",
         module_name="imageio.plugins.tifffile",
         is_legacy=True,
+        legacy_install_name="tifffile"
     ),
     *[
         PluginConfig(
@@ -122,6 +143,7 @@ _plugin_list = [
             class_name="LytroFormat",
             module_name="imageio.plugins.lytro",
             is_legacy=True,
+            legacy_install_name="lytro"
         )
         for name in ["LYTRO-F01-RAW", "LYTRO-ILLUM-RAW", "LYTRO-LFP", "LYTRO-LFR"]
     ],
@@ -131,6 +153,7 @@ _plugin_list = [
             class_name="FreeimageFormat",
             module_name="imageio.plugins.freeimage",
             is_legacy=True,
+            legacy_install_name="freeimage"
         )
         for name in [
             "BMP-FI",
@@ -177,6 +200,7 @@ _plugin_list = [
             class_name="PillowFormat",
             module_name="imageio.plugins.pillow_legacy",
             is_legacy=True,
+            legacy_install_name="pillow"
         )
         for name in [
             "BMP-PIL",

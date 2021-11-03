@@ -178,10 +178,21 @@ extras_require = {
     "linting": ["black", "flake8"],
     "test": ["invoke", "pytest", "pytest-cov"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
+    "itk": ["itk"],
+    "bsdf": [],
+    "dicom": [],
+    "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
+    "freeimage": [],
     "gdal": ["gdal"],
-    "itk": ["itk"],
+    "lytro": [],
+    "numpy": [],
+    "pillow": [],
+    "simpleitk": [],
+    "spe": [],
+    "swf": [],
+    "tifffile": [],
 }
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
