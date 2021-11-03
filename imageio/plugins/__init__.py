@@ -79,17 +79,6 @@ For the Format.Writer class:
 
 """
 
-from ..core.imopen import imopen
-
-try:
-    import PIL
-    from .pillow import PillowPlugin
-
-    imopen.register_plugin("pillow", PillowPlugin)
-except ImportError:
-    pass  # Pillow not installed
-
-
 # First import plugins that we want to take precedence over freeimage
 from . import tifffile
 from . import fits  # depends on astropy

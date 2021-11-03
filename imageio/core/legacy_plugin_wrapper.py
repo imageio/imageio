@@ -35,7 +35,7 @@ class LegacyPlugin:
     --------
 
     >>> import imageio.v3 as iio
-    >>> with iio.imopen("/path/to/image.tiff", "r", search_legacy_only=True) as file:
+    >>> with iio.imopen("/path/to/image.tiff", "r", legacy_mode=True) as file:
     >>>     reader = file.legacy_get_reader()  # depreciated
     >>>     for im in file.iter():
     >>>         print(im.shape)

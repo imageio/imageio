@@ -213,6 +213,7 @@ class Request(object):
     def __init__(self, uri, mode, **kwargs):
 
         # General
+        self.raw_uri = uri
         self._uri_type = None
         self._filename = None
         self._extension = None

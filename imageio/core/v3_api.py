@@ -1,10 +1,10 @@
-from .imopen import imopen as imopen_core
+from .imopen import imopen
 import numpy as np
 from typing import Optional, Iterator
 
 
 # create name in this namespace to allow ``import imageio.v3 as iio``
-imopen = imopen_core()
+imopen = imopen
 
 
 def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarray:
@@ -36,7 +36,7 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarra
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
-    with imopen_core()(uri, "r", **plugin_kwargs) as img_file:
+    with imopen(uri, "r", **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
@@ -69,7 +69,7 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
-    with imopen_core()(uri, "r", **plugin_kwargs) as img_file:
+    with imopen(uri, "r", **plugin_kwargs) as img_file:
         for image in img_file.iter(**kwargs):
             # Note: casting to ndarray here to ensure compatibility
             # with the v2.9 API
@@ -106,7 +106,7 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional
 
     plugin_kwargs = {"search_legacy_only": False, "plugin": plugin}
 
-    with imopen_core()(uri, "w", **plugin_kwargs) as img_file:
+    with imopen(uri, "w", **plugin_kwargs) as img_file:
         encoded = img_file.write(image, **kwargs)
 
     return encoded

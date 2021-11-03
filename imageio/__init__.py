@@ -21,13 +21,12 @@ __version__ = "2.10.1"
 from . import config
 
 # v3.0.0 API
-from .core.imopen import imopen as imopen_obj
+from .core.imopen import imopen
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
-# Instantiate format managers
-imopen = imopen_obj()
+# Instantiate the old format manager
 formats = FormatManager()
 
 # Load legacy API
