@@ -71,7 +71,7 @@ known_extensions = [
     FileExtension(
         name="Silicon Graphics Image",
         extension="bw",
-        priority=["SGI-PI", "SGI-FI"],
+        priority=["SGI-PIL", "SGI-FI"],
     ),
     FileExtension(
         name="Scirra Construct",

@@ -1,95 +1,228 @@
-known_plugins = {
-    "BMP-FI": "imageio.plugins.freeimage",
-    "BMP-PIL": "imageio.plugins.pillow_legacy",
-    "BSDF": "imageio.plugins.bsdf",
-    "BUFR-PIL": "imageio.plugins.pillow_legacy",
-    "CUR-PIL": "imageio.plugins.pillow_legacy",
-    "CUT-FI": "imageio.plugins.freeimage",
-    "DCX-PIL": "imageio.plugins.pillow_legacy",
-    "DDS-FI": "imageio.plugins.freeimage",
-    "DDS-PIL": "imageio.plugins.pillow_legacy",
-    "DIB-PIL": "imageio.plugins.pillow_legacy",
-    "DICOM": "imageio.plugins.dicom",
-    "EPS-PIL": "imageio.plugins.pillow_legacy",
-    "EXR-FI": "imageio.plugins.freeimage",
-    "FEI": "imageio.plugins.feisem",
-    "FFMPEG": "imageio.plugins.ffmpeg",
-    "FITS-PIL": "imageio.plugins.pillow_legacy",
-    "fits": "imageio.plugins.fits",
-    "FLI-PIL": "imageio.plugins.pillow_legacy",
-    "FPX-PIL": "imageio.plugins.pillow_legacy",
-    "FTEX-PIL": "imageio.plugins.pillow_legacy",
-    "G3-FI": "imageio.plugins.freeimage",
-    "GBR-PIL": "imageio.plugins.pillow_legacy",
-    "GDAL": "imageio.plugins.gdal",
-    "GIF-FI": "imageio.plugins.freeimage",
-    "GIF-PIL": "imageio.plugins.pillow_legacy",
-    "GRIB-PIL": "imageio.plugins.pillow_legacy",
-    "HDF5-PIL": "imageio.plugins.pillow_legacy",
-    "HDR-FI": "imageio.plugins.freeimage",
-    "ICNS-PIL": "imageio.plugins.pillow_legacy",
-    "ICO-FI": "imageio.plugins.freeimage",
-    "ICO-PIL": "imageio.plugins.pillow_legacy",
-    "IFF-FI": "imageio.plugins.freeimage",
-    "IM-PIL": "imageio.plugins.pillow_legacy",
-    "IMT-PIL": "imageio.plugins.pillow_legacy",
-    "IPTC-PIL": "imageio.plugins.pillow_legacy",
-    "itk": "imageio.plugins.simpleitk",
-    "J2K-FI": "imageio.plugins.freeimage",
-    "JNG-FI": "imageio.plugins.freeimage",
-    "JP2-FI": "imageio.plugins.freeimage",
-    "JPEG-FI": "imageio.plugins.freeimage",
-    "JPEG-PIL": "imageio.plugins.pillow_legacy",
-    "JPEG-XR-FI": "imageio.plugins.freeimage",
-    "JPEG2000-PIL": "imageio.plugins.pillow_legacy",
-    "KOALA-FI": "imageio.plugins.freeimage",
-    "LYTRO-F01-RAW": "imageio.plugins.lytro",
-    "LYTRO-ILLUM-RAW": "imageio.plugins.lytro",
-    "LYTRO-LFP": "imageio.plugins.lytro",
-    "LYTRO-LFR": "imageio.plugins.lytro",
-    "MCIDAS-PIL": "imageio.plugins.pillow_legacy",
-    "MIC-PIL": "imageio.plugins.pillow_legacy",
-    "MPO-PIL": "imageio.plugins.pillow_legacy",
-    "MSP-PIL": "imageio.plugins.pillow_legacy",
-    "npz": "imageio.plugins.npz",
-    "PBM-FI": "imageio.plugins.freeimage",
-    "PBMRAW-FI": "imageio.plugins.freeimage",
-    "PCD-FI": "imageio.plugins.freeimage",
-    "PCD-PIL": "imageio.plugins.pillow_legacy",
-    "PCX-FI": "imageio.plugins.freeimage",
-    "PCX-PIL": "imageio.plugins.pillow_legacy",
-    "PFM-FI": "imageio.plugins.freeimage",
-    "PGM-FI": "imageio.plugins.freeimage",
-    "PGMRAW-FI": "imageio.plugins.freeimage",
-    "PICT-PIL": "imageio.plugins.pillow_legacy",
-    "PIXAR-PIL": "imageio.plugins.pillow_legacy",
-    "PNG-FI": "imageio.plugins.freeimage",
-    "PNG-PIL": "imageio.plugins.pillow_legacy",
-    "PPM-FI": "imageio.plugins.freeimage",
-    "PPM-PIL": "imageio.plugins.pillow_legacy",
-    "PPMRAW-FI": "imageio.plugins.freeimage",
-    "PSD-FI": "imageio.plugins.freeimage",
-    "PSD-PIL": "imageio.plugins.pillow_legacy",
-    "RAS-FI": "imageio.plugins.freeimage",
-    "RAW-FI": "imageio.plugins.freeimage",
-    "SGI-FI": "imageio.plugins.freeimage",
-    "SGI-PI": "imageio.plugins.pillow_legacy",
-    "SGI-PIL": "imageio.plugins.pillow_legacy",
-    "SPE": "imageio.plugins.spe",
-    "SPIDER-PIL": "imageio.plugins.pillow_legacy",
-    "SUN-PIL": "imageio.plugins.pillow_legacy",
-    "SWF": "imageio.plugins.swf",
-    "TARGA-FI": "imageio.plugins.freeimage",
-    "TGA-PIL": "imageio.plugins.pillow_legacy",
-    "TIFF-FI": "imageio.plugins.freeimage",
-    "TIFF-PIL": "imageio.plugins.pillow_legacy",
-    "tiff": "imageio.plugins.tifffile",
-    "WBMP-FI": "imageio.plugins.freeimage",
-    "WEBP-FI": "imageio.plugins.freeimage",
-    "WMF-PIL": "imageio.plugins.pillow_legacy",
-    "XBM-FI": "imageio.plugins.freeimage",
-    "XBM-PIL": "imageio.plugins.pillow_legacy",
-    "XPM-FI": "imageio.plugins.freeimage",
-    "XPM-PIL": "imageio.plugins.pillow_legacy",
-    "XVTHUMB-PIL": "imageio.plugins.pillow_legacy",
-}
+from typing import Any, Dict
+import importlib
+
+from imageio.core.legacy_plugin_wrapper import LegacyPlugin
+
+
+class PluginConfig:
+    def __init__(
+        self,
+        name: str,
+        class_name: str = "LegacyPlugin",
+        module_name: str = "imageio.code.imopen",
+        *,
+        is_legacy: bool = False,
+        package_name: str = None,
+    ) -> None:
+        self.name = name
+        self.class_name = class_name
+        self.module_name = module_name
+        self.package_name = package_name
+        self.is_legacy = is_legacy
+
+    @property
+    def plugin_class(self) -> Any:
+        """Get the plugin class (import if needed)
+
+        Returns
+        -------
+        plugin_class : Any
+            The class that can be used to instantiate plugins.
+
+        """
+
+        module = importlib.import_module(self.module_name, self.package_name)
+        clazz = getattr(module, self.class_name)
+
+        if self.is_legacy:
+            legacy_plugin = clazz(self.name, "A legacy plugin")
+
+            def partial_legacy_plugin(request):
+                return LegacyPlugin(request, legacy_plugin)
+
+            clazz = partial_legacy_plugin
+
+        return clazz
+
+
+_plugin_list = [
+    PluginConfig(
+        name="pillow", class_name="PillowPlugin", module_name="imageio.plugins.pillow"
+    ),
+    # legacy plugins (and their many names)
+    PluginConfig(
+        name="BSDF",
+        class_name="BsdfFormat",
+        module_name="imageio.plugins.bsdf",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="DICOM",
+        class_name="DicomFormat",
+        module_name="imageio.plugins.dicom",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="FEI",
+        class_name="FEISEMFormat",
+        module_name="imageio.plugins.feisem",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="FFMPEG",
+        class_name="FfmpegFormat",
+        module_name="imageio.plugins.ffmpeg",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="fits",
+        class_name="FitsFormat",
+        module_name="imageio.plugins.fits",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="GDAL",
+        class_name="GdalFormat",
+        module_name="imageio.plugins.gdal",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="itk",
+        class_name="ItkFormat",
+        module_name="imageio.plugins.simpleitk",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="npz",
+        class_name="NpzFormat",
+        module_name="imageio.plugins.npz",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="SPE",
+        class_name="SpeFormat",
+        module_name="imageio.plugins.spe",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="SWF",
+        class_name="SWFFormat",
+        module_name="imageio.plugins.swf",
+        is_legacy=True,
+    ),
+    PluginConfig(
+        name="tiff",
+        class_name="TiffFormat",
+        module_name="imageio.plugins.tifffile",
+        is_legacy=True,
+    ),
+    *[
+        PluginConfig(
+            name=name,
+            class_name="LytroFormat",
+            module_name="imageio.plugins.lytro",
+            is_legacy=True,
+        )
+        for name in ["LYTRO-F01-RAW", "LYTRO-ILLUM-RAW", "LYTRO-LFP", "LYTRO-LFR"]
+    ],
+    *[
+        PluginConfig(
+            name=name,
+            class_name="FreeimageFormat",
+            module_name="imageio.plugins.freeimage",
+            is_legacy=True,
+        )
+        for name in [
+            "BMP-FI",
+            "CUT-FI",
+            "DDS-FI",
+            "EXR-FI",
+            "PNG-FI",
+            "G3-FI",
+            "G3-FI",
+            "GIF-FI",
+            "HDR-FI",
+            "ICO-FI",
+            "IFF-FI",
+            "J2K-FI",
+            "JNG-FI",
+            "JP2-FI",
+            "JPEG-FI",
+            "JPEG-XR-FI",
+            "KOALA-FI",
+            "PBM-FI",
+            "PBMRAW-FI",
+            "PCD-FI",
+            "PCX-FI",
+            "PFM-FI",
+            "PGM-FI",
+            "PGMRAW-FI",
+            "PPM-FI",
+            "PPMRAW-FI",
+            "PSD-FI",
+            "RAS-FI",
+            "RAW-FI",
+            "SGI-FI",
+            "TARGA-FI",
+            "TIFF-FI",
+            "WBMP-FI",
+            "WEBP-FI",
+            "XBM-FI",
+            "XPM-FI",
+        ]
+    ],
+    *[
+        PluginConfig(
+            name=name,
+            class_name="PillowFormat",
+            module_name="imageio.plugins.pillow_legacy",
+            is_legacy=True,
+        )
+        for name in [
+            "BMP-PIL",
+            "BUFR-PIL",
+            "CUR-PIL",
+            "DCX-PIL",
+            "DDS-PIL",
+            "DIB-PIL",
+            "EPS-PIL",
+            "FITS-PIL",
+            "FLI-PIL",
+            "FPX-PIL",
+            "FTEX-PIL",
+            "GBR-PIL",
+            "GIF-PIL",
+            "GRIB-PIL",
+            "HDF5-PIL",
+            "ICNS-PIL",
+            "ICO-PIL",
+            "IM-PIL",
+            "IMT-PIL",
+            "IPTC-PIL",
+            "JPEG-PIL",
+            "JPEG2000-PIL",
+            "MCIDAS-PIL",
+            "MIC-PIL",
+            "MPO-PIL",
+            "MSP-PIL",
+            "PCD-PIL",
+            "PCX-PIL",
+            "PICT-PIL",
+            "PIXAR-PIL",
+            "PNG-PIL",
+            "PPM-PIL",
+            "PSD-PIL",
+            "SGI-PIL",
+            "SPIDER-PIL",
+            "SUN-PIL",
+            "TGA-PIL",
+            "TIFF-PIL",
+            "WMF-PIL",
+            "XBM-PIL",
+            "XPM-PIL",
+            "XVTHUMB-PIL",
+        ]
+    ],
+]
+
+known_plugins = {x.name: x for x in _plugin_list}
