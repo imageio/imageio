@@ -44,7 +44,7 @@ class GdalFormat(Format):
         if request.extension in (".ecw",):
             return True
         if has_module("osgeo.gdal"):
-            return request.extension in self.extensions
+            return request.extension in GDAL_FORMATS
 
     def _can_write(self, request):
         return False

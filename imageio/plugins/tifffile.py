@@ -365,11 +365,11 @@ class TiffFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.extension in self.extensions
+        return request.extension in TIFF_FORMATS
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.extension in self.extensions
+        return request.extension in TIFF_FORMATS
 
     # -- reader
 

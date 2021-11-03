@@ -73,11 +73,13 @@ class SWFFormat(Format):
             tmp = request.firstbytes[0:3].decode("ascii", "ignore")
             if tmp in ("FWS", "CWS"):
                 return True
+        return False
 
     def _can_write(self, request):
         if request.mode[1] in (self.modes + "?"):
             if request.extension in self.extensions:
                 return True
+        return False
 
     # -- reader
 
