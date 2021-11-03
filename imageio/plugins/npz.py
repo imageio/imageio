@@ -33,11 +33,11 @@ class NpzFormat(Format):
 
     def _can_read(self, request):
         # We support any kind of image data
-        return request.extension == ".npz"
+        return request.extension in self.extensions
 
     def _can_write(self, request):
         # We support any kind of image data
-        return request.extension == ".npz"
+        return request.extension in self.extensions
 
     # -- reader
 
@@ -87,5 +87,5 @@ class NpzFormat(Format):
 
 
 # Register
-format = NpzFormat("npz", "Numpy's compressed array format", ".npz", "iIvV")
+format = NpzFormat("npz", "Numpy's compressed array format", "npz", "iIvV")
 formats.add_format(format)

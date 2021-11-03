@@ -538,7 +538,9 @@ class SpeFormat(Format):
     """See :mod:`imageio.plugins.spe`"""
 
     def _can_read(self, request):
-        return request.mode[1] in self.modes + "?" and request.extension == ".spe"
+        return (
+            request.mode[1] in self.modes + "?" and request.extension in self.extensions
+        )
 
     def _can_write(self, request):
         return False

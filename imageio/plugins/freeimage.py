@@ -40,28 +40,20 @@ class FreeimageFormat(Format):
 
     _modes = "i"
 
-    def __init__(
-        self, name, description, extensions=None, modes=None, fif=None
-    ) -> None:
-        super().__init__(name, description, extensions=extensions, modes=modes)
-        self._fif = fif
-
     @property
     def fif(self):
         return self._fif  # Set when format is created
 
     def _can_read(self, request):
         # Ask freeimage if it can read it, maybe ext missing
-
         if fi.has_lib():
             if not hasattr(request, "_fif"):
                 try:
                     request._fif = fi.getFIF(request.filename, "r", request.firstbytes)
-                except ValueError:  # pragma: no cover
-                    return False
-            if self.fif is None or request._fif == self.fif:
+                except Exception:  # pragma: no cover
+                    request._fif = -1
+            if request._fif == self.fif:
                 return True
-        return False
 
     def _can_write(self, request):
         # Ask freeimage, because we are not aware of all formats
@@ -71,10 +63,8 @@ class FreeimageFormat(Format):
                     request._fif = fi.getFIF(request.filename, "w")
                 except Exception:  # pragma: no cover
                     request._fif = -1
-            if self.fif is None or request._fif is self.fif:
+            if request._fif is self.fif:
                 return True
-
-        return False
 
     # --
 
@@ -83,7 +73,7 @@ class FreeimageFormat(Format):
             return 1
 
         def _open(self, flags=0):
-            self._bm = fi.create_bitmap(self.request.filename, self.request._fif, flags)
+            self._bm = fi.create_bitmap(self.request.filename, self.format.fif, flags)
             self._bm.load_from_filename(self.request.get_local_filename())
 
         def _close(self):
@@ -512,7 +502,8 @@ def create_freeimage_formats():
             if not FormatClass:
                 continue
             # Create Format and add
-            format = FormatClass(name + "-FI", des, ext, FormatClass._modes, fif=i)
+            format = FormatClass(name + "-FI", des, ext, FormatClass._modes)
+            format._fif = i
             formats.add_format(format, overwrite=True)
 
 

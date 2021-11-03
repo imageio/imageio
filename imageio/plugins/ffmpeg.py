@@ -141,8 +141,6 @@ elif sys.platform.startswith("darwin"):
 else:  # pragma: no cover
     CAM_FORMAT = "unknown-cam-format"
 
-FFMPEG_FORMATS = [".mov", ".avi", ".mpg", ".mpeg", ".mp4", ".mkv", ".webm", ".wmv"]
-
 
 def download(directory=None, force_download=False):  # pragma: no cover
     raise RuntimeError(
@@ -193,12 +191,12 @@ class FfmpegFormat(Format):
             return True
 
         # Read from file that we know?
-        if request.extension in FFMPEG_FORMATS:
+        if request.extension in self.extensions:
             return True
 
     def _can_write(self, request):
         if request.mode[1] in (self.modes + "?"):
-            if request.extension in FFMPEG_FORMATS:
+            if request.extension in self.extensions:
                 return True
 
     # --

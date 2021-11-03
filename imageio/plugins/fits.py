@@ -84,7 +84,7 @@ class FitsFormat(Format):
     def _can_read(self, request):
         # We return True if ext matches, because this is the only plugin
         # that can. If astropy is not installed, a useful error follows.
-        return request.extension in [".fits", ".fit", ".fts", ".fz"]
+        return request.extension in self.extensions
 
     def _can_write(self, request):
         # No write support

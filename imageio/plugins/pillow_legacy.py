@@ -268,7 +268,6 @@ class PillowFormat(Format):
                 if accept:
                     if request.firstbytes and accept(request.firstbytes):
                         return True
-        return False
 
     def _can_write(self, request):
         Image = self._init_pillow()
@@ -276,7 +275,6 @@ class PillowFormat(Format):
             if request.extension in self.extensions:
                 if self.plugin_id in Image.SAVE:
                     return True
-        return False
 
     class Reader(Format.Reader):
         def _open(self, pilmode=None, as_gray=False):
