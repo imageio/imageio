@@ -12,6 +12,7 @@ import zipfile
 import tempfile
 import shutil
 import enum
+import warnings
 
 from ..core import urlopen, get_remote_file
 
@@ -532,7 +533,13 @@ class Request(object):
 
         # Remove temp file
         if self._filename_local:
-            os.remove(self._filename_local)
+            try:
+                os.remove(self._filename_local)
+            except Exception:
+                warnings.warn(
+                    "Failed to delete the temporary file at "
+                    f"`{self._filename_local}`. Please report this issue."
+                )
             self._filename_local = None
 
         # Detach so gc can clean even if a reference of self lingers
