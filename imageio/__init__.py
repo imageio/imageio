@@ -18,8 +18,6 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.10.1"
 
-from . import config
-
 # v3.0.0 API
 from .core.imopen import imopen
 
@@ -53,6 +51,9 @@ from .core.functions import (
 )
 
 from .core import v3_api as v3
+
+# import config after core to avoid circular import
+from . import config
 
 # Load all the plugins
 from . import plugins
