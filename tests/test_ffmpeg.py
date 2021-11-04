@@ -483,6 +483,7 @@ def test_webcam():
         with raises(ValueError, match=".*Could not find a format to read.*"):
             imageio.read(path)
 
+
 def test_webcam_get_next_data():
     try:
         reader = imageio.get_reader("<video0>")
