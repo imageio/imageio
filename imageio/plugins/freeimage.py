@@ -473,19 +473,6 @@ fiformats = [
 ]
 
 
-def _create_predefined_freeimage_formats():
-
-    for name, i, des, ext in fiformats:
-        # name = NAME_MAP.get(name, name)
-        # Get class for format
-        FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
-        if FormatClass:
-            # Create Format and add
-            format = FormatClass(name + "-FI", des, ext, FormatClass._modes)
-            format._fif = i
-            formats.add_format(format)
-
-
 def create_freeimage_formats():
     """By default, imageio registers a list of predefined formats
     that freeimage can handle. If your version of imageio can handle
@@ -516,6 +503,3 @@ def create_freeimage_formats():
             # Create Format and add
             format = FormatClass(name + "-FI", des, ext, FormatClass._modes, fif=i)
             formats.add_format(format, overwrite=True)
-
-
-_create_predefined_freeimage_formats()

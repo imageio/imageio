@@ -70,11 +70,3 @@ class GdalFormat(Format):
 
         def _get_meta_data(self, index):
             return self._ds.GetMetadata()
-
-
-# Add this format
-formats.add_format(
-    GdalFormat(
-        "gdal", "Geospatial Data Abstraction Library", " ".join(GDAL_FORMATS), "iIvV"
-    )
-)

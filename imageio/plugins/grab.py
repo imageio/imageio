@@ -108,15 +108,3 @@ class ClipboardGrabFormat(BaseGrabFormat):
             )
         im = np.asarray(pil_im)
         return im, {}
-
-
-# Register. You register an *instance* of a Format class.
-format = ScreenGrabFormat(
-    "screengrab", "Grab screenshots (Windows and OS X only)", [], "i"
-)
-formats.add_format(format)
-
-format = ClipboardGrabFormat(
-    "clipboardgrab", "Grab from clipboard (Windows only)", [], "i"
-)
-formats.add_format(format)

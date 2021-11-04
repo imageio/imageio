@@ -503,8 +503,3 @@ class TiffFormat(Format):
 
         def set_meta_data(self, meta):
             self._meta = self._sanitize_meta(meta)
-
-
-# Register
-format = TiffFormat("tiff", "TIFF format", TIFF_FORMATS, "iIvV")
-formats.add_format(format)

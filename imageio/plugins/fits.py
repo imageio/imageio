@@ -125,10 +125,3 @@ class FitsFormat(Format):
         def _get_meta_data(self, index):
             # Get the meta data for the given index
             raise RuntimeError("The fits format does not support meta data.")
-
-
-# Register
-format = FitsFormat(
-    "fits", "Flexible Image Transport System (FITS) format", "fits fit fts fz", "iIvV"
-)
-formats.add_format(format)

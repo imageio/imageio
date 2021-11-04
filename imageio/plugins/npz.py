@@ -84,8 +84,3 @@ class NpzFormat(Format):
 
         def set_meta_data(self, meta):
             raise RuntimeError("The npz format does not support meta data.")
-
-
-# Register
-format = NpzFormat("npz", "Numpy's compressed array format", "npz", "iIvV")
-formats.add_format(format)

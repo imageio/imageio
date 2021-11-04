@@ -754,7 +754,3 @@ def roi_array_to_dict(a):
         }
         dict_list.append(roi_dict)
     return dict_list
-
-
-fmt = SpeFormat("spe", "SPE file format", ".spe", "iIvV")
-formats.add_format(fmt, overwrite=True)

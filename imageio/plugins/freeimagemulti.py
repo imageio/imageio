@@ -319,11 +319,3 @@ class GifFormat(FreeimageMulti):
                 y0, y1 = 0, 2
             # Cut out and return
             return im[y0:y1, x0:x1], (x0, y0)
-
-
-# formats.add_format(MngFormat('MNG', 'Multiple network graphics',
-#                                    '.mng', 'iI'))
-formats.add_format(IcoFormat("ICO-FI", "Windows icon", ".ico", "iI"))
-formats.add_format(
-    GifFormat("GIF-FI", "Static and animated gif (FreeImage)", ".gif", "iI")
-)

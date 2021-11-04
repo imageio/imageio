@@ -325,12 +325,3 @@ class BsdfFormat(Format):
 
         def set_meta_data(self, meta):  # pragma: no cover
             raise RuntimeError("The BSDF format only supports " "per-image meta data.")
-
-
-format = BsdfFormat(
-    "bsdf",  # short name
-    "Format based on the Binary Structured Data Format",
-    ".bsdf",
-    "iIvV",
-)
-formats.add_format(format)

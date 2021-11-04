@@ -820,34 +820,5 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
     else:
         return Image.fromarray(arr, mode)
 
-
-# End of code from scikit-image
-
-
+# imported for backwards compatibility
 from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402
-
-IGNORE_FORMATS = "MPEG"
-
-SPECIAL_FORMATS = dict(
-    PNG=PNGFormat,
-    JPEG=JPEGFormat,
-    GIF=GIFFormat,
-    TIFF=TIFFFormat,
-    JPEG2000=JPEG2000Format,
-)
-
-
-def register_pillow_formats():
-
-    for id, summary, ext in pillow_formats:
-        if id in IGNORE_FORMATS:
-            continue
-        FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
-        summary = FormatCls._description or summary
-        format = FormatCls(id + "-PIL", summary, ext, FormatCls._modes, plugin_id=id)
-        if FormatCls is PillowFormat or not FormatCls.__doc__:
-            format.__doc__ = pillow_docs[id] + GENERIC_DOCS
-        formats.add_format(format)
-
-
-register_pillow_formats()

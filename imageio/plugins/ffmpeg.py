@@ -704,13 +704,3 @@ def parse_device_names(ffmpeg_output):
         else:
             device_names2.append(friendly_name)  # duplicate, but not much we can do
     return device_names2
-
-
-# Register. You register an *instance* of a Format class.
-format = FfmpegFormat(
-    "ffmpeg",
-    "Many video formats and cameras (via ffmpeg)",
-    ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv",
-    "I",
-)
-formats.add_format(format)

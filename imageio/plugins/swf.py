@@ -337,12 +337,3 @@ HTML = """
     <embed width="%i" height="%i" src="%s">
 </html>
 """
-
-# Register. You register an *instance* of a Format class. Here specify:
-format = SWFFormat(
-    "swf",  # shot name
-    "Shockwave flash",  # one line descr.
-    ".swf",  # list of extensions as a space separated string
-    "I",  # modes, characters in iIvV
-)
-formats.add_format(format)
