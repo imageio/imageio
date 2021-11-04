@@ -80,8 +80,8 @@ def imopen(
             plugin = _extension_dict[plugin.lower()][0].priority[0]
         elif Path(plugin).suffix.lower() in _extension_dict:
             # for v2 compatibility, delete in v3
-                plugin = Path(plugin).suffix.lower()
-                plugin = _extension_dict[plugin][0].priority[0]
+            plugin = Path(plugin).suffix.lower()
+            plugin = _extension_dict[plugin][0].priority[0]
         else:
             # for v2 compatibility, delete in v3
             request.finish()
@@ -114,4 +114,6 @@ def imopen(
     else:
         request.finish()
         err_type = ValueError if legacy_mode else IOError
-        raise err_type(f"Could not find a backend to open {uri} with iomode '{io_mode}'")
+        raise err_type(
+            f"Could not find a backend to open {uri} with iomode '{io_mode}'"
+        )

@@ -39,6 +39,7 @@ test_dir = get_test_dir()
 
 class UselessDummyPlugin:
     """A dummy plugin to test plugin resultion and dynamic loading"""
+
     def __init__(self, request):
         raise InitializationError("Can not read anything")
 
@@ -617,7 +618,7 @@ def test_functions():
     R2 = imageio.read(fname1, "png")
 
     # this tests if the highest priority png plugin and the highest
-    # priority fallback plugin match. 
+    # priority fallback plugin match.
     # Do we really what to enforce this?
     assert type(R1) is type(R2)
 
@@ -826,17 +827,17 @@ def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
 
 
 def test_plugin_selection_failure(clear_plugins):
-    imopen_module._plugin_list.append(PluginConfig(
-        name="plugin1",
-        class_name="UselessDummyPlugin",
-        module_name="test_core"
-    ))
+    imopen_module._plugin_list.append(
+        PluginConfig(
+            name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
+        )
+    )
 
-    imopen_module._plugin_list.append(PluginConfig(
-        name="plugin2",
-        class_name="UselessDummyPlugin",
-        module_name="test_core"
-    ))
+    imopen_module._plugin_list.append(
+        PluginConfig(
+            name="plugin2", class_name="UselessDummyPlugin", module_name="test_core"
+        )
+    )
 
     with pytest.raises(IOError):
         iio.imopen("", "r", legacy_mode=False)
@@ -844,11 +845,11 @@ def test_plugin_selection_failure(clear_plugins):
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_plugin_selection_success(clear_plugins, invalid_file):
-    imopen_module._plugin_list.append(PluginConfig(
-        name="plugin",
-        class_name="EpicDummyPlugin",
-        module_name="test_core"
-    ))
+    imopen_module._plugin_list.append(
+        PluginConfig(
+            name="plugin", class_name="EpicDummyPlugin", module_name="test_core"
+        )
+    )
 
     instance = iio.imopen(invalid_file, "r", legacy_mode=False)
 
@@ -896,11 +897,9 @@ def test_mvolread_out_of_bytes():
 
 
 def test_invalid_explicit_plugin(clear_plugins, monkeypatch):
-    imopen_module.known_plugins["plugin1"] = (PluginConfig(
-        name="plugin1",
-        class_name="UselessDummyPlugin",
-        module_name="test_core"
-    ))
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
+    )
 
     with pytest.raises(IOError):
         iio.imopen("", "r", plugin="plugin1", legacy_mode=False)

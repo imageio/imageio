@@ -12,6 +12,7 @@ test_dir = get_test_dir()
 
 try:
     import astropy
+
     # io is not imported by default
     import astropy.io.fits
 except ImportError:

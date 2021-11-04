@@ -279,8 +279,21 @@ def test_jpg():
     )
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + ".jpg", notavalidkwarg=True, format="JPEG-FI")
-    raises(TypeError, imageio.imsave, fnamebase + ".jpg", im, notavalidk=True, format="JPEG-FI")
+    raises(
+        TypeError,
+        imageio.imread,
+        fnamebase + ".jpg",
+        notavalidkwarg=True,
+        format="JPEG-FI",
+    )
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + ".jpg",
+        im,
+        notavalidk=True,
+        format="JPEG-FI",
+    )
 
     # Compression
     imageio.imsave(fnamebase + "1.jpg", im3, quality=10)
@@ -343,8 +356,21 @@ def test_bmp():
     assert s1 + s2  # todo: bug in FreeImage? assert s1 < s2
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + "1.bmp", notavalidkwarg=True, format="BMP-FI")
-    raises(TypeError, imageio.imsave, fnamebase + "1.bmp", im, notavalidk=True, format="BMP-FI")
+    raises(
+        TypeError,
+        imageio.imread,
+        fnamebase + "1.bmp",
+        notavalidkwarg=True,
+        format="BMP-FI",
+    )
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.bmp",
+        im,
+        notavalidk=True,
+        format="BMP-FI",
+    )
 
 
 def test_gif():
@@ -369,7 +395,14 @@ def test_gif():
 
     # Parameter fail
     raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI")
-    raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True, format="GIF-FI")
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.gif",
+        im,
+        notavalidk=True,
+        format="GIF-FI",
+    )
 
 
 def test_animated_gif():
@@ -410,12 +443,18 @@ def test_animated_gif():
     duration = [0.1 for i in ims]
     for i in [2, 5, 7]:
         duration[i] = 0.5
-    imageio.mimsave(fnamebase + ".animated_irr.gif", ims, duration=duration, format="GIF-FI")
+    imageio.mimsave(
+        fnamebase + ".animated_irr.gif", ims, duration=duration, format="GIF-FI"
+    )
 
     # Other parameters
-    imageio.mimsave(fnamebase + ".animated.loop2.gif", ims, loop=2, fps=20, format="GIF-FI")
+    imageio.mimsave(
+        fnamebase + ".animated.loop2.gif", ims, loop=2, fps=20, format="GIF-FI"
+    )
     R = imageio.read(fnamebase + ".animated.loop2.gif", format="GIF-FI")
-    W = imageio.save(fnamebase + ".animated.palettes100.gif", palettesize=100, format="GIF-FI")
+    W = imageio.save(
+        fnamebase + ".animated.palettes100.gif", palettesize=100, format="GIF-FI"
+    )
     assert W._palettesize == 128
     # Fail
     raises(IndexError, R.get_meta_data, -1)
@@ -465,11 +504,21 @@ def test_ico():
 
     # Parameter fail
     raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI")
-    raises(TypeError, imageio.imsave, fnamebase + "1.ico", im, notavalidk=True, format="ICO-FI")
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.ico",
+        im,
+        notavalidk=True,
+        format="ICO-FI",
+    )
 
 
 # Skip on Windows xref: https://github.com/imageio/imageio/issues/21
-@pytest.mark.skipif(sys.platform.startswith("win"), reason="Windows has a known issue with multi-icon files")
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Windows has a known issue with multi-icon files",
+)
 def test_multi_icon_ico():
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
@@ -497,8 +546,21 @@ def test_pnm():
                 assert_close(rim, im, 0.1)  # lossless
 
                 # Parameter fail
-                raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="PPM-FI")
-                raises(TypeError, imageio.imsave, fname, im, notavalidk=True, format="PPM-FI")
+                raises(
+                    TypeError,
+                    imageio.imread,
+                    fname,
+                    notavalidkwarg=True,
+                    format="PPM-FI",
+                )
+                raises(
+                    TypeError,
+                    imageio.imsave,
+                    fname,
+                    im,
+                    notavalidk=True,
+                    format="PPM-FI",
+                )
 
 
 def test_other():

@@ -102,7 +102,12 @@ PILLOW_FORMATS = [
     ("IMT", "IM Tools", "", "PillowFormat"),
     ("IPTC", "IPTC/NAA", ".iim", "PillowFormat"),
     ("JPEG", "JPEG (ISO 10918)", ".jfif .jpe .jpg .jpeg", "JPEGFormat"),
-    ("JPEG2000", "JPEG 2000 (ISO 15444)", ".jp2 .j2k .jpc .jpf .jpx .j2c", "JPEG2000Format"),
+    (
+        "JPEG2000",
+        "JPEG 2000 (ISO 15444)",
+        ".jp2 .j2k .jpc .jpf .jpx .j2c",
+        "JPEG2000Format",
+    ),
     ("MCIDAS", "McIdas area file", "", "PillowFormat"),
     ("MIC", "Microsoft Image Composer", ".mic", "PillowFormat"),
     # skipped in legacy pillow

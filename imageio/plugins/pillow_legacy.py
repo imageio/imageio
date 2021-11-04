@@ -228,8 +228,8 @@ class PillowFormat(Format):
     _modes = "i"
     _description = ""
 
-    def __init__(self, *args, plugin_id:str=None, **kwargs):
-        
+    def __init__(self, *args, plugin_id: str = None, **kwargs):
+
         super(PillowFormat, self).__init__(*args, **kwargs)
         # Used to synchronize _init_pillow(), see #244
         self._lock = threading.RLock()

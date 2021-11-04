@@ -895,7 +895,7 @@ class FIBitmap(FIBaseBitmap):
             # Check
             if res is None:  # pragma: no cover, we do so many checks, this is rare
                 raise RuntimeError(
-                    f'Could not save file `{self._filename}`: {self._fi._get_error_message()}'
+                    f"Could not save file `{self._filename}`: {self._fi._get_error_message()}"
                 )
 
     # def save_to_bytes(self):
