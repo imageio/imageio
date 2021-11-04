@@ -98,8 +98,6 @@ def test_import_modules():
     # Test if everything seems to be there
     assert "imageio.core" in modnames
     assert "imageio.plugins" in modnames
-    assert "imageio.plugins.ffmpeg" in modnames
-    assert "imageio.plugins.dicom" in modnames
 
     # Test that modules that should not be imported are indeed not imported
     assert "imageio.freeze" not in modnames
