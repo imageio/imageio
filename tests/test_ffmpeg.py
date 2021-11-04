@@ -475,7 +475,7 @@ def test_webcam():
         tmp_request = imageio.core.Request(path, "rI")
         assert imageio.formats["ffmpeg"].can_read(tmp_request)
         tmp_request.finish()
-        
+
         try:
             imageio.read(path, format="ffmpeg")
         except IndexError:
