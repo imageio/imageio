@@ -59,6 +59,10 @@ class FreeimageFormat(Format):
                     request._fif = -1
             if request._fif == self.fif:
                 return True
+            elif request._fif == 7 and self.fif == 14:
+                # PPM gets identified as PBM and PPM can read PBM
+                # see: https://github.com/imageio/imageio/issues/677
+                return True
 
     def _can_write(self, request):
         # Ask freeimage, because we are not aware of all formats
