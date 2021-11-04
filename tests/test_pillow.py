@@ -111,7 +111,7 @@ def test_gif_legacy_pillow(image_files: Path, im_in: str, mode: str):
     """
 
     im_path = image_files / im_in
-    with iio.imopen(im_path, "r", search_legacy_only=True, format="GIF-PIL") as file:
+    with iio.imopen(im_path, "r", legacy_mode=True, plugin="GIF-PIL") as file:
         iio_im = file.read(pilmode=mode)
 
     pil_im = np.asarray(
@@ -399,8 +399,8 @@ def test_legacy_exif_orientation(image_files: Path):
     with iio.imopen(
         image_files / "chelsea_tagged.png",
         "r",
-        search_legacy_only=True,
-        format="PNG-PIL",
+        legacy_mode=True,
+        plugin="PNG-PIL",
     ) as f:
         im_reloaded = np.asarray(f.read()[0])
         im_meta = f.get_meta()
@@ -419,7 +419,7 @@ def test_legacy_exif_orientation(image_files: Path):
 
 def test_incomatible_write_format(tmp_path):
     with pytest.raises(IOError):
-        iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow")
+        iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow", legacy_mode=False)
 
 
 def test_write_to_bytes():

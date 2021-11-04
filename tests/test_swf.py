@@ -35,8 +35,8 @@ def test_format_selection():
     assert F.name == "SWF"
     assert imageio.formats[".swf"] is F
 
-    assert imageio.read(fname1).format is F
-    assert imageio.save(fname2).format is F
+    assert type(imageio.read(fname1).format) is type(F)
+    assert type(imageio.save(fname2).format) is type(F)
 
 
 def test_reading_saving():
@@ -158,13 +158,13 @@ def test_invalid():
     with open(fname2, "wb"):
         pass
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    raises(IOError, imageio.mimread, fname2, "swf")
+    raises(RuntimeError, imageio.mimread, fname2, "swf")
 
     # File with BS data
     with open(fname2, "wb") as f:
         f.write(b"x" * 100)
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    raises(IOError, imageio.mimread, fname2, "swf")
+    raises(RuntimeError, imageio.mimread, fname2, "swf")
 
 
 def test_lowlevel():

@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Optional
 
 from .format import Format
 from .request import IOMode, Request, InitializationError
@@ -84,6 +85,8 @@ class LegacyPlugin:
             Further keyword arguments are passed to the reader. See :func:`.help`
             to see what arguments are available for a particular format.
         """
+
+        self._request._kwargs = kwargs
         return self._plugin.get_reader(self._request)
 
     def read(self, *, index=None, **kwargs):
@@ -121,12 +124,10 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
-        # create a throw-away request
-        req = Request(self._uri, self._io_mode, **kwargs)
+        self._request._kwargs = kwargs
+        return self._plugin.get_writer(self._request)
 
-        return self._plugin.get_writer(req)
-
-    def write(self, image, **kwargs):
+    def write(self, image, **kwargs) -> Optional[bytes]:
         """
         Write an ndimage to the URI specified in path.
 

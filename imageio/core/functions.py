@@ -181,7 +181,7 @@ def imwrite(uri, im, format=None, **kwargs):
 
     # Test image
     imt = type(im)
-    im = np.asanyarray(im)
+    im = np.asarray(im)
     if not np.issubdtype(im.dtype, np.number):
         raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
     elif im.ndim == 2:

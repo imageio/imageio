@@ -298,16 +298,16 @@ _plugin_list.extend(
 
 # LYTRO plugin (legacy)
 lytro_formats = [
-    ("LYTRO-LFR", "Lytro Illum lfr image file", ".lfr", "i", "LytroLfrFormat"),
+    ("lytro-lfr", "Lytro Illum lfr image file", ".lfr", "i", "LytroLfrFormat"),
     (
-        "LYTRO-ILLUM-RAW",
+        "lytro-illum-raw",
         "Lytro Illum raw image file",
         ".raw",
         "i",
         "LytroIllumRawFormat",
     ),
-    ("LYTRO-LFP", "Lytro F01 lfp image file", ".lfp", "i", "LytroLfpFormat"),
-    ("LYTRO-F01-RAW", "Lytro F01 raw image file", ".raw", "i", "LytroF01RawFormat"),
+    ("lytro-lfp", "Lytro F01 lfp image file", ".lfp", "i", "LytroLfpFormat"),
+    ("lytro-f01-raw", "Lytro F01 raw image file", ".raw", "i", "LytroF01RawFormat"),
 ]
 for name, des, ext, mode, class_name in lytro_formats:
     config = PluginConfig(

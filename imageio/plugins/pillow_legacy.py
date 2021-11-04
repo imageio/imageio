@@ -174,6 +174,7 @@ import numpy as np
 
 from .. import formats
 from ..core import Format, image_as_uint
+from ..core import RETURN_BYTES
 
 # Get info about pillow formats without having to import PIL
 from .pillow_info import pillow_formats, pillow_docs
@@ -275,7 +276,7 @@ class PillowFormat(Format):
     def _can_write(self, request):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
+            if request.extension in self.extensions or request.raw_uri == RETURN_BYTES:
                 if self.plugin_id in Image.SAVE:
                     return True
 

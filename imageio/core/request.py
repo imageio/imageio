@@ -510,6 +510,7 @@ class Request(object):
                 with open(self._filename_local, "rb") as file:
                     bytes = file.read()
             elif self._file_is_local:
+                self._file_is_local = False
                 bytes = self._file.getvalue()
 
             # Put the data in the right place
@@ -548,6 +549,7 @@ class Request(object):
         """For internal use. In some situations a write action can have
         a result (bytes data). That is obtained with this function.
         """
+        # Is there a reason to disallow reading multiple times?
         self._result, res = None, self._result
         return res
 

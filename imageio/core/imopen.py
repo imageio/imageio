@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from .request import Request, InitializationError
-from ..config.plugins import known_plugins, _plugin_list
+from ..config.plugins import _plugin_list
+from ..config import known_plugins
 from ..config.extensions import _extension_dict
 
 
