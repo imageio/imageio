@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 import importlib
 
 from ..core.legacy_plugin_wrapper import LegacyPlugin

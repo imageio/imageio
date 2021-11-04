@@ -1,7 +1,6 @@
 import numpy as np
 from typing import Optional
 
-from .format import Format
 from .request import IOMode, Request, InitializationError
 
 
@@ -43,7 +42,7 @@ class LegacyPlugin:
 
     """
 
-    def __init__(self, request: Request, legacy_plugin: Format):
+    def __init__(self, request: Request, legacy_plugin):
         """Instantiate a new Legacy Plugin
 
         Parameters

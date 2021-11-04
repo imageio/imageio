@@ -36,6 +36,7 @@ import numpy as np
 
 from . import Array, asarray
 from .request import ImageMode
+from ..config import known_plugins
 
 
 # survived for backwards compatibility
@@ -537,7 +538,7 @@ class FormatManager(object):
         self._formats_sorted = []
 
     def __repr__(self):
-        return "<imageio.FormatManager with %i registered formats>" % len(self)
+        return f"<imageio.FormatManager with {len(known_plugins)} registered formats>"
 
     def __iter__(self):
         return iter(self._formats_sorted)

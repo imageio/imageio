@@ -80,27 +80,27 @@ For the Format.Writer class:
 """
 
 # First import plugins that we want to take precedence over freeimage
-from . import tifffile
-from . import fits  # depends on astropy
-from . import pillow_legacy
-from . import grab
+# from . import tifffile
+# from . import fits  # depends on astropy
+# from . import pillow_legacy
+# from . import grab
 
-from . import freeimage
-from . import freeimagemulti
+# from . import freeimage
+# from . import freeimagemulti
 
-from . import ffmpeg
+# from . import ffmpeg
 
-from . import bsdf
-from . import dicom
-from . import npz
-from . import swf
+# from . import bsdf
+# from . import dicom
+# from . import npz
+# from . import swf
 
-from . import feisem  # special kind of tiff, uses _tiffile
-from . import simpleitk  # depends on itk or SimpleITK
-from . import gdal  # depends on gdal
+# from . import feisem  # special kind of tiff, uses _tiffile
+# from . import simpleitk  # depends on itk or SimpleITK
+# from . import gdal  # depends on gdal
 
-from . import lytro
-from . import spe
+# from . import lytro
+# from . import spe
 
 from . import example
 
