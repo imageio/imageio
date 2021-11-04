@@ -471,8 +471,13 @@ def test_framecatcher():
 def test_webcam():
     good_paths = ["<video0>", "<video42>"]
     for path in good_paths:
+        # regression test for https://github.com/imageio/imageio/issues/676
+        tmp_request = imageio.core.Request(path, "rI")
+        assert imageio.formats["ffmpeg"].can_read(tmp_request)
+        tmp_request.finish()
+        
         try:
-            imageio.read(path)
+            imageio.read(path, format="ffmpeg")
         except IndexError:
             # IndexError should be raised when
             # path string is good but camera doesnt exist
