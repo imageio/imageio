@@ -493,11 +493,11 @@ def test_pnm():
                 fname += "%i.%i.%i.ppm" % (useAscii, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat=False)
                 imageio.imsave(fname, rim, use_ascii=useAscii, format="PPM-FI")
-                im = imageio.imread(fname, format="PBM-FI")
+                im = imageio.imread(fname, format="PPM-FI")
                 assert_close(rim, im, 0.1)  # lossless
 
                 # Parameter fail
-                raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="PBM-FI")
+                raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="PPM-FI")
                 raises(TypeError, imageio.imsave, fname, im, notavalidk=True, format="PPM-FI")
 
 
