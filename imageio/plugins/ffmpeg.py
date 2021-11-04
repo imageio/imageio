@@ -291,7 +291,7 @@ class FfmpegFormat(Format):
             self._arg_input_params += ffmpeg_params or []  # backward compat
             # Write "_video"_arg - indicating webcam support
             self.request._video = None
-            if self.request.filename in ["<video%i>" % i for i in range(10)]:
+            if re.match(r"<video\d+>", self.request.filename):
                 self.request._video = self.request.filename
             # Specify input framerate?
             if self.request._video:
