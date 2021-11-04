@@ -113,4 +113,5 @@ def imopen(
             return plugin_instance
     else:
         request.finish()
-        raise IOError(f"Could not find a backend to open {uri} with iomode '{io_mode}'")
+        err_type = ValueError if legacy_mode else IOError
+        raise err_type(f"Could not find a backend to open {uri} with iomode '{io_mode}'")

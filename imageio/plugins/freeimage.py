@@ -29,6 +29,7 @@ import numpy as np
 
 from .. import formats
 from ..core import Format, image_as_uint
+from ..core.request import RETURN_BYTES
 from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
 
 
@@ -65,8 +66,11 @@ class FreeimageFormat(Format):
             if not hasattr(request, "_fif"):
                 try:
                     request._fif = fi.getFIF(request.filename, "w")
-                except Exception:  # pragma: no cover
-                    request._fif = -1
+                except ValueError:  # pragma: no cover
+                    if request.raw_uri == RETURN_BYTES:
+                        request._fif = self.fif
+                    else:
+                        request._fif = -1
             if request._fif is self.fif:
                 return True
 
