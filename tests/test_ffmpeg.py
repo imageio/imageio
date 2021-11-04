@@ -469,11 +469,19 @@ def test_framecatcher():
 
 
 def test_webcam():
-    try:
-        imageio.read("<video0>")
-    except Exception:
-        skip("no web cam")
+    good_paths = ["<video0>", "<video42>"]
+    for path in good_paths:
+        try:
+            imageio.read(path)
+        except IndexError:
+            # IndexError should be raised when
+            # path string is good but camera doesnt exist
+            continue
 
+    bad_paths = ["<videof1>", "<video0x>", "<video>"]
+    for path in bad_paths:
+        with raises(ValueError, match=".*Could not find a format to read.*"):
+            imageio.read(path)
 
 def test_webcam_get_next_data():
     try:

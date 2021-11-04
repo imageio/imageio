@@ -188,7 +188,7 @@ class FfmpegFormat(Format):
         # Read from video stream?
         # Note that we could write the _video flag here, but a user might
         # select this format explicitly (and this code is not run)
-        if re.match(r"<video\d+>", request.filename):
+        if re.match(r"<video(\d+)>", request.filename):
             return True
 
         # Read from file that we know?
@@ -291,7 +291,8 @@ class FfmpegFormat(Format):
             self._arg_input_params += ffmpeg_params or []  # backward compat
             # Write "_video"_arg - indicating webcam support
             self.request._video = None
-            if re.match(r"<video\d+>", self.request.filename):
+            regex_match = re.match(r"<video(\d+)>", self.request.filename)
+            if regex_match:
                 self.request._video = self.request.filename
             # Specify input framerate?
             if self.request._video:
@@ -299,7 +300,7 @@ class FfmpegFormat(Format):
                     self._arg_input_params.extend(["-framerate", str(float(fps or 30))])
             # Get local filename
             if self.request._video:
-                index = int(self.request._video[-2])
+                index = int(regex_match.group(1))
                 self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
