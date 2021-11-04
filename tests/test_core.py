@@ -622,7 +622,7 @@ def test_functions():
     # Do we really what to enforce this?
     assert type(R1) is type(R2)
 
-    raises(OSError, imageio.read, fname3)  # existing but not readable
+    raises(ValueError, imageio.read, fname3)  # existing but not readable
     raises(IndexError, imageio.read, fname1, "notexistingformat")
 
     # Note: This is actually a test of Requests. We should probably
