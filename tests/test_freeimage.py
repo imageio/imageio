@@ -502,7 +502,6 @@ def test_pnm():
 
 
 def test_other():
-
     # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")

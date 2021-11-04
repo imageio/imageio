@@ -293,6 +293,30 @@ _plugin_list.extend(
                 "modes": "I",
             },
         ),
+        PluginConfig(
+            name="screengrab",
+            class_name="ScreenGrabFormat",
+            module_name="imageio.plugins.grab",
+            is_legacy=True,
+            legacy_install_name="pillow",
+            legacy_args={
+                "description": "Grab screenshots (Windows and OS X only)",
+                "extensions": [],
+                "modes": "i",
+            },
+        ),
+        PluginConfig(
+            name="clipboardgrab",
+            class_name="ClipboardGrabFormat",
+            module_name="imageio.plugins.grab",
+            is_legacy=True,
+            legacy_install_name="pillow",
+            legacy_args={
+                "description": "Grab from clipboard (Windows only)",
+                "extensions": [],
+                "modes": "i",
+            },
+        ),
     ]
 )
 

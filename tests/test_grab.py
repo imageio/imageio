@@ -9,7 +9,6 @@ import imageio
 
 
 def test_grab_plugin_load():
-
     imageio.plugins.grab.BaseGrabFormat._ImageGrab = FakeImageGrab
     imageio.plugins.grab.BaseGrabFormat._pillow_imported = True
     _plat = sys.platform
