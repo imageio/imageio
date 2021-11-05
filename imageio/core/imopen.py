@@ -1,9 +1,37 @@
 from pathlib import Path
 
 from .request import Request, InitializationError
-from ..config.plugins import _plugin_list
+from ..config.plugins import PluginConfig
 from ..config import known_plugins
-from ..config.extensions import _extension_dict
+from ..config.extensions import known_extensions
+
+
+def _get_config(plugin:str, legacy_mode:bool) -> PluginConfig:
+    """Look up the config for the given plugin name
+
+    Factored out for legacy compatibility with FormatManager. Move
+    back into imopen in V3.
+    """
+
+    if legacy_mode and Path(plugin).suffix.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        name = Path(plugin).suffix.lower()
+        name = known_extensions[name][0].priority[0]
+    elif plugin in known_plugins:
+        pass
+    elif not legacy_mode:
+        raise ValueError(f"'{plugin}' is not a registered plugin name.")
+    elif plugin.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        plugin = known_extensions[plugin.lower()][0].priority[0]
+    elif "." + plugin.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        name = known_extensions["." + plugin.lower()][0].priority[0]
+    else:
+        # for v2 compatibility, delete in v3
+        raise IndexError(f"No format known by name `{plugin}`.")
+
+    return known_plugins[plugin]
 
 
 def imopen(
@@ -18,7 +46,7 @@ def imopen(
 
     Parameters
     ----------
-    uri : {str, pathlib.Path, bytes, file}
+    uri : str or pathlib.Path or bytes or file or Request
         The :doc:`ImageResources <getting_started.request>` to load the image
         from.
     io_mode : {str}
@@ -54,6 +82,9 @@ def imopen(
     Registered plugins are controlled via the ``known_plugins`` dict in
     ``imageio.config``.
 
+    Passing a ``Request`` as the uri is only supported if ``legacy_mode``
+    is ``True``. In this case ``io_mode`` is ignored.
+
     Examples
     --------
 
@@ -66,28 +97,28 @@ def imopen(
 
     """
 
-    request = Request(uri, io_mode)
+    if isinstance(uri, Request) and legacy_mode:
+        request = uri
+    else:
+        request = Request(uri, io_mode)
 
-    # complete call using the specified plugin, if specified
     if plugin is not None:
-        if plugin in known_plugins:
-            pass
-        elif not legacy_mode:
-            request.finish()
-            raise ValueError(f"'{plugin}' is not a registered plugin name.")
-        elif plugin.lower() in _extension_dict:
-            # for v2 compatibility, delete in v3
-            plugin = _extension_dict[plugin.lower()][0].priority[0]
-        elif Path(plugin).suffix.lower() in _extension_dict:
-            # for v2 compatibility, delete in v3
-            plugin = Path(plugin).suffix.lower()
-            plugin = _extension_dict[plugin][0].priority[0]
-        else:
-            # for v2 compatibility, delete in v3
-            request.finish()
-            raise IndexError(f"'{plugin}' is not a registered plugin name.")
+        # plugin specified, no search needed
+        # (except in legacy mode)
 
-        candidate_plugin = known_plugins[plugin].plugin_class
+        try:
+            config = _get_config(plugin, legacy_mode)
+        except (IndexError, ValueError):
+            request.finish()
+            raise
+
+        try:
+            candidate_plugin = config.plugin_class
+        except ImportError:
+            raise ImportError(
+                f"The `{config.name}` plugin is not installed. "
+                f"Use `pip install imageio[{config.install_name}]` to install it."
+            )
 
         try:
             plugin_instance = candidate_plugin(request, **kwargs)
@@ -98,8 +129,31 @@ def imopen(
 
         return plugin_instance
 
-    # if all else fails, check all known plugins
-    for config in _plugin_list:
+    if request.extension in known_extensions:
+        # fast-path based on file extension
+        
+        for candidate_format in known_extensions[request.extension]:
+            for plugin_name in candidate_format.priority:
+                config = known_plugins[plugin_name]
+                
+                try:
+                    candidate_plugin = config.plugin_class
+                except ImportError:
+                    # not installed
+                    continue
+
+                try:
+                    plugin_instance = candidate_plugin(request, **kwargs)
+                except InitializationError:
+                    # file extension doesn't match file type
+                    continue
+
+                return plugin_instance
+
+    for config in known_plugins.values():
+        # fallback option: try all plugins
+        
+        
         # Note: for v2 compatibility
         # this branch can be removed in ImageIO v3.0
         if legacy_mode and not config.is_legacy:
@@ -115,5 +169,6 @@ def imopen(
         request.finish()
         err_type = ValueError if legacy_mode else IOError
         raise err_type(
-            f"Could not find a backend to open {uri} with iomode '{io_mode}'"
+            f"Could not find a backend to open {request.raw_uri}"
+            f" with iomode '{request.mode.io_mode}'"
         )

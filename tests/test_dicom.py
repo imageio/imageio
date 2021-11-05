@@ -12,6 +12,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 import imageio
 from imageio import core
 from imageio.core import get_remote_file
+import imageio.plugins.dicom
 
 
 test_dir = get_test_dir()
@@ -65,7 +66,7 @@ def test_selection():
     # Test that DICOM can examine file
     F = imageio.formats.search_read_format(core.Request(fname1, "ri"))
     assert F.name == "DICOM"
-    assert F is imageio.formats["DICOM"]
+    assert type(F) is type(imageio.formats["DICOM"])
 
     # Test that we cannot save
     request = core.Request(os.path.join(test_dir, "test.dcm"), "wi")

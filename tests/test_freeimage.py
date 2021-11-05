@@ -13,6 +13,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 import imageio
 from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
+import imageio.plugins.freeimage
 
 test_dir = get_test_dir()
 

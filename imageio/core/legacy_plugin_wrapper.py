@@ -55,17 +55,17 @@ class LegacyPlugin:
 
         """
         self._request = request
-        self._plugin = legacy_plugin
+        self._format = legacy_plugin
 
         if self._request.mode.io_mode == IOMode.read:
-            if not self._plugin.can_read(request):
+            if not self._format.can_read(request):
                 raise InitializationError(
-                    f"`{self._plugin.name}`" f" can not read `{self._request.raw_uri}`."
+                    f"`{self._format.name}`" f" can not read `{self._request.raw_uri}`."
                 )
         else:
-            if not self._plugin.can_write(request):
+            if not self._format.can_write(request):
                 raise InitializationError(
-                    f"`{self._plugin.name}`"
+                    f"`{self._format.name}`"
                     f" can not write to `{self._request.raw_uri}`."
                 )
 
@@ -86,7 +86,7 @@ class LegacyPlugin:
         """
 
         self._request._kwargs = kwargs
-        return self._plugin.get_reader(self._request)
+        return self._format.get_reader(self._request)
 
     def read(self, *, index=None, **kwargs):
         """
@@ -124,7 +124,7 @@ class LegacyPlugin:
         """
 
         self._request._kwargs = kwargs
-        return self._plugin.get_writer(self._request)
+        return self._format.get_writer(self._request)
 
     def write(self, image, **kwargs) -> Optional[bytes]:
         """

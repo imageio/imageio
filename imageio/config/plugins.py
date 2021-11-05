@@ -29,6 +29,15 @@ class PluginConfig:
         self.legacy_args.update(legacy_args)
 
     @property
+    def format(self) -> Any:
+        if not self.is_legacy:
+            raise RuntimeError("Can only get format for legacy plugins.")
+
+        module = importlib.import_module(self.module_name, self.package_name)
+        clazz = getattr(module, self.class_name)
+        return clazz(**self.legacy_args)
+
+    @property
     def plugin_class(self) -> Any:
         """Get the plugin class (import if needed)
 
@@ -39,14 +48,7 @@ class PluginConfig:
 
         """
 
-        try:
-            module = importlib.import_module(self.module_name, self.package_name)
-        except ImportError:
-            raise ImportError(
-                f"The `{self.name}` plugin is not installed. "
-                f"Use `pip install -U imageio[{self.install_name}]` to install it."
-            )
-
+        module = importlib.import_module(self.module_name, self.package_name)
         clazz = getattr(module, self.class_name)
 
         if self.is_legacy:
