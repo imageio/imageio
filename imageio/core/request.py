@@ -244,9 +244,13 @@ class Request(object):
         self._parse_uri(uri)
 
         # Set extension
-        parts = urlparse(self._filename)
-        ext = Path(parts.path).suffix.lower()
-        self._extension = ext if ext != "" else None
+        if self._filename is not None:
+            if self._uri_type in (URI_FILENAME, URI_ZIPPED):
+                path = self._filename
+            else:
+                path = urlparse(self._filename).path
+            ext = Path(path).suffix.lower()
+            self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
