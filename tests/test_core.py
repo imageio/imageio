@@ -784,7 +784,10 @@ def test_imwrite_not_array_like():
 
 
 def test_imwrite_symbol_name():
-    imageio.imwrite('''#!~@$%^&`-+{};',.() []_=.jpg''', np.zeros([128, 128, 3], dtype=np.uint8))
+    name = '''#!~@$%^&`-+{};',.() []_=.jpg'''
+    imageio.imwrite(name, np.zeros((128, 128, 3), dtype=np.uint8))
+    im = imageio.imread(name)
+    assert im.shape == (128, 128, 3)
 
 
 def test_legacy_empty_image():
