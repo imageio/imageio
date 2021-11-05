@@ -786,9 +786,9 @@ def test_imwrite_not_array_like():
 def test_imwrite_symbol_name():
     # this is a regression test for https://github.com/imageio/imageio/issues/674
     name = '''#!~@$%^&`-+{};',.() []_=.jpg'''
-    imageio.imwrite(name, np.zeros((128, 128, 3), dtype=np.uint8))
-    im = imageio.imread(name)
-    assert im.shape == (128, 128, 3)
+    tmp_request = imageio.core.Request(name, "r")
+    assert tmp_request.extension == ".jpg"
+    tmp_request.finish()
 
 
 def test_legacy_empty_image():
