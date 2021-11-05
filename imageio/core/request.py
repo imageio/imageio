@@ -539,7 +539,7 @@ class Request(object):
         if self._filename_local:
             try:
                 os.remove(self._filename_local)
-            except Exception: # pragma: no cover
+            except Exception:  # pragma: no cover
                 warnings.warn(
                     "Failed to delete the temporary file at "
                     f"`{self._filename_local}`. Please report this issue."
