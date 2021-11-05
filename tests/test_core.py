@@ -793,7 +793,7 @@ def test_imwrite_symbol_name():
         name = """#!~@$%^&`-+{};',.()? []_=.jpg"""
     else:
         pytest.skip("Unknown OS.")
-    tmp_request = imageio.core.Request(name, "r")
+    tmp_request = imageio.core.Request(name, "w")
     assert tmp_request.extension == ".jpg"
     tmp_request.finish()
 
