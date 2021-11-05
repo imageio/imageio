@@ -785,7 +785,14 @@ def test_imwrite_not_array_like():
 
 def test_imwrite_symbol_name():
     # this is a regression test for https://github.com/imageio/imageio/issues/674
-    name = '''#!~@$%^&`-+{};',.() []_=.jpg'''
+    if sys.platform == "linux":
+        name = '''#!~:@$%^&`-+{};',.()? []_=.jpg'''
+    elif sys.platform == "win32":
+        name = '''#!~@$%^&`-+{};',.() []_=.jpg'''
+    elif sys.platform == "darwin":
+        name = '''#!~@$%^&`-+{};',.()? []_=.jpg'''
+    else:
+        pytest.skip("Unknown OS.")
     tmp_request = imageio.core.Request(name, "r")
     assert tmp_request.extension == ".jpg"
     tmp_request.finish()
