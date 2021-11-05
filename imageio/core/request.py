@@ -244,8 +244,11 @@ class Request(object):
 
         # Set extension
         if self._filename is not None:
-            parts = urlparse(self._filename)
-            ext = Path(parts.path).suffix.lower()
+            if self._uri_type in (URI_FILENAME, URI_ZIPPED):
+                path = self._filename
+            else:
+                path = urlparse(self._filename).path
+            ext = Path(path).suffix.lower()
             self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
