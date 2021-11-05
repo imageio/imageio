@@ -783,6 +783,10 @@ def test_imwrite_not_array_like():
         imageio.imwrite("foo.bmp", "asd")
 
 
+def test_imwrite_symbol_name():
+    imageio.imwrite('''#!~@$%^&`-+{};',.() []_=.jpg''', np.zeros([128, 128, 3], dtype=np.uint8))
+
+
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
         with iio.imopen("foo.bmp", "wI", format="GIF-PIL") as file:
