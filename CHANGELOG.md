@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.2 (2021-11-05)
+### Fix
+* Allow devices above <video9> in ffmpeg ([#675](https://github.com/imageio/imageio/issues/675)) ([`1fc4208`](https://github.com/imageio/imageio/commit/1fc420848511cf78765d7862961b89166ba65430))
+
+### Documentation
+*  Align README.md with new docs ([#672](https://github.com/imageio/imageio/issues/672)) ([`51a8cd5`](https://github.com/imageio/imageio/commit/51a8cd57cd2ea2722523206e61b617556c725f25))
+
 ## v2.10.1 (2021-10-27)
 ### Fix
 * Install ImageIO dependencies during release wheel build ([#671](https://github.com/imageio/imageio/issues/671)) ([`f1ee22a`](https://github.com/imageio/imageio/commit/f1ee22ac1375e67cc8da6822326e10f6badf332c))
