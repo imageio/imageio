@@ -831,6 +831,7 @@ for ext in extension_list:
         known_extensions[ext.extension] = list()
     known_extensions[ext.extension].append(ext)
 
+extension_list = [ext for ext_list in known_extensions.values() for ext in ext_list]
 
 _video_extension_strings = [
     ".avi",
@@ -848,3 +849,4 @@ for ext_string in _video_extension_strings:
     formats = known_extensions[ext_string]
     video_extensions.append(formats[0])
 video_extensions.sort(key=lambda x: x.extension)
+

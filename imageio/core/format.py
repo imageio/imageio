@@ -36,11 +36,12 @@ from typing import Optional
 import numpy as np
 from pathlib import Path
 
+from imageio.config.plugins import PluginConfig
+
 from . import Array, asarray
 from .request import ImageMode, Request
-from ..config import known_plugins, known_extensions
+from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
 from .imopen import imopen, _get_config
-from .legacy_plugin_wrapper import LegacyPlugin
 
 
 # survived for backwards compatibility
@@ -583,7 +584,7 @@ class FormatManager(object):
             except ValueError:
                 # no plugin can read the file
                 pass
-        
+
         config = _get_config(name, legacy_mode=True)
 
         try:
@@ -624,7 +625,9 @@ class FormatManager(object):
                 )
 
         sane_names = [name.strip().upper() for name in names]
-        flat_extensions = [ext for ext_list in known_extensions.values() for ext in ext_list]
+        flat_extensions = [
+            ext for ext_list in known_extensions.values() for ext in ext_list
+        ]
 
         # enforce order for every extension that uses it
         for name in reversed(sane_names):
@@ -634,31 +637,59 @@ class FormatManager(object):
                     extension.priority.insert(0, name)
 
         # TODO: enforce order during the fallback (checking all plugins)
+        old_order = known_plugins.copy()
+        known_plugins.clear()
 
-    def add_format(self, format, overwrite=False):
+        for name in sane_names:
+            plugin = old_order.pop(name, None)
+            if plugin is not None:
+                known_plugins[name] = plugin
+
+        known_plugins.update(old_order)
+
+    def add_format(self, iio_format, overwrite=False):
         """add_format(format, overwrite=False)
 
         Register a format, so that imageio can use it. If a format with the
         same name already exists, an error is raised, unless overwrite is True,
         in which case the current format is replaced.
         """
-        if not isinstance(format, Format):
+        if not isinstance(iio_format, Format):
             raise ValueError("add_format needs argument to be a Format object")
-        elif format in self._formats:
+        elif iio_format in self._formats:
             raise ValueError("Given Format instance is already registered")
-        elif format.name in self.get_format_names():
-            if overwrite:
-                old_format = self[format.name]
-                self._formats.remove(old_format)
-                if old_format in self._formats_sorted:
-                    self._formats_sorted.remove(old_format)
-            else:
-                raise ValueError(
-                    "A Format named %r is already registered, use"
-                    " overwrite=True to replace." % format.name
-                )
-        self._formats.append(format)
-        self._formats_sorted.append(format)
+        elif not overwrite and iio_format.name in self.get_format_names():
+            raise ValueError(
+                f"A Format named {iio_format.name} is already registered, use"
+                " `overwrite=True` to replace."
+            )
+
+        config = PluginConfig(
+            name=iio_format.name,
+            class_name=iio_format.__class__.__name__,
+            module_name=iio_format.__class__.__module__,
+            is_legacy=True,
+            legacy_install_name="unknown",
+            legacy_args={
+                "name": iio_format.name,
+                "description": iio_format.description,
+                "extensions": " ".join(iio_format.extensions),
+                "modes": iio_format.modes,
+            },
+        )
+
+        known_plugins[iio_format.name] = config
+
+        for extension in iio_format.extensions:
+            # be conservative and always treat it as a unique file format
+            ext = FileExtension(
+                extension=extension,
+                priority=[iio_format.name],
+                name="Unique Format",
+                description="A format inserted at runtime."
+                f" It is being read by the `{config.name}` plugin.",
+            )
+            known_extensions.setdefault(extension, list()).append(ext)
 
     def search_read_format(self, request: Request) -> Optional[Format]:
         """search_read_format(request)
@@ -675,7 +706,7 @@ class FormatManager(object):
             # but the legacy API doesn't raise
             return None
 
-    def search_write_format(self, request:Request) -> Optional[Format]:
+    def search_write_format(self, request: Request) -> Optional[Format]:
         """search_write_format(request)
 
         Search a format that can write a file according to the given request.

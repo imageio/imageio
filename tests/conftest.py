@@ -60,12 +60,11 @@ def image_files(tmp_dir):
 def clear_plugins(monkeypatch):
     import imageio.core.imopen
 
-    monkeypatch.setattr(iio.config.plugins, "_plugin_list", list())
-    monkeypatch.setattr(iio.config.plugins, "known_plugins", dict())
     monkeypatch.setattr(iio.config, "known_plugins", dict())
+    monkeypatch.setattr(iio.config, "known_extensions", dict())
 
-    monkeypatch.setattr(imageio.core.imopen, "_plugin_list", list())
     monkeypatch.setattr(imageio.core.imopen, "known_plugins", dict())
+    monkeypatch.setattr(imageio.core.imopen, "known_extensions", dict())
 
     yield
 

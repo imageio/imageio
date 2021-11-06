@@ -1,4 +1,16 @@
-from .extensions import extension_list, known_extensions
-from .plugins import known_plugins
+from .extensions import (
+    extension_list,
+    known_extensions,
+    FileExtension,
+    video_extensions,
+)
+from .plugins import known_plugins, PluginConfig
 
-__all__ = ["known_plugins", "extension_list", "known_extensions"]
+__all__ = [
+    "known_plugins",
+    "PluginConfig",
+    "extension_list",
+    "known_extensions",
+    "FileExtension",
+    "video_extensions",
+]
