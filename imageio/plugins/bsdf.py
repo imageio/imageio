@@ -43,7 +43,6 @@ compression : int
 
 import numpy as np
 
-from .. import formats
 from ..core import Format
 
 

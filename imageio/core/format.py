@@ -29,14 +29,11 @@ a format object using ``imageio.formats.add_format()``.
 # related info around. This request object is instantiated in
 # imageio.get_reader and imageio.get_writer.
 
-import os
 import sys
 from typing import Optional
 
 import numpy as np
 from pathlib import Path
-
-from imageio.config.plugins import PluginConfig
 
 from . import Array, asarray
 from .request import ImageMode, Request

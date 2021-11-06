@@ -172,7 +172,6 @@ import threading
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
 from ..core import RETURN_BYTES
 

@@ -202,7 +202,6 @@ from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
 import numpy as np
 
-from .. import formats
 from ..core import Format
 
 

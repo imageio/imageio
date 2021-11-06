@@ -46,7 +46,6 @@ import sys
 import logging
 import subprocess
 
-from .. import formats
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from ..core import read_n_bytes
 

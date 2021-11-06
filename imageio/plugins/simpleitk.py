@@ -19,7 +19,6 @@ None
 
 """
 
-from .. import formats
 from ..core import Format, has_module
 
 _itk = None  # Defer loading to load_lib() function.

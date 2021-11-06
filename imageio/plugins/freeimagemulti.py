@@ -7,7 +7,6 @@
 import logging
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
 from ._freeimage import fi, IO_FLAGS
 from .freeimage import FreeimageFormat

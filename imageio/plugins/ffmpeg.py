@@ -127,7 +127,6 @@ import subprocess as sp
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
 
 logger = logging.getLogger(__name__)

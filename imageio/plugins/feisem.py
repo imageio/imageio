@@ -26,9 +26,6 @@ See Also
 
 from .tifffile import TiffFormat
 
-from .. import formats
-
-
 class FEISEMFormat(TiffFormat):
     """See :mod:`imageio.plugins.feisem`"""
 

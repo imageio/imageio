@@ -39,7 +39,6 @@ import logging
 
 import numpy as np
 
-from .. import formats
 from ..core import Format
 from .. import imread
 

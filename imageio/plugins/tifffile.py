@@ -156,7 +156,6 @@ provide access to new performance improvements and bug fixes.
 
 import datetime
 
-from .. import formats
 from ..core import Format
 
 import numpy as np

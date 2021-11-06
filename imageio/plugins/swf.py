@@ -49,7 +49,6 @@ from io import BytesIO
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, read_n_bytes, image_as_uint
 
 

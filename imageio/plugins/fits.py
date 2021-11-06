@@ -59,7 +59,6 @@ scale_back : bool
 
 """
 
-from .. import formats
 from ..core import Format
 
 _fits = None  # lazily loaded

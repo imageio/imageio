@@ -15,7 +15,6 @@ Parameters
 none
 """
 
-from .. import formats
 from ..core import Format, has_module
 
 _gdal = None  # lazily loaded in load_lib()
