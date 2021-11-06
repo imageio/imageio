@@ -49,7 +49,7 @@ extension_list = [
     FileExtension(
         name="Bitmap",
         extension=".bmp",
-        priority=["BMP-PIL", "BMP-FI", "itk"],
+        priority=["BMP-PIL", "BMP-FI", "ITK"],
         external_link="https://en.wikipedia.org/wiki/BMP_file_format",
     ),
     FileExtension(
@@ -115,7 +115,7 @@ extension_list = [
     FileExtension(
         name="DICOM file format",
         extension=".dcm",
-        priority=["DICOM", "itk"],
+        priority=["DICOM", "ITK"],
     ),
     FileExtension(
         extension=".dcr",
@@ -139,7 +139,7 @@ extension_list = [
     FileExtension(
         name="DICOM file format",
         extension=".dicom",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         extension=".dng",
@@ -184,12 +184,12 @@ extension_list = [
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fit",
-        priority=["FITS-PIL", "fits"],
+        priority=["FITS-PIL", "FITS"],
     ),
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fits",
-        priority=["FITS-PIL", "fits"],
+        priority=["FITS-PIL", "FITS"],
     ),
     FileExtension(
         name="Autodesk FLC Animation",
@@ -214,7 +214,7 @@ extension_list = [
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fts",
-        priority=["fits"],
+        priority=["FITS"],
     ),
     FileExtension(
         name="Independence War 2: Edge Of Chaos Texture Format",
@@ -224,7 +224,7 @@ extension_list = [
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fz",
-        priority=["fits"],
+        priority=["FITS"],
     ),
     FileExtension(
         name="Raw fax format CCITT G.3",
@@ -239,17 +239,17 @@ extension_list = [
     FileExtension(
         name="Grassroots DICOM",
         extension=".gdcm",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Graphics Interchange Format",
         extension=".gif",
-        priority=["GIF-FI", "GIF-PIL"],
+        priority=["GIF-PIL", "GIF-FI"],
     ),
     FileExtension(
         name="UMDS GIPL",
         extension=".gipl",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="gridded meteorological data",
@@ -269,7 +269,7 @@ extension_list = [
     FileExtension(
         name="Hierarchical Data Format 5",
         extension=".hdf5",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="JPEG Extended Range",
@@ -279,7 +279,7 @@ extension_list = [
     FileExtension(
         name="High Dynamic Range Image",
         extension=".hdr",
-        priority=["HDR-FI", "itk"],
+        priority=["HDR-FI", "ITK"],
     ),
     FileExtension(
         extension=".ia",
@@ -316,11 +316,11 @@ extension_list = [
     ),
     FileExtension(
         extension=".img",
-        priority=["itk", "GDAL"],
+        priority=["ITK", "GDAL"],
     ),
     FileExtension(
         extension=".img.gz",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="IM Tools",
@@ -330,7 +330,7 @@ extension_list = [
     FileExtension(
         name="Image Processing Lab",
         extension=".ipl",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -375,7 +375,7 @@ extension_list = [
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpeg",
-        priority=["JPEG-FI", "JPEG-PIL", "itk", "GDAL"],
+        priority=["JPEG-FI", "JPEG-PIL", "ITK", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -385,7 +385,7 @@ extension_list = [
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpg",
-        priority=["JPEG-PIL", "JPEG-FI", "itk", "GDAL"],
+        priority=["JPEG-PIL", "JPEG-FI", "ITK", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -432,7 +432,7 @@ extension_list = [
     FileExtension(
         name="ZEISS LSM",
         extension=".lsm",
-        priority=["itk", "tiff"],
+        priority=["ITK", "TIFF"],
     ),
     FileExtension(
         name="McIdas area file",
@@ -451,17 +451,17 @@ extension_list = [
     FileExtension(
         name="FreeSurfer File Format",
         extension=".mgh",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="ITK MetaImage",
         extension=".mha",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="ITK MetaImage Header",
         extension=".mhd",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Microsoft Image Composer",
@@ -476,12 +476,12 @@ extension_list = [
     FileExtension(
         name="Medical Imaging NetCDF",
         extension=".mnc",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Medical Imaging NetCDF 2",
         extension=".mnc2",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Leaf Raw Image Format",
@@ -533,29 +533,29 @@ extension_list = [
     ),
     FileExtension(
         extension=".nhdr",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         extension=".nia",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         extension=".nii",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="nii.gz",
         extension=".nii.gz",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Numpy Array",
         extension=".npz",
-        priority=["npz"],
+        priority=["NPZ"],
     ),
     FileExtension(
         extension=".nrrd",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         extension=".nrw",
@@ -601,7 +601,7 @@ extension_list = [
     FileExtension(
         name="Macintosh PICT",
         extension=".pic",
-        priority=["PICT-PIL", "itk"],
+        priority=["PICT-PIL", "ITK"],
     ),
     FileExtension(
         name="Macintosh PICT",
@@ -611,7 +611,7 @@ extension_list = [
     FileExtension(
         name="Portable Network Graphics",
         extension=".png",
-        priority=["PNG-PIL", "PNG-FI", "itk"],
+        priority=["PNG-PIL", "PNG-FI", "ITK"],
     ),
     FileExtension(
         name="Pbmplus image",
@@ -736,7 +736,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".stk",
-        priority=["tiff"],
+        priority=["TIFF"],
     ),
     FileExtension(
         name="Shockwave Flash",
@@ -756,16 +756,16 @@ extension_list = [
     FileExtension(
         name="Tagged Image File",
         extension=".tif",
-        priority=["tiff", "TIFF-PIL", "TIFF-FI", "FEI", "itk", "GDAL"],
+        priority=["TIFF", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
     ),
     FileExtension(
         name="Tagged Image File Format",
         extension=".tiff",
-        priority=["tiff", "TIFF-PIL", "TIFF-FI", "FEI", "itk", "GDAL"],
+        priority=["TIFF", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
     ),
     FileExtension(
         extension=".vtk",
-        priority=["itk"],
+        priority=["ITK"],
     ),
     FileExtension(
         name="Wireless Bitmap",

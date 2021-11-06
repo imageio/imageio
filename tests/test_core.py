@@ -660,7 +660,7 @@ def test_functions():
     assert ims[0].ndim == 3
     assert ims[0].shape[2] in (1, 3, 4)
     # Test protection
-    with raises(IndexError):
+    with raises(RuntimeError):
         imageio.mimread("imageio:chelsea.png", "dummy", length=np.inf)
 
     if IS_PYPY:
@@ -827,13 +827,13 @@ def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
 
 
 def test_plugin_selection_failure(clear_plugins):
-    imopen_module._plugin_list.append(
+    imopen_module.known_plugins["plugin1"] = (
         PluginConfig(
             name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
         )
     )
 
-    imopen_module._plugin_list.append(
+    imopen_module.known_plugins["plugin2"] = (
         PluginConfig(
             name="plugin2", class_name="UselessDummyPlugin", module_name="test_core"
         )
@@ -845,7 +845,7 @@ def test_plugin_selection_failure(clear_plugins):
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_plugin_selection_success(clear_plugins, invalid_file):
-    imopen_module._plugin_list.append(
+    imopen_module.known_plugins["plugin"] = (
         PluginConfig(
             name="plugin", class_name="EpicDummyPlugin", module_name="test_core"
         )

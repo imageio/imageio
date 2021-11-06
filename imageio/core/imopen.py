@@ -16,17 +16,19 @@ def _get_config(plugin:str, legacy_mode:bool) -> PluginConfig:
     if legacy_mode and Path(plugin).suffix.lower() in known_extensions:
         # for v2 compatibility, delete in v3
         name = Path(plugin).suffix.lower()
-        name = known_extensions[name][0].priority[0]
+        plugin = known_extensions[name][0].priority[0]
     elif plugin in known_plugins:
         pass
     elif not legacy_mode:
         raise ValueError(f"'{plugin}' is not a registered plugin name.")
+    elif plugin.upper() in known_plugins:
+        plugin = plugin.upper()
     elif plugin.lower() in known_extensions:
         # for v2 compatibility, delete in v3
         plugin = known_extensions[plugin.lower()][0].priority[0]
     elif "." + plugin.lower() in known_extensions:
         # for v2 compatibility, delete in v3
-        name = known_extensions["." + plugin.lower()][0].priority[0]
+        plugin = known_extensions["." + plugin.lower()][0].priority[0]
     else:
         # for v2 compatibility, delete in v3
         raise IndexError(f"No format known by name `{plugin}`.")

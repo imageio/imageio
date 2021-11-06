@@ -68,7 +68,7 @@ _plugin_list = [
     ),
     # legacy plugins (and their many names)
     PluginConfig(
-        name="tiff",
+        name="TIFF",
         class_name="TiffFormat",
         module_name="imageio.plugins.tifffile",
         is_legacy=True,
@@ -151,7 +151,7 @@ for id, summary, ext, class_name in PILLOW_FORMATS:
 _plugin_list.extend(
     [
         PluginConfig(
-            name="ffmpeg",
+            name="FFMPEG",
             class_name="FfmpegFormat",
             module_name="imageio.plugins.ffmpeg",
             is_legacy=True,
@@ -187,7 +187,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="fei",
+            name="FEI",
             class_name="FEISEMFormat",
             module_name="imageio.plugins.feisem",
             is_legacy=True,
@@ -199,7 +199,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="fits",
+            name="FITS",
             class_name="FitsFormat",
             module_name="imageio.plugins.fits",
             is_legacy=True,
@@ -211,7 +211,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="gdal",
+            name="GDAL",
             class_name="GdalFormat",
             module_name="imageio.plugins.gdal",
             is_legacy=True,
@@ -223,7 +223,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="itk",
+            name="ITK",
             class_name="ItkFormat",
             module_name="imageio.plugins.simpleitk",
             is_legacy=True,
@@ -265,7 +265,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="npz",
+            name="NPZ",
             class_name="NpzFormat",
             module_name="imageio.plugins.npz",
             is_legacy=True,
@@ -289,7 +289,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="swf",
+            name="SWF",
             class_name="SWFFormat",
             module_name="imageio.plugins.swf",
             is_legacy=True,
@@ -301,7 +301,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="screengrab",
+            name="SCREENGRAB",
             class_name="ScreenGrabFormat",
             module_name="imageio.plugins.grab",
             is_legacy=True,
@@ -313,7 +313,7 @@ _plugin_list.extend(
             },
         ),
         PluginConfig(
-            name="clipboardgrab",
+            name="CLIPBOARDGRAB",
             class_name="ClipboardGrabFormat",
             module_name="imageio.plugins.grab",
             is_legacy=True,
@@ -342,7 +342,7 @@ lytro_formats = [
 ]
 for name, des, ext, mode, class_name in lytro_formats:
     config = PluginConfig(
-        name=name,
+        name=name.upper(),
         class_name=class_name,
         module_name="imageio.plugins.lytro",
         is_legacy=True,
@@ -689,7 +689,7 @@ FREEIMAGE_FORMATS = [
 ]
 for name, i, des, ext, mode, class_name, module_name in FREEIMAGE_FORMATS:
     config = PluginConfig(
-        name=name + "-FI",
+        name=name.upper() + "-FI",
         class_name=class_name,
         module_name=module_name,
         is_legacy=True,

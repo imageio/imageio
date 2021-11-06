@@ -33,7 +33,7 @@ def test_format_selection():
 
     F = imageio.formats["swf"]
     assert F.name == "SWF"
-    assert imageio.formats[".swf"] is F
+    assert type(imageio.formats[".swf"]) is type(F)
 
     assert type(imageio.read(fname1).format) is type(F)
     assert type(imageio.save(fname2).format) is type(F)

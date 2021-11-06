@@ -585,7 +585,7 @@ class FormatManager(object):
                 # no plugin can read the file
                 pass
 
-        config = _get_config(name, legacy_mode=True)
+        config = _get_config(name.upper(), legacy_mode=True)
 
         try:
             return config.format
@@ -665,7 +665,7 @@ class FormatManager(object):
             )
 
         config = PluginConfig(
-            name=iio_format.name,
+            name=iio_format.name.upper(),
             class_name=iio_format.__class__.__name__,
             module_name=iio_format.__class__.__module__,
             is_legacy=True,
@@ -678,13 +678,13 @@ class FormatManager(object):
             },
         )
 
-        known_plugins[iio_format.name] = config
+        known_plugins[config.name] = config
 
         for extension in iio_format.extensions:
             # be conservative and always treat it as a unique file format
             ext = FileExtension(
                 extension=extension,
-                priority=[iio_format.name],
+                priority=[config.name],
                 name="Unique Format",
                 description="A format inserted at runtime."
                 f" It is being read by the `{config.name}` plugin.",
