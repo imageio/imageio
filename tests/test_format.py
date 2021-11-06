@@ -255,9 +255,9 @@ def test_format_selection():
 
     # Test searchinhg for read / write format
     F = formats.search_read_format(Request(fname1, "ri"))
-    assert type(F) is type(formats["PNG"])
+    assert isinstance(F, type(formats["PNG"]))
     F = formats.search_write_format(Request(fname1, "wi"))
-    assert type(F) is type(formats["PNG"])
+    assert isinstance(F, type(formats["PNG"]))
 
     # Now with custom format
     format = MyFormat("test_selection", "xx", "selectext1", "i")

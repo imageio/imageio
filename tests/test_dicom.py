@@ -66,7 +66,7 @@ def test_selection():
     # Test that DICOM can examine file
     F = imageio.formats.search_read_format(core.Request(fname1, "ri"))
     assert F.name == "DICOM"
-    assert type(F) is type(imageio.formats["DICOM"])
+    assert isinstance(F, type(imageio.formats["DICOM"]))
 
     # Test that we cannot save
     request = core.Request(os.path.join(test_dir, "test.dcm"), "wi")

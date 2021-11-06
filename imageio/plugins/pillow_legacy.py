@@ -175,9 +175,6 @@ import numpy as np
 from ..core import Format, image_as_uint
 from ..core import RETURN_BYTES
 
-# Get info about pillow formats without having to import PIL
-from .pillow_info import pillow_formats, pillow_docs
-
 
 logger = logging.getLogger(__name__)
 
@@ -821,4 +818,4 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
 
 
 # imported for backwards compatibility
-from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402
+from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402, F401

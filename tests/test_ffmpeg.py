@@ -115,7 +115,7 @@ def test_integer_reader_length():
 def test_read_and_write():
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
-    assert type(R.format) is type(imageio.formats["ffmpeg"])
+    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
@@ -184,7 +184,7 @@ def test_read_and_write():
 def test_write_not_contiguous():
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
-    assert type(R.format) is type(imageio.formats["ffmpeg"])
+    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
