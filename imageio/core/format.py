@@ -41,6 +41,7 @@ from imageio.config.plugins import PluginConfig
 from . import Array, asarray
 from .request import ImageMode, Request
 from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
+from ..config.plugins import _original_order
 from .imopen import imopen, _get_config
 
 
@@ -550,15 +551,17 @@ class FormatManager(object):
         return f"<imageio.FormatManager with {len(self._formats)} registered formats>"
 
     def __iter__(self):
-        return iter(self._formats_sorted)
+        return iter(x.format for x in known_plugins.values() if x.is_legacy)
 
     def __len__(self):
         return len(self._formats)
 
     def __str__(self):
         ss = []
-        for config in self:
-            ext = ", ".join(config.legacy_args["extensions"])
+        for config in known_plugins.values():
+            if not config.is_legacy:
+                continue
+            ext = config.legacy_args["extensions"]
             desc = config.legacy_args["description"]
             s = f"{config.name} - {desc} [{ext}]"
             ss.append(s)
@@ -580,7 +583,7 @@ class FormatManager(object):
         if Path(name).is_file():
             # legacy compatibility - why test reading here??
             try:
-                iio_format = imopen(name, "r?", legacy_mode=True)._format
+                return imopen(name, "r?", legacy_mode=True)._format
             except ValueError:
                 # no plugin can read the file
                 pass
@@ -624,7 +627,10 @@ class FormatManager(object):
                     "contain dots `.` or commas `,`."
                 )
 
-        sane_names = [name.strip().upper() for name in names]
+        if len(names) == 0:
+            names = _original_order
+
+        sane_names = [name.strip().upper() for name in names if name != ""]
         flat_extensions = [
             ext for ext_list in known_extensions.values() for ext in ext_list
         ]
@@ -632,11 +638,11 @@ class FormatManager(object):
         # enforce order for every extension that uses it
         for name in reversed(sane_names):
             for extension in flat_extensions:
-                if name in extension.priority:
-                    extension.priority.remove(name)
-                    extension.priority.insert(0, name)
+                for plugin in [x for x in extension.priority]:
+                    if plugin.endswith(name):
+                        extension.priority.remove(plugin)
+                        extension.priority.insert(0, plugin)
 
-        # TODO: enforce order during the fallback (checking all plugins)
         old_order = known_plugins.copy()
         known_plugins.clear()
 
@@ -723,7 +729,7 @@ class FormatManager(object):
 
     def get_format_names(self):
         """Get the names of all registered formats."""
-        return [f.name for f in self]
+        return [f.name for f in known_plugins.values() if f.is_legacy]
 
     def show(self):
         """Show a nicely formatted list of available formats"""

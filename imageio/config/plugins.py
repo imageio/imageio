@@ -75,7 +75,7 @@ _plugin_list = [
         legacy_install_name="tifffile",
         legacy_args={
             "description": "TIFF format",
-            "extensions": (".tif", ".tiff", ".stk", ".lsm"),
+            "extensions": ".tif .tiff .stk .lsm",
             "modes": "iIvV",
         },
     ),
@@ -130,11 +130,11 @@ PILLOW_FORMATS = [
     ("WMF", "Windows Metafile", ".wmf .emf", "PillowFormat"),
     ("XBM", "X11 Bitmap", ".xbm", "PillowFormat"),
     ("XPM", "X11 Pixel Map", ".xpm", "PillowFormat"),
-    ("XVThumb", "XV thumbnail image", "", "PillowFormat"),
+    ("XVTHUMB", "XV thumbnail image", "", "PillowFormat"),
 ]
 for id, summary, ext, class_name in PILLOW_FORMATS:
     config = PluginConfig(
-        name=id + "-PIL",
+        name=id.upper() + "-PIL",
         class_name=class_name,
         module_name="imageio.plugins.pillow_legacy",
         is_legacy=True,
@@ -218,7 +218,7 @@ _plugin_list.extend(
             legacy_install_name="gdal",
             legacy_args={
                 "description": "Geospatial Data Abstraction Library",
-                "extensions": (".tiff", " .tif", ".img", ".ecw", ".jpg", ".jpeg"),
+                "extensions": ".tiff  .tif .img .ecw .jpg .jpeg",
                 "modes": "iIvV",
             },
         ),
@@ -230,7 +230,7 @@ _plugin_list.extend(
             legacy_install_name="simpleitk",
             legacy_args={
                 "description": "Insight Segmentation and Registration Toolkit (ITK) format",
-                "extensions": (
+                "extensions": " ".join((
                     ".gipl",
                     ".ipl",
                     ".mha",
@@ -260,7 +260,7 @@ _plugin_list.extend(
                     ".dicom",
                     ".dcm",
                     ".gdcm",
-                ),
+                )),
                 "modes": "iIvV",
             },
         ),
@@ -705,3 +705,6 @@ for name, i, des, ext, mode, class_name, module_name in FREEIMAGE_FORMATS:
 
 
 known_plugins = {x.name: x for x in _plugin_list}
+
+# exists for backwards compatibility with FormatManager
+_original_order = [x for x, config in known_plugins.items() if config.is_legacy]
