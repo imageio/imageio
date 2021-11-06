@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.3 (2021-11-06)
+### Fix
+* Fix file extension bug when filename contains '#'. ([#678](https://github.com/imageio/imageio/issues/678)) ([`f3fa631`](https://github.com/imageio/imageio/commit/f3fa6318ebd6005ebf2361438795cfbf87e62f7c))
+
 ## v2.10.2 (2021-11-05)
 ### Fix
 * Allow devices above <video9> in ffmpeg ([#675](https://github.com/imageio/imageio/issues/675)) ([`1fc4208`](https://github.com/imageio/imageio/commit/1fc420848511cf78765d7862961b89166ba65430))
