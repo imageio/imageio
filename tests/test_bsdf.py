@@ -44,10 +44,18 @@ def test_select():
     assert F.can_read(core.Request(fname1, "rv"))
 
     assert type(imageio.formats[".bsdf"]) is type(F)
-    assert type(imageio.formats.search_write_format(core.Request(fname1, "wi"))) is type(F)
-    assert type(imageio.formats.search_read_format(core.Request(fname1, "ri"))) is type(F)
-    assert type(imageio.formats.search_write_format(core.Request(fname1, "wI"))) is type(F)
-    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(F)
+    assert type(
+        imageio.formats.search_write_format(core.Request(fname1, "wi"))
+    ) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "ri"))) is type(
+        F
+    )
+    assert type(
+        imageio.formats.search_write_format(core.Request(fname1, "wI"))
+    ) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(
+        F
+    )
 
 
 def test_not_an_image():

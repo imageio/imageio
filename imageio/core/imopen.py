@@ -6,7 +6,7 @@ from ..config import known_plugins
 from ..config.extensions import known_extensions
 
 
-def _get_config(plugin:str, legacy_mode:bool) -> PluginConfig:
+def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
     """Look up the config for the given plugin name
 
     Factored out for legacy compatibility with FormatManager. Move
@@ -133,11 +133,11 @@ def imopen(
 
     if request.extension in known_extensions:
         # fast-path based on file extension
-        
+
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
-                
+
                 try:
                     candidate_plugin = config.plugin_class
                 except ImportError:
@@ -154,8 +154,7 @@ def imopen(
 
     for config in known_plugins.values():
         # fallback option: try all plugins
-        
-        
+
         # Note: for v2 compatibility
         # this branch can be removed in ImageIO v3.0
         if legacy_mode and not config.is_legacy:

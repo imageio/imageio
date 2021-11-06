@@ -849,4 +849,3 @@ for ext_string in _video_extension_strings:
     formats = known_extensions[ext_string]
     video_extensions.append(formats[0])
 video_extensions.sort(key=lambda x: x.extension)
-

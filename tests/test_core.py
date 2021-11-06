@@ -827,16 +827,12 @@ def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
 
 
 def test_plugin_selection_failure(clear_plugins):
-    imopen_module.known_plugins["plugin1"] = (
-        PluginConfig(
-            name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
-        )
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
     )
 
-    imopen_module.known_plugins["plugin2"] = (
-        PluginConfig(
-            name="plugin2", class_name="UselessDummyPlugin", module_name="test_core"
-        )
+    imopen_module.known_plugins["plugin2"] = PluginConfig(
+        name="plugin2", class_name="UselessDummyPlugin", module_name="test_core"
     )
 
     with pytest.raises(IOError):
@@ -845,10 +841,8 @@ def test_plugin_selection_failure(clear_plugins):
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_plugin_selection_success(clear_plugins, invalid_file):
-    imopen_module.known_plugins["plugin"] = (
-        PluginConfig(
-            name="plugin", class_name="EpicDummyPlugin", module_name="test_core"
-        )
+    imopen_module.known_plugins["plugin"] = PluginConfig(
+        name="plugin", class_name="EpicDummyPlugin", module_name="test_core"
     )
 
     instance = iio.imopen(invalid_file, "r", legacy_mode=False)

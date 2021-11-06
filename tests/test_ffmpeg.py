@@ -94,8 +94,12 @@ def test_select():
 
     # ffmpeg is default
     assert type(imageio.formats[".mp4"]) is type(F)
-    assert type(imageio.formats.search_write_format(core.Request(fname1, "wI"))) is type(F)
-    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(F)
+    assert type(
+        imageio.formats.search_write_format(core.Request(fname1, "wI"))
+    ) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(
+        F
+    )
 
 
 def test_integer_reader_length():

@@ -820,5 +820,6 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
     else:
         return Image.fromarray(arr, mode)
 
+
 # imported for backwards compatibility
 from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402
