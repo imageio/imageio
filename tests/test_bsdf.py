@@ -31,7 +31,7 @@ def setup_module():
 
 def test_select():
 
-    F = imageio.formats["bsdf"]
+    F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
     need_internet()
@@ -43,11 +43,11 @@ def test_select():
     assert F.can_read(core.Request(fname1, "ri"))
     assert F.can_read(core.Request(fname1, "rv"))
 
-    assert imageio.formats[".bsdf"] is F
-    assert imageio.formats.search_write_format(core.Request(fname1, "wi")) is F
-    assert imageio.formats.search_read_format(core.Request(fname1, "ri")) is F
-    assert imageio.formats.search_write_format(core.Request(fname1, "wI")) is F
-    assert imageio.formats.search_read_format(core.Request(fname1, "rI")) is F
+    assert type(imageio.formats[".bsdf"]) is type(F)
+    assert type(imageio.formats.search_write_format(core.Request(fname1, "wi"))) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "ri"))) is type(F)
+    assert type(imageio.formats.search_write_format(core.Request(fname1, "wI"))) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(F)
 
 
 def test_not_an_image():
