@@ -489,7 +489,7 @@ def test_webcam():
 
     bad_paths = ["<videof1>", "<video0x>", "<video>"]
     for path in bad_paths:
-        with raises(ValueError, match=".*Could not find a format to read.*"):
+        with raises(ValueError):
             imageio.read(path)
 
 
