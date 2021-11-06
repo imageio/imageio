@@ -16,7 +16,7 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.10.1"
+__version__ = "2.10.3"
 
 # v3.0.0 API
 from .core.imopen import imopen
