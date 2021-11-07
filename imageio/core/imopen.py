@@ -20,7 +20,7 @@ def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
     elif plugin in known_plugins:
         pass
     elif not legacy_mode:
-        raise ValueError(f"'{plugin}' is not a registered plugin name.")
+        raise ValueError(f"`{plugin}` is not a registered plugin name.")
     elif plugin.upper() in known_plugins:
         plugin = plugin.upper()
     elif plugin.lower() in known_extensions:
@@ -101,13 +101,14 @@ def imopen(
 
     if isinstance(uri, Request) and legacy_mode:
         request = uri
+        uri = request.raw_uri
+        io_mode = request.mode.io_mode
     else:
         request = Request(uri, io_mode)
 
+    # plugin specified, no search needed
+    # (except in legacy mode)
     if plugin is not None:
-        # plugin specified, no search needed
-        # (except in legacy mode)
-
         try:
             config = _get_config(plugin, legacy_mode)
         except (IndexError, ValueError):
@@ -115,25 +116,28 @@ def imopen(
             raise
 
         try:
-            candidate_plugin = config.plugin_class
+            return config.plugin_class(request, **kwargs)
+        except InitializationError as class_specific:
+            err_from = class_specific
+            err_type = RuntimeError if legacy_mode else IOError
+            err_msg = f"`{plugin}` can not handle the given uri."
         except ImportError:
-            raise ImportError(
+            err_from = None
+            err_type = ImportError
+            err_msg = (
                 f"The `{config.name}` plugin is not installed. "
                 f"Use `pip install imageio[{config.install_name}]` to install it."
             )
+        except Exception as generic_error:
+            err_from = generic_error
+            err_type = IOError
+            err_msg = f"An unknown error occured while initializing `{plugin}`."
 
-        try:
-            plugin_instance = candidate_plugin(request, **kwargs)
-        except InitializationError:
-            request.finish()
-            err_type = RuntimeError if legacy_mode else IOError
-            raise err_type(f"'{plugin}' can not handle the given uri.")
+        request.finish()
+        raise err_type(err_msg) from err_from
 
-        return plugin_instance
-
+    # fast-path based on file extension
     if request.extension in known_extensions:
-        # fast-path based on file extension
-
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
@@ -152,9 +156,8 @@ def imopen(
 
                 return plugin_instance
 
+    # fallback option: try all plugins
     for config in known_plugins.values():
-        # fallback option: try all plugins
-
         # Note: for v2 compatibility
         # this branch can be removed in ImageIO v3.0
         if legacy_mode and not config.is_legacy:
@@ -166,10 +169,41 @@ def imopen(
             continue
         else:
             return plugin_instance
-    else:
-        request.finish()
-        err_type = ValueError if legacy_mode else IOError
-        raise err_type(
-            f"Could not find a backend to open {request.raw_uri}"
-            f" with iomode '{request.mode.io_mode}'"
-        )
+
+    err_type = ValueError if legacy_mode else IOError
+    err_msg = f"Could not find a backend to open {uri} with iomode '{io_mode}'."
+
+    # check if a missing plugin could help
+    if request.extension in known_extensions:
+        missing_plugins = list()
+
+        formats = known_extensions[request.extension]
+        plugin_names = [
+            plugin for file_format in formats for plugin in file_format.priority
+        ]
+        for name in plugin_names:
+            config = known_plugins[name]
+
+            try:
+                config.plugin_class
+                continue
+            except ImportError:
+                missing_plugins.append(config)
+
+        if len(missing_plugins) > 0:
+            err_msg += (
+                " Based on the extension, "
+                "the following plugins might add capable backends:\n"
+                "\n".join(
+                    [
+                        (
+                            f"  {config.name}:  "
+                            f"pip install imageio[{config.install_name}]"
+                        )
+                        for config in missing_plugins
+                    ]
+                )
+            )
+
+    request.finish()
+    raise err_type(err_msg)
