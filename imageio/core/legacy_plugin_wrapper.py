@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Optional
+from pathlib import Path
 
 from .request import IOMode, Request, InitializationError
 
@@ -69,10 +70,6 @@ class LegacyPlugin:
                     f" can not write to `{self._request.raw_uri}`."
                 )
 
-        # for backwards compatibility with get_reader/get_writer
-        self._uri = self._request.raw_uri
-        self._io_mode = self._request.mode
-
     def legacy_get_reader(self, **kwargs):
         """legacy_get_reader(**kwargs)
 
@@ -85,7 +82,20 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
+        # Note: this will break thread-safety
         self._request._kwargs = kwargs
+
+        # safeguard for DICOM plugin reading from folders
+        try:
+            assert Path(self._request.filename).is_dir()
+        except OSError:
+            pass  # not a valid path on this OS
+        except AssertionError:
+            pass  # not a folder
+        else:
+            return self._format.get_reader(self._request)
+
+        self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
     def read(self, *, index=None, **kwargs):
@@ -123,6 +133,7 @@ class LegacyPlugin:
             to see what arguments are available for a particular format.
         """
 
+        # Note: this will break thread-safety
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
