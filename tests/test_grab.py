@@ -6,6 +6,7 @@ from pytest import raises
 from imageio.testing import run_tests_if_main
 
 import imageio
+import imageio.plugins.grab
 
 
 def test_grab_plugin_load():
