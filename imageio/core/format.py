@@ -540,24 +540,18 @@ class FormatManager(object):
     def _formats(self):
         return [x for x in known_plugins.values() if x.is_legacy]
 
-    @property
-    def _formats_sorted(self):
-        return [x for x in known_plugins.values() if x.is_legacy]
-
     def __repr__(self):
         return f"<imageio.FormatManager with {len(self._formats)} registered formats>"
 
     def __iter__(self):
-        return iter(x.format for x in known_plugins.values() if x.is_legacy)
+        return iter(x.format for x in self._formats)
 
     def __len__(self):
         return len(self._formats)
 
     def __str__(self):
         ss = []
-        for config in known_plugins.values():
-            if not config.is_legacy:
-                continue
+        for config in self._formats:
             ext = config.legacy_args["extensions"]
             desc = config.legacy_args["description"]
             s = f"{config.name} - {desc} [{ext}]"
@@ -580,7 +574,7 @@ class FormatManager(object):
         if Path(name).is_file():
             # legacy compatibility - why test reading here??
             try:
-                return imopen(name, "r?", legacy_mode=True)._format
+                return imopen(name, "r", legacy_mode=True)._format
             except ValueError:
                 # no plugin can read the file
                 pass
@@ -726,7 +720,7 @@ class FormatManager(object):
 
     def get_format_names(self):
         """Get the names of all registered formats."""
-        return [f.name for f in known_plugins.values() if f.is_legacy]
+        return [f.name for f in self._formats]
 
     def show(self):
         """Show a nicely formatted list of available formats"""
