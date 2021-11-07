@@ -578,7 +578,7 @@ extension_list = [
     FileExtension(
         name="Macintosh PICT",
         extension=".pct",
-        priority=["PICT-PIL"],
+        priority=["PICT-FI"],
     ),
     FileExtension(
         name="Zsoft Paintbrush",
@@ -601,12 +601,12 @@ extension_list = [
     FileExtension(
         name="Macintosh PICT",
         extension=".pic",
-        priority=["PICT-PIL", "ITK"],
+        priority=["PICT-FI", "ITK"],
     ),
     FileExtension(
         name="Macintosh PICT",
         extension=".pict",
-        priority=["PICT-PIL"],
+        priority=["PICT-FI"],
     ),
     FileExtension(
         name="Portable Network Graphics",
