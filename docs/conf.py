@@ -15,6 +15,22 @@ import sys
 import os
 import imageio
 
+# import/load the plugins so that they can be documented
+# this may require mocking imports in the future
+import imageio.plugins.bsdf
+import imageio.plugins.dicom
+import imageio.plugins.feisem
+import imageio.plugins.ffmpeg
+import imageio.plugins.fits
+import imageio.plugins.freeimage
+import imageio.plugins.gdal
+import imageio.plugins.lytro
+import imageio.plugins.npz
+import imageio.plugins.pillow_legacy
+import imageio.plugins.simpleitk
+import imageio.plugins.spe
+import imageio.plugins.swf
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
