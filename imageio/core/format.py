@@ -360,8 +360,7 @@ class Format(object):
             """
             self._checkClosed()
             n = self.get_length()
-            if index <= n:
-                self._BaseReaderWriter_last_index = index - 1
+            self._BaseReaderWriter_last_index = min(max(index - 1, -1), n)
 
         def get_meta_data(self, index=None):
             """get_meta_data(index=None)
@@ -559,9 +558,6 @@ class FormatManager(object):
         return "\n".join(ss)
 
     def __getitem__(self, name):
-        if name is None:
-            return None
-
         if not isinstance(name, str):
             raise ValueError(
                 "Looking up a format should be done by name or by extension."
@@ -653,8 +649,6 @@ class FormatManager(object):
         """
         if not isinstance(iio_format, Format):
             raise ValueError("add_format needs argument to be a Format object")
-        elif iio_format in self._formats:
-            raise ValueError("Given Format instance is already registered")
         elif not overwrite and iio_format.name in self.get_format_names():
             raise ValueError(
                 f"A Format named {iio_format.name} is already registered, use"

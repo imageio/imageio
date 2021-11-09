@@ -49,6 +49,13 @@ class EpicDummyPlugin:
         """Can read anything"""
 
 
+class BrokenDummyPlugin:
+    def __init__(self, request):
+        """Breaks during initialization"""
+
+        raise ValueError("Something went wrong.")
+
+
 def test_fetching():
     """Test fetching of files"""
 
@@ -905,9 +912,18 @@ def test_mvolread_out_of_bytes():
         )
 
 
-def test_invalid_explicit_plugin(clear_plugins, monkeypatch):
+def test_invalid_explicit_plugin(clear_plugins):
     imopen_module.known_plugins["plugin1"] = PluginConfig(
         name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", plugin="plugin1", legacy_mode=False)
+
+
+def test_broken_plugin(clear_plugins):
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="BrokenDummyPlugin", module_name="test_core"
     )
 
     with pytest.raises(IOError):

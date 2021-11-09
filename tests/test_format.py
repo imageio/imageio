@@ -1,4 +1,5 @@
 from pytest import raises
+import pytest
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import os
@@ -8,6 +9,7 @@ import shutil
 import numpy as np
 
 import imageio
+import imageio as iio
 from imageio.core import Format, FormatManager, Request
 from imageio.core import get_remote_file
 
@@ -405,6 +407,27 @@ def test_preferring_arbitrary():
     assert "DICOM" not in names[:10]
     assert "FFMPEG" not in names[:10]
     assert "NPZ" not in names[:10]
+
+
+def test_bad_formats(tmp_path):
+    # test looking up a read format from file
+    bogus_file = tmp_path / "bogus.fil"
+    bogus_file.write_text("abcdefg")
+
+    with pytest.raises(IndexError):
+        iio.formats[str(bogus_file)]
+
+    # test empty format
+    with pytest.raises(ValueError):
+        iio.formats[""]
+
+
+def test_write_format_search_fail():
+    assert iio.formats.search_write_format(iio.core.Request("foo.bogus", "w")) is None
+
+
+def test_format_by_filename():
+    iio.formats["test.jpg"]
 
 
 run_tests_if_main()
