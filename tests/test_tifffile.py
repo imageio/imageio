@@ -50,7 +50,8 @@ def test_tifffile_reading_writing():
         assert ims[i].shape == im2.shape
         assert (ims[i] == im2).all()
 
-    # Read all planes as one array - we call it a volume for clarity
+    # volumetric data
+    imageio.volwrite(filename1, np.tile(im2, (3, 1, 1, 1)))
     vol = imageio.volread(filename1)
     vols = imageio.mvolread(filename1)
     assert vol.shape == (3,) + im2.shape
@@ -58,7 +59,7 @@ def test_tifffile_reading_writing():
     for i in range(3):
         assert (vol[i] == im2).all()
 
-    # remote multipage rgb file
+    # remote channel-first volume rgb (2, 3, 10, 10)
     filename2 = get_remote_file("images/multipage_rgb.tif")
     img = imageio.mimread(filename2)
     assert len(img) == 2
@@ -93,7 +94,7 @@ def test_tifffile_reading_writing():
 
     # Ensure imread + imwrite works round trip - volume like
     filename3 = os.path.join(test_dir, "test_tiff2.tiff")
-    im1 = imageio.volread(filename1)
+    im1 = np.stack(imageio.mimread(filename1))
     imageio.volwrite(filename3, im1)
     im3 = imageio.volread(filename3)
     assert im1.ndim == 4
@@ -127,6 +128,13 @@ def test_tifffile_reading_writing():
         md = r.get_meta_data(1)
         assert "description" in md
         assert md["description"] == "another desc"
+
+
+# # commented out until we get permission to use this image
+# # in our test suite
+# def test_imagej_hyperstack():
+#     img = imageio.volread("NPCsingleNucleus.tif")
+#     assert img.shape == (15, 2, 180, 183)
 
 
 run_tests_if_main()

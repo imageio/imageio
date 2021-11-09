@@ -319,7 +319,7 @@ class LegacyPlugin:
                             pass
                         else:
                             raise ValueError(
-                                "Image must be 2D " "(grayscale, RGB, or RGBA)."
+                                "Image must be 2D (grayscale, RGB, or RGBA)."
                             )
                     else:  # self._request.mode.image_mode == "V"
                         if image.ndim == 3:
@@ -328,7 +328,7 @@ class LegacyPlugin:
                             pass  # How large can a tuple be?
                         else:
                             raise ValueError(
-                                "Image must be 3D," " or 4D if each voxel is a tuple."
+                                "Image must be 3D, or 4D if each voxel is a tuple."
                             )
 
                     # Add image
