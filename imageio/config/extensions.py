@@ -284,7 +284,7 @@ extension_list = [
     FileExtension(
         name="Graphics Interchange Format",
         extension=".gif",
-        priority=["pillow", "GIF-PIL", "GIF-FI"],
+        priority=["pillow", "GIF-PIL"],
     ),
     FileExtension(
         name="UMDS GIPL",
