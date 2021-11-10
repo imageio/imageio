@@ -13,25 +13,41 @@ def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
     back into imopen in V3.
     """
 
+    # for v2 compatibility, delete in v3
+    extension_name = None
+
     if legacy_mode and Path(plugin).suffix.lower() in known_extensions:
         # for v2 compatibility, delete in v3
-        name = Path(plugin).suffix.lower()
-        plugin = known_extensions[name][0].priority[0]
+        extension_name = Path(plugin).suffix.lower()
     elif plugin in known_plugins:
         pass
     elif not legacy_mode:
         raise ValueError(f"`{plugin}` is not a registered plugin name.")
     elif plugin.upper() in known_plugins:
+        # for v2 compatibility, delete in v3
         plugin = plugin.upper()
     elif plugin.lower() in known_extensions:
         # for v2 compatibility, delete in v3
-        plugin = known_extensions[plugin.lower()][0].priority[0]
+        extension_name = plugin.lower()
     elif "." + plugin.lower() in known_extensions:
         # for v2 compatibility, delete in v3
-        plugin = known_extensions["." + plugin.lower()][0].priority[0]
+        extension_name = "." + plugin.lower()
     else:
         # for v2 compatibility, delete in v3
         raise IndexError(f"No format known by name `{plugin}`.")
+
+    # for v2 compatibility, delete in v3
+    if extension_name is not None:
+        for plugin_name in [
+            x
+            for file_extension in known_extensions[extension_name]
+            for x in file_extension.priority
+        ]:
+            if known_plugins[plugin_name].is_legacy:
+                plugin = plugin_name
+                break
+        else:
+            raise IndexError(f"No format known by name `{plugin}`.")
 
     return known_plugins[plugin]
 
@@ -141,6 +157,10 @@ def imopen(
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
+
+                # v2 compatibility; delete in v3
+                if legacy_mode and not config.is_legacy:
+                    continue
 
                 try:
                     candidate_plugin = config.plugin_class

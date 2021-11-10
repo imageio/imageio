@@ -49,7 +49,7 @@ extension_list = [
     FileExtension(
         name="Bitmap",
         extension=".bmp",
-        priority=["BMP-PIL", "BMP-FI", "ITK"],
+        priority=["pillow", "BMP-PIL", "BMP-FI", "ITK"],
         external_link="https://en.wikipedia.org/wiki/BMP_file_format",
     ),
     FileExtension(
@@ -66,12 +66,12 @@ extension_list = [
     FileExtension(
         name="Binary Universal Form for the Representation of meteorological data",
         extension=".bufr",
-        priority=["BUFR-PIL"],
+        priority=["pillow", "BUFR-PIL"],
     ),
     FileExtension(
         name="Silicon Graphics Image",
         extension=".bw",
-        priority=["SGI-PIL", "SGI-FI"],
+        priority=["pillow", "SGI-PIL", "SGI-FI"],
     ),
     FileExtension(
         name="Scirra Construct",
@@ -101,7 +101,7 @@ extension_list = [
     FileExtension(
         name="Windows Cursor Icons",
         extension=".cur",
-        priority=["CUR-PIL"],
+        priority=["pillow", "CUR-PIL"],
     ),
     FileExtension(
         name="Dr. Halo",
@@ -124,17 +124,17 @@ extension_list = [
     FileExtension(
         name="Intel DCX",
         extension=".dcx",
-        priority=["DCX-PIL"],
+        priority=["pillow", "DCX-PIL"],
     ),
     FileExtension(
         name="DirectX Texture Container",
         extension=".dds",
-        priority=["DDS-FI", "DDS-PIL"],
+        priority=["pillow", "DDS-FI", "DDS-PIL"],
     ),
     FileExtension(
         name="Windows Bitmap",
         extension=".DIB",
-        priority=["DIB-PIL"],
+        priority=["pillow", "DIB-PIL"],
     ),
     FileExtension(
         name="DICOM file format",
@@ -161,12 +161,12 @@ extension_list = [
     FileExtension(
         name="Windows Metafile",
         extension=".emf",
-        priority=["WMF-PIL"],
+        priority=["pillow", "WMF-PIL"],
     ),
     FileExtension(
         name="Encapsulated Postscript",
         extension=".eps",
-        priority=["EPS-PIL"],
+        priority=["pillow", "EPS-PIL"],
     ),
     FileExtension(
         extension=".erf",
@@ -184,32 +184,32 @@ extension_list = [
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fit",
-        priority=["FITS-PIL", "FITS"],
+        priority=["pillow", "FITS-PIL", "FITS"],
     ),
     FileExtension(
         name="Flexible Image Transport System File",
         extension=".fits",
-        priority=["FITS-PIL", "FITS"],
+        priority=["pillow", "FITS-PIL", "FITS"],
     ),
     FileExtension(
         name="Autodesk FLC Animation",
         extension=".flc",
-        priority=["FLI-PIL"],
+        priority=["pillow", "FLI-PIL"],
     ),
     FileExtension(
         name="Autodesk FLI Animation",
         extension=".fli",
-        priority=["FLI-PIL"],
+        priority=["pillow", "FLI-PIL"],
     ),
     FileExtension(
         name="Kodak FlashPix",
         extension=".fpx",
-        priority=["FPX-PIL"],
+        priority=["pillow", "FPX-PIL"],
     ),
     FileExtension(
         name="Independence War 2: Edge Of Chaos Texture Format",
         extension=".ftc",
-        priority=["FTEX-PIL"],
+        priority=["pillow", "FTEX-PIL"],
     ),
     FileExtension(
         name="Flexible Image Transport System File",
@@ -219,7 +219,7 @@ extension_list = [
     FileExtension(
         name="Independence War 2: Edge Of Chaos Texture Format",
         extension=".ftu",
-        priority=["FTEX-PIL"],
+        priority=["pillow", "FTEX-PIL"],
     ),
     FileExtension(
         name="Flexible Image Transport System File",
@@ -234,7 +234,7 @@ extension_list = [
     FileExtension(
         name="GIMP brush file",
         extension=".gbr",
-        priority=["GBR-PIL"],
+        priority=["pillow", "GBR-PIL"],
     ),
     FileExtension(
         name="Grassroots DICOM",
@@ -244,7 +244,7 @@ extension_list = [
     FileExtension(
         name="Graphics Interchange Format",
         extension=".gif",
-        priority=["GIF-PIL", "GIF-FI"],
+        priority=["pillow", "GIF-PIL", "GIF-FI"],
     ),
     FileExtension(
         name="UMDS GIPL",
@@ -254,17 +254,17 @@ extension_list = [
     FileExtension(
         name="gridded meteorological data",
         extension=".grib",
-        priority=["GRIB-PIL"],
+        priority=["pillow", "GRIB-PIL"],
     ),
     FileExtension(
         name="Hierarchical Data Format 5",
         extension=".h5",
-        priority=["HDF5-PIL"],
+        priority=["pillow", "HDF5-PIL"],
     ),
     FileExtension(
         name="Hierarchical Data Format 5",
         extension=".hdf",
-        priority=["HDF5-PIL"],
+        priority=["pillow", "HDF5-PIL"],
     ),
     FileExtension(
         name="Hierarchical Data Format 5",
@@ -288,12 +288,12 @@ extension_list = [
     FileExtension(
         name="Mac OS Icon File",
         extension=".icns",
-        priority=["ICNS-PIL"],
+        priority=["pillow", "ICNS-PIL"],
     ),
     FileExtension(
         name="Windows Icon File",
         extension=".ico",
-        priority=["ICO-FI", "ICO-PIL"],
+        priority=["pillow", "ICO-FI", "ICO-PIL"],
     ),
     FileExtension(
         name="ILBM Interleaved Bitmap",
@@ -303,7 +303,7 @@ extension_list = [
     FileExtension(
         name="IPTC/NAA",
         extension=".iim",
-        priority=["IPTC-PIL"],
+        priority=["pillow", "IPTC-PIL"],
     ),
     FileExtension(
         extension=".iiq",
@@ -312,7 +312,7 @@ extension_list = [
     FileExtension(
         name="IFUNC Image Memory",
         extension=".im",
-        priority=["IM-PIL"],
+        priority=["pillow", "IM-PIL"],
     ),
     FileExtension(
         extension=".img",
@@ -325,7 +325,7 @@ extension_list = [
     FileExtension(
         name="IM Tools",
         extension=".IMT",
-        priority=["IMT-PIL"],
+        priority=["pillow", "IMT-PIL"],
     ),
     FileExtension(
         name="Image Processing Lab",
@@ -335,17 +335,17 @@ extension_list = [
     FileExtension(
         name="JPEG 2000",
         extension=".j2c",
-        priority=["J2K-FI", "JPEG2000-PIL"],
+        priority=["pillow", "J2K-FI", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="JPEG 2000",
         extension=".j2k",
-        priority=["J2K-FI", "JPEG2000-PIL"],
+        priority=["pillow", "J2K-FI", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="JPEG",
         extension=".jfif",
-        priority=["JPEG-PIL"],
+        priority=["pillow", "JPEG-PIL"],
     ),
     FileExtension(
         name="JPEG",
@@ -360,37 +360,37 @@ extension_list = [
     FileExtension(
         name="JPEG 2000",
         extension=".jp2",
-        priority=["JP2-FI", "JPEG2000-PIL"],
+        priority=["pillow", "JP2-FI", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="JPEG 2000",
         extension=".jpc",
-        priority=["JPEG2000-PIL"],
+        priority=["pillow", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="JPEG",
         extension=".jpe",
-        priority=["JPEG-FI", "JPEG-PIL"],
+        priority=["pillow", "JPEG-FI", "JPEG-PIL"],
     ),
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpeg",
-        priority=["JPEG-FI", "JPEG-PIL", "ITK", "GDAL"],
+        priority=["pillow", "JPEG-FI", "JPEG-PIL", "ITK", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
         extension=".jpf",
-        priority=["JPEG2000-PIL"],
+        priority=["pillow", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpg",
-        priority=["JPEG-PIL", "JPEG-FI", "ITK", "GDAL"],
+        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
         extension=".jpx",
-        priority=["JPEG2000-PIL"],
+        priority=["pillow", "JPEG2000-PIL"],
     ),
     FileExtension(
         name="JPEG Extended Range",
@@ -437,7 +437,7 @@ extension_list = [
     FileExtension(
         name="McIdas area file",
         extension=".MCIDAS",
-        priority=["MCIDAS-PIL"],
+        priority=["pillow", "MCIDAS-PIL"],
         external_link="https://www.ssec.wisc.edu/mcidas/doc/prog_man/2003print/progman2003-formats.html",
     ),
     FileExtension(
@@ -466,7 +466,7 @@ extension_list = [
     FileExtension(
         name="Microsoft Image Composer",
         extension=".mic",
-        priority=["MIC-PIL"],
+        priority=["pillow", "MIC-PIL"],
     ),
     FileExtension(
         name="Matroska Multimedia Container",
@@ -511,7 +511,7 @@ extension_list = [
     FileExtension(
         name="JPEG Multi-Picture Format",
         extension=".mpo",
-        priority=["MPO-PIL"],
+        priority=["pillow", "MPO-PIL"],
     ),
     FileExtension(
         name="Magnetic resonance imaging",
@@ -525,7 +525,7 @@ extension_list = [
     FileExtension(
         name="Windows Paint",
         extension=".msp",
-        priority=["MSP-PIL"],
+        priority=["pillow", "MSP-PIL"],
     ),
     FileExtension(
         extension=".nef",
@@ -573,7 +573,7 @@ extension_list = [
     FileExtension(
         name="Kodak PhotoCD",
         extension=".pcd",
-        priority=["PCD-FI", "PCD-PIL"],
+        priority=["pillow", "PCD-FI", "PCD-PIL"],
     ),
     FileExtension(
         name="Macintosh PICT",
@@ -583,7 +583,7 @@ extension_list = [
     FileExtension(
         name="Zsoft Paintbrush",
         extension=".PCX",
-        priority=["PCX-FI", "PCX-PIL"],
+        priority=["pillow", "PCX-FI", "PCX-PIL"],
     ),
     FileExtension(
         extension=".pef",
@@ -611,22 +611,22 @@ extension_list = [
     FileExtension(
         name="Portable Network Graphics",
         extension=".png",
-        priority=["PNG-PIL", "PNG-FI", "ITK"],
+        priority=["pillow", "PNG-PIL", "PNG-FI", "ITK"],
     ),
     FileExtension(
         name="Pbmplus image",
         extension=".ppm",
-        priority=["PPM-PIL"],
+        priority=["pillow", "PPM-PIL"],
     ),
     FileExtension(
         name="Pbmplus image",
         extension=".pbm",
-        priority=["PPM-PIL"],
+        priority=["pillow", "PPM-PIL"],
     ),
     FileExtension(
         name="Pbmplus image",
         extension=".pbm",
-        priority=["PPM-PIL", "PPM-FI"],
+        priority=["pillow", "PPM-PIL", "PPM-FI"],
     ),
     FileExtension(
         name="Portable Pixelmap (ASCII)",
@@ -641,12 +641,12 @@ extension_list = [
     FileExtension(
         name="Ghostscript",
         extension=".ps",
-        priority=["EPS-PIL"],
+        priority=["pillow", "EPS-PIL"],
     ),
     FileExtension(
         name="Adope Photoshop 2.5 and 3.0",
         extension=".psd",
-        priority=["PSD-PIL", "PSD-FI"],
+        priority=["pillow", "PSD-PIL", "PSD-FI"],
     ),
     FileExtension(
         extension=".ptx",
@@ -659,7 +659,7 @@ extension_list = [
     FileExtension(
         name="PIXAR raster image",
         extension=".pxr",
-        priority=["PIXAR-PIL"],
+        priority=["pillow", "PIXAR-PIL"],
     ),
     FileExtension(
         extension=".qtk",
@@ -672,7 +672,7 @@ extension_list = [
     FileExtension(
         name="Sun Raster File",
         extension=".ras",
-        priority=["SUN-PIL", "RAS-FI"],
+        priority=["pillow", "SUN-PIL", "RAS-FI"],
     ),
     FileExtension(
         extension=".raw",
@@ -685,12 +685,12 @@ extension_list = [
     FileExtension(
         name="Silicon Graphics Image",
         extension=".rgb",
-        priority=["SGI-PIL"],
+        priority=["pillow", "SGI-PIL"],
     ),
     FileExtension(
         name="Silicon Graphics Image",
         extension=".rgba",
-        priority=["SGI-PIL"],
+        priority=["pillow", "SGI-PIL"],
     ),
     FileExtension(
         extension=".rw2",
@@ -707,7 +707,7 @@ extension_list = [
     FileExtension(
         name="Silicon Graphics Image",
         extension=".sgi",
-        priority=["SGI-PIL"],
+        priority=["pillow", "SGI-PIL"],
     ),
     FileExtension(
         name="SPE File Format",
@@ -716,7 +716,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".SPIDER",
-        priority=["SPIDER-PIL"],
+        priority=["pillow", "SPIDER-PIL"],
     ),
     FileExtension(
         extension=".sr2",
@@ -751,17 +751,17 @@ extension_list = [
     FileExtension(
         name="Truevision TGA",
         extension=".tga",
-        priority=["TGA-PIL", "TARGA-FI"],
+        priority=["pillow", "TGA-PIL", "TARGA-FI"],
     ),
     FileExtension(
         name="Tagged Image File",
         extension=".tif",
-        priority=["TIFF", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
+        priority=["TIFF", "pillow", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
     ),
     FileExtension(
         name="Tagged Image File Format",
         extension=".tiff",
-        priority=["TIFF", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
+        priority=["TIFF", "pillow", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
     ),
     FileExtension(
         extension=".vtk",
@@ -799,7 +799,7 @@ extension_list = [
     FileExtension(
         name="Windows Meta File",
         extension=".wmf",
-        priority=["WMF-PIL"],
+        priority=["pillow", "WMF-PIL"],
     ),
     FileExtension(
         name="Windows Media Video",
@@ -809,17 +809,17 @@ extension_list = [
     FileExtension(
         name="X11 Bitmap",
         extension=".xbm",
-        priority=["XBM-PIL", "XBM-FI"],
+        priority=["pillow", "XBM-PIL", "XBM-FI"],
     ),
     FileExtension(
         name="X11 Pixel Map",
         extension=".xpm",
-        priority=["XPM-PIL", "XPM-FI"],
+        priority=["pillow", "XPM-PIL", "XPM-FI"],
     ),
     FileExtension(
         name="Thumbnail Image",
         extension=".XVTHUMB",
-        priority=["XVTHUMB-PIL"],
+        priority=["pillow", "XVTHUMB-PIL"],
     ),
 ]
 extension_list.sort(key=lambda x: x.extension)
