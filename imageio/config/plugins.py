@@ -36,7 +36,7 @@ class PluginConfig:
             class_name="TiffFormat",
             module_name="imageio.plugins.tifffile",
             is_legacy=True,
-            legacy_install_name="tifffile",
+            install_name="tifffile",
             legacy_args={
                 "description": "TIFF format",
                 "extensions": ".tif .tiff .stk .lsm",
@@ -136,7 +136,7 @@ known_plugins["TIFF"] = PluginConfig(
     class_name="TiffFormat",
     module_name="imageio.plugins.tifffile",
     is_legacy=True,
-    legacy_install_name="tifffile",
+    install_name="tifffile",
     legacy_args={
         "description": "TIFF format",
         "extensions": ".tif .tiff .stk .lsm",
@@ -201,7 +201,7 @@ for id, summary, ext, class_name in PILLOW_FORMATS:
         class_name=class_name,
         module_name="imageio.plugins.pillow_legacy",
         is_legacy=True,
-        legacy_install_name="pillow",
+        install_name="pillow",
         legacy_args={
             "description": summary + " via Pillow",
             "extensions": ext,
@@ -216,7 +216,7 @@ known_plugins["FFMPEG"] = PluginConfig(
     class_name="FfmpegFormat",
     module_name="imageio.plugins.ffmpeg",
     is_legacy=True,
-    legacy_install_name="ffmpeg",
+    install_name="ffmpeg",
     legacy_args={
         "description": "Many video formats and cameras (via ffmpeg)",
         "extensions": ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv",
@@ -229,7 +229,7 @@ known_plugins["BSDF"] = PluginConfig(
     class_name="BsdfFormat",
     module_name="imageio.plugins.bsdf",
     is_legacy=True,
-    legacy_install_name="bsdf",
+    install_name="bsdf",
     legacy_args={
         "description": "Format based on the Binary Structured Data Format",
         "extensions": ".bsdf",
@@ -242,7 +242,7 @@ known_plugins["DICOM"] = PluginConfig(
     class_name="DicomFormat",
     module_name="imageio.plugins.dicom",
     is_legacy=True,
-    legacy_install_name="dicom",
+    install_name="dicom",
     legacy_args={
         "description": "Digital Imaging and Communications in Medicine",
         "extensions": ".dcm .ct .mri",
@@ -255,7 +255,7 @@ known_plugins["FEI"] = PluginConfig(
     class_name="FEISEMFormat",
     module_name="imageio.plugins.feisem",
     is_legacy=True,
-    legacy_install_name="feisem",
+    install_name="feisem",
     legacy_args={
         "description": "FEI-SEM TIFF format",
         "extensions": [".tif", ".tiff"],
@@ -268,7 +268,7 @@ known_plugins["FITS"] = PluginConfig(
     class_name="FitsFormat",
     module_name="imageio.plugins.fits",
     is_legacy=True,
-    legacy_install_name="fits",
+    install_name="fits",
     legacy_args={
         "description": "Flexible Image Transport System (FITS) format",
         "extensions": ".fits .fit .fts .fz",
@@ -281,7 +281,7 @@ known_plugins["GDAL"] = PluginConfig(
     class_name="GdalFormat",
     module_name="imageio.plugins.gdal",
     is_legacy=True,
-    legacy_install_name="gdal",
+    install_name="gdal",
     legacy_args={
         "description": "Geospatial Data Abstraction Library",
         "extensions": ".tiff  .tif .img .ecw .jpg .jpeg",
@@ -294,7 +294,7 @@ known_plugins["ITK"] = PluginConfig(
     class_name="ItkFormat",
     module_name="imageio.plugins.simpleitk",
     is_legacy=True,
-    legacy_install_name="simpleitk",
+    install_name="simpleitk",
     legacy_args={
         "description": "Insight Segmentation and Registration Toolkit (ITK) format",
         "extensions": " ".join(
@@ -339,7 +339,7 @@ known_plugins["NPZ"] = PluginConfig(
     class_name="NpzFormat",
     module_name="imageio.plugins.npz",
     is_legacy=True,
-    legacy_install_name="numpy",
+    install_name="numpy",
     legacy_args={
         "description": "Numpy's compressed array format",
         "extensions": ".npz",
@@ -352,7 +352,7 @@ known_plugins["SPE"] = PluginConfig(
     class_name="SpeFormat",
     module_name="imageio.plugins.spe",
     is_legacy=True,
-    legacy_install_name="spe",
+    install_name="spe",
     legacy_args={
         "description": "SPE file format",
         "extensions": ".spe",
@@ -365,7 +365,7 @@ known_plugins["SWF"] = PluginConfig(
     class_name="SWFFormat",
     module_name="imageio.plugins.swf",
     is_legacy=True,
-    legacy_install_name="swf",
+    install_name="swf",
     legacy_args={
         "description": "Shockwave flash",
         "extensions": ".swf",
@@ -378,7 +378,7 @@ known_plugins["SCREENGRAB"] = PluginConfig(
     class_name="ScreenGrabFormat",
     module_name="imageio.plugins.grab",
     is_legacy=True,
-    legacy_install_name="pillow",
+    install_name="pillow",
     legacy_args={
         "description": "Grab screenshots (Windows and OS X only)",
         "extensions": [],
@@ -391,7 +391,7 @@ known_plugins["CLIPBOARDGRAB"] = PluginConfig(
     class_name="ClipboardGrabFormat",
     module_name="imageio.plugins.grab",
     is_legacy=True,
-    legacy_install_name="pillow",
+    install_name="pillow",
     legacy_args={
         "description": "Grab from clipboard (Windows only)",
         "extensions": [],
@@ -418,7 +418,7 @@ for name, des, ext, mode, class_name in lytro_formats:
         class_name=class_name,
         module_name="imageio.plugins.lytro",
         is_legacy=True,
-        legacy_install_name="lytro",
+        install_name="lytro",
         legacy_args={
             "description": des,
             "extensions": ext,
@@ -764,7 +764,7 @@ for name, i, des, ext, mode, class_name, module_name in FREEIMAGE_FORMATS:
         class_name=class_name,
         module_name=module_name,
         is_legacy=True,
-        legacy_install_name="freeimage",
+        install_name="freeimage",
         legacy_args={
             "description": des,
             "extensions": ext,

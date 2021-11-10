@@ -660,7 +660,7 @@ class FormatManager(object):
             class_name=iio_format.__class__.__name__,
             module_name=iio_format.__class__.__module__,
             is_legacy=True,
-            legacy_install_name="unknown",
+            install_name="unknown",
             legacy_args={
                 "name": iio_format.name,
                 "description": iio_format.description,
