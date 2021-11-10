@@ -27,7 +27,6 @@ flags : int
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
 from ..core.request import RETURN_BYTES
 from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
