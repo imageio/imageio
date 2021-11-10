@@ -5,6 +5,52 @@ from ..core.legacy_plugin_wrapper import LegacyPlugin
 
 
 class PluginConfig:
+    """Plugin Configuration Metadata
+
+    This class holds the information needed to lazy-import plugins.
+
+    Parameters
+    ----------
+    name : str
+        The name of the plugin.
+    class_name : str
+        The name of the plugin class inside the plugin module.
+    module_name : str
+        The name of the module/package from which to import the plugin.
+    is_legacy : bool
+        If True, this plugin is a v2 plugin and will be wrapped in a
+        LegacyPlugin. Default: False.
+    package_name : str
+        If the given module name points to a relative module, then the package
+        name determines the package it is relative to.
+    install_name : str
+        The name of the optional dependency that can be used to install this
+        plugin if it is missing.
+    legacy_args : Dict
+        A dictionary of kwargs to pass to the v2 plugin (Format) upon construction.
+
+    Examples
+    --------
+    >>> PluginConfig(
+            name="TIFF",
+            class_name="TiffFormat",
+            module_name="imageio.plugins.tifffile",
+            is_legacy=True,
+            legacy_install_name="tifffile",
+            legacy_args={
+                "description": "TIFF format",
+                "extensions": ".tif .tiff .stk .lsm",
+                "modes": "iIvV",
+            },
+        )
+    >>> PluginConfig(
+            name="pillow",
+            class_name="PillowPlugin",
+            module_name="imageio.plugins.pillow"
+        )
+
+    """
+
     def __init__(
         self,
         name: str,
@@ -13,7 +59,7 @@ class PluginConfig:
         *,
         is_legacy: bool = False,
         package_name: str = None,
-        legacy_install_name: str = None,
+        install_name: str = None,
         legacy_args: dict = None,
     ) -> None:
         legacy_args = legacy_args or dict()
@@ -24,7 +70,7 @@ class PluginConfig:
         self.package_name = package_name
 
         self.is_legacy = is_legacy
-        self.install_name = legacy_install_name or self.name
+        self.install_name = install_name or self.name
         self.legacy_args = {"name": name, "description": "A legacy plugin"}
         self.legacy_args.update(legacy_args)
 
