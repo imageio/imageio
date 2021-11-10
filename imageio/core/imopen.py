@@ -46,7 +46,9 @@ def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
             if known_plugins[plugin_name].is_legacy:
                 plugin = plugin_name
                 break
-        else:
+        else: # pragma: no cover
+            # currently there is no format that is only supported
+            # by v3 plugins
             raise IndexError(f"No format known by name `{plugin}`.")
 
     return known_plugins[plugin]
