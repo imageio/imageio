@@ -167,11 +167,13 @@ def imopen(
             plugin_instance = config.plugin_class(request, **kwargs)
         except InitializationError:
             continue
+        except ImportError:
+            continue
         else:
             return plugin_instance
 
     err_type = ValueError if legacy_mode else IOError
-    err_msg = f"Could not find a backend to open {uri} with iomode '{io_mode}'."
+    err_msg = f"Could not find a backend to open `{uri}`` with iomode `{io_mode}`."
 
     # check if a missing plugin could help
     if request.extension in known_extensions:
@@ -191,18 +193,18 @@ def imopen(
                 missing_plugins.append(config)
 
         if len(missing_plugins) > 0:
+            install_candidates = "\n".join(
+                [
+                    (
+                        f"  {config.name}:  "
+                        f"pip install imageio[{config.install_name}]"
+                    )
+                    for config in missing_plugins
+                ]
+            )
             err_msg += (
-                " Based on the extension, "
-                "the following plugins might add capable backends:\n"
-                "\n".join(
-                    [
-                        (
-                            f"  {config.name}:  "
-                            f"pip install imageio[{config.install_name}]"
-                        )
-                        for config in missing_plugins
-                    ]
-                )
+                "\nBased on the extension, the following plugins might add capable backends:\n"
+                f"{install_candidates}"
             )
 
     request.finish()

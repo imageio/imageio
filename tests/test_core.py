@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 
 from pytest import raises, skip
+from imageio.config import FileExtension
 
 from imageio.core.functions import to_nbytes
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
@@ -872,6 +873,24 @@ def test_plugin_selection_success(clear_plugins, invalid_file):
     assert isinstance(instance, EpicDummyPlugin)
 
 
+def test_imopen_installable_plugin(clear_plugins):
+    # test uninstalled plugin
+    iio.config.known_plugins["plugin"] = PluginConfig(
+        name="plugin", class_name="EpicDummyPlugin", module_name="non_existant"
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("foo.bar", "w", legacy_mode=False)
+
+    # register extension
+    iio.config.known_extensions[".bar"] = [
+        FileExtension(extension=".bar", priority=["plugin"])
+    ]
+
+    with pytest.raises(IOError):
+        iio.imopen("foo.bar", "w", legacy_mode=False)
+
+
 def test_legacy_object_image_writing():
     with pytest.raises(ValueError):
         iio.mimwrite("foo.gif", np.array([[0]], dtype=object))
@@ -928,6 +947,26 @@ def test_broken_plugin(clear_plugins):
 
     with pytest.raises(IOError):
         iio.imopen("", "r", plugin="plugin1", legacy_mode=False)
+
+
+def test_volwrite_failure():
+    not_image_data = np.array("Object Array.")
+
+    with pytest.raises(ValueError):
+        iio.volwrite("foo.jpg", not_image_data)
+
+
+def test_memory_size(image_files):
+    im = iio.mimread(image_files / "newtonscradle.gif", memtest=True)
+    assert len(im) == 36
+
+    im = iio.mimread(image_files / "newtonscradle.gif", memtest=None)
+    assert len(im) == 36
+
+
+def test_legacy_write_empty(image_files):
+    with pytest.raises(RuntimeError):
+        iio.v3.imwrite(image_files / "foo.tiff", np.ones((0, 10, 10)))
 
 
 run_tests_if_main()

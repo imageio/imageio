@@ -57,16 +57,21 @@ def image_files(tmp_dir):
 
 
 @pytest.fixture
-def clear_plugins(monkeypatch):
-    import imageio.core.imopen
+def clear_plugins():
 
-    monkeypatch.setattr(iio.config, "known_plugins", dict())
-    monkeypatch.setattr(iio.config, "known_extensions", dict())
+    old_extensions = iio.config.known_extensions.copy()
+    old_plugins = iio.config.known_plugins.copy()
 
-    monkeypatch.setattr(imageio.core.imopen, "known_plugins", dict())
-    monkeypatch.setattr(imageio.core.imopen, "known_extensions", dict())
+    iio.config.known_extensions.clear()
+    iio.config.known_plugins.clear()
 
     yield
+
+    iio.config.known_extensions.clear()
+    iio.config.known_plugins.clear()
+
+    iio.config.known_plugins.update(old_plugins)
+    iio.config.known_extensions.update(old_extensions)
 
 
 @pytest.fixture()

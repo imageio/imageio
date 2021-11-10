@@ -22,12 +22,12 @@ for i, si in enumerate([""] + list("kMGTPEZY")):
         sizes[si.upper() + "i"] = 1024 ** i
 
 
-def to_nbytes(arg, default=None):
+def to_nbytes(arg, default=None) -> Number:
     if not arg:
-        return None
+        arg = float("inf")
 
     if arg is True:
-        return default
+        arg = default
 
     if isinstance(arg, Number):
         return arg
@@ -43,7 +43,8 @@ def to_nbytes(arg, default=None):
 
     try:
         return float(num) * sizes[unit]
-    except KeyError:
+    except KeyError:  # pragma: no cover
+        # Note: I don't think we can reach this
         raise ValueError(
             "Memory size unit not recognised "
             "(is your capitalisation correct?): {}".format(unit)

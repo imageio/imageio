@@ -155,7 +155,7 @@ class LegacyPlugin:
             particular format.
         """
         with self.legacy_get_writer(**kwargs) as writer:
-            if self._request.mode.image_mode in "iv?":
+            if self._request.mode.image_mode in "iv":
                 writer.append_data(image)
             else:
                 if len(image) == 0:
