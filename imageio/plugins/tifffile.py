@@ -160,16 +160,11 @@ from ..core import Format
 
 import numpy as np
 
-_tifffile = None  # Defer loading to lib() function.
 
-
-def load_lib():
-    global _tifffile
-    try:
-        import tifffile as _tifffile
-    except ImportError:
-        from . import _tifffile
-    return _tifffile
+try:
+    import tifffile as _tifffile
+except ImportError:
+    from . import _tifffile
 
 
 TIFF_FORMATS = (".tif", ".tiff", ".stk", ".lsm")
@@ -363,19 +358,25 @@ class TiffFormat(Format):
     """
 
     def _can_read(self, request):
-        # We support any kind of image data
-        return request.extension in self.extensions
+        try: 
+            _tifffile.TiffFile(request.get_file(), **request.kwargs)
+        except _tifffile.tifffile.TiffFileError:
+            request.get_file().seek(0)
+            return False
+        return True
 
     def _can_write(self, request):
-        # We support any kind of image data
-        return request.extension in self.extensions
+        try: 
+            _tifffile.TiffWriter(request.get_file(), **request.kwargs)
+        except _tifffile.tifffile.TiffFileError:
+            request.get_file().seek(0)
+            return False
+        return True
 
     # -- reader
 
     class Reader(Format.Reader):
         def _open(self, **kwargs):
-            if not _tifffile:
-                load_lib()
             # Allow loading from http; tifffile uses seek, so download first
             if self.request.filename.startswith(("http://", "https://")):
                 self._f = f = open(self.request.get_local_filename(), "rb")
@@ -447,9 +448,6 @@ class TiffFormat(Format):
     # -- writer
     class Writer(Format.Writer):
         def _open(self, bigtiff=None, byteorder=None, software=None):
-            if not _tifffile:
-                load_lib()
-
             try:
                 self._tf = _tifffile.TiffWriter(
                     self.request.get_file(), bigtiff, byteorder, software=software
