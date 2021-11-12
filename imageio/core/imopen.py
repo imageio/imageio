@@ -1,4 +1,5 @@
 import numpy as np
+from typing import Any, Optional
 
 from .format import FormatManager, MODENAMES
 from .request import IOMode, Request, InitializationError
@@ -6,6 +7,11 @@ from .request import IOMode, Request, InitializationError
 
 class imopen:
     """Open a URI and return a plugin instance that can read/write the URIs content.
+
+    .. warning::
+        This warning is for pypy users. If you are not using a context manager,
+        remember to deconstruct the returned plugin to avoid leaking the file
+        handle to an unclosed file.
 
     ``imopen`` takes a URI and searches for a plugin capable of opening it. Once
     a suitable plugin is found, a plugin instance is created that implements the
@@ -42,7 +48,7 @@ class imopen:
         plugin: str = None,
         search_legacy_only: bool = True,
         **kwargs,
-    ):
+    ) -> Any:
         """Instantiate a plugin capable of interacting with the given URI
 
         Parameters
@@ -128,7 +134,7 @@ class imopen:
         return plugin_instance
 
     @classmethod
-    def register_plugin(cls, plugin_name, plugin_class):
+    def register_plugin(cls, plugin_name, plugin_class) -> None:
         """Register a new plugin to be used when opening URIs.
 
         Parameters
@@ -182,7 +188,9 @@ class LegacyPlugin:
 
     """
 
-    def __init__(self, request, plugin_manager, uri, io_mode, format=None):
+    def __init__(
+        self, request: Request, plugin_manager, uri, io_mode, format=None
+    ) -> None:
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -241,7 +249,7 @@ class LegacyPlugin:
 
         return self._plugin.get_reader(req)
 
-    def read(self, *, index=None, **kwargs):
+    def read(self, *, index=None, **kwargs) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -255,6 +263,12 @@ class LegacyPlugin:
             Further keyword arguments are passed to the reader. See
             :func:`.help` to see what arguments are available for a particular
             format.
+
+        Returns
+        -------
+        ndimage : np.ndarray
+            A numpy array containing the decoded image data.
+
         """
 
         if index is None:
@@ -281,7 +295,7 @@ class LegacyPlugin:
 
         return self._plugin.get_writer(req)
 
-    def write(self, image, **kwargs):
+    def write(self, image, **kwargs) -> Optional[bytes]:
         """
         Write an ndimage to the URI specified in path.
 
@@ -336,7 +350,7 @@ class LegacyPlugin:
 
         return writer.request.get_result()
 
-    def iter(self, **kwargs):
+    def iter(self, **kwargs) -> np.ndarray:
         """Iterate over a list of ndimages given by the URI
 
         Parameters
@@ -345,13 +359,19 @@ class LegacyPlugin:
             Further keyword arguments are passed to the reader. See
             :func:`.help` to see what arguments are available for a particular
             format.
+
+        Returns
+        -------
+        ndimage : np.ndarray
+            A numpy array containing the decoded image data.
+
         """
 
         reader = self.legacy_get_reader(**kwargs)
         for image in reader:
             yield image
 
-    def get_meta(self, *, index=None):
+    def get_meta(self, *, index=None) -> dict:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -363,12 +383,22 @@ class LegacyPlugin:
 
             Legacy-style API: return metadata of the first element (index=0)
             New-style API: Behavior depends on the used Plugin.
+
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary of metadata.
+
         """
 
         return self.legacy_get_reader().get_meta_data(index=index)
 
-    def __enter__(self):
+    def __enter__(self) -> "LegacyPlugin":
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback) -> None:
+        self._request.finish()
+
+    def __del__(self) -> None:
         self._request.finish()
