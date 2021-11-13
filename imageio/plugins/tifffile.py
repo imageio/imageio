@@ -358,7 +358,7 @@ class TiffFormat(Format):
     """
 
     def _can_read(self, request):
-        try: 
+        try:
             _tifffile.TiffFile(request.get_file(), **request.kwargs)
         except _tifffile.tifffile.TiffFileError:
             request.get_file().seek(0)
@@ -369,7 +369,7 @@ class TiffFormat(Format):
         if request.extension not in self.extensions:
             return False
 
-        try: 
+        try:
             _tifffile.TiffWriter(request.get_file(), **request.kwargs)
         except _tifffile.tifffile.TiffFileError:
             request.get_file().seek(0)

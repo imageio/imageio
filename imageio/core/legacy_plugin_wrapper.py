@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional
+from typing import Optional, Dict, Any
 from pathlib import Path
 
 from .request import IOMode, Request, InitializationError
@@ -98,7 +98,7 @@ class LegacyPlugin:
         self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
-    def read(self, *, index=None, **kwargs):
+    def read(self, *, index=None, **kwargs) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -112,6 +112,12 @@ class LegacyPlugin:
             Further keyword arguments are passed to the reader. See
             :func:`.help` to see what arguments are available for a particular
             format.
+
+        Returns
+        -------
+        ndimage : np.ndarray
+            A numpy array containing the decoded image data.
+
         """
 
         if index is None:
@@ -195,7 +201,7 @@ class LegacyPlugin:
 
         return writer.request.get_result()
 
-    def iter(self, **kwargs):
+    def iter(self, **kwargs) -> np.ndarray:
         """Iterate over a list of ndimages given by the URI
 
         Parameters
@@ -210,7 +216,7 @@ class LegacyPlugin:
         for image in reader:
             yield image
 
-    def get_meta(self, *, index=None):
+    def get_meta(self, *, index=None) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -222,12 +228,21 @@ class LegacyPlugin:
 
             Legacy-style API: return metadata of the first element (index=0)
             New-style API: Behavior depends on the used Plugin.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary of metadata.
+
         """
 
         return self.legacy_get_reader().get_meta_data(index=index)
 
-    def __enter__(self):
+    def __enter__(self) -> "LegacyPlugin":
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback) -> None:
+        self._request.finish()
+
+    def __del__(self) -> None:
         self._request.finish()

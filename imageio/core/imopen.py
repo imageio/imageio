@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from .request import Request, InitializationError
 from ..config.plugins import PluginConfig
@@ -61,8 +62,13 @@ def imopen(
     plugin: str = None,
     legacy_mode: bool = True,
     **kwargs,
-):
+) -> Any:
     """Open an ImageResource.
+
+    .. warning::
+        This warning is for pypy users. If you are not using a context manager,
+        remember to deconstruct the returned plugin to avoid leaking the file
+        handle to an unclosed file.
 
     Parameters
     ----------

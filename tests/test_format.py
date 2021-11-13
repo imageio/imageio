@@ -422,8 +422,9 @@ def test_bad_formats(tmp_path):
         iio.formats[""]
 
 
-def test_write_format_search_fail():
-    assert iio.formats.search_write_format(iio.core.Request("foo.bogus", "w")) is None
+def test_write_format_search_fail(tmp_path):
+    req = iio.core.Request(tmp_path / "foo.bogus", "w")
+    assert iio.formats.search_write_format(req) is None
 
 
 def test_format_by_filename():
