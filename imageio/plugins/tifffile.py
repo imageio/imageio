@@ -366,6 +366,9 @@ class TiffFormat(Format):
         return True
 
     def _can_write(self, request):
+        if request.extension not in self.extensions:
+            return False
+
         try: 
             _tifffile.TiffWriter(request.get_file(), **request.kwargs)
         except _tifffile.tifffile.TiffFileError:
