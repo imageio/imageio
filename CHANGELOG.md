@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.4 (2021-11-13)
+### Fix
+* Consistently handle file opening/closing ([#673](https://github.com/imageio/imageio/issues/673)) ([`b852f45`](https://github.com/imageio/imageio/commit/b852f451a0d5b2e949f5e698b0ef50a4ec4dbb86))
+
+### Documentation
+* Reorder getting started menu ([#683](https://github.com/imageio/imageio/issues/683)) ([`94f479e`](https://github.com/imageio/imageio/commit/94f479ebd4161425d0ce4d4d3aeac1a1802ae3ab))
+
 ## v2.10.3 (2021-11-06)
 ### Fix
 * Fix file extension bug when filename contains '#'. ([#678](https://github.com/imageio/imageio/issues/678)) ([`f3fa631`](https://github.com/imageio/imageio/commit/f3fa6318ebd6005ebf2361438795cfbf87e62f7c))
