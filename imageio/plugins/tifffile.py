@@ -361,8 +361,10 @@ class TiffFormat(Format):
         try:
             _tifffile.TiffFile(request.get_file(), **request.kwargs)
         except ValueError:
+            # vendored backend raises value exception
             return False
-        except _tifffile.TiffFileError:
+        except _tifffile.TiffFileError:  # pragma: no-cover
+            # current version raises custom exception
             return False
         finally:
             request.get_file().seek(0)
@@ -375,7 +377,11 @@ class TiffFormat(Format):
 
         try:
             _tifffile.TiffWriter(request.get_file(), **request.kwargs)
-        except _tifffile.tifffile.TiffFileError:
+        except ValueError:
+            # vendored backend raises value exception
+            return False
+        except _tifffile.TiffFileError:  # pragma: no-cover
+            # current version raises custom exception
             return False
         finally:
             request.get_file().seek(0)
