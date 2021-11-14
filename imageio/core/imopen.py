@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from .request import Request, InitializationError
+from .request import IOMode, Request, InitializationError, URI_FILENAME, SPECIAL_READ_URIS
 from ..config.plugins import PluginConfig
 from ..config import known_plugins
 from ..config.extensions import known_extensions
@@ -183,6 +183,26 @@ def imopen(
                     continue
 
                 return plugin_instance
+
+    # error out for read-only special targets
+    # this is again hacky; can we come up with a better solution for this?
+    if request.mode.io_mode == IOMode.write:
+        if isinstance(uri, str) and uri.startswith(SPECIAL_READ_URIS):
+            err_type = ValueError if legacy_mode else IOError
+            err_msg = (f"`{uri}` is read-only.")
+            raise err_type(err_msg)
+
+    # error out for directories
+    # this is a bit hacky and should be cleaned once we decide
+    # how to gracefully handle DICOM
+    if request._uri_type == URI_FILENAME and Path(request.raw_uri).is_dir():
+        err_type = ValueError if legacy_mode else IOError
+        err_msg = (
+            "ImageIO does not generally support reading folders. "
+            "Limited support may be available via specific plugins. "
+            "Specify the plugin explicitly using the `plugin` kwarg, e.g. `plugin='DICOM'`"
+        )
+        raise err_type(err_msg)
 
     # fallback option: try all plugins
     for config in known_plugins.values():
