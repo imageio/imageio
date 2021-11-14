@@ -1,7 +1,13 @@
 from pathlib import Path
 from typing import Any
 
-from .request import IOMode, Request, InitializationError, URI_FILENAME, SPECIAL_READ_URIS
+from .request import (
+    IOMode,
+    Request,
+    InitializationError,
+    URI_FILENAME,
+    SPECIAL_READ_URIS,
+)
 from ..config.plugins import PluginConfig
 from ..config import known_plugins
 from ..config.extensions import known_extensions
@@ -189,7 +195,7 @@ def imopen(
     if request.mode.io_mode == IOMode.write:
         if isinstance(uri, str) and uri.startswith(SPECIAL_READ_URIS):
             err_type = ValueError if legacy_mode else IOError
-            err_msg = (f"`{uri}` is read-only.")
+            err_msg = f"`{uri}` is read-only."
             raise err_type(err_msg)
 
     # error out for directories
