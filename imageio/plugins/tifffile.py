@@ -361,12 +361,12 @@ class TiffFormat(Format):
         try:
             _tifffile.TiffFile(request.get_file(), **request.kwargs)
         except ValueError:
-            request.get_file().seek(0)
             return False
         except _tifffile.TiffFileError:
-            request.get_file().seek(0)
             return False
-            
+        finally:
+            request.get_file().seek(0)
+
         return True
 
     def _can_write(self, request):
@@ -376,8 +376,9 @@ class TiffFormat(Format):
         try:
             _tifffile.TiffWriter(request.get_file(), **request.kwargs)
         except _tifffile.tifffile.TiffFileError:
-            request.get_file().seek(0)
             return False
+        finally:
+            request.get_file().seek(0)
         return True
 
     # -- reader

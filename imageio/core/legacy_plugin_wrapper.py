@@ -245,4 +245,8 @@ class LegacyPlugin:
         self._request.finish()
 
     def __del__(self) -> None:
-        self._request.finish()
+        pass
+        # turns out we can't close the file here for LegacyPlugin
+        # because it would break backwards compatibility
+        # with legacy_get_writer and legacy_get_reader
+        # self._request.finish()
