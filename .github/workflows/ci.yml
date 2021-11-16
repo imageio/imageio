@@ -116,7 +116,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pypy3 -m pip install .[test,ffmpeg]
+            pypy3 -m pip install .[test,ffmpeg,tifffile]
       - name: Run Unit tests
         run: |
             invoke test --unit

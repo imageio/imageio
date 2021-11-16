@@ -10,11 +10,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 from imageio.core import get_remote_file
 import imageio
 import imageio as iio
-
-try:
-    import tifffile
-except ImportError:
-    import imageio.plugins._tifffile as tifffile
+import tifffile
 
 
 test_dir = get_test_dir()
