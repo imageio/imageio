@@ -132,7 +132,7 @@ def test_tifffile_reading_writing():
 
 
 def test_imagej_hyperstack(tmp_path):
-    # artifical hyperstack
+    # create artifical hyperstack
     tifffile.imwrite(
         tmp_path / "hyperstack.tiff",
         np.zeros((15, 2, 180, 183), dtype=np.uint8),
