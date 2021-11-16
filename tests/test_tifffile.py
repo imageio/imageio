@@ -3,14 +3,15 @@
 
 import os
 import datetime
-
 import numpy as np
 
 from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 from imageio.core import get_remote_file
-
 import imageio
+import imageio as iio
+import tifffile
+
 
 test_dir = get_test_dir()
 
@@ -130,11 +131,17 @@ def test_tifffile_reading_writing():
         assert md["description"] == "another desc"
 
 
-# # commented out until we get permission to use this image
-# # in our test suite
-# def test_imagej_hyperstack():
-#     img = imageio.volread("NPCsingleNucleus.tif")
-#     assert img.shape == (15, 2, 180, 183)
+def test_imagej_hyperstack(tmp_path):
+    # artifical hyperstack
+    tifffile.imwrite(
+        tmp_path / "hyperstack.tiff",
+        np.zeros((15, 2, 180, 183), dtype=np.uint8),
+        imagej=True,
+    )
+
+    # test ImageIO plugin
+    img = iio.volread(tmp_path / "hyperstack.tiff", format="TIFF")
+    assert img.shape == (15, 2, 180, 183)
 
 
 run_tests_if_main()
