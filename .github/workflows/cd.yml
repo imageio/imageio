@@ -95,7 +95,7 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[test,ffmpeg]
+            pip install .[test,ffmpeg,tifffile]
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
@@ -127,7 +127,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pypy3 -m pip install .[test,ffmpeg]
+            pypy3 -m pip install .[test,ffmpeg,tifffile]
       - name: Run Unit tests
         run: |
             invoke test --unit

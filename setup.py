@@ -179,6 +179,7 @@ extras_require = {
     "test": ["invoke", "pytest", "pytest-cov"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
+    "tifffile": ["tifffile"],
     "fits": ["astropy"],
     "gdal": ["gdal"],
     "itk": ["itk"],
