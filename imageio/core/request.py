@@ -12,6 +12,7 @@ import zipfile
 import tempfile
 import shutil
 import enum
+import warnings
 
 from ..core import urlopen, get_remote_file
 
@@ -244,8 +245,11 @@ class Request(object):
 
         # Set extension
         if self._filename is not None:
-            parts = urlparse(self._filename)
-            ext = Path(parts.path).suffix.lower()
+            if self._uri_type in (URI_FILENAME, URI_ZIPPED):
+                path = self._filename
+            else:
+                path = urlparse(self._filename).path
+            ext = Path(path).suffix.lower()
             self._extension = ext if ext != "" else None
 
     def _parse_uri(self, uri):
@@ -494,11 +498,11 @@ class Request(object):
                     shutil.copyfileobj(self.get_file(), file)
             return self._filename_local
 
-    def finish(self):
-        """finish()
-        For internal use (called when the context of the reader/writer
-        exits). Finishes this request. Close open files and process
-        results.
+    def finish(self) -> None:
+        """Wrap up this request.
+
+        Finishes any pending reads or writes, closes any open files and frees
+        any resources allocated by this request.
         """
 
         if self.mode.io_mode == IOMode.write:
@@ -506,8 +510,7 @@ class Request(object):
             # See if we "own" the data and must put it somewhere
             bytes = None
             if self._filename_local:
-                with open(self._filename_local, "rb") as file:
-                    bytes = file.read()
+                bytes = Path(self._filename_local).read_bytes()
             elif self._file_is_local:
                 bytes = self._file.getvalue()
 
@@ -537,7 +540,10 @@ class Request(object):
             try:
                 os.remove(self._filename_local)
             except Exception:  # pragma: no cover
-                pass
+                warnings.warn(
+                    "Failed to delete the temporary file at "
+                    f"`{self._filename_local}`. Please report this issue."
+                )
             self._filename_local = None
 
         # Detach so gc can clean even if a reference of self lingers

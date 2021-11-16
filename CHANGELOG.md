@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.4 (2021-11-13)
+### Fix
+* Consistently handle file opening/closing ([#673](https://github.com/imageio/imageio/issues/673)) ([`b852f45`](https://github.com/imageio/imageio/commit/b852f451a0d5b2e949f5e698b0ef50a4ec4dbb86))
+
+### Documentation
+* Reorder getting started menu ([#683](https://github.com/imageio/imageio/issues/683)) ([`94f479e`](https://github.com/imageio/imageio/commit/94f479ebd4161425d0ce4d4d3aeac1a1802ae3ab))
+
+## v2.10.3 (2021-11-06)
+### Fix
+* Fix file extension bug when filename contains '#'. ([#678](https://github.com/imageio/imageio/issues/678)) ([`f3fa631`](https://github.com/imageio/imageio/commit/f3fa6318ebd6005ebf2361438795cfbf87e62f7c))
+
+## v2.10.2 (2021-11-05)
+### Fix
+* Allow devices above <video9> in ffmpeg ([#675](https://github.com/imageio/imageio/issues/675)) ([`1fc4208`](https://github.com/imageio/imageio/commit/1fc420848511cf78765d7862961b89166ba65430))
+
+### Documentation
+*  Align README.md with new docs ([#672](https://github.com/imageio/imageio/issues/672)) ([`51a8cd5`](https://github.com/imageio/imageio/commit/51a8cd57cd2ea2722523206e61b617556c725f25))
+
 ## v2.10.1 (2021-10-27)
 ### Fix
 * Install ImageIO dependencies during release wheel build ([#671](https://github.com/imageio/imageio/issues/671)) ([`f1ee22a`](https://github.com/imageio/imageio/commit/f1ee22ac1375e67cc8da6822326e10f6badf332c))

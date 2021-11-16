@@ -6,9 +6,9 @@ Getting started
   :maxdepth: 1
 
   Installation <installation>
-  Overview <overview>
   Examples <../examples>
   Requesting Images <requests>
+  Overview <overview>
   Standard images <standardimages>
   Command Line Scripts <cmdlinescripts>
   Environment Variables <envvariables>

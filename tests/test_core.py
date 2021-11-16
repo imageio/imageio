@@ -783,6 +783,21 @@ def test_imwrite_not_array_like():
         imageio.imwrite("foo.bmp", "asd")
 
 
+def test_imwrite_symbol_name():
+    # this is a regression test for https://github.com/imageio/imageio/issues/674
+    if sys.platform == "linux":
+        name = """#!~:@$%^&`-+{};',.()? []_=.jpg"""
+    elif sys.platform == "win32":
+        name = """#!~@$%^&`-+{};',.() []_=.jpg"""
+    elif sys.platform == "darwin":
+        name = """#!~@$%^&`-+{};',.()? []_=.jpg"""
+    else:
+        pytest.skip("Unknown OS.")
+    tmp_request = imageio.core.Request(name, "w")
+    assert tmp_request.extension == ".jpg"
+    tmp_request.finish()
+
+
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
         with iio.imopen("foo.bmp", "wI", format="GIF-PIL") as file:
