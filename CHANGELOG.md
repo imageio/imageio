@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.10.5 (2021-11-17)
+### Fix
+* Resolve regression on imageJ TIFF hyperstacks ([#682](https://github.com/imageio/imageio/issues/682)) ([`7dc9b25`](https://github.com/imageio/imageio/commit/7dc9b25ce50069f17afa464bafe6627b08ffdd6b))
+
 ## v2.10.4 (2021-11-13)
 ### Fix
 * Consistently handle file opening/closing ([#673](https://github.com/imageio/imageio/issues/673)) ([`b852f45`](https://github.com/imageio/imageio/commit/b852f451a0d5b2e949f5e698b0ef50a4ec4dbb86))
