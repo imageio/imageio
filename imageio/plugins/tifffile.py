@@ -406,36 +406,24 @@ class TiffFormat(Format):
 
         def _get_length(self):
             if self.request.mode[1] in "vV":
-                return 1  # or can there be pages in pages or something?
+                return len(self._tf.series)
             else:
+                # for backwards compatibility
+                # imread/mimread reads all pages individually
                 return len(self._tf.pages)
 
         def _get_data(self, index):
             if self.request.mode[1] in "vV":
-                # Read data as single 3D (+ color channels) array
-                if index != 0:
-                    raise IndexError('Tiff support no more than 1 "volume" per file')
-                # There is self._tf.asarray(), but it picks the first series by
-                # default, so this seems more reliable. See #558.
-                number_of_slices = len(self._tf.pages)
-                ims = []
-                for i in range(number_of_slices):
-                    im = self._tf.pages[i].asarray()
-                    if ims and ims[0].shape != im.shape:
-                        break
-                    ims.append(im)
-                if ims:
-                    im = np.stack(ims, 0)
-                else:
-                    im = self._tf.asarray()
-                meta = self._get_meta_data(0)
+                # this might regress #559 / #558
+                # but it is hard to test without a test image
+                im = self._tf.asarray(series=index)
             else:
                 # Read as 2D image
                 if index < 0 or index >= self._get_length():
                     raise IndexError("Index out of range while reading from tiff file")
                 im = self._tf.pages[index].asarray()
-                meta = self._get_meta_data(index)
             # Return array and empty meta data
+            meta = self._get_meta_data(index)
             return im, meta
 
         def _get_meta_data(self, index):

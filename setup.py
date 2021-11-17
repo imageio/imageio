@@ -183,6 +183,7 @@ extras_require = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
+    "tifffile": ["tifffile"],
     "fits": ["astropy"],
     "freeimage": [],
     "gdal": ["gdal"],
