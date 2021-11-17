@@ -22,12 +22,12 @@ for i, si in enumerate([""] + list("kMGTPEZY")):
         sizes[si.upper() + "i"] = 1024 ** i
 
 
-def to_nbytes(arg, default=None):
+def to_nbytes(arg, default=None) -> Number:
     if not arg:
-        return None
+        arg = float("inf")
 
     if arg is True:
-        return default
+        arg = default
 
     if isinstance(arg, Number):
         return arg
@@ -43,7 +43,8 @@ def to_nbytes(arg, default=None):
 
     try:
         return float(num) * sizes[unit]
-    except KeyError:
+    except KeyError:  # pragma: no cover
+        # Note: I don't think we can reach this
         raise ValueError(
             "Memory size unit not recognised "
             "(is your capitalisation correct?): {}".format(unit)
@@ -94,7 +95,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen()(uri, "r" + mode, format=format)
+    image_file = imopen(uri, "r" + mode, plugin=format)
     return image_file.legacy_get_reader(**kwargs)
 
 
@@ -121,7 +122,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen()(uri, "w" + mode, format=format)
+    image_file = imopen(uri, "w" + mode, plugin=format)
     return image_file.legacy_get_writer(**kwargs)
 
 
@@ -155,7 +156,7 @@ def imread(uri, format=None, **kwargs):
             'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
         )
 
-    with imopen()(uri, "ri", format=format) as file:
+    with imopen(uri, "ri", plugin=format) as file:
         return file.read(index=0, **kwargs)
 
 
@@ -181,7 +182,7 @@ def imwrite(uri, im, format=None, **kwargs):
 
     # Test image
     imt = type(im)
-    im = np.asanyarray(im)
+    im = np.asarray(im)
     if not np.issubdtype(im.dtype, np.number):
         raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
     elif im.ndim == 2:
@@ -191,7 +192,7 @@ def imwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
-    with imopen()(uri, "wi", format=format) as file:
+    with imopen(uri, "wi", plugin=format) as file:
         return file.write(im, **kwargs)
 
 
@@ -243,7 +244,7 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
     images = list()
     nbytes = 0
 
-    with imopen()(uri, "rI", format=format) as file:
+    with imopen(uri, "rI", plugin=format) as file:
         for image in file.iter(**kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -279,7 +280,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen()(uri, "wI", format=format) as file:
+    with imopen(uri, "wI", plugin=format) as file:
         return file.write(ims, **kwargs)
 
 
@@ -305,7 +306,7 @@ def volread(uri, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen()(uri, "rv", format=format) as file:
+    with imopen(uri, "rv", plugin=format) as file:
         return file.read(index=0, **kwargs)
 
 
@@ -333,7 +334,7 @@ def volwrite(uri, im, format=None, **kwargs):
     imt = type(im)
     im = np.asanyarray(im)
     if not np.issubdtype(im.dtype, np.number):
-        raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
+        raise ValueError(f"Image is not numeric, but {imt.__name__}.")
     elif im.ndim == 3:
         pass
     elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
@@ -341,7 +342,7 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-    with imopen()(uri, "wv", format=format) as file:
+    with imopen(uri, "wv", plugin=format) as file:
         return file.write(im, **kwargs)
 
 
@@ -392,7 +393,7 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
 
     images = list()
     nbytes = 0
-    with imopen()(uri, "rV", format=format) as file:
+    with imopen(uri, "rV", plugin=format) as file:
         for image in file.iter(**kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -429,5 +430,5 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen()(uri, "wV", format=format) as file:
+    with imopen(uri, "wV", plugin=format) as file:
         return file.write(ims, **kwargs)

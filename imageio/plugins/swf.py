@@ -49,7 +49,6 @@ from io import BytesIO
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, read_n_bytes, image_as_uint
 
 
@@ -337,12 +336,3 @@ HTML = """
     <embed width="%i" height="%i" src="%s">
 </html>
 """
-
-# Register. You register an *instance* of a Format class. Here specify:
-format = SWFFormat(
-    "swf",  # shot name
-    "Shockwave flash",  # one line descr.
-    ".swf",  # list of extensions as a space separated string
-    "I",  # modes, characters in iIvV
-)
-formats.add_format(format)

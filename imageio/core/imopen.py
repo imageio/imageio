@@ -1,29 +1,121 @@
-import numpy as np
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any
 
-from .format import FormatManager, MODENAMES
-from .request import IOMode, Request, InitializationError
+from .request import (
+    IOMode,
+    Request,
+    InitializationError,
+    URI_FILENAME,
+    SPECIAL_READ_URIS,
+)
+from ..config.plugins import PluginConfig
+from ..config import known_plugins
+from ..config.extensions import known_extensions
 
 
-class imopen:
-    """Open a URI and return a plugin instance that can read/write the URIs content.
+def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
+    """Look up the config for the given plugin name
+
+    Factored out for legacy compatibility with FormatManager. Move
+    back into imopen in V3.
+    """
+
+    # for v2 compatibility, delete in v3
+    extension_name = None
+
+    if legacy_mode and Path(plugin).suffix.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        extension_name = Path(plugin).suffix.lower()
+    elif plugin in known_plugins:
+        pass
+    elif not legacy_mode:
+        raise ValueError(f"`{plugin}` is not a registered plugin name.")
+    elif plugin.upper() in known_plugins:
+        # for v2 compatibility, delete in v3
+        plugin = plugin.upper()
+    elif plugin.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        extension_name = plugin.lower()
+    elif "." + plugin.lower() in known_extensions:
+        # for v2 compatibility, delete in v3
+        extension_name = "." + plugin.lower()
+    else:
+        # for v2 compatibility, delete in v3
+        raise IndexError(f"No format known by name `{plugin}`.")
+
+    # for v2 compatibility, delete in v3
+    if extension_name is not None:
+        for plugin_name in [
+            x
+            for file_extension in known_extensions[extension_name]
+            for x in file_extension.priority
+        ]:
+            if known_plugins[plugin_name].is_legacy:
+                plugin = plugin_name
+                break
+        else:  # pragma: no cover
+            # currently there is no format that is only supported
+            # by v3 plugins
+            raise IndexError(f"No format known by name `{plugin}`.")
+
+    return known_plugins[plugin]
+
+
+def imopen(
+    uri,
+    io_mode: str,
+    *,
+    plugin: str = None,
+    legacy_mode: bool = True,
+    **kwargs,
+) -> Any:
+    """Open an ImageResource.
 
     .. warning::
         This warning is for pypy users. If you are not using a context manager,
         remember to deconstruct the returned plugin to avoid leaking the file
         handle to an unclosed file.
 
-    ``imopen`` takes a URI and searches for a plugin capable of opening it. Once
-    a suitable plugin is found, a plugin instance is created that implements the
-    imageio API to interact with the image data. The search can be skipped using
-    the optional ``plugin="plugin_name"`` argument.
+    Parameters
+    ----------
+    uri : str or pathlib.Path or bytes or file or Request
+        The :doc:`ImageResources <getting_started.request>` to load the image
+        from.
+    io_mode : {str}
+        The mode in which the file is opened. Possible values are::
+
+            ``r`` - open the file for reading
+            ``w`` - open the file for writing
+
+        Depreciated since v2.9:
+        A second character can be added to give the reader a hint on what
+        the user expects. This will be ignored by new plugins and will
+        only have an effect on legacy plugins. Possible values are::
+
+            ``i`` for a single image,
+            ``I`` for multiple images,
+            ``v`` for a single volume,
+            ``V`` for multiple volumes,
+            ``?`` for don't care (default)
+
+    plugin : {str, None}
+        The plugin to use. If set to None (default) imopen will perform a
+        search for a matching plugin.
+    legacy_mode : bool
+        If true (default) use the v2 behavior when searching for a suitable
+        plugin. This will ignore v3 plugins and will check ``plugin``
+        against known extensions if no plugin with the given name can be found.
+    **kwargs : {any}
+        Additional keyword arguments will be passed to the plugin upon
+        construction.
 
     Notes
     -----
+    Registered plugins are controlled via the ``known_plugins`` dict in
+    ``imageio.config``.
 
-    For library maintainers: If you call imopen from inside the library, you
-    will first need to first create an instance, i.e. ``imopen()(uri, ...)``
-    (Notice the double parentheses).
+    Passing a ``Request`` as the uri is only supported if ``legacy_mode``
+    is ``True``. In this case ``io_mode`` is ignored.
 
     Examples
     --------
@@ -37,368 +129,137 @@ class imopen:
 
     """
 
-    _known_plugins = dict()
-    _legacy_format_manager = FormatManager()
-
-    def __call__(
-        self,
-        uri,
-        io_mode: str,
-        *,
-        plugin: str = None,
-        search_legacy_only: bool = True,
-        **kwargs,
-    ) -> Any:
-        """Instantiate a plugin capable of interacting with the given URI
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image
-            from, e.g. a filename, pathlib.Path, http address or file object,
-            see the docs for more info.
-        io_mode : {str}
-            The mode to open the file with. Possible values are::
-
-                ``r`` - open the file for reading
-                ``w`` - open the file for writing
-
-            Depreciated since v2.9:
-            A second character can be added to give the reader a hint on what
-            the user expects. This will be ignored by new plugins and will
-            only have an effect on legacy plugins. Possible values are::
-
-                ``i`` for an image,
-                ``I`` for multiple images,
-                ``v`` for a volume,
-                ``V`` for multiple volumes,
-                ``?`` for don't care (default)
-
-        plugin : {str, None}
-            The plugin to be used. If None (default), performs a search for a
-            matching plugin.
-        search_legacy_only : {bool}
-            If true (default), and ``plugin=None`` then only legacy plugins
-            (v2.9 and prior) are searched. New plugins (v3.0+) are skipped.
-        **kwargs : {any}
-            Additional keyword arguments will be passed to the plugin instance.
-        """
-
+    if isinstance(uri, Request) and legacy_mode:
+        request = uri
+        uri = request.raw_uri
+        io_mode = request.mode.io_mode
+    else:
         request = Request(uri, io_mode)
-        plugin_instance = None
 
-        if plugin is not None:
-            try:
-                candidate_plugin = self._known_plugins[plugin]
-            except KeyError:
-                request.finish()
-                raise ValueError(f"'{plugin}' is not a registered plugin name.")
+    # plugin specified, no search needed
+    # (except in legacy mode)
+    if plugin is not None:
+        try:
+            config = _get_config(plugin, legacy_mode)
+        except (IndexError, ValueError):
+            request.finish()
+            raise
 
-            try:
-                plugin_instance = candidate_plugin(request, **kwargs)
-            except InitializationError:
-                request.finish()
-                raise IOError(f"'{plugin}' can not handle the given uri.")
+        try:
+            return config.plugin_class(request, **kwargs)
+        except InitializationError as class_specific:
+            err_from = class_specific
+            err_type = RuntimeError if legacy_mode else IOError
+            err_msg = f"`{plugin}` can not handle the given uri."
+        except ImportError:
+            err_from = None
+            err_type = ImportError
+            err_msg = (
+                f"The `{config.name}` plugin is not installed. "
+                f"Use `pip install imageio[{config.install_name}]` to install it."
+            )
+        except Exception as generic_error:
+            err_from = generic_error
+            err_type = IOError
+            err_msg = f"An unknown error occured while initializing `{plugin}`."
 
-        else:
-            for candidate_plugin in self._known_plugins.values():
-                if search_legacy_only:
+        request.finish()
+        raise err_type(err_msg) from err_from
+
+    # fast-path based on file extension
+    if request.extension in known_extensions:
+        for candidate_format in known_extensions[request.extension]:
+            for plugin_name in candidate_format.priority:
+                config = known_plugins[plugin_name]
+
+                # v2 compatibility; delete in v3
+                if legacy_mode and not config.is_legacy:
                     continue
+
+                try:
+                    candidate_plugin = config.plugin_class
+                except ImportError:
+                    # not installed
+                    continue
+
                 try:
                     plugin_instance = candidate_plugin(request, **kwargs)
                 except InitializationError:
+                    # file extension doesn't match file type
                     continue
-                else:
-                    break
-            else:
-                kwargs["plugin_manager"] = self._legacy_format_manager
-                kwargs["io_mode"] = io_mode
-                kwargs["uri"] = uri
 
-                try:
-                    plugin_instance = LegacyPlugin(request, **kwargs)
-                except (ValueError, IndexError, KeyError) as e:
-                    plugin_instance = None
-                    if search_legacy_only:
-                        # ensure backwards compatibility and do not change
-                        # type of error raised to IOError
-                        request.finish()
-                        raise e
+                return plugin_instance
 
-        if plugin_instance is None:
-            request.finish()
-            raise IOError(
-                f"Could not find a matching plugin to open {uri} with iomode '{io_mode}'"
+    # error out for read-only special targets
+    # this is again hacky; can we come up with a better solution for this?
+    if request.mode.io_mode == IOMode.write:
+        if isinstance(uri, str) and uri.startswith(SPECIAL_READ_URIS):
+            err_type = ValueError if legacy_mode else IOError
+            err_msg = f"`{uri}` is read-only."
+            raise err_type(err_msg)
+
+    # error out for directories
+    # this is a bit hacky and should be cleaned once we decide
+    # how to gracefully handle DICOM
+    if request._uri_type == URI_FILENAME and Path(request.raw_uri).is_dir():
+        err_type = ValueError if legacy_mode else IOError
+        err_msg = (
+            "ImageIO does not generally support reading folders. "
+            "Limited support may be available via specific plugins. "
+            "Specify the plugin explicitly using the `plugin` kwarg, e.g. `plugin='DICOM'`"
+        )
+        raise err_type(err_msg)
+
+    # fallback option: try all plugins
+    for config in known_plugins.values():
+        # Note: for v2 compatibility
+        # this branch can be removed in ImageIO v3.0
+        if legacy_mode and not config.is_legacy:
+            continue
+
+        try:
+            plugin_instance = config.plugin_class(request, **kwargs)
+        except InitializationError:
+            continue
+        except ImportError:
+            continue
+        else:
+            return plugin_instance
+
+    err_type = ValueError if legacy_mode else IOError
+    err_msg = f"Could not find a backend to open `{uri}`` with iomode `{io_mode}`."
+
+    # check if a missing plugin could help
+    if request.extension in known_extensions:
+        missing_plugins = list()
+
+        formats = known_extensions[request.extension]
+        plugin_names = [
+            plugin for file_format in formats for plugin in file_format.priority
+        ]
+        for name in plugin_names:
+            config = known_plugins[name]
+
+            try:
+                config.plugin_class
+                continue
+            except ImportError:
+                missing_plugins.append(config)
+
+        if len(missing_plugins) > 0:
+            install_candidates = "\n".join(
+                [
+                    (
+                        f"  {config.name}:  "
+                        f"pip install imageio[{config.install_name}]"
+                    )
+                    for config in missing_plugins
+                ]
+            )
+            err_msg += (
+                "\nBased on the extension, the following plugins might add capable backends:\n"
+                f"{install_candidates}"
             )
 
-        return plugin_instance
-
-    @classmethod
-    def register_plugin(cls, plugin_name, plugin_class) -> None:
-        """Register a new plugin to be used when opening URIs.
-
-        Parameters
-        ----------
-        plugin_name : str
-            The name of the plugin to be registered. If the name already exists
-            the given plugin will overwrite the old one.
-        plugin_class : callable
-            A callable that returns an instance of a plugin that conforms
-            to the imageio API.
-        """
-
-        cls._known_plugins[plugin_name] = plugin_class
-
-
-class LegacyPlugin:
-    """A plugin to  make old (v2.9) plugins compatible with v3.0
-
-    .. depreciated:: 2.9
-        `legacy_get_reader` will be removed in a future version of imageio.
-        `legacy_get_writer` will be removed in a future version of imageio.
-
-    This plugin is a wrapper around the old FormatManager class and exposes
-    all the old plugins via the new API. On top of this it has
-    ``legacy_get_reader`` and ``legacy_get_writer`` methods to allow using
-    it with the v2.9 API.
-
-    Methods
-    -------
-    read(index=None, **kwargs)
-        Read the image at position ``index``.
-    write(image, **kwargs)
-        Write image to the URI.
-    iter(**kwargs)
-        Iteratively yield images from the given URI.
-    get_meta(index=None)
-        Return the metadata for the image at position ``index``.
-    legacy_get_reader(**kwargs)
-        Returns the v2.9 image reader. (depreciated)
-    legacy_get_writer(**kwargs)
-        Returns the v2.9 image writer. (depreciated)
-
-    Examples
-    --------
-
-    >>> import imageio.v3 as iio
-    >>> with iio.imopen("/path/to/image.tiff", "r", search_legacy_only=True) as file:
-    >>>     reader = file.legacy_get_reader()  # depreciated
-    >>>     for im in file.iter():
-    >>>         print(im.shape)
-
-    """
-
-    def __init__(
-        self, request: Request, plugin_manager, uri, io_mode, format=None
-    ) -> None:
-        """Instantiate a new Legacy Plugin
-
-        Parameters
-        ----------
-        uri : {str, pathlib.Path, bytes, file}
-            The resource to load the image from, e.g. a filename, pathlib.Path,
-            http address or file object, see the docs for more info.
-        io_mode : {str}
-            Exists to ensure compatibility with imopen. For legacy plugins
-            this has no effect.
-        plugin_manager : {format.FormatManager instance}
-            An instance of the legacy format manager used to find an appropriate
-            plugin to load the image. It has to be the reference to the one
-            global instance.
-        format : {object, None}
-            The (legacy) format to use to interface with the URI. If None
-            imageio selects the appropriate plugin for you based on the URI.
-
-        """
-        self._request = request
-        self._plugin_manager = plugin_manager
-
-        plugin = plugin_manager[format]
-        if plugin is None and self._request.mode.io_mode == IOMode.read:
-            plugin = self._plugin_manager.search_read_format(request)
-        elif plugin is None and self._request.mode.io_mode == IOMode.write:
-            plugin = self._plugin_manager.search_write_format(request)
-
-        if plugin is None:
-            modename = MODENAMES(self._request.mode[1])
-            raise ValueError(
-                "Could not find a format to read the specified file"
-                " in %s mode" % modename
-            )
-
-        self._plugin = plugin
-
-        # for backwards compatibility with get_reader/get_writer
-        self._uri = uri
-        self._io_mode = io_mode
-
-    def legacy_get_reader(self, **kwargs):
-        """legacy_get_reader(**kwargs)
-
-        a utility method to provide support vor the V2.9 API
-
-        Parameters
-        ----------
-        kwargs : ...
-            Further keyword arguments are passed to the reader. See :func:`.help`
-            to see what arguments are available for a particular format.
-        """
-
-        # create a throw-away request
-        req = Request(self._uri, self._io_mode, **kwargs)
-
-        return self._plugin.get_reader(req)
-
-    def read(self, *, index=None, **kwargs) -> np.ndarray:
-        """
-        Parses the given URI and creates a ndarray from it.
-
-        Parameters
-        ----------
-        index : {integer, None}
-            If the URI contains a list of ndimages return the index-th
-            image. If None, stack all images into an ndimage along the
-            0-th dimension (equivalent to np.stack(imgs, axis=0)).
-        kwargs : ...
-            Further keyword arguments are passed to the reader. See
-            :func:`.help` to see what arguments are available for a particular
-            format.
-
-        Returns
-        -------
-        ndimage : np.ndarray
-            A numpy array containing the decoded image data.
-
-        """
-
-        if index is None:
-            return [im for im in self.iter(**kwargs)]
-
-        reader = self.legacy_get_reader(**kwargs)
-        return reader.get_data(index)
-
-    def legacy_get_writer(self, **kwargs):
-        """legacy_get_writer(**kwargs)
-
-        Returns a :class:`.Writer` object which can be used to write data
-        and meta data to the specified file.
-
-        Parameters
-        ----------
-        kwargs : ...
-            Further keyword arguments are passed to the writer. See :func:`.help`
-            to see what arguments are available for a particular format.
-        """
-
-        # create a throw-away request
-        req = Request(self._uri, self._io_mode, **kwargs)
-
-        return self._plugin.get_writer(req)
-
-    def write(self, image, **kwargs) -> Optional[bytes]:
-        """
-        Write an ndimage to the URI specified in path.
-
-        If the URI points to a file on the current host and the file does not
-        yet exist it will be created. If the file exists already, it will be
-        appended if possible; otherwise, it will be replaced.
-
-        Parameters
-        ----------
-        image : numpy.ndarray
-            The ndimage or list of ndimages to write.
-        kwargs : ...
-            Further keyword arguments are passed to the writer. See
-            :func:`.help` to see what arguments are available for a
-            particular format.
-        """
-        with self.legacy_get_writer(**kwargs) as writer:
-            if self._request.mode.image_mode in "iv?":
-                writer.append_data(image)
-            else:
-                if len(image) == 0:
-                    raise RuntimeError("Zero images were written.")
-                for written, image in enumerate(image):
-                    # Test image
-                    imt = type(image)
-                    image = np.asanyarray(image)
-                    if not np.issubdtype(image.dtype, np.number):
-                        raise ValueError(
-                            "Image is not numeric, but {}.".format(imt.__name__)
-                        )
-                    elif self._request.mode.image_mode == "I":
-                        if image.ndim == 2:
-                            pass
-                        elif image.ndim == 3 and image.shape[2] in [1, 3, 4]:
-                            pass
-                        else:
-                            raise ValueError(
-                                "Image must be 2D (grayscale, RGB, or RGBA)."
-                            )
-                    else:  # self._request.mode.image_mode == "V"
-                        if image.ndim == 3:
-                            pass
-                        elif image.ndim == 4 and image.shape[3] < 32:
-                            pass  # How large can a tuple be?
-                        else:
-                            raise ValueError(
-                                "Image must be 3D, or 4D if each voxel is a tuple."
-                            )
-
-                    # Add image
-                    writer.append_data(image)
-
-        return writer.request.get_result()
-
-    def iter(self, **kwargs) -> np.ndarray:
-        """Iterate over a list of ndimages given by the URI
-
-        Parameters
-        ----------
-        kwargs : ...
-            Further keyword arguments are passed to the reader. See
-            :func:`.help` to see what arguments are available for a particular
-            format.
-
-        Returns
-        -------
-        ndimage : np.ndarray
-            A numpy array containing the decoded image data.
-
-        """
-
-        reader = self.legacy_get_reader(**kwargs)
-        for image in reader:
-            yield image
-
-    def get_meta(self, *, index=None) -> dict:
-        """Read ndimage metadata from the URI
-
-        Parameters
-        ----------
-        index : {integer, None}
-            If the URI contains a list of ndimages return the metadata
-            corresponding to the index-th image. If None, behavior depends on
-            the used api
-
-            Legacy-style API: return metadata of the first element (index=0)
-            New-style API: Behavior depends on the used Plugin.
-
-
-        Returns
-        -------
-        metadata : dict
-            A dictionary of metadata.
-
-        """
-
-        return self.legacy_get_reader().get_meta_data(index=index)
-
-    def __enter__(self) -> "LegacyPlugin":
-        return self
-
-    def __exit__(self, type, value, traceback) -> None:
-        self._request.finish()
-
-    def __del__(self) -> None:
-        self._request.finish()
+    request.finish()
+    raise err_type(err_msg)

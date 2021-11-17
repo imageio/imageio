@@ -213,7 +213,8 @@ def test_jpg_more():
     open(fname, "wb").write(b"this is not an image")
     raises(Exception, imageio.imread, fname)
     #
-    bb = imageio.imsave(imageio.RETURN_BYTES, get_ref_im(3, 0, 0), "JPEG")
+    img = get_ref_im(3, 0, 0)
+    bb = imageio.imsave(imageio.RETURN_BYTES, img, "JPEG-PIL")
     with open(fname, "wb") as f:
         f.write(bb[:400])
         f.write(b" ")

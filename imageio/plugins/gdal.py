@@ -15,7 +15,6 @@ Parameters
 none
 """
 
-from .. import formats
 from ..core import Format, has_module
 
 _gdal = None  # lazily loaded in load_lib()
@@ -70,11 +69,3 @@ class GdalFormat(Format):
 
         def _get_meta_data(self, index):
             return self._ds.GetMetadata()
-
-
-# Add this format
-formats.add_format(
-    GdalFormat(
-        "gdal", "Geospatial Data Abstraction Library", " ".join(GDAL_FORMATS), "iIvV"
-    )
-)

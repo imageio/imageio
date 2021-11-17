@@ -39,7 +39,6 @@ import logging
 
 import numpy as np
 
-from .. import formats
 from ..core import Format
 from .. import imread
 
@@ -717,35 +716,3 @@ class LytroLfpFormat(LytroFormat):
                 raise IndexError("Lytro meta data file contains only one dataset")
 
             return self.metadata
-
-
-# Create the formats
-SPECIAL_CLASSES = {
-    "lytro-lfr": LytroLfrFormat,
-    "lytro-illum-raw": LytroIllumRawFormat,
-    "lytro-lfp": LytroLfpFormat,
-    "lytro-f01-raw": LytroF01RawFormat,
-}
-
-# Supported Formats.
-# Only single image files supported.
-file_formats = [
-    ("LYTRO-LFR", "Lytro Illum lfr image file", "lfr", "i"),
-    ("LYTRO-ILLUM-RAW", "Lytro Illum raw image file", "raw", "i"),
-    ("LYTRO-LFP", "Lytro F01 lfp image file", "lfp", "i"),
-    ("LYTRO-F01-RAW", "Lytro F01 raw image file", "raw", "i"),
-]
-
-
-def _create_predefined_lytro_formats():
-    for name, des, ext, i in file_formats:
-        # Get format class for format
-        format_class = SPECIAL_CLASSES.get(name.lower(), LytroFormat)
-        if format_class:
-            # Create Format and add
-            format = format_class(name, des, ext, i)
-            formats.add_format(format=format)
-
-
-# Register all created formats.
-_create_predefined_lytro_formats()

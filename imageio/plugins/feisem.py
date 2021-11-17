@@ -26,8 +26,6 @@ See Also
 
 from .tifffile import TiffFormat
 
-from .. import formats
-
 
 class FEISEMFormat(TiffFormat):
     """See :mod:`imageio.plugins.feisem`"""
@@ -95,10 +93,3 @@ class FEISEMFormat(TiffFormat):
 
             self._fei_meta = md
             return md
-
-
-# Register plugin
-format = FEISEMFormat(
-    "fei", "FEI-SEM TIFF format", extensions=[".tif", ".tiff"], modes="iv"
-)
-formats.add_format(format)

@@ -1,4 +1,5 @@
 from pytest import raises
+import pytest
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import os
@@ -8,6 +9,7 @@ import shutil
 import numpy as np
 
 import imageio
+import imageio as iio
 from imageio.core import Format, FormatManager, Request
 from imageio.core import get_remote_file
 
@@ -255,9 +257,9 @@ def test_format_selection():
 
     # Test searchinhg for read / write format
     F = formats.search_read_format(Request(fname1, "ri"))
-    assert F is formats["PNG"]
+    assert isinstance(F, type(formats["PNG"]))
     F = formats.search_write_format(Request(fname1, "wi"))
-    assert F is formats["PNG"]
+    assert isinstance(F, type(formats["PNG"]))
 
     # Now with custom format
     format = MyFormat("test_selection", "xx", "selectext1", "i")
@@ -266,16 +268,16 @@ def test_format_selection():
     # Select this format for files it said it could handle in extensions
     assert ".selectext1" in fname2
     F = formats.search_read_format(Request(fname2, "ri"))
-    assert F is format
+    assert type(F) is type(format)
     F = formats.search_write_format(Request(fname2, "ri"))
-    assert F is format
+    assert type(F) is type(format)
 
     # But this custom format also can deal with .haha files
     assert ".haha" in fname3
     F = formats.search_read_format(Request(fname3, "ri"))
-    assert F is format
+    assert type(F) is type(format)
     F = formats.search_write_format(Request(fname3, "ri"))
-    assert F is format
+    assert type(F) is type(format)
 
 
 # Format manager
@@ -311,14 +313,14 @@ def test_format_manager():
     F1 = formats["PNG"]
     F2 = formats[".png"]
     F3 = formats[fname2]  # will look in file itself
-    assert F1 is F2
-    assert F1 is F3
+    assert type(F1) is type(F2)
+    assert type(F1) is type(F3)
     # Check getting
     F1 = formats["DICOM"]
     F2 = formats[".dcm"]
     F3 = formats["dcm"]  # If omitting dot, format is smart enough to try with
-    assert F1 is F2
-    assert F1 is F3
+    assert type(F1) is type(F2)
+    assert type(F1) is type(F3)
     # Fail
     raises(ValueError, formats.__getitem__, 678)  # must be str
     raises(IndexError, formats.__getitem__, ".nonexistentformat")
@@ -326,9 +328,9 @@ def test_format_manager():
     # Adding a format
     myformat = Format("test", "test description", "testext1 testext2")
     formats.add_format(myformat)
-    assert myformat in [f for f in formats]
-    assert formats["testext1"] is myformat
-    assert formats["testext2"] is myformat
+    assert type(myformat) in [type(f) for f in formats]
+    assert type(formats["testext1"]) is type(myformat)
+    assert type(formats["testext2"]) is type(myformat)
     # Fail
     raises(ValueError, formats.add_format, 678)  # must be Format
     raises(ValueError, formats.add_format, myformat)  # cannot add twice
@@ -337,8 +339,8 @@ def test_format_manager():
     myformat2 = Format("test", "other description", "foo bar")
     raises(ValueError, formats.add_format, myformat2)  # same name
     formats.add_format(myformat2, True)  # overwrite
-    assert formats["test"] is not myformat
-    assert formats["test"] is myformat2
+    assert formats["test"].name is not myformat.name
+    assert type(formats["test"]) is type(myformat2)
 
     # Test show (we assume it shows correctly)
     formats.show()
@@ -405,6 +407,28 @@ def test_preferring_arbitrary():
     assert "DICOM" not in names[:10]
     assert "FFMPEG" not in names[:10]
     assert "NPZ" not in names[:10]
+
+
+def test_bad_formats(tmp_path):
+    # test looking up a read format from file
+    bogus_file = tmp_path / "bogus.fil"
+    bogus_file.write_text("abcdefg")
+
+    with pytest.raises(IndexError):
+        iio.formats[str(bogus_file)]
+
+    # test empty format
+    with pytest.raises(ValueError):
+        iio.formats[""]
+
+
+def test_write_format_search_fail(tmp_path):
+    req = iio.core.Request(tmp_path / "foo.bogus", "w")
+    assert iio.formats.search_write_format(req) is None
+
+
+def test_format_by_filename():
+    iio.formats["test.jpg"]
 
 
 run_tests_if_main()

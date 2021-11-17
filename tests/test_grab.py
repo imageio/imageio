@@ -6,10 +6,10 @@ from pytest import raises
 from imageio.testing import run_tests_if_main
 
 import imageio
+import imageio.plugins.grab
 
 
 def test_grab_plugin_load():
-
     imageio.plugins.grab.BaseGrabFormat._ImageGrab = FakeImageGrab
     imageio.plugins.grab.BaseGrabFormat._pillow_imported = True
     _plat = sys.platform

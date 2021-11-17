@@ -214,6 +214,7 @@ class Request(object):
     def __init__(self, uri, mode, **kwargs):
 
         # General
+        self.raw_uri = uri
         self._uri_type = None
         self._filename = None
         self._extension = None
@@ -512,6 +513,7 @@ class Request(object):
             if self._filename_local:
                 bytes = Path(self._filename_local).read_bytes()
             elif self._file_is_local:
+                self._file_is_local = False
                 bytes = self._file.getvalue()
 
             # Put the data in the right place
@@ -553,6 +555,7 @@ class Request(object):
         """For internal use. In some situations a write action can have
         a result (bytes data). That is obtained with this function.
         """
+        # Is there a reason to disallow reading multiple times?
         self._result, res = None, self._result
         return res
 

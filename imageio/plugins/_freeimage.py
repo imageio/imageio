@@ -888,15 +888,14 @@ class FIBitmap(FIBaseBitmap):
             else:
                 can_write = lib.FreeImage_FIFSupportsExportType(ftype, fi_type)
             if not can_write:
-                raise TypeError("Cannot save image of this format " "to this file type")
+                raise TypeError("Cannot save image of this format to this file type")
 
             # Save to file
             res = lib.FreeImage_Save(ftype, bitmap, efn(filename), self._flags)
             # Check
-            if not res:  # pragma: no cover, we do so many checks, this is rare
+            if res is None:  # pragma: no cover, we do so many checks, this is rare
                 raise RuntimeError(
-                    'Could not save file "%s": %s'
-                    % (self._filename, self._fi._get_error_message())
+                    f"Could not save file `{self._filename}`: {self._fi._get_error_message()}"
                 )
 
     # def save_to_bytes(self):

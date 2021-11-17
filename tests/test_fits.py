@@ -12,6 +12,9 @@ test_dir = get_test_dir()
 
 try:
     import astropy
+
+    # io is not imported by default
+    import astropy.io.fits
 except ImportError:
     astropy = None
 
@@ -65,16 +68,16 @@ def test_fits_reading():
     compressed = get_remote_file("images/compressed.fits.fz")
 
     # One image
-    im = imageio.imread(simple)
-    ims = imageio.mimread(simple)
+    im = imageio.imread(simple, format="fits")
+    ims = imageio.mimread(simple, format="fits")
     assert (im == ims[0]).all()
     assert len(ims) == 1
 
     # Multiple images
-    ims = imageio.mimread(multi)
+    ims = imageio.mimread(multi, format="fits")
     assert len(ims) == 3
 
-    R = imageio.read(multi)
+    R = imageio.read(multi, format="fits")
     assert R.format.name == "FITS"
     ims = list(R)  # == [im for im in R]
     assert len(ims) == 3
@@ -87,7 +90,7 @@ def test_fits_reading():
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
 
     # Compressed image
-    im = imageio.imread(compressed)
+    im = imageio.imread(compressed, format="fits")
     assert im.shape == (2042, 3054)
 
 
@@ -108,7 +111,7 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
     ihdu = astropy.io.fits.ImageHDU(img)
     hdul = astropy.io.fits.HDUList([phdu, ihdu])
     hdul.writeto(tmp_path / "test.fits")
-    imageio.get_reader(tmp_path / "test.fits")
+    imageio.get_reader(tmp_path / "test.fits", format="fits")
 
 
 run_tests_if_main()

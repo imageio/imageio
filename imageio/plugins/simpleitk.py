@@ -19,7 +19,6 @@ None
 
 """
 
-from .. import formats
 from ..core import Format, has_module
 
 _itk = None  # Defer loading to load_lib() function.
@@ -155,9 +154,3 @@ class ItkFormat(Format):
         def set_meta_data(self, meta):
             error_msg = "The itk plugin does not support meta data, currently."
             raise RuntimeError(error_msg)
-
-
-# Register
-title = "Insight Segmentation and Registration Toolkit (ITK) format"
-format = ItkFormat("itk", title, " ".join(ALL_FORMATS), "iIvV")
-formats.add_format(format)

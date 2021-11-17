@@ -172,11 +172,8 @@ import threading
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
-
-# Get info about pillow formats without having to import PIL
-from .pillow_info import pillow_formats, pillow_docs
+from ..core import RETURN_BYTES
 
 
 logger = logging.getLogger(__name__)
@@ -227,10 +224,13 @@ class PillowFormat(Format):
     _modes = "i"
     _description = ""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, plugin_id: str = None, **kwargs):
+
         super(PillowFormat, self).__init__(*args, **kwargs)
         # Used to synchronize _init_pillow(), see #244
         self._lock = threading.RLock()
+
+        self._plugin_id = plugin_id
 
     @property
     def plugin_id(self):
@@ -272,7 +272,7 @@ class PillowFormat(Format):
     def _can_write(self, request):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
+            if request.extension in self.extensions or request.raw_uri == RETURN_BYTES:
                 if self.plugin_id in Image.SAVE:
                     return True
 
@@ -817,34 +817,5 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
         return Image.fromarray(arr, mode)
 
 
-# End of code from scikit-image
-
-
-from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402
-
-IGNORE_FORMATS = "MPEG"
-
-SPECIAL_FORMATS = dict(
-    PNG=PNGFormat,
-    JPEG=JPEGFormat,
-    GIF=GIFFormat,
-    TIFF=TIFFFormat,
-    JPEG2000=JPEG2000Format,
-)
-
-
-def register_pillow_formats():
-
-    for id, summary, ext in pillow_formats:
-        if id in IGNORE_FORMATS:
-            continue
-        FormatCls = SPECIAL_FORMATS.get(id, PillowFormat)
-        summary = FormatCls._description or summary
-        format = FormatCls(id + "-PIL", summary, ext, FormatCls._modes)
-        format._plugin_id = id
-        if FormatCls is PillowFormat or not FormatCls.__doc__:
-            format.__doc__ = pillow_docs[id] + GENERIC_DOCS
-        formats.add_format(format)
-
-
-register_pillow_formats()
+# imported for backwards compatibility
+from .pillowmulti import GIFFormat, TIFFFormat  # noqa: E402, F401

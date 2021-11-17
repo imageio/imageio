@@ -24,7 +24,6 @@ This format is not available on Pypy.
 
 import numpy as np
 
-from .. import formats
 from ..core import Format
 
 
@@ -84,8 +83,3 @@ class NpzFormat(Format):
 
         def set_meta_data(self, meta):
             raise RuntimeError("The npz format does not support meta data.")
-
-
-# Register
-format = NpzFormat("npz", "Numpy's compressed array format", "npz", "iIvV")
-formats.add_format(format)

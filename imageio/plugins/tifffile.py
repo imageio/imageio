@@ -156,21 +156,15 @@ provide access to new performance improvements and bug fixes.
 
 import datetime
 
-from .. import formats
 from ..core import Format
 
 import numpy as np
 
-_tifffile = None  # Defer loading to lib() function.
 
-
-def load_lib():
-    global _tifffile
-    try:
-        import tifffile as _tifffile
-    except ImportError:
-        from . import _tifffile
-    return _tifffile
+try:
+    import tifffile as _tifffile
+except ImportError:
+    from . import _tifffile
 
 
 TIFF_FORMATS = (".tif", ".tiff", ".stk", ".lsm")
@@ -364,19 +358,39 @@ class TiffFormat(Format):
     """
 
     def _can_read(self, request):
-        # We support any kind of image data
-        return request.extension in self.extensions
+        try:
+            _tifffile.TiffFile(request.get_file(), **request.kwargs)
+        except ValueError:
+            # vendored backend raises value exception
+            return False
+        except _tifffile.TiffFileError:  # pragma: no-cover
+            # current version raises custom exception
+            return False
+        finally:
+            request.get_file().seek(0)
+
+        return True
 
     def _can_write(self, request):
-        # We support any kind of image data
-        return request.extension in self.extensions
+        if request.extension not in self.extensions:
+            return False
+
+        try:
+            _tifffile.TiffWriter(request.get_file(), **request.kwargs)
+        except ValueError:
+            # vendored backend raises value exception
+            return False
+        except _tifffile.TiffFileError:  # pragma: no-cover
+            # current version raises custom exception
+            return False
+        finally:
+            request.get_file().seek(0)
+        return True
 
     # -- reader
 
     class Reader(Format.Reader):
         def _open(self, **kwargs):
-            if not _tifffile:
-                load_lib()
             # Allow loading from http; tifffile uses seek, so download first
             if self.request.filename.startswith(("http://", "https://")):
                 self._f = f = open(self.request.get_local_filename(), "rb")
@@ -436,9 +450,6 @@ class TiffFormat(Format):
     # -- writer
     class Writer(Format.Writer):
         def _open(self, bigtiff=None, byteorder=None, software=None):
-            if not _tifffile:
-                load_lib()
-
             try:
                 self._tf = _tifffile.TiffWriter(
                     self.request.get_file(), bigtiff, byteorder, software=software
@@ -491,8 +502,3 @@ class TiffFormat(Format):
 
         def set_meta_data(self, meta):
             self._meta = self._sanitize_meta(meta)
-
-
-# Register
-format = TiffFormat("tiff", "TIFF format", TIFF_FORMATS, "iIvV")
-formats.add_format(format)

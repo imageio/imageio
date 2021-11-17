@@ -29,13 +29,17 @@ a format object using ``imageio.formats.add_format()``.
 # related info around. This request object is instantiated in
 # imageio.get_reader and imageio.get_writer.
 
-import os
 import sys
+from typing import Optional
 
 import numpy as np
+from pathlib import Path
 
 from . import Array, asarray
-from .request import ImageMode
+from .request import ImageMode, Request
+from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
+from ..config.plugins import _original_order
+from .imopen import imopen, _get_config
 
 
 # survived for backwards compatibility
@@ -356,8 +360,7 @@ class Format(object):
             """
             self._checkClosed()
             n = self.get_length()
-            if index <= n:
-                self._BaseReaderWriter_last_index = index - 1
+            self._BaseReaderWriter_last_index = min(max(index - 1, -1), n)
 
         def get_meta_data(self, index=None):
             """get_meta_data(index=None)
@@ -532,73 +535,55 @@ class FormatManager(object):
     See also :func:`.help`.
     """
 
-    def __init__(self):
-        self._formats = []
-        self._formats_sorted = []
+    @property
+    def _formats(self):
+        return [x for x in known_plugins.values() if x.is_legacy]
 
     def __repr__(self):
-        return "<imageio.FormatManager with %i registered formats>" % len(self)
+        return f"<imageio.FormatManager with {len(self._formats)} registered formats>"
 
     def __iter__(self):
-        return iter(self._formats_sorted)
+        return iter(x.format for x in self._formats)
 
     def __len__(self):
         return len(self._formats)
 
     def __str__(self):
         ss = []
-        for format in self:
-            ext = ", ".join(format.extensions)
-            s = "%s - %s [%s]" % (format.name, format.description, ext)
+        for config in self._formats:
+            ext = config.legacy_args["extensions"]
+            desc = config.legacy_args["description"]
+            s = f"{config.name} - {desc} [{ext}]"
             ss.append(s)
         return "\n".join(ss)
 
     def __getitem__(self, name):
-        if name is None:
-            return None
-
-        # Check
         if not isinstance(name, str):
             raise ValueError(
-                "Looking up a format should be done by name " "or by extension."
+                "Looking up a format should be done by name or by extension."
             )
-        if not name:
+
+        if name == "":
             raise ValueError("No format matches the empty string.")
 
         # Test if name is existing file
-        if os.path.isfile(name):
-            from . import Request
+        if Path(name).is_file():
+            # legacy compatibility - why test reading here??
+            try:
+                return imopen(name, "r", legacy_mode=True)._format
+            except ValueError:
+                # no plugin can read the file
+                pass
 
-            format = self.search_read_format(Request(name, "r?"))
-            if format is not None:
-                return format
+        config = _get_config(name.upper(), legacy_mode=True)
 
-        if "." in name:
-            # Look for extension
-            e1, e2 = os.path.splitext(name.lower())
-            name = e2 or e1
-            # Search for format that supports this extension
-            for format in self:
-                if name in format.extensions:
-                    return format
-        else:
-            # Look for name
-            name = name.upper()
-            for format in self:
-                if name == format.name:
-                    return format
-            for format in self:
-                if name == format.name.rsplit("-", 1)[0]:
-                    return format
-            else:
-                # Maybe the user meant to specify an extension
-                try:
-                    return self["." + name.lower()]
-                except IndexError:
-                    pass  # Fail using original name below
-
-        # Nothing found ...
-        raise IndexError("No format known by name %s." % name)
+        try:
+            return config.format
+        except ImportError:
+            raise ImportError(
+                f"The `{config.name}` format is not installed. "
+                f"Use `pip install imageio[{config.install_name}]` to install it."
+            )
 
     def sort(self, *names):
         """sort(name1, name2, name3, ...)
@@ -626,102 +611,110 @@ class FormatManager(object):
             if any(c in name for c in ".,"):
                 raise ValueError(
                     "Names given to formats.sort() should not "
-                    "contain dots or commas."
+                    "contain dots `.` or commas `,`."
                 )
-        names = [name.strip().upper() for name in names]
-        # Reset
-        self._formats_sorted = list(self._formats)
-        # Sort
-        for name in reversed(names):
 
-            def sorter(f):
-                return -((f.name == name) + (f.name.endswith(name)))
+        if len(names) == 0:
+            names = _original_order
 
-            self._formats_sorted.sort(key=sorter)
+        sane_names = [name.strip().upper() for name in names if name != ""]
+        flat_extensions = [
+            ext for ext_list in known_extensions.values() for ext in ext_list
+        ]
 
-    def add_format(self, format, overwrite=False):
+        # enforce order for every extension that uses it
+        for name in reversed(sane_names):
+            for extension in flat_extensions:
+                for plugin in [x for x in extension.priority]:
+                    if plugin.endswith(name):
+                        extension.priority.remove(plugin)
+                        extension.priority.insert(0, plugin)
+
+        old_order = known_plugins.copy()
+        known_plugins.clear()
+
+        for name in sane_names:
+            plugin = old_order.pop(name, None)
+            if plugin is not None:
+                known_plugins[name] = plugin
+
+        known_plugins.update(old_order)
+
+    def add_format(self, iio_format, overwrite=False):
         """add_format(format, overwrite=False)
 
         Register a format, so that imageio can use it. If a format with the
         same name already exists, an error is raised, unless overwrite is True,
         in which case the current format is replaced.
         """
-        if not isinstance(format, Format):
+        if not isinstance(iio_format, Format):
             raise ValueError("add_format needs argument to be a Format object")
-        elif format in self._formats:
-            raise ValueError("Given Format instance is already registered")
-        elif format.name in self.get_format_names():
-            if overwrite:
-                old_format = self[format.name]
-                self._formats.remove(old_format)
-                if old_format in self._formats_sorted:
-                    self._formats_sorted.remove(old_format)
-            else:
-                raise ValueError(
-                    "A Format named %r is already registered, use"
-                    " overwrite=True to replace." % format.name
-                )
-        self._formats.append(format)
-        self._formats_sorted.append(format)
+        elif not overwrite and iio_format.name in self.get_format_names():
+            raise ValueError(
+                f"A Format named {iio_format.name} is already registered, use"
+                " `overwrite=True` to replace."
+            )
 
-    def search_read_format(self, request):
+        config = PluginConfig(
+            name=iio_format.name.upper(),
+            class_name=iio_format.__class__.__name__,
+            module_name=iio_format.__class__.__module__,
+            is_legacy=True,
+            install_name="unknown",
+            legacy_args={
+                "name": iio_format.name,
+                "description": iio_format.description,
+                "extensions": " ".join(iio_format.extensions),
+                "modes": iio_format.modes,
+            },
+        )
+
+        known_plugins[config.name] = config
+
+        for extension in iio_format.extensions:
+            # be conservative and always treat it as a unique file format
+            ext = FileExtension(
+                extension=extension,
+                priority=[config.name],
+                name="Unique Format",
+                description="A format inserted at runtime."
+                f" It is being read by the `{config.name}` plugin.",
+            )
+            known_extensions.setdefault(extension, list()).append(ext)
+
+    def search_read_format(self, request: Request) -> Optional[Format]:
         """search_read_format(request)
 
         Search a format that can read a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
 
-        # Select formats that seem to be able to read it
-        selected_formats = []
-        for format in self:
-            if select_mode in format.modes:
-                if request.extension in format.extensions:
-                    selected_formats.append(format)
+        try:
+            # in legacy_mode imopen returns a LegacyPlugin
+            return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except ValueError:
+            # no plugin can read this request
+            # but the legacy API doesn't raise
+            return None
 
-        # Select the first that can
-        for format in selected_formats:
-            if format.can_read(request):
-                return format
-
-        # If no format could read it, it could be that file has no or
-        # the wrong extension. We ask all formats again.
-        for format in self:
-            if format not in selected_formats:
-                if format.can_read(request):
-                    return format
-
-    def search_write_format(self, request):
+    def search_write_format(self, request: Request) -> Optional[Format]:
         """search_write_format(request)
 
         Search a format that can write a file according to the given request.
         Returns None if no appropriate format was found. (used internally)
         """
-        select_mode = request.mode[1] if request.mode[1] in "iIvV" else ""
 
-        # Select formats that seem to be able to write it
-        selected_formats = []
-        for format in self:
-            if select_mode in format.modes:
-                if request.extension in format.extensions:
-                    selected_formats.append(format)
-
-        # Select the first that can
-        for format in selected_formats:
-            if format.can_write(request):
-                return format
-
-        # If none of the selected formats could write it, maybe another
-        # format can still write it. It might prefer a different mode,
-        # or be able to handle more formats than it says by its extensions.
-        for format in self:
-            if format not in selected_formats:
-                if format.can_write(request):
-                    return format
+        try:
+            # in legacy_mode imopen returns a LegacyPlugin
+            return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except ValueError:
+            # no plugin can write this request
+            # but the legacy API doesn't raise
+            return None
 
     def get_format_names(self):
         """Get the names of all registered formats."""
-        return [f.name for f in self]
+        return [f.name for f in self._formats]
 
     def show(self):
         """Show a nicely formatted list of available formats"""

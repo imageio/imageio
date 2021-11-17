@@ -12,6 +12,7 @@ from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 import imageio
 from imageio import core
 from imageio.core import get_remote_file
+import imageio.plugins.dicom
 
 
 test_dir = get_test_dir()
@@ -65,7 +66,7 @@ def test_selection():
     # Test that DICOM can examine file
     F = imageio.formats.search_read_format(core.Request(fname1, "ri"))
     assert F.name == "DICOM"
-    assert F is imageio.formats["DICOM"]
+    assert isinstance(F, type(imageio.formats["DICOM"]))
 
     # Test that we cannot save
     request = core.Request(os.path.join(test_dir, "test.dcm"), "wi")
@@ -126,11 +127,11 @@ def test_different_read_modes():
         assert ims[0].shape == im.shape
         assert len(ims) > 1
         #
-        ims2 = imageio.mimread(dname)
+        ims2 = imageio.mimread(dname, format="DICOM")
         assert len(ims) == len(ims2)
 
         # Test volread()
-        vol = imageio.volread(dname)
+        vol = imageio.volread(dname, format="DICOM")
         assert vol.ndim == 3
         assert vol.shape[0] > 10
         assert vol.shape[1:] == (512, 512)
@@ -139,7 +140,7 @@ def test_different_read_modes():
         assert (vol == vol2).all()
 
         # Test mvolread()
-        vols = imageio.mvolread(dname)
+        vols = imageio.mvolread(dname, format="DICOM")
         assert isinstance(vols, list)
         assert len(vols) == n
         assert vols[0].shape == vol.shape

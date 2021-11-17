@@ -15,16 +15,19 @@ import numpy as np
 import pytest
 
 from pytest import raises, skip
+from imageio.config import FileExtension
 
 from imageio.core.functions import to_nbytes
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 import imageio as iio
+import imageio.core.imopen as imopen_module
 from imageio import core
 from imageio.core import Request
 from imageio.core import get_remote_file, IS_PYPY
 from imageio.core.request import Mode, InitializationError
+from imageio.config.plugins import PluginConfig
 
 
 try:
@@ -33,6 +36,25 @@ except ImportError:
     Path = None
 
 test_dir = get_test_dir()
+
+
+class UselessDummyPlugin:
+    """A dummy plugin to test plugin resultion and dynamic loading"""
+
+    def __init__(self, request):
+        raise InitializationError("Can not read anything")
+
+
+class EpicDummyPlugin:
+    def __init__(self, request):
+        """Can read anything"""
+
+
+class BrokenDummyPlugin:
+    def __init__(self, request):
+        """Breaks during initialization"""
+
+        raise ValueError("Something went wrong.")
 
 
 def test_fetching():
@@ -602,18 +624,25 @@ def test_functions():
     # Test read()
     R1 = imageio.read(fname1)
     R2 = imageio.read(fname1, "png")
-    assert R1.format is R2.format
-    # Fail
+
+    # this tests if the highest priority png plugin and the highest
+    # priority fallback plugin match.
+    # Do we really what to enforce this?
+    assert type(R1) is type(R2)
+
     raises(ValueError, imageio.read, fname3)  # existing but not readable
-    raises(FileNotFoundError, imageio.read, "notexisting.barf")
     raises(IndexError, imageio.read, fname1, "notexistingformat")
+
+    # Note: This is actually a test of Requests. We should probably
+    # migrate or remove it.
+    raises(FileNotFoundError, imageio.read, "notexisting.barf")
 
     # Test save()
     W1 = imageio.save(fname2)
     W2 = imageio.save(fname2, "JPG")
     W1.close()
     W2.close()
-    assert W1.format is W2.format
+    assert type(W1) is type(W2)
     # Fail
     raises(FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile")
 
@@ -800,7 +829,7 @@ def test_imwrite_symbol_name():
 
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
-        with iio.imopen("foo.bmp", "wI", format="GIF-PIL") as file:
+        with iio.imopen("foo.bmp", "wI", plugin="GIF-PIL") as file:
             file.write([])
 
 
@@ -817,33 +846,49 @@ def test_imopen_no_plugin_found(clear_plugins):
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
     with pytest.raises(ValueError):
-        iio.imopen(invalid_file, "r", plugin="unknown_plugin")
+        iio.imopen(invalid_file, "r", plugin="unknown_plugin", legacy_mode=False)
 
 
-def test_plugin_selection_failure(clear_plugins, monkeypatch):
-    class DummyPlugin:
-        def __init__(self, request):
-            raise InitializationError("Can not read anything")
+def test_plugin_selection_failure(clear_plugins):
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
+    )
 
-    monkeypatch.setattr(
-        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+    imopen_module.known_plugins["plugin2"] = PluginConfig(
+        name="plugin2", class_name="UselessDummyPlugin", module_name="test_core"
     )
 
     with pytest.raises(IOError):
-        iio.imopen("", "r", search_legacy_only=False)
+        iio.imopen("", "r", legacy_mode=False)
 
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
-def test_plugin_selection_success(clear_plugins, monkeypatch, invalid_file):
-    class DummyPlugin:
-        def __init__(self, request):
-            """Can read anything"""
+def test_plugin_selection_success(clear_plugins, invalid_file):
+    imopen_module.known_plugins["plugin"] = PluginConfig(
+        name="plugin", class_name="EpicDummyPlugin", module_name="test_core"
+    )
 
-    monkeypatch.setattr(iio.imopen, "_known_plugins", {"plugin1": DummyPlugin})
+    instance = iio.imopen(invalid_file, "r", legacy_mode=False)
 
-    instance = iio.imopen(invalid_file, "r", search_legacy_only=False)
+    assert isinstance(instance, EpicDummyPlugin)
 
-    assert isinstance(instance, DummyPlugin)
+
+def test_imopen_installable_plugin(clear_plugins):
+    # test uninstalled plugin
+    iio.config.known_plugins["plugin"] = PluginConfig(
+        name="plugin", class_name="EpicDummyPlugin", module_name="non_existant"
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("foo.bar", "w", legacy_mode=False)
+
+    # register extension
+    iio.config.known_extensions[".bar"] = [
+        FileExtension(extension=".bar", priority=["plugin"])
+    ]
+
+    with pytest.raises(IOError):
+        iio.imopen("foo.bar", "w", legacy_mode=False)
 
 
 def test_legacy_object_image_writing():
@@ -886,17 +931,42 @@ def test_mvolread_out_of_bytes():
         )
 
 
-def test_invalid_explicit_plugin(clear_plugins, monkeypatch):
-    class DummyPlugin:
-        def __init__(self, request):
-            raise InitializationError("Can not read anything")
-
-    monkeypatch.setattr(
-        iio.imopen, "_known_plugins", {"plugin1": DummyPlugin, "plugin2": DummyPlugin}
+def test_invalid_explicit_plugin(clear_plugins):
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="UselessDummyPlugin", module_name="test_core"
     )
 
     with pytest.raises(IOError):
-        iio.imopen("", "r", plugin="plugin1")
+        iio.imopen("", "r", plugin="plugin1", legacy_mode=False)
+
+
+def test_broken_plugin(clear_plugins):
+    imopen_module.known_plugins["plugin1"] = PluginConfig(
+        name="plugin1", class_name="BrokenDummyPlugin", module_name="test_core"
+    )
+
+    with pytest.raises(IOError):
+        iio.imopen("", "r", plugin="plugin1", legacy_mode=False)
+
+
+def test_volwrite_failure():
+    not_image_data = np.array("Object Array.")
+
+    with pytest.raises(ValueError):
+        iio.volwrite("foo.jpg", not_image_data)
+
+
+def test_memory_size(image_files):
+    im = iio.mimread(image_files / "newtonscradle.gif", memtest=True)
+    assert len(im) == 36
+
+    im = iio.mimread(image_files / "newtonscradle.gif", memtest=None)
+    assert len(im) == 36
+
+
+def test_legacy_write_empty(image_files):
+    with pytest.raises(RuntimeError):
+        iio.v3.imwrite(image_files / "foo.tiff", np.ones((0, 10, 10)))
 
 
 run_tests_if_main()

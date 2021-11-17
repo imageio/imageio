@@ -46,7 +46,6 @@ import sys
 import logging
 import subprocess
 
-from .. import formats
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from ..core import read_n_bytes
 
@@ -317,14 +316,3 @@ class DicomFormat(Format):
                     return self.series[index].info
             else:  # pragma: no cover
                 raise ValueError("DICOM plugin should know what to expect.")
-
-
-# Add this format
-formats.add_format(
-    DicomFormat(
-        "DICOM",
-        "Digital Imaging and Communications in Medicine",
-        ".dcm .ct .mri",
-        "iIvV",
-    )
-)  # Often DICOM files have weird or no extensions

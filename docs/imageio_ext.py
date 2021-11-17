@@ -52,18 +52,16 @@ def prepare_reader_and_witer():
 
 def rstjinja(app, docname, source):
     if docname == "formats/index":
-        from imageio.config.extensions import known_extensions
-        from imageio.config.plugins import known_plugins
+        from imageio.config import known_plugins, extension_list
 
         src = source[0]
         rendered = app.builder.templates.render_string(
-            src, {"formats": known_extensions, "plugins": known_plugins}
+            src, {"formats": extension_list, "plugins": known_plugins}
         )
         source[0] = rendered
 
     if docname == "formats/video_formats":
-        from imageio.config.extensions import video_extensions
-        from imageio.config.plugins import known_plugins
+        from imageio.config import known_plugins, video_extensions
 
         src = source[0]
         rendered = app.builder.templates.render_string(

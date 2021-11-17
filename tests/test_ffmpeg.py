@@ -93,9 +93,13 @@ def test_select():
     assert not F.can_read(core.Request(fname1, "rv"))
 
     # ffmpeg is default
-    assert imageio.formats[".mp4"] is F
-    assert imageio.formats.search_write_format(core.Request(fname1, "wI")) is F
-    assert imageio.formats.search_read_format(core.Request(fname1, "rI")) is F
+    assert type(imageio.formats[".mp4"]) is type(F)
+    assert type(
+        imageio.formats.search_write_format(core.Request(fname1, "wI"))
+    ) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(
+        F
+    )
 
 
 def test_integer_reader_length():
@@ -111,7 +115,7 @@ def test_integer_reader_length():
 def test_read_and_write():
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
-    assert R.format is imageio.formats["ffmpeg"]
+    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
@@ -180,7 +184,7 @@ def test_read_and_write():
 def test_write_not_contiguous():
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
-    assert R.format is imageio.formats["ffmpeg"]
+    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
     fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
     fname2 = fname1[:-4] + ".out.mp4"
@@ -485,7 +489,7 @@ def test_webcam():
 
     bad_paths = ["<videof1>", "<video0x>", "<video>"]
     for path in bad_paths:
-        with raises(ValueError, match=".*Could not find a format to read.*"):
+        with raises(ValueError):
             imageio.read(path)
 
 

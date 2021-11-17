@@ -7,11 +7,13 @@ import sys
 import numpy as np
 
 from pytest import raises, skip
+import pytest
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
+import imageio.plugins.freeimage
 
 test_dir = get_test_dir()
 
@@ -278,8 +280,21 @@ def test_jpg():
     )
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + ".jpg", notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + ".jpg", im, notavalidk=True)
+    raises(
+        TypeError,
+        imageio.imread,
+        fnamebase + ".jpg",
+        notavalidkwarg=True,
+        format="JPEG-FI",
+    )
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + ".jpg",
+        im,
+        notavalidk=True,
+        format="JPEG-FI",
+    )
 
     # Compression
     imageio.imsave(fnamebase + "1.jpg", im3, quality=10)
@@ -298,7 +313,8 @@ def test_jpg_more():
     open(fname, "wb").write(b"this is not an image")
     raises(Exception, imageio.imread, fname)
     #
-    bb = imageio.imsave(imageio.RETURN_BYTES, get_ref_im(3, 0, 0), "JPEG")
+    img = get_ref_im(3, 0, 0)
+    bb = imageio.imsave(imageio.RETURN_BYTES, img, "JPEG-FI")
     with open(fname, "wb") as f:
         f.write(bb[:400])
         f.write(b" ")
@@ -328,21 +344,34 @@ def test_bmp():
             for colors in (0, 1, 3, 4):
                 fname = fnamebase + "%i.%i.%i.bmp" % (isfloat, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
+                imageio.imsave(fname, rim, format="BMP-FI")
+                im = imageio.imread(fname, format="BMP-FI")
                 mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
 
     # Compression
-    imageio.imsave(fnamebase + "1.bmp", im3, compression=False)
-    imageio.imsave(fnamebase + "2.bmp", im3, compression=True)
+    imageio.imsave(fnamebase + "1.bmp", im3, compression=False, format="BMP-FI")
+    imageio.imsave(fnamebase + "2.bmp", im3, compression=True, format="BMP-FI")
     s1 = os.stat(fnamebase + "1.bmp").st_size
     s2 = os.stat(fnamebase + "2.bmp").st_size
     assert s1 + s2  # todo: bug in FreeImage? assert s1 < s2
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fnamebase + "1.bmp", notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + "1.bmp", im, notavalidk=True)
+    raises(
+        TypeError,
+        imageio.imread,
+        fnamebase + "1.bmp",
+        notavalidkwarg=True,
+        format="BMP-FI",
+    )
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.bmp",
+        im,
+        notavalidk=True,
+        format="BMP-FI",
+    )
 
 
 def test_gif():
@@ -355,8 +384,8 @@ def test_gif():
                     continue  # quantize fails, see also png
                 fname = fnamebase + "%i.%i.%i.gif" % (isfloat, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
+                imageio.imsave(fname, rim, format="GIF-FI")
+                im = imageio.imread(fname, format="GIF-FI")
                 mul = 255 if isfloat else 1
                 if colors in (0, 1):
                     im = im[:, :, 0]
@@ -366,8 +395,15 @@ def test_gif():
                 assert_close(rim * mul, im, 1.1)  # lossless
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
+    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI")
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.gif",
+        im,
+        notavalidk=True,
+        format="GIF-FI",
+    )
 
 
 def test_animated_gif():
@@ -391,9 +427,9 @@ def test_animated_gif():
                 ims1 = [x.astype(np.float32) / 256 for x in ims1]
             ims1 = [x[:, :, :colors] for x in ims1]
             fname = fnamebase + ".animated.%i.gif" % colors
-            imageio.mimsave(fname, ims1, duration=0.2)
+            imageio.mimsave(fname, ims1, duration=0.2, format="GIF-FI")
             # Retrieve
-            ims2 = imageio.mimread(fname)
+            ims2 = imageio.mimread(fname, format="GIF-FI")
             ims1 = [x[:, :, :3] for x in ims]  # fresh ref
             ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
             for im1, im2 in zip(ims1, ims2):
@@ -401,32 +437,38 @@ def test_animated_gif():
 
     # We can also store grayscale
     fname = fnamebase + ".animated.%i.gif" % 1
-    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2)
-    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2)
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2, format="GIF-FI")
+    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2, format="GIF-FI")
 
     # Irragular duration. You probably want to check this manually (I did)
     duration = [0.1 for i in ims]
     for i in [2, 5, 7]:
         duration[i] = 0.5
-    imageio.mimsave(fnamebase + ".animated_irr.gif", ims, duration=duration)
+    imageio.mimsave(
+        fnamebase + ".animated_irr.gif", ims, duration=duration, format="GIF-FI"
+    )
 
     # Other parameters
-    imageio.mimsave(fnamebase + ".animated.loop2.gif", ims, loop=2, fps=20)
-    R = imageio.read(fnamebase + ".animated.loop2.gif")
-    W = imageio.save(fnamebase + ".animated.palettes100.gif", palettesize=100)
+    imageio.mimsave(
+        fnamebase + ".animated.loop2.gif", ims, loop=2, fps=20, format="GIF-FI"
+    )
+    R = imageio.read(fnamebase + ".animated.loop2.gif", format="GIF-FI")
+    W = imageio.save(
+        fnamebase + ".animated.palettes100.gif", palettesize=100, format="GIF-FI"
+    )
     assert W._palettesize == 128
     # Fail
     raises(IndexError, R.get_meta_data, -1)
     raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo")
-    raises(ValueError, imageio.mimsave, fname, ims, duration="foo")
+    raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo", format="GIF-FI")
+    raises(ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI")
 
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
 
     # Test subrectangles
-    imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False)
-    imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True)
+    imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False, format="GIF-FI")
+    imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True, format="GIF-FI")
     s1 = os.stat(fnamebase + ".subno.gif").st_size
     s2 = os.stat(fnamebase + ".subyes.gif").st_size
     assert s2 < s1
@@ -443,37 +485,47 @@ def test_ico():
                 fname = fnamebase + "%i.%i.%i.ico" % (isfloat, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat)
                 rim = rim[:32, :32]  # ico needs nice size
-                imageio.imsave(fname, rim)
-                im = imageio.imread(fname)
+                imageio.imsave(fname, rim, format="ICO-FI")
+                im = imageio.imread(fname, format="ICO-FI")
                 mul = 255 if isfloat else 1
                 assert_close(rim * mul, im, 0.1)  # lossless
 
     # Meta data
-    R = imageio.read(fnamebase + "0.0.1.ico")
+    R = imageio.read(fnamebase + "0.0.1.ico", format="ICO-FI")
     assert isinstance(R.get_meta_data(0), dict)
     assert isinstance(R.get_meta_data(None), dict)  # But this print warning
     R.close()
-    writer = imageio.save(fnamebase + "I.ico")
+    writer = imageio.save(fnamebase + "I.ico", format="ICO-FI")
     writer.set_meta_data({})
     writer.close()
 
     # Parameters. Note that with makealpha, RGBA images are read in incorrectly
-    im = imageio.imread(fnamebase + "0.0.1.ico", makealpha=True)
+    im = imageio.imread(fnamebase + "0.0.1.ico", makealpha=True, format="ICO-FI")
     assert im.ndim == 3 and im.shape[-1] == 4
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
+    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI")
+    raises(
+        TypeError,
+        imageio.imsave,
+        fnamebase + "1.ico",
+        im,
+        notavalidk=True,
+        format="ICO-FI",
+    )
 
-    if sys.platform.startswith("win"):  # issue #21
-        skip("Windows has a known issue with multi-icon files")
 
-    # Multiple images
+# Skip on Windows xref: https://github.com/imageio/imageio/issues/21
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Windows has a known issue with multi-icon files",
+)
+def test_multi_icon_ico():
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
     ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
-    imageio.mimsave(fnamebase + "I2.ico", ims)
-    ims2 = imageio.mimread(fnamebase + "I2.ico")
+    imageio.mimsave(fnamebase + "I2.ico", ims, format="ICO-FI")
+    ims2 = imageio.mimread(fnamebase + "I2.ico", format="ICO-FI")
     for im1, im2 in zip(ims, ims2):
         assert_close(im1, im2, 0.1)
 
@@ -484,24 +536,35 @@ def test_mng():
 
 
 def test_pnm():
-
     for useAscii in (True, False):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3):
                 fname = fnamebase
                 fname += "%i.%i.%i.ppm" % (useAscii, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat=False)
-                imageio.imsave(fname, rim, use_ascii=useAscii)
-                im = imageio.imread(fname)
+                imageio.imsave(fname, rim, use_ascii=useAscii, format="PPM-FI")
+                im = imageio.imread(fname, format="PPM-FI")
                 assert_close(rim, im, 0.1)  # lossless
 
                 # Parameter fail
-                raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-                raises(TypeError, imageio.imsave, fname, im, notavalidk=True)
+                raises(
+                    TypeError,
+                    imageio.imread,
+                    fname,
+                    notavalidkwarg=True,
+                    format="PPM-FI",
+                )
+                raises(
+                    TypeError,
+                    imageio.imsave,
+                    fname,
+                    im,
+                    notavalidk=True,
+                    format="PPM-FI",
+                )
 
 
 def test_other():
-
     # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")

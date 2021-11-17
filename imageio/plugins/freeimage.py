@@ -27,8 +27,8 @@ flags : int
 
 import numpy as np
 
-from .. import formats
 from ..core import Format, image_as_uint
+from ..core.request import RETURN_BYTES
 from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
 
 
@@ -39,6 +39,10 @@ class FreeimageFormat(Format):
     """See :mod:`imageio.plugins.freeimage`"""
 
     _modes = "i"
+
+    def __init__(self, name, description, extensions=None, modes=None, *, fif=None):
+        super().__init__(name, description, extensions=extensions, modes=modes)
+        self._fif = fif
 
     @property
     def fif(self):
@@ -54,6 +58,10 @@ class FreeimageFormat(Format):
                     request._fif = -1
             if request._fif == self.fif:
                 return True
+            elif request._fif == 7 and self.fif == 14:
+                # PPM gets identified as PBM and PPM can read PBM
+                # see: https://github.com/imageio/imageio/issues/677
+                return True
 
     def _can_write(self, request):
         # Ask freeimage, because we are not aware of all formats
@@ -61,8 +69,11 @@ class FreeimageFormat(Format):
             if not hasattr(request, "_fif"):
                 try:
                     request._fif = fi.getFIF(request.filename, "w")
-                except Exception:  # pragma: no cover
-                    request._fif = -1
+                except ValueError:  # pragma: no cover
+                    if request.raw_uri == RETURN_BYTES:
+                        request._fif = self.fif
+                    else:
+                        request._fif = -1
             if request._fif is self.fif:
                 return True
 
@@ -392,119 +403,3 @@ class FreeimagePnmFormat(FreeimageFormat):
                 flags |= IO_FLAGS.PNM_SAVE_ASCII
             # Act as usual, but with modified flags
             return FreeimageFormat.Writer._open(self, flags)
-
-
-# Create the formats
-
-SPECIAL_CLASSES = {
-    "jpeg": FreeimageJpegFormat,
-    "png": FreeimagePngFormat,
-    "bmp": FreeimageBmpFormat,
-    "ppm": FreeimagePnmFormat,
-    "ppmraw": FreeimagePnmFormat,
-    "gif": None,  # defined in freeimagemulti
-    "ico": None,  # defined in freeimagemulti
-    "mng": None,  # defined in freeimagemulti
-}
-
-# rename TIFF to make way for the tiffile plugin
-NAME_MAP = {"TIFF": "FI_TIFF"}
-
-# This is a dump of supported FreeImage formats on Linux fi verion 3.16.0
-# > imageio.plugins.freeimage.create_freeimage_formats()
-# > for i in sorted(imageio.plugins.freeimage.fiformats): print('%r,' % (i, ))
-fiformats = [
-    ("BMP", 0, "Windows or OS/2 Bitmap", "bmp"),
-    ("CUT", 21, "Dr. Halo", "cut"),
-    ("DDS", 24, "DirectX Surface", "dds"),
-    ("EXR", 29, "ILM OpenEXR", "exr"),
-    ("G3", 27, "Raw fax format CCITT G.3", "g3"),
-    ("GIF", 25, "Graphics Interchange Format", "gif"),
-    ("HDR", 26, "High Dynamic Range Image", "hdr"),
-    ("ICO", 1, "Windows Icon", "ico"),
-    ("IFF", 5, "IFF Interleaved Bitmap", "iff,lbm"),
-    ("J2K", 30, "JPEG-2000 codestream", "j2k,j2c"),
-    ("JNG", 3, "JPEG Network Graphics", "jng"),
-    ("JP2", 31, "JPEG-2000 File Format", "jp2"),
-    ("JPEG", 2, "JPEG - JFIF Compliant", "jpg,jif,jpeg,jpe"),
-    ("JPEG-XR", 36, "JPEG XR image format", "jxr,wdp,hdp"),
-    ("KOALA", 4, "C64 Koala Graphics", "koa"),
-    ("MNG", 6, "Multiple-image Network Graphics", "mng"),
-    ("PBM", 7, "Portable Bitmap (ASCII)", "pbm"),
-    ("PBMRAW", 8, "Portable Bitmap (RAW)", "pbm"),
-    ("PCD", 9, "Kodak PhotoCD", "pcd"),
-    ("PCX", 10, "Zsoft Paintbrush", "pcx"),
-    ("PFM", 32, "Portable floatmap", "pfm"),
-    ("PGM", 11, "Portable Greymap (ASCII)", "pgm"),
-    ("PGMRAW", 12, "Portable Greymap (RAW)", "pgm"),
-    ("PICT", 33, "Macintosh PICT", "pct,pict,pic"),
-    ("PNG", 13, "Portable Network Graphics", "png"),
-    ("PPM", 14, "Portable Pixelmap (ASCII)", "ppm"),
-    ("PPMRAW", 15, "Portable Pixelmap (RAW)", "ppm"),
-    ("PSD", 20, "Adobe Photoshop", "psd"),
-    ("RAS", 16, "Sun Raster Image", "ras"),
-    (
-        "RAW",
-        34,
-        "RAW camera image",
-        "3fr,arw,bay,bmq,cap,cine,cr2,crw,cs1,dc2,"
-        "dcr,drf,dsc,dng,erf,fff,ia,iiq,k25,kc2,kdc,mdc,mef,mos,mrw,nef,nrw,orf,"
-        "pef,ptx,pxn,qtk,raf,raw,rdc,rw2,rwl,rwz,sr2,srf,srw,sti",
-    ),
-    ("SGI", 28, "SGI Image Format", "sgi,rgb,rgba,bw"),
-    ("TARGA", 17, "Truevision Targa", "tga,targa"),
-    ("TIFF", 18, "Tagged Image File Format", "tif,tiff"),
-    ("WBMP", 19, "Wireless Bitmap", "wap,wbmp,wbm"),
-    ("WebP", 35, "Google WebP image format", "webp"),
-    ("XBM", 22, "X11 Bitmap Format", "xbm"),
-    ("XPM", 23, "X11 Pixmap Format", "xpm"),
-]
-
-
-def _create_predefined_freeimage_formats():
-
-    for name, i, des, ext in fiformats:
-        # name = NAME_MAP.get(name, name)
-        # Get class for format
-        FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
-        if FormatClass:
-            # Create Format and add
-            format = FormatClass(name + "-FI", des, ext, FormatClass._modes)
-            format._fif = i
-            formats.add_format(format)
-
-
-def create_freeimage_formats():
-    """By default, imageio registers a list of predefined formats
-    that freeimage can handle. If your version of imageio can handle
-    more formats, you can call this function to register them.
-    """
-    fiformats[:] = []
-
-    # Freeimage available?
-    if fi is None:  # pragma: no cover
-        return
-
-    # Init
-    lib = fi._lib
-
-    # Create formats
-    for i in range(lib.FreeImage_GetFIFCount()):
-        if lib.FreeImage_IsPluginEnabled(i):
-            # Get info
-            name = lib.FreeImage_GetFormatFromFIF(i).decode("ascii")
-            des = lib.FreeImage_GetFIFDescription(i).decode("ascii")
-            ext = lib.FreeImage_GetFIFExtensionList(i).decode("ascii")
-            fiformats.append((name, i, des, ext))
-            # name = NAME_MAP.get(name, name)
-            # Get class for format
-            FormatClass = SPECIAL_CLASSES.get(name.lower(), FreeimageFormat)
-            if not FormatClass:
-                continue
-            # Create Format and add
-            format = FormatClass(name + "-FI", des, ext, FormatClass._modes)
-            format._fif = i
-            formats.add_format(format, overwrite=True)
-
-
-_create_predefined_freeimage_formats()

@@ -18,17 +18,14 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.10.5"
 
-from . import config
-
 # v3.0.0 API
-from .core.imopen import imopen as imopen_obj
+from .core.imopen import imopen
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
-# Instantiate format managers
-imopen = imopen_obj()
-formats = imopen._legacy_format_manager
+# Instantiate the old format manager
+formats = FormatManager()
 
 # Load legacy API
 from .core.functions import (
@@ -54,6 +51,9 @@ from .core.functions import (
 )
 
 from .core import v3_api as v3
+
+# import config after core to avoid circular import
+from . import config
 
 # Load all the plugins
 from . import plugins
