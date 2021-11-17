@@ -183,7 +183,6 @@ extras_require = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "tifffile": ["tifffile"],
     "fits": ["astropy"],
     "freeimage": [],
     "gdal": ["gdal"],
@@ -193,7 +192,7 @@ extras_require = {
     "simpleitk": [],
     "spe": [],
     "swf": [],
-    "tifffile": [],
+    "tifffile": ["tifffile"],
 }
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
