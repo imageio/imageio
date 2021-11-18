@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from .request import (
     IOMode,
@@ -65,7 +65,7 @@ def imopen(
     uri,
     io_mode: str,
     *,
-    plugin: str = None,
+    plugin: Union[str, Any] = None,
     legacy_mode: bool = True,
     **kwargs,
 ) -> Any:
@@ -81,7 +81,7 @@ def imopen(
     uri : str or pathlib.Path or bytes or file or Request
         The :doc:`ImageResources <getting_started.request>` to load the image
         from.
-    io_mode : {str}
+    io_mode : str
         The mode in which the file is opened. Possible values are::
 
             ``r`` - open the file for reading
@@ -98,14 +98,14 @@ def imopen(
             ``V`` for multiple volumes,
             ``?`` for don't care (default)
 
-    plugin : {str, None}
+    plugin : str, Plugin, or None
         The plugin to use. If set to None (default) imopen will perform a
         search for a matching plugin.
     legacy_mode : bool
         If true (default) use the v2 behavior when searching for a suitable
         plugin. This will ignore v3 plugins and will check ``plugin``
         against known extensions if no plugin with the given name can be found.
-    **kwargs : {any}
+    **kwargs : Any
         Additional keyword arguments will be passed to the plugin upon
         construction.
 
@@ -139,14 +139,23 @@ def imopen(
     # plugin specified, no search needed
     # (except in legacy mode)
     if plugin is not None:
-        try:
-            config = _get_config(plugin, legacy_mode)
-        except (IndexError, ValueError):
-            request.finish()
-            raise
+        if isinstance(plugin, str):
+            try:
+                config = _get_config(plugin, legacy_mode)
+            except (IndexError, ValueError):
+                request.finish()
+                raise
+
+            def loader(request, **kwargs):
+                return config.plugin_class(request, **kwargs)
+
+        else:
+
+            def loader(request, **kwargs):
+                return plugin(request, **kwargs)
 
         try:
-            return config.plugin_class(request, **kwargs)
+            return loader(request, **kwargs)
         except InitializationError as class_specific:
             err_from = class_specific
             err_type = RuntimeError if legacy_mode else IOError
