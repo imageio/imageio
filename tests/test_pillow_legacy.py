@@ -427,7 +427,7 @@ def test_write_jpg_to_bytes_io():
 
     image = np.zeros((200, 200), dtype=np.uint8)
     bytes_io = io.BytesIO()
-    imageio.imwrite(bytes_io, image, 'jpeg')
+    imageio.imwrite(bytes_io, image, "jpeg")
     bytes_io.seek(0)
 
     image_from_file = imageio.imread(bytes_io)
