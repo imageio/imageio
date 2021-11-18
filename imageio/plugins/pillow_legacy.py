@@ -173,7 +173,7 @@ import threading
 import numpy as np
 
 from ..core import Format, image_as_uint
-from ..core import RETURN_BYTES
+from ..core.request import URI_FILE, URI_BYTES
 
 
 logger = logging.getLogger(__name__)
@@ -272,7 +272,10 @@ class PillowFormat(Format):
     def _can_write(self, request):
         Image = self._init_pillow()
         if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions or request.raw_uri == RETURN_BYTES:
+            if request.extension in self.extensions or request._uri_type in [
+                URI_FILE,
+                URI_BYTES,
+            ]:
                 if self.plugin_id in Image.SAVE:
                     return True
 
