@@ -975,7 +975,10 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
 
     from imageio.plugins.pillow import PillowPlugin
 
-    with iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=False, plugin=PillowPlugin) as f:
+    with iio.v3.imopen(
+        tmp_path / "foo.tiff", "w", legacy_mode=False, plugin=PillowPlugin
+    ) as f:
         assert isinstance(f, PillowPlugin)
+
 
 run_tests_if_main()
