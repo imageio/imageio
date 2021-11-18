@@ -149,10 +149,13 @@ def imopen(
             def loader(request, **kwargs):
                 return config.plugin_class(request, **kwargs)
 
-        else:
+        elif not legacy_mode:
 
             def loader(request, **kwargs):
                 return plugin(request, **kwargs)
+
+        else:
+            raise ValueError("The `plugin` argument must be a string.")
 
         try:
             return loader(request, **kwargs)
