@@ -3,6 +3,7 @@
 
 import os
 import sys
+import io
 from zipfile import ZipFile
 import numpy as np
 
@@ -418,6 +419,19 @@ def test_scipy_imread_compat():
     # Force using pillow (but really, Pillow's imageio's first choice! Except
     # for tiff)
     im = imageio.imread("imageio:chelsea.png", "PNG-PIL")
+
+
+def test_write_jpg_to_bytes_io():
+    # this is a regression test
+    # see: https://github.com/imageio/imageio/issues/687
+
+    image = np.zeros((200, 200), dtype=np.uint8)
+    bytes_io = io.BytesIO()
+    imageio.imwrite(bytes_io, image, 'jpeg')
+    bytes_io.seek(0)
+
+    image_from_file = imageio.imread(bytes_io)
+    assert np.allclose(image_from_file, image)
 
 
 if __name__ == "__main__":

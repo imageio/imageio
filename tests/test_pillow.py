@@ -480,3 +480,16 @@ def test_write_to_bytes_jpg():
     bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="JPEG")
 
     assert contents == bytes_string
+
+
+def test_write_jpg_to_bytes_io():
+    # this is a regression test
+    # see: https://github.com/imageio/imageio/issues/687
+
+    image = np.zeros((200, 200), dtype=np.uint8)
+    bytes_io = io.BytesIO()
+    iio.v3.imwrite(bytes_io, image, plugin="pillow", format="jpeg", mode="L")
+    bytes_io.seek(0)
+
+    image_from_file = iio.v3.imread(bytes_io, plugin="pillow")
+    assert np.allclose(image_from_file, image)
