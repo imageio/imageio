@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.11.0 (2021-11-18)
+### Feature
+* Choose plugin based on extension and plugin lazy-import ([#680](https://github.com/imageio/imageio/issues/680)) ([`bdbe699`](https://github.com/imageio/imageio/commit/bdbe699bbcda4223b0b6bd4d7474f84bbe34af09))
+
 ## v2.10.5 (2021-11-17)
 ### Fix
 * Resolve regression on imageJ TIFF hyperstacks ([#682](https://github.com/imageio/imageio/issues/682)) ([`7dc9b25`](https://github.com/imageio/imageio/commit/7dc9b25ce50069f17afa464bafe6627b08ffdd6b))
