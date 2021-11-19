@@ -415,7 +415,7 @@ extension_list = [
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpeg",
-        priority=["pillow", "JPEG-FI", "JPEG-PIL", "ITK", "GDAL"],
+        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL"],
     ),
     FileExtension(
         name="JPEG 2000",
