@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.11.1 (2021-11-20)
+### Fix
+* Fix BytesIO regression for legacy pillow ([#688](https://github.com/imageio/imageio/issues/688)) ([`924e1c5`](https://github.com/imageio/imageio/commit/924e1c5c43576acf16247c3c47b7baf6c6f68fe6))
+
 ## v2.11.0 (2021-11-18)
 ### Feature
 * Choose plugin based on extension and plugin lazy-import ([#680](https://github.com/imageio/imageio/issues/680)) ([`bdbe699`](https://github.com/imageio/imageio/commit/bdbe699bbcda4223b0b6bd4d7474f84bbe34af09))
