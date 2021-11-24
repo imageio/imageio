@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.12.0 (2021-11-24)
+### Feature
+* Allow plugin objects in plugin kwarg ([#689](https://github.com/imageio/imageio/issues/689)) ([`8f0f689`](https://github.com/imageio/imageio/commit/8f0f689c3a99032c89360bb4dfa6704638a6e0c9))
+
 ## v2.11.1 (2021-11-20)
 ### Fix
 * Fix BytesIO regression for legacy pillow ([#688](https://github.com/imageio/imageio/issues/688)) ([`924e1c5`](https://github.com/imageio/imageio/commit/924e1c5c43576acf16247c3c47b7baf6c6f68fe6))
