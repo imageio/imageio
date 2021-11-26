@@ -43,20 +43,20 @@ What methods to implement
 
 Imageio is designed such that plugins only need to implement a few
 private methods. The public API is implemented by the base classes.
-In effect, the public methods can be given a descent docstring which
+In effect, the public methods can be given a decent docstring which
 does not have to be repeated at the plugins.
 
 For the Format class, the following needs to be implemented/specified:
 
   * The format needs a short name, a description, and a list of file
     extensions that are common for the file-format in question.
-    These ase set when instantiation the Format object.
+    These are set when instantiation the Format object.
   * Use a docstring to provide more detailed information about the
     format/plugin, such as parameters for reading and saving that the user
     can supply via keyword arguments.
   * Implement ``_can_read(request)``, return a bool.
     See also the :class:`.Request` class.
-  * Implement ``_can_write(request)``, dito.
+  * Implement ``_can_write(request)``, ditto.
 
 For the Format.Reader class:
 
