@@ -24,6 +24,7 @@ on:
 jobs:
   initial_check:
     name: Should release?
+    if: github.repository_owner == 'imageio'
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{ steps.skippy.outputs.release }}
@@ -46,16 +47,16 @@ jobs:
           echo "::set-output name=release::true"
         fi
     - name: Skipping Release
-      if: ${{ ! steps.skippy.outputs.release }}
+      if: ${{ steps.skippy.outputs.release == 'false' }}
       run: echo ${{ steps.skippy.outputs.release }}
     - name: Releasing New Version
-      if: ${{ steps.skippy.outputs.release }}
+      if: ${{ steps.skippy.outputs.release == 'true' }}
       run: echo ${{ steps.skippy.outputs.release }}
   
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.should_release
+    if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -71,7 +72,7 @@ jobs:
   cpython_tests:
     name: "${{ matrix.os }} / CPython ${{ matrix.pyversion }}"
     needs: initial_check
-    if: needs.initial_check.outputs.should_release
+    if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -106,7 +107,7 @@ jobs:
   pypy_tests:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
     needs: initial_check
-    if: needs.initial_check.outputs.should_release
+    if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -135,7 +136,7 @@ jobs:
   build_test:
     name: Wheel Building Test
     needs: initial_check
-    if: needs.initial_check.outputs.should_release
+    if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
