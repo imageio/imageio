@@ -114,8 +114,6 @@ class plugins:
         >>> imageio.plugins.freeimage.download()
 
         """
-        if name == "__qualname__":
-            return "imageio.plugins"
 
         try:
             return importlib.import_module(f"imageio.plugins.{name}")
