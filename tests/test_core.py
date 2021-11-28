@@ -969,4 +969,19 @@ def test_legacy_write_empty(image_files):
         iio.v3.imwrite(image_files / "foo.tiff", np.ones((0, 10, 10)))
 
 
+def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
+    with pytest.raises(OSError):
+        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=False)
+
+    from imageio.plugins.pillow import PillowPlugin
+
+    with iio.v3.imopen(
+        tmp_path / "foo.tiff", "w", legacy_mode=False, plugin=PillowPlugin
+    ) as f:
+        assert isinstance(f, PillowPlugin)
+
+    with pytest.raises(ValueError):
+        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
+
+
 run_tests_if_main()
