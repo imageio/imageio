@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.0 (2021-11-29)
+### Documentation
+* Fix typos. ([#696](https://github.com/imageio/imageio/issues/696)) ([`67239f3`](https://github.com/imageio/imageio/commit/67239f39c6a13b1bc29bf584eaf2d0dc2e869b9c))
+
 ## v2.12.0 (2021-11-24)
 ### Feature
 * Allow plugin objects in plugin kwarg ([#689](https://github.com/imageio/imageio/issues/689)) ([`8f0f689`](https://github.com/imageio/imageio/commit/8f0f689c3a99032c89360bb4dfa6704638a6e0c9))
