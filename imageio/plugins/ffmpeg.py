@@ -22,7 +22,8 @@ fps : scalar
     The number of frames per second to read the data at. Default None (i.e.
     read at the file's own fps). One can use this for files with a
     variable fps, or in cases where imageio is unable to correctly detect
-    the fps.
+    the fps. In case of trouble opening camera streams, it may help to set an
+    explicit fps value matching a framerate supported by the camera.
 loop : bool
     If True, the video will rewind as soon as a frame is requested
     beyond the last frame. Otherwise, IndexError is raised. Default False.
@@ -122,6 +123,7 @@ import re
 import sys
 import time
 import logging
+import platform
 import threading
 import subprocess as sp
 
@@ -293,8 +295,8 @@ class FfmpegFormat(Format):
             regex_match = re.match(r"<video(\d+)>", self.request.filename)
             if regex_match:
                 self.request._video = self.request.filename
-            # Specify input framerate?
-            if self.request._video:
+            # Specify input framerate? (only on macOS)
+            if self.request._video and platform.system().lower() == "darwin":
                 if "-framerate" not in str(self._arg_input_params):
                     self._arg_input_params.extend(["-framerate", str(float(fps or 30))])
             # Get local filename
