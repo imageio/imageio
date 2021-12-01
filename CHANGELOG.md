@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.1 (2021-12-01)
+### Fix
+* Only run CD on main and fail fast ([#698](https://github.com/imageio/imageio/issues/698)) ([`e90494a`](https://github.com/imageio/imageio/commit/e90494abff407c90ddad422a9f35bf719fc66932))
+* Lazy-import plugin namespace ([#693](https://github.com/imageio/imageio/issues/693)) ([`73695ae`](https://github.com/imageio/imageio/commit/73695aef2e0f7ac0dbf705ec544769b036ce08f2))
+
 ## v2.13.0 (2021-11-29)
 ### Documentation
 * Fix typos. ([#696](https://github.com/imageio/imageio/issues/696)) ([`67239f3`](https://github.com/imageio/imageio/commit/67239f39c6a13b1bc29bf584eaf2d0dc2e869b9c))
