@@ -298,7 +298,7 @@ class FfmpegFormat(Format):
             # Specify input framerate? (only on macOS)
             if self.request._video and platform.system().lower() == "darwin":
                 if "-framerate" not in str(self._arg_input_params):
-                    self._arg_input_params.extend(["-framerate", str(float(fps or 30))])
+                    self._arg_input_params.extend(["-framerate", str(float(fps or 15))])
             # Get local filename
             if self.request._video:
                 index = int(regex_match.group(1))
