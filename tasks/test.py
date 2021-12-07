@@ -109,13 +109,13 @@ def pytest_wrapper(cov_report="term", needs_internet=True):
 
     # coverage add-on
     args += [
-            "--cov",
-            "imageio",
-            "--cov-config",
-            ".coveragerc",
-            "--cov-report",
-            cov_report,
-            ]
+        "--cov",
+        "imageio",
+        "--cov-config",
+        ".coveragerc",
+        "--cov-report",
+        cov_report,
+    ]
 
     # test location
     args += [os.path.join(ROOT_DIR, "tests")]
