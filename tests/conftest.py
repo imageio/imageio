@@ -82,7 +82,7 @@ def test_images(request):
     return checkout_dir
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_files(test_images, tmp_path):
     """A copy of the test images
 
@@ -95,7 +95,7 @@ def image_files(test_images, tmp_path):
     yield tmp_path
 
 
-@pytest.fixture
+@pytest.fixture()
 def clear_plugins():
 
     old_extensions = iio.config.known_extensions.copy()
@@ -122,7 +122,7 @@ def invalid_file(tmp_path, request):
     return tmp_path / ("foo" + ext)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def test_dir():
     # Define dir
     from imageio.core import appdata_dir
@@ -130,5 +130,7 @@ def test_dir():
     d = os.path.join(appdata_dir("imageio"), "testdir")
     os.makedirs(d)
     os.makedirs(os.path.join(d, "images"))
+
     yield d
+
     shutil.rmtree(d)

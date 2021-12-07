@@ -3,6 +3,7 @@
 
 import os
 import shutil
+import tempfile
 from zipfile import ZipFile
 
 import numpy as np
@@ -16,28 +17,27 @@ import imageio.plugins.dicom
 
 
 @pytest.fixture(scope="module")
-def examples(test_dir):
+def examples():
     """Create two dirs, one with one dataset and one with two datasets"""
 
-    # Prepare sources
-    fname1 = get_remote_file("images/dicom_sample1.zip")
-    fname2 = get_remote_file("images/dicom_sample2.zip")
-    dname1 = os.path.join(test_dir, "dicom_sample1")
-    dname2 = os.path.join(test_dir, "dicom_sample2")
-    # Extract zipfiles
-    z = ZipFile(fname1)
-    z.extractall(dname1)
-    z.extractall(dname2)
-    z = ZipFile(fname2)
-    z.extractall(dname2)
-    # Get arbitrary file names
-    fname1 = os.path.join(dname1, os.listdir(dname1)[0])
-    fname2 = os.path.join(dname2, os.listdir(dname2)[0])
+    with tempfile.TemporaryDirectory() as d:
 
-    yield dname1, dname2, fname1, fname2
+        # Prepare sources
+        fname1 = get_remote_file("images/dicom_sample1.zip")
+        fname2 = get_remote_file("images/dicom_sample2.zip")
+        dname1 = os.path.join(d, "dicom_sample1")
+        dname2 = os.path.join(d, "dicom_sample2")
+        # Extract zipfiles
+        z = ZipFile(fname1)
+        z.extractall(dname1)
+        z.extractall(dname2)
+        z = ZipFile(fname2)
+        z.extractall(dname2)
+        # Get arbitrary file names
+        fname1 = os.path.join(dname1, os.listdir(dname1)[0])
+        fname2 = os.path.join(dname2, os.listdir(dname2)[0])
 
-    shutil.rmtree(dname1)
-    shutil.rmtree(dname2)
+        yield dname1, dname2, fname1, fname2
 
 
 def test_read_empty_dir(tmp_path):
@@ -53,7 +53,7 @@ def test_dcmtk():
 
 
 @pytest.mark.needs_internet
-def test_selection(test_dir, examples):
+def test_selection(tmp_path, examples):
 
     dname1, dname2, fname1, fname2 = examples
 
@@ -63,7 +63,7 @@ def test_selection(test_dir, examples):
     assert isinstance(F, type(imageio.formats["DICOM"]))
 
     # Test that we cannot save
-    request = core.Request(os.path.join(test_dir, "test.dcm"), "wi")
+    request = core.Request(os.path.join(tmp_path, "test.dcm"), "wi")
     assert not F.can_write(request)
 
     # Test fail on wrong file
