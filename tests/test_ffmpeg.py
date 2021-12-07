@@ -18,13 +18,9 @@ import imageio
 from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
 
-pytest.importorskip(
-    "psutil", reason="ffmpeg support cannot be tested without psutil"
-)
+pytest.importorskip("psutil", reason="ffmpeg support cannot be tested without psutil")
 
-pytest.importorskip(
-    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
-)
+pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
 
 
 def get_ffmpeg_pids():
@@ -100,9 +96,9 @@ def test_select(test_dir):
     assert type(
         imageio.formats.search_write_format(core.Request(fname1, "wI"))
     ) is type(F)
-    assert type(
-        imageio.formats.search_read_format(core.Request(fname1, "rI"))
-    ) is type(F)
+    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(
+        F
+    )
 
 
 def test_integer_reader_length():
@@ -352,9 +348,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now check that macroblock size gets turned off if requested
-    W = imageio.get_writer(
-        str(tmpf), macro_block_size=1, ffmpeg_log_level="warning"
-    )
+    W = imageio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((100, 106, 3), np.uint8))
     W.close()
@@ -364,9 +358,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now double check values different than default work
-    W = imageio.get_writer(
-        str(tmpf), macro_block_size=4, ffmpeg_log_level="warning"
-    )
+    W = imageio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((64, 65, 3), np.uint8))
     W.close()
@@ -451,9 +443,7 @@ def test_framecatcher():
     assert file.__next__() == b"v" * N
 
     file = FakeGenerator(N)
-    T = imageio.plugins.ffmpeg.FrameCatcher(
-        file
-    )  # the file looks like a generator
+    T = imageio.plugins.ffmpeg.FrameCatcher(file)  # the file looks like a generator
 
     # Init None
     time.sleep(0.1)
@@ -472,9 +462,7 @@ def test_framecatcher():
     # Read frame that has not been updated
     frame, is_new = T.get_frame()
     assert frame == b"x" * N, "frame content should be the same as before"
-    assert (
-        not is_new
-    ), "is_new should be False if the frame has already been retrieved"
+    assert not is_new, "is_new should be False if the frame has already been retrieved"
 
     # Read frame when we pass plenty of data
     file.write_and_rewind(b"y" * N * 3)

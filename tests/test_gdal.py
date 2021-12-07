@@ -6,6 +6,7 @@ from imageio.core import get_remote_file
 
 pytest.importorskip("osgeo", reason="gdal is not installed")
 
+
 @pytest.mark.needs_internet
 def test_gdal_reading():
     """Test reading gdal"""

@@ -120,6 +120,7 @@ def test_get_ref_im(get_library):
 def test_get_fi_lib():
 
     from imageio.plugins._freeimage import get_freeimage_lib
+
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
 
@@ -564,7 +565,7 @@ def test_multi_icon_ico(test_dir, get_library):
 @pytest.mark.skip("MNG seems broken in FreeImage")
 @pytest.mark.needs_internet
 def test_mng(get_library):
-     ims = imageio.imread(get_remote_file('images/mngexample.mng'))
+    ims = imageio.imread(get_remote_file("images/mngexample.mng"))
 
 
 @pytest.mark.needs_internet

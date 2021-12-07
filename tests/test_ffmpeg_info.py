@@ -6,9 +6,7 @@ import pytest
 import imageio
 
 
-pytest.importorskip(
-    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
-)
+pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
 
 
 def dedent(text, dedent=8):

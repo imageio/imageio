@@ -356,9 +356,7 @@ def test_lytro_lfr_reading():
                 "meter": {
                     "mode": "evaluative",
                     "roiMode": "af",
-                    "roi": [
-                        {"top": 0.0, "left": 0.0, "bottom": 1.0, "right": 1.0}
-                    ],
+                    "roi": [{"top": 0.0, "left": 0.0, "bottom": 1.0, "right": 1.0}],
                 },
                 "bracketEnable": False,
                 "bracketStep": 1.0,

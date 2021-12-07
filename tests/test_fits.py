@@ -13,6 +13,7 @@ pytest.importorskip("astropy", reason="astropy is not installed")
 def setup_module():
     # During this test, pretend that FITS is the default format
     import astropy.io.fits
+
     imageio.formats.sort("FITS")
 
 
