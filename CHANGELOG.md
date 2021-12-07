@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.2 (2021-12-07)
+### Fix
+* Only force webcam FPS on Mac ([#701](https://github.com/imageio/imageio/issues/701)) ([`28b1d0d`](https://github.com/imageio/imageio/commit/28b1d0db00059dcaebeb9f9a83501d1865e9ceb6))
+
 ## v2.13.1 (2021-12-01)
 ### Fix
 * Only run CD on main and fail fast ([#698](https://github.com/imageio/imageio/issues/698)) ([`e90494a`](https://github.com/imageio/imageio/commit/e90494abff407c90ddad422a9f35bf719fc66932))
