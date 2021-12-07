@@ -157,6 +157,7 @@ provide access to new performance improvements and bug fixes.
 import datetime
 
 from ..core import Format
+from ..core.request import URI_BYTES, URI_FILE
 
 import numpy as np
 
@@ -372,7 +373,9 @@ class TiffFormat(Format):
         return True
 
     def _can_write(self, request):
-        if request.extension not in self.extensions:
+        if request._uri_type in [URI_FILE, URI_BYTES]:
+            pass  # special URI
+        elif request.extension not in self.extensions:
             return False
 
         try:
