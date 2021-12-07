@@ -144,4 +144,11 @@ def test_imagej_hyperstack(tmp_path):
     assert img.shape == (15, 2, 180, 183)
 
 
+def test_read_bytes(tmp_path):
+    # regression test for: https://github.com/imageio/imageio/issues/703
+
+    some_bytes = iio.imwrite("<bytes>", [[0]], format="tiff")
+    assert some_bytes is not None
+
+
 run_tests_if_main()
