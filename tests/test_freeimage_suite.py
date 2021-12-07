@@ -5,14 +5,7 @@ import os
 import sys
 import zipfile
 import shutil
-
-from pytest import raises  # noqa
-from imageio.testing import get_test_dir
-
 import imageio
-from imageio.core import get_remote_file, IS_PYPY, urlopen  # noqa
-
-test_dir = get_test_dir()
 
 # During this test, pretend that FI is the default format?
 # imageio.formats.sort('-FI')

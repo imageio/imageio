@@ -2,18 +2,17 @@
 """
 
 import os
+import pytest
 
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
 from imageio.core import get_remote_file, Request, IS_PYPY
 
-test_dir = get_test_dir()
 
-
+@pytest.mark.needs_internet
 def test_npz_format():
 
     # Test selection
@@ -28,7 +27,7 @@ def test_npz_format():
     assert not format.can_write(Request(png, "wi"))
 
 
-def test_npz_reading_writing():
+def test_npz_reading_writing(test_dir):
     """Test reading and saveing npz"""
 
     if IS_PYPY:
@@ -81,6 +80,3 @@ def test_npz_reading_writing():
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data, None)  # no meta data support
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
-
-
-run_tests_if_main()

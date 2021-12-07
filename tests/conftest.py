@@ -7,6 +7,14 @@ import contextlib
 import imageio as iio
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "needs_internet: mark tests that require internet access "
+        "(deselect with '-m \"not needs_internet\"'",
+    )
+
+
 @contextlib.contextmanager
 def working_directory(path):
     """
@@ -112,3 +120,15 @@ def invalid_file(tmp_path, request):
         file.write("Actually not a file.")
 
     return tmp_path / ("foo" + ext)
+
+
+@pytest.fixture(scope="module")
+def test_dir():
+    # Define dir
+    from imageio.core import appdata_dir
+
+    d = os.path.join(appdata_dir("imageio"), "testdir")
+    os.makedirs(d)
+    os.makedirs(os.path.join(d, "images"))
+    yield d
+    shutil.rmtree(d)

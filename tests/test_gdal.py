@@ -1,24 +1,16 @@
 """ Test gdal plugin functionality.
 """
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-
 import imageio
 from imageio.core import get_remote_file
 
-test_dir = get_test_dir()
+pytest.importorskip("osgeo", reason="gdal is not installed")
 
-
-try:
-    from osgeo import gdal
-except ImportError:
-    gdal = None
-
-
-@pytest.mark.skipif("gdal is None")
+@pytest.mark.needs_internet
 def test_gdal_reading():
     """Test reading gdal"""
-    need_internet()
+
+    from osgeo import gdal
 
     filename = get_remote_file("images/geotiff.tif")
 
@@ -34,6 +26,3 @@ def test_gdal_reading():
     raises = pytest.raises
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
-
-
-run_tests_if_main()

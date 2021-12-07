@@ -18,7 +18,6 @@ from pytest import raises, skip
 from imageio.config import FileExtension
 
 from imageio.core.functions import to_nbytes
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 import imageio as iio
@@ -34,8 +33,6 @@ try:
     from pathlib import Path
 except ImportError:
     Path = None
-
-test_dir = get_test_dir()
 
 
 class UselessDummyPlugin:
@@ -57,10 +54,9 @@ class BrokenDummyPlugin:
         raise ValueError("Something went wrong.")
 
 
-def test_fetching():
+@pytest.mark.needs_internet
+def test_fetching(test_dir):
     """Test fetching of files"""
-
-    need_internet()
 
     # Clear image files
     if os.path.isdir(test_dir):
@@ -135,18 +131,19 @@ def test_findlib1():
     assert paths
 
 
+@pytest.mark.needs_internet
 def test_findlib2():
 
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
 
-    need_internet()  # need our own version of FI to test this bit
-
     # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir("imageio"), "freeimage")
     if not os.path.isdir(fi_dir):
         os.mkdir(fi_dir)
-    dirs, paths = core.findlib.generate_candidate_libs(["libfreeimage"], [fi_dir])
+    dirs, paths = core.findlib.generate_candidate_libs(
+        ["libfreeimage"], [fi_dir]
+    )
     # assert fi_dir in dirs -> Cannot test: lib may not exist
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
@@ -161,7 +158,8 @@ def test_findlib2():
     raises(OSError, core.load_lib, [], ["notalib"], [fi_dir])
 
 
-def test_request():
+@pytest.mark.needs_internet
+def test_request(test_dir):
     """Test request object"""
 
     # Check uri-type, this is not a public property, so we test the private
@@ -242,7 +240,8 @@ def test_request():
         assert R._uri_type == core.request.URI_FILENAME
 
 
-def test_request_read_sources():
+@pytest.mark.needs_internet
+def test_request_read_sources(test_dir):
 
     # Make an image available in many ways
     fname = "images/chelsea.png"
@@ -288,7 +287,8 @@ def test_request_read_sources():
                     assert all_bytes.startswith(first_bytes)
 
 
-def test_request_save_sources():
+@pytest.mark.needs_internet
+def test_request_save_sources(test_dir):
 
     # Get test data
     fname = "images/chelsea.png"
@@ -589,8 +589,16 @@ def test_util_image_as_uint():
         (np.array([-1.0, 1.0], "float64"), 16, np.uint16([0, 65535])),
         # Rounding
         (np.array([1.4 / 255, 1.6 / 255], "float32"), 8, np.uint8([1, 2])),
-        (np.array([254.4 / 255, 254.6 / 255], "float32"), 8, np.uint8([254, 255])),
-        (np.array([1.4 / 65535, 1.6 / 65535], "float32"), 16, np.uint16([1, 2])),
+        (
+            np.array([254.4 / 255, 254.6 / 255], "float32"),
+            8,
+            np.uint8([254, 255]),
+        ),
+        (
+            np.array([1.4 / 65535, 1.6 / 65535], "float32"),
+            16,
+            np.uint16([1, 2]),
+        ),
         (
             np.array([65534.4 / 65535, 65534.6 / 65535], "float32"),
             16,
@@ -609,7 +617,8 @@ def test_util_has_has_module():
     assert core.has_module("sys")
 
 
-def test_functions():
+@pytest.mark.needs_internet
+def test_functions(test_dir):
     """Test the user-facing API functions"""
 
     # Test help(), it prints stuff, so we just check whether that goes ok
@@ -644,7 +653,9 @@ def test_functions():
     W2.close()
     assert type(W1) is type(W2)
     # Fail
-    raises(FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile")
+    raises(
+        FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile"
+    )
 
     # Test imread()
     im1 = imageio.imread(fname1)
@@ -749,7 +760,8 @@ def test_to_nbytes_incorrect(arg):
         to_nbytes(arg)
 
 
-def test_memtest():
+@pytest.mark.needs_internet
+def test_memtest(test_dir):
     fname3 = get_remote_file("images/newtonscradle.gif", test_dir)
     imageio.mimread(fname3)  # trivial case
     imageio.mimread(fname3, memtest=1000 ** 2 * 256)
@@ -767,7 +779,8 @@ def test_memtest():
         imageio.mimread(fname3, memtest="64b")
 
 
-def test_example_plugin():
+@pytest.mark.needs_internet
+def test_example_plugin(test_dir):
     """Test the example plugin"""
 
     fname = os.path.join(test_dir, "out.png")
@@ -846,7 +859,9 @@ def test_imopen_no_plugin_found(clear_plugins):
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
     with pytest.raises(ValueError):
-        iio.imopen(invalid_file, "r", plugin="unknown_plugin", legacy_mode=False)
+        iio.imopen(
+            invalid_file, "r", plugin="unknown_plugin", legacy_mode=False
+        )
 
 
 def test_plugin_selection_failure(clear_plugins):
@@ -891,11 +906,14 @@ def test_imopen_installable_plugin(clear_plugins):
         iio.imopen("foo.bar", "w", legacy_mode=False)
 
 
-def test_legacy_object_image_writing():
+def test_legacy_object_image_writing(tmp_path):
     with pytest.raises(ValueError):
-        iio.mimwrite("foo.gif", np.array([[0]], dtype=object))
+        iio.mimwrite(
+            os.path.join(tmp_path, "foo.gif"), np.array([[0]], dtype=object)
+        )
 
 
+@pytest.mark.needs_internet
 def test_imiter(image_files: Path):
     # maybe it would be better to load the image without using imageio, e.g.
     # numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
@@ -905,7 +923,9 @@ def test_imiter(image_files: Path):
     )
 
     for idx, im in enumerate(
-        iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
+        iio.v3.imiter(
+            image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
+        )
     ):
         assert np.allclose(full_image[idx, ...], im)
 
@@ -923,6 +943,7 @@ def test_faulty_legacy_mode_access():
         mode[3]  # has no third component
 
 
+@pytest.mark.needs_internet
 def test_mvolread_out_of_bytes():
     with pytest.raises(RuntimeError):
         imageio.mvolread(
@@ -956,6 +977,7 @@ def test_volwrite_failure():
         iio.volwrite("foo.jpg", not_image_data)
 
 
+@pytest.mark.needs_internet
 def test_memory_size(image_files):
     im = iio.mimread(image_files / "newtonscradle.gif", memtest=True)
     assert len(im) == 36
@@ -964,6 +986,7 @@ def test_memory_size(image_files):
     assert len(im) == 36
 
 
+@pytest.mark.needs_internet
 def test_legacy_write_empty(image_files):
     with pytest.raises(RuntimeError):
         iio.v3.imwrite(image_files / "foo.tiff", np.ones((0, 10, 10)))
@@ -981,7 +1004,9 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         assert isinstance(f, PillowPlugin)
 
     with pytest.raises(ValueError):
-        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
+        iio.v3.imopen(
+            tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin
+        )
 
 
 def test_sort_order_restore():
@@ -993,6 +1018,3 @@ def test_sort_order_restore():
     new_order = iio.config.known_extensions[".png"][0].priority.copy()
 
     assert old_order == new_order
-
-
-run_tests_if_main()

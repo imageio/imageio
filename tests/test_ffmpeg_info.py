@@ -2,9 +2,13 @@
 """ Tests specific to parsing ffmpeg info.
 """
 
-from imageio.testing import run_tests_if_main, need_internet
-
+import pytest
 import imageio
+
+
+pytest.importorskip(
+    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
+)
 
 
 def dedent(text, dedent=8):
@@ -43,8 +47,8 @@ def test_webcam_parse_device_names():
     assert len(device_names) == 2
 
 
+@pytest.mark.needs_internet
 def test_overload_fps():
-    need_internet()
 
     # Native
     r = imageio.get_reader("imageio:cockatoo.mp4")
@@ -85,6 +89,3 @@ def test_overload_fps():
             pass
         # print(r._meta['duration'], r._meta['fps'], r._meta['duration'] * fps, r._meta['nframes'], n)
         assert n - 2 <= i <= n + 2
-
-
-run_tests_if_main()

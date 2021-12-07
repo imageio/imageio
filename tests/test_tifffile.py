@@ -6,15 +6,12 @@ import datetime
 import numpy as np
 import pytest
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+import pytest
 from imageio.core import get_remote_file
 import imageio
 import imageio as iio
-import tifffile
 
-
-test_dir = get_test_dir()
+pytest.importorskip("tifffile", reason="tifffile is not installed")
 
 
 def test_tifffile_format():
@@ -24,10 +21,9 @@ def test_tifffile_format():
         assert format.name == "TIFF"
 
 
-def test_tifffile_reading_writing():
+@pytest.mark.needs_internet
+def test_tifffile_reading_writing(test_dir):
     """Test reading and saving tiff"""
-
-    need_internet()  # We keep a test image in the imageio-binary repo
 
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
@@ -82,8 +78,8 @@ def test_tifffile_reading_writing():
     # meta = R.get_meta_data()
     # assert meta['orientation'] == 'top_left'  # not there in later version
     # Fail
-    raises(IndexError, R.get_data, -1)
-    raises(IndexError, R.get_data, 3)
+    pytest.raises(IndexError, R.get_data, -1)
+    pytest.raises(IndexError, R.get_data, 3)
 
     # Ensure imread + imwrite works round trip
     filename3 = os.path.join(test_dir, "test_tiff2.tiff")
@@ -134,6 +130,8 @@ def test_tifffile_reading_writing():
 
 def test_imagej_hyperstack(tmp_path):
     # create artifical hyperstack
+    import tifffile
+
     tifffile.imwrite(
         tmp_path / "hyperstack.tiff",
         np.zeros((15, 2, 180, 183), dtype=np.uint8),
@@ -171,6 +169,3 @@ def test_read_bytes(tmp_path):
 
     some_bytes = iio.imwrite("<bytes>", [[0]], format="tiff")
     assert some_bytes is not None
-
-
-run_tests_if_main()

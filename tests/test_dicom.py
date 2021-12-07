@@ -2,12 +2,12 @@
 """
 
 import os
+import shutil
 from zipfile import ZipFile
 
 import numpy as np
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+import pytest
 
 import imageio
 from imageio import core
@@ -15,19 +15,10 @@ from imageio.core import get_remote_file
 import imageio.plugins.dicom
 
 
-test_dir = get_test_dir()
-
-
-_prepared = None
-
-
-def _prepare():
+@pytest.fixture(scope="module")
+def examples(test_dir):
     """Create two dirs, one with one dataset and one with two datasets"""
-    need_internet()
 
-    global _prepared
-    if _prepared and os.path.isfile(_prepared[2]):
-        return _prepared
     # Prepare sources
     fname1 = get_remote_file("images/dicom_sample1.zip")
     fname2 = get_remote_file("images/dicom_sample2.zip")
@@ -42,9 +33,11 @@ def _prepare():
     # Get arbitrary file names
     fname1 = os.path.join(dname1, os.listdir(dname1)[0])
     fname2 = os.path.join(dname2, os.listdir(dname2)[0])
-    # Cache and return
-    _prepared = dname1, dname2, fname1, fname2
-    return dname1, dname2, fname1, fname2
+
+    yield dname1, dname2, fname1, fname2
+
+    shutil.rmtree(dname1)
+    shutil.rmtree(dname2)
 
 
 def test_read_empty_dir(tmp_path):
@@ -59,9 +52,10 @@ def test_dcmtk():
     imageio.plugins.dicom.get_dcmdjpeg_exe()
 
 
-def test_selection():
+@pytest.mark.needs_internet
+def test_selection(test_dir, examples):
 
-    dname1, dname2, fname1, fname2 = _prepare()
+    dname1, dname2, fname1, fname2 = examples
 
     # Test that DICOM can examine file
     F = imageio.formats.search_read_format(core.Request(fname1, "ri"))
@@ -77,7 +71,7 @@ def test_selection():
     bb = open(fname1, "rb").read()
     bb = bb[:128] + b"XXXX" + bb[132:]
     open(fname2, "wb").write(bb)
-    raises(Exception, F.get_reader, core.Request(fname2, "ri"))
+    pytest.raises(Exception, F.get_reader, core.Request(fname2, "ri"))
 
     # Test special files with other formats
     im = imageio.imread(get_remote_file("images/dicom_file01.dcm"))
@@ -89,9 +83,9 @@ def test_selection():
 
     # Expected fails
     fname = get_remote_file("images/dicom_file90.dcm")
-    raises(RuntimeError, imageio.imread, fname)  # 1.2.840.10008.1.2.4.91
+    pytest.raises(RuntimeError, imageio.imread, fname)  # 1.2.840.10008.1.2.4.91
     fname = get_remote_file("images/dicom_file91.dcm")
-    raises(RuntimeError, imageio.imread, fname)  # not pixel data
+    pytest.raises(RuntimeError, imageio.imread, fname)  # not pixel data
 
     # This one *should* work, but does not, see issue #18
     try:
@@ -100,19 +94,21 @@ def test_selection():
         pass
 
 
-def test_progress():
+@pytest.mark.needs_internet
+def test_progress(examples):
 
-    dname1, dname2, fname1, fname2 = _prepare()
+    dname1, dname2, fname1, fname2 = examples
 
     imageio.imread(fname1, progress=True)
     imageio.imread(fname1, progress=core.StdoutProgressIndicator("test"))
     imageio.imread(fname1, progress=None)
-    raises(ValueError, imageio.imread, fname1, progress=3)
+    pytest.raises(ValueError, imageio.imread, fname1, progress=3)
 
 
-def test_different_read_modes():
+@pytest.mark.needs_internet
+def test_different_read_modes(examples):
 
-    dname1, dname2, fname1, fname2 = _prepare()
+    dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
 
@@ -147,9 +143,10 @@ def test_different_read_modes():
         assert sum([v.shape[0] for v in vols]) == len(ims)
 
 
-def test_different_read_modes_with_readers():
+@pytest.mark.needs_internet
+def test_different_read_modes_with_readers(examples):
 
-    dname1, dname2, fname1, fname2 = _prepare()
+    dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
 
@@ -186,7 +183,4 @@ def test_different_read_modes_with_readers():
         assert len(R._series[0].sampling) == 3
 
         R = imageio.read(fname, "DICOM", "?")
-        raises(RuntimeError, R.get_length)
-
-
-run_tests_if_main()
+        pytest.raises(RuntimeError, R.get_length)

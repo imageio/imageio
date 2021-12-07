@@ -1,26 +1,18 @@
 """ Test fits plugin functionality.
 """
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio.core import get_remote_file, Request, IS_PYPY
 
 import numpy as np
 
-test_dir = get_test_dir()
-
-try:
-    import astropy
-
-    # io is not imported by default
-    import astropy.io.fits
-except ImportError:
-    astropy = None
+pytest.importorskip("astropy", reason="astropy is not installed")
 
 
 def setup_module():
     # During this test, pretend that FITS is the default format
+    import astropy.io.fits
     imageio.formats.sort("FITS")
 
 
@@ -38,9 +30,8 @@ def normal_plugin_order():
     setup_module()
 
 
-@pytest.mark.skipif("astropy is None")
+@pytest.mark.needs_internet
 def test_fits_format():
-    need_internet()  # We keep the fits files in the imageio-binary repo
 
     # Test selection
     for name in ["fits", ".fits"]:
@@ -54,11 +45,9 @@ def test_fits_format():
     assert not format.can_write(Request(png, "wi"))
 
 
-@pytest.mark.skipif("astropy is None")
+@pytest.mark.needs_internet
 def test_fits_reading():
     """Test reading fits"""
-
-    need_internet()  # We keep the fits files in the imageio-binary repo
 
     if IS_PYPY:
         return  # no support for fits format :(
@@ -94,12 +83,12 @@ def test_fits_reading():
     assert im.shape == (2042, 3054)
 
 
-@pytest.mark.skipif("astropy is None")
 @pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
 def test_fits_get_reader(normal_plugin_order, tmp_path):
     """Test reading fits with get_reader method
     This is a regression test that closes GitHub issue #636
     """
+    import astropy.io.fits
 
     sigma = 10
     xx, yy = np.meshgrid(np.arange(512), np.arange(512))
@@ -112,6 +101,3 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
     hdul = astropy.io.fits.HDUList([phdu, ihdu])
     hdul.writeto(tmp_path / "test.fits")
     imageio.get_reader(tmp_path / "test.fits", format="fits")
-
-
-run_tests_if_main()

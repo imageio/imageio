@@ -5,28 +5,23 @@ import os
 
 import numpy as np
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+import pytest
 
 import imageio
 from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
 
 
-test_dir = get_test_dir()
-
-
 def mean(x):
     return x.sum() / x.size  # pypy-compat mean
 
 
-# We use need_internet; don't ship the swf image: its rather big and a
+# We use needs_internet marker; don't ship the swf image: its rather big and a
 # rather specific format
 
 
-def test_format_selection():
-
-    need_internet()
+@pytest.mark.needs_internet
+def test_format_selection(test_dir):
 
     fname1 = get_remote_file("images/stent.swf", test_dir)
     fname2 = fname1[:-4] + ".out.swf"
@@ -39,9 +34,8 @@ def test_format_selection():
     assert type(imageio.save(fname2).format) is type(F)
 
 
-def test_reading_saving():
-
-    need_internet()
+@pytest.mark.needs_internet
+def test_reading_saving(test_dir):
 
     fname1 = get_remote_file("images/stent.swf", test_dir)
     fname2 = fname1[:-4] + ".out.swf"
@@ -60,8 +54,8 @@ def test_reading_saving():
     # Seek
     assert (R.get_data(3) == ims1[3]).all()
     # Fails
-    raises(IndexError, R.get_data, -1)  # No negative index
-    raises(IndexError, R.get_data, 10)  # Out of bounds
+    pytest.raises(IndexError, R.get_data, -1)  # No negative index
+    pytest.raises(IndexError, R.get_data, 10)  # Out of bounds
     R.close()
 
     # Test loop
@@ -136,9 +130,8 @@ def test_reading_saving():
             f.write(line.strip().encode("utf-8") + b"\n")
 
 
+@pytest.mark.needs_internet
 def test_read_from_url():
-
-    need_internet()
 
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
     url = burl + "images/stent.swf"
@@ -147,9 +140,8 @@ def test_read_from_url():
     assert len(ims) == 10
 
 
-def test_invalid():
-
-    need_internet()
+@pytest.mark.needs_internet
+def test_invalid(test_dir):
 
     fname1 = get_remote_file("images/stent.swf", test_dir)
     fname2 = fname1[:-4] + ".invalid.swf"
@@ -158,24 +150,23 @@ def test_invalid():
     with open(fname2, "wb"):
         pass
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    raises(RuntimeError, imageio.mimread, fname2, "swf")
+    pytest.raises(RuntimeError, imageio.mimread, fname2, "swf")
 
     # File with BS data
     with open(fname2, "wb") as f:
         f.write(b"x" * 100)
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    raises(RuntimeError, imageio.mimread, fname2, "swf")
+    pytest.raises(RuntimeError, imageio.mimread, fname2, "swf")
 
 
+@pytest.mark.needs_internet
 def test_lowlevel():
-
-    need_internet()
 
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
     _swf = imageio.plugins.swf.load_lib()
     tag = _swf.Tag()
-    raises(NotImplementedError, tag.process_tag)
+    pytest.raises(NotImplementedError, tag.process_tag)
     assert tag.make_matrix_record() == "00000000"
     assert tag.make_matrix_record(scale_xy=(1, 1))
     assert tag.make_matrix_record(rot_xy=(1, 1))
@@ -193,9 +184,8 @@ def test_lowlevel():
     )
 
 
-def test_types():
-
-    need_internet()
+@pytest.mark.needs_internet
+def test_types(test_dir):
 
     fname1 = get_remote_file("images/stent.swf", test_dir)
     fname2 = fname1[:-4] + ".out3.swf"
@@ -222,6 +212,3 @@ def test_types():
             assert im2.dtype == np.uint8
             if len(shape) == 3 and dtype == np.uint8:
                 assert (im1[:, :, 0] == im2[:, :, 0]).all()
-
-
-run_tests_if_main()

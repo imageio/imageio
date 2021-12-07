@@ -3,7 +3,6 @@ import sys
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main
 
 import imageio
 import imageio.plugins.grab
@@ -93,6 +92,3 @@ def test_grab_simulated():
         imageio.plugins.grab.BaseGrabFormat._ImageGrab = None
         imageio.plugins.grab.BaseGrabFormat._pillow_imported = False
         FakeImageGrab.has_clipboard = True
-
-
-run_tests_if_main()

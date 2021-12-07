@@ -8,30 +8,22 @@ import numpy as np
 
 from pytest import raises, skip
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
 from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
 
 
-test_dir = get_test_dir()
-
-
-def setup_module():
+@pytest.fixture(autouse=True)
+def get_library():
     # During this test, pretend that FI is the default format
     imageio.formats.sort("-FI")
 
     # This tests requires our version of the FI lib
-    try:
-        imageio.plugins.freeimage.download()
-    except core.InternetNotAllowedError:
-        # We cannot download; skip all freeimage tests
-        need_internet()
+    imageio.plugins.freeimage.download()
+    yield
 
-
-def teardown_module():
-    # Set back to normal
+    # Sort formats back to normal
     imageio.formats.sort()
 
 
@@ -52,8 +44,6 @@ im4[:, :16, 1] = 200
 im4[50:, :16, 2] = 100
 im4[:, :, 3] = 255
 im4[20:, :, 3] = 120
-
-fnamebase = os.path.join(test_dir, "test")
 
 
 def get_ref_im(colors, crop, isfloat):
@@ -89,14 +79,16 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-def test_download():
+@pytest.mark.needs_internet
+def test_download(get_library):
     # this is a regression test
     # see: https://github.com/imageio/imageio/issues/690
 
     assert hasattr(imageio.plugins.freeimage, "download")
 
 
-def test_get_ref_im():
+@pytest.mark.needs_internet
+def test_get_ref_im(get_library):
     """A test for our function to get test images"""
 
     crop = 0
@@ -124,16 +116,18 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
+@pytest.mark.needs_internet
 def test_get_fi_lib():
-    need_internet()
 
     from imageio.plugins._freeimage import get_freeimage_lib
-
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
 
 
-def test_freeimage_format():
+@pytest.mark.needs_internet
+def test_freeimage_format(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     # Format
     F = imageio.formats["PNG-FI"]
@@ -154,7 +148,8 @@ def test_freeimage_format():
     raises(RuntimeError, W.append_data, im0)
 
 
-def test_freeimage_lib():
+@pytest.mark.needs_internet
+def test_freeimage_lib(get_library):
 
     fi = imageio.plugins.freeimage.fi
 
@@ -170,7 +165,10 @@ def test_freeimage_lib():
     raises(ValueError, fi.getFIF, "foo.iff", "w")  # We cannot write iff
 
 
-def test_png():
+@pytest.mark.needs_internet
+def test_png(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -230,7 +228,11 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
 
-def test_png_dtypes():
+@pytest.mark.needs_internet
+def test_png_dtypes(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
+
     # See issue #44
 
     # Two images, one 0-255, one 0-200
@@ -266,7 +268,10 @@ def test_png_dtypes():
     assert_close(im1, imageio.imread(fname))  # scaled
 
 
-def test_jpg():
+@pytest.mark.needs_internet
+def test_jpg(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -312,8 +317,10 @@ def test_jpg():
     raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more():
-    need_internet()
+@pytest.mark.needs_internet
+def test_jpg_more(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -344,7 +351,10 @@ def test_jpg_more():
     assert im.meta.EXIF_MAIN
 
 
-def test_bmp():
+@pytest.mark.needs_internet
+def test_bmp(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -381,7 +391,11 @@ def test_bmp():
     )
 
 
-def test_gif():
+@pytest.mark.needs_internet
+def test_gif(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
+
     # The not-animated gif
 
     for isfloat in (False, True):
@@ -413,7 +427,10 @@ def test_gif():
     )
 
 
-def test_animated_gif():
+@pytest.mark.needs_internet
+def test_animated_gif(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     if sys.platform.startswith("darwin"):
         skip("On OSX quantization of freeimage is unstable")
@@ -484,7 +501,10 @@ def test_animated_gif():
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_ico():
+@pytest.mark.needs_internet
+def test_ico(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
 
     for isfloat in (False, True):
         for crop in (0,):
@@ -527,7 +547,11 @@ def test_ico():
     sys.platform.startswith("win"),
     reason="Windows has a known issue with multi-icon files",
 )
-def test_multi_icon_ico():
+@pytest.mark.needs_internet
+def test_multi_icon_ico(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
+
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
     ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
@@ -537,12 +561,17 @@ def test_multi_icon_ico():
         assert_close(im1, im2, 0.1)
 
 
-def test_mng():
-    pass  # MNG seems broken in FreeImage
-    # ims = imageio.imread(get_remote_file('images/mngexample.mng'))
+@pytest.mark.skip("MNG seems broken in FreeImage")
+@pytest.mark.needs_internet
+def test_mng(get_library):
+     ims = imageio.imread(get_remote_file('images/mngexample.mng'))
 
 
-def test_pnm():
+@pytest.mark.needs_internet
+def test_pnm(test_dir, get_library):
+
+    fnamebase = os.path.join(test_dir, "test")
+
     for useAscii in (True, False):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3):
@@ -571,14 +600,17 @@ def test_pnm():
                 )
 
 
-def test_other():
+@pytest.mark.needs_internet
+def test_other(test_dir, get_library):
+    fnamebase = os.path.join(test_dir, "test")
+
     # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")
 
 
-def test_gamma_correction():
-    need_internet()
+@pytest.mark.needs_internet
+def test_gamma_correction(get_library):
 
     fname = get_remote_file("images/kodim03.png")
 
@@ -599,8 +631,3 @@ def test_gamma_correction():
     # test_regression_302
     for im in (im1, im2, im3):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
-
-
-if __name__ == "__main__":
-    # test_animated_gif()
-    run_tests_if_main()

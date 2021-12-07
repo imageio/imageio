@@ -34,6 +34,7 @@ __pychache__
 *.dll
 *.dylib
 .*.swp
+*~
 
 # IDE
 .idea

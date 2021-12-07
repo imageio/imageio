@@ -8,7 +8,6 @@ import sys
 import subprocess
 
 from pytest import raises  # noqa
-from imageio.testing import run_tests_if_main
 
 import imageio
 
@@ -102,6 +101,3 @@ def test_import_modules():
     # Test that modules that should not be imported are indeed not imported
     assert "imageio.freeze" not in modnames
     assert "imageio.testing" not in modnames
-
-
-run_tests_if_main()

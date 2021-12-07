@@ -1,6 +1,5 @@
 from pytest import raises
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir
 
 import os
 import gc
@@ -14,14 +13,10 @@ from imageio.core import Format, FormatManager, Request
 from imageio.core import get_remote_file
 
 
-test_dir = get_test_dir()
-
-
-def setup_module():
+@pytest.fixture(scope="module", autouse=True)
+def resort():
     imageio.formats.sort()
-
-
-def teardown_module():
+    yield
     imageio.formats.sort()
 
 
@@ -84,7 +79,8 @@ class MyFormat(Format):
             self._meta = meta
 
 
-def test_format():
+@pytest.mark.needs_internet
+def test_format(test_dir):
     """Test the working of the Format class"""
 
     filename1 = get_remote_file("images/chelsea.png", test_dir)
@@ -154,7 +150,8 @@ def test_format():
     assert set(ids) == set(F._closed)
 
 
-def test_reader_and_writer():
+@pytest.mark.needs_internet
+def test_reader_and_writer(test_dir):
 
     # Prepare
     filename1 = get_remote_file("images/chelsea.png", test_dir)
@@ -223,7 +220,7 @@ def test_reader_and_writer():
     raises(ValueError, W.set_meta_data, "not a dict")
 
 
-def test_default_can_read_and_can_write():
+def test_default_can_read_and_can_write(test_dir):
 
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
@@ -246,7 +243,8 @@ def test_default_can_read_and_can_write():
     assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
-def test_format_selection():
+@pytest.mark.needs_internet
+def test_format_selection(test_dir):
 
     formats = imageio.formats
     fname1 = get_remote_file("images/chelsea.png", test_dir)
@@ -283,7 +281,8 @@ def test_format_selection():
 # Format manager
 
 
-def test_format_manager():
+@pytest.mark.needs_internet
+def test_format_manager(test_dir):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -429,6 +428,3 @@ def test_write_format_search_fail(tmp_path):
 
 def test_format_by_filename():
     iio.formats["test.jpg"]
-
-
-run_tests_if_main()
