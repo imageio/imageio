@@ -80,10 +80,10 @@ class MyFormat(Format):
 
 
 @pytest.mark.needs_internet
-def test_format(test_dir):
+def test_format(tmp_path):
     """Test the working of the Format class"""
 
-    filename1 = get_remote_file("images/chelsea.png", test_dir)
+    filename1 = get_remote_file("images/chelsea.png", tmp_path)
     filename2 = filename1 + ".out"
 
     # Test basic format creation
@@ -151,10 +151,10 @@ def test_format(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_reader_and_writer(test_dir):
+def test_reader_and_writer(tmp_path):
 
     # Prepare
-    filename1 = get_remote_file("images/chelsea.png", test_dir)
+    filename1 = get_remote_file("images/chelsea.png", tmp_path)
     filename2 = filename1 + ".out"
     F = MyFormat("test", "", modes="i")
 
@@ -220,12 +220,12 @@ def test_reader_and_writer(test_dir):
     raises(ValueError, W.set_meta_data, "not a dict")
 
 
-def test_default_can_read_and_can_write(test_dir):
+def test_default_can_read_and_can_write(tmp_path):
 
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
-    filename1 = os.path.join(test_dir, "test")
+    filename1 = os.path.join(tmp_path, "test")
     open(filename1 + ".foo", "wb")
     open(filename1 + ".bar", "wb")
     open(filename1 + ".spam", "wb")
@@ -244,12 +244,12 @@ def test_default_can_read_and_can_write(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_format_selection(test_dir):
+def test_format_selection(tmp_path):
 
     formats = imageio.formats
-    fname1 = get_remote_file("images/chelsea.png", test_dir)
-    fname2 = os.path.join(test_dir, "test.selectext1")
-    fname3 = os.path.join(test_dir, "test.haha")
+    fname1 = get_remote_file("images/chelsea.png", tmp_path)
+    fname2 = os.path.join(tmp_path, "test.selectext1")
+    fname3 = os.path.join(tmp_path, "test.haha")
     open(fname2, "wb")
     open(fname3, "wb")
 
@@ -282,7 +282,7 @@ def test_format_selection(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_format_manager(test_dir):
+def test_format_manager(tmp_path):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -304,7 +304,7 @@ def test_format_manager(test_dir):
         assert format.name in smalldocs
         # assert format.name in fulldocs
 
-    fname = get_remote_file("images/chelsea.png", test_dir)
+    fname = get_remote_file("images/chelsea.png", tmp_path)
     fname2 = fname[:-3] + "noext"
     shutil.copy(fname, fname2)
 

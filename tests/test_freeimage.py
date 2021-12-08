@@ -126,9 +126,9 @@ def test_get_fi_lib():
 
 
 @pytest.mark.needs_internet
-def test_freeimage_format(test_dir, get_library):
+def test_freeimage_format(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Format
     F = imageio.formats["PNG-FI"]
@@ -167,9 +167,9 @@ def test_freeimage_lib(get_library):
 
 
 @pytest.mark.needs_internet
-def test_png(test_dir, get_library):
+def test_png(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -230,9 +230,9 @@ def test_png(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_png_dtypes(test_dir, get_library):
+def test_png_dtypes(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # See issue #44
 
@@ -270,9 +270,9 @@ def test_png_dtypes(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_jpg(test_dir, get_library):
+def test_jpg(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -319,9 +319,9 @@ def test_jpg(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_jpg_more(test_dir, get_library):
+def test_jpg_more(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -353,9 +353,9 @@ def test_jpg_more(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_bmp(test_dir, get_library):
+def test_bmp(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -393,9 +393,9 @@ def test_bmp(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_gif(test_dir, get_library):
+def test_gif(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # The not-animated gif
 
@@ -429,9 +429,9 @@ def test_gif(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_animated_gif(test_dir, get_library):
+def test_animated_gif(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     if sys.platform.startswith("darwin"):
         skip("On OSX quantization of freeimage is unstable")
@@ -503,9 +503,9 @@ def test_animated_gif(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_ico(test_dir, get_library):
+def test_ico(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0,):
@@ -549,9 +549,9 @@ def test_ico(test_dir, get_library):
     reason="Windows has a known issue with multi-icon files",
 )
 @pytest.mark.needs_internet
-def test_multi_icon_ico(test_dir, get_library):
+def test_multi_icon_ico(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
@@ -569,9 +569,9 @@ def test_mng(get_library):
 
 
 @pytest.mark.needs_internet
-def test_pnm(test_dir, get_library):
+def test_pnm(tmp_path, get_library):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for useAscii in (True, False):
         for crop in (0, 1, 2):
@@ -602,8 +602,8 @@ def test_pnm(test_dir, get_library):
 
 
 @pytest.mark.needs_internet
-def test_other(test_dir, get_library):
-    fnamebase = os.path.join(test_dir, "test")
+def test_other(tmp_path, get_library):
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Cannot save float
     im = get_ref_im(3, 0, 1)

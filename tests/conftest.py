@@ -120,17 +120,3 @@ def invalid_file(tmp_path, request):
         file.write("Actually not a file.")
 
     return tmp_path / ("foo" + ext)
-
-
-@pytest.fixture()
-def test_dir():
-    # Define dir
-    from imageio.core import appdata_dir
-
-    d = os.path.join(appdata_dir("imageio"), "testdir")
-    os.makedirs(d)
-    os.makedirs(os.path.join(d, "images"))
-
-    yield d
-
-    shutil.rmtree(d)

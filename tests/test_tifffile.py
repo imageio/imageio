@@ -22,12 +22,12 @@ def test_tifffile_format():
 
 
 @pytest.mark.needs_internet
-def test_tifffile_reading_writing(test_dir):
+def test_tifffile_reading_writing(tmp_path):
     """Test reading and saving tiff"""
 
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
-    filename1 = os.path.join(test_dir, "test_tiff.tiff")
+    filename1 = os.path.join(tmp_path, "test_tiff.tiff")
 
     # One image
     imageio.imsave(filename1, im2)
@@ -82,7 +82,7 @@ def test_tifffile_reading_writing(test_dir):
     pytest.raises(IndexError, R.get_data, 3)
 
     # Ensure imread + imwrite works round trip
-    filename3 = os.path.join(test_dir, "test_tiff2.tiff")
+    filename3 = os.path.join(tmp_path, "test_tiff2.tiff")
     im1 = imageio.imread(filename1)
     imageio.imwrite(filename3, im1)
     im3 = imageio.imread(filename3)
@@ -91,7 +91,7 @@ def test_tifffile_reading_writing(test_dir):
     assert (im1 == im3).all()
 
     # Ensure imread + imwrite works round trip - volume like
-    filename3 = os.path.join(test_dir, "test_tiff2.tiff")
+    filename3 = os.path.join(tmp_path, "test_tiff2.tiff")
     im1 = np.stack(imageio.mimread(filename1))
     imageio.volwrite(filename3, im1)
     im3 = imageio.volread(filename3)

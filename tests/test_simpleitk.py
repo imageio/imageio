@@ -23,11 +23,11 @@ except ImportError:
 
 
 @pytest.mark.skipif("itk is None")
-def test_simpleitk_reading_writing(test_dir):
+def test_simpleitk_reading_writing(tmp_path):
     """Test reading and saveing tiff"""
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
-    filename1 = os.path.join(test_dir, "test_tiff.tiff")
+    filename1 = os.path.join(tmp_path, "test_tiff.tiff")
 
     # One image
     imageio.imsave(filename1, im2, "itk")

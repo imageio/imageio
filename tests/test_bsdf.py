@@ -22,12 +22,12 @@ xfail_big_endian = pytest.mark.xfail(
 
 
 @pytest.mark.needs_internet
-def test_select(test_dir):
+def test_select(tmp_path):
 
     F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
-    fname1 = get_remote_file("images/chelsea.bsdf", test_dir)
+    fname1 = get_remote_file("images/chelsea.bsdf", tmp_path)
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))
@@ -49,9 +49,9 @@ def test_select(test_dir):
     )
 
 
-def test_not_an_image(test_dir):
+def test_not_an_image(tmp_path):
 
-    fname = os.path.join(test_dir, "notanimage.bsdf")
+    fname = os.path.join(tmp_path, "notanimage.bsdf")
 
     # Not an image not a list
     bsdf.save(fname, 1)
@@ -72,11 +72,11 @@ def test_not_an_image(test_dir):
 
 @xfail_big_endian
 @pytest.mark.needs_internet
-def test_singleton(test_dir):
+def test_singleton(tmp_path):
 
     im1 = imageio.imread("imageio:chelsea.png")
 
-    fname = os.path.join(test_dir, "chelsea.bsdf")
+    fname = os.path.join(tmp_path, "chelsea.bsdf")
     imageio.imsave(fname, im1)
 
     # Does it look alright if we open it in bsdf without extensions?
@@ -104,12 +104,12 @@ def test_singleton(test_dir):
 
 @xfail_big_endian
 @pytest.mark.needs_internet
-def test_series(test_dir):
+def test_series(tmp_path):
 
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = os.path.join(tmp_path, "chelseam.bsdf")
     imageio.mimsave(fname, ims1)
 
     # Does it look alright if we open it in bsdf without extensions?
@@ -138,11 +138,11 @@ def test_series(test_dir):
 
 @xfail_big_endian
 @pytest.mark.needs_internet
-def test_series_unclosed(test_dir):
+def test_series_unclosed(tmp_path):
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = os.path.join(tmp_path, "chelseam.bsdf")
     w = imageio.get_writer(fname)
     for im in ims1:
         w.append_data(im)
@@ -169,12 +169,12 @@ def test_series_unclosed(test_dir):
 
 @xfail_big_endian
 @pytest.mark.needs_internet
-def test_random_access(test_dir):
+def test_random_access(tmp_path):
 
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = os.path.join(tmp_path, "chelseam.bsdf")
     imageio.mimsave(fname, ims1)
 
     r = imageio.get_reader(fname)
@@ -187,12 +187,12 @@ def test_random_access(test_dir):
 
 @xfail_big_endian
 @pytest.mark.needs_internet
-def test_volume(test_dir):
+def test_volume(tmp_path):
 
     vol1 = imageio.imread("imageio:stent.npz")
     assert vol1.shape == (256, 128, 128)
 
-    fname = os.path.join(test_dir, "stent.bsdf")
+    fname = os.path.join(tmp_path, "stent.bsdf")
     imageio.volsave(fname, vol1)
 
     vol2 = imageio.volread(fname)

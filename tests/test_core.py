@@ -55,27 +55,27 @@ class BrokenDummyPlugin:
 
 
 @pytest.mark.needs_internet
-def test_fetching(test_dir):
+def test_fetching(tmp_path):
     """Test fetching of files"""
 
     # Clear image files
-    if os.path.isdir(test_dir):
-        shutil.rmtree(test_dir)
+    if os.path.isdir(tmp_path):
+        shutil.rmtree(tmp_path)
 
     # This should download the file (force download, because local cache)
-    fname1 = get_remote_file("images/chelsea.png", test_dir, True)
+    fname1 = get_remote_file("images/chelsea.png", tmp_path, True)
     mtime1 = os.path.getmtime(fname1)
     # This should reuse it
-    fname2 = get_remote_file("images/chelsea.png", test_dir)
+    fname2 = get_remote_file("images/chelsea.png", tmp_path)
     mtime2 = os.path.getmtime(fname2)
     # This should overwrite
-    fname3 = get_remote_file("images/chelsea.png", test_dir, True)
+    fname3 = get_remote_file("images/chelsea.png", tmp_path, True)
     mtime3 = os.path.getmtime(fname3)
     # This should too (update this if imageio is still around in 1000 years)
-    fname4 = get_remote_file("images/chelsea.png", test_dir, "3014-01-01")
+    fname4 = get_remote_file("images/chelsea.png", tmp_path, "3014-01-01")
     mtime4 = os.path.getmtime(fname4)
     # This should not
-    fname5 = get_remote_file("images/chelsea.png", test_dir, "2014-01-01")
+    fname5 = get_remote_file("images/chelsea.png", tmp_path, "2014-01-01")
     mtime5 = os.path.getmtime(fname4)
     #
     assert os.path.isfile(fname1)
@@ -94,7 +94,7 @@ def test_fetching(test_dir):
     _urlopen = core.fetching.urlopen
     _chunk_read = core.fetching._chunk_read
     #
-    raises(IOError, get_remote_file, "this_does_not_exist", test_dir)
+    raises(IOError, get_remote_file, "this_does_not_exist", tmp_path)
     #
     try:
         core.fetching.urlopen = None
@@ -157,7 +157,7 @@ def test_findlib2():
 
 
 @pytest.mark.needs_internet
-def test_request(test_dir):
+def test_request(tmp_path):
     """Test request object"""
 
     # Check uri-type, this is not a public property, so we test the private
@@ -172,7 +172,7 @@ def test_request(test_dir):
     R = Request(imageio.RETURN_BYTES, "wi")
     assert R._uri_type == core.request.URI_BYTES
     #
-    fname = get_remote_file("images/chelsea.png", test_dir)
+    fname = get_remote_file("images/chelsea.png", tmp_path)
     R = Request(fname, "ri")
     assert R._uri_type == core.request.URI_FILENAME
     R = Request("~/filethatdoesnotexist", "wi")
@@ -239,15 +239,15 @@ def test_request(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_request_read_sources(test_dir):
+def test_request_read_sources(tmp_path):
 
     # Make an image available in many ways
     fname = "images/chelsea.png"
-    filename = get_remote_file(fname, test_dir)
+    filename = get_remote_file(fname, tmp_path)
     bytes = open(filename, "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    zipfilename = os.path.join(test_dir, "test1.zip")
+    zipfilename = os.path.join(tmp_path, "test1.zip")
     with ZipFile(zipfilename, "w") as zf:
         zf.writestr(fname, bytes)
 
@@ -286,19 +286,19 @@ def test_request_read_sources(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_request_save_sources(test_dir):
+def test_request_save_sources(tmp_path):
 
     # Get test data
     fname = "images/chelsea.png"
-    filename = get_remote_file(fname, test_dir)
+    filename = get_remote_file(fname, tmp_path)
     with open(filename, "rb") as f:
         bytes = f.read()
     assert len(bytes) > 0
 
     # Prepare destinations
     fname2 = fname + ".out"
-    filename2 = os.path.join(test_dir, fname2)
-    zipfilename2 = os.path.join(test_dir, "test2.zip")
+    filename2 = os.path.join(tmp_path, fname2)
+    zipfilename2 = os.path.join(tmp_path, "test2.zip")
     file2 = None
 
     # Write an image into many different destinations
@@ -616,14 +616,14 @@ def test_util_has_has_module():
 
 
 @pytest.mark.needs_internet
-def test_functions(test_dir):
+def test_functions(tmp_path):
     """Test the user-facing API functions"""
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help("PNG")  # should print about PNG
 
-    fname1 = get_remote_file("images/chelsea.png", test_dir)
+    fname1 = get_remote_file("images/chelsea.png", tmp_path)
     fname2 = fname1[:-3] + "jpg"
     fname3 = fname1[:-3] + "notavalidext"
     open(fname3, "wb")
@@ -668,7 +668,7 @@ def test_functions(test_dir):
     assert os.path.isfile(fname2)
 
     # Test mimread()
-    fname3 = get_remote_file("images/newtonscradle.gif", test_dir)
+    fname3 = get_remote_file("images/newtonscradle.gif", tmp_path)
     ims = imageio.mimread(fname3)
     assert isinstance(ims, list)
     assert len(ims) > 1
@@ -691,7 +691,7 @@ def test_functions(test_dir):
     assert os.path.isfile(fname5)
 
     # Test volread()
-    fname4 = get_remote_file("images/stent.npz", test_dir)
+    fname4 = get_remote_file("images/stent.npz", tmp_path)
     vol = imageio.volread(fname4)
     assert vol.ndim == 3
     assert vol.shape[0] == 256
@@ -700,7 +700,7 @@ def test_functions(test_dir):
 
     # Test volsave()
     volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
-    fname6 = os.path.join(test_dir, "images", "stent2.npz")
+    fname6 = os.path.join(tmp_path, "images", "stent2.npz")
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
@@ -757,8 +757,8 @@ def test_to_nbytes_incorrect(arg):
 
 
 @pytest.mark.needs_internet
-def test_memtest(test_dir):
-    fname3 = get_remote_file("images/newtonscradle.gif", test_dir)
+def test_memtest(tmp_path):
+    fname3 = get_remote_file("images/newtonscradle.gif", tmp_path)
     imageio.mimread(fname3)  # trivial case
     imageio.mimread(fname3, memtest=1000 ** 2 * 256)
     imageio.mimread(fname3, memtest="256MB")
@@ -776,10 +776,10 @@ def test_memtest(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_example_plugin(test_dir):
+def test_example_plugin(tmp_path):
     """Test the example plugin"""
 
-    fname = os.path.join(test_dir, "out.png")
+    fname = os.path.join(tmp_path, "out.png")
     r = Request("imageio:chelsea.png", "r?")
     R = imageio.formats["dummy"].get_reader(r)
     W = imageio.formats["dummy"].get_writer(Request(fname, "w?"))

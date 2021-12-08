@@ -79,9 +79,9 @@ def test_get_exe_env():
 
 
 @pytest.mark.needs_internet
-def test_select(test_dir):
+def test_select(tmp_path):
 
-    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname1 = get_remote_file("images/cockatoo.mp4", tmp_path)
 
     F = imageio.formats["ffmpeg"]
     assert F.name == "FFMPEG"
@@ -112,12 +112,12 @@ def test_integer_reader_length():
 
 
 @pytest.mark.needs_internet
-def test_read_and_write(test_dir):
+def test_read_and_write(tmp_path):
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
     assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
-    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname1 = get_remote_file("images/cockatoo.mp4", tmp_path)
     fname2 = fname1[:-4] + ".out.mp4"
 
     frame1, frame2, frame3 = 41, 131, 227
@@ -182,12 +182,12 @@ def test_read_and_write(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_write_not_contiguous(test_dir):
+def test_write_not_contiguous(tmp_path):
 
     R = imageio.read(get_remote_file("images/cockatoo.mp4"), "ffmpeg")
     assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
 
-    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname1 = get_remote_file("images/cockatoo.mp4", tmp_path)
     fname2 = fname1[:-4] + ".out.mp4"
 
     # Read
@@ -220,9 +220,9 @@ def test_write_not_contiguous(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_reader_more(test_dir):
+def test_reader_more(tmp_path):
 
-    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname1 = get_remote_file("images/cockatoo.mp4", tmp_path)
     fname3 = fname1[:-4] + ".stub.mp4"
 
     # Get meta data
@@ -295,9 +295,9 @@ def test_reader_more(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_writer_more(test_dir):
+def test_writer_more(tmp_path):
 
-    fname1 = get_remote_file("images/cockatoo.mp4", test_dir)
+    fname1 = get_remote_file("images/cockatoo.mp4", tmp_path)
     fname2 = fname1[:-4] + ".out.mp4"
 
     W = imageio.save(fname2, "ffmpeg")

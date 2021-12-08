@@ -399,7 +399,7 @@ def test_gif_transparent_pixel(image_files: Path):
 # TODO: Pillow actually doesn't read zip. This should be a different plugin.
 # def test_inside_zipfile():
 
-#     fname = os.path.join(test_dir, "pillowtest.zip")
+#     fname = os.path.join(tmp_path, "pillowtest.zip")
 #     with ZipFile(fname, "w") as z:
 #         z.writestr("x.png", open(get_remote_file(
 #             "images/chelsea.png"), "rb").read())

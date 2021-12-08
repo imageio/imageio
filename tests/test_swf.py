@@ -21,9 +21,9 @@ def mean(x):
 
 
 @pytest.mark.needs_internet
-def test_format_selection(test_dir):
+def test_format_selection(tmp_path):
 
-    fname1 = get_remote_file("images/stent.swf", test_dir)
+    fname1 = get_remote_file("images/stent.swf", tmp_path)
     fname2 = fname1[:-4] + ".out.swf"
 
     F = imageio.formats["swf"]
@@ -35,9 +35,9 @@ def test_format_selection(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_reading_saving(test_dir):
+def test_reading_saving(tmp_path):
 
-    fname1 = get_remote_file("images/stent.swf", test_dir)
+    fname1 = get_remote_file("images/stent.swf", tmp_path)
     fname2 = fname1[:-4] + ".out.swf"
     fname3 = fname1[:-4] + ".compressed.swf"
     fname4 = fname1[:-4] + ".out2.swf"
@@ -125,7 +125,7 @@ def test_reading_saving(test_dir):
         fname4,
     )
 
-    with open(os.path.join(test_dir, "test_swf.html"), "wb") as f:
+    with open(os.path.join(tmp_path, "test_swf.html"), "wb") as f:
         for line in html.splitlines():
             f.write(line.strip().encode("utf-8") + b"\n")
 
@@ -141,9 +141,9 @@ def test_read_from_url():
 
 
 @pytest.mark.needs_internet
-def test_invalid(test_dir):
+def test_invalid(tmp_path):
 
-    fname1 = get_remote_file("images/stent.swf", test_dir)
+    fname1 = get_remote_file("images/stent.swf", tmp_path)
     fname2 = fname1[:-4] + ".invalid.swf"
 
     # Empty file
@@ -185,9 +185,9 @@ def test_lowlevel():
 
 
 @pytest.mark.needs_internet
-def test_types(test_dir):
+def test_types(tmp_path):
 
-    fname1 = get_remote_file("images/stent.swf", test_dir)
+    fname1 = get_remote_file("images/stent.swf", tmp_path)
     fname2 = fname1[:-4] + ".out3.swf"
 
     for dtype in [

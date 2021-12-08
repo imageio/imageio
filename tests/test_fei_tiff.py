@@ -30,8 +30,8 @@ def test_fei_file_reading():
     assert reader.get_data(0, discard_watermark=False).shape == (1094, 1536)
 
 
-def test_fei_file_fail(test_dir):
-    normal_tif = os.path.join(test_dir, "test_tiff.tiff")
+def test_fei_file_fail(tmp_path):
+    normal_tif = os.path.join(tmp_path, "test_tiff.tiff")
     imageio.imsave(normal_tif, np.zeros((5, 5), dtype=np.uint8))
     bad_reader = imageio.get_reader(normal_tif, format="fei")
     assert pytest.raises(ValueError, bad_reader._get_meta_data)

@@ -72,9 +72,9 @@ def assert_close(im1, im2, tol=0.0):
 
 
 @pytest.mark.needs_internet
-def test_pillow_format(test_dir):
+def test_pillow_format(tmp_path):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Format - Pillow is the default!
     F = imageio.formats["PNG"]
@@ -96,9 +96,9 @@ def test_pillow_format(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_png(test_dir):
+def test_png(tmp_path):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -173,9 +173,9 @@ def test_png_remote():
     assert im.shape == (512, 512, 3)
 
 
-def test_jpg(test_dir):
+def test_jpg(tmp_path):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -210,9 +210,9 @@ def test_jpg(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_jpg_more(test_dir):
+def test_jpg_more(tmp_path):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -243,8 +243,8 @@ def test_jpg_more(test_dir):
     assert im.meta.EXIF_MAIN
 
 
-def test_gif(test_dir):
-    fnamebase = os.path.join(test_dir, "test")
+def test_gif(tmp_path):
+    fnamebase = os.path.join(tmp_path, "test")
 
     # The not-animated gif
 
@@ -269,9 +269,9 @@ def test_gif(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_animated_gif(test_dir):
+def test_animated_gif(tmp_path):
 
-    fnamebase = os.path.join(test_dir, "test")
+    fnamebase = os.path.join(tmp_path, "test")
 
     # Read newton's cradle
     ims = imageio.mimread("imageio:newtonscradle.gif")
@@ -380,9 +380,9 @@ def test_gamma_correction():
 
 
 @pytest.mark.needs_internet
-def test_inside_zipfile(test_dir):
+def test_inside_zipfile(tmp_path):
 
-    fname = os.path.join(test_dir, "pillowtest.zip")
+    fname = os.path.join(tmp_path, "pillowtest.zip")
     with ZipFile(fname, "w") as z:
         z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
         z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())
@@ -392,8 +392,8 @@ def test_inside_zipfile(test_dir):
 
 
 @pytest.mark.needs_internet
-def test_bmp(test_dir):
-    fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
+def test_bmp(tmp_path):
+    fname = get_remote_file("images/scribble_P_RGB.bmp", tmp_path)
 
     imageio.imread(fname)
     imageio.imread(fname, pilmode="RGB")
