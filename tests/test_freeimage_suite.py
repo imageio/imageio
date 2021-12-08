@@ -6,6 +6,7 @@ import sys
 import zipfile
 import shutil
 import imageio
+import urllib.request
 
 # During this test, pretend that FI is the default format?
 # imageio.formats.sort('-FI')
@@ -62,7 +63,7 @@ def run_feeimage_test_suite():
         # Make sure that the file is there
         if not os.path.isfile(fname):
             print("Downloading %s.zip" % name)
-            f1 = urlopen(ulr + name + ".zip")
+            f1 = urllib.request.urlopen(ulr + name + ".zip")
             f2 = open(fname, "wb")
             shutil.copyfileobj(f1, f2)
             f1.close()
