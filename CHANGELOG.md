@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.3 (2021-12-08)
+### Fix
+* Allow TIFF to write bytes and file objects ([#704](https://github.com/imageio/imageio/issues/704)) ([`9c765c3`](https://github.com/imageio/imageio/commit/9c765c3e7dcf800910b348294261c05034fcedb9))
+
 ## v2.13.2 (2021-12-07)
 ### Fix
 * Only force webcam FPS on Mac ([#701](https://github.com/imageio/imageio/issues/701)) ([`28b1d0d`](https://github.com/imageio/imageio/commit/28b1d0db00059dcaebeb9f9a83501d1865e9ceb6))
