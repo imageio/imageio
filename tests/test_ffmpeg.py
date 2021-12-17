@@ -13,7 +13,7 @@ import psutil
 
 import numpy as np
 
-from pytest import raises, skip
+from pytest import raises, skip, warns
 from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
@@ -559,6 +559,18 @@ def test_webcam_process_termination():
         assert not get_ffmpeg_pids().difference(pids0)
     except IndexError:
         skip("no webcam")
+
+
+def test_webcam_resource_warnings():
+    """
+    Test for issue #697. Ensures that ffmpeg Reader standard streams are
+    properly closed by checking for ResourceWarning "unclosed file".
+    """
+    with warns(ResourceWarning, match="unclosed file") as resource_warnings:
+        with imageio.get_reader("<video0>"):
+            pass
+    # there should not be any warnings, but show warning messages if there are
+    assert not [w.message for w in resource_warnings]
 
 
 def show_in_console():
