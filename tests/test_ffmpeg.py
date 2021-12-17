@@ -565,12 +565,15 @@ def test_webcam_resource_warnings():
     """
     Test for issue #697. Ensures that ffmpeg Reader standard streams are
     properly closed by checking for ResourceWarning "unclosed file".
+
+    todo: use pytest.does_not_warn() as soon as it becomes available
+     (see https://github.com/pytest-dev/pytest/issues/9404)
     """
-    with warns(ResourceWarning, match="unclosed file") as resource_warnings:
+    with warns(None) as warnings:
         with imageio.get_reader("<video0>"):
             pass
     # there should not be any warnings, but show warning messages if there are
-    assert not [w.message for w in resource_warnings]
+    assert not [w.message for w in warnings]
 
 
 def show_in_console():
