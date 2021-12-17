@@ -569,9 +569,12 @@ def test_webcam_resource_warnings():
     todo: use pytest.does_not_warn() as soon as it becomes available
      (see https://github.com/pytest-dev/pytest/issues/9404)
     """
-    with warns(None) as warnings:
-        with imageio.get_reader("<video0>"):
-            pass
+    try:
+        with warns(None) as warnings:
+            with imageio.get_reader("<video0>"):
+                pass
+    except IndexError:
+        skip("no webcam")
 
     # todo: remove this part when imageio_ffmpeg issue #61 has been fixed
     import imageio_ffmpeg
