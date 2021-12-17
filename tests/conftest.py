@@ -10,8 +10,7 @@ import imageio as iio
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "needs_internet: mark tests that require internet access "
-        "(deselect with '-m \"not needs_internet\"'",
+        "(deselect with '-m \"not needs_internet\"').",
     )
 
 
