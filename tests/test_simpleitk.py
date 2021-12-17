@@ -1,8 +1,6 @@
 """ Test simpleitk plugin functionality.
 """
 
-import os
-
 import numpy as np
 
 import pytest

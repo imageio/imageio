@@ -1,7 +1,6 @@
 """ Test DICOM functionality.
 """
 
-import os
 import shutil
 from zipfile import ZipFile
 

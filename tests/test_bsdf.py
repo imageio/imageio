@@ -1,7 +1,6 @@
 """ Test BSDF plugin.
 """
 
-import os
 
 import numpy as np
 
@@ -27,7 +26,7 @@ def test_select(tmp_path):
     F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
-    fname1 = readonly_test_images / "chelsea.bsdf"
+    fname1 = get_remote_file("images/chelsea.bsdf", tmp_path)
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))

@@ -1,7 +1,6 @@
 from pytest import raises
 import pytest
 
-import os
 import gc
 import shutil
 

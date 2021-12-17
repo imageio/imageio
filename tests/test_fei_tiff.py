@@ -4,7 +4,6 @@ FEI TIFFs contain metadata as ASCII plaintext at the end of the file.
 """
 from __future__ import unicode_literals
 
-import os
 import pytest
 import numpy as np
 from imageio.core import get_remote_file
