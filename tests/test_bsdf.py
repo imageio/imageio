@@ -109,7 +109,7 @@ def test_series(tmp_path):
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(tmp_path, "chelseam.bsdf")
+    fname = tmp_path / "chelseam.bsdf"
     imageio.mimsave(fname, ims1)
 
     # Does it look alright if we open it in bsdf without extensions?
