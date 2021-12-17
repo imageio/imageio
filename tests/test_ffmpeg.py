@@ -572,6 +572,14 @@ def test_webcam_resource_warnings():
     with warns(None) as warnings:
         with imageio.get_reader("<video0>"):
             pass
+
+    # todo: remove this part when imageio_ffmpeg issue #61 has been fixed
+    import imageio_ffmpeg
+    if imageio_ffmpeg.__version__ == "0.4.5":
+        assert len(warnings) == 1
+        assert 'unclosed file' in str(warnings[0].message)
+        return
+
     # there should not be any warnings, but show warning messages if there are
     assert not [w.message for w in warnings]
 
