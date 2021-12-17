@@ -224,18 +224,19 @@ class FfmpegFormat(Format):
                     "-i",
                     "dummy",
                 ]
-                # Set `shell=True` in sp.Popen to prevent popup of a command line
-                # window in frozen applications. Note: this would be a security
-                # vulnerability if user-input goes into the cmd.
-                proc = sp.Popen(
-                    cmd, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE, shell=True
-                )
-                proc.stdout.readline()
-                proc.terminate()
-                infos = proc.stderr.read().decode("utf-8", errors="ignore")
+                # Set `shell=True` in sp.run to prevent popup of a command
+                # line window in frozen applications. Note: this would be a
+                # security vulnerability if user-input goes into the cmd.
+                # Note that the ffmpeg process returns with exit code 1 when
+                # using `-list_devices` (or `-list_options`), even if the
+                # command is successful, so we set `check=False` explicitly.
+                completed_process = sp.run(
+                    cmd, capture_output=True, encoding="utf-8", shell=True,
+                    check=False)
+
                 # Return device name at index
                 try:
-                    name = parse_device_names(infos)[index]
+                    name = parse_device_names(completed_process.stderr)[index]
                 except IndexError:
                     raise IndexError("No ffdshow camera at index %i." % index)
                 return "video=%s" % name
