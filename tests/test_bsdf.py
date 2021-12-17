@@ -27,7 +27,7 @@ def test_select(tmp_path):
     F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
-    fname1 = get_remote_file("images/chelsea.bsdf", tmp_path)
+    fname1 = readonly_test_images / "chelsea.bsdf"
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))
