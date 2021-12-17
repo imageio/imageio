@@ -76,7 +76,7 @@ def test_singleton(tmp_path):
 
     im1 = imageio.imread("imageio:chelsea.png")
 
-    fname = os.path.join(tmp_path, "chelsea.bsdf")
+    fname = tmp_path / "chelsea.bsdf"
     imageio.imsave(fname, im1)
 
     # Does it look alright if we open it in bsdf without extensions?
