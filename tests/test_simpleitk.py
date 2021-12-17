@@ -27,7 +27,7 @@ def test_simpleitk_reading_writing(tmp_path):
     """Test reading and saveing tiff"""
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
-    filename1 = os.path.join(tmp_path, "test_tiff.tiff")
+    filename1 = tmp_path / "test_tiff.tiff"
 
     # One image
     imageio.imsave(filename1, im2, "itk")

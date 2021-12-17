@@ -37,7 +37,7 @@ def test_npz_reading_writing(tmp_path):
     im3 = np.ones((10, 10, 10), np.uint8) * 3
     im4 = np.ones((10, 10, 10, 10), np.uint8) * 4
 
-    filename1 = os.path.join(tmp_path, "test_npz.npz")
+    filename1 = tmp_path / "test_npz.npz"
 
     # One image
     imageio.imsave(filename1, im2)

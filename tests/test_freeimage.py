@@ -14,7 +14,7 @@ from imageio import core
 from imageio.core import get_remote_file, IS_PYPY
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def get_library():
     # During this test, pretend that FI is the default format
     imageio.formats.sort("-FI")
@@ -80,7 +80,7 @@ def assert_close(im1, im2, tol=0.0):
 
 
 @pytest.mark.needs_internet
-def test_download(get_library):
+def test_download():
     # this is a regression test
     # see: https://github.com/imageio/imageio/issues/690
 
@@ -88,7 +88,7 @@ def test_download(get_library):
 
 
 @pytest.mark.needs_internet
-def test_get_ref_im(get_library):
+def test_get_ref_im():
     """A test for our function to get test images"""
 
     crop = 0
@@ -126,9 +126,9 @@ def test_get_fi_lib():
 
 
 @pytest.mark.needs_internet
-def test_freeimage_format(tmp_path, get_library):
+def test_freeimage_format(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # Format
     F = imageio.formats["PNG-FI"]
@@ -150,7 +150,7 @@ def test_freeimage_format(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_freeimage_lib(get_library):
+def test_freeimage_lib():
 
     fi = imageio.plugins.freeimage.fi
 
@@ -167,9 +167,9 @@ def test_freeimage_lib(get_library):
 
 
 @pytest.mark.needs_internet
-def test_png(tmp_path, get_library):
+def test_png(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -230,9 +230,9 @@ def test_png(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_png_dtypes(tmp_path, get_library):
+def test_png_dtypes(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # See issue #44
 
@@ -270,9 +270,9 @@ def test_png_dtypes(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_jpg(tmp_path, get_library):
+def test_jpg(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -319,9 +319,9 @@ def test_jpg(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_jpg_more(tmp_path, get_library):
+def test_jpg_more(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -353,9 +353,9 @@ def test_jpg_more(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_bmp(tmp_path, get_library):
+def test_bmp(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -393,9 +393,9 @@ def test_bmp(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_gif(tmp_path, get_library):
+def test_gif(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # The not-animated gif
 
@@ -429,9 +429,9 @@ def test_gif(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_animated_gif(tmp_path, get_library):
+def test_animated_gif(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     if sys.platform.startswith("darwin"):
         skip("On OSX quantization of freeimage is unstable")
@@ -503,9 +503,9 @@ def test_animated_gif(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_ico(tmp_path, get_library):
+def test_ico(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0,):
@@ -549,9 +549,9 @@ def test_ico(tmp_path, get_library):
     reason="Windows has a known issue with multi-icon files",
 )
 @pytest.mark.needs_internet
-def test_multi_icon_ico(tmp_path, get_library):
+def test_multi_icon_ico(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
@@ -569,9 +569,9 @@ def test_mng(get_library):
 
 
 @pytest.mark.needs_internet
-def test_pnm(tmp_path, get_library):
+def test_pnm(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for useAscii in (True, False):
         for crop in (0, 1, 2):
@@ -602,8 +602,8 @@ def test_pnm(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_other(tmp_path, get_library):
-    fnamebase = os.path.join(tmp_path, "test")
+def test_other(tmp_path):
+    fnamebase = tmp_path / "test"
 
     # Cannot save float
     im = get_ref_im(3, 0, 1)
@@ -611,7 +611,7 @@ def test_other(tmp_path, get_library):
 
 
 @pytest.mark.needs_internet
-def test_gamma_correction(get_library):
+def test_gamma_correction():
 
     fname = get_remote_file("images/kodim03.png")
 

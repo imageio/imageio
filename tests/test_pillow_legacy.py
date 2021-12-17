@@ -74,7 +74,7 @@ def assert_close(im1, im2, tol=0.0):
 @pytest.mark.needs_internet
 def test_pillow_format(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # Format - Pillow is the default!
     F = imageio.formats["PNG"]
@@ -85,20 +85,25 @@ def test_pillow_format(tmp_path):
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
-    assert pytest.raises(IndexError, R.get_data, 2)
-    assert pytest.raises(IndexError, R.get_meta_data, 2)
+
+    with pytest.raises(IndexError):
+        R.get_data(2)
+
+    with pytest.raises(IndexError):
+        R.get_meta_data(2)
 
     # Writer
     W = F.get_writer(core.Request(fnamebase + ".png", "wi"))
     W.append_data(im0)
     W.set_meta_data({"foo": 3})
-    assert pytest.raises(RuntimeError, W.append_data, im0)
+    with pytest.raises(RuntimeError):
+        W.append_data(im0)
 
 
 @pytest.mark.needs_internet
 def test_png(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -115,8 +120,11 @@ def test_png(tmp_path):
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
-    pytest.raises(TypeError, imageio.imread, "imageio:chelsea.png", notavalidk=True)
-    pytest.raises(TypeError, imageio.imsave, fnamebase + ".png", im, notavalidk=True)
+    with pytest.raises(TypeError):
+        imageio.imread("imageio:chelsea.png", notavalidk=True)
+        
+    with pytest.raises(TypeError):
+        imageio.imsave(fnamebase + ".png", im, notavalidk=True)
 
     # Compression
     imageio.imsave(fnamebase + "1.png", im, compression=0)
@@ -125,7 +133,8 @@ def test_png(tmp_path):
     s2 = os.stat(fnamebase + "2.png").st_size
     assert s2 < s1
     # Fail
-    pytest.raises(ValueError, imageio.imsave, fnamebase + ".png", im, compression=12)
+    with pytest.raises(ValueError):
+        imageio.imsave(fnamebase + ".png", im, compression=12)
 
     # Quantize
     imageio.imsave(fnamebase + "1.png", im, quantize=256)
@@ -137,8 +146,11 @@ def test_png(tmp_path):
     assert s1 > s2
     # Fail
     fname = fnamebase + "1.png"
-    pytest.raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
-    pytest.raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
+    with pytest.raises(ValueError):
+        imageio.imsave(fname, im[:, :, :3], quantize=300)
+
+    with pytest.raises(ValueError):
+        imageio.imsave(fname, im[:, :, 0], quantize=100)
 
     # 16b bit images
     im = imageio.imread("imageio:chelsea.png")[:, :, 0]
@@ -175,7 +187,7 @@ def test_png_remote():
 
 def test_jpg(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -189,7 +201,8 @@ def test_jpg(tmp_path):
 
     # No alpha in JPEG
     fname = fnamebase + ".jpg"
-    pytest.raises(Exception, imageio.imsave, fname, im4)
+    with pytest.raises(Exception):
+        imageio.imsave(fname, im4)
 
     # Parameters
     imageio.imsave(
@@ -206,18 +219,20 @@ def test_jpg(tmp_path):
     s1 = os.stat(fnamebase + "1.jpg").st_size
     s2 = os.stat(fnamebase + "2.jpg").st_size
     assert s2 > s1
-    pytest.raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
+    with pytest.raises(ValueError):
+        imageio.imsave(fnamebase + ".jpg", im, quality=120)
 
 
 @pytest.mark.needs_internet
 def test_jpg_more(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
     open(fname, "wb").write(b"this is not an image")
-    pytest.raises(Exception, imageio.imread, fname)
+    with pytest.raises(Exception):
+        imageio.imread(fname)
     #
     img = get_ref_im(3, 0, 0)
     bb = imageio.imsave(imageio.RETURN_BYTES, img, "JPEG-PIL")
@@ -225,7 +240,8 @@ def test_jpg_more(tmp_path):
         f.write(bb[:400])
         f.write(b" ")
         f.write(bb[400:])
-    pytest.raises(Exception, imageio.imread, fname)
+    with pytest.raises(Exception):
+        imageio.imread(fname)
 
     # Test EXIF stuff
     fname = get_remote_file("images/rommel.jpg")
@@ -244,7 +260,7 @@ def test_jpg_more(tmp_path):
 
 
 def test_gif(tmp_path):
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # The not-animated gif
 
@@ -264,14 +280,17 @@ def test_gif(tmp_path):
                 assert_close(rim * mul, im, 1.1)  # lossless
 
     # Parameter fail
-    pytest.raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    pytest.raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
+    with pytest.raises(TypeError):
+        imageio.imread(fname, notavalidkwarg=True)
+
+    with pytest.raises(TypeError):
+        imageio.imsave(fnamebase + "1.gif", im, notavalidk=True)
 
 
 @pytest.mark.needs_internet
 def test_animated_gif(tmp_path):
 
-    fnamebase = os.path.join(tmp_path, "test")
+    fnamebase = tmp_path / "test"
 
     # Read newton's cradle
     ims = imageio.mimread("imageio:newtonscradle.gif")
@@ -323,10 +342,17 @@ def test_animated_gif(tmp_path):
     W = imageio.save(fnamebase + ".animated.palettes100.gif", palettesize=100)
     assert W._writer.opt_palette_size == 128
     # Fail
-    assert pytest.raises(IndexError, R.get_meta_data, -1)
-    assert pytest.raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    assert pytest.raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo")
-    assert pytest.raises(ValueError, imageio.mimsave, fname, ims, duration="foo")
+    with pytest.raises(IndexError):
+        R.get_meta_data(-1)
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, palettesize=300)
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, quantizer="foo")
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, duration="foo")
 
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
@@ -382,7 +408,7 @@ def test_gamma_correction():
 @pytest.mark.needs_internet
 def test_inside_zipfile(tmp_path):
 
-    fname = os.path.join(tmp_path, "pillowtest.zip")
+    fname = tmp_path / "pillowtest.zip"
     with ZipFile(fname, "w") as z:
         z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
         z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())

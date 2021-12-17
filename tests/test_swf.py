@@ -54,8 +54,11 @@ def test_reading_saving(tmp_path):
     # Seek
     assert (R.get_data(3) == ims1[3]).all()
     # Fails
-    pytest.raises(IndexError, R.get_data, -1)  # No negative index
-    pytest.raises(IndexError, R.get_data, 10)  # Out of bounds
+    with pytest.raises(IndexError):
+        R.get_data(-1)  # No negative index
+
+    with pytest.raises(IndexError):
+        R.get_data(10)  # Out of bounds
     R.close()
 
     # Test loop
@@ -125,7 +128,7 @@ def test_reading_saving(tmp_path):
         fname4,
     )
 
-    with open(os.path.join(tmp_path, "test_swf.html"), "wb") as f:
+    with open(tmp_path / "test_swf.html", "wb") as f:
         for line in html.splitlines():
             f.write(line.strip().encode("utf-8") + b"\n")
 
@@ -150,13 +153,15 @@ def test_invalid(tmp_path):
     with open(fname2, "wb"):
         pass
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    pytest.raises(RuntimeError, imageio.mimread, fname2, "swf")
+    with pytest.raises(RuntimeError):
+        imageio.mimread(fname2, "swf")
 
     # File with BS data
     with open(fname2, "wb") as f:
         f.write(b"x" * 100)
     assert not imageio.formats.search_read_format(core.Request(fname2, "rI"))
-    pytest.raises(RuntimeError, imageio.mimread, fname2, "swf")
+    with pytest.raises(RuntimeError):
+        imageio.mimread(fname2, "swf")
 
 
 @pytest.mark.needs_internet
@@ -166,7 +171,8 @@ def test_lowlevel():
     # by using the plugin itself.
     _swf = imageio.plugins.swf.load_lib()
     tag = _swf.Tag()
-    pytest.raises(NotImplementedError, tag.process_tag)
+    with pytest.raises(NotImplementedError):
+        tag.process_tag()
     assert tag.make_matrix_record() == "00000000"
     assert tag.make_matrix_record(scale_xy=(1, 1))
     assert tag.make_matrix_record(rot_xy=(1, 1))

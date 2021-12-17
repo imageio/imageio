@@ -22,6 +22,7 @@ def test_gdal_reading():
     assert "TIFFTAG_XRESOLUTION" in meta_data
 
     # Fail
-    raises = pytest.raises
-    raises(IndexError, R.get_data, -1)
-    raises(IndexError, R.get_data, 3)
+    with pytest.raises(IndexError):
+        R.get_data(-1)
+    with pytest.raises(IndexError):
+        R.get_data(3)

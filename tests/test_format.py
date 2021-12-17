@@ -225,7 +225,7 @@ def test_default_can_read_and_can_write(tmp_path):
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
-    filename1 = os.path.join(tmp_path, "test")
+    filename1 = tmp_path / "test"
     open(filename1 + ".foo", "wb")
     open(filename1 + ".bar", "wb")
     open(filename1 + ".spam", "wb")
@@ -248,8 +248,8 @@ def test_format_selection(tmp_path):
 
     formats = imageio.formats
     fname1 = get_remote_file("images/chelsea.png", tmp_path)
-    fname2 = os.path.join(tmp_path, "test.selectext1")
-    fname3 = os.path.join(tmp_path, "test.haha")
+    fname2 = tmp_path / "test.selectext1"
+    fname3 = tmp_path / "test.haha"
     open(fname2, "wb")
     open(fname3, "wb")
 

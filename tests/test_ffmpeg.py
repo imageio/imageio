@@ -238,8 +238,10 @@ def test_reader_more(tmp_path):
     assert im.shape == (50, 50, 3)
     im = imageio.read(fname1, "ffmpeg", size="40x40").get_data(0)
     assert im.shape == (40, 40, 3)
-    pytest.raises(ValueError, imageio.read, fname1, "ffmpeg", size=20)
-    pytest.raises(ValueError, imageio.read, fname1, "ffmpeg", pixelformat=20)
+    with pytest.raises(ValueError):
+        imageio.read(fname1, "ffmpeg", size=20)
+    with pytest.raises(ValueError):
+        imageio.read(fname1, "ffmpeg", pixelformat=20)
 
     # Read all frames and test length
     R = imageio.read(get_remote_file("images/realshort.mp4"), "ffmpeg")
@@ -253,7 +255,8 @@ def test_reader_more(tmp_path):
             count += 1
     assert count == R.count_frames()
     assert count in (35, 36)  # allow one frame off size that we know
-    pytest.raises(IndexError, R.get_data, -1)  # Test index error -1
+    with pytest.raises(IndexError):
+        R.get_data(-1)  # Test index error -1
 
     # Now read beyond (simulate broken file)
     with pytest.raises(StopIteration):
@@ -271,7 +274,8 @@ def test_reader_more(tmp_path):
         else:
             count2 += 1
     assert count2 == count
-    pytest.raises(IndexError, R.get_data, -1)  # Test index error -1
+    with pytest.raises(IndexError)
+        R.get_data(-1)  # Test index error -1
 
     # Test loop
     R = imageio.read(get_remote_file("images/realshort.mp4"), "ffmpeg", loop=1)
@@ -288,7 +292,8 @@ def test_reader_more(tmp_path):
 
     # Read invalid
     open(fname3, "wb")
-    pytest.raises(IOError, imageio.read, fname3, "ffmpeg")
+    with pytest.raises(IOError):
+        imageio.read(fname3, "ffmpeg")
 
     # Read printing info
     imageio.read(fname1, "ffmpeg", print_info=True)

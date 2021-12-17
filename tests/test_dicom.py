@@ -2,7 +2,7 @@
 """
 
 import os
-import tempfile
+import shutil
 from zipfile import ZipFile
 
 import numpy as np
@@ -16,27 +16,38 @@ import imageio.plugins.dicom
 
 
 @pytest.fixture(scope="module")
-def examples():
+def examples(tmp_path_factory):
     """Create two dirs, one with one dataset and one with two datasets"""
 
-    with tempfile.TemporaryDirectory() as d:
+    workdir = tmp_path_factory.getbasetemp() / "test_dicom"
 
-        # Prepare sources
-        fname1 = get_remote_file("images/dicom_sample1.zip")
-        fname2 = get_remote_file("images/dicom_sample2.zip")
-        dname1 = os.path.join(d, "dicom_sample1")
-        dname2 = os.path.join(d, "dicom_sample2")
-        # Extract zipfiles
-        z = ZipFile(fname1)
-        z.extractall(dname1)
-        z.extractall(dname2)
-        z = ZipFile(fname2)
-        z.extractall(dname2)
-        # Get arbitrary file names
-        fname1 = os.path.join(dname1, os.listdir(dname1)[0])
-        fname2 = os.path.join(dname2, os.listdir(dname2)[0])
+    # Prepare sources
+    fname1 = get_remote_file("images/dicom_sample1.zip")
+    fname2 = get_remote_file("images/dicom_sample2.zip")
+    dname1 = workdir / "dicom_sample1"
+    dname2 = workdir / "dicom_sample2"
 
-        yield dname1, dname2, fname1, fname2
+    # folder 1
+    ZipFile(fname1).extractall(dname1)
+    
+    # folder 2
+    ZipFile(fname1).extractall(dname2)
+    ZipFile(fname2).extractall(dname2)
+
+    # a file from each folder
+    # tests expect this to be a string
+    fname1 = str(next(dname1.iterdir()))
+    fname2 = str(next(dname2.iterdir()))
+
+    yield dname1, dname2, fname1, fname2
+
+    # tmp_path_fixture will persist during the session
+    # so we need to clean up after ourselves
+    shutil.rmtree(workdir)
+
+
+
+
 
 
 def test_read_empty_dir(tmp_path):
@@ -62,7 +73,7 @@ def test_selection(tmp_path, examples):
     assert isinstance(F, type(imageio.formats["DICOM"]))
 
     # Test that we cannot save
-    request = core.Request(os.path.join(tmp_path, "test.dcm"), "wi")
+    request = core.Request(tmp_path / "test.dcm", "wi")
     assert not F.can_write(request)
 
     # Test fail on wrong file
@@ -70,7 +81,8 @@ def test_selection(tmp_path, examples):
     bb = open(fname1, "rb").read()
     bb = bb[:128] + b"XXXX" + bb[132:]
     open(fname2, "wb").write(bb)
-    pytest.raises(Exception, F.get_reader, core.Request(fname2, "ri"))
+    with pytest.raises(Exception):
+        F.get_reader(core.Request(fname2, "ri"))
 
     # Test special files with other formats
     im = imageio.imread(get_remote_file("images/dicom_file01.dcm"))
@@ -82,9 +94,11 @@ def test_selection(tmp_path, examples):
 
     # Expected fails
     fname = get_remote_file("images/dicom_file90.dcm")
-    pytest.raises(RuntimeError, imageio.imread, fname)  # 1.2.840.10008.1.2.4.91
+    with pytest.raises(RuntimeError):
+        imageio.imread(fname) # 1.2.840.10008.1.2.4.91
     fname = get_remote_file("images/dicom_file91.dcm")
-    pytest.raises(RuntimeError, imageio.imread, fname)  # not pixel data
+    with pytest.raises(RuntimeError):
+        imageio.imread(fname)  # not pixel data
 
     # This one *should* work, but does not, see issue #18
     try:
@@ -101,7 +115,8 @@ def test_progress(examples):
     imageio.imread(fname1, progress=True)
     imageio.imread(fname1, progress=core.StdoutProgressIndicator("test"))
     imageio.imread(fname1, progress=None)
-    pytest.raises(ValueError, imageio.imread, fname1, progress=3)
+    with pytest.raises(ValueError):
+        imageio.imread(fname1, progress=3)
 
 
 @pytest.mark.needs_internet
@@ -182,4 +197,5 @@ def test_different_read_modes_with_readers(examples):
         assert len(R._series[0].sampling) == 3
 
         R = imageio.read(fname, "DICOM", "?")
-        pytest.raises(RuntimeError, R.get_length)
+        with pytest.raises(RuntimeError):
+            R.get_length()

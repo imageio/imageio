@@ -59,8 +59,6 @@ def test_fetching(tmp_path):
     """Test fetching of files"""
 
     # Clear image files
-    if os.path.isdir(tmp_path):
-        shutil.rmtree(tmp_path)
 
     # This should download the file (force download, because local cache)
     fname1 = get_remote_file("images/chelsea.png", tmp_path, True)
@@ -94,7 +92,8 @@ def test_fetching(tmp_path):
     _urlopen = core.fetching.urlopen
     _chunk_read = core.fetching._chunk_read
     #
-    raises(IOError, get_remote_file, "this_does_not_exist", tmp_path)
+    with pytest.raises(IOError):
+        get_remote_file("this_does_not_exist", tmp_path)
     #
     try:
         core.fetching.urlopen = None
@@ -247,7 +246,7 @@ def test_request_read_sources(tmp_path):
     bytes = open(filename, "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    zipfilename = os.path.join(tmp_path, "test1.zip")
+    zipfilename = tmp_path / "test1.zip"
     with ZipFile(zipfilename, "w") as zf:
         zf.writestr(fname, bytes)
 
@@ -297,8 +296,8 @@ def test_request_save_sources(tmp_path):
 
     # Prepare destinations
     fname2 = fname + ".out"
-    filename2 = os.path.join(tmp_path, fname2)
-    zipfilename2 = os.path.join(tmp_path, "test2.zip")
+    filename2 = tmp_path / fname2
+    zipfilename2 = tmp_path / "test2.zip"
     file2 = None
 
     # Write an image into many different destinations
@@ -700,7 +699,7 @@ def test_functions(tmp_path):
 
     # Test volsave()
     volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
-    fname6 = os.path.join(tmp_path, "images", "stent2.npz")
+    fname6 = tmp_path / "images" / "stent2.npz"
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
@@ -779,7 +778,7 @@ def test_memtest(tmp_path):
 def test_example_plugin(tmp_path):
     """Test the example plugin"""
 
-    fname = os.path.join(tmp_path, "out.png")
+    fname = tmp_path / "out.png"
     r = Request("imageio:chelsea.png", "r?")
     R = imageio.formats["dummy"].get_reader(r)
     W = imageio.formats["dummy"].get_writer(Request(fname, "w?"))
@@ -902,7 +901,7 @@ def test_imopen_installable_plugin(clear_plugins):
 
 def test_legacy_object_image_writing(tmp_path):
     with pytest.raises(ValueError):
-        iio.mimwrite(os.path.join(tmp_path, "foo.gif"), np.array([[0]], dtype=object))
+        iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
 
 
 @pytest.mark.needs_internet

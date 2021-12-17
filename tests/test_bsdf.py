@@ -142,7 +142,7 @@ def test_series_unclosed(tmp_path):
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(tmp_path, "chelseam.bsdf")
+    fname = tmp_path / "chelseam.bsdf"
     w = imageio.get_writer(fname)
     for im in ims1:
         w.append_data(im)
@@ -174,7 +174,7 @@ def test_random_access(tmp_path):
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(tmp_path, "chelseam.bsdf")
+    fname = tmp_path / "chelseam.bsdf"
     imageio.mimsave(fname, ims1)
 
     r = imageio.get_reader(fname)
@@ -192,7 +192,7 @@ def test_volume(tmp_path):
     vol1 = imageio.imread("imageio:stent.npz")
     assert vol1.shape == (256, 128, 128)
 
-    fname = os.path.join(tmp_path, "stent.bsdf")
+    fname = tmp_path / "stent.bsdf"
     imageio.volsave(fname, vol1)
 
     vol2 = imageio.volread(fname)
