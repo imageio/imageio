@@ -51,7 +51,7 @@ def test_select(tmp_path):
 
 def test_not_an_image(tmp_path):
 
-    fname = os.path.join(tmp_path, "notanimage.bsdf")
+    fname = tmp_path / "notanimage.bsdf"
 
     # Not an image not a list
     bsdf.save(fname, 1)
