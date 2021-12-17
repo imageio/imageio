@@ -122,7 +122,7 @@ def test_png(tmp_path):
     # Parameter fail
     with pytest.raises(TypeError):
         imageio.imread("imageio:chelsea.png", notavalidk=True)
-        
+
     with pytest.raises(TypeError):
         imageio.imsave(fnamebase + ".png", im, notavalidk=True)
 

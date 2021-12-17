@@ -445,7 +445,7 @@ def test_lytro_lfr_reading():
     test_reader = imageio.read(lfr_file, "lytro-lfr")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
-        
+
     with pytest.raises(IndexError):
         test_reader.get_data(3)
 
@@ -646,7 +646,7 @@ def test_lytro_raw_illum_reading():
     test_reader = imageio.read(raw_file, "lytro-illum-raw")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
-        
+
     with pytest.raises(IndexError):
         test_reader.get_data(3)
 
@@ -687,6 +687,6 @@ def test_lytro_raw_f0_reading():
     test_reader = imageio.read(raw_file, "lytro-f01-raw")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
-        
+
     with pytest.raises(IndexError):
         test_reader.get_data(3)

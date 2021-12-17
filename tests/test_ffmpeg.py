@@ -274,7 +274,7 @@ def test_reader_more(tmp_path):
         else:
             count2 += 1
     assert count2 == count
-    with pytest.raises(IndexError)
+    with pytest.raises(IndexError):
         R.get_data(-1)  # Test index error -1
 
     # Test loop

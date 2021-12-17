@@ -29,7 +29,7 @@ def examples(tmp_path_factory):
 
     # folder 1
     ZipFile(fname1).extractall(dname1)
-    
+
     # folder 2
     ZipFile(fname1).extractall(dname2)
     ZipFile(fname2).extractall(dname2)
@@ -44,10 +44,6 @@ def examples(tmp_path_factory):
     # tmp_path_fixture will persist during the session
     # so we need to clean up after ourselves
     shutil.rmtree(workdir)
-
-
-
-
 
 
 def test_read_empty_dir(tmp_path):
@@ -95,7 +91,7 @@ def test_selection(tmp_path, examples):
     # Expected fails
     fname = get_remote_file("images/dicom_file90.dcm")
     with pytest.raises(RuntimeError):
-        imageio.imread(fname) # 1.2.840.10008.1.2.4.91
+        imageio.imread(fname)  # 1.2.840.10008.1.2.4.91
     fname = get_remote_file("images/dicom_file91.dcm")
     with pytest.raises(RuntimeError):
         imageio.imread(fname)  # not pixel data

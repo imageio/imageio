@@ -78,7 +78,7 @@ def test_tifffile_reading_writing(tmp_path):
     # meta = R.get_meta_data()
     # assert meta['orientation'] == 'top_left'  # not there in later version
     # Fail
-    with pytest.raises(IndexError)
+    with pytest.raises(IndexError):
         R.get_data(-1)
 
     with pytest.raises(IndexError):
