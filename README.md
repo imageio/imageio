@@ -7,7 +7,7 @@
 
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/imageio.svg)](https://pypi.python.org/pypi/imageio/)
 [![PyPI Version](https://img.shields.io/pypi/v/imageio.svg)](https://pypi.python.org/pypi/imageio/)
-[![PyPi Download stats](http://pepy.tech/badge/imageio)](http://pepy.tech/project/imageio)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/imageio?color=blue)](https://pypistats.org/packages/imageio)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4972048.svg)](https://doi.org/10.5281/zenodo.4972048)
 
 
