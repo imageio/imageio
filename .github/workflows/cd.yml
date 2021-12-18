@@ -119,7 +119,7 @@ jobs:
       - name: Set up pypy
         uses: actions/setup-python@v2
         with:
-          python-version: "pypy3"
+          python-version: "${{ matrix.pyversion }}"
       - name: MacOS Numpy Fix
         if: runner.os == 'macOS'
         run: |
