@@ -74,7 +74,7 @@ def assert_close(im1, im2, tol=0.0):
 @pytest.mark.needs_internet
 def test_pillow_format(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Format - Pillow is the default!
     F = imageio.formats["PNG"]
@@ -103,7 +103,7 @@ def test_pillow_format(tmp_path):
 @pytest.mark.needs_internet
 def test_png(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -187,7 +187,7 @@ def test_png_remote():
 
 def test_jpg(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -226,7 +226,7 @@ def test_jpg(tmp_path):
 @pytest.mark.needs_internet
 def test_jpg_more(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -260,7 +260,7 @@ def test_jpg_more(tmp_path):
 
 
 def test_gif(tmp_path):
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # The not-animated gif
 
@@ -290,7 +290,7 @@ def test_gif(tmp_path):
 @pytest.mark.needs_internet
 def test_animated_gif(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Read newton's cradle
     ims = imageio.mimread("imageio:newtonscradle.gif")
@@ -408,7 +408,7 @@ def test_gamma_correction():
 @pytest.mark.needs_internet
 def test_inside_zipfile(tmp_path):
 
-    fname = tmp_path / "pillowtest.zip"
+    fname = str(tmp_path / "pillowtest.zip")
     with ZipFile(fname, "w") as z:
         z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
         z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())

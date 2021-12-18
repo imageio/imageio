@@ -1,8 +1,6 @@
 """ Tests for the shockwave flash plugin
 """
 
-import os
-
 import numpy as np
 
 import pytest

@@ -50,7 +50,7 @@ def test_select(tmp_path):
 
 def test_not_an_image(tmp_path):
 
-    fname = tmp_path / "notanimage.bsdf"
+    fname = str(tmp_path / "notanimage.bsdf")
 
     # Not an image not a list
     bsdf.save(fname, 1)
@@ -75,7 +75,7 @@ def test_singleton(tmp_path):
 
     im1 = imageio.imread("imageio:chelsea.png")
 
-    fname = tmp_path / "chelsea.bsdf"
+    fname = str(tmp_path / "chelsea.bsdf")
     imageio.imsave(fname, im1)
 
     # Does it look alright if we open it in bsdf without extensions?
@@ -108,7 +108,7 @@ def test_series(tmp_path):
     im1 = imageio.imread("imageio:chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = tmp_path / "chelseam.bsdf"
+    fname = str(tmp_path / "chelseam.bsdf")
     imageio.mimsave(fname, ims1)
 
     # Does it look alright if we open it in bsdf without extensions?

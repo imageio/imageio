@@ -128,7 +128,7 @@ def test_get_fi_lib():
 @pytest.mark.needs_internet
 def test_freeimage_format(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Format
     F = imageio.formats["PNG-FI"]
@@ -169,7 +169,7 @@ def test_freeimage_lib():
 @pytest.mark.needs_internet
 def test_png(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -232,7 +232,7 @@ def test_png(tmp_path):
 @pytest.mark.needs_internet
 def test_png_dtypes(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # See issue #44
 
@@ -272,7 +272,7 @@ def test_png_dtypes(tmp_path):
 @pytest.mark.needs_internet
 def test_jpg(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -321,7 +321,7 @@ def test_jpg(tmp_path):
 @pytest.mark.needs_internet
 def test_jpg_more(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -355,7 +355,7 @@ def test_jpg_more(tmp_path):
 @pytest.mark.needs_internet
 def test_bmp(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -395,7 +395,7 @@ def test_bmp(tmp_path):
 @pytest.mark.needs_internet
 def test_gif(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # The not-animated gif
 
@@ -431,7 +431,7 @@ def test_gif(tmp_path):
 @pytest.mark.needs_internet
 def test_animated_gif(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     if sys.platform.startswith("darwin"):
         skip("On OSX quantization of freeimage is unstable")
@@ -505,7 +505,7 @@ def test_animated_gif(tmp_path):
 @pytest.mark.needs_internet
 def test_ico(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0,):
@@ -551,7 +551,7 @@ def test_ico(tmp_path):
 @pytest.mark.needs_internet
 def test_multi_icon_ico(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
@@ -571,7 +571,7 @@ def test_mng(get_library):
 @pytest.mark.needs_internet
 def test_pnm(tmp_path):
 
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     for useAscii in (True, False):
         for crop in (0, 1, 2):
@@ -603,7 +603,7 @@ def test_pnm(tmp_path):
 
 @pytest.mark.needs_internet
 def test_other(tmp_path):
-    fnamebase = tmp_path / "test"
+    fnamebase = str(tmp_path / "test")
 
     # Cannot save float
     im = get_ref_im(3, 0, 1)

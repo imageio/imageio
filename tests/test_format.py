@@ -224,7 +224,7 @@ def test_default_can_read_and_can_write(tmp_path):
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
-    filename1 = tmp_path / "test"
+    filename1 = str(tmp_path / "test")
     open(filename1 + ".foo", "wb")
     open(filename1 + ".bar", "wb")
     open(filename1 + ".spam", "wb")
@@ -263,14 +263,14 @@ def test_format_selection(tmp_path):
     formats.add_format(format)
 
     # Select this format for files it said it could handle in extensions
-    assert ".selectext1" in fname2
+    assert ".selectext1" in str(fname2)
     F = formats.search_read_format(Request(fname2, "ri"))
     assert type(F) is type(format)
     F = formats.search_write_format(Request(fname2, "ri"))
     assert type(F) is type(format)
 
     # But this custom format also can deal with .haha files
-    assert ".haha" in fname3
+    assert ".haha" in str(fname3)
     F = formats.search_read_format(Request(fname3, "ri"))
     assert type(F) is type(format)
     F = formats.search_write_format(Request(fname3, "ri"))
