@@ -125,7 +125,14 @@ class PillowPlugin(object):
                     # compatible pillow plugin (ref: the pillow docs).
                     pass
             except UnidentifiedImageError:
-                raise InitializationError(f"Pillow can not read {request}.") from None
+                if request._uri_type == URI_BYTES:
+                    raise InitializationError(
+                        f"Pillow can not read the provided bytes."
+                    ) from None
+                else:
+                    raise InitializationError(
+                        f"Pillow can not read {request.raw_uri}."
+                    ) from None
         else:
             # it would be nice if pillow would expose a
             # function to check if an extension can be written
