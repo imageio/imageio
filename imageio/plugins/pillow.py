@@ -117,6 +117,9 @@ class PillowPlugin(object):
 
         """
 
+        self._request = request
+        self._image = None
+
         if request.mode.io_mode == IOMode.read:
             try:
                 with Image.open(request.get_file()):
@@ -153,11 +156,8 @@ class PillowPlugin(object):
                     f"Pillow can not write `{request.extension}` files"
                 ) from None
 
-        self._request = request
         if self._request.mode.io_mode == IOMode.read:
             self._image = Image.open(self._request.get_file())
-        else:
-            self._image = None
 
     def close(self):
         if self._image:
