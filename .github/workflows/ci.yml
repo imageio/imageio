@@ -101,13 +101,13 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        pyversion: ["pypy-3.6", "pypy-3.7"]
+        pyversion: ["pypy-3.7", "pypy-3.8"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up pypy
         uses: actions/setup-python@v2
         with:
-          python-version: "pypy3"
+          python-version: "${{ matrix.pyversion }}"
       - name: MacOS Numpy Fix
         if: runner.os == 'macOS'
         run: |
