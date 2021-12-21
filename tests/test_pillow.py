@@ -503,4 +503,4 @@ def test_initialization_failure(image_files: Path):
 
     with pytest.raises(OSError):
         # pillow can not handle npy
-        iio.v3.imread(test_image / "chelsea_jpg.npy", plugin="pillow")
+        iio.v3.imread(image_files / "chelsea_jpg.npy", plugin="pillow")
