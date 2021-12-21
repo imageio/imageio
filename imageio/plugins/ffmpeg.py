@@ -231,8 +231,12 @@ class FfmpegFormat(Format):
                 # using `-list_devices` (or `-list_options`), even if the
                 # command is successful, so we set `check=False` explicitly.
                 completed_process = sp.run(
-                    cmd, stdout=sp.PIPE, stderr=sp.PIPE, encoding="utf-8",
-                    shell=True, check=False
+                    cmd,
+                    stdout=sp.PIPE,
+                    stderr=sp.PIPE,
+                    encoding="utf-8",
+                    shell=True,
+                    check=False,
                 )
 
                 # Return device name at index
