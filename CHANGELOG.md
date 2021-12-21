@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.4 (2021-12-21)
+### Fix
+* Update tested pypy versions ([#713](https://github.com/imageio/imageio/issues/713)) ([`8a79104`](https://github.com/imageio/imageio/commit/8a7910481b025ffaf3004b20b63a13ce0495d732))
+
+### Documentation
+* Update download tracker ([#712](https://github.com/imageio/imageio/issues/712)) ([`a265c51`](https://github.com/imageio/imageio/commit/a265c5110f3684bb2893bf2c76d9a839f03a82de))
+
 ## v2.13.3 (2021-12-08)
 ### Fix
 * Allow TIFF to write bytes and file objects ([#704](https://github.com/imageio/imageio/issues/704)) ([`9c765c3`](https://github.com/imageio/imageio/commit/9c765c3e7dcf800910b348294261c05034fcedb9))
