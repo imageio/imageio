@@ -130,7 +130,7 @@ class PillowPlugin(object):
             except UnidentifiedImageError:
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
-                        f"Pillow can not read the provided bytes."
+                        "Pillow can not read the provided bytes."
                     ) from None
                 else:
                     raise InitializationError(
