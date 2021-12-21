@@ -576,15 +576,16 @@ def test_webcam_resource_warnings():
     except IndexError:
         skip("no webcam")
 
-    # todo: remove this part when imageio_ffmpeg issue #61 has been fixed
     import imageio_ffmpeg
 
     if imageio_ffmpeg.__version__ == "0.4.5":
-        assert len(warnings) == 1
-        assert "unclosed file" in str(warnings[0].message)
+        # We still expect imagio_ffmpeg 0.4.5 to generate (at most) one warning.
+        # todo: remove this assertion when a fix for imageio_ffmpeg issue #61
+        #  has been released
+        assert len(warnings) < 2
         return
 
-    # there should not be any warnings, but show warning messages if there are
+    # There should not be any warnings, but show warning messages if there are.
     assert not [w.message for w in warnings]
 
 
