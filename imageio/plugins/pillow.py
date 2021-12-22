@@ -117,6 +117,9 @@ class PillowPlugin(object):
 
         """
 
+        self._request = request
+        self._image = None
+
         if request.mode.io_mode == IOMode.read:
             try:
                 with Image.open(request.get_file()):
@@ -125,7 +128,14 @@ class PillowPlugin(object):
                     # compatible pillow plugin (ref: the pillow docs).
                     pass
             except UnidentifiedImageError:
-                raise InitializationError(f"Pillow can not read {request}.") from None
+                if request._uri_type == URI_BYTES:
+                    raise InitializationError(
+                        "Pillow can not read the provided bytes."
+                    ) from None
+                else:
+                    raise InitializationError(
+                        f"Pillow can not read {request.raw_uri}."
+                    ) from None
         else:
             # it would be nice if pillow would expose a
             # function to check if an extension can be written
@@ -146,11 +156,8 @@ class PillowPlugin(object):
                     f"Pillow can not write `{request.extension}` files"
                 ) from None
 
-        self._request = request
         if self._request.mode.io_mode == IOMode.read:
             self._image = Image.open(self._request.get_file())
-        else:
-            self._image = None
 
     def close(self):
         if self._image:

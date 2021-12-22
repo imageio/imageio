@@ -493,3 +493,14 @@ def test_write_jpg_to_bytes_io():
 
     image_from_file = iio.v3.imread(bytes_io, plugin="pillow")
     assert np.allclose(image_from_file, image)
+
+
+def test_initialization_failure(image_files: Path):
+    test_image = b"this is not an image and will break things."
+
+    with pytest.raises(OSError):
+        iio.v3.imread(test_image, plugin="pillow")
+
+    with pytest.raises(OSError):
+        # pillow can not handle npy
+        iio.v3.imread(image_files / "chelsea_jpg.npy", plugin="pillow")
