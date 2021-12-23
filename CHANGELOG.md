@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.13.5 (2021-12-23)
+### Fix
+* Clean up PillowPlugin destructor ([#714](https://github.com/imageio/imageio/issues/714)) ([`104171b`](https://github.com/imageio/imageio/commit/104171be5f8e0ab9a3bf7d8aa7f1818901b0755e))
+* Close standard streams after webcam access ([#711](https://github.com/imageio/imageio/issues/711)) ([`9c434e0`](https://github.com/imageio/imageio/commit/9c434e023ad38b302f165aceac88b602c3a5e28c))
+
 ## v2.13.4 (2021-12-21)
 ### Fix
 * Update tested pypy versions ([#713](https://github.com/imageio/imageio/issues/713)) ([`8a79104`](https://github.com/imageio/imageio/commit/8a7910481b025ffaf3004b20b63a13ce0495d732))
