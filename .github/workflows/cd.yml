@@ -18,7 +18,7 @@ name: CD
 
 on:
   schedule:
-    - cron: '42 1 * * *' # daily at 1:42am (UTC)
+    - cron: '42 1 * * 1' # weekly on Monday at 1:42am (UTC)
   workflow_dispatch:
 
 jobs:
