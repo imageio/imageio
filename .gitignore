@@ -22,6 +22,7 @@ imageio/lib
 docs/_build
 docs/reference/_backends
 docs/reference/_core_29
+docs/reference/_core_v3
 tests/zipped
 tests/freezing/frozen
 imageio/resources/images

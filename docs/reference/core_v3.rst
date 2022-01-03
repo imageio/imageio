@@ -13,5 +13,25 @@ provide a common API to read and write image data for a large
 variety of formats. All read and write functions accept keyword
 arguments, which are passed on to the backend that does the actual work.
 
-Migrating from v2
------------------
+API at a Glance
+---------------
+
+.. autosummary::
+    :toctree: _core_v3/
+
+    imageio.core.v3_api.imread
+    imageio.core.v3_api.imwrite
+    imageio.core.v3_api.imiter
+
+
+Reading
+-------
+
+Writing
+-------
+
+Metadata
+--------
+
+Advanced Usage
+--------------

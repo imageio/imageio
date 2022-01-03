@@ -5,7 +5,7 @@ Core API v2
 .. py:currentmodule:: imageio.v2
 
 .. warning::
-    This API is deprecated and will be superseeded by `the v3 API <core_v3>`
+    This API is deprecated and will be superseeded by :doc:`the v3 API <core_v3>`
     starting with ImageIO v3. Check the migration instructions below for
     detailed information on how to migrate.
 
@@ -79,7 +79,7 @@ that best suits that file-format.
 .. _migration_from_v2:
 
 Migrating to ImageIO v3
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The primary novelty of the v3 API compared to the v2 API is that images are now
 treated as ndimages, a generalization of (flat) 2D images to N dimensions. This
@@ -87,7 +87,7 @@ change allows us to design a much simpler API; however, comes with a few
 backwards incompatible changes.
 
 Avoiding API Migration for Legacy Scripts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 If you have an old script where you do not wish to migrate the API, you can
 explicitly import the old v2 API and avoid migration. Note that, while this will
@@ -101,7 +101,7 @@ the v2 API, depending on your script/code, use::
   
 
 Reading Images 
-^^^^^^^^^^^^^^
+--------------
 
 `iio.imread` can now return a ndimage instead of being limited to flat images.
 As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarily,
@@ -128,7 +128,7 @@ snippets::
     img = [im for im in iio.v3.imiter(image_resource)]
 
 Writing Images
-^^^^^^^^^^^^^^
+--------------
 
 Similar to reading images, the new `iio.imwrite` can handle ndimages.
 ``iio.mimwrite``, ``iio.volwrite``, and ``iio.mvolwrite`` have all dissapeared.
@@ -152,7 +152,7 @@ snippets::
     img = iio.v3.imwrite(image_resource, list_of_ndimages)
 
 Reader and Writer
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Plugins now longer have nested ``Reader`` and ``Writer`` classes and they are no
 longer global singletons. Instead, a new plugin object is instantiated in mode ``r``
@@ -181,7 +181,7 @@ manager, and uses `iio.imopen`::
         pass
 
 Metadata
-^^^^^^^^
+--------
 
 The v3 API makes handling of metadata much more consistent and explicit.
 Previously in v2, metadata was provided as a ``dict`` that was attached to the
