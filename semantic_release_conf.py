@@ -1,4 +1,6 @@
 """
+Scipy Inspired commit message parser for python-semantic-release.
+
 Parses commit messages using `scipy tags <scipy-style>`_ of the form::
 
     <tag>(<scope>): <subject>
@@ -30,7 +32,7 @@ Supported Tags::
 
 Supported Changelog Sections::
 
-    breaking, feature, fix, Other, None
+    breaking, feature, fix, other, None
 
 .. _`scipy-style`: https://docs.scipy.org/doc/scipy/reference/dev/contributor/development_workflow.html#writing-the-commit-message
 """
