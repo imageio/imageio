@@ -19,7 +19,7 @@ Main website: https://imageio.readthedocs.io/
 __version__ = "2.14.1"
 
 # v3.0.0 API
-from .core.imopen import imopen
+from .core.v3_api import imopen
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
@@ -27,39 +27,45 @@ from .core import FormatManager, RETURN_BYTES
 # Instantiate the old format manager
 formats = FormatManager()
 
-# Load legacy API
-from .core.functions import (
-    imread,
-    mimread,
-    volread,
-    mvolread,
-    imwrite,
-    mimwrite,
-    volwrite,
-    mvolwrite,
-    # aliases
-    get_reader as read,
-    get_writer as save,
-    imwrite as imsave,
-    mimwrite as mimsave,
-    volwrite as volsave,
-    mvolwrite as mvolsave,
-    # misc
-    help,
-    get_reader,
-    get_writer,
-)
+# import v2 into top level namespace
+from .v2 import *
 
-from .core import v3_api as v3
+from . import v2
+from . import v3
+from . import plugins
 
 # import config after core to avoid circular import
 from . import config
 
-# Load all the plugins
-from . import plugins
 
 # expose the show method of formats
 show_formats = formats.show
 
-# Clean up some names
-del FormatManager
+__all__ = [
+    "v2",
+    "v3",
+    "config",
+    "plugins",
+    # v2 API
+    "imread",
+    "mimread",
+    "volread",
+    "mvolread",
+    "imwrite",
+    "mimwrite",
+    "volwrite",
+    "mvolwrite",
+    # v2 aliases
+    "read",
+    "save",
+    "imsave",
+    "mimsave",
+    "volsave",
+    "mvolsave",
+    # v2 misc
+    "help",
+    "get_reader",
+    "get_writer",
+    "formats",
+    "show_formats",
+]

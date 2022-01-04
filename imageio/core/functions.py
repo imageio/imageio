@@ -7,7 +7,7 @@ import re
 import numpy as np
 
 from .. import formats
-from .imopen import imopen
+from .v3_api import imopen
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
