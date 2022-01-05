@@ -507,6 +507,7 @@ def test_initialization_failure(image_files: Path):
 
 
 def test_boolean_reading(tmp_path):
+    # Bugfix: https://github.com/imageio/imageio/issues/721
     expected = np.arange(256 * 256).reshape((256, 256)) % 2 == 0
 
     Image.fromarray(expected).save(tmp_path / "iio.png")
@@ -516,6 +517,7 @@ def test_boolean_reading(tmp_path):
 
 
 def test_boolean_writing(tmp_path):
+    # Bugfix: https://github.com/imageio/imageio/issues/721
     expected = np.arange(256 * 256).reshape((256, 256)) % 2 == 0
 
     iio.v3.imwrite(tmp_path / "iio.png", expected)
