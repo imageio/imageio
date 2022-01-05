@@ -63,6 +63,10 @@ class FileExtension:
         self.name = name
         self.description = description
         self.external_link = external_link
+        self.default_priority = priority.copy()
+
+    def reset(self) -> None:
+        self.priority = self.default_priority.copy()
 
 
 extension_list = [
