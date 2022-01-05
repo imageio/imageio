@@ -300,8 +300,7 @@ class PillowPlugin(object):
             "format": format,
         }
 
-        # ensure that the image has (at least) one batch dimension
-        # pillow allways does channel-last
+        # check if ndimage is a batch of frames (e.g. for writing GIF)
         is_batch = image.ndim > 3 if _is_multichannel(lookup_mode) else image.ndim > 2
         if is_batch:
             save_args["save_all"] = True
