@@ -57,32 +57,16 @@ def _is_multichannel(mode: str) -> bool:
 
     """
     multichannel = {
-        "1": False,
-        "L": False,
-        "P": False,
-        "RGB": True,
-        "RGBA": True,
-        "CMYK": True,
-        "YCbCr": True,
-        "LAB": True,
-        "HSV": True,
-        "I": False,
-        "F": False,
-        "LA": True,
-        "PA": True,
-        "RGBX": True,
-        "RGBa": True,
-        "La": False,
-        "I;16": False,
-        "I:16L": False,
-        "I;16N": False,
         "BGR;15": True,
         "BGR;16": True,
         "BGR;24": True,
         "BGR;32": True,
     }
 
-    return multichannel[mode]
+    if mode in multichannel:
+        return multichannel[mode]
+
+    return Image.getmodebands(mode) > 1
 
 
 def _exif_orientation_transform(orientation, mode):
@@ -255,7 +239,7 @@ class PillowPlugin(object):
 
         return image
 
-    def write(self, image, *, mode="RGB", format=None, **kwargs):
+    def write(self, image: np.ndarray, *, mode=None, format=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -271,9 +255,10 @@ class PillowPlugin(object):
         ----------
         image : ndarray
             The ndimage to write.
-        mode : {str}
-            Specify the image's color format; default is RGB. Possible modes can
-            be found at:
+        mode : {str, None}
+            Specify the image's color format. If None (default), the mode is
+            inferred from the array's shape and dtype. Possible modes can be
+            found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         format : {str, None}
             Optional format override.  If omitted, the format to use is
@@ -288,31 +273,55 @@ class PillowPlugin(object):
 
         """
 
-        # ensure that the image has (at least) one batch dimension
-        if image.ndim == 3 and _is_multichannel(mode):
-            image = image[None, ...]
-            save_all = False
-        elif image.ndim == 2 and not _is_multichannel(mode):
-            image = image[None, ...]
-            save_all = False
+        if mode is None:
+            # there is no explicit function in pillow to determine the mode.
+            # However, pillow does it in Image.fromarray, and we imitate that
+            # here
+
+            # pillow supports 1 - 4 color channels depending on the format
+            # and all are channel-last
+            if image.shape[-1] in [2, 3, 4]:
+                shape_key = (1, 1) + image.shape[-1:]
+            else:
+                shape_key = (1, 1)
+
+            try:
+                typekey = shape_key, image.dtype.str
+            except KeyError as e:
+                raise TypeError("Cannot handle this data type") from e
+            try:
+                lookup_mode, _ = Image._fromarray_typemap[typekey]
+            except KeyError as e:
+                raise TypeError("Cannot handle this data type: %s, %s" % typekey) from e
         else:
-            save_all = True
+            lookup_mode = mode
 
-        pil_images = list()
-        for frame in image:
-            pil_frame = Image.fromarray(frame, mode=mode)
-            if "bits" in kwargs:
-                pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
+        save_args = {
+            "format": format,
+        }
 
-            pil_images.append(pil_frame)
+        # ensure that the image has (at least) one batch dimension
+        # pillow allways does channel-last
+        is_batch = image.ndim > 3 if _is_multichannel(lookup_mode) else image.ndim > 2
+        if is_batch:
+            save_args["save_all"] = True
+            primary_image = Image.fromarray(image[0], mode=mode)
 
-        pil_images[0].save(
-            self._request.get_file(),
-            save_all=save_all,
-            append_images=pil_images[1:],
-            format=format,
-            **kwargs,
-        )
+            append_images = list()
+            for frame in image[1:]:
+                pil_frame = Image.fromarray(frame, mode=mode)
+                if "bits" in kwargs:
+                    pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
+                append_images.append(pil_frame)
+            save_args["append_images"] = append_images
+        else:
+            primary_image = Image.fromarray(image, mode=mode)
+
+        if "bits" in kwargs:
+            primary_image = primary_image.quantize(colors=2 ** kwargs["bits"])
+
+        save_args.update(kwargs)
+        primary_image.save(self._request.get_file(), **save_args)
 
         if self._request._uri_type == URI_BYTES:
             return self._request.get_file().getvalue()
