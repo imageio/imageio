@@ -82,8 +82,8 @@ def imopen(
     Parameters
     ----------
     uri : str or pathlib.Path or bytes or file or Request
-        The :doc:`ImageResources <getting_started.request>` to load the image
-        from.
+        The :doc:`ImageResource <../../getting_started/requests>` to load the
+        image from.
     io_mode : str
         The mode in which the file is opened. Possible values are::
 

@@ -24,6 +24,7 @@ API Overview
     imageio.core.v3_api.imread
     imageio.core.v3_api.imwrite
     imageio.core.v3_api.imiter
+    imageio.core.v3_api.imopen
 
 .. _v3_basic_usage:
 
