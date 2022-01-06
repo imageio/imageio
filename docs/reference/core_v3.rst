@@ -50,8 +50,8 @@ related; from simple JPGs through ImageJ hyperstacks to MP4 video or various
 niche RAW formats.
 
 If we do need to customize or tweak this process we can pass additional keyword
-arguments (`kwargs`) to overwrite any defaults ImageIO uses when reading or writing.
-The two `kwargs` that are always available are:
+arguments (`kwargs`) to overwrite any defaults ImageIO uses when reading or
+writing. The two `kwargs` that are always available are:
 
 - ``plugin``: The name of the plugin to use for reading/writing.
 - ``index`` (reading only): The index of the ndimage to read, if the format
@@ -90,15 +90,18 @@ which they appear in the file::
     for frame in iio.v3.imiter("imageio:cockatoo.mp4"):
         pass # do something with the current frame
 
-Just like imread, imiter accepts additional `kwargs` to overwrite any defaults used by ImageIO.
+Just like imread, imiter accepts additional `kwargs` to overwrite any defaults
+used by ImageIO.
 
 Low-Level Access
 ^^^^^^^^^^^^^^^^
 
-Sometimes we may wish for low-level access to a plugin or file, for example, because
+Sometimes we may wish for low-level access to a plugin or file, for example,
+because
 
 - we wish to have fine-grained control over when it is opened/closed.
-- we need to perform multiple IO operations and don't want to open the file multiple times.
+- we need to perform multiple IO operations and don't want to open the file
+  multiple times.
 - a plugin/backend offers unique features not otherwise exposed by the v3 API.
 
 For these cases, the v3 API offers :func:`iio.v3.imopen
