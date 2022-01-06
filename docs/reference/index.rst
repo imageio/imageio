@@ -7,8 +7,8 @@ such the API is split into two parts: The Core API, which covers standard
 use-cases, and a plugin/backend specific API, which allows you to take full
 advantage of a backend and its unique features.
 
-Core API (Basic Usage)
-^^^^^^^^^^^^^^^^^^^^^^
+Core API
+^^^^^^^^
 
 The API documented in this section builds on top of the individual plugins.
 
@@ -18,9 +18,10 @@ The API documented in this section builds on top of the individual plugins.
     Core API v2 <userapi>
     Core API v3 <core_v3>
 
+.. _supported_backends:
 
-Plugins & Backend Libraries (Advanced Usage)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Plugins & Backend Libraries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes, you need to do more than just "load an image, done". Sometimes you
 need to use a very specific feature of a very specific backend. ImageIO allows
