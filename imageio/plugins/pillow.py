@@ -221,6 +221,10 @@ class PillowPlugin(object):
     def _apply_transforms(self, image, mode, rotate, apply_gamma):
         if mode is not None:
             image = image.convert(mode)
+        elif image.format == "GIF":
+            # adjust for pillow9 changes
+            # see: https://github.com/python-pillow/Pillow/issues/5929
+            image = image.convert(image.palette.mode)
         image = np.asarray(image)
 
         meta = self.get_meta()
