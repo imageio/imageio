@@ -280,7 +280,7 @@ class PillowPlugin(object):
 
             # pillow supports 1 - 4 color channels depending on the format
             # and all are channel-last
-            if image.shape[-1] in [2, 3, 4]:
+            if image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
                 shape_key = (1, 1) + image.shape[-1:]
             else:
                 shape_key = (1, 1)
