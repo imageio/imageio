@@ -201,9 +201,7 @@ def test_png(image_cache, tmp_path):
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
 
     # Parameters
-    im = imageio.imread(
-        image_cache / "images" / "chelsea.png", ignoregamma=True
-    )
+    im = imageio.imread(image_cache / "images" / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
@@ -423,9 +421,7 @@ def test_gif(tmp_path):
                 assert_close(rim * mul, im, 1.1)  # lossless
 
     # Parameter fail
-    raises(
-        TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI"
-    )
+    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI")
     raises(
         TypeError,
         imageio.imsave,
@@ -469,12 +465,8 @@ def test_animated_gif(tmp_path):
 
     # We can also store grayscale
     fname = fnamebase + ".animated.%i.gif" % 1
-    imageio.mimsave(
-        fname, [x[:, :, 0] for x in ims], duration=0.2, format="GIF-FI"
-    )
-    imageio.mimsave(
-        fname, [x[:, :, :1] for x in ims], duration=0.2, format="GIF-FI"
-    )
+    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2, format="GIF-FI")
+    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2, format="GIF-FI")
 
     # Irragular duration. You probably want to check this manually (I did)
     duration = [0.1 for i in ims]
@@ -506,20 +498,14 @@ def test_animated_gif(tmp_path):
         quantizer="foo",
         format="GIF-FI",
     )
-    raises(
-        ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI"
-    )
+    raises(ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI")
 
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
 
     # Test subrectangles
-    imageio.mimsave(
-        fnamebase + ".subno.gif", ims, subrectangles=False, format="GIF-FI"
-    )
-    imageio.mimsave(
-        fnamebase + ".subyes.gif", ims, subrectangles=True, format="GIF-FI"
-    )
+    imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False, format="GIF-FI")
+    imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True, format="GIF-FI")
     s1 = os.stat(fnamebase + ".subno.gif").st_size
     s2 = os.stat(fnamebase + ".subyes.gif").st_size
     assert s2 < s1
@@ -553,15 +539,11 @@ def test_ico(tmp_path):
     writer.close()
 
     # Parameters. Note that with makealpha, RGBA images are read in incorrectly
-    im = imageio.imread(
-        fnamebase + "0.0.1.ico", makealpha=True, format="ICO-FI"
-    )
+    im = imageio.imread(fnamebase + "0.0.1.ico", makealpha=True, format="ICO-FI")
     assert im.ndim == 3 and im.shape[-1] == 4
 
     # Parameter fail
-    raises(
-        TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI"
-    )
+    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI")
     raises(
         TypeError,
         imageio.imsave,

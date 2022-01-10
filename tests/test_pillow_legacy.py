@@ -79,9 +79,7 @@ def test_pillow_format(image_cache, tmp_path):
     assert F.name == "PNG-PIL"
 
     # Reader
-    R = F.get_reader(
-        core.Request(image_cache / "test-images" / "chelsea.png", "ri")
-    )
+    R = F.get_reader(core.Request(image_cache / "test-images" / "chelsea.png", "ri"))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -115,16 +113,12 @@ def test_png(image_cache, tmp_path):
                 assert_close(rim * mul, im, 0.1)  # lossless
 
     # Parameters
-    im = imageio.imread(
-        image_cache / "test-images" / "chelsea.png", ignoregamma=True
-    )
+    im = imageio.imread(image_cache / "test-images" / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
     with pytest.raises(TypeError):
-        imageio.imread(
-            image_cache / "test-images" / "chelsea.png", notavalidk=True
-        )
+        imageio.imread(image_cache / "test-images" / "chelsea.png", notavalidk=True)
 
     with pytest.raises(TypeError):
         imageio.imsave(fnamebase + ".png", im, notavalidk=True)
@@ -166,9 +160,7 @@ def test_png(image_cache, tmp_path):
     assert im2.dtype == np.uint16
 
     # issue #352 - prevent low-luma uint16 truncation to uint8
-    arr = np.full(
-        (32, 32), 255, dtype=np.uint16
-    )  # values within range of uint8
+    arr = np.full((32, 32), 255, dtype=np.uint16)  # values within range of uint8
     preferences_dtypes = [
         [{}, np.uint8],
         [{"prefer_uint8": True}, np.uint8],

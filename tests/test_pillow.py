@@ -357,9 +357,7 @@ def test_gif_loop_and_fps(image_cache, tmp_path):
 
 def test_gif_indexed_read(image_cache):
     idx = 0
-    numpy_im = np.load(image_cache / "test-images" / "newtonscradle_rgb.npy")[
-        idx, ...
-    ]
+    numpy_im = np.load(image_cache / "test-images" / "newtonscradle_rgb.npy")[idx, ...]
 
     with iio.imopen(
         image_cache / "test-images" / "newtonscradle.gif", "r", plugin="pillow"
@@ -375,9 +373,7 @@ def test_gif_indexed_read(image_cache):
 
 def test_unknown_image(tmp_path):
     with open(tmp_path / "foo.unknown", "w") as file:
-        file.write(
-            "This image, which is actually no image, has an unknown image type."
-        )
+        file.write("This image, which is actually no image, has an unknown image type.")
 
     with pytest.raises(InitializationError):
         r = Request(tmp_path / "foo.unknown", "r")
@@ -469,9 +465,7 @@ def test_legacy_exif_orientation(image_cache, tmp_path):
 
 def test_incomatible_write_format(tmp_path):
     with pytest.raises(IOError):
-        iio.v3.imopen(
-            tmp_path / "foo.mp3", "w", plugin="pillow", legacy_mode=False
-        )
+        iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow", legacy_mode=False)
 
 
 def test_write_to_bytes():
@@ -500,9 +494,7 @@ def test_write_to_bytes_rgba():
 
     # writing to bytes with imageIO
     with io.BytesIO() as output:
-        iio.v3.imwrite(
-            output, image, plugin="pillow", format="PNG", mode="RGBA"
-        )
+        iio.v3.imwrite(output, image, plugin="pillow", format="PNG", mode="RGBA")
         iio_contents = output.getvalue()
 
     assert iio_contents == contents
@@ -517,9 +509,7 @@ def test_write_to_bytes_imwrite():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite(
-        "<bytes>", image, plugin="pillow", format="PNG"
-    )
+    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="PNG")
 
     assert contents == bytes_string
 
@@ -533,9 +523,7 @@ def test_write_to_bytes_jpg():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite(
-        "<bytes>", image, plugin="pillow", format="JPEG"
-    )
+    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="JPEG")
 
     assert contents == bytes_string
 

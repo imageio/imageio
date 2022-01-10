@@ -136,9 +136,7 @@ def test_findlib2():
     fi_dir = os.path.join(core.appdata_dir("imageio"), "freeimage")
     if not os.path.isdir(fi_dir):
         os.mkdir(fi_dir)
-    dirs, paths = core.findlib.generate_candidate_libs(
-        ["libfreeimage"], [fi_dir]
-    )
+    dirs, paths = core.findlib.generate_candidate_libs(["libfreeimage"], [fi_dir])
     # assert fi_dir in dirs -> Cannot test: lib may not exist
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
@@ -642,9 +640,7 @@ def test_functions(image_cache, tmp_path):
     W2.close()
     assert type(W1) is type(W2)
     # Fail
-    raises(
-        FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile"
-    )
+    raises(FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile")
 
     # Test imread()
     im1 = imageio.imread(fname1)
@@ -849,9 +845,7 @@ def test_imopen_no_plugin_found(clear_plugins):
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
     with pytest.raises(ValueError):
-        iio.imopen(
-            invalid_file, "r", plugin="unknown_plugin", legacy_mode=False
-        )
+        iio.imopen(invalid_file, "r", plugin="unknown_plugin", legacy_mode=False)
 
 
 def test_plugin_selection_failure(clear_plugins):
@@ -969,14 +963,10 @@ def test_volwrite_failure():
 
 
 def test_memory_size(image_cache):
-    im = iio.mimread(
-        image_cache / "test-images" / "newtonscradle.gif", memtest=True
-    )
+    im = iio.mimread(image_cache / "test-images" / "newtonscradle.gif", memtest=True)
     assert len(im) == 36
 
-    im = iio.mimread(
-        image_cache / "test-images" / "newtonscradle.gif", memtest=None
-    )
+    im = iio.mimread(image_cache / "test-images" / "newtonscradle.gif", memtest=None)
     assert len(im) == 36
 
 
