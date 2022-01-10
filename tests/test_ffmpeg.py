@@ -580,7 +580,7 @@ def test_webcam_resource_warnings():
             with imageio.get_reader("<video0>"):
                 pass
     except IndexError:
-        skip("no webcam")
+        pytest.skip("no webcam")
 
     import imageio_ffmpeg
 
