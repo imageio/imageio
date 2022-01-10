@@ -576,7 +576,7 @@ def test_webcam_resource_warnings():
      (see https://github.com/pytest-dev/pytest/issues/9404)
     """
     try:
-        with warns(None) as warnings:
+        with pytest.warns(None) as warnings:
             with imageio.get_reader("<video0>"):
                 pass
     except IndexError:

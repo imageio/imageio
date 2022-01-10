@@ -553,7 +553,7 @@ def test_write_jpg_to_bytes_io():
     assert np.allclose(image_from_file, image)
 
 
-def test_initialization_failure(image_files: Path):
+def test_initialization_failure(image_cache):
     test_image = b"this is not an image and will break things."
 
     with pytest.raises(OSError):
@@ -561,7 +561,9 @@ def test_initialization_failure(image_files: Path):
 
     with pytest.raises(OSError):
         # pillow can not handle npy
-        iio.v3.imread(image_files / "chelsea_jpg.npy", plugin="pillow")
+        iio.v3.imread(
+            image_cache / "test-images" / "chelsea_jpg.npy", plugin="pillow"
+        )
 
 
 def test_boolean_reading(tmp_path):
@@ -585,10 +587,12 @@ def test_boolean_writing(tmp_path):
     assert np.allclose(actual, expected)
 
 
-def test_quantized_gif(image_files: Path, tmp_path):
-    original = iio.v3.imread(image_files / "newtonscradle.gif")
+def test_quantized_gif(image_cache, tmp_path):
+    original = iio.v3.imread(image_cache / "test-images" / "newtonscradle.gif")
 
-    iio.v3.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
+    iio.v3.imwrite(
+        tmp_path / "quantized.gif", original, plugin="pillow", bits=4
+    )
     quantized = iio.v3.imread(tmp_path / "quantized.gif")
 
     for original_frame, quantized_frame in zip(original, quantized):
