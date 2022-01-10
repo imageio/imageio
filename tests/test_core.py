@@ -24,7 +24,7 @@ import imageio as iio
 import imageio.core.imopen as imopen_module
 from imageio import core
 from imageio.core import Request
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import IS_PYPY, get_remote_file
 from imageio.core.request import Mode, InitializationError
 from imageio.config.plugins import PluginConfig
 
@@ -55,25 +55,23 @@ class BrokenDummyPlugin:
 
 
 @pytest.mark.needs_internet
-def test_fetching(tmp_path):
+def test_fetching(tmp_userdir):
     """Test fetching of files"""
 
-    # Clear image files
-
     # This should download the file (force download, because local cache)
-    fname1 = get_remote_file("images/chelsea.png", tmp_path, True)
+    fname1 = get_remote_file("images/chelsea.png", tmp_userdir, True)
     mtime1 = os.path.getmtime(fname1)
     # This should reuse it
-    fname2 = get_remote_file("images/chelsea.png", tmp_path)
+    fname2 = get_remote_file("images/chelsea.png", tmp_userdir)
     mtime2 = os.path.getmtime(fname2)
     # This should overwrite
-    fname3 = get_remote_file("images/chelsea.png", tmp_path, True)
+    fname3 = get_remote_file("images/chelsea.png", tmp_userdir, True)
     mtime3 = os.path.getmtime(fname3)
     # This should too (update this if imageio is still around in 1000 years)
-    fname4 = get_remote_file("images/chelsea.png", tmp_path, "3014-01-01")
+    fname4 = get_remote_file("images/chelsea.png", tmp_userdir, "3014-01-01")
     mtime4 = os.path.getmtime(fname4)
     # This should not
-    fname5 = get_remote_file("images/chelsea.png", tmp_path, "2014-01-01")
+    fname5 = get_remote_file("images/chelsea.png", tmp_userdir, "2014-01-01")
     mtime5 = os.path.getmtime(fname4)
     #
     assert os.path.isfile(fname1)
@@ -93,7 +91,7 @@ def test_fetching(tmp_path):
     _chunk_read = core.fetching._chunk_read
     #
     with pytest.raises(IOError):
-        get_remote_file("this_does_not_exist", tmp_path)
+        get_remote_file("this_does_not_exist", tmp_userdir)
     #
     try:
         core.fetching.urlopen = None
@@ -116,21 +114,19 @@ def test_fetching(tmp_path):
     assert "0 bytes" == core.fetching._sizeof_fmt(0)
 
 
+@pytest.mark.skip(reason="always skip, is tested implicitly anyway")
 def test_findlib1():
 
     # Lib name would need to be "libc.so.5", or "libc.so.6", or ...
     # Meh, just skip
-    skip("always skip, is tested implicitly anyway")
-
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
 
     # Candidate libs for common lib (note, this runs only on linux)
-    dirs, paths = core.findlib.generate_candidate_libs(["libc"])
+    _, paths = core.findlib.generate_candidate_libs(["libc"])
     assert paths
 
 
-@pytest.mark.needs_internet
 def test_findlib2():
 
     if not sys.platform.startswith("linux"):
@@ -140,7 +136,9 @@ def test_findlib2():
     fi_dir = os.path.join(core.appdata_dir("imageio"), "freeimage")
     if not os.path.isdir(fi_dir):
         os.mkdir(fi_dir)
-    dirs, paths = core.findlib.generate_candidate_libs(["libfreeimage"], [fi_dir])
+    dirs, paths = core.findlib.generate_candidate_libs(
+        ["libfreeimage"], [fi_dir]
+    )
     # assert fi_dir in dirs -> Cannot test: lib may not exist
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
@@ -156,7 +154,7 @@ def test_findlib2():
 
 
 @pytest.mark.needs_internet
-def test_request(tmp_path):
+def test_request(image_cache, tmp_userdir):
     """Test request object"""
 
     # Check uri-type, this is not a public property, so we test the private
@@ -171,7 +169,7 @@ def test_request(tmp_path):
     R = Request(imageio.RETURN_BYTES, "wi")
     assert R._uri_type == core.request.URI_BYTES
     #
-    fname = get_remote_file("images/chelsea.png", tmp_path)
+    fname = image_cache / "images" / "chelsea.png"
     R = Request(fname, "ri")
     assert R._uri_type == core.request.URI_FILENAME
     R = Request("~/filethatdoesnotexist", "wi")
@@ -238,19 +236,17 @@ def test_request(tmp_path):
 
 
 @pytest.mark.needs_internet
-def test_request_read_sources(tmp_path):
+def test_request_read_sources(image_cache, tmp_userdir):
 
     # Make an image available in many ways
-    fname = "images/chelsea.png"
-    filename = get_remote_file(fname, tmp_path)
-    bytes = open(filename, "rb").read()
+    fname = os.path.join("images", "chelsea.png")
+    filename = image_cache / fname
+    bytes = open(str(filename), "rb").read()
     #
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
-    zipfilename = tmp_path / "test1.zip"
+    zipfilename = tmp_userdir / "test1.zip"
     with ZipFile(zipfilename, "w") as zf:
         zf.writestr(fname, bytes)
-
-    has_inet = os.getenv("IMAGEIO_NO_INTERNET", "") not in ("1", "yes", "true")
 
     # Read that image from these different sources. Read data from file
     # and from local file (the two main plugin-facing functions)
@@ -265,8 +261,7 @@ def test_request_read_sources(tmp_path):
                 memoryview(bytes),
                 open(filename, "rb"),
             ]
-            if has_inet:
-                uris.append(burl + fname)
+            uris.append(burl + fname)
 
             for uri in uris:
                 R = Request(uri, "ri")
@@ -284,18 +279,16 @@ def test_request_read_sources(tmp_path):
                     assert all_bytes.startswith(first_bytes)
 
 
-@pytest.mark.needs_internet
-def test_request_save_sources(tmp_path):
+def test_request_save_sources(image_cache, tmp_path):
 
     # Get test data
-    fname = "images/chelsea.png"
-    filename = get_remote_file(fname, tmp_path)
+    filename = image_cache / "test-images" / "chelsea.png"
     with open(filename, "rb") as f:
         bytes = f.read()
     assert len(bytes) > 0
 
     # Prepare destinations
-    fname2 = fname + ".out"
+    fname2 = filename.with_suffix(".out").name
     filename2 = tmp_path / fname2
     zipfilename2 = tmp_path / "test2.zip"
     file2 = None
@@ -614,17 +607,16 @@ def test_util_has_has_module():
     assert core.has_module("sys")
 
 
-@pytest.mark.needs_internet
-def test_functions(tmp_path):
+def test_functions(image_cache, tmp_path):
     """Test the user-facing API functions"""
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help("PNG")  # should print about PNG
 
-    fname1 = get_remote_file("images/chelsea.png", tmp_path)
-    fname2 = fname1[:-3] + "jpg"
-    fname3 = fname1[:-3] + "notavalidext"
+    fname1 = image_cache / "test-images" / "chelsea.png"
+    fname2 = tmp_path / fname1.with_suffix(".jpg").name
+    fname3 = tmp_path / fname1.with_suffix(".notavalidext").name
     open(fname3, "wb")
 
     # Test read()
@@ -650,7 +642,9 @@ def test_functions(tmp_path):
     W2.close()
     assert type(W1) is type(W2)
     # Fail
-    raises(FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile")
+    raises(
+        FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile"
+    )
 
     # Test imread()
     im1 = imageio.imread(fname1)
@@ -667,7 +661,7 @@ def test_functions(tmp_path):
     assert os.path.isfile(fname2)
 
     # Test mimread()
-    fname3 = get_remote_file("images/newtonscradle.gif", tmp_path)
+    fname3 = image_cache / "images" / "newtonscradle.gif"
     ims = imageio.mimread(fname3)
     assert isinstance(ims, list)
     assert len(ims) > 1
@@ -675,13 +669,16 @@ def test_functions(tmp_path):
     assert ims[0].shape[2] in (1, 3, 4)
     # Test protection
     with raises(RuntimeError):
-        imageio.mimread("imageio:chelsea.png", "dummy", length=np.inf)
+        imageio.mimread(
+            image_cache / "test-images" / "chelsea.png", "dummy", length=np.inf
+        )
 
     if IS_PYPY:
         return  # no support for npz format :(
 
     # Test mimsave()
-    fname5 = fname3[:-4] + "2.npz"
+    fname5 = str(fname3.with_suffix(""))
+    fname5 += "2.npz"
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)
@@ -690,7 +687,7 @@ def test_functions(tmp_path):
     assert os.path.isfile(fname5)
 
     # Test volread()
-    fname4 = get_remote_file("images/stent.npz", tmp_path)
+    fname4 = image_cache / "images" / "stent.npz"
     vol = imageio.volread(fname4)
     assert vol.ndim == 3
     assert vol.shape[0] == 256
@@ -699,7 +696,7 @@ def test_functions(tmp_path):
 
     # Test volsave()
     volc = np.zeros((10, 10, 10, 3), np.uint8)  # color volume
-    fname6 = tmp_path / "images" / "stent2.npz"
+    fname6 = tmp_path / "stent2.npz"
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
@@ -755,9 +752,8 @@ def test_to_nbytes_incorrect(arg):
         to_nbytes(arg)
 
 
-@pytest.mark.needs_internet
-def test_memtest(tmp_path):
-    fname3 = get_remote_file("images/newtonscradle.gif", tmp_path)
+def test_memtest(image_cache, tmp_path):
+    fname3 = image_cache / "images" / "newtonscradle.gif"
     imageio.mimread(fname3)  # trivial case
     imageio.mimread(fname3, memtest=1000 ** 2 * 256)
     imageio.mimread(fname3, memtest="256MB")
@@ -774,12 +770,11 @@ def test_memtest(tmp_path):
         imageio.mimread(fname3, memtest="64b")
 
 
-@pytest.mark.needs_internet
-def test_example_plugin(tmp_path):
+def test_example_plugin(image_cache, tmp_path):
     """Test the example plugin"""
 
     fname = tmp_path / "out.png"
-    r = Request("imageio:chelsea.png", "r?")
+    r = Request(image_cache / "test-images" / "chelsea.png", "r?")
     R = imageio.formats["dummy"].get_reader(r)
     W = imageio.formats["dummy"].get_writer(Request(fname, "w?"))
     #
@@ -854,7 +849,9 @@ def test_imopen_no_plugin_found(clear_plugins):
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
 def test_imopen_unregistered_plugin(clear_plugins, invalid_file):
     with pytest.raises(ValueError):
-        iio.imopen(invalid_file, "r", plugin="unknown_plugin", legacy_mode=False)
+        iio.imopen(
+            invalid_file, "r", plugin="unknown_plugin", legacy_mode=False
+        )
 
 
 def test_plugin_selection_failure(clear_plugins):
@@ -904,17 +901,22 @@ def test_legacy_object_image_writing(tmp_path):
         iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
 
 
-@pytest.mark.needs_internet
-def test_imiter(image_files: Path):
+def test_imiter(image_cache):
     # maybe it would be better to load the image without using imageio, e.g.
-    # numpy_im = np.load(image_files / "newtonscradle_rgb.npy")
+    # numpy_im = np.load(image_cache / "test-images" / "newtonscradle_rgb.npy")
 
     full_image = iio.v3.imread(
-        image_files / "newtonscradle.gif", plugin="pillow", mode="RGB"
+        image_cache / "test-images" / "newtonscradle.gif",
+        plugin="pillow",
+        mode="RGB",
     )
 
     for idx, im in enumerate(
-        iio.v3.imiter(image_files / "newtonscradle.gif", plugin="pillow", mode="RGB")
+        iio.v3.imiter(
+            image_cache / "test-images" / "newtonscradle.gif",
+            plugin="pillow",
+            mode="RGB",
+        )
     ):
         assert np.allclose(full_image[idx, ...], im)
 
@@ -933,7 +935,7 @@ def test_faulty_legacy_mode_access():
 
 
 @pytest.mark.needs_internet
-def test_mvolread_out_of_bytes():
+def test_mvolread_out_of_bytes(image_cache):
     with pytest.raises(RuntimeError):
         imageio.mvolread(
             "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
@@ -966,19 +968,21 @@ def test_volwrite_failure():
         iio.volwrite("foo.jpg", not_image_data)
 
 
-@pytest.mark.needs_internet
-def test_memory_size(image_files):
-    im = iio.mimread(image_files / "newtonscradle.gif", memtest=True)
+def test_memory_size(image_cache):
+    im = iio.mimread(
+        image_cache / "test-images" / "newtonscradle.gif", memtest=True
+    )
     assert len(im) == 36
 
-    im = iio.mimread(image_files / "newtonscradle.gif", memtest=None)
+    im = iio.mimread(
+        image_cache / "test-images" / "newtonscradle.gif", memtest=None
+    )
     assert len(im) == 36
 
 
-@pytest.mark.needs_internet
-def test_legacy_write_empty(image_files):
+def test_legacy_write_empty(tmp_path):
     with pytest.raises(RuntimeError):
-        iio.v3.imwrite(image_files / "foo.tiff", np.ones((0, 10, 10)))
+        iio.v3.imwrite(tmp_path / "foo.tiff", np.ones((0, 10, 10)))
 
 
 def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):

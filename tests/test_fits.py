@@ -3,7 +3,7 @@
 import pytest
 
 import imageio
-from imageio.core import get_remote_file, Request, IS_PYPY
+from imageio.core import Request, IS_PYPY
 
 import numpy as np
 
@@ -29,8 +29,7 @@ def normal_plugin_order():
     setup_module()
 
 
-@pytest.mark.needs_internet
-def test_fits_format():
+def test_fits_format(image_cache):
 
     # Test selection
     for name in ["fits", ".fits"]:
@@ -39,21 +38,20 @@ def test_fits_format():
         assert format.__module__.endswith(".fits")
 
     # Test cannot read
-    png = get_remote_file("images/chelsea.png")
+    png = image_cache / "test-images" / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 
 
-@pytest.mark.needs_internet
-def test_fits_reading():
+def test_fits_reading(image_cache):
     """Test reading fits"""
 
     if IS_PYPY:
         return  # no support for fits format :(
 
-    simple = get_remote_file("images/simple.fits")
-    multi = get_remote_file("images/multi.fits")
-    compressed = get_remote_file("images/compressed.fits.fz")
+    simple = image_cache / "images" / "simple.fits"
+    multi = image_cache / "images" / "multi.fits"
+    compressed = image_cache / "images" / "compressed.fits.fz"
 
     # One image
     im = imageio.imread(simple, format="fits")

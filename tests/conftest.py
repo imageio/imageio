@@ -1,8 +1,12 @@
-import pytest
 import os
+import pathlib
 import shutil
 from pathlib import Path
 import contextlib
+import subprocess
+import contextlib
+
+import pytest
 
 import imageio as iio
 
@@ -120,3 +124,12 @@ def invalid_file(tmp_path, request):
         file.write("Actually not a file.")
 
     return tmp_path / ("foo" + ext)
+
+
+@pytest.fixture()
+def tmp_userdir(tmp_path):
+    ud = tmp_path / "userdir"
+    os.makedirs(ud, exist_ok=True)
+    os.environ["IMAGEIO_USERDIR"] = str(ud)
+    yield ud
+    shutil.rmtree(ud)

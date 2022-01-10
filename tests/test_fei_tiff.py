@@ -6,14 +6,12 @@ from __future__ import unicode_literals
 
 import pytest
 import numpy as np
-from imageio.core import get_remote_file
 
 import imageio
 
 
-@pytest.mark.needs_internet
-def test_fei_file_reading():
-    fei_filename = get_remote_file("images/fei-sem-rbc.tif")
+def test_fei_file_reading(image_cache):
+    fei_filename = image_cache / "images" / "fei-sem-rbc.tif"
     reader = imageio.get_reader(fei_filename, format="fei")
     image = reader.get_data(0)  # imageio.Image object
     assert image.shape == (1024, 1536)

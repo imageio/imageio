@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 
 import pytest
-from imageio.core import get_remote_file
 import imageio
 import imageio as iio
 
@@ -20,8 +19,7 @@ def test_tifffile_format():
         assert format.name == "TIFF"
 
 
-@pytest.mark.needs_internet
-def test_tifffile_reading_writing(tmp_path):
+def test_tifffile_reading_writing(image_cache, tmp_path):
     """Test reading and saving tiff"""
 
     im2 = np.ones((10, 10, 3), np.uint8) * 2
@@ -57,7 +55,7 @@ def test_tifffile_reading_writing(tmp_path):
         assert (vol[i] == im2).all()
 
     # remote channel-first volume rgb (2, 3, 10, 10)
-    filename2 = get_remote_file("images/multipage_rgb.tif")
+    filename2 = image_cache / "images" / "multipage_rgb.tif"
     img = imageio.mimread(filename2)
     assert len(img) == 2
     assert img[0].shape == (3, 10, 10)

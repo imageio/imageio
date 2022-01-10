@@ -2,16 +2,14 @@
 """
 import pytest
 import imageio
-from imageio.core import get_remote_file
 
 pytest.importorskip("osgeo", reason="gdal is not installed")
 
 
-@pytest.mark.needs_internet
-def test_gdal_reading():
+def test_gdal_reading(image_cache):
     """Test reading gdal"""
 
-    filename = get_remote_file("images/geotiff.tif")
+    filename = image_cache / "images" / "geotiff.tif"
 
     im = imageio.imread(filename, "gdal")
     assert im.shape == (929, 699)

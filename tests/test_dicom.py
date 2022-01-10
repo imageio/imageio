@@ -10,19 +10,18 @@ import pytest
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file
 import imageio.plugins.dicom
 
 
 @pytest.fixture(scope="module")
-def examples(tmp_path_factory):
+def examples(image_cache, tmp_path_factory):
     """Create two dirs, one with one dataset and one with two datasets"""
 
     workdir = tmp_path_factory.getbasetemp() / "test_dicom"
 
     # Prepare sources
-    fname1 = get_remote_file("images/dicom_sample1.zip")
-    fname2 = get_remote_file("images/dicom_sample2.zip")
+    fname1 = image_cache / "images" / "dicom_sample1.zip"
+    fname2 = image_cache / "images" / "dicom_sample2.zip"
     dname1 = workdir / "dicom_sample1"
     dname2 = workdir / "dicom_sample2"
 
@@ -57,8 +56,7 @@ def test_dcmtk():
     imageio.plugins.dicom.get_dcmdjpeg_exe()
 
 
-@pytest.mark.needs_internet
-def test_selection(tmp_path, examples):
+def test_selection(image_cache, tmp_path, examples):
 
     dname1, dname2, fname1, fname2 = examples
 
@@ -80,29 +78,28 @@ def test_selection(tmp_path, examples):
         F.get_reader(core.Request(fname2, "ri"))
 
     # Test special files with other formats
-    im = imageio.imread(get_remote_file("images/dicom_file01.dcm"))
+    im = imageio.imread(image_cache / "images" / "dicom_file01.dcm")
     assert im.shape == (512, 512)
-    im = imageio.imread(get_remote_file("images/dicom_file03.dcm"))
+    im = imageio.imread(image_cache / "images" / "dicom_file03.dcm")
     assert im.shape == (512, 512)
-    im = imageio.imread(get_remote_file("images/dicom_file04.dcm"))
+    im = imageio.imread(image_cache / "images" / "dicom_file04.dcm")
     assert im.shape == (512, 512)
 
     # Expected fails
-    fname = get_remote_file("images/dicom_file90.dcm")
+    fname = image_cache / "images" / "dicom_file90.dcm"
     with pytest.raises(RuntimeError):
         imageio.imread(fname)  # 1.2.840.10008.1.2.4.91
-    fname = get_remote_file("images/dicom_file91.dcm")
+    fname = image_cache / "images" / "dicom_file91.dcm"
     with pytest.raises(RuntimeError):
         imageio.imread(fname)  # not pixel data
 
     # This one *should* work, but does not, see issue #18
     try:
-        imageio.imread(get_remote_file("images/dicom_file02.dcm"))
+        imageio.imread(image_cache / "images" / "dicom_file02.dcm")
     except Exception:
         pass
 
 
-@pytest.mark.needs_internet
 def test_progress(examples):
 
     dname1, dname2, fname1, fname2 = examples
@@ -114,7 +111,6 @@ def test_progress(examples):
         imageio.imread(fname1, progress=3)
 
 
-@pytest.mark.needs_internet
 def test_different_read_modes(examples):
 
     dname1, dname2, fname1, fname2 = examples
@@ -152,7 +148,6 @@ def test_different_read_modes(examples):
         assert sum([v.shape[0] for v in vols]) == len(ims)
 
 
-@pytest.mark.needs_internet
 def test_different_read_modes_with_readers(examples):
 
     dname1, dname2, fname1, fname2 = examples

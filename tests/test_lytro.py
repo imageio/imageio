@@ -6,7 +6,7 @@ import json
 import pytest
 
 import imageio
-from imageio.core import get_remote_file, Request
+from imageio.core import Request
 
 
 # Set file names for test images in imageio-binaries repo
@@ -20,17 +20,16 @@ RAW_F0_META_FILENAME = "images/IMG_0001__frame.json"
 PNG_FILENAME = "images/chelsea.png"
 
 
-@pytest.mark.needs_internet
-def test_lytro_lfr_format():
+def test_lytro_lfr_format(image_cache):
     """
     Test basic read/write properties of LytroLfrFormat
     """
     # Get test images
-    lfr_file = get_remote_file(LFR_FILENAME)
-    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
-    lfp_file = get_remote_file(LFP_FILENAME)
-    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
-    png_file = get_remote_file(PNG_FILENAME)
+    lfr_file = image_cache / LFR_FILENAME
+    raw_illum_file = image_cache / RAW_ILLUM_FILENAME
+    lfp_file = image_cache / LFP_FILENAME
+    raw_f01_file = image_cache / RAW_F0_FILENAME
+    png_file = image_cache / PNG_FILENAME
 
     # Test lytro lfr format
     format = imageio.formats["lytro-lfr"]
@@ -56,17 +55,16 @@ def test_lytro_lfr_format():
     assert not format.can_write(Request(png_file, "wi"))
 
 
-@pytest.mark.needs_internet
-def test_lytro_illum_raw_format():
+def test_lytro_illum_raw_format(image_cache):
     """
     Test basic read/write properties of LytroRawFormat
     """
     # Get test images
-    lfr_file = get_remote_file(LFR_FILENAME)
-    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
-    lfp_file = get_remote_file(LFP_FILENAME)
-    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
-    png_file = get_remote_file(PNG_FILENAME)
+    lfr_file = image_cache / LFR_FILENAME
+    raw_illum_file = image_cache / RAW_ILLUM_FILENAME
+    lfp_file = image_cache / LFP_FILENAME
+    raw_f01_file = image_cache / RAW_F0_FILENAME
+    png_file = image_cache / PNG_FILENAME
 
     # Test lytro raw format
     format = imageio.formats["lytro-illum-raw"]
@@ -91,17 +89,16 @@ def test_lytro_illum_raw_format():
     assert not format.can_write(Request(png_file, "wi"))
 
 
-@pytest.mark.needs_internet
-def test_lytro_f01_raw_format():
+def test_lytro_f01_raw_format(image_cache):
     """
     Test basic read/write properties of LytroRawFormat
     """
     # Get test images
-    lfr_file = get_remote_file(LFR_FILENAME)
-    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
-    lfp_file = get_remote_file(LFP_FILENAME)
-    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
-    png_file = get_remote_file(PNG_FILENAME)
+    lfr_file = image_cache / LFR_FILENAME
+    raw_illum_file = image_cache / RAW_ILLUM_FILENAME
+    lfp_file = image_cache / LFP_FILENAME
+    raw_f01_file = image_cache / RAW_F0_FILENAME
+    png_file = image_cache / PNG_FILENAME
 
     # Test lytro raw format
     format = imageio.formats["lytro-illum-raw"]
@@ -126,17 +123,16 @@ def test_lytro_f01_raw_format():
     assert not format.can_write(Request(png_file, "wi"))
 
 
-@pytest.mark.needs_internet
-def test_lytro_lfp_format():
+def test_lytro_lfp_format(image_cache):
     """
     Test basic read/write properties of LytroRawFormat
     """
     # Get test images
-    lfr_file = get_remote_file(LFR_FILENAME)
-    raw_illum_file = get_remote_file(RAW_ILLUM_FILENAME)
-    lfp_file = get_remote_file(LFP_FILENAME)
-    raw_f01_file = get_remote_file(RAW_F0_FILENAME)
-    png_file = get_remote_file(PNG_FILENAME)
+    lfr_file = image_cache / LFR_FILENAME
+    raw_illum_file = image_cache / RAW_ILLUM_FILENAME
+    lfp_file = image_cache / LFP_FILENAME
+    raw_f01_file = image_cache / RAW_F0_FILENAME
+    png_file = image_cache / PNG_FILENAME
 
     # Test lytro raw format
     format = imageio.formats["lytro-lfp"]
@@ -162,12 +158,11 @@ def test_lytro_lfp_format():
     assert not format.can_write(Request(png_file, "wi"))
 
 
-@pytest.mark.needs_internet
-def test_lytro_lfr_reading():
+def test_lytro_lfr_reading(image_cache):
     """Test reading of lytro .lfr file"""
     # Get test images
-    lfr_file = get_remote_file(LFR_FILENAME)
-    thumb_file = get_remote_file(THUMB_FILENAME)
+    lfr_file = image_cache / LFR_FILENAME
+    thumb_file = image_cache / THUMB_FILENAME
 
     # Read image and thumbnail
     img = imageio.imread(lfr_file, format="lytro-lfr")
@@ -450,11 +445,10 @@ def test_lytro_lfr_reading():
         test_reader.get_data(3)
 
 
-@pytest.mark.needs_internet
-def test_lytro_lfp_reading():
+def test_lytro_lfp_reading(image_cache):
     """Test reading of lytro .lfr file"""
     # Get test images
-    lfp_file = get_remote_file(LFP_FILENAME)
+    lfp_file = image_cache / LFP_FILENAME
 
     # Read image and thumbnail
     img = imageio.imread(lfp_file, format="lytro-lfp")
@@ -610,12 +604,11 @@ def test_lytro_lfp_reading():
         test_reader.get_data(3)
 
 
-@pytest.mark.needs_internet
-def test_lytro_raw_illum_reading():
+def test_lytro_raw_illum_reading(image_cache):
     """Test reading of lytro .raw file"""
     # Get test images
-    raw_file = get_remote_file(RAW_ILLUM_FILENAME)
-    raw_meta_file = get_remote_file(RAW_ILLUM_META_FILENAME)
+    raw_file = image_cache / RAW_ILLUM_FILENAME
+    raw_meta_file = image_cache / RAW_ILLUM_META_FILENAME
 
     # Read image and metadata file
     img = imageio.imread(raw_file, format="lytro-illum-raw")
@@ -651,12 +644,11 @@ def test_lytro_raw_illum_reading():
         test_reader.get_data(3)
 
 
-@pytest.mark.needs_internet
-def test_lytro_raw_f0_reading():
+def test_lytro_raw_f0_reading(image_cache):
     """Test reading of lytro .raw file"""
     # Get test images
-    raw_file = get_remote_file(RAW_F0_FILENAME)
-    raw_meta_file = get_remote_file(RAW_F0_META_FILENAME)
+    raw_file = image_cache / RAW_F0_FILENAME
+    raw_meta_file = image_cache / RAW_F0_META_FILENAME
 
     # Read image and metadata file
     img = imageio.imread(raw_file, format="lytro-f01-raw")

@@ -3,13 +3,13 @@ import pytest
 
 import gc
 import shutil
+import pathlib
 
 import numpy as np
 
 import imageio
 import imageio as iio
 from imageio.core import Format, FormatManager, Request
-from imageio.core import get_remote_file
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -78,12 +78,11 @@ class MyFormat(Format):
             self._meta = meta
 
 
-@pytest.mark.needs_internet
-def test_format(tmp_path):
+def test_format(image_cache, tmp_path):
     """Test the working of the Format class"""
 
-    filename1 = get_remote_file("images/chelsea.png", tmp_path)
-    filename2 = filename1 + ".out"
+    filename1 = image_cache / "test-images" / "chelsea.png"
+    filename2 = tmp_path / "chelsea.out"
 
     # Test basic format creation
     F = Format("testname", "test description", "foo bar spam")
@@ -117,8 +116,8 @@ def test_format(tmp_path):
     assert isinstance(W, MyFormat.Writer)
     assert R.format is F
     assert W.format is F
-    assert R.request.filename == filename1
-    assert W.request.filename == filename2
+    assert pathlib.Path(R.request.filename) == filename1
+    assert pathlib.Path(W.request.filename) == filename2
     # Fail
     raises(RuntimeError, F.get_reader, Request(filename1, "rI"))
     raises(RuntimeError, F.get_writer, Request(filename2, "wI"))
@@ -149,12 +148,11 @@ def test_format(tmp_path):
     assert set(ids) == set(F._closed)
 
 
-@pytest.mark.needs_internet
-def test_reader_and_writer(tmp_path):
+def test_reader_and_writer(image_cache, tmp_path):
 
     # Prepare
-    filename1 = get_remote_file("images/chelsea.png", tmp_path)
-    filename2 = filename1 + ".out"
+    filename1 = image_cache / "test-images" / "chelsea.png"
+    filename2 = tmp_path / "chelsea.out"
     F = MyFormat("test", "", modes="i")
 
     # Test using reader
@@ -242,11 +240,10 @@ def test_default_can_read_and_can_write(tmp_path):
     assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
-@pytest.mark.needs_internet
-def test_format_selection(tmp_path):
+def test_format_selection(image_cache, tmp_path):
 
     formats = imageio.formats
-    fname1 = get_remote_file("images/chelsea.png", tmp_path)
+    fname1 = image_cache / "test-images" / "chelsea.png"
     fname2 = tmp_path / "test.selectext1"
     fname3 = tmp_path / "test.haha"
     open(fname2, "wb")
@@ -280,8 +277,7 @@ def test_format_selection(tmp_path):
 # Format manager
 
 
-@pytest.mark.needs_internet
-def test_format_manager(tmp_path):
+def test_format_manager(image_cache):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -303,14 +299,14 @@ def test_format_manager(tmp_path):
         assert format.name in smalldocs
         # assert format.name in fulldocs
 
-    fname = get_remote_file("images/chelsea.png", tmp_path)
-    fname2 = fname[:-3] + "noext"
+    fname = image_cache / "test-images" / "chelsea.png"
+    fname2 = fname.with_suffix(".noext")
     shutil.copy(fname, fname2)
 
     # Check getting
     F1 = formats["PNG"]
     F2 = formats[".png"]
-    F3 = formats[fname2]  # will look in file itself
+    F3 = formats[fname2.as_posix()]  # will look in file itself
     assert type(F1) is type(F2)
     assert type(F1) is type(F3)
     # Check getting

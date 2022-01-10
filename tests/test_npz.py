@@ -8,11 +8,10 @@ import numpy as np
 from pytest import raises
 
 import imageio
-from imageio.core import get_remote_file, Request, IS_PYPY
+from imageio.core import Request, IS_PYPY
 
 
-@pytest.mark.needs_internet
-def test_npz_format():
+def test_npz_format(image_cache):
 
     # Test selection
     for name in ["npz", ".npz"]:
@@ -21,7 +20,7 @@ def test_npz_format():
         assert format.__module__.endswith(".npz")
 
     # Test cannot read
-    png = get_remote_file("images/chelsea.png")
+    png = image_cache / "test-images" / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 

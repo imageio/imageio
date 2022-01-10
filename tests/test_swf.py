@@ -7,22 +7,17 @@ import pytest
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import IS_PYPY
 
 
 def mean(x):
     return x.sum() / x.size  # pypy-compat mean
 
 
-# We use needs_internet marker; don't ship the swf image: its rather big and a
-# rather specific format
+def test_format_selection(image_cache):
 
-
-@pytest.mark.needs_internet
-def test_format_selection(tmp_path):
-
-    fname1 = get_remote_file("images/stent.swf", tmp_path)
-    fname2 = fname1[:-4] + ".out.swf"
+    fname1 = image_cache / "images" / "stent.swf"
+    fname2 = fname1.with_suffix(".out.swf")
 
     F = imageio.formats["swf"]
     assert F.name == "SWF"
@@ -32,13 +27,12 @@ def test_format_selection(tmp_path):
     assert type(imageio.save(fname2).format) is type(F)
 
 
-@pytest.mark.needs_internet
-def test_reading_saving(tmp_path):
+def test_reading_saving(image_cache, tmp_path):
 
-    fname1 = get_remote_file("images/stent.swf", tmp_path)
-    fname2 = fname1[:-4] + ".out.swf"
-    fname3 = fname1[:-4] + ".compressed.swf"
-    fname4 = fname1[:-4] + ".out2.swf"
+    fname1 = image_cache / "images" / "stent.swf"
+    fname2 = fname1.with_suffix(".out.swf")
+    fname3 = fname1.with_suffix(".compressed.swf")
+    fname4 = fname1.with_suffix(".out2.swf")
 
     # Read
     R = imageio.read(fname1)
@@ -141,11 +135,10 @@ def test_read_from_url():
     assert len(ims) == 10
 
 
-@pytest.mark.needs_internet
-def test_invalid(tmp_path):
+def test_invalid(image_cache):
 
-    fname1 = get_remote_file("images/stent.swf", tmp_path)
-    fname2 = fname1[:-4] + ".invalid.swf"
+    fname1 = image_cache / "images" / "stent.swf"
+    fname2 = fname1.with_suffix(".invalid.swf")
 
     # Empty file
     with open(fname2, "wb"):
@@ -188,11 +181,10 @@ def test_lowlevel():
     )
 
 
-@pytest.mark.needs_internet
-def test_types(tmp_path):
+def test_types(image_cache):
 
-    fname1 = get_remote_file("images/stent.swf", tmp_path)
-    fname2 = fname1[:-4] + ".out3.swf"
+    fname1 = image_cache / "images" / "stent.swf"
+    fname2 = fname1.with_suffix(".out3.swf")
 
     for dtype in [
         np.uint8,
