@@ -188,16 +188,16 @@ Previously in v2, metadata was provided as a ``dict`` that was attached to the
 image by returning a custom subclass of ``np.ndarray``. Now metadata is
 provided separately from pixel data::
 
-    # metadata = iio.imread(image_resource)._meta
+    # metadata = iio.imread(image_resource).meta
     metadata = iio.immeta(image_resource)
 
 Further, ImageIO now provides a curated set of standardized metadata which is
 called ImageProperties in addition to above metadata. The difference between the
 two is as follows: The metadata dict contains metadata using format-specific
 keys to the extent the reading plugin supports them. The ImageProperties
-dataclass contains metadata using standardized attribute names. They are the
-same name for all plugins, and - if the plugin or format doesn't provide a field
-- they are set to a (sensible) default value; usually ``None``. To access
+dataclass contains metadata using standardized attribute names. Each plugin
+provides the same set of properties, and if the plugin or format doesn't provide a field
+it is set to a (sensible) default value. To access
 ImageProperties use::
 
     props = iio.improps(image_resource)

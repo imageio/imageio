@@ -13,7 +13,7 @@ split into two parts: :ref:`Everyday Usage <v3_basic_usage>` and :ref:`Advanced
 Usage <v3_advanced_usage>`. The first part (everyday usage) focusses on sensible
 defaults and automation to cover everyday tasks such as plain reading or writing
 of images. The second part (advanced usage) focusses on providing fully-featured
-and performant access to all the a particular backend.
+and performant access to all the features of a particular backend.
 
 API Overview
 ------------
@@ -97,7 +97,7 @@ Low-Level Access
 ^^^^^^^^^^^^^^^^
 
 Sometimes we may wish for low-level access to a plugin or file, for example,
-because
+because:
 
 - we wish to have fine-grained control over when it is opened/closed.
 - we need to perform multiple IO operations and don't want to open the file
@@ -105,9 +105,9 @@ because
 - a plugin/backend offers unique features not otherwise exposed by the v3 API.
 
 For these cases, the v3 API offers :func:`iio.v3.imopen
-<imageio.core.imopen.imopen>`. It provides a context managed that initializes
-the plugin and openes the file for reading (``"r"``) or writing (``"w"``),
-similar to the built-in ``open``::
+<imageio.core.imopen.imopen>`. It provides a context manager that initializes
+the plugin and opens the file for reading (``"r"``) or writing (``"w"``),
+similar to the Python built-in function ``open``::
 
     import imageio as iio
 
