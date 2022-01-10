@@ -119,9 +119,7 @@ def pytest_collection_modifyitems(items):
         if ("image_cache" in getattr(item, "fixturenames", ())) or (
             "image_copy" in getattr(item, "fixturenames", ())
         ):
-            if item.config.getoption("imageio_binaries").startswith(
-                internet_protocols
-            ):
+            if item.config.getoption("imageio_binaries").startswith(internet_protocols):
                 item.add_marker("needs_internet")
 
 
