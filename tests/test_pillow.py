@@ -6,7 +6,6 @@ import os
 import io
 import pytest
 import numpy as np
-from pathlib import Path
 from PIL import Image, ImageSequence
 
 import imageio as iio

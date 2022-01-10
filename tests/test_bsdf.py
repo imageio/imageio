@@ -11,7 +11,6 @@ import imageio
 from imageio.plugins import _bsdf as bsdf
 
 import pytest
-import pathlib
 import sys
 
 xfail_big_endian = pytest.mark.xfail(

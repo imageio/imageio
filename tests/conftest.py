@@ -1,5 +1,4 @@
 import os
-import pathlib
 import shutil
 from pathlib import Path
 import contextlib
@@ -16,6 +15,18 @@ def pytest_configure(config):
         "markers",
         "needs_internet: Marks a test that requires an active interent connection."
         " (deselect with '-m \"not needs_internet\"').",
+    )
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--imageio-binaries",
+        action="store",
+        metavar="GIT_REPO",
+        default="https://github.com/imageio/imageio-binaries.git",
+        help="Repository to use for checking out binary data used at tests"
+        " (default: %(default)s).  Use 'file:///path/to/imageio-binaries'"
+        " to clone from a local repository and save testing bandwidth.",
     )
 
 

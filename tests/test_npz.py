@@ -5,8 +5,6 @@ import pytest
 
 import numpy as np
 
-from pytest import raises
-
 import imageio
 from imageio.core import Request, IS_PYPY
 
@@ -64,7 +62,7 @@ def test_npz_reading_writing(tmp_path):
     W.append_data(im2)
     W.append_data(im3)
     W.append_data(im4)
-    raises(RuntimeError, W.set_meta_data, {})  # no meta data support
+    pytest.raises(RuntimeError, W.set_meta_data, {})  # no meta data support
     W.close()
     #
     R = imageio.read(filename1)
@@ -74,7 +72,7 @@ def test_npz_reading_writing(tmp_path):
     assert (ims[1] == im3).all()
     assert (ims[2] == im4).all()
     # Fail
-    raises(IndexError, R.get_data, -1)
-    raises(IndexError, R.get_data, 3)
-    raises(RuntimeError, R.get_meta_data, None)  # no meta data support
-    raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
+    pytest.raises(IndexError, R.get_data, -1)
+    pytest.raises(IndexError, R.get_data, 3)
+    pytest.raises(RuntimeError, R.get_meta_data, None)  # no meta data support
+    pytest.raises(RuntimeError, R.get_meta_data, 0)  # no meta data support

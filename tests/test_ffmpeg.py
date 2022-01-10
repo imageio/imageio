@@ -595,7 +595,7 @@ def test_webcam_resource_warnings():
     assert not [w.message for w in warnings]
 
 
-def show_in_console():
+def show_in_console(image_cache):
     reader = imageio.read(image_cache / "images" / "cockatoo.mp4", "ffmpeg")
     # reader = imageio.read('<video0>')
     im = reader.get_next_data()
