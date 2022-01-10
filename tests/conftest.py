@@ -1,4 +1,5 @@
 import os
+import stat
 import shutil
 from pathlib import Path
 import contextlib
