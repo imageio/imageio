@@ -525,3 +525,13 @@ def test_boolean_writing(tmp_path):
     actual = np.asarray(Image.open(tmp_path / "iio.png"))
     # actual = iio.v3.imread(tmp_path / "iio.png")
     assert np.allclose(actual, expected)
+
+
+def test_quantized_gif(image_files: Path, tmp_path):
+    original = iio.v3.imread(image_files / "newtonscradle.gif")
+
+    iio.v3.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
+    quantized = iio.v3.imread(tmp_path / "quantized.gif")
+
+    for original_frame, quantized_frame in zip(original, quantized):
+        assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))
