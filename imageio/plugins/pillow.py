@@ -271,37 +271,31 @@ class PillowPlugin(object):
             <https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html>`_
             for each writer.
 
+        Notes
+        -----
+        When writing batches of very narrow (2-4 pixels wide) gray images set
+        the ``mode`` explicitly to avoid the batch being identified as a colored
+        image.
+
         """
-
-        if mode is None:
-            # there is no explicit function in pillow to determine the mode.
-            # However, pillow does it in Image.fromarray, and we imitate that
-            # here
-
-            # pillow supports 1 - 4 color channels depending on the format
-            # and all are channel-last
-            if image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
-                shape_key = (1, 1) + image.shape[-1:]
-            else:
-                shape_key = (1, 1)
-
-            try:
-                typekey = shape_key, image.dtype.str
-            except KeyError as e:
-                raise TypeError("Cannot handle this data type") from e
-            try:
-                lookup_mode, _ = Image._fromarray_typemap[typekey]
-            except KeyError as e:
-                raise TypeError("Cannot handle this data type: %s, %s" % typekey) from e
-        else:
-            lookup_mode = mode
 
         save_args = {
             "format": format,
         }
 
-        # check if ndimage is a batch of frames (e.g. for writing GIF)
-        is_batch = image.ndim > 3 if _is_multichannel(lookup_mode) else image.ndim > 2
+        # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
+        # if mode is given, use it; otherwise fall back to image.ndim only
+        if mode is not None:
+            is_batch = image.ndim > 3 if _is_multichannel(mode) else image.ndim > 2
+        elif image.ndim == 2:
+            is_batch = False
+        elif image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
+            # Note: this makes a channel-last assumption
+            # (pillow seems to make it as well)
+            is_batch = False
+        else:
+            is_batch = True
+
         if is_batch:
             save_args["save_all"] = True
             primary_image = Image.fromarray(image[0], mode=mode)
