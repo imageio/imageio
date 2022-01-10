@@ -746,6 +746,13 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         frame = im.convert("RGBA")
     elif im.mode == "CMYK":
         frame = im.convert("RGB")
+    elif im.format == "GIF" and im.mode == "RGB":
+        # pillow9 returns RGBA images for subsequent frames so that it can deal
+        # with multi-frame GIF that use frame-level palettes and don't dispose
+        # all areas.
+
+        # For backwards compatibility, we promote everything to RGBA.
+        frame = im.convert("RGBA")
 
     # Apply a post-convert if necessary
     if as_gray:
