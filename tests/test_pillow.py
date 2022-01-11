@@ -504,3 +504,34 @@ def test_initialization_failure(image_files: Path):
     with pytest.raises(OSError):
         # pillow can not handle npy
         iio.v3.imread(image_files / "chelsea_jpg.npy", plugin="pillow")
+
+
+def test_boolean_reading(tmp_path):
+    # Bugfix: https://github.com/imageio/imageio/issues/721
+    expected = np.arange(256 * 256).reshape((256, 256)) % 2 == 0
+
+    Image.fromarray(expected).save(tmp_path / "iio.png")
+
+    actual = iio.v3.imread(tmp_path / "iio.png")
+    assert np.allclose(actual, expected)
+
+
+def test_boolean_writing(tmp_path):
+    # Bugfix: https://github.com/imageio/imageio/issues/721
+    expected = np.arange(256 * 256).reshape((256, 256)) % 2 == 0
+
+    iio.v3.imwrite(tmp_path / "iio.png", expected)
+
+    actual = np.asarray(Image.open(tmp_path / "iio.png"))
+    # actual = iio.v3.imread(tmp_path / "iio.png")
+    assert np.allclose(actual, expected)
+
+
+def test_quantized_gif(image_files: Path, tmp_path):
+    original = iio.v3.imread(image_files / "newtonscradle.gif")
+
+    iio.v3.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
+    quantized = iio.v3.imread(tmp_path / "quantized.gif")
+
+    for original_frame, quantized_frame in zip(original, quantized):
+        assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))

@@ -614,18 +614,23 @@ class FormatManager(object):
                     "contain dots `.` or commas `,`."
                 )
 
-        if len(names) == 0:
+        should_reset = len(names) == 0
+        if should_reset:
             names = _original_order
 
         sane_names = [name.strip().upper() for name in names if name != ""]
+
+        # enforce order for every extension that uses it
         flat_extensions = [
             ext for ext_list in known_extensions.values() for ext in ext_list
         ]
+        for extension in flat_extensions:
+            if should_reset:
+                extension.reset()
+                continue
 
-        # enforce order for every extension that uses it
-        for name in reversed(sane_names):
-            for extension in flat_extensions:
-                for plugin in [x for x in extension.priority]:
+            for name in reversed(sane_names):
+                for plugin in [x for x in extension.default_priority]:
                     if plugin.endswith(name):
                         extension.priority.remove(plugin)
                         extension.priority.insert(0, plugin)

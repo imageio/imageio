@@ -984,4 +984,15 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
 
 
+def test_sort_order_restore():
+    # this is a proxy test; only test PNG instead of all formats
+    # since that already reproduces the issue
+
+    old_order = iio.config.known_extensions[".png"][0].priority.copy()
+    iio.formats.sort()
+    new_order = iio.config.known_extensions[".png"][0].priority.copy()
+
+    assert old_order == new_order
+
+
 run_tests_if_main()
