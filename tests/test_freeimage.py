@@ -3,6 +3,7 @@
 
 import os
 import sys
+import stat
 import shutil
 
 import numpy as np
@@ -32,7 +33,13 @@ def setup_library(tmp_path_factory, image_cache):
 
         # Setup from image_cache/freeimage
         ud = tmp_path_factory.getbasetemp() / "userdir"
-        os.environ["IMAGEIO_USERDIR"] = str(ud)
+        if sys.platform.startswith("win"):
+            if "LOCALAPPDATA" in os.environ:  #saves it
+                os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]
+            os.environ["LOCALAPPDATA"] = str(ud)
+        else:
+            os.environ["IMAGEIO_USERDIR"] = str(ud)
+        os.makedirs(ud, exist_ok=True)
         add = core.appdata_dir("imageio")
         os.makedirs(add, exist_ok=True)
         shutil.copytree(image_cache / "freeimage", os.path.join(add, "freeimage"))
@@ -43,8 +50,17 @@ def setup_library(tmp_path_factory, image_cache):
 
     if use_imageio_binary:
 
-        del os.environ["IMAGEIO_USERDIR"]
-        shutil.rmtree(ud)
+        if sys.platform.startswith("win"):
+            del os.environ["LOCALAPPDATA"]
+            if "OLD_LOCALAPPDATA" in os.environ:
+                os.environ["LOCALAPPDATA"] = os.environ["OLD_LOCALAPPDATA"]
+                del os.environ["OLD_LOCALAPPDATA"]
+        else:
+            del os.environ["IMAGEIO_USERDIR"]
+
+        # on windows, loaded DLLs may refuse to get deleted
+        # there is no clean way to release those, so we leave it there
+        shutil.rmtree(ud, ignore_errors=True)
 
     # Sort formats back to normal
     imageio.formats.sort()

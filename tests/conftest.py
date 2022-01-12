@@ -1,4 +1,5 @@
 import os
+import sys
 import stat
 import shutil
 from pathlib import Path
@@ -156,9 +157,22 @@ def tmp_userdir(tmp_path):
 
     ud = tmp_path / "userdir"
     os.makedirs(ud, exist_ok=True)
-    os.environ["IMAGEIO_USERDIR"] = str(ud)
+
+    if sys.platform.startswith("win"):
+        if "LOCALAPPDATA" in os.environ:  #saves it
+            os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]
+        os.environ["LOCALAPPDATA"] = str(ud)
+    else:
+        os.environ["IMAGEIO_USERDIR"] = str(ud)
 
     yield ud
 
-    del os.environ["IMAGEIO_USERDIR"]
+    if sys.platform.startswith("win"):
+        del os.environ["LOCALAPPDATA"]
+        if "OLD_LOCALAPPDATA" in os.environ:
+            os.environ["LOCALAPPDATA"] = os.environ["OLD_LOCALAPPDATA"]
+            del os.environ["OLD_LOCALAPPDATA"]
+    else:
+        del os.environ["IMAGEIO_USERDIR"]
+
     shutil.rmtree(ud)
