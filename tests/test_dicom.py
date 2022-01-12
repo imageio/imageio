@@ -41,7 +41,7 @@ def examples(image_cache, tmp_path_factory):
 
     # tmp_path_fixture will persist during the session
     # so we need to clean up after ourselves
-    shutil.rmtree(workdir)
+    shutil.rmtree(workdir, ignore_errors=True)
 
 
 def test_read_empty_dir(tmp_path):
