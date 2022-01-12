@@ -237,7 +237,7 @@ def test_request(image_cache, tmp_userdir):
 def test_request_read_sources(image_cache, tmp_userdir):
 
     # Make an image available in many ways
-    fname = os.path.join("images", "chelsea.png")
+    fname = "images/chelsea.png"
     filename = image_cache / fname
     bytes = open(str(filename), "rb").read()
     #
