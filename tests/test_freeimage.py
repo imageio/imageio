@@ -3,7 +3,6 @@
 
 import os
 import sys
-import stat
 import shutil
 
 import numpy as np
