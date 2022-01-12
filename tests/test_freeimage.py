@@ -34,7 +34,7 @@ def setup_library(tmp_path_factory, image_cache):
         # Setup from image_cache/freeimage
         ud = tmp_path_factory.getbasetemp() / "userdir"
         if sys.platform.startswith("win"):
-            if "LOCALAPPDATA" in os.environ:  #saves it
+            if "LOCALAPPDATA" in os.environ:  # saves it
                 os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]
             os.environ["LOCALAPPDATA"] = str(ud)
         else:

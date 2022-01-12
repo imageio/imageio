@@ -987,9 +987,7 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         assert isinstance(f, PillowPlugin)
 
     with pytest.raises(ValueError):
-        iio.v3.imopen(
-            tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin
-        )
+        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
 
 
 def test_sort_order_restore():

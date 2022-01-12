@@ -548,9 +548,7 @@ def test_initialization_failure(image_cache):
 
     with pytest.raises(OSError):
         # pillow can not handle npy
-        iio.v3.imread(
-            image_cache / "test-images" / "chelsea_jpg.npy", plugin="pillow"
-        )
+        iio.v3.imread(image_cache / "test-images" / "chelsea_jpg.npy", plugin="pillow")
 
 
 def test_boolean_reading(tmp_path):
@@ -577,9 +575,7 @@ def test_boolean_writing(tmp_path):
 def test_quantized_gif(image_cache, tmp_path):
     original = iio.v3.imread(image_cache / "test-images" / "newtonscradle.gif")
 
-    iio.v3.imwrite(
-        tmp_path / "quantized.gif", original, plugin="pillow", bits=4
-    )
+    iio.v3.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
     quantized = iio.v3.imread(tmp_path / "quantized.gif")
 
     for original_frame, quantized_frame in zip(original, quantized):

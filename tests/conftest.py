@@ -159,7 +159,7 @@ def tmp_userdir(tmp_path):
     os.makedirs(ud, exist_ok=True)
 
     if sys.platform.startswith("win"):
-        if "LOCALAPPDATA" in os.environ:  #saves it
+        if "LOCALAPPDATA" in os.environ:  # saves it
             os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]
         os.environ["LOCALAPPDATA"] = str(ud)
     else:
