@@ -153,8 +153,12 @@ def invalid_file(tmp_path, request):
 
 @pytest.fixture()
 def tmp_userdir(tmp_path):
+
     ud = tmp_path / "userdir"
     os.makedirs(ud, exist_ok=True)
     os.environ["IMAGEIO_USERDIR"] = str(ud)
+
     yield ud
+
+    del os.environ["IMAGEIO_USERDIR"]
     shutil.rmtree(ud)

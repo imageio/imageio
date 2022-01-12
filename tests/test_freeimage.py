@@ -22,6 +22,7 @@ def get_library(tmp_path_factory):
 
     # This tests requires our version of the FI lib
     ud = tmp_path_factory.getbasetemp() / "userdir"
+    os.makedirs(ud, exist_ok=True)
     os.environ["IMAGEIO_USERDIR"] = str(ud)
     imageio.plugins.freeimage.download()
 
