@@ -15,21 +15,40 @@ from imageio import core
 from imageio.core import IS_PYPY
 
 
-@pytest.fixture(scope="module", autouse=True)
-def get_library(tmp_path_factory):
+@pytest.fixture(scope="module")
+def setup_library(tmp_path_factory, image_cache):
+
+    # Checks if freeimage is installed by the system
+    from imageio.plugins.freeimage import fi
+
+    use_imageio_binary = False
+    if not fi.has_lib():
+        use_imageio_binary = True
+
     # During this test, pretend that FI is the default format
     imageio.formats.sort("-FI")
 
-    # This tests requires our version of the FI lib
-    ud = tmp_path_factory.getbasetemp() / "userdir"
-    os.makedirs(ud, exist_ok=True)
-    os.environ["IMAGEIO_USERDIR"] = str(ud)
-    imageio.plugins.freeimage.download()
+    if use_imageio_binary:
+
+        # Setup from image_cache/freeimage
+        ud = tmp_path_factory.getbasetemp() / "userdir"
+        os.environ["IMAGEIO_USERDIR"] = str(ud)
+        add = core.appdata_dir("imageio")
+        os.makedirs(add, exist_ok=True)
+        shutil.copytree(
+            image_cache / "freeimage", os.path.join(add, "freeimage")
+        )
+        fi.load_freeimage()
+        assert (
+            fi.has_lib()
+        ), "imageio-binaries' version of libfreeimage was not found"
 
     yield
 
-    del os.environ["IMAGEIO_USERDIR"]
-    shutil.rmtree(ud)
+    if use_imageio_binary:
+
+        del os.environ["IMAGEIO_USERDIR"]
+        shutil.rmtree(ud)
 
     # Sort formats back to normal
     imageio.formats.sort()
@@ -87,7 +106,6 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-@pytest.mark.needs_internet
 def test_download():
     # this is a regression test
     # see: https://github.com/imageio/imageio/issues/690
@@ -123,16 +141,21 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
-@pytest.mark.needs_internet
-def test_get_fi_lib():
+def test_get_fi_lib(image_cache, tmp_userdir):
 
     from imageio.plugins._freeimage import get_freeimage_lib
+
+    add = core.appdata_dir("imageio")
+    os.makedirs(add, exist_ok=True)
+    shutil.copytree(
+        image_cache / "freeimage", os.path.join(add, "freeimage")
+    )
 
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
 
 
-def test_freeimage_format(image_cache, tmp_path):
+def test_freeimage_format(setup_library, image_cache, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -155,8 +178,7 @@ def test_freeimage_format(image_cache, tmp_path):
     raises(RuntimeError, W.append_data, im0)
 
 
-@pytest.mark.needs_internet
-def test_freeimage_lib():
+def test_freeimage_lib(setup_library):
 
     fi = imageio.plugins.freeimage.fi
 
@@ -172,7 +194,7 @@ def test_freeimage_lib():
     raises(ValueError, fi.getFIF, "foo.iff", "w")  # We cannot write iff
 
 
-def test_png(image_cache, tmp_path):
+def test_png(setup_library, image_cache, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -202,7 +224,9 @@ def test_png(image_cache, tmp_path):
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
 
     # Parameters
-    im = imageio.imread(image_cache / "images" / "chelsea.png", ignoregamma=True)
+    im = imageio.imread(
+        image_cache / "images" / "chelsea.png", ignoregamma=True
+    )
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
@@ -239,7 +263,7 @@ def test_png(image_cache, tmp_path):
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
 
-def test_png_dtypes(tmp_path):
+def test_png_dtypes(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -278,7 +302,7 @@ def test_png_dtypes(tmp_path):
     assert_close(im1, imageio.imread(fname))  # scaled
 
 
-def test_jpg(tmp_path):
+def test_jpg(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -326,7 +350,7 @@ def test_jpg(tmp_path):
     raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more(image_cache, tmp_path):
+def test_jpg_more(setup_library, image_cache, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -359,7 +383,7 @@ def test_jpg_more(image_cache, tmp_path):
     assert im.meta.EXIF_MAIN
 
 
-def test_bmp(tmp_path):
+def test_bmp(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -398,7 +422,7 @@ def test_bmp(tmp_path):
     )
 
 
-def test_gif(tmp_path):
+def test_gif(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -422,7 +446,9 @@ def test_gif(tmp_path):
                 assert_close(rim * mul, im, 1.1)  # lossless
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI")
+    raises(
+        TypeError, imageio.imread, fname, notavalidkwarg=True, format="GIF-FI"
+    )
     raises(
         TypeError,
         imageio.imsave,
@@ -433,7 +459,7 @@ def test_gif(tmp_path):
     )
 
 
-def test_animated_gif(tmp_path):
+def test_animated_gif(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -466,8 +492,12 @@ def test_animated_gif(tmp_path):
 
     # We can also store grayscale
     fname = fnamebase + ".animated.%i.gif" % 1
-    imageio.mimsave(fname, [x[:, :, 0] for x in ims], duration=0.2, format="GIF-FI")
-    imageio.mimsave(fname, [x[:, :, :1] for x in ims], duration=0.2, format="GIF-FI")
+    imageio.mimsave(
+        fname, [x[:, :, 0] for x in ims], duration=0.2, format="GIF-FI"
+    )
+    imageio.mimsave(
+        fname, [x[:, :, :1] for x in ims], duration=0.2, format="GIF-FI"
+    )
 
     # Irragular duration. You probably want to check this manually (I did)
     duration = [0.1 for i in ims]
@@ -499,14 +529,20 @@ def test_animated_gif(tmp_path):
         quantizer="foo",
         format="GIF-FI",
     )
-    raises(ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI")
+    raises(
+        ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI"
+    )
 
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
 
     # Test subrectangles
-    imageio.mimsave(fnamebase + ".subno.gif", ims, subrectangles=False, format="GIF-FI")
-    imageio.mimsave(fnamebase + ".subyes.gif", ims, subrectangles=True, format="GIF-FI")
+    imageio.mimsave(
+        fnamebase + ".subno.gif", ims, subrectangles=False, format="GIF-FI"
+    )
+    imageio.mimsave(
+        fnamebase + ".subyes.gif", ims, subrectangles=True, format="GIF-FI"
+    )
     s1 = os.stat(fnamebase + ".subno.gif").st_size
     s2 = os.stat(fnamebase + ".subyes.gif").st_size
     assert s2 < s1
@@ -515,7 +551,7 @@ def test_animated_gif(tmp_path):
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_ico(tmp_path):
+def test_ico(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -540,11 +576,15 @@ def test_ico(tmp_path):
     writer.close()
 
     # Parameters. Note that with makealpha, RGBA images are read in incorrectly
-    im = imageio.imread(fnamebase + "0.0.1.ico", makealpha=True, format="ICO-FI")
+    im = imageio.imread(
+        fnamebase + "0.0.1.ico", makealpha=True, format="ICO-FI"
+    )
     assert im.ndim == 3 and im.shape[-1] == 4
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI")
+    raises(
+        TypeError, imageio.imread, fname, notavalidkwarg=True, format="ICO-FI"
+    )
     raises(
         TypeError,
         imageio.imsave,
@@ -560,7 +600,7 @@ def test_ico(tmp_path):
     sys.platform.startswith("win"),
     reason="Windows has a known issue with multi-icon files",
 )
-def test_multi_icon_ico(tmp_path):
+def test_multi_icon_ico(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -574,11 +614,11 @@ def test_multi_icon_ico(tmp_path):
 
 
 @pytest.mark.skip("MNG seems broken in FreeImage")
-def test_mng(image_cache):
+def test_mng(setup_library, image_cache):
     imageio.imread(image_cache / "images" / "mngexample.mng")
 
 
-def test_pnm(tmp_path):
+def test_pnm(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -610,7 +650,7 @@ def test_pnm(tmp_path):
                 )
 
 
-def test_other(tmp_path):
+def test_other(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
     # Cannot save float
@@ -618,7 +658,7 @@ def test_other(tmp_path):
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")
 
 
-def test_gamma_correction(image_cache):
+def test_gamma_correction(setup_library, image_cache):
 
     fname = image_cache / "images" / "kodim03.png"
 
