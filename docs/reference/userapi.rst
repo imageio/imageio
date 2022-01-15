@@ -90,14 +90,14 @@ Avoiding API Migration for Legacy Scripts
 -----------------------------------------
 
 If you have an old script where you do not wish to migrate the API, you can
-explicitly import the old v2 API and avoid migration. Note that, while this will
-keep the old (v2) API, it will use on the new (v3) plugins and backends, which
-may contain other backwards incompatible changes. As such, you should prefer a
-full migration to v3, and should avoid using the v2 API in new code. To import
-the v2 API, depending on your script/code, use::
+explicitly import the old v2 API and avoid migration. While this will keep the
+old (v2) API, it will rely on the new (v3) plugins and backends, which may
+contain other backwards incompatible changes. As such, you should prefer a full
+migration to v3 and should avoid using the v2 API in new code. To import the v2
+API, depending on your script/code, use::
 
-    import imageio... as iio
-    import imageio... as imageio
+    import imageio.v2 as iio
+    import imageio.v2 as imageio
   
 
 Reading Images 
@@ -107,9 +107,9 @@ Reading Images
 As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarily,
 `iio.mimread` and `iio.mvolread` have merged into a new function called
 `iio.imiter`, which returns a generator that yields ndimages from a file in the
-order they appear. Further, the default behavior of `iio.imread` has changed,
-and it now returns the first ndimage (instead of the first flat image) if the
-image contains multiple images.
+order in which they appear. Further, the default behavior of `iio.imread` has
+changed, and it now returns the first ndimage (instead of the first flat image)
+if the image contains multiple images.
 
 To reproduce similar behavior to the v2 API behavior use one of the following
 snippets::
@@ -140,15 +140,11 @@ To reproduce similar behavior to the v2 API behavior use one of the following
 snippets::
 
     # img = iio.v2.imwrite(image_resource, ndimage)
-    # img = iio.v2.imsave(image_resource, ndimage)
     # img = iio.v2.volwrite(image_resource, ndimage)
-    # img = iio.v2.volsave(image_resource, ndimage)
     img = iio.v3.imwrite(image_resource, ndimage)
 
     # img = iio.v2.mimwrite(image_resource, list_of_ndimages)
-    # img = iio.v2.mimsave(image_resource, list_of_ndimages)
     # img = iio.v2.mvolwrite(image_resource, list_of_ndimages)
-    # img = iio.v2.mvolsave(image_resource, list_of_ndimages)
     img = iio.v3.imwrite(image_resource, list_of_ndimages)
 
 Reader and Writer
@@ -186,7 +182,7 @@ Metadata
 The v3 API makes handling of metadata much more consistent and explicit.
 Previously in v2, metadata was provided as a ``dict`` that was attached to the
 image by returning a custom subclass of ``np.ndarray``. Now metadata is
-provided separately from pixel data::
+served independently from pixel data::
 
     # metadata = iio.imread(image_resource).meta
     metadata = iio.immeta(image_resource)

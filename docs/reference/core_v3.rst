@@ -31,25 +31,25 @@ API Overview
 Everyday Usage
 --------------
 
-Most of the time, the image-related IO we wish to perform can be described as "I
+Frequently, the image-related IO you wish to perform can be summarized as "I
 want to load X as a numpy array.", or "I want to save my array as a XYZ file".
 This should not be complicated, and it is, in fact, as simple as calling the
 corresponding function::
 
-    import imageio as iio
+    import imageio.v3 as iio
 
     # reading:
-    img = iio.v3.imread("imageio:chelsea.png")
+    img = iio.imread("imageio:chelsea.png")
     
     # writing:
-    iio.v3.imwrite("out_image.jpg", img)
+    iio.imwrite("out_image.jpg", img)
 
 Both functions accept any :doc:`ImageResource <../getting_started/requests>` as
-their first argument, which means we can read/write almost anything image
+their first argument, which means you can read/write almost anything image
 related; from simple JPGs through ImageJ hyperstacks to MP4 video or various
 niche RAW formats.
 
-If we do need to customize or tweak this process we can pass additional keyword
+If you do need to customize or tweak this process you can pass additional keyword
 arguments (`kwargs`) to overwrite any defaults ImageIO uses when reading or
 writing. The two `kwargs` that are always available are:
 
@@ -57,10 +57,11 @@ writing. The two `kwargs` that are always available are:
 - ``index`` (reading only): The index of the ndimage to read, if the format
   supports storing more than one (GIF, multi-page TIFF, video, etc.).
 
-Additional `kwargs` are specific to the plugin being used and we can find a list
-of available ones in the documentation of the specific plugin (where they
+Additional `kwargs` are specific to the plugin being used and you can find a
+list of available ones in the documentation of the specific plugin (where they
 are called parameters). A list of all available plugins can be found :ref:`here
-<supported_backends>`.
+<supported_backends>` and you can read more about ``plugin`` and ``index`` in
+the documentation of the respective function.
 
 .. _v3_advanced_usage:
 
@@ -71,47 +72,51 @@ Iterating Video and Multi-Page Formats
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Some formats (GIF, MP4, TIFF, among others) allow storage of more than one
-ndimage in the same file, and often we wish to do processing on all ndimages in
-such a file instead of just a single one. While :func:`iio.v3.imread(...,
-index=None) <imageio.core.v3_api.imread>` allows us to read all ndimages and
-stack them into a ndarray, this comes with two problems:
+ndimage in the same file, and you may wish to process all ndimages in such a
+file instead of just a single one. While :func:`iio.imread(..., index=None)
+<imageio.core.v3_api.imread>` allows you to read all ndimages and stack them
+into a ndarray (using `index=None`; check the docs), this comes with two
+problems:
 
 - Some formats (e.g., SPE or TIFF) allow multiple ndimages with different shapes
   in the same file, which prevents stacking.
-- Some files (especially video) are
-  too big to fit into memory when loaded all at once.
+- Some files (especially video) are too big to fit into memory when loaded all
+  at once.
 
-To address this problem, the v3 API introduces :func:`iio.v3.imiter
-<imageio.core.v3_api.imiter>`, a generator yielding ndimages in the order in
+To address these problems, the v3 API introduces :func:`iio.imiter
+<imageio.core.v3_api.imiter>`; a generator yielding ndimages in the order in
 which they appear in the file::
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    for frame in iio.v3.imiter("imageio:cockatoo.mp4"):
-        pass # do something with the current frame
+    for frame in iio.imiter("imageio:cockatoo.mp4"):
+        pass # do something with each frame
 
 Just like imread, imiter accepts additional `kwargs` to overwrite any defaults
-used by ImageIO.
+used by ImageIO. Like before, the :func:`function-specific documentation
+<imageio.core.v3_api.imiter>` details the `kwargs` that are always present, and
+additional kwargs are plugin specific and documented by the respective plugin.
 
 Low-Level Access
 ^^^^^^^^^^^^^^^^
 
-Sometimes we may wish for low-level access to a plugin or file, for example,
+Sometimes you may wish for low-level access to a plugin or file, for example,
 because:
 
-- we wish to have fine-grained control over when it is opened/closed.
-- we need to perform multiple IO operations and don't want to open the file
+- you wish to have fine-grained control over when it is opened/closed.
+- you need to perform multiple IO operations and don't want to open the file
   multiple times.
-- a plugin/backend offers unique features not otherwise exposed by the v3 API.
+- a plugin/backend offers unique features not otherwise exposed by the
+  high-level API.
 
-For these cases, the v3 API offers :func:`iio.v3.imopen
+For these cases the v3 API offers :func:`iio.v3.imopen
 <imageio.core.imopen.imopen>`. It provides a context manager that initializes
-the plugin and opens the file for reading (``"r"``) or writing (``"w"``),
+the plugin and openes the file for reading (``"r"``) or writing (``"w"``),
 similar to the Python built-in function ``open``::
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    with iio.v3.imopen("imageio:chelsea.png", "r") as iio_plugin:
+    with iio.imopen("imageio:chelsea.png", "r") as iio_plugin:
         img = iio_plugin.read()
         metadata = iio_plugin.get_meta()
         # iio_plugin.plugin_specific_function()
