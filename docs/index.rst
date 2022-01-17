@@ -13,4 +13,4 @@ Contents:
   Examples <examples>
   Supported Formats <formats/index>
   API Reference <reference/index>
-  Development <development/index>
+  Contributing <development/index>
