@@ -31,13 +31,8 @@ jobs:
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
           echo "::set-output name=release::false"
           echo "No changes to the API detected."
-          echo "Workdir: $PWD"
-          echo "PYTHONPATH: $PYTHONPATH"
-          semantic-release -v DEBUG print-version
-          
         else
           echo "::set-output name=release::true"
-          echo "Workdir: $PWD"
           echo "Releasing v$(semantic-release print-version)"
         fi
     - name: Skipping Release
