@@ -41,6 +41,7 @@ jobs:
     - name: skippy
       id: skippy
       run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
           echo "::set-output name=release::false"
           echo "No changes to the API detected."
