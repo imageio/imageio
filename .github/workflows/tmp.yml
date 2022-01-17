@@ -29,8 +29,9 @@ jobs:
       run: |
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
           echo "::set-output name=release::false"
-          echo "Workdir: $PWD"
           echo "No changes to the API detected."
+          echo "Workdir: $PWD"
+          ls
         else
           echo "::set-output name=release::true"
           echo "Workdir: $PWD"
