@@ -24,18 +24,15 @@ jobs:
     - name: Install Dependencies
       run: |
         pip install python-semantic-release
-    - name: "Set PYTHONPATH"
-      run: |
-        export PYTHONPATH=$PWD:$PYTHONPATH
     - name: skippy
       id: skippy
       run: |
+        export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
           echo "::set-output name=release::false"
           echo "No changes to the API detected."
           echo "Workdir: $PWD"
           echo "PYTHONPATH: $PYTHONPATH"
-          head semantic_release_conf.py
           semantic-release -v DEBUG print-version
           
         else
