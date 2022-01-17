@@ -31,8 +31,9 @@ jobs:
           echo "::set-output name=release::false"
           echo "No changes to the API detected."
           echo "Workdir: $PWD"
+          head semantic_release_conf.py
           semantic-release -v DEBUG print-version
-          git status
+          
         else
           echo "::set-output name=release::true"
           echo "Workdir: $PWD"
