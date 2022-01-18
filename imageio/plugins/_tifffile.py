@@ -4561,6 +4561,10 @@ class TiffTag(object):
         return line
 
 
+class TiffFileError(ValueError):
+    pass
+
+
 class TiffPageSeries(object):
     """Series of TIFF pages with compatible shape and data type.
 
