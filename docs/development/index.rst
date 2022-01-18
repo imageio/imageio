@@ -48,7 +48,7 @@ environment with the documentation dependencies installed::
     # 1. Fork the ImageIO repository
     # 2. If you want to use a virtual environment for your setup, create and activate it now.
 
-    git clone https://github.com/imageio/imageio.git
+    git clone https://github.com/<replace_by_your_username>/imageio.git
     cd imageio
     pip install -e .[doc]
 
@@ -127,7 +127,7 @@ a local setup will perform better in most situations::
 
     # 1. Fork the ImageIO repository
 
-    git clone https://github.com/imageio/imageio.git
+    git clone https://github.com/<replace_by_your_username>/imageio.git
     cd imageio
     pip install -e .
 
@@ -203,11 +203,11 @@ Full Developer Setup
 1. `Create a Fork
    <https://docs.github.com/en/get-started/quickstart/fork-a-repo>`_ of the
    `ImageIO repository <https://github.com/imageio/imageio>`_.
-2. (`Optional:`) If you want to use a virtual environment for your setup,
+2. `Optional:` If you want to use a virtual environment for your setup,
    create and activate it now.
 3. Get a local copy of the repo and install all dependencies::
 
-    git clone https://github.com/imageio/imageio.git
+    git clone https://github.com/<replace_by_your_username>/imageio.git
     cd imageio
     pip install -e .[full]
 
