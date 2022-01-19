@@ -144,6 +144,34 @@ def test_imagej_hyperstack(tmp_path):
     assert img.shape == (15, 2, 180, 183)
 
 
+def test_resolution_metadata(tmp_path):
+    data = np.zeros((200, 100), dtype=np.uint8)
+
+    # test rational DPI (reduced)
+    dpi = (100, 200)
+
+    writer = imageio.get_writer(tmp_path / "test.tif")
+    writer.append_data(data, dict(resolution=dpi))
+    writer.close()
+
+    read_image = iio.imread(tmp_path / "test.tif")
+
+    assert read_image.meta["resolution"] == (*dpi, "INCH")
+    assert read_image.meta["resolution_unit"] == 2
+
+    # test rational DPI (npt reduced)
+    dpi = ((1, 2), (1, 2))
+
+    writer = imageio.get_writer(tmp_path / "test.tif")
+    writer.append_data(data, dict(resolution=dpi))
+    writer.close()
+
+    read_image = iio.imread(tmp_path / "test.tif")
+
+    assert read_image.meta["resolution"] == (*dpi, "INCH")
+    assert read_image.meta["resolution_unit"] == 2
+
+
 def test_read_bytes(tmp_path):
     # regression test for: https://github.com/imageio/imageio/issues/703
 
