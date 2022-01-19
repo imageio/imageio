@@ -76,8 +76,6 @@ is_ome : bool
     True if page contains OME-XML in image_description tag.
 is_sgi : bool
     True if page contains SGI image and tile depth tags.
-is_stk : bool
-    True if page contains UIC2Tag tag.
 is_mdgel : bool
     True if page contains md_file_tag tag.
 is_mediacy : bool
@@ -196,7 +194,8 @@ READ_METADATA_KEYS = (
     "is_shaped",
     "is_stk",
     "is_tiled",
-    "is_mdgel" "resolution_unit",
+    "is_mdgel",
+    "resolution_unit",
     "compression",
     "predictor",
     "is_mediacy",
