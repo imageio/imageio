@@ -9,9 +9,11 @@ many ways and, if you would like to get involved but aren't sure where to start,
 create a new issue and we will help you get started. In particular, we are also
 extremely happy for any help with
     
-        - improving our documentation, 
-        - improving the design of our website
-        - improving our DevOp pipeline
+    - improving our documentation, 
+    - improving our DevOp pipeline,
+    - improving the design of our website,
+    - bugfixes,
+    - adding new backends/plugins.
     
 Check the relevant section below for a guide on how to get started in any of
 these areas.
@@ -200,36 +202,27 @@ Full Developer Setup
     This section is intended for library maintainers and people that plan to make
     multiple contributions of various kinds. 
 
-1. `Create a Fork
-   <https://docs.github.com/en/get-started/quickstart/fork-a-repo>`_ of the
-   `ImageIO repository <https://github.com/imageio/imageio>`_.
-2. `Optional:` If you want to use a virtual environment for your setup,
-   create and activate it now.
-3. Get a local copy of the repo and install all dependencies::
+If you plan to make a series of contributions, we recommend a development
+installation with all plugins::
 
-    git clone https://github.com/<replace_by_your_username>/imageio.git
+    # 1. Fork the ImageIO repository
+    # 2. Optional: Create and activate your virtual environment of choice
+
+    # install
+    git clone https://github.com/<replace_by_fork_location>/imageio.git
     cd imageio
     pip install -e .[full]
 
-4. Download the test images (they will be cached) and run all tests (you must be in the root repo)::
-
+    # download test images and run all tests
     pytest
 
-5. Build the docs locally::
+    # build the docs
+    sphinx-build ./docs ./build  # MacOS / Linux
+    sphinx-build .\docs .\build  # Windows
 
-    # on Linux or MacOS
-    sphinx-build ./docs ./build
-
-    # on Windows
-    sphinx-build .\docs .\build
-
-6. Check the test coverage::
-
-    # check the current coverage
-    coverage run -m pytest
-    
-    # once complete report the coverage in a console
-    coverage report -m
+    # check coverage
+    coverage run -m pytest  # update the coverage logs
+    coverage report -m  # report coverage in shell
 
 .. toctree::
     :maxdepth: 2
