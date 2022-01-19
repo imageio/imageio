@@ -4561,6 +4561,9 @@ class TiffTag(object):
         return line
 
 
+# Added to produce cleaner exceptions if tifffile unexpectedly fails to open the
+# file. See this comment (and the following) for details:
+# https://github.com/imageio/imageio/commit/bdbe699bbcda4223b0b6bd4d7474f84bbe34af09#r64068747
 class TiffFileError(ValueError):
     pass
 
