@@ -136,6 +136,8 @@ def imopen(
     else:
         request = Request(uri, io_mode)
 
+    source = "<bytes>" if isinstance(uri, bytes) else uri
+
     # plugin specified, no search needed
     # (except in legacy mode)
     if plugin is not None:
@@ -207,7 +209,7 @@ def imopen(
     if request.mode.io_mode == IOMode.write:
         if isinstance(uri, str) and uri.startswith(SPECIAL_READ_URIS):
             err_type = ValueError if legacy_mode else IOError
-            err_msg = f"`{uri}` is read-only."
+            err_msg = f"`{source}` is read-only."
             raise err_type(err_msg)
 
     # error out for directories
@@ -239,7 +241,7 @@ def imopen(
             return plugin_instance
 
     err_type = ValueError if legacy_mode else IOError
-    err_msg = f"Could not find a backend to open `{uri}`` with iomode `{io_mode}`."
+    err_msg = f"Could not find a backend to open `{source}`` with iomode `{io_mode}`."
 
     # check if a missing plugin could help
     if request.extension in known_extensions:

@@ -58,16 +58,20 @@ class LegacyPlugin:
         self._request = request
         self._format = legacy_plugin
 
+        source = (
+            "<bytes>"
+            if isinstance(self._request.raw_uri, bytes)
+            else self._request.raw_uri
+        )
         if self._request.mode.io_mode == IOMode.read:
             if not self._format.can_read(request):
                 raise InitializationError(
-                    f"`{self._format.name}`" f" can not read `{self._request.raw_uri}`."
+                    f"`{self._format.name}`" f" can not read `{source}`."
                 )
         else:
             if not self._format.can_write(request):
                 raise InitializationError(
-                    f"`{self._format.name}`"
-                    f" can not write to `{self._request.raw_uri}`."
+                    f"`{self._format.name}`" f" can not write to `{source}`."
                 )
 
     def legacy_get_reader(self, **kwargs):
