@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.14.0 (2022-01-20)
+### Fix
+* Handle pillow9 GIFs ([#724](https://github.com/imageio/imageio/issues/724)) ([`836b7a9`](https://github.com/imageio/imageio/commit/836b7a9b077a96de8adab5b67ea53b1292048275))
+
+### Feature
+* Allow mode=None when writing with pillow ([#722](https://github.com/imageio/imageio/issues/722)) ([`7be2712`](https://github.com/imageio/imageio/commit/7be271234b4aa2e9fd9aa5387fa0d07044461387))
+
+### Other
+* Add repo to PYTHONPATH in `should_release?` ([#728](https://github.com/imageio/imageio/issues/728)) ([`a22d810`](https://github.com/imageio/imageio/commit/a22d810657f54df6ca9f55f76e3225b9b826b1cb))
+* Reorganize commit tags ([#717](https://github.com/imageio/imageio/issues/717)) ([`c57bf85`](https://github.com/imageio/imageio/commit/c57bf859608b1dea87c18473857eaca92a00396e))
+* Reduce release frequency to weekly ([#716](https://github.com/imageio/imageio/issues/716)) ([`51f552b`](https://github.com/imageio/imageio/commit/51f552ba5ed4aa771f205a2798e1fd3859fb2942))
+
 ## v2.13.5 (2021-12-23)
 ### Fix
 * Clean up PillowPlugin destructor ([#714](https://github.com/imageio/imageio/issues/714)) ([`104171b`](https://github.com/imageio/imageio/commit/104171be5f8e0ab9a3bf7d8aa7f1818901b0755e))
