@@ -1,6 +1,5 @@
 import imageio as iio
 import pytest
-from pathlib import Path
 
 
 def test_exception_message_bytes():
