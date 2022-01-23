@@ -9,11 +9,12 @@ many ways and, if you would like to get involved but aren't sure where to start,
 create a new issue and we will help you get started. In particular, we are also
 extremely happy for any help with
     
+    - bugfixes,
     - improving our documentation, 
     - improving our DevOp pipeline,
     - improving the design of our website,
-    - bugfixes,
-    - adding new backends/plugins.
+    - new backends/plugins,
+    - and new features.
     
 Check the relevant section below for a guide on how to get started in any of
 these areas.
@@ -94,6 +95,108 @@ ImageIO.
 Thank you for contributing!
 
 
+Fixing a Bug
+------------
+
+.. note::
+    We currently don't have a dedicated maintainer that uses MacOS as their
+    primary development platform. If you would like to suggest yourself,
+    please get in touch, e.g., via a new issue.
+
+The first step to fixing a bug is to open a new issue that describes the bug
+(ideally including a
+[mwe](https://en.wikipedia.org/wiki/Minimal_working_example)) to discuss where
+the fix should live. Alternatively, if an issue already exists, leave a comment
+to let us know you want to work on it.
+
+In general, a bugfix follows the usual open-source routine. Here is a rough
+outline::
+    
+    # Fork the ImageIO repository
+
+    git clone https://github.com/<replace_by_fork_location>/imageio.git
+    cd imageio
+
+    # Note: replace <plugin_name> with the plugin that has the bug to 
+    #       install optional dependencies
+    pip install -e .[dev,<plugin_name>]
+
+    # Note: replace <branch_name> with a descriptive, but short, name
+    git checkout -b <branch_name>
+    git push --set-upstream origin <branch_name>
+
+    pytest  # run the existing test suite to verify install
+
+    # Add a unit test that reproduces the faulty behavior
+
+    # Apply the changes to fix the bug. Remember to commit frequently.
+
+    # check if your changes are covered by tests
+    coverage run -m pytest
+    coverage report -m
+
+    # If changes are not fully covered, add test(s) to cover the
+    # missing branches.
+
+    # Submit a PR. In the description, reference the abovementioned
+    # issue and give a brief description of the changes.
+
+Thank you for contributing!
+
+
+Adding a new Feature
+--------------------
+
+.. note::
+    We currently don't have a dedicated maintainer that uses MacOS as their
+    primary development platform. If you would like to suggest yourself,
+    please get in touch, e.g., via a new issue.
+
+The first step to contributing a new feature is to open a new issue on our issue
+page so we can discuss how the feature should look like, if it can work with
+the relevant backends, and fits within the scope of the library.
+
+Once that is out of the way, the procedure usually follows the following steps::
+
+    # Fork the ImageIO repository
+
+    git clone https://github.com/<replace_by_fork_location>/imageio.git
+    cd imageio
+
+    # Note: replace <plugin_name> with the plugin that has the bug to 
+    #       install optional dependencies
+    pip install -e .[dev,<plugin_name>]
+
+    # Note: replace <branch_name> with a descriptive, but short, name
+    git checkout -b <branch_name>
+    git push --set-upstream origin <branch_name>
+
+    pytest  # run the existing test suite to verify install
+
+    # Add the desired/discussed functionality
+
+    # For each new function you've created add a descriptive docstring
+    # compliant with numpydoc
+
+    # Add an example to ``docs/examples.rst`` showing off the new
+    # feature
+
+    # Add unit tests to verify that the feature does what it is 
+    # intended to do
+
+    # check if your changes are covered by tests
+    coverage run -m pytest
+    coverage report -m
+
+    # If changes are not fully covered, add test(s) to cover the
+    # missing branches.
+
+    # Submit a PR. In the description, reference the feature issue and 
+    # give a brief description of the changes.
+
+Thank you for contributing!
+
+
 Webdesign
 ---------
 
@@ -170,30 +273,27 @@ eventually merging your work into ImageIO.
 Thank you for contributing!
 
 
+Implementing a new Plugin
+-------------------------
 
-Code Contributions
-------------------
-
-.. note::
-    We currently don't have a dedicated maintainer that uses MacOS as their
-    primary development platform. If you would like to suggest yourself,
-    please get in touch, e.g., via a new issue.
-
-Fixing a Bug
-^^^^^^^^^^^^
-
-Adding a new Feature
-^^^^^^^^^^^^^^^^^^^^
-
-Adding a new Plugin
-^^^^^^^^^^^^^^^^^^^
-
-Other Forms of Contribution
----------------------------
 
 Adding a missing Format
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
+Adding a new format (or updating an existing one) can be done directly in
+GitHub. Navigate to [this
+page](https://github.com/imageio/imageio/blob/master/imageio/config/extensions.py)
+and click on the "edit this file" button (looks like a pen). From here,
+either edit the existing format, e.g., by adding a new backend that supports it in ``priority``,
+or by add a new format. For this add this snippet to the bottom of the ``extension_list``::
+
+    FileExtension(
+        name="<Full Name of File Format>", # e.g., Hasselblad raw
+        extension="<extension>", # e.g., .3fr
+        priority=<list of supporting backend names>, # e.g., ["RAW-FI"]
+    )
+
+Thank you for contributing!
 
 Full Developer Setup
 --------------------
