@@ -42,8 +42,19 @@ planar_configuration : {'contig', 'planar'}
     By default this setting is inferred from the data shape.
     'contig': last dimension contains samples.
     'planar': third last dimension contains samples.
-resolution_unit : (float, float) or ((int, int), (int, int))
-    X and Y resolution in dots per inch as float or rational numbers.
+resolution_unit : int
+    The resolution unit stored in the TIFF tag. Usually 1 means no/unknown unit,
+    2 means dpi (inch), 3 means dpc (centimeter).
+resolution : (float, float, str)
+    A tuple formatted as (X_resolution, Y_resolution, unit). The unit is a
+    string representing one of the following units::
+
+        NONE        # No unit or unit unknown
+        INCH        # dpi
+        CENTIMETER  # cpi
+        MILLIMETER
+        MICROMETER
+
 compression : int
     Value indicating the compression algorithm used, e.g. 5 is LZW,
     7 is JPEG, 8 is deflate.
@@ -76,8 +87,6 @@ is_ome : bool
     True if page contains OME-XML in image_description tag.
 is_sgi : bool
     True if page contains SGI image and tile depth tags.
-is_stk : bool
-    True if page contains UIC2Tag tag.
 is_mdgel : bool
     True if page contains md_file_tag tag.
 is_mediacy : bool
@@ -188,14 +197,16 @@ READ_METADATA_KEYS = (
     "is_contig",
     "is_micromanager",
     "is_ome",
-    "is_lsm" "is_palette",
+    "is_lsm",
+    "is_palette",
     "is_reduced",
     "is_rgb",
     "is_sgi",
     "is_shaped",
     "is_stk",
     "is_tiled",
-    "is_mdgel" "resolution_unit",
+    "is_mdgel",
+    "resolution_unit",
     "compression",
     "predictor",
     "is_mediacy",
@@ -447,6 +458,19 @@ class TiffFormat(Format):
                     break
                 except Exception:
                     pass
+
+            if 296 in page.tags:
+                meta["resolution_unit"] = page.tags[296].value.value
+
+            if 282 in page.tags and 283 in page.tags and 296 in page.tags:
+                resolution_x = page.tags[282].value
+                resolution_y = page.tags[283].value
+
+                meta["resolution"] = (
+                    resolution_x[0] / resolution_x[1],
+                    resolution_y[0] / resolution_y[1],
+                    page.tags[296].value.name,
+                )
 
             return meta
 

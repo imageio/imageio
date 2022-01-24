@@ -4,6 +4,7 @@
 import os
 import datetime
 import numpy as np
+import pytest
 
 from pytest import raises
 from imageio.testing import run_tests_if_main, get_test_dir, need_internet
@@ -142,6 +143,27 @@ def test_imagej_hyperstack(tmp_path):
     # test ImageIO plugin
     img = iio.volread(tmp_path / "hyperstack.tiff", format="TIFF")
     assert img.shape == (15, 2, 180, 183)
+
+
+@pytest.mark.parametrize(
+    "dpi,expected_resolution",
+    [
+        ((100, 200), (100, 200, "INCH")),
+        ((0.5, 0.5), (0.5, 0.5, "INCH")),
+        (((1, 3), (1, 3)), (1 / 3, 1 / 3, "INCH")),
+    ],
+)
+def test_resolution_metadata(tmp_path, dpi, expected_resolution):
+    data = np.zeros((200, 100), dtype=np.uint8)
+
+    writer = imageio.get_writer(tmp_path / "test.tif")
+    writer.append_data(data, dict(resolution=dpi))
+    writer.close()
+
+    read_image = iio.imread(tmp_path / "test.tif")
+
+    assert read_image.meta["resolution"] == expected_resolution
+    assert read_image.meta["resolution_unit"] == 2
 
 
 def test_read_bytes(tmp_path):
