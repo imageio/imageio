@@ -9,6 +9,7 @@ import gc
 import time
 import threading
 import platform
+from pathlib import Path
 
 import numpy as np
 
@@ -635,3 +636,14 @@ def test_reverse_read(tmpdir):
         print("reading", i)
         W.get_data(i)
     W.close()
+
+
+def test_read_stream(test_images):
+    """Test stream reading workaround"""
+    
+    video_blob = Path(test_images / "cockatoo.mp4").read_bytes()
+
+    result = imageio.v3.imread(video_blob, format_hint=".mp4")
+    expected = imageio.v3.imread("imageio:cockatoo.mp4")
+
+    assert np.allclose(result, expected)
