@@ -984,3 +984,25 @@ def test_sort_order_restore():
     new_order = iio.config.known_extensions[".png"][0].priority.copy()
 
     assert old_order == new_order
+
+
+def test_imopen_format_hint(image_files):
+    image_bytes = Path(image_files / "chelsea.png").read_bytes()
+
+    with iio.v3.imopen(image_bytes, "r", format_hint=".png") as resource:
+        result = resource.read()
+
+    expected = iio.v3.imread(image_files / "chelsea.png")
+
+    assert np.allclose(result, expected)
+
+
+@pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
+def test_imopen_format_hint_malformatted(invalid_file):
+    with pytest.raises(ValueError):
+        # format_hint should be ".png"
+        iio.v3.imopen(invalid_file, "r", format_hint="PNG")
+
+    with pytest.raises(IOError):
+        # format_hint is invalid and opening should fail
+        iio.v3.imopen(invalid_file, "r", format_hint=".cap")
