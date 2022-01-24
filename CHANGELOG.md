@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.14.1 (2022-01-24)
+### Fix
+* Avoid raw bytes in exception message ([#733](https://github.com/imageio/imageio/issues/733)) ([`6252636`](https://github.com/imageio/imageio/commit/625263647cf1d564e43882ce1356fae4967569ed))
+
 ## v2.14.0 (2022-01-20)
 ### Fix
 * Handle pillow9 GIFs ([#724](https://github.com/imageio/imageio/issues/724)) ([`836b7a9`](https://github.com/imageio/imageio/commit/836b7a9b077a96de8adab5b67ea53b1292048275))
