@@ -276,6 +276,12 @@ Thank you for contributing!
 Implementing a new Plugin
 -------------------------
 
+.. toctree::
+    :maxdepth: 2
+  
+    Developer API <devapi>
+    Writing v2 Plugins <plugins>
+
 
 Adding a missing Format
 -----------------------
@@ -323,9 +329,3 @@ installation with all plugins::
     # check coverage
     coverage run -m pytest  # update the coverage logs
     coverage report -m  # report coverage in shell
-
-.. toctree::
-    :maxdepth: 2
-  
-    Developer API <devapi>
-    Writing v2 Plugins <plugins>
