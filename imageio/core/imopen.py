@@ -204,7 +204,7 @@ def imopen(
         raise err_type(err_msg) from err_from
 
     # fast-path based on format_hint
-    if format_hint is not None:
+    if request.format_hint is not None:
         for candidate_format in known_extensions[format_hint]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
