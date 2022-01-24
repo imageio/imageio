@@ -7,7 +7,9 @@ from typing import Optional, Iterator
 imopen = imopen
 
 
-def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarray:
+def imread(
+    uri, *, index: int = None, plugin: str = None, format_hint: str = None, **kwargs
+) -> np.ndarray:
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -24,7 +26,16 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarra
         If the URI contains multiple ndimages, select the index-th ndimage
         from among them and return it. The exact behavior is plugin dependent.
     plugin : {str, None}
-        The plugin to be used. If None, performs a search for a matching plugin.
+        The plugin to use. If set to None (default) imopen will perform a
+        search for a matching plugin. If not None, this takes priority over
+        the provided format hint.
+    format_hint : str
+        A format hint to help optimize plugin selection given as the format's
+        extension, e.g. ".png". This can speed up the selection process for
+        ImageResources that don't have an explicit extension, e.g. streams, or
+        for ImageResources where the extension does not match the resource's
+        content. If the ImageResource lacks an explicit extension, it will be
+        set to this format.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's read call.
 
@@ -34,13 +45,15 @@ def imread(uri, *, index: int = None, plugin: str = None, **kwargs) -> np.ndarra
         The ndimage located at the given URI.
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
         return np.asarray(img_file.read(index=index, **kwargs))
 
 
-def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
+def imiter(
+    uri, *, plugin: str = None, format_hint: str = None, **kwargs
+) -> Iterator[np.ndarray]:
     """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
@@ -54,8 +67,16 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
     plugin : {str, None}
-        The plugin to be used. If None, performs a search for a matching
-        plugin.
+        The plugin to use. If set to None (default) imopen will perform a
+        search for a matching plugin. If not None, this takes priority over
+        the provided format hint.
+    format_hint : str
+        A format hint to help optimize plugin selection given as the format's
+        extension, e.g. ".png". This can speed up the selection process for
+        ImageResources that don't have an explicit extension, e.g. streams, or
+        for ImageResources where the extension does not match the resource's
+        content. If the ImageResource lacks an explicit extension, it will be
+        set to this format.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's ``iter``
         call.
@@ -67,7 +88,7 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
         for image in img_file.iter(**kwargs):
@@ -76,7 +97,9 @@ def imiter(uri, *, plugin: str = None, **kwargs) -> Iterator[np.ndarray]:
             yield np.asarray(image)
 
 
-def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional[bytes]:
+def imwrite(
+    uri, image: np.ndarray, *, plugin: str = None, format_hint: str = None, **kwargs
+) -> Optional[bytes]:
     """Write an ndimage to the given URI.
 
     The exact behavior depends on the file type and plugin used. To learn about
@@ -90,8 +113,16 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional
     image : np.ndarray
         The image to write to disk.
     plugin : {str, None}
-        The plugin to be used. If None, performs a search for a matching
-        plugin.
+        The plugin to use. If set to None (default) imopen will perform a
+        search for a matching plugin. If not None, this takes priority over
+        the provided format hint.
+    format_hint : str
+        A format hint to help optimize plugin selection given as the format's
+        extension, e.g. ".png". This can speed up the selection process for
+        ImageResources that don't have an explicit extension, e.g. streams, or
+        for ImageResources where the extension does not match the resource's
+        content. If the ImageResource lacks an explicit extension, it will be
+        set to this format.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's ``write``
         call.
@@ -104,7 +135,7 @@ def imwrite(uri, image: np.ndarray, *, plugin: str = None, **kwargs) -> Optional
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
     with imopen(uri, "w", **plugin_kwargs) as img_file:
         encoded = img_file.write(image, **kwargs)
