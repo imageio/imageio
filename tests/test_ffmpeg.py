@@ -643,7 +643,7 @@ def test_read_stream(test_images):
     
     video_blob = Path(test_images / "cockatoo.mp4").read_bytes()
 
-    result = imageio.v3.imread(video_blob, format_hint=".mp4")
-    expected = imageio.v3.imread("imageio:cockatoo.mp4")
+    result = imageio.v3.imread(video_blob, index=5, format_hint=".mp4")
+    expected = imageio.v3.imread("imageio:cockatoo.mp4", index=5)
 
     assert np.allclose(result, expected)
