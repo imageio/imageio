@@ -45,10 +45,9 @@ planar_configuration : {'contig', 'planar'}
 resolution_unit : int
     The resolution unit stored in the TIFF tag. Usually 1 means no/unknown unit,
     2 means dpi (inch), 3 means dpc (centimeter).
-resolution : ((int, int), (int, int), str)
-    A tuple formatted as (X_resolution, Y_resolution, unit). Both resolutions
-    are given as rational numbers, i.e. as a (numerator, denominator) tuple. Unit
-    is a string representing the unit. It takes the values::
+resolution : (float, float, str)
+    A tuple formatted as (X_resolution, Y_resolution, unit). The unit is a
+    string representing one of the following units::
 
         NONE        # No unit or unit unknown
         INCH        # dpi
@@ -467,15 +466,9 @@ class TiffFormat(Format):
                 resolution_x = page.tags[282].value
                 resolution_y = page.tags[283].value
 
-                if isinstance(resolution_x, tuple) and resolution_x[1] == 1:
-                    resolution_x = resolution_x[0]
-
-                if isinstance(resolution_y, tuple) and resolution_y[1] == 1:
-                    resolution_y = resolution_y[0]
-
                 meta["resolution"] = (
-                    resolution_x,
-                    resolution_y,
+                    resolution_x[0] / resolution_x[1],
+                    resolution_y[0] / resolution_y[1],
                     page.tags[296].value.name,
                 )
 
