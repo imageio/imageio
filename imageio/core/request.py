@@ -213,7 +213,7 @@ class Request(object):
 
     """
 
-    def __init__(self, uri, mode, *, format_hint:str=None, **kwargs):
+    def __init__(self, uri, mode, *, format_hint: str = None, **kwargs):
 
         # General
         self.raw_uri = uri
@@ -417,11 +417,10 @@ class Request(object):
         return self._format_hint
 
     @format_hint.setter
-    def format_hint(self, format:str) -> None:
+    def format_hint(self, format: str) -> None:
         self._format_hint = format
         if self._extension is None:
             self._extension = format
-
 
     @property
     def mode(self):

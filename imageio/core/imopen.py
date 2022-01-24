@@ -227,7 +227,9 @@ def imopen(
 
                 return plugin_instance
         else:
-            raise IOError(f"The ImageResource can not be opened as a `{format_hint}` file.")
+            raise IOError(
+                f"The ImageResource can not be opened as a `{format_hint}` file."
+            )
 
     # fast-path based on file extension
     if request.extension in known_extensions:
