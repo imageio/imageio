@@ -61,8 +61,8 @@ class Format(object):
     to see its documentation.
 
     To implement a specific format, one should create a subclass of
-    Format and the Format.Reader and Format.Writer classes. see
-    :doc:`plugins` for details.
+    Format and the Format.Reader and Format.Writer classes. See
+    :class:`imageio.plugins` for details.
 
     Parameters
     ----------
@@ -84,7 +84,30 @@ class Format(object):
         formats when reading/saving a file.
     """
 
-    def __init__(self, name, description, extensions=None, modes=None):
+    def __init__(
+        self, name: str, description: str, extensions=None, modes: str = None
+    ) -> None:
+        """Initialize the Plugin.
+
+        Parameters
+        ----------
+        name : str
+            A short name of this format. Users can select a format using its name.
+        description : str
+            A one-line description of the format.
+        extensions : str | list | None
+            List of filename extensions that this format supports. If a
+            string is passed it should be space or comma separated. The
+            extensions are used in the documentation and to allow users to
+            select a format by file extension. It is not used to determine
+            what format to use for reading/saving a file.
+        modes : str
+            A string containing the modes that this format can handle ('iIvV'),
+            “i” for an image, “I” for multiple images, “v” for a volume,
+            “V” for multiple volumes.
+            This attribute is used in the documentation and to select the
+            formats when reading/saving a file.
+        """
 
         # Store name and description
         self._name = name.upper()
@@ -194,10 +217,51 @@ class Format(object):
         """
         return self._can_write(request)
 
-    def _can_read(self, request):  # pragma: no cover
+    def _can_read(self, request: Request) -> bool:  # pragma: no cover
+        """Check if Plugin can read from ImageResource.
+
+        This method is called when the format manager is searching for a format
+        to read a certain image. Return True if this format can do it.
+
+        The format manager is aware of the extensions and the modes that each
+        format can handle. It will first ask all formats that *seem* to be able
+        to read it whether they can. If none can, it will ask the remaining
+        formats if they can: the extension might be missing, and this allows
+        formats to provide functionality for certain extensions, while giving
+        preference to other plugins.
+
+        If a format says it can, it should live up to it. The format would
+        ideally check the request.firstbytes and look for a header of some kind.
+
+        Parameters
+        ----------
+        request : Request
+            A request that can be used to access the ImageResource and obtain
+            metadata about it.
+
+        Returns
+        -------
+        can_read : bool
+            True if the plugin can read from the ImageResource, False otherwise.
+
+        """
         return None  # Plugins must implement this
 
-    def _can_write(self, request):  # pragma: no cover
+    def _can_write(self, request: Request) -> bool:  # pragma: no cover
+        """Check if Plugin can write to ImageResource.
+
+        Parameters
+        ----------
+        request : Request
+            A request that can be used to access the ImageResource and obtain
+            metadata about it.
+
+        Returns
+        -------
+        can_read : bool
+            True if the plugin can write to the ImageResource, False otherwise.
+
+        """
         return None  # Plugins must implement this
 
     # -----
