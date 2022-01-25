@@ -1,9 +1,9 @@
 import pytest
 import os
 import shutil
-import subprocess
 
 import imageio as iio
+import requests
 
 
 @pytest.fixture(scope="session")
@@ -13,29 +13,25 @@ def tmp_dir(tmp_path_factory):
     tmp_path = tmp_path_factory.getbasetemp() / "image_cache"
     tmp_path.mkdir()
 
-    # download the (only) test images via git's sparse-checkout
-    current_path = os.getcwd()
-    os.chdir(tmp_path)
-    git_version = subprocess.run(
-        ["git", "--version"], stdout=subprocess.PIPE
-    ).stdout.decode("utf-8")[12:18]
-    major, minor, _ = git_version.split(".")
+    if not os.path.isfile(tmp_path / "chelsea.png"):
+        # This function gets called for each test func that uses tmp_dir or image_files.
+        # We only need to download once (per test session)
 
-    if int(major) == 2 and int(minor) < 30:
-        # --sparse was introduced in git 2.30.0 (I think)
-        os.system(
-            "git clone --depth 1 --filter=blob:none --no-checkout https://github.com/imageio/imageio-binaries.git ."
-        )
-        os.system("git sparse-checkout init --cone")
-        os.system("git sparse-checkout set test-images")
-    else:
-        # sparse checkout on GH Actions
-        os.system(
-            "git clone --sparse --filter=blob:none https://github.com/imageio/imageio-binaries.git ."
-        )
-        os.system("git sparse-checkout init --cone")
-        os.system("git sparse-checkout set test-images")
-    os.chdir(current_path)
+        # Get list of images. authenticate with our GH token so that the rate limit is per-repo
+        api_endpoint = "https://api.github.com/repos/imageio/imageio-binaries"
+        token = os.getenv("GITHUB_TOKEN")
+        headers = {}
+        if token:
+            headers["Authorization"] = f"token {token}"
+        r = requests.get(api_endpoint + "/contents/test-images", headers=headers)
+        image_info_dicts = r.json()
+
+        # Download the images
+        for image_info in image_info_dicts:
+            filename = tmp_path / image_info["name"]
+            r = requests.get(image_info["download_url"])
+            with open(filename, "bw") as f:
+                f.write(r.content)
 
     return tmp_path_factory.getbasetemp()
 
@@ -44,7 +40,7 @@ def tmp_dir(tmp_path_factory):
 def image_files(tmp_dir):
     # create a copy of the test images for the actual tests
     # not avoid interaction between tests
-    image_dir = tmp_dir / "image_cache" / "test-images"
+    image_dir = tmp_dir / "image_cache"
     data_dir = tmp_dir / "data"
     data_dir.mkdir(exist_ok=True)
     for item in image_dir.iterdir():
