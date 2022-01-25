@@ -18,6 +18,7 @@ def tmp_dir(tmp_path_factory):
         # We only need to download once (per test session)
 
         # Get list of images. authenticate with our GH token so that the rate limit is per-repo
+        # see: https://docs.github.com/en/rest/reference/repos#contents
         api_endpoint = "https://api.github.com/repos/imageio/imageio-binaries"
         token = os.getenv("GITHUB_TOKEN")
         headers = {}
@@ -31,6 +32,9 @@ def tmp_dir(tmp_path_factory):
         # Download the images
         downloader = requests.Session()
         for image_info in image_info_dicts:
+            if not isinstance(image_info, dict):
+                continue
+
             response = downloader.get(image_info["download_url"])
             response.raise_for_status()
             (tmp_path / image_info["name"]).write_bytes(response.content)
