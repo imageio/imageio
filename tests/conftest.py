@@ -1,6 +1,7 @@
 import pytest
 import os
 import shutil
+import json
 
 import imageio as iio
 import requests
@@ -28,6 +29,9 @@ def tmp_dir(tmp_path_factory):
 
         # Download the images
         for image_info in image_info_dicts:
+            if isinstance(image_info, str):
+                print(info)
+                image_info = json.loads(image_info)
             filename = tmp_path / image_info["name"]
             r = requests.get(image_info["download_url"])
             with open(filename, "bw") as f:
