@@ -42,18 +42,6 @@ class plugins:
     data.
 
 
-    Registering
-    -----------
-
-    Strictly speaking a format can be used stand alone. However, to allow
-    imageio to automatically select it for a specific file, the format must
-    be registered using ``imageio.formats.add_format()``.
-
-    Note that a plugin is not required to be part of the imageio package; as
-    long as a format is registered, imageio can use it. This makes imageio very
-    easy to extend.
-
-
     What methods to implement
     --------------------------
 

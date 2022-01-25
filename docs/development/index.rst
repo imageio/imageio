@@ -3,6 +3,13 @@ Contributing
 ============
 
 
+.. toctree::
+    :hidden:
+    :maxdepth: 2
+  
+    Writing v2 Plugins <plugins>
+
+
 Becoming a contributor can take as little as 2 minutes (e.g., via a small doc
 PR) and doesn't require vast coding experience. We are open for contributions in
 many ways and, if you would like to get involved but aren't sure where to start,
@@ -276,11 +283,176 @@ Thank you for contributing!
 Implementing a new Plugin
 -------------------------
 
-.. toctree::
-    :maxdepth: 2
-  
-    Developer API <devapi>
-    Writing v2 Plugins <plugins>
+Plugins allow integration of a new backends into ImageIO. They can
+exist independently of ImageIO; however, we encourage you to contribute any
+plugins back upstream. This way others, too, can benefit from using the new
+backend and you will get compatibility guarantees by virtue of the backend
+becoming part of our test suite.
+
+.. note::
+
+    These instructions assume that you indeed wish to contribute the plugin.
+
+If you don't, then you won't need a dev installation of ImageIO and can
+write the plugin directly. In this case, you will have to pass the plugin
+class to API calls using the plugin kwarg. For example::
+
+    import imageio as iio
+    from my_plugin import PluginClass
+
+    iio.imread(ImageResource, plugin=PluginClass)
+
+**Installation**
+
+To develop a new plugin, you can start off with a simple def install::
+    
+    # 1. Fork the ImageIO repository
+
+    git clone https://github.com/<replace_by_your_username>/imageio.git
+    cd imageio
+    pip install -e .[dev]
+
+    # create and checkout a new branch for your contribution
+    # Note: replace <branch_name> with a descriptive, but short, name
+    git checkout -b <branch_name>
+    git push --set-upstream origin <branch_name>
+
+    # verify installation
+    pytest
+
+**Develop the Plugin**
+
+To write a new plugin, you have to create a new class that follows our plugin
+API, which is documented below:
+
+.. autosummary::
+
+    imageio.plugins
+
+The file itself should be placed into our plugins folder at
+``imageio\plugins\your_plugin.py``.
+
+**Declare Dependencies**
+
+Plugins typically have at least one external dependency: the backend they use to
+do the decoding/encoding. This dependency (and any others a plugin may have)
+have to be declared in our ``setup.py``.
+
+All plugins start out as optional dependencies (but may be promoted if they turn
+out stable and useful ;) ). As such, to declare dependencies of a plugin add an
+item to the extra_requires dict. The key name typically matches the name of the
+backend, and the value is a list of dependencies::
+
+    extras_require = {
+        # ...
+        "my_backend": ["my_backend", ...],
+    }
+
+That said, a plugin can assume that its dependencies are installed, i.e., it
+doesn't have to explicitly assert that imports resolve. We catch any ImportError
+internally and use it to inform the user that they have to install missing
+dependencies via::
+
+    pip install imageio[my_backend]
+
+**Register the Plugin**
+
+Registering the plugin with ImageIO enables various kinds of auto-magic. Currently
+this involves two steps:
+
+1. Register the plugin as a known_plugin
+2. Associate supported extensions with the plugin
+
+First, add the plugin to the list of known plugins. This allows ImageIO to try
+the plugin in case no better suited one can be found and also enables all other
+optimizations. For this, add a new item to the dict in
+``imageio.config.plugins.py``. The key is the name under which the plugin will
+be known (usually the name of the backend) and the value is an instance of
+``PluginConfig``, for example::
+
+    known_plugins["my_plugin"] = PluginConfig(
+        name="my_plugin",  # (same as key)
+        class_name="MyPluginClass",  # the name of the class
+        module_name="imageio.plugins.my_plugin" # where the class is implemented
+        is_legacy: bool = True,  # True if plugin follows V2 API
+        install_name: str = "my_backend",  # name of the optional dependency
+    )
+
+For more details on the PluginConfig class, check the classes docstring.
+
+Second, if the plugin adds support for any new formats that were not previously
+supported by ImageIO, declare those formats in ``imageio.config.extensions.py``.
+For this, add items to the ``extension_list``; items are instances of the
+``FileExtension`` class::
+
+    FileExtension(
+        name="Full Name of Format",
+        extension=".file_extension", # e.g. ".png"
+        priority=["my_plugin"], # a list of plugins that supports reading this format
+    ),
+
+Plugins listed in ``priority`` are assumed to be able to read the declared
+format. Further, ImageIO will prefer plugins that appear earlier over plugins
+that appear later in the list, i.e., they are tried first.
+
+Finally, for each format that is already supported by other plugins, add the new plugin
+at the end of the ``priority`` list. (This avoids breaking existing downstream code.)
+
+
+**Document the Plugin**
+
+.. code-block::
+
+    # build the docs
+    sphinx-build ./docs ./build  # MacOS / Linux
+    sphinx-build .\docs .\build  # Windows
+
+Beyond the plugin itself, you will have to write documentation for it that tells
+others what features are available and how to use it. In ImageIO classes are
+documented using numpydoc, so they should follow numpy's documentation style.
+Most importantly, you will have to add a module docstring to the plugin file
+(check the other plugins for examples), which will be used as the entrypoint for
+your plugin's documentation. 
+
+Once you have written something, hook the documentation into our docs. For this
+add it's import path (imageio.plugins.your_module_name) in
+``docs\reference\index.rst``. It should be inside the autosummary block that
+lists all plugins.
+
+
+**Test the Plugin**
+
+.. code-block::
+
+    # run tests
+    pytest  # run all
+    pytest path/to/test/file.py  # run specific module
+    pytest path/to/test/file.py::test_name_of_test  # run specific test
+
+    # check coverage
+    coverage run -m pytest  # update the coverage logs
+    coverage report -m  # report coverage in shell
+
+To test your plugin, create a new test file at ``tests\test_myplugin.py``. In
+the file, define functions that have their name begin with ``test_`` (example:
+``def test_png_reading():``) and fill them with code that uses your plugin.
+
+Our main requirement for tests of new plugins is that they cover the full
+plugin. Ideally, they also test readiing and writing of all supported formats,
+but this is not strictly necessary. Check the commands above for how to run
+tests and check test coverage of your plugin.
+
+
+**Submitting the PR**
+
+Once you are happy with the plugin, push your changes to your local fork, head
+over to the `main repo <https://github.com/imageio/imageio>`_ and create a new
+PR. In the description, briefly summarize what the plugin does (there is no
+fixed format) and, if it exists, add a reference to the issue in which the
+plugin is discussed. From there, we will help you by reviewing your changes,
+discussing them and eventually merging your plugin into ImageIO.
+
+Thank you for contributing!
 
 
 Adding a missing Format
