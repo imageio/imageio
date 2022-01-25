@@ -26,12 +26,11 @@ def tmp_dir(tmp_path_factory):
             headers["Authorization"] = f"token {token}"
         r = requests.get(api_endpoint + "/contents/test-images", headers=headers)
         image_info_dicts = r.json()
+        if isinstance(image_info_dicts, dict):
+            image_info_dicts = list(image_info_dicts.values())
 
         # Download the images
         for image_info in image_info_dicts:
-            if isinstance(image_info, str):
-                print(image_info)
-                image_info = json.loads(image_info)
             filename = tmp_path / image_info["name"]
             r = requests.get(image_info["download_url"])
             with open(filename, "bw") as f:
