@@ -156,7 +156,7 @@ def imread(uri, format=None, **kwargs):
             'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
         )
 
-    with imopen(uri, "ri", plugin=format) as file:
+    with imopen(uri, "ri", plugin=format, legacy_mode=False) as file:
         return file.read(index=0, **kwargs)
 
 
@@ -192,7 +192,7 @@ def imwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
-    with imopen(uri, "wi", plugin=format) as file:
+    with imopen(uri, "wi", plugin=format, legacy_mode=False) as file:
         return file.write(im, **kwargs)
 
 
