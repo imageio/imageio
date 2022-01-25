@@ -301,10 +301,6 @@ class FfmpegFormat(Format):
             regex_match = re.match(r"<video(\d+)>", self.request.filename)
             if regex_match:
                 self.request._video = self.request.filename
-            # Specify input framerate? (only on macOS)
-            if self.request._video and platform.system().lower() == "darwin":
-                if "-framerate" not in str(self._arg_input_params):
-                    self._arg_input_params.extend(["-framerate", str(float(fps or 15))])
             # Get local filename
             if self.request._video:
                 index = int(regex_match.group(1))
@@ -334,8 +330,29 @@ class FfmpegFormat(Format):
                 self._nframes = self.count_frames()
             self._meta["nframes"] = self._nframes
 
+            # Specify input framerate? (only on macOS)
+            # Ideally we'd get the supported framerate from the metadata, but we get the
+            # metadata when we boot ffmpeg ... maybe we could refactor this so we can
+            # get the metadata beforehand, but for now we'll just give it 2 tries on MacOS,
+            # one with fps 30 and one with fps 15.
+            need_fps = (
+                self.request._video
+                and platform.system().lower() == "darwin"
+                and "-framerate" not in str(self._arg_input_params)
+            )
+            if need_fps:
+                self._arg_input_params.extend(["-framerate", str(float(30))])
+
             # Start ffmpeg subprocess and get meta information
-            self._initialize()
+            try:
+                self._initialize()
+            except IndexError:
+                # Specify input framerate again, this time different.
+                if need_fps:
+                    self._arg_input_params[-1] = str(float(15))
+                    self._initialize()
+                else:
+                    raise
 
             # For cameras, create thread that keeps reading the images
             if self.request._video:
