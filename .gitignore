@@ -25,6 +25,7 @@ tests/zipped
 tests/freezing/frozen
 imageio/resources/images
 imageio/resources/freeimage
+**/_autosummary/
 
 # Files / folders that should always be ignored
 __pychache__
