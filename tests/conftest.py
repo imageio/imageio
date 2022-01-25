@@ -1,7 +1,6 @@
 import pytest
 import os
 import shutil
-import json
 
 import imageio as iio
 import requests
