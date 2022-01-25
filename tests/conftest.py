@@ -29,11 +29,11 @@ def tmp_dir(tmp_path_factory):
             image_info_dicts = list(image_info_dicts.values())
 
         # Download the images
+        downloader = requests.Session()
         for image_info in image_info_dicts:
-            filename = tmp_path / image_info["name"]
-            r = requests.get(image_info["download_url"])
-            with open(filename, "bw") as f:
-                f.write(r.content)
+            response = downloader.get(image_info["download_url"])
+            response.raise_for_status()
+            (tmp_path / image_info["name"]).write_bytes(response.content)
 
     return tmp_path_factory.getbasetemp()
 
