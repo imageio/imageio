@@ -335,8 +335,11 @@ class FfmpegFormat(Format):
             # metadata when we boot ffmpeg ... maybe we could refactor this so we can
             # get the metadata beforehand, but for now we'll just give it 2 tries on MacOS,
             # one with fps 30 and one with fps 15.
-            need_fps = (self.request._video and platform.system().lower() == "darwin" and
-                    "-framerate" not in str(self._arg_input_params))
+            need_fps = (
+                self.request._video
+                and platform.system().lower() == "darwin"
+                and "-framerate" not in str(self._arg_input_params)
+            )
             if need_fps:
                 self._arg_input_params.extend(["-framerate", str(float(30))])
 
