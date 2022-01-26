@@ -1,3 +1,4 @@
+import platform
 import pytest
 import os
 import shutil
@@ -13,31 +14,32 @@ def tmp_dir(tmp_path_factory):
     tmp_path = tmp_path_factory.getbasetemp() / "image_cache"
     tmp_path.mkdir()
 
-    if not os.path.isfile(tmp_path / "chelsea.png"):
-        # This function gets called for each test func that uses tmp_dir or image_files.
-        # We only need to download once (per test session)
+    # Get list of images. authenticate with our GH token so that the rate limit is per-repo
+    # see: https://docs.github.com/en/rest/reference/repos#contents
+    api_endpoint = "https://api.github.com/repos/imageio/imageio-binaries"
+    token = os.getenv("GITHUB_TOKEN")
+    headers = {}
+    if token:
+        headers["Authorization"] = f"token {token}"
+    r = requests.get(api_endpoint + "/contents/test-images", headers=headers)
+    r.raise_for_status()
+    image_info_dicts = r.json()
+    if platform.system() == "Darwin":
+        print("!!!! DEBUG !!!")
+        print(image_info_dicts)
+        print("!!!! DEBUG !!!")
 
-        # Get list of images. authenticate with our GH token so that the rate limit is per-repo
-        # see: https://docs.github.com/en/rest/reference/repos#contents
-        api_endpoint = "https://api.github.com/repos/imageio/imageio-binaries"
-        token = os.getenv("GITHUB_TOKEN")
-        headers = {}
-        if token:
-            headers["Authorization"] = f"token {token}"
-        r = requests.get(api_endpoint + "/contents/test-images", headers=headers)
-        image_info_dicts = r.json()
-        if isinstance(image_info_dicts, dict):
-            image_info_dicts = list(image_info_dicts.values())
+    # Download the images
+    downloader = requests.Session()
+    for image_info in image_info_dicts:
+        if not isinstance(image_info, dict):
+            print(image_info)
+            print("!!!!!!!!!!!!!!!!!!!!!!!")
+            continue
 
-        # Download the images
-        downloader = requests.Session()
-        for image_info in image_info_dicts:
-            if not isinstance(image_info, dict):
-                continue
-
-            response = downloader.get(image_info["download_url"])
-            response.raise_for_status()
-            (tmp_path / image_info["name"]).write_bytes(response.content)
+        response = downloader.get(image_info["download_url"])
+        response.raise_for_status()
+        (tmp_path / image_info["name"]).write_bytes(response.content)
 
     return tmp_path_factory.getbasetemp()
 
