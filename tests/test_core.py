@@ -114,19 +114,6 @@ def test_fetching(tmp_path):
     assert "0 bytes" == core.fetching._sizeof_fmt(0)
 
 
-@pytest.mark.skip(reason="always skip, is tested implicitly anyway")
-def test_findlib1():
-
-    # Lib name would need to be "libc.so.5", or "libc.so.6", or ...
-    # Meh, just skip
-    if not sys.platform.startswith("linux"):
-        skip("test on linux only")
-
-    # Candidate libs for common lib (note, this runs only on linux)
-    _, paths = core.findlib.generate_candidate_libs(["libc"])
-    assert paths
-
-
 def test_findlib2():
 
     if not sys.platform.startswith("linux"):
