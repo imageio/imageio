@@ -18,7 +18,7 @@ Website: https://imageio.readthedocs.io/
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, video,
 volumetric data, and scientific formats. It is cross-platform, runs on
-Python 3.6+, and is easy to install.
+Python 3.7+, and is easy to install.
 </p>
 
 <p>
@@ -54,7 +54,7 @@ As a user, you just have to remember a handful of functions:
     <li>Simple interface via a concise set of functions</li>
     <li>Easy to <a href='https://imageio.readthedocs.io/en/stable/getting_started/installation.html'>install</a> using Conda or pip</li>
     <li>Few dependencies (only NumPy and Pillow)</li>
-    <li>Pure Python, runs on Python 3.6+, and PyPy</li>
+    <li>Pure Python, runs on Python 3.7+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
     <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
     <li>Read/Write support for various [resources](https://imageio.readthedocs.io/en/stable/getting_started/requests.html) (files, URLs, bytes(), file objects, ...)</li>
@@ -66,9 +66,9 @@ As a user, you just have to remember a handful of functions:
 
 Minimal requirements:
 <ul>
-    <li>Python 3.6+</li>
-    <li>NumPy</li>
-    <li>Pillow</li>
+    <li>Python 3.7+</li>
+    <li>NumPy >=1.20.0</li>
+    <li>Pillow >= 8.3.2</li>
 </ul>
 
 Optional Python packages:
