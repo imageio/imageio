@@ -1,59 +1,90 @@
 import pytest
 import os
 import shutil
-import subprocess
+from pathlib import Path
+import contextlib
 
 import imageio as iio
 
 
+@contextlib.contextmanager
+def working_directory(path):
+    """
+    A context manager which changes the working directory to the given
+    path, and then changes it back to its previous value on exit.
+    Usage:
+    > # Do something in original directory
+    > with working_directory('/my/new/path'):
+    >     # Do something in new directory
+    > # Back to old directory
+
+    Credit goes to @anjos .
+    """
+
+    prev_cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)
+
+
 @pytest.fixture(scope="session")
-def tmp_dir(tmp_path_factory):
+def test_images(request):
+    """A collection of test images.
+
+    Note: The images are cached persistently (across test runs) in
+    the project's root folder (at `project_root/.test_images`).
+
+    """
     # A temporary directory loaded with the test image files
     # downloaded once in the beginning
-    tmp_path = tmp_path_factory.getbasetemp() / "image_cache"
-    tmp_path.mkdir()
 
-    # download the (only) test images via git's sparse-checkout
-    current_path = os.getcwd()
-    os.chdir(tmp_path)
-    git_version = subprocess.run(
-        ["git", "--version"], stdout=subprocess.PIPE
-    ).stdout.decode("utf-8")[12:18]
-    major, minor, _ = git_version.split(".")
+    checkout_dir = request.config.cache.get("imageio_test_binaries", None)
 
-    if int(major) == 2 and int(minor) < 30:
-        # --sparse was introduced in git 2.30.0 (I think)
-        os.system(
-            "git clone --depth 1 --filter=blob:none --no-checkout https://github.com/imageio/imageio-binaries.git ."
+    if checkout_dir is not None and not Path(checkout_dir).exists():
+        # cache value set, but cache is gone :( ... recreate
+        checkout_dir = None
+
+    if checkout_dir is None:
+        # download test images and other binaries
+        checkout_dir = Path(__file__).parents[1] / ".test_images"
+
+        try:
+            checkout_dir.mkdir()
+        except FileExistsError:
+            pass  # dir exist, validate and fail later
+        else:
+            with working_directory(checkout_dir):
+                os.system("git clone https://github.com/imageio/test_images.git .")
+
+        request.config.cache.set("imageio_test_binaries", str(checkout_dir))
+
+    checkout_dir = Path(checkout_dir)
+
+    with working_directory(checkout_dir):
+        result = os.system("git pull")
+
+    if result != 0:
+        request.config.cache.set("imageio_test_binaries", None)
+        raise RuntimeError(
+            "Cache directory is corrupt. Delete `.test_images` at project root."
         )
-        os.system("git sparse-checkout init --cone")
-        os.system("git sparse-checkout set test-images")
-    else:
-        # sparse checkout on GH Actions
-        os.system(
-            "git clone --sparse --filter=blob:none https://github.com/imageio/imageio-binaries.git ."
-        )
-        os.system("git sparse-checkout init --cone")
-        os.system("git sparse-checkout set test-images")
-    os.chdir(current_path)
 
-    return tmp_path_factory.getbasetemp()
+    return checkout_dir
 
 
 @pytest.fixture
-def image_files(tmp_dir):
-    # create a copy of the test images for the actual tests
-    # not avoid interaction between tests
-    image_dir = tmp_dir / "image_cache" / "test-images"
-    data_dir = tmp_dir / "data"
-    data_dir.mkdir(exist_ok=True)
-    for item in image_dir.iterdir():
+def image_files(test_images, tmp_path):
+    """A copy of the test images
+
+    This is intended for tests that write to or modify the test images.
+    """
+    for item in test_images.iterdir():
         if item.is_file():
-            shutil.copy(item, data_dir / item.name)
+            shutil.copy(item, tmp_path / item.name)
 
-    yield data_dir
-
-    shutil.rmtree(data_dir)
+    yield tmp_path
 
 
 @pytest.fixture
