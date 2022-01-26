@@ -1,4 +1,3 @@
-import platform
 import pytest
 import os
 import shutil
@@ -6,7 +5,6 @@ from pathlib import Path
 import contextlib
 
 import imageio as iio
-import requests
 
 
 @contextlib.contextmanager
