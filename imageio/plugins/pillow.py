@@ -32,6 +32,9 @@ from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
+from ..core.v3_plugin_api import PluginV3, ImageProperties
+
+from typing import Dict, Any
 
 
 def _is_multichannel(mode: str) -> bool:
@@ -70,6 +73,43 @@ def _is_multichannel(mode: str) -> bool:
     return Image.getmodebands(mode) > 1
 
 
+def _mode_to_dtype(mode: str) -> np.dtype:
+    # this is synced to pillow 9.0.0
+    # refactor if https://github.com/python-pillow/Pillow/issues/5990 gets
+    # resolved in an admissible way
+    _MODE_CONV = {
+        # official modes
+        "1": "|b1",  # Bits need to be extended to bytes
+        "L": "|u1",
+        "LA": "|u1",
+        "I": "i4",
+        "F": "f4",
+        "P": "|u1",
+        "RGB": "|u1",
+        "RGBX": "|u1",
+        "RGBA": "|u1",
+        "CMYK": "|u1",
+        "YCbCr": "|u1",
+        "LAB": "|u1",  # UNDONE - unsigned |u1i1i1
+        "HSV": "|u1",
+        # I;16 == I;16L, and I;32 == I;32L
+        "I;16": "<u2",
+        "I;16B": ">u2",
+        "I;16L": "<u2",
+        "I;16S": "<i2",
+        "I;16BS": ">i2",
+        "I;16LS": "<i2",
+        "I;32": "<u4",
+        "I;32B": ">u4",
+        "I;32L": "<u4",
+        "I;32S": "<i4",
+        "I;32BS": ">i4",
+        "I;32LS": "<i4",
+    }
+
+    return np.dtype(_MODE_CONV[mode])
+
+
 def _exif_orientation_transform(orientation, mode):
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
@@ -91,7 +131,7 @@ def _exif_orientation_transform(orientation, mode):
     return EXIF_ORIENTATION[orientation]
 
 
-class PillowPlugin(object):
+class PillowPlugin(PluginV3):
     def __init__(self, request: Request) -> None:
         """Instantiate a new Pillow Plugin Object
 
@@ -102,7 +142,8 @@ class PillowPlugin(object):
 
         """
 
-        self._request = request
+        super().__init__(request)
+
         self._image = None
 
         if request.mode.io_mode == IOMode.read:
@@ -230,7 +271,7 @@ class PillowPlugin(object):
             image = image.convert(image.palette.mode)
         image = np.asarray(image)
 
-        meta = self.get_meta()
+        meta = self.metadata(exclude_applied=False)
         if rotate and "Orientation" in meta:
             transformation = _exif_orientation_transform(
                 meta["Orientation"], self._image.mode
@@ -329,6 +370,11 @@ class PillowPlugin(object):
             return self._request.get_file().getvalue()
 
     def get_meta(self, *, index=None) -> Dict[str, Any]:
+        return self.metadata(index=index, exclude_applied=False)
+
+    def metadata(
+        self, index: int = None, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -342,7 +388,7 @@ class PillowPlugin(object):
         if index is not None:
             self._image.seek(index)
 
-        metadata = self._image.info
+        metadata = self._image.info.copy()
         metadata["mode"] = self._image.mode
         metadata["shape"] = self._image.size
 
@@ -357,13 +403,47 @@ class PillowPlugin(object):
             exif_data.pop("unknown", None)
             metadata.update(exif_data)
 
-        return self._image.info
+        if exclude_applied:
+            metadata.pop("Orientation")
 
-    def __enter__(self) -> "PillowPlugin":
-        return self
+        return metadata
 
-    def __exit__(self, type, value, traceback) -> None:
-        self.close()
+    def properties(self, index: int = None) -> ImageProperties:
+        """Standardized ndimage metadata.
 
-    def __del__(self) -> None:
-        self.close()
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage for which to return properties. If the
+            index is out of bounds a ``ValueError`` is raised. If ``None``,
+            return the properties for the ndimage stack. If this is impossible,
+            e.g., due to shape missmatch, an exception will be raised.
+
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+
+        """
+
+        if index is None:
+            self._image.seek(0)
+        else:
+            self._image.seek(index)
+
+        shape = self._image.size
+
+        if self._image.format == "GIF":
+            # GIF will have the first mode as P and the following as
+            # RGB or RGBA depending on the pallette type
+            shape = (*shape, Image.getmodebands(self._image.palette.mode))
+        elif _is_multichannel(self._image.mode):
+            shape = (*shape, Image.getmodebands(self._image.mode))
+
+        if index is None:
+            shape = (self._image.n_frames, *shape)
+
+        return ImageProperties(
+            shape=shape,
+            dtype=_mode_to_dtype(self._image.mode),
+        )

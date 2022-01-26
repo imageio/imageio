@@ -4,11 +4,11 @@ import numpy as np
 from typing import Optional, Dict, Any, Tuple, Union, List
 
 
-class ImageDescriptor:
+class ImageProperties:
     def __init__(self, shape: Tuple[int, ...], dtype: np.dtype) -> None:
         # TODO: replace with dataclass once py3.6 is dropped.
-        self.shape: shape
-        self.dtype: dtype
+        self.shape = shape
+        self.dtype = dtype
 
 
 class PluginV3:
@@ -244,20 +244,20 @@ class PluginV3:
         """
         raise NotImplementedError()
 
-    def descriptor(self, index: int = None) -> ImageDescriptor:
+    def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return the descriptor. If the
+            The index of the ndimage for which to return properties. If the
             index is out of bounds a ``ValueError`` is raised. If ``None``,
-            return the descriptor for the ndimage stack. If this is impossible,
+            return the properties for the ndimage stack. If this is impossible,
             e.g., due to shape missmatch, an exception will be raised.
 
         Returns
         -------
-        descriptor : ImageDescriptor
+        properties : ImageProperties
             A dataclass filled with standardized image metadata.
 
         """

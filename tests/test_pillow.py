@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 import imageio as iio
+from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
 from imageio.core.request import InitializationError
 
@@ -576,3 +577,28 @@ def test_quantized_gif(test_images, tmp_path):
 
     for original_frame, quantized_frame in zip(original, quantized):
         assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))
+
+
+def test_properties(image_files: Path):
+    file: PluginV3
+
+    # test a flat image (RGB PNG)
+    with iio.v3.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
+        properties = file.properties(index=0)
+
+    assert properties.shape == (451, 300, 3)
+    assert properties.dtype == np.uint8
+
+    # test a ndimage (GIF)
+    with iio.v3.imopen(image_files / "newtonscradle.gif", "r", plugin="pillow") as file:
+        properties = file.properties(index=None)
+
+    assert properties.shape == (36, 200, 150, 3)
+    assert properties.dtype == np.uint8
+
+    # test a flat gray image
+    with iio.v3.imopen(image_files / "text.png", "r", plugin="pillow") as file:
+        properties = file.properties(index=None)
+
+    assert properties.shape == (36, 200, 150, 3)
+    assert properties.dtype == np.uint8

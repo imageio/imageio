@@ -12,6 +12,7 @@ from .request import (
     IOMode,
     Request,
 )
+from .v3_plugin_api import PluginV3
 
 
 def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
@@ -70,7 +71,7 @@ def imopen(
     format_hint: str = None,
     legacy_mode: bool = True,
     **kwargs,
-) -> Any:
+) -> PluginV3:
     """Open an ImageResource.
 
     .. warning::
