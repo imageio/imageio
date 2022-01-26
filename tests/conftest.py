@@ -2,62 +2,91 @@ import platform
 import pytest
 import os
 import shutil
+from pathlib import Path
+import contextlib
 
 import imageio as iio
 import requests
 
 
+@contextlib.contextmanager
+def working_directory(path):
+    """
+    A context manager which changes the working directory to the given
+    path, and then changes it back to its previous value on exit.
+    Usage:
+    > # Do something in original directory
+    > with working_directory('/my/new/path'):
+    >     # Do something in new directory
+    > # Back to old directory
+
+    Credit goes to @anjos .
+    """
+
+    prev_cwd = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)
+
+
 @pytest.fixture(scope="session")
-def tmp_dir(tmp_path_factory):
+def test_images(request):
+    """A collection of test images.
+
+    Note: The images are cached persistently (across test runs) in
+    the project's root folder (at `project_root/.test_images`).
+
+    """
     # A temporary directory loaded with the test image files
     # downloaded once in the beginning
-    tmp_path = tmp_path_factory.getbasetemp() / "image_cache"
-    tmp_path.mkdir()
 
-    # Get list of images. authenticate with our GH token so that the rate limit is per-repo
-    # see: https://docs.github.com/en/rest/reference/repos#contents
-    api_endpoint = "https://api.github.com/repos/imageio/imageio-binaries"
-    token = os.getenv("GITHUB_TOKEN")
-    headers = {}
-    if token:
-        headers["Authorization"] = f"token {token}"
-    r = requests.get(api_endpoint + "/contents/test-images", headers=headers)
-    r.raise_for_status()
-    image_info_dicts = r.json()
-    if platform.system() == "Darwin":
-        print("!!!! DEBUG !!!")
-        print(image_info_dicts)
-        print("!!!! DEBUG !!!")
+    checkout_dir = request.config.cache.get("imageio_test_binaries", None)
 
-    # Download the images
-    downloader = requests.Session()
-    for image_info in image_info_dicts:
-        if not isinstance(image_info, dict):
-            print(image_info)
-            print("!!!!!!!!!!!!!!!!!!!!!!!")
-            continue
+    if checkout_dir is not None and not Path(checkout_dir).exists():
+        # cache value set, but cache is gone :( ... recreate
+        checkout_dir = None
 
-        response = downloader.get(image_info["download_url"])
-        response.raise_for_status()
-        (tmp_path / image_info["name"]).write_bytes(response.content)
+    if checkout_dir is None:
+        # download test images and other binaries
+        checkout_dir = Path(__file__).parents[1] / ".test_images"
 
-    return tmp_path_factory.getbasetemp()
+        try:
+            checkout_dir.mkdir()
+        except FileExistsError:
+            pass  # dir exist, validate and fail later
+        else:
+            with working_directory(checkout_dir):
+                os.system("git clone https://github.com/imageio/test_images.git .")
+
+        request.config.cache.set("imageio_test_binaries", str(checkout_dir))
+
+    checkout_dir = Path(checkout_dir)
+
+    with working_directory(checkout_dir):
+        result = os.system("git pull")
+
+    if result != 0:
+        request.config.cache.set("imageio_test_binaries", None)
+        raise RuntimeError(
+            "Cache directory is corrupt. Delete `.test_images` at project root."
+        )
+
+    return checkout_dir
 
 
 @pytest.fixture
-def image_files(tmp_dir):
-    # create a copy of the test images for the actual tests
-    # not avoid interaction between tests
-    image_dir = tmp_dir / "image_cache"
-    data_dir = tmp_dir / "data"
-    data_dir.mkdir(exist_ok=True)
-    for item in image_dir.iterdir():
+def image_files(test_images, tmp_path):
+    """A copy of the test images
+
+    This is intended for tests that write to or modify the test images.
+    """
+    for item in test_images.iterdir():
         if item.is_file():
-            shutil.copy(item, data_dir / item.name)
+            shutil.copy(item, tmp_path / item.name)
 
-    yield data_dir
-
-    shutil.rmtree(data_dir)
+    yield tmp_path
 
 
 @pytest.fixture
