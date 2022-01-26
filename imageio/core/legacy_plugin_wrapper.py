@@ -3,9 +3,10 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 
 from .request import IOMode, Request, InitializationError
+from .v3_plugin_api import PluginV3, ImageProperties
 
 
-class LegacyPlugin:
+class LegacyPlugin(PluginV3):
     """A plugin to  make old (v2.9) plugins compatible with v3.0
 
     .. depreciated:: 2.9
@@ -219,6 +220,29 @@ class LegacyPlugin:
         reader = self.legacy_get_reader(**kwargs)
         for image in reader:
             yield image
+
+    def properties(self, index: int = None) -> ImageProperties:
+        """Standardized ndimage metadata.
+
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage for which to return properties. If the
+            index is out of bounds a ``ValueError`` is raised. If ``None``,
+            return the properties for the ndimage stack. If this is impossible,
+            e.g., due to shape missmatch, an exception will be raised.
+
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+
+        """
+
+        # for backwards compatibility ... actually reads the image :(
+        image = self.read(index=index)
+
+        return ImageProperties(shape=image.shape, dtype=image.dtype)
 
     def get_meta(self, *, index=None) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
