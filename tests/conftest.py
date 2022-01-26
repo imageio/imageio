@@ -26,7 +26,7 @@ def pytest_addoption(parser):
         action="store",
         metavar="GIT_REPO",
         default="https://github.com/imageio/imageio-binaries.git",
-        help="Repository to use for checking out binary data used at tests"
+        help="Repository to use for checking out binary data used for tests"
         " (default: %(default)s).  Use 'file:///path/to/imageio-binaries'"
         " to clone from a local repository and save testing bandwidth.",
     )
@@ -156,23 +156,21 @@ def invalid_file(tmp_path, request):
 def tmp_userdir(tmp_path):
 
     ud = tmp_path / "userdir"
-    os.makedirs(ud, exist_ok=True)
+    ud.mkdir(exist_ok=True)
 
     if sys.platform.startswith("win"):
-        if "LOCALAPPDATA" in os.environ:  # saves it
-            os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]
-        os.environ["LOCALAPPDATA"] = str(ud)
+        user_dir_env = "LOCALAPPDATA"
     else:
-        os.environ["IMAGEIO_USERDIR"] = str(ud)
+        user_dir_env = "IMAGEIO_USERDIR"
+    
+    old_user_dir = os.getenv(user_dir_env, None)
+    os.environ[user_dir_env] = str(ud)
 
     yield ud
 
-    if sys.platform.startswith("win"):
-        del os.environ["LOCALAPPDATA"]
-        if "OLD_LOCALAPPDATA" in os.environ:
-            os.environ["LOCALAPPDATA"] = os.environ["OLD_LOCALAPPDATA"]
-            del os.environ["OLD_LOCALAPPDATA"]
+    if old_user_dir is not None:
+        os.environ[user_dir_env] = old_user_dir
     else:
-        del os.environ["IMAGEIO_USERDIR"]
+        del os.environ[user_dir_env]
 
     shutil.rmtree(ud)

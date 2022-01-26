@@ -404,11 +404,11 @@ def test_inside_zipfile(image_cache, tmp_path):
     with ZipFile(fname, "w") as z:
         z.writestr(
             "x.png",
-            open(image_cache / "test-images" / "chelsea.png", "rb").read(),
+            (image_cache / "test-images" / "chelsea.png).read_bytes(),
         )
         z.writestr(
             "x.jpg",
-            open(image_cache / "images" / "rommel.jpg", "rb").read(),
+            (image_cache / "images" / "rommel.jpg").read_bytes(),
         )
 
     for name in ("x.png", "x.jpg"):

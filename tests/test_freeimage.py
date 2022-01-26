@@ -21,9 +21,7 @@ def setup_library(tmp_path_factory, image_cache):
     # Checks if freeimage is installed by the system
     from imageio.plugins.freeimage import fi
 
-    use_imageio_binary = False
-    if not fi.has_lib():
-        use_imageio_binary = True
+    use_imageio_binary = not fi.has_lib()
 
     # During this test, pretend that FI is the default format
     imageio.formats.sort("-FI")
@@ -31,7 +29,7 @@ def setup_library(tmp_path_factory, image_cache):
     if use_imageio_binary:
 
         # Setup from image_cache/freeimage
-        ud = tmp_path_factory.getbasetemp() / "userdir"
+        ud = tmp_path_factory.mktemp("userdir")
         if sys.platform.startswith("win"):
             if "LOCALAPPDATA" in os.environ:  # saves it
                 os.environ["OLD_LOCALAPPDATA"] = os.environ["LOCALAPPDATA"]

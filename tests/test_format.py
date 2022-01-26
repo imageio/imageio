@@ -3,7 +3,7 @@ import pytest
 
 import gc
 import shutil
-import pathlib
+from pathlib import Path
 
 import numpy as np
 
@@ -116,8 +116,8 @@ def test_format(image_cache, tmp_path):
     assert isinstance(W, MyFormat.Writer)
     assert R.format is F
     assert W.format is F
-    assert pathlib.Path(R.request.filename) == filename1
-    assert pathlib.Path(W.request.filename) == filename2
+    assert Path(R.request.filename) == filename1
+    assert Path(W.request.filename) == filename2
     # Fail
     raises(RuntimeError, F.get_reader, Request(filename1, "rI"))
     raises(RuntimeError, F.get_writer, Request(filename2, "wI"))
