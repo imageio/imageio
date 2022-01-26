@@ -51,7 +51,11 @@ def working_directory(path):
         os.chdir(prev_cwd)
 
 
-@pytest.fixture(scope="session")
+# uses the fixture marking workaround from:
+# https://github.com/pytest-dev/pytest/issues/1368#issuecomment-466339463
+@pytest.fixture(
+    scope="session", params=[pytest.param(0, marks=pytest.mark.needs_internet)]
+)
 def test_images(request):
     """A collection of test images.
 
@@ -107,19 +111,6 @@ def image_files(test_images, tmp_path):
             shutil.copy(item, tmp_path / item.name)
 
     yield tmp_path
-
-
-def pytest_collection_modifyitems(items):
-
-    # all tests using the test_images fixture, require internet automatically
-    # iff they checkout from the remote repository - everything else does not
-    internet_protocols = ("git", "http", "ssh")
-    for item in items:
-        if ("test_images" in getattr(item, "fixturenames", ())) or (
-            "image_copy" in getattr(item, "fixturenames", ())
-        ):
-            if item.config.getoption("imageio_binaries").startswith(internet_protocols):
-                item.add_marker("needs_internet")
 
 
 @pytest.fixture()
