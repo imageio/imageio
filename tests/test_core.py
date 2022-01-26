@@ -55,23 +55,23 @@ class BrokenDummyPlugin:
 
 
 @pytest.mark.needs_internet
-def test_fetching(tmp_userdir):
+def test_fetching(tmp_path):
     """Test fetching of files"""
 
     # This should download the file (force download, because local cache)
-    fname1 = get_remote_file("images/chelsea.png", tmp_userdir, True)
+    fname1 = get_remote_file("images/chelsea.png", tmp_path, True)
     mtime1 = os.path.getmtime(fname1)
     # This should reuse it
-    fname2 = get_remote_file("images/chelsea.png", tmp_userdir)
+    fname2 = get_remote_file("images/chelsea.png", tmp_path)
     mtime2 = os.path.getmtime(fname2)
     # This should overwrite
-    fname3 = get_remote_file("images/chelsea.png", tmp_userdir, True)
+    fname3 = get_remote_file("images/chelsea.png", tmp_path, True)
     mtime3 = os.path.getmtime(fname3)
     # This should too (update this if imageio is still around in 1000 years)
-    fname4 = get_remote_file("images/chelsea.png", tmp_userdir, "3014-01-01")
+    fname4 = get_remote_file("images/chelsea.png", tmp_path, "3014-01-01")
     mtime4 = os.path.getmtime(fname4)
     # This should not
-    fname5 = get_remote_file("images/chelsea.png", tmp_userdir, "2014-01-01")
+    fname5 = get_remote_file("images/chelsea.png", tmp_path, "2014-01-01")
     mtime5 = os.path.getmtime(fname4)
     #
     assert os.path.isfile(fname1)
@@ -91,7 +91,7 @@ def test_fetching(tmp_userdir):
     _chunk_read = core.fetching._chunk_read
     #
     with pytest.raises(IOError):
-        get_remote_file("this_does_not_exist", tmp_userdir)
+        get_remote_file("this_does_not_exist", tmp_path)
     #
     try:
         core.fetching.urlopen = None

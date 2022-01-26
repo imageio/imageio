@@ -9,7 +9,7 @@ import pytest
 import imageio
 import imageio as iio
 
-pytest.importorskip("tifffile", reason="tifffile is not installed")
+tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
 
 
 def test_tifffile_format():
@@ -130,7 +130,6 @@ def test_tifffile_reading_writing(image_cache, tmp_path):
 
 def test_imagej_hyperstack(tmp_path):
     # create artifical hyperstack
-    import tifffile
 
     tifffile.imwrite(
         tmp_path / "hyperstack.tiff",

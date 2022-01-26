@@ -18,14 +18,12 @@ import imageio
 from imageio import core
 from imageio.core import IS_PYPY
 
-pytest.importorskip("psutil", reason="ffmpeg support cannot be tested without psutil")
+psutil = pytest.importorskip("psutil", reason="ffmpeg support cannot be tested without psutil")
 
-pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+imageio_ffmpeg = pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
 
 
 def get_ffmpeg_pids():
-    import psutil
-
     pids = set()
     for p in psutil.process_iter():
         if "ffmpeg" in p.name().lower():
@@ -33,31 +31,25 @@ def get_ffmpeg_pids():
     return pids
 
 
+@pytest.mark.skipif(platform.machine() == "aarch64", reason="Can't download binary on aarch64")
 def test_get_exe_installed():
-    if platform.machine() == "aarch64":
-        pytest.skip("Skip for aarch64")
+    # backup any user-defined path
+    if "IMAGEIO_FFMPEG_EXE" in os.environ:
+        oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
     else:
-        import imageio_ffmpeg
-
-        # backup any user-defined path
-        if "IMAGEIO_FFMPEG_EXE" in os.environ:
-            oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
-        else:
-            oldpath = ""
-        # Test if download works
-        os.environ["IMAGEIO_FFMPEG_EXE"] = ""
-        path = imageio_ffmpeg.get_ffmpeg_exe()
-        # cleanup
-        os.environ.pop("IMAGEIO_FFMPEG_EXE")
-        if oldpath:
-            os.environ["IMAGEIO_FFMPEG_EXE"] = oldpath
-        print(path)
-        assert os.path.isfile(path)
+        oldpath = ""
+    # Test if download works
+    os.environ["IMAGEIO_FFMPEG_EXE"] = ""
+    path = imageio_ffmpeg.get_ffmpeg_exe()
+    # cleanup
+    os.environ.pop("IMAGEIO_FFMPEG_EXE")
+    if oldpath:
+        os.environ["IMAGEIO_FFMPEG_EXE"] = oldpath
+    print(path)
+    assert os.path.isfile(path)
 
 
 def test_get_exe_env():
-    import imageio_ffmpeg
-
     # backup any user-defined path
     if "IMAGEIO_FFMPEG_EXE" in os.environ:
         oldpath = os.environ["IMAGEIO_FFMPEG_EXE"]
@@ -503,7 +495,7 @@ def test_webcam_get_next_data():
     try:
         reader = imageio.get_reader("<video0>")
     except IndexError:
-        pytest.skip("no webcam")
+        pytest.xfail("no webcam")
 
     # Get a number of frames and check for if they are new
     counter_new_frames = 0
@@ -564,7 +556,7 @@ def test_webcam_process_termination():
         assert reader._read_gen is None
         assert not get_ffmpeg_pids().difference(pids0)
     except IndexError:
-        pytest.skip("no webcam")
+        pytest.xfail("no webcam")
 
 
 def test_webcam_resource_warnings():
@@ -580,9 +572,7 @@ def test_webcam_resource_warnings():
             with imageio.get_reader("<video0>"):
                 pass
     except IndexError:
-        pytest.skip("no webcam")
-
-    import imageio_ffmpeg
+        pytest.xfail("no webcam")
 
     if imageio_ffmpeg.__version__ == "0.4.5":
         # We still expect imagio_ffmpeg 0.4.5 to generate (at most) one warning.

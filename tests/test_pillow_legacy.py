@@ -404,7 +404,7 @@ def test_inside_zipfile(image_cache, tmp_path):
     with ZipFile(fname, "w") as z:
         z.writestr(
             "x.png",
-            (image_cache / "test-images" / "chelsea.png).read_bytes(),
+            (image_cache / "test-images" / "chelsea.png").read_bytes(),
         )
         z.writestr(
             "x.jpg",

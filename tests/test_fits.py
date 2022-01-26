@@ -3,11 +3,11 @@
 import pytest
 
 import imageio
-from imageio.core import Request, IS_PYPY
+from imageio.core import Request
 
 import numpy as np
 
-pytest.importorskip("astropy", reason="astropy is not installed")
+fits = pytest.importorskip("astropy.io.fits", reason="astropy is not installed")
 
 
 def setup_module():
@@ -46,9 +46,6 @@ def test_fits_format(image_cache):
 def test_fits_reading(image_cache):
     """Test reading fits"""
 
-    if IS_PYPY:
-        return  # no support for fits format :(
-
     simple = image_cache / "images" / "simple.fits"
     multi = image_cache / "images" / "multi.fits"
     compressed = image_cache / "images" / "compressed.fits.fz"
@@ -80,12 +77,10 @@ def test_fits_reading(image_cache):
     assert im.shape == (2042, 3054)
 
 
-@pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
 def test_fits_get_reader(normal_plugin_order, tmp_path):
     """Test reading fits with get_reader method
     This is a regression test that closes GitHub issue #636
     """
-    import astropy.io.fits
 
     sigma = 10
     xx, yy = np.meshgrid(np.arange(512), np.arange(512))
@@ -93,8 +88,8 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
         -((xx ** 2) + (yy ** 2)) / (2 * (sigma ** 2))
     )
     img = np.log(z)
-    phdu = astropy.io.fits.PrimaryHDU()
-    ihdu = astropy.io.fits.ImageHDU(img)
-    hdul = astropy.io.fits.HDUList([phdu, ihdu])
+    phdu = fits.PrimaryHDU()
+    ihdu = fits.ImageHDU(img)
+    hdul = fits.HDUList([phdu, ihdu])
     hdul.writeto(tmp_path / "test.fits")
     imageio.get_reader(tmp_path / "test.fits", format="fits")

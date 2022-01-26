@@ -162,7 +162,7 @@ def tmp_userdir(tmp_path):
         user_dir_env = "LOCALAPPDATA"
     else:
         user_dir_env = "IMAGEIO_USERDIR"
-    
+
     old_user_dir = os.getenv(user_dir_env, None)
     os.environ[user_dir_env] = str(ud)
 
@@ -172,5 +172,3 @@ def tmp_userdir(tmp_path):
         os.environ[user_dir_env] = old_user_dir
     else:
         del os.environ[user_dir_env]
-
-    shutil.rmtree(ud)
