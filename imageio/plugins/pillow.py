@@ -431,7 +431,7 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        shape = self._image.size
+        shape = self._image.size[::-1]
 
         if self._image.format == "GIF":
             # GIF will have the first mode as P and the following as

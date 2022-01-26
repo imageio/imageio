@@ -586,19 +586,17 @@ def test_properties(image_files: Path):
     with iio.v3.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
         properties = file.properties(index=0)
 
-    assert properties.shape == (451, 300, 3)
+    assert properties.shape == (300, 451, 3)
     assert properties.dtype == np.uint8
 
     # test a ndimage (GIF)
-    with iio.v3.imopen(image_files / "newtonscradle.gif", "r", plugin="pillow") as file:
-        properties = file.properties(index=None)
-
-    assert properties.shape == (36, 200, 150, 3)
+    properties = iio.v3.improps(image_files / "newtonscradle.gif", plugin="pillow")
+    assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
 
     # test a flat gray image
     with iio.v3.imopen(image_files / "text.png", "r", plugin="pillow") as file:
-        properties = file.properties(index=None)
+        properties = file.properties(index=0)
 
-    assert properties.shape == (36, 200, 150, 3)
+    assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8

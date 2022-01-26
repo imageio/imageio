@@ -178,7 +178,7 @@ def improps(uri, *, index: int = None, plugin: str = None, **kwargs) -> ImagePro
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
-    with imopen(uri, "w", **plugin_kwargs) as img_file:
+    with imopen(uri, "r", **plugin_kwargs) as img_file:
         properties = img_file.properties(index=index, **kwargs)
 
     return properties
