@@ -239,7 +239,7 @@ class LegacyPlugin(PluginV3):
 
         """
 
-        # for backwards compatibility ... actually reads the image :(
+        # for backwards compatibility ... actually reads pixel data :(
         image = self.read(index=index)
 
         return ImageProperties(shape=image.shape, dtype=image.dtype)
