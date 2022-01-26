@@ -18,12 +18,12 @@ xfail_big_endian = pytest.mark.xfail(
 )
 
 
-def test_select(image_cache):
+def test_select(test_images):
 
     F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
-    fname1 = image_cache / "test-images" / "chelsea.bsdf"
+    fname1 = test_images / "chelsea.bsdf"
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))
@@ -67,9 +67,9 @@ def test_not_an_image(tmp_path):
 
 
 @xfail_big_endian
-def test_singleton(image_cache, tmp_path):
+def test_singleton(test_images, tmp_path):
 
-    im1 = imageio.imread(image_cache / "test-images" / "chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
 
     fname = str(tmp_path / "chelsea.bsdf")
     imageio.imsave(fname, im1)
@@ -98,9 +98,9 @@ def test_singleton(image_cache, tmp_path):
 
 
 @xfail_big_endian
-def test_series(image_cache, tmp_path):
+def test_series(test_images, tmp_path):
 
-    im1 = imageio.imread(image_cache / "test-images" / "chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
 
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
@@ -132,8 +132,8 @@ def test_series(image_cache, tmp_path):
 
 
 @xfail_big_endian
-def test_series_unclosed(image_cache, tmp_path):
-    im1 = imageio.imread(image_cache / "test-images" / "chelsea.png")
+def test_series_unclosed(test_images, tmp_path):
+    im1 = imageio.imread(test_images / "chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
     fname = tmp_path / "chelseam.bsdf"
@@ -162,9 +162,9 @@ def test_series_unclosed(image_cache, tmp_path):
 
 
 @xfail_big_endian
-def test_random_access(image_cache, tmp_path):
+def test_random_access(test_images, tmp_path):
 
-    im1 = imageio.imread(image_cache / "test-images" / "chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
     fname = tmp_path / "chelseam.bsdf"
@@ -179,9 +179,9 @@ def test_random_access(image_cache, tmp_path):
 
 
 @xfail_big_endian
-def test_volume(image_cache, tmp_path):
+def test_volume(test_images, tmp_path):
 
-    fname1 = image_cache / "images" / "stent.npz"
+    fname1 = test_images / "stent.npz"
     vol1 = imageio.imread(fname1)
     assert vol1.shape == (256, 128, 128)
 
@@ -194,7 +194,7 @@ def test_volume(image_cache, tmp_path):
 
 
 @pytest.mark.needs_internet
-def test_from_url(image_cache):
+def test_from_url(test_images):
 
     im = imageio.imread(
         "https://raw.githubusercontent.com/imageio/"

@@ -152,7 +152,7 @@ def test_findlib2():
 
 
 @pytest.mark.needs_internet
-def test_request(image_cache, tmp_userdir):
+def test_request(test_images, tmp_userdir):
     """Test request object"""
 
     # Check uri-type, this is not a public property, so we test the private
@@ -167,7 +167,7 @@ def test_request(image_cache, tmp_userdir):
     R = Request(imageio.RETURN_BYTES, "wi")
     assert R._uri_type == core.request.URI_BYTES
     #
-    fname = image_cache / "images" / "chelsea.png"
+    fname = test_images / "chelsea.png"
     R = Request(fname, "ri")
     assert R._uri_type == core.request.URI_FILENAME
     R = Request("~/filethatdoesnotexist", "wi")
@@ -234,14 +234,14 @@ def test_request(image_cache, tmp_userdir):
 
 
 @pytest.mark.needs_internet
-def test_request_read_sources(image_cache, tmp_userdir):
+def test_request_read_sources(test_images, tmp_userdir):
 
     # Make an image available in many ways
-    fname = "images/chelsea.png"
-    filename = image_cache / fname
+    fname = "chelsea.png"
+    filename = test_images / fname
     bytes = open(str(filename), "rb").read()
     #
-    burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
+    burl = "https://raw.githubusercontent.com/imageio/test_images/master/"
     zipfilename = tmp_userdir / "test1.zip"
     with ZipFile(zipfilename, "w") as zf:
         zf.writestr(fname, bytes)
@@ -277,10 +277,10 @@ def test_request_read_sources(image_cache, tmp_userdir):
                     assert all_bytes.startswith(first_bytes)
 
 
-def test_request_save_sources(image_cache, tmp_path):
+def test_request_save_sources(test_images, tmp_path):
 
     # Get test data
-    filename = image_cache / "test-images" / "chelsea.png"
+    filename = test_images / "chelsea.png"
     with open(filename, "rb") as f:
         bytes = f.read()
     assert len(bytes) > 0
@@ -605,14 +605,14 @@ def test_util_has_has_module():
     assert core.has_module("sys")
 
 
-def test_functions(image_cache, tmp_path):
+def test_functions(test_images, tmp_path):
     """Test the user-facing API functions"""
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
     imageio.help("PNG")  # should print about PNG
 
-    fname1 = image_cache / "test-images" / "chelsea.png"
+    fname1 = test_images / "chelsea.png"
     fname2 = tmp_path / fname1.with_suffix(".jpg").name
     fname3 = tmp_path / fname1.with_suffix(".notavalidext").name
     open(fname3, "wb")
@@ -657,7 +657,7 @@ def test_functions(image_cache, tmp_path):
     assert os.path.isfile(fname2)
 
     # Test mimread()
-    fname3 = image_cache / "images" / "newtonscradle.gif"
+    fname3 = test_images / "newtonscradle.gif"
     ims = imageio.mimread(fname3)
     assert isinstance(ims, list)
     assert len(ims) > 1
@@ -665,9 +665,7 @@ def test_functions(image_cache, tmp_path):
     assert ims[0].shape[2] in (1, 3, 4)
     # Test protection
     with raises(RuntimeError):
-        imageio.mimread(
-            image_cache / "test-images" / "chelsea.png", "dummy", length=np.inf
-        )
+        imageio.mimread(test_images / "chelsea.png", "dummy", length=np.inf)
 
     if IS_PYPY:
         return  # no support for npz format :(
@@ -683,7 +681,7 @@ def test_functions(image_cache, tmp_path):
     assert os.path.isfile(fname5)
 
     # Test volread()
-    fname4 = image_cache / "images" / "stent.npz"
+    fname4 = test_images / "stent.npz"
     vol = imageio.volread(fname4)
     assert vol.ndim == 3
     assert vol.shape[0] == 256
@@ -748,8 +746,8 @@ def test_to_nbytes_incorrect(arg):
         to_nbytes(arg)
 
 
-def test_memtest(image_cache, tmp_path):
-    fname3 = image_cache / "images" / "newtonscradle.gif"
+def test_memtest(test_images, tmp_path):
+    fname3 = test_images / "newtonscradle.gif"
     imageio.mimread(fname3)  # trivial case
     imageio.mimread(fname3, memtest=1000 ** 2 * 256)
     imageio.mimread(fname3, memtest="256MB")
@@ -766,11 +764,11 @@ def test_memtest(image_cache, tmp_path):
         imageio.mimread(fname3, memtest="64b")
 
 
-def test_example_plugin(image_cache, tmp_path):
+def test_example_plugin(test_images, tmp_path):
     """Test the example plugin"""
 
     fname = tmp_path / "out.png"
-    r = Request(image_cache / "test-images" / "chelsea.png", "r?")
+    r = Request(test_images / "chelsea.png", "r?")
     R = imageio.formats["dummy"].get_reader(r)
     W = imageio.formats["dummy"].get_writer(Request(fname, "w?"))
     #
@@ -895,19 +893,19 @@ def test_legacy_object_image_writing(tmp_path):
         iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
 
 
-def test_imiter(image_cache):
+def test_imiter(test_images):
     # maybe it would be better to load the image without using imageio, e.g.
-    # numpy_im = np.load(image_cache / "test-images" / "newtonscradle_rgb.npy")
+    # numpy_im = np.load(test_images / "newtonscradle_rgb.npy")
 
     full_image = iio.v3.imread(
-        image_cache / "test-images" / "newtonscradle.gif",
+        test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGB",
     )
 
     for idx, im in enumerate(
         iio.v3.imiter(
-            image_cache / "test-images" / "newtonscradle.gif",
+            test_images / "newtonscradle.gif",
             plugin="pillow",
             mode="RGB",
         )
@@ -929,7 +927,7 @@ def test_faulty_legacy_mode_access():
 
 
 @pytest.mark.needs_internet
-def test_mvolread_out_of_bytes(image_cache):
+def test_mvolread_out_of_bytes(test_images):
     with pytest.raises(RuntimeError):
         imageio.mvolread(
             "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
@@ -962,11 +960,11 @@ def test_volwrite_failure():
         iio.volwrite("foo.jpg", not_image_data)
 
 
-def test_memory_size(image_cache):
-    im = iio.mimread(image_cache / "test-images" / "newtonscradle.gif", memtest=True)
+def test_memory_size(test_images):
+    im = iio.mimread(test_images / "newtonscradle.gif", memtest=True)
     assert len(im) == 36
 
-    im = iio.mimread(image_cache / "test-images" / "newtonscradle.gif", memtest=None)
+    im = iio.mimread(test_images / "newtonscradle.gif", memtest=None)
     assert len(im) == 36
 
 

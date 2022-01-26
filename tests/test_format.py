@@ -78,10 +78,10 @@ class MyFormat(Format):
             self._meta = meta
 
 
-def test_format(image_cache, tmp_path):
+def test_format(test_images, tmp_path):
     """Test the working of the Format class"""
 
-    filename1 = image_cache / "test-images" / "chelsea.png"
+    filename1 = test_images / "chelsea.png"
     filename2 = tmp_path / "chelsea.out"
 
     # Test basic format creation
@@ -148,10 +148,10 @@ def test_format(image_cache, tmp_path):
     assert set(ids) == set(F._closed)
 
 
-def test_reader_and_writer(image_cache, tmp_path):
+def test_reader_and_writer(test_images, tmp_path):
 
     # Prepare
-    filename1 = image_cache / "test-images" / "chelsea.png"
+    filename1 = test_images / "chelsea.png"
     filename2 = tmp_path / "chelsea.out"
     F = MyFormat("test", "", modes="i")
 
@@ -240,10 +240,10 @@ def test_default_can_read_and_can_write(tmp_path):
     assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
-def test_format_selection(image_cache, tmp_path):
+def test_format_selection(test_images, tmp_path):
 
     formats = imageio.formats
-    fname1 = image_cache / "test-images" / "chelsea.png"
+    fname1 = test_images / "chelsea.png"
     fname2 = tmp_path / "test.selectext1"
     fname3 = tmp_path / "test.haha"
     open(fname2, "wb")
@@ -277,7 +277,7 @@ def test_format_selection(image_cache, tmp_path):
 # Format manager
 
 
-def test_format_manager(image_cache):
+def test_format_manager(test_images):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -299,7 +299,7 @@ def test_format_manager(image_cache):
         assert format.name in smalldocs
         # assert format.name in fulldocs
 
-    fname = image_cache / "test-images" / "chelsea.png"
+    fname = test_images / "chelsea.png"
     fname2 = fname.with_suffix(".noext")
     shutil.copy(fname, fname2)
 

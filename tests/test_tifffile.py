@@ -5,7 +5,6 @@ import datetime
 import numpy as np
 import pytest
 
-import pytest
 import imageio
 import imageio as iio
 
@@ -19,7 +18,7 @@ def test_tifffile_format():
         assert format.name == "TIFF"
 
 
-def test_tifffile_reading_writing(image_cache, tmp_path):
+def test_tifffile_reading_writing(test_images, tmp_path):
     """Test reading and saving tiff"""
 
     im2 = np.ones((10, 10, 3), np.uint8) * 2
@@ -55,7 +54,7 @@ def test_tifffile_reading_writing(image_cache, tmp_path):
         assert (vol[i] == im2).all()
 
     # remote channel-first volume rgb (2, 3, 10, 10)
-    filename2 = image_cache / "images" / "multipage_rgb.tif"
+    filename2 = test_images / "multipage_rgb.tif"
     img = imageio.mimread(filename2)
     assert len(img) == 2
     assert img[0].shape == (3, 10, 10)

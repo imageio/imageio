@@ -29,7 +29,7 @@ def normal_plugin_order():
     setup_module()
 
 
-def test_fits_format(image_cache):
+def test_fits_format(test_images):
 
     # Test selection
     for name in ["fits", ".fits"]:
@@ -38,17 +38,17 @@ def test_fits_format(image_cache):
         assert format.__module__.endswith(".fits")
 
     # Test cannot read
-    png = image_cache / "test-images" / "chelsea.png"
+    png = test_images / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 
 
-def test_fits_reading(image_cache):
+def test_fits_reading(test_images):
     """Test reading fits"""
 
-    simple = image_cache / "images" / "simple.fits"
-    multi = image_cache / "images" / "multi.fits"
-    compressed = image_cache / "images" / "compressed.fits.fz"
+    simple = test_images / "simple.fits"
+    multi = test_images / "multi.fits"
+    compressed = test_images / "compressed.fits.fz"
 
     # One image
     im = imageio.imread(simple, format="fits")

@@ -6,10 +6,10 @@ import imageio
 pytest.importorskip("osgeo", reason="gdal is not installed")
 
 
-def test_gdal_reading(image_cache):
+def test_gdal_reading(test_images):
     """Test reading gdal"""
 
-    filename = image_cache / "images" / "geotiff.tif"
+    filename = test_images / "geotiff.tif"
 
     im = imageio.imread(filename, "gdal")
     assert im.shape == (929, 699)

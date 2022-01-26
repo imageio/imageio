@@ -18,9 +18,13 @@ import imageio
 from imageio import core
 from imageio.core import IS_PYPY
 
-psutil = pytest.importorskip("psutil", reason="ffmpeg support cannot be tested without psutil")
+psutil = pytest.importorskip(
+    "psutil", reason="ffmpeg support cannot be tested without psutil"
+)
 
-imageio_ffmpeg = pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+imageio_ffmpeg = pytest.importorskip(
+    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
+)
 
 
 def get_ffmpeg_pids():
@@ -31,7 +35,9 @@ def get_ffmpeg_pids():
     return pids
 
 
-@pytest.mark.skipif(platform.machine() == "aarch64", reason="Can't download binary on aarch64")
+@pytest.mark.skipif(
+    platform.machine() == "aarch64", reason="Can't download binary on aarch64"
+)
 def test_get_exe_installed():
     # backup any user-defined path
     if "IMAGEIO_FFMPEG_EXE" in os.environ:
@@ -70,9 +76,9 @@ def test_get_exe_env():
     assert path == path2
 
 
-def test_select(image_cache):
+def test_select(test_images):
 
-    fname1 = image_cache / "images" / "cockatoo.mp4"
+    fname1 = test_images / "cockatoo.mp4"
 
     F = imageio.formats["ffmpeg"]
     assert F.name == "FFMPEG"
@@ -92,9 +98,9 @@ def test_select(image_cache):
     )
 
 
-def test_integer_reader_length(image_cache):
+def test_integer_reader_length(test_images):
     # Avoid regression for #280
-    r = imageio.get_reader(image_cache / "images" / "cockatoo.mp4")
+    r = imageio.get_reader(test_images / "cockatoo.mp4")
     assert r.get_length() == float("inf")
     assert isinstance(len(r), int)
     assert len(r) == sys.maxsize
@@ -102,9 +108,9 @@ def test_integer_reader_length(image_cache):
     assert True if r else False
 
 
-def test_read_and_write(image_cache):
+def test_read_and_write(test_images):
 
-    fname1 = image_cache / "images" / "cockatoo.mp4"
+    fname1 = test_images / "cockatoo.mp4"
 
     R = imageio.read(fname1, "ffmpeg")
     assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
@@ -172,9 +178,9 @@ def test_read_and_write(image_cache):
             assert diff.mean() < 2.5
 
 
-def test_write_not_contiguous(image_cache):
+def test_write_not_contiguous(test_images):
 
-    fname1 = image_cache / "images" / "cockatoo.mp4"
+    fname1 = test_images / "cockatoo.mp4"
 
     R = imageio.read(fname1, "ffmpeg")
     assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
@@ -210,9 +216,9 @@ def test_write_not_contiguous(image_cache):
             assert diff.mean() < 2.5
 
 
-def test_reader_more(image_cache):
+def test_reader_more(test_images):
 
-    fname1 = image_cache / "images" / "cockatoo.mp4"
+    fname1 = test_images / "cockatoo.mp4"
 
     fname3 = fname1.with_suffix(".stub.mp4")
 
@@ -235,7 +241,7 @@ def test_reader_more(image_cache):
         imageio.read(fname1, "ffmpeg", pixelformat=20)
 
     # Read all frames and test length
-    R = imageio.read(image_cache / "images" / "realshort.mp4", "ffmpeg")
+    R = imageio.read(test_images / "realshort.mp4", "ffmpeg")
     count = 0
     while True:
         try:
@@ -269,7 +275,7 @@ def test_reader_more(image_cache):
         R.get_data(-1)  # Test index error -1
 
     # Test loop
-    R = imageio.read(image_cache / "images" / "realshort.mp4", "ffmpeg", loop=1)
+    R = imageio.read(test_images / "realshort.mp4", "ffmpeg", loop=1)
     im1 = R.get_next_data()
     for i in range(1, len(R)):
         R.get_next_data()
@@ -290,9 +296,9 @@ def test_reader_more(image_cache):
     imageio.read(fname1, "ffmpeg", print_info=True)
 
 
-def test_writer_more(image_cache):
+def test_writer_more(test_images):
 
-    fname1 = image_cache / "images" / "cockatoo.mp4"
+    fname1 = test_images / "cockatoo.mp4"
     fname2 = fname1.with_suffix(".out.mp4")
 
     W = imageio.save(fname2, "ffmpeg")
@@ -512,12 +518,12 @@ def test_webcam_get_next_data():
     reader.close()
 
 
-def test_process_termination(image_cache):
+def test_process_termination(test_images):
 
     pids0 = get_ffmpeg_pids()
 
-    r1 = imageio.get_reader(image_cache / "images" / "cockatoo.mp4")
-    r2 = imageio.get_reader(image_cache / "images" / "cockatoo.mp4")
+    r1 = imageio.get_reader(test_images / "cockatoo.mp4")
+    r2 = imageio.get_reader(test_images / "cockatoo.mp4")
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 2
 
@@ -526,8 +532,8 @@ def test_process_termination(image_cache):
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 0
 
-    r1 = imageio.get_reader(image_cache / "images" / "cockatoo.mp4")
-    r2 = imageio.get_reader(image_cache / "images" / "cockatoo.mp4")
+    r1 = imageio.get_reader(test_images / "cockatoo.mp4")
+    r2 = imageio.get_reader(test_images / "cockatoo.mp4")
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 2
 
@@ -585,8 +591,8 @@ def test_webcam_resource_warnings():
     assert not [w.message for w in warnings]
 
 
-def show_in_console(image_cache):
-    reader = imageio.read(image_cache / "images" / "cockatoo.mp4", "ffmpeg")
+def show_in_console(test_images):
+    reader = imageio.read(test_images / "cockatoo.mp4", "ffmpeg")
     # reader = imageio.read('<video0>')
     im = reader.get_next_data()
     while True:
@@ -597,8 +603,8 @@ def show_in_console(image_cache):
         )
 
 
-def show_in_visvis(image_cache):
-    # reader = imageio.read(image_cache / "images" / "cockatoo.mp4", "ffmpeg")
+def show_in_visvis(test_images):
+    # reader = imageio.read(test_images / "cockatoo.mp4", "ffmpeg")
     reader = imageio.read("<video0>", fps=20)
 
     import visvis as vv

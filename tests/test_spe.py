@@ -13,8 +13,8 @@ def test_spe_format():
         assert isinstance(fmt, spe.SpeFormat)
 
 
-def test_spe_reading(image_cache):
-    fname = image_cache / "images" / "test_000_.SPE"
+def test_spe_reading(test_images):
+    fname = test_images / "test_000_.SPE"
 
     fr1 = np.zeros((32, 32), np.uint16)
     fr2 = np.ones_like(fr1)

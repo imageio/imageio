@@ -70,7 +70,7 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-def test_pillow_format(image_cache, tmp_path):
+def test_pillow_format(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -79,7 +79,7 @@ def test_pillow_format(image_cache, tmp_path):
     assert F.name == "PNG-PIL"
 
     # Reader
-    R = F.get_reader(core.Request(image_cache / "test-images" / "chelsea.png", "ri"))
+    R = F.get_reader(core.Request(test_images / "chelsea.png", "ri"))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -98,7 +98,7 @@ def test_pillow_format(image_cache, tmp_path):
         W.append_data(im0)
 
 
-def test_png(image_cache, tmp_path):
+def test_png(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -113,12 +113,12 @@ def test_png(image_cache, tmp_path):
                 assert_close(rim * mul, im, 0.1)  # lossless
 
     # Parameters
-    im = imageio.imread(image_cache / "test-images" / "chelsea.png", ignoregamma=True)
+    im = imageio.imread(test_images / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
     with pytest.raises(TypeError):
-        imageio.imread(image_cache / "test-images" / "chelsea.png", notavalidk=True)
+        imageio.imread(test_images / "chelsea.png", notavalidk=True)
 
     with pytest.raises(TypeError):
         imageio.imsave(fnamebase + ".png", im, notavalidk=True)
@@ -150,7 +150,7 @@ def test_png(image_cache, tmp_path):
         imageio.imsave(fname, im[:, :, 0], quantize=100)
 
     # 16b bit images
-    im = imageio.imread(image_cache / "test-images" / "chelsea.png")[:, :, 0]
+    im = imageio.imread(test_images / "chelsea.png")[:, :, 0]
     imageio.imsave(fnamebase + "1.png", im.astype("uint16") * 2)
     imageio.imsave(fnamebase + "2.png", im)
     s1 = os.stat(fnamebase + "1.png").st_size
@@ -220,7 +220,7 @@ def test_jpg(tmp_path):
         imageio.imsave(fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more(image_cache, tmp_path):
+def test_jpg_more(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -240,7 +240,7 @@ def test_jpg_more(image_cache, tmp_path):
         imageio.imread(fname)
 
     # Test EXIF stuff
-    fname = image_cache / "images" / "rommel.jpg"
+    fname = test_images / "rommel.jpg"
     im = imageio.imread(fname)
     assert im.shape[0] > im.shape[1]
     im = imageio.imread(fname, exifrotate=False)
@@ -283,12 +283,12 @@ def test_gif(tmp_path):
         imageio.imsave(fnamebase + "1.gif", im, notavalidk=True)
 
 
-def test_animated_gif(image_cache, tmp_path):
+def test_animated_gif(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
     # Read newton's cradle
-    ims = imageio.mimread(image_cache / "test-images" / "newtonscradle.gif")
+    ims = imageio.mimread(test_images / "newtonscradle.gif")
     assert len(ims) == 36
     for im in ims:
         assert im.shape == (150, 200, 4)
@@ -364,21 +364,21 @@ def test_animated_gif(image_cache, tmp_path):
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_images_with_transparency(image_cache):
+def test_images_with_transparency(test_images):
     # Not alpha channel, but transparent pixels, see issue #245 and #246
 
-    fname = image_cache / "test-images" / "imageio_issue245.gif"
+    fname = test_images / "imageio_issue245.gif"
     im = imageio.imread(fname)
     assert im.shape == (24, 30, 4)
 
-    fname = image_cache / "test-images" / "imageio_issue246.png"
+    fname = test_images / "imageio_issue246.png"
     im = imageio.imread(fname)
     assert im.shape == (24, 30, 4)
 
 
-def test_gamma_correction(image_cache):
+def test_gamma_correction(test_images):
 
-    fname = image_cache / "test-images" / "kodim03.png"
+    fname = test_images / "kodim03.png"
 
     # Load image three times
     im1 = imageio.imread(fname)
@@ -398,36 +398,36 @@ def test_gamma_correction(image_cache):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
-def test_inside_zipfile(image_cache, tmp_path):
+def test_inside_zipfile(test_images, tmp_path):
 
     fname = str(tmp_path / "pillowtest.zip")
     with ZipFile(fname, "w") as z:
         z.writestr(
             "x.png",
-            (image_cache / "test-images" / "chelsea.png").read_bytes(),
+            (test_images / "chelsea.png").read_bytes(),
         )
         z.writestr(
             "x.jpg",
-            (image_cache / "images" / "rommel.jpg").read_bytes(),
+            (test_images / "rommel.jpg").read_bytes(),
         )
 
     for name in ("x.png", "x.jpg"):
         imageio.imread(fname + "/" + name)
 
 
-def test_bmp(image_cache):
-    fname = image_cache / "images" / "scribble_P_RGB.bmp"
+def test_bmp(test_images):
+    fname = test_images / "scribble_P_RGB.bmp"
 
     imageio.imread(fname)
     imageio.imread(fname, pilmode="RGB")
     imageio.imread(fname, pilmode="RGBA")
 
 
-def test_scipy_imread_compat(image_cache):
+def test_scipy_imread_compat(test_images):
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
 
-    fname = image_cache / "test-images" / "chelsea.png"
+    fname = test_images / "chelsea.png"
 
     im = imageio.imread(fname)
     assert im.shape == (300, 451, 3) and im.dtype == "uint8"

@@ -10,8 +10,8 @@ import numpy as np
 import imageio
 
 
-def test_fei_file_reading(image_cache):
-    fei_filename = image_cache / "images" / "fei-sem-rbc.tif"
+def test_fei_file_reading(test_images):
+    fei_filename = test_images / "fei-sem-rbc.tif"
     reader = imageio.get_reader(fei_filename, format="fei")
     image = reader.get_data(0)  # imageio.Image object
     assert image.shape == (1024, 1536)

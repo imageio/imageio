@@ -16,7 +16,7 @@ from imageio.core import IS_PYPY
 
 
 @pytest.fixture(scope="module")
-def setup_library(tmp_path_factory, image_cache):
+def setup_library(tmp_path_factory, test_images):
 
     # Checks if freeimage is installed by the system
     from imageio.plugins.freeimage import fi
@@ -33,7 +33,7 @@ def setup_library(tmp_path_factory, image_cache):
         else:
             user_dir_env = "IMAGEIO_USERDIR"
 
-        # Setup from image_cache/freeimage
+        # Setup from test_images/freeimage
         ud = tmp_path_factory.mktemp("userdir")
         old_user_dir = os.getenv(user_dir_env, None)
         os.environ[user_dir_env] = str(ud)
@@ -41,7 +41,7 @@ def setup_library(tmp_path_factory, image_cache):
 
         add = core.appdata_dir("imageio")
         os.makedirs(add, exist_ok=True)
-        shutil.copytree(image_cache / "freeimage", os.path.join(add, "freeimage"))
+        shutil.copytree(test_images / "freeimage", os.path.join(add, "freeimage"))
         fi.load_freeimage()
         assert fi.has_lib(), "imageio-binaries' version of libfreeimage was not found"
 
@@ -145,19 +145,19 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
-def test_get_fi_lib(image_cache, tmp_userdir):
+def test_get_fi_lib(test_images, tmp_userdir):
 
     from imageio.plugins._freeimage import get_freeimage_lib
 
     add = core.appdata_dir("imageio")
     os.makedirs(add, exist_ok=True)
-    shutil.copytree(image_cache / "freeimage", os.path.join(add, "freeimage"))
+    shutil.copytree(test_images / "freeimage", os.path.join(add, "freeimage"))
 
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
 
 
-def test_freeimage_format(setup_library, image_cache, tmp_path):
+def test_freeimage_format(setup_library, test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -166,7 +166,7 @@ def test_freeimage_format(setup_library, image_cache, tmp_path):
     assert F.name == "PNG-FI"
 
     # Reader
-    R = F.get_reader(core.Request(image_cache / "images" / "chelsea.png", "ri"))
+    R = F.get_reader(core.Request(test_images / "chelsea.png", "ri"))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -196,7 +196,7 @@ def test_freeimage_lib(setup_library):
     raises(ValueError, fi.getFIF, "foo.iff", "w")  # We cannot write iff
 
 
-def test_png(setup_library, image_cache, tmp_path):
+def test_png(setup_library, test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -226,14 +226,14 @@ def test_png(setup_library, image_cache, tmp_path):
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
 
     # Parameters
-    im = imageio.imread(image_cache / "images" / "chelsea.png", ignoregamma=True)
+    im = imageio.imread(test_images / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
     raises(
         TypeError,
         imageio.imread,
-        image_cache / "images" / "chelsea.png",
+        test_images / "chelsea.png",
         notavalidk=True,
     )
     raises(TypeError, imageio.imsave, fnamebase + ".png", im, notavalidk=True)
@@ -350,7 +350,7 @@ def test_jpg(setup_library, tmp_path):
     raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more(setup_library, image_cache, tmp_path):
+def test_jpg_more(setup_library, test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
 
@@ -368,7 +368,7 @@ def test_jpg_more(setup_library, image_cache, tmp_path):
     raises(Exception, imageio.imread, fname)
 
     # Test EXIF stuff
-    fname = image_cache / "images" / "rommel.jpg"
+    fname = test_images / "rommel.jpg"
     im = imageio.imread(fname)
     assert im.shape[0] > im.shape[1]
     im = imageio.imread(fname, exifrotate=False)
@@ -598,8 +598,8 @@ def test_multi_icon_ico(setup_library, tmp_path):
 
 
 @pytest.mark.skip("MNG seems broken in FreeImage")
-def test_mng(setup_library, image_cache):
-    imageio.imread(image_cache / "images" / "mngexample.mng")
+def test_mng(setup_library, test_images):
+    imageio.imread(test_images / "mngexample.mng")
 
 
 def test_pnm(setup_library, tmp_path):
@@ -642,9 +642,9 @@ def test_other(setup_library, tmp_path):
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")
 
 
-def test_gamma_correction(setup_library, image_cache):
+def test_gamma_correction(setup_library, test_images):
 
-    fname = image_cache / "images" / "kodim03.png"
+    fname = test_images / "kodim03.png"
 
     # Load image three times
     im1 = imageio.imread(fname, format="PNG-FI")

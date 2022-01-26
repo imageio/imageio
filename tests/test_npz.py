@@ -9,7 +9,7 @@ import imageio
 from imageio.core import Request, IS_PYPY
 
 
-def test_npz_format(image_cache):
+def test_npz_format(test_images):
 
     # Test selection
     for name in ["npz", ".npz"]:
@@ -18,7 +18,7 @@ def test_npz_format(image_cache):
         assert format.__module__.endswith(".npz")
 
     # Test cannot read
-    png = image_cache / "test-images" / "chelsea.png"
+    png = test_images / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 

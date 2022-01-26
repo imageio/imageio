@@ -1,10 +1,7 @@
 import os
 import sys
-import stat
 import shutil
 from pathlib import Path
-import contextlib
-import subprocess
 import contextlib
 
 import pytest
@@ -114,11 +111,11 @@ def image_files(test_images, tmp_path):
 
 def pytest_collection_modifyitems(items):
 
-    # all tests using the image_cache fixture, require internet automatically
+    # all tests using the test_images fixture, require internet automatically
     # iff they checkout from the remote repository - everything else does not
     internet_protocols = ("git", "http", "ssh")
     for item in items:
-        if ("image_cache" in getattr(item, "fixturenames", ())) or (
+        if ("test_images" in getattr(item, "fixturenames", ())) or (
             "image_copy" in getattr(item, "fixturenames", ())
         ):
             if item.config.getoption("imageio_binaries").startswith(internet_protocols):

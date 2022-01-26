@@ -14,9 +14,9 @@ def mean(x):
     return x.sum() / x.size  # pypy-compat mean
 
 
-def test_format_selection(image_cache):
+def test_format_selection(test_images):
 
-    fname1 = image_cache / "images" / "stent.swf"
+    fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out.swf")
 
     F = imageio.formats["swf"]
@@ -27,9 +27,9 @@ def test_format_selection(image_cache):
     assert type(imageio.save(fname2).format) is type(F)
 
 
-def test_reading_saving(image_cache, tmp_path):
+def test_reading_saving(test_images, tmp_path):
 
-    fname1 = image_cache / "images" / "stent.swf"
+    fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out.swf")
     fname3 = fname1.with_suffix(".compressed.swf")
     fname4 = fname1.with_suffix(".out2.swf")
@@ -135,9 +135,9 @@ def test_read_from_url():
     assert len(ims) == 10
 
 
-def test_invalid(image_cache):
+def test_invalid(test_images):
 
-    fname1 = image_cache / "images" / "stent.swf"
+    fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".invalid.swf")
 
     # Empty file
@@ -181,9 +181,9 @@ def test_lowlevel():
     )
 
 
-def test_types(image_cache):
+def test_types(test_images):
 
-    fname1 = image_cache / "images" / "stent.swf"
+    fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out3.swf")
 
     for dtype in [
