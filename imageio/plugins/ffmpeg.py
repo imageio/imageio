@@ -665,7 +665,7 @@ class FrameCatcher(threading.Thread):
         self._frame_is_new = False
         self._lock = threading.RLock()
         threading.Thread.__init__(self)
-        self.setDaemon(True)  # do not let this thread hold up Python shutdown
+        self.daemon = True # do not let this thread hold up Python shutdown
         self._should_stop = False
         self.start()
 
