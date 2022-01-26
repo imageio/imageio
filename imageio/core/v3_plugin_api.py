@@ -283,7 +283,7 @@ class PluginV3:
         returning it, then ``exclude_applied`` prevents confusion on whether the
         tag was already applied or not.
 
-        The _kwarg_ ``index`` behaves similar to its counterpart in ``read``
+        The `kwarg` ``index`` behaves similar to its counterpart in ``read``
         with one exception: If the ``index`` is None, then global metadata is
         returned instead of returning a combination of all metadata items. If
         there is no global metadata, the Plugin should return an empty dict or

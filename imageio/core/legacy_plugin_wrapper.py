@@ -240,6 +240,35 @@ class LegacyPlugin:
 
         """
 
+        return self.metadata(index=index, exclude_applied=False)
+
+    def metadata(
+        self, index: int = None, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
+        """Format-Specific ndimage metadata.
+
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage to read. If the index is out of bounds a
+            ``ValueError`` is raised. If ``None``, global metadata is returned.
+        exclude_applied : bool
+            If True (default), do not report metadata fields that the plugin
+            would apply/consume while reading the image.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary filled with format-specific metadata fields and their
+            values.
+
+        """
+
+        if exclude_applied:
+            raise ValueError(
+                "Legacy plugins don't support excluding applied metadata fields."
+            )
+
         return self.legacy_get_reader().get_meta_data(index=index)
 
     def __enter__(self) -> "LegacyPlugin":
