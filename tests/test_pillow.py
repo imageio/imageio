@@ -205,9 +205,11 @@ def test_png_transparent_pixel(test_images):
 
 
 def test_png_gamma_correction(test_images):
-    with iio.imopen(test_images / "kodim03.png", "r", plugin="pillow") as f:
-        im1 = f.read()
-        im1_meta = f.get_meta()
+    # opens the file twice, but touches more parts of the API
+    im1 = iio.v3.imread(test_images / "kodim03.png", plugin="pillow")
+    im1_meta = iio.v3.immeta(
+        test_images / "kodim03.png", plugin="pillow", exclude_applied=False
+    )
 
     im2 = iio.v3.imread(
         test_images / "kodim03.png",

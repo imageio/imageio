@@ -4,6 +4,7 @@ from imageio.core.v3_plugin_api import ImageProperties
 import numpy as np
 
 from .core.imopen import imopen
+from typing import Optional, Iterator, Dict, Any
 
 
 def imread(
@@ -142,7 +143,7 @@ def imwrite(
 
 
 def improps(uri, *, index: int = None, plugin: str = None, **kwargs) -> ImageProperties:
-    """Read standardized Image Metadata.
+    """Read standardized metadata.
 
     Opens the given URI and reads the properties of an ndimage from it. The
     properties represent standardized metadata. This means that they will have
@@ -183,4 +184,54 @@ def improps(uri, *, index: int = None, plugin: str = None, **kwargs) -> ImagePro
 
     return properties
 
-__all__ = ["imopen", "imread", "imwrite", "imiter", "improps"]
+
+def immeta(
+    uri,
+    *,
+    index: int = None,
+    plugin: str = None,
+    exclude_applied: bool = True,
+    **kwargs
+) -> Dict[str, Any]:
+    """Read format-specific metadata.
+
+    Opens the given URI and reads metadata for an ndimage from it. The contents
+    of the returned metadata dictionary is specific to both the image format and
+    plugin used to open the ImageResource. To learn about the exact behavior,
+    check the documentation of the relevant plugin. Typically, immeta returns a
+    dictionary specific to the image format, where keys match metadata field
+    names and values are a field's contents.
+
+    Parameters
+    ----------
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path, http
+        address or file object, see the docs for more info.
+    index : {int, None}
+        If the URI contains multiple ndimages, select the index-th ndimage from
+        among them and return it.
+    plugin : {str, None}
+        The plugin to be used. If None (default), performs a search for a
+        matching plugin.
+    **kwargs :
+        Additional keyword arguments will be passed to the plugin's metadata
+        method.
+
+    Returns
+    -------
+    image : ndimage
+        The ndimage located at the given URI.
+
+    """
+
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+
+    with imopen(uri, "r", **plugin_kwargs) as img_file:
+        metadata = img_file.metadata(
+            index=index, exclude_applied=exclude_applied, **kwargs
+        )
+
+    return metadata
+
+
+__all__ = ["imopen", "imread", "imwrite", "imiter", "improps", "immeta"]
