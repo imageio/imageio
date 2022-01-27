@@ -2,21 +2,41 @@
 """
 
 import os
-import sys
 import shutil
+import sys
+import platform
 
-import numpy as np
-
-from pytest import raises, skip
-import pytest
-
+import fsspec
 import imageio
+import numpy as np
+import pytest
 from imageio import core
 from imageio.core import IS_PYPY
+from pytest import raises, skip
 
 
 @pytest.fixture(scope="module")
-def setup_library(tmp_path_factory, test_images):
+def vendored_lib(tmp_path_factory):
+    lib_dir = tmp_path_factory.mktemp("freeimage_dir")
+
+    if platform.system() == "Linux":
+        lib_extension = ".so"
+    elif platform.system() == "Darwin":
+        lib_extension = ".dylib"
+    elif platform.system() == "Windows":
+        lib_extension = ".dll"
+
+    fs = fsspec.filesystem("github", org="imageio", repo="imageio-binaries")
+    fs.get(
+        [x for x in fs.ls("freeimage/") if x.endswith(lib_extension)],
+        lib_dir.as_posix(),
+    )
+
+    yield lib_dir
+
+
+@pytest.fixture(scope="module")
+def setup_library(tmp_path_factory, vendored_lib):
 
     # Checks if freeimage is installed by the system
     from imageio.plugins.freeimage import fi
@@ -41,7 +61,7 @@ def setup_library(tmp_path_factory, test_images):
 
         add = core.appdata_dir("imageio")
         os.makedirs(add, exist_ok=True)
-        shutil.copytree(test_images / "freeimage", os.path.join(add, "freeimage"))
+        shutil.copytree(vendored_lib, os.path.join(add, "freeimage"))
         fi.load_freeimage()
         assert fi.has_lib(), "imageio-binaries' version of libfreeimage was not found"
 
@@ -145,13 +165,13 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
-def test_get_fi_lib(test_images, tmp_userdir):
+def test_get_fi_lib(vendored_lib, tmp_userdir):
 
     from imageio.plugins._freeimage import get_freeimage_lib
 
     add = core.appdata_dir("imageio")
     os.makedirs(add, exist_ok=True)
-    shutil.copytree(test_images / "freeimage", os.path.join(add, "freeimage"))
+    shutil.copytree(vendored_lib, os.path.join(add, "freeimage"))
 
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
