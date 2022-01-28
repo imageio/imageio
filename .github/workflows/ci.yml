@@ -88,7 +88,7 @@ jobs:
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
         run: |
-            coverage run -m pytest -v
+            coverage run -m pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
       - name: Upload coverage to Codecov
         run: |
           curl -s https://codecov.io/bash | bash
@@ -119,4 +119,4 @@ jobs:
             pypy3 -m pip install .[test,ffmpeg,tifffile]
       - name: Run Unit tests
         run: |
-            invoke test --unit
+            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}

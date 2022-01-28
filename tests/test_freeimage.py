@@ -16,7 +16,7 @@ from pytest import raises, skip
 
 
 @pytest.fixture(scope="module")
-def vendored_lib(tmp_path_factory):
+def vendored_lib(request, tmp_path_factory):
     lib_dir = tmp_path_factory.mktemp("freeimage_dir")
 
     if platform.system() == "Linux":
@@ -30,7 +30,8 @@ def vendored_lib(tmp_path_factory):
         "github",
         org="imageio",
         repo="imageio-binaries",
-        token=os.environ.get("GITHUB_TOKEN"),
+        username=request.config.getoption("--github-username"),
+        token=request.config.getoption("--github-token"),
     )
     fs.get(
         [x for x in fs.ls("freeimage/") if x.endswith(lib_extension)],

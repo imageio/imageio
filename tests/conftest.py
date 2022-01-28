@@ -28,6 +28,20 @@ def pytest_addoption(parser):
         " to clone from a local repository and save testing bandwidth.",
     )
 
+    parser.addoption(
+        "--github-token",
+        action="store",
+        default=None,
+        help="If set, this value will be used as a token to authenticate with the GitHub API.",
+    )
+
+    parser.addoption(
+        "--github-username",
+        action="store",
+        default=None,
+        help="If set, this value will be used as the username to authenticate with the GitHub API.",
+    )
+
 
 @contextlib.contextmanager
 def working_directory(path):
