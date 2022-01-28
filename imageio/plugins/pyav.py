@@ -58,7 +58,7 @@ class PyAVPlugin:
 
         if request.mode.io_mode == IOMode.read:
             try:
-                self._input_container = av.open(request.get_file())
+                self._container = av.open(request.get_file())
             except av.error.InvalidDataError as e:
                 if isinstance(request.raw_uri, bytes):
                     msg = "PyAV does not support `<bytes>`"
@@ -66,8 +66,9 @@ class PyAVPlugin:
                     msg = f"PyAV does not support `{request.raw_uri}`"
                 raise InitializationError(msg)
         elif request.mode.io_mode == IOMode.write:
-            # TODO: verify that the resource is writable
-            # also: implement actual writing
+            self._container = av.open(request.get_file(), mode="w")
+            # TODO: translate exceptions into Initialization Errors
+
             raise InitializationError("Writing is currently not supported.")
         else:
             raise InitializationError("Unsupported mode.")
@@ -111,7 +112,7 @@ class PyAVPlugin:
 
         """
 
-        frame_generator = self._input_container.decode(video=0)
+        frame_generator = self._container.decode(video=0)
 
         if index is None:
             frames = [x.to_ndarray(format=format) for x in frame_generator]
@@ -122,68 +123,79 @@ class PyAVPlugin:
 
         return next(frame_generator).to_ndarray(format=format)
 
-    def write(self, ndimage: Union[ArrayLike, List[ArrayLike]]) -> Optional[bytes]:
-        """Write a ndimage to a ImageResource.
+    def write(
+        self,
+        ndimage: Union[ArrayLike, List[ArrayLike]],
+        *,
+        codec: str = "mpeg4",
+        fps: int = 24,
+        pixel_format: str = "yuv420p",
+        numpy_format: str = "rgb24",
+    ) -> Optional[bytes]:
+        """Save a ndimage as a video.
 
-        The ``write`` method encodes the given ndimage into the format handled
-        by the backend and writes it to the ImageResource. It overwrites
-        any content that may have been previously stored in the file.
-
-        If the backend supports only a single format then it must check if
-        the ImageResource matches that format and raise an exception if not.
-        Typically, this should be done during initialization in the form of a
-        ``InitializationError``.
-
-        If the backend supports more than one format it must determine the
-        requested/desired format. Usually this can be done by inspecting the
-        ImageResource (e.g., by checking ``request.extension``), or by providing
-        a mechanism to explicitly set the format (perhaps with a - sensible -
-        default value). If the plugin can not determine the desired format, it
-        _must not_ write to the ImageResource, but raise an exception instead.
-
-        If the backend supports at least one format that can hold multiple
-        ndimages it should be capable of handling ndimage batches and lists of
-        ndimages. If the ``ndimage`` input is as a list of ndimages, the plugin
-        should expect that the ndimages are not stackable, i.e., that they have
-        different shapes and/or dimensions. Otherwise, the ``ndimage`` may be a
-        batch of multiple ndimages stacked along the first axis of the array.
-        The plugin must be able to discover this, either automatically or via
-        additional `kwargs`. If there is ambiguity in the process, the plugin
-        must clearly document what happens in such cases and, if possible,
-        describe how to resolve this ambiguity.
+        Given a batch of frames (stacked along the first axis) or a list of
+        frames, encode them and save the result in the ImageResource.
 
         Parameters
         ----------
         ndimage : ArrayLike
             The ndimage to encode and write to the current ImageResource.
-        **kwargs : Any
-            The write method may accept any number of plugin-specific keyword
-            arguments to customize the writing behavior. Usually these match the
-            arguments available on the backend and are forwarded to it.
+
 
         Returns
         -------
         encoded_image : bytes or None
             If the chosen ImageResource is the special target ``"<bytes>"`` then
-            write should return a byte string containing the encoded image data.
+            write will return a byte string containing the encoded image data.
             Otherwise, it returns None.
 
-        Notes
-        -----
-        The ImageResource to which the plugin should write to is managed by the
-        provided request object. Directly accessing the managed ImageResource is
-        _not_ permitted. Instead, you can get FileLike access to the
-        ImageResource via request.get_file().
-
-        If the backend doesn't support writing to FileLike objects, you can
-        request a temporary file to pass to the backend via
-        ``request.get_local_filename()``. This is, however, not very performant
-        (involves copying the Request's content from a temporary file), so you
-        should avoid doing this whenever possible. Consider it a fallback method
-        in case all else fails.
-
         """
-        raise NotImplementedError()
+
+        was_list = False
+
+        if isinstance(ndimage, list):
+            # frames _should_ be stackable
+            ndimage = np.stack(ndimage)
+            was_list = True
+        else:
+            ndimage = np.asarray(ndimage)
+
+        # make ndimage (batch, width, heigh, [channel])
+        if was_list:
+            pass  # nothing to do
+        elif ndimage.ndim > 3:
+            pass  # (time, height, width, channel)
+        elif ndimage.ndim == 2:
+            # single gray frame
+            ndimage = ndimage[None, ...]
+        elif ndimage.ndim == 1:
+            raise ValueError("ndimage should be at least 2D.")
+        elif ndimage.shape[-1] < 4:
+            # TODO: use a more sophisticated resolution.
+            # basing it on shape is hacky af
+
+            # single frame with channel
+            ndimage = ndimage[None, ...]
+        else:
+            raise ValueError("Malformatted input image.")
+
+        duration = 4
+        total_frames = duration * fps
+
+        stream = self._container.add_stream(codec, rate=fps)
+        stream.width = ndimage.shape[2]
+        stream.height = ndimage.shaoe[1]
+        stream.pix_fmt = pixel_format
+
+        for img in ndimage:
+            frame = av.VideoFrame.from_ndarray(img, format=numpy_format)
+            for packet in stream.encode(frame):
+                self._container.mux(packet)
+
+        # Flush stream
+        for packet in stream.encode():
+            self._container.mux(packet)
 
     def iter(self, *, format="rgb24") -> np.ndarray:
         """Yield frames from the video.
@@ -202,7 +214,7 @@ class PyAVPlugin:
 
         """
 
-        for frame in self._input_container.decode(video=0):
+        for frame in self._container.decode(video=0):
             yield frame.to_ndarray(format=format)
 
     def properties(self, index: int = None) -> ImageProperties:
@@ -273,7 +285,7 @@ class PyAVPlugin:
         """Close the Video."""
 
         self.request.finish()
-        self._input_container.close()
+        self._container.close()
 
     @property
     def request(self) -> Request:
