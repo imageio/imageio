@@ -116,6 +116,9 @@ known_plugins = dict()
 known_plugins["pillow"] = PluginConfig(
     name="pillow", class_name="PillowPlugin", module_name="imageio.plugins.pillow"
 )
+known_plugins["pyav"] = PluginConfig(
+    name="pyav", class_name="PyAVPlugin", module_name="imageio.plugins.pyav"
+)
 
 # Legacy plugins
 # ==============
