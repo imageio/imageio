@@ -193,6 +193,7 @@ extras_require = {
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
+    "pyav": ["av"],
 }
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
