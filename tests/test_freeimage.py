@@ -2,36 +2,85 @@
 """
 
 import os
+import shutil
 import sys
+import platform
 
-import numpy as np
-
-from pytest import raises, skip
-import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-
+import fsspec
 import imageio
+import numpy as np
+import pytest
 from imageio import core
-from imageio.core import get_remote_file, IS_PYPY
+from imageio.core import IS_PYPY
+from pytest import raises, skip
 
 
-test_dir = get_test_dir()
+@pytest.fixture(scope="module")
+def vendored_lib(request, tmp_path_factory):
+    lib_dir = tmp_path_factory.mktemp("freeimage_dir")
+
+    if platform.system() == "Linux":
+        lib_extension = ".so"
+    elif platform.system() == "Darwin":
+        lib_extension = ".dylib"
+    elif platform.system() == "Windows":
+        lib_extension = ".dll"
+
+    fs = fsspec.filesystem(
+        "github",
+        org="imageio",
+        repo="imageio-binaries",
+        username=request.config.getoption("--github-username"),
+        token=request.config.getoption("--github-token"),
+    )
+    fs.get(
+        [x for x in fs.ls("freeimage/") if x.endswith(lib_extension)],
+        lib_dir.as_posix(),
+    )
+
+    yield lib_dir
 
 
-def setup_module():
+@pytest.fixture(scope="module")
+def setup_library(tmp_path_factory, vendored_lib):
+
+    # Checks if freeimage is installed by the system
+    from imageio.plugins.freeimage import fi
+
+    use_imageio_binary = not fi.has_lib()
+
     # During this test, pretend that FI is the default format
     imageio.formats.sort("-FI")
 
-    # This tests requires our version of the FI lib
-    try:
-        imageio.plugins.freeimage.download()
-    except core.InternetNotAllowedError:
-        # We cannot download; skip all freeimage tests
-        need_internet()
+    if use_imageio_binary:
 
+        if sys.platform.startswith("win"):
+            user_dir_env = "LOCALAPPDATA"
+        else:
+            user_dir_env = "IMAGEIO_USERDIR"
 
-def teardown_module():
-    # Set back to normal
+        # Setup from test_images/freeimage
+        ud = tmp_path_factory.mktemp("userdir")
+        old_user_dir = os.getenv(user_dir_env, None)
+        os.environ[user_dir_env] = str(ud)
+        os.makedirs(ud, exist_ok=True)
+
+        add = core.appdata_dir("imageio")
+        os.makedirs(add, exist_ok=True)
+        shutil.copytree(vendored_lib, os.path.join(add, "freeimage"))
+        fi.load_freeimage()
+        assert fi.has_lib(), "imageio-binaries' version of libfreeimage was not found"
+
+    yield
+
+    if use_imageio_binary:
+
+        if old_user_dir is not None:
+            os.environ[user_dir_env] = old_user_dir
+        else:
+            del os.environ[user_dir_env]
+
+    # Sort formats back to normal
     imageio.formats.sort()
 
 
@@ -52,8 +101,6 @@ im4[:, :16, 1] = 200
 im4[50:, :16, 2] = 100
 im4[:, :, 3] = 255
 im4[20:, :, 3] = 120
-
-fnamebase = os.path.join(test_dir, "test")
 
 
 def get_ref_im(colors, crop, isfloat):
@@ -124,23 +171,28 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
-def test_get_fi_lib():
-    need_internet()
+def test_get_fi_lib(vendored_lib, tmp_userdir):
 
     from imageio.plugins._freeimage import get_freeimage_lib
+
+    add = core.appdata_dir("imageio")
+    os.makedirs(add, exist_ok=True)
+    shutil.copytree(vendored_lib, os.path.join(add, "freeimage"))
 
     lib = get_freeimage_lib()
     assert os.path.isfile(lib)
 
 
-def test_freeimage_format():
+def test_freeimage_format(setup_library, test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     # Format
     F = imageio.formats["PNG-FI"]
     assert F.name == "PNG-FI"
 
     # Reader
-    R = F.get_reader(core.Request("imageio:chelsea.png", "ri"))
+    R = F.get_reader(core.Request(test_images / "chelsea.png", "ri"))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
@@ -154,7 +206,7 @@ def test_freeimage_format():
     raises(RuntimeError, W.append_data, im0)
 
 
-def test_freeimage_lib():
+def test_freeimage_lib(setup_library):
 
     fi = imageio.plugins.freeimage.fi
 
@@ -170,7 +222,9 @@ def test_freeimage_lib():
     raises(ValueError, fi.getFIF, "foo.iff", "w")  # We cannot write iff
 
 
-def test_png():
+def test_png(setup_library, test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -198,11 +252,16 @@ def test_png():
         imageio.plugins._freeimage.TEST_NUMPY_NO_STRIDES = False
 
     # Parameters
-    im = imageio.imread("imageio:chelsea.png", ignoregamma=True)
+    im = imageio.imread(test_images / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
-    raises(TypeError, imageio.imread, "imageio:chelsea.png", notavalidk=True)
+    raises(
+        TypeError,
+        imageio.imread,
+        test_images / "chelsea.png",
+        notavalidk=True,
+    )
     raises(TypeError, imageio.imsave, fnamebase + ".png", im, notavalidk=True)
 
     # Compression
@@ -230,7 +289,10 @@ def test_png():
     raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
 
 
-def test_png_dtypes():
+def test_png_dtypes(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
+
     # See issue #44
 
     # Two images, one 0-255, one 0-200
@@ -266,7 +328,9 @@ def test_png_dtypes():
     assert_close(im1, imageio.imread(fname))  # scaled
 
 
-def test_jpg():
+def test_jpg(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -312,8 +376,9 @@ def test_jpg():
     raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more():
-    need_internet()
+def test_jpg_more(setup_library, test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
@@ -329,7 +394,7 @@ def test_jpg_more():
     raises(Exception, imageio.imread, fname)
 
     # Test EXIF stuff
-    fname = get_remote_file("images/rommel.jpg")
+    fname = test_images / "rommel.jpg"
     im = imageio.imread(fname)
     assert im.shape[0] > im.shape[1]
     im = imageio.imread(fname, exifrotate=False)
@@ -344,7 +409,9 @@ def test_jpg_more():
     assert im.meta.EXIF_MAIN
 
 
-def test_bmp():
+def test_bmp(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -381,7 +448,10 @@ def test_bmp():
     )
 
 
-def test_gif():
+def test_gif(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
+
     # The not-animated gif
 
     for isfloat in (False, True):
@@ -413,7 +483,9 @@ def test_gif():
     )
 
 
-def test_animated_gif():
+def test_animated_gif(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     if sys.platform.startswith("darwin"):
         skip("On OSX quantization of freeimage is unstable")
@@ -461,13 +533,22 @@ def test_animated_gif():
     )
     R = imageio.read(fnamebase + ".animated.loop2.gif", format="GIF-FI")
     W = imageio.save(
-        fnamebase + ".animated.palettes100.gif", palettesize=100, format="GIF-FI"
+        fnamebase + ".animated.palettes100.gif",
+        palettesize=100,
+        format="GIF-FI",
     )
     assert W._palettesize == 128
     # Fail
     raises(IndexError, R.get_meta_data, -1)
     raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo", format="GIF-FI")
+    raises(
+        ValueError,
+        imageio.mimsave,
+        fname,
+        ims,
+        quantizer="foo",
+        format="GIF-FI",
+    )
     raises(ValueError, imageio.mimsave, fname, ims, duration="foo", format="GIF-FI")
 
     # Add one duplicate image to ims to touch subractangle with not change
@@ -484,7 +565,9 @@ def test_animated_gif():
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_ico():
+def test_ico(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0,):
@@ -527,7 +610,10 @@ def test_ico():
     sys.platform.startswith("win"),
     reason="Windows has a known issue with multi-icon files",
 )
-def test_multi_icon_ico():
+def test_multi_icon_ico(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
+
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
     ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
@@ -537,12 +623,15 @@ def test_multi_icon_ico():
         assert_close(im1, im2, 0.1)
 
 
-def test_mng():
-    pass  # MNG seems broken in FreeImage
-    # ims = imageio.imread(get_remote_file('images/mngexample.mng'))
+@pytest.mark.skip("MNG seems broken in FreeImage")
+def test_mng(setup_library, test_images):
+    imageio.imread(test_images / "mngexample.mng")
 
 
-def test_pnm():
+def test_pnm(setup_library, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
+
     for useAscii in (True, False):
         for crop in (0, 1, 2):
             for colors in (0, 1, 3):
@@ -571,16 +660,17 @@ def test_pnm():
                 )
 
 
-def test_other():
+def test_other(setup_library, tmp_path):
+    fnamebase = str(tmp_path / "test")
+
     # Cannot save float
     im = get_ref_im(3, 0, 1)
     raises(Exception, imageio.imsave, fnamebase + ".jng", im, "JNG")
 
 
-def test_gamma_correction():
-    need_internet()
+def test_gamma_correction(setup_library, test_images):
 
-    fname = get_remote_file("images/kodim03.png")
+    fname = test_images / "kodim03.png"
 
     # Load image three times
     im1 = imageio.imread(fname, format="PNG-FI")
@@ -599,8 +689,3 @@ def test_gamma_correction():
     # test_regression_302
     for im in (im1, im2, im3):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
-
-
-if __name__ == "__main__":
-    # test_animated_gif()
-    run_tests_if_main()

@@ -1,27 +1,21 @@
 from pytest import raises
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir
 
-import os
 import gc
 import shutil
+from pathlib import Path
 
 import numpy as np
 
 import imageio
 import imageio as iio
 from imageio.core import Format, FormatManager, Request
-from imageio.core import get_remote_file
 
 
-test_dir = get_test_dir()
-
-
-def setup_module():
+@pytest.fixture(scope="module", autouse=True)
+def resort():
     imageio.formats.sort()
-
-
-def teardown_module():
+    yield
     imageio.formats.sort()
 
 
@@ -84,11 +78,11 @@ class MyFormat(Format):
             self._meta = meta
 
 
-def test_format():
+def test_format(test_images, tmp_path):
     """Test the working of the Format class"""
 
-    filename1 = get_remote_file("images/chelsea.png", test_dir)
-    filename2 = filename1 + ".out"
+    filename1 = test_images / "chelsea.png"
+    filename2 = tmp_path / "chelsea.out"
 
     # Test basic format creation
     F = Format("testname", "test description", "foo bar spam")
@@ -122,8 +116,8 @@ def test_format():
     assert isinstance(W, MyFormat.Writer)
     assert R.format is F
     assert W.format is F
-    assert R.request.filename == filename1
-    assert W.request.filename == filename2
+    assert Path(R.request.filename) == filename1
+    assert Path(W.request.filename) == filename2
     # Fail
     raises(RuntimeError, F.get_reader, Request(filename1, "rI"))
     raises(RuntimeError, F.get_writer, Request(filename2, "wI"))
@@ -154,11 +148,11 @@ def test_format():
     assert set(ids) == set(F._closed)
 
 
-def test_reader_and_writer():
+def test_reader_and_writer(test_images, tmp_path):
 
     # Prepare
-    filename1 = get_remote_file("images/chelsea.png", test_dir)
-    filename2 = filename1 + ".out"
+    filename1 = test_images / "chelsea.png"
+    filename2 = tmp_path / "chelsea.out"
     F = MyFormat("test", "", modes="i")
 
     # Test using reader
@@ -223,12 +217,12 @@ def test_reader_and_writer():
     raises(ValueError, W.set_meta_data, "not a dict")
 
 
-def test_default_can_read_and_can_write():
+def test_default_can_read_and_can_write(tmp_path):
 
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
-    filename1 = os.path.join(test_dir, "test")
+    filename1 = str(tmp_path / "test")
     open(filename1 + ".foo", "wb")
     open(filename1 + ".bar", "wb")
     open(filename1 + ".spam", "wb")
@@ -246,12 +240,12 @@ def test_default_can_read_and_can_write():
     assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
-def test_format_selection():
+def test_format_selection(test_images, tmp_path):
 
     formats = imageio.formats
-    fname1 = get_remote_file("images/chelsea.png", test_dir)
-    fname2 = os.path.join(test_dir, "test.selectext1")
-    fname3 = os.path.join(test_dir, "test.haha")
+    fname1 = test_images / "chelsea.png"
+    fname2 = tmp_path / "test.selectext1"
+    fname3 = tmp_path / "test.haha"
     open(fname2, "wb")
     open(fname3, "wb")
 
@@ -266,14 +260,14 @@ def test_format_selection():
     formats.add_format(format)
 
     # Select this format for files it said it could handle in extensions
-    assert ".selectext1" in fname2
+    assert ".selectext1" in str(fname2)
     F = formats.search_read_format(Request(fname2, "ri"))
     assert type(F) is type(format)
     F = formats.search_write_format(Request(fname2, "ri"))
     assert type(F) is type(format)
 
     # But this custom format also can deal with .haha files
-    assert ".haha" in fname3
+    assert ".haha" in str(fname3)
     F = formats.search_read_format(Request(fname3, "ri"))
     assert type(F) is type(format)
     F = formats.search_write_format(Request(fname3, "ri"))
@@ -283,7 +277,7 @@ def test_format_selection():
 # Format manager
 
 
-def test_format_manager():
+def test_format_manager(test_images):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -305,14 +299,14 @@ def test_format_manager():
         assert format.name in smalldocs
         # assert format.name in fulldocs
 
-    fname = get_remote_file("images/chelsea.png", test_dir)
-    fname2 = fname[:-3] + "noext"
+    fname = test_images / "chelsea.png"
+    fname2 = fname.with_suffix(".noext")
     shutil.copy(fname, fname2)
 
     # Check getting
     F1 = formats["PNG"]
     F2 = formats[".png"]
-    F3 = formats[fname2]  # will look in file itself
+    F3 = formats[fname2.as_posix()]  # will look in file itself
     assert type(F1) is type(F2)
     assert type(F1) is type(F3)
     # Check getting
@@ -429,6 +423,3 @@ def test_write_format_search_fail(tmp_path):
 
 def test_format_by_filename():
     iio.formats["test.jpg"]
-
-
-run_tests_if_main()

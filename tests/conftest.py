@@ -1,10 +1,46 @@
-import pytest
 import os
+import sys
 import shutil
 from pathlib import Path
 import contextlib
 
+import pytest
+
 import imageio as iio
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "needs_internet: Marks a test that requires an active interent connection."
+        " (deselect with '-m \"not needs_internet\"').",
+    )
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--test-images",
+        action="store",
+        metavar="GIT_REPO",
+        default="https://github.com/imageio/test_images.git",
+        help="Repository containing the test images "
+        " (default: %(default)s).  Use `file:///path/to/test_images`"
+        " to clone from a local repository and save testing bandwidth.",
+    )
+
+    parser.addoption(
+        "--github-token",
+        action="store",
+        default=None,
+        help="If set, this value will be used as a token to authenticate with the GitHub API.",
+    )
+
+    parser.addoption(
+        "--github-username",
+        action="store",
+        default=None,
+        help="If set, this value will be used as the username to authenticate with the GitHub API.",
+    )
 
 
 @contextlib.contextmanager
@@ -29,7 +65,11 @@ def working_directory(path):
         os.chdir(prev_cwd)
 
 
-@pytest.fixture(scope="session")
+# uses the fixture marking workaround from:
+# https://github.com/pytest-dev/pytest/issues/1368#issuecomment-466339463
+@pytest.fixture(
+    scope="session", params=[pytest.param(0, marks=pytest.mark.needs_internet)]
+)
 def test_images(request):
     """A collection of test images.
 
@@ -56,7 +96,8 @@ def test_images(request):
             pass  # dir exist, validate and fail later
         else:
             with working_directory(checkout_dir):
-                os.system("git clone https://github.com/imageio/test_images.git .")
+                repo_location = request.config.getoption("--test-images")
+                os.system(f"git clone {repo_location} .")
 
         request.config.cache.set("imageio_test_binaries", str(checkout_dir))
 
@@ -74,7 +115,7 @@ def test_images(request):
     return checkout_dir
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_files(test_images, tmp_path):
     """A copy of the test images
 
@@ -87,7 +128,7 @@ def image_files(test_images, tmp_path):
     yield tmp_path
 
 
-@pytest.fixture
+@pytest.fixture()
 def clear_plugins():
 
     old_extensions = iio.config.known_extensions.copy()
@@ -112,3 +153,25 @@ def invalid_file(tmp_path, request):
         file.write("Actually not a file.")
 
     return tmp_path / ("foo" + ext)
+
+
+@pytest.fixture()
+def tmp_userdir(tmp_path):
+
+    ud = tmp_path / "userdir"
+    ud.mkdir(exist_ok=True)
+
+    if sys.platform.startswith("win"):
+        user_dir_env = "LOCALAPPDATA"
+    else:
+        user_dir_env = "IMAGEIO_USERDIR"
+
+    old_user_dir = os.getenv(user_dir_env, None)
+    os.environ[user_dir_env] = str(ud)
+
+    yield ud
+
+    if old_user_dir is not None:
+        os.environ[user_dir_env] = old_user_dir
+    else:
+        del os.environ[user_dir_env]

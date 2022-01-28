@@ -7,14 +7,10 @@ import io
 from zipfile import ZipFile
 import numpy as np
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
+import pytest
 
 import imageio
 from imageio import core
-from imageio.core import get_remote_file
-
-test_dir = get_test_dir()
 
 
 def setup_module():
@@ -39,8 +35,6 @@ im4[:, :16, 1] = 200
 im4[50:, :16, 2] = 100
 im4[:, :, 3] = 255
 im4[20:, :, 3] = 120
-
-fnamebase = os.path.join(test_dir, "test")
 
 
 def get_ref_im(colors, crop, isfloat):
@@ -76,28 +70,37 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
-def test_pillow_format():
+def test_pillow_format(test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     # Format - Pillow is the default!
     F = imageio.formats["PNG"]
     assert F.name == "PNG-PIL"
 
     # Reader
-    R = F.get_reader(core.Request("imageio:chelsea.png", "ri"))
+    R = F.get_reader(core.Request(test_images / "chelsea.png", "ri"))
     assert len(R) == 1
     assert isinstance(R.get_meta_data(), dict)
     assert isinstance(R.get_meta_data(0), dict)
-    assert raises(IndexError, R.get_data, 2)
-    assert raises(IndexError, R.get_meta_data, 2)
+
+    with pytest.raises(IndexError):
+        R.get_data(2)
+
+    with pytest.raises(IndexError):
+        R.get_meta_data(2)
 
     # Writer
     W = F.get_writer(core.Request(fnamebase + ".png", "wi"))
     W.append_data(im0)
     W.set_meta_data({"foo": 3})
-    assert raises(RuntimeError, W.append_data, im0)
+    with pytest.raises(RuntimeError):
+        W.append_data(im0)
 
 
-def test_png():
+def test_png(test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -110,12 +113,15 @@ def test_png():
                 assert_close(rim * mul, im, 0.1)  # lossless
 
     # Parameters
-    im = imageio.imread("imageio:chelsea.png", ignoregamma=True)
+    im = imageio.imread(test_images / "chelsea.png", ignoregamma=True)
     imageio.imsave(fnamebase + ".png", im, interlaced=True)
 
     # Parameter fail
-    raises(TypeError, imageio.imread, "imageio:chelsea.png", notavalidk=True)
-    raises(TypeError, imageio.imsave, fnamebase + ".png", im, notavalidk=True)
+    with pytest.raises(TypeError):
+        imageio.imread(test_images / "chelsea.png", notavalidk=True)
+
+    with pytest.raises(TypeError):
+        imageio.imsave(fnamebase + ".png", im, notavalidk=True)
 
     # Compression
     imageio.imsave(fnamebase + "1.png", im, compression=0)
@@ -124,7 +130,8 @@ def test_png():
     s2 = os.stat(fnamebase + "2.png").st_size
     assert s2 < s1
     # Fail
-    raises(ValueError, imageio.imsave, fnamebase + ".png", im, compression=12)
+    with pytest.raises(ValueError):
+        imageio.imsave(fnamebase + ".png", im, compression=12)
 
     # Quantize
     imageio.imsave(fnamebase + "1.png", im, quantize=256)
@@ -136,11 +143,14 @@ def test_png():
     assert s1 > s2
     # Fail
     fname = fnamebase + "1.png"
-    raises(ValueError, imageio.imsave, fname, im[:, :, :3], quantize=300)
-    raises(ValueError, imageio.imsave, fname, im[:, :, 0], quantize=100)
+    with pytest.raises(ValueError):
+        imageio.imsave(fname, im[:, :, :3], quantize=300)
+
+    with pytest.raises(ValueError):
+        imageio.imsave(fname, im[:, :, 0], quantize=100)
 
     # 16b bit images
-    im = imageio.imread("imageio:chelsea.png")[:, :, 0]
+    im = imageio.imread(test_images / "chelsea.png")[:, :, 0]
     imageio.imsave(fnamebase + "1.png", im.astype("uint16") * 2)
     imageio.imsave(fnamebase + "2.png", im)
     s1 = os.stat(fnamebase + "1.png").st_size
@@ -162,9 +172,9 @@ def test_png():
         assert im.dtype == dtype
 
 
+@pytest.mark.needs_internet
 def test_png_remote():
     # issue #202
-    need_internet()
     im = imageio.imread(
         "https://raw.githubusercontent.com/imageio/"
         + "imageio-binaries/master/images/astronaut.png"
@@ -172,7 +182,9 @@ def test_png_remote():
     assert im.shape == (512, 512, 3)
 
 
-def test_jpg():
+def test_jpg(tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
         for crop in (0, 1, 2):
@@ -186,7 +198,8 @@ def test_jpg():
 
     # No alpha in JPEG
     fname = fnamebase + ".jpg"
-    raises(Exception, imageio.imsave, fname, im4)
+    with pytest.raises(Exception):
+        imageio.imsave(fname, im4)
 
     # Parameters
     imageio.imsave(
@@ -194,8 +207,8 @@ def test_jpg():
     )
 
     # Parameter fail - We let Pillow kwargs thorugh
-    # raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
-    # raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
+    # pytest.raises(TypeError, imageio.imread, fnamebase + '.jpg', notavalidkwarg=1)
+    # pytest.raises(TypeError, imageio.imsave, fnamebase + '.jpg', im, notavalidk=1)
 
     # Compression
     imageio.imsave(fnamebase + "1.jpg", im3, quality=10)
@@ -203,16 +216,19 @@ def test_jpg():
     s1 = os.stat(fnamebase + "1.jpg").st_size
     s2 = os.stat(fnamebase + "2.jpg").st_size
     assert s2 > s1
-    raises(ValueError, imageio.imsave, fnamebase + ".jpg", im, quality=120)
+    with pytest.raises(ValueError):
+        imageio.imsave(fnamebase + ".jpg", im, quality=120)
 
 
-def test_jpg_more():
-    need_internet()
+def test_jpg_more(test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
     fname = fnamebase + "_broken.jpg"
     open(fname, "wb").write(b"this is not an image")
-    raises(Exception, imageio.imread, fname)
+    with pytest.raises(Exception):
+        imageio.imread(fname)
     #
     img = get_ref_im(3, 0, 0)
     bb = imageio.imsave(imageio.RETURN_BYTES, img, "JPEG-PIL")
@@ -220,10 +236,11 @@ def test_jpg_more():
         f.write(bb[:400])
         f.write(b" ")
         f.write(bb[400:])
-    raises(Exception, imageio.imread, fname)
+    with pytest.raises(Exception):
+        imageio.imread(fname)
 
     # Test EXIF stuff
-    fname = get_remote_file("images/rommel.jpg")
+    fname = test_images / "rommel.jpg"
     im = imageio.imread(fname)
     assert im.shape[0] > im.shape[1]
     im = imageio.imread(fname, exifrotate=False)
@@ -238,7 +255,9 @@ def test_jpg_more():
     assert im.meta.EXIF_MAIN
 
 
-def test_gif():
+def test_gif(tmp_path):
+    fnamebase = str(tmp_path / "test")
+
     # The not-animated gif
 
     for isfloat in (False, True):
@@ -257,14 +276,19 @@ def test_gif():
                 assert_close(rim * mul, im, 1.1)  # lossless
 
     # Parameter fail
-    raises(TypeError, imageio.imread, fname, notavalidkwarg=True)
-    raises(TypeError, imageio.imsave, fnamebase + "1.gif", im, notavalidk=True)
+    with pytest.raises(TypeError):
+        imageio.imread(fname, notavalidkwarg=True)
+
+    with pytest.raises(TypeError):
+        imageio.imsave(fnamebase + "1.gif", im, notavalidk=True)
 
 
-def test_animated_gif():
+def test_animated_gif(test_images, tmp_path):
+
+    fnamebase = str(tmp_path / "test")
 
     # Read newton's cradle
-    ims = imageio.mimread("imageio:newtonscradle.gif")
+    ims = imageio.mimread(test_images / "newtonscradle.gif")
     assert len(ims) == 36
     for im in ims:
         assert im.shape == (150, 200, 4)
@@ -313,10 +337,17 @@ def test_animated_gif():
     W = imageio.save(fnamebase + ".animated.palettes100.gif", palettesize=100)
     assert W._writer.opt_palette_size == 128
     # Fail
-    assert raises(IndexError, R.get_meta_data, -1)
-    assert raises(ValueError, imageio.mimsave, fname, ims, palettesize=300)
-    assert raises(ValueError, imageio.mimsave, fname, ims, quantizer="foo")
-    assert raises(ValueError, imageio.mimsave, fname, ims, duration="foo")
+    with pytest.raises(IndexError):
+        R.get_meta_data(-1)
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, palettesize=300)
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, quantizer="foo")
+
+    with pytest.raises(ValueError):
+        imageio.mimsave(fname, ims, duration="foo")
 
     # Add one duplicate image to ims to touch subractangle with not change
     ims.append(ims[-1])
@@ -333,23 +364,21 @@ def test_animated_gif():
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
-def test_images_with_transparency():
+def test_images_with_transparency(test_images):
     # Not alpha channel, but transparent pixels, see issue #245 and #246
-    need_internet()
 
-    fname = get_remote_file("images/imageio_issue245.gif")
+    fname = test_images / "imageio_issue245.gif"
     im = imageio.imread(fname)
     assert im.shape == (24, 30, 4)
 
-    fname = get_remote_file("images/imageio_issue246.png")
+    fname = test_images / "imageio_issue246.png"
     im = imageio.imread(fname)
     assert im.shape == (24, 30, 4)
 
 
-def test_gamma_correction():
-    need_internet()
+def test_gamma_correction(test_images):
 
-    fname = get_remote_file("images/kodim03.png")
+    fname = test_images / "kodim03.png"
 
     # Load image three times
     im1 = imageio.imread(fname)
@@ -369,56 +398,62 @@ def test_gamma_correction():
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
-def test_inside_zipfile():
-    need_internet()
+def test_inside_zipfile(test_images, tmp_path):
 
-    fname = os.path.join(test_dir, "pillowtest.zip")
+    fname = str(tmp_path / "pillowtest.zip")
     with ZipFile(fname, "w") as z:
-        z.writestr("x.png", open(get_remote_file("images/chelsea.png"), "rb").read())
-        z.writestr("x.jpg", open(get_remote_file("images/rommel.jpg"), "rb").read())
+        z.writestr(
+            "x.png",
+            (test_images / "chelsea.png").read_bytes(),
+        )
+        z.writestr(
+            "x.jpg",
+            (test_images / "rommel.jpg").read_bytes(),
+        )
 
     for name in ("x.png", "x.jpg"):
         imageio.imread(fname + "/" + name)
 
 
-def test_bmp():
-    need_internet()
-    fname = get_remote_file("images/scribble_P_RGB.bmp", test_dir)
+def test_bmp(test_images):
+    fname = test_images / "scribble_P_RGB.bmp"
 
     imageio.imread(fname)
     imageio.imread(fname, pilmode="RGB")
     imageio.imread(fname, pilmode="RGBA")
 
 
-def test_scipy_imread_compat():
+def test_scipy_imread_compat(test_images):
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
 
-    im = imageio.imread("imageio:chelsea.png")
+    fname = test_images / "chelsea.png"
+
+    im = imageio.imread(fname)
     assert im.shape == (300, 451, 3) and im.dtype == "uint8"
 
     # Scipy users may default to using "mode", but our getreader() already has
     # a "mode" argument, so they should use pilmode instead.
     try:
-        im = imageio.imread("imageio:chelsea.png", mode="L")
+        im = imageio.imread(fname, mode="L")
     except TypeError as err:
         assert "pilmode" in str(err)
 
-    im = imageio.imread("imageio:chelsea.png", pilmode="RGBA")
+    im = imageio.imread(fname, pilmode="RGBA")
     assert im.shape == (300, 451, 4) and im.dtype == "uint8"
 
-    im = imageio.imread("imageio:chelsea.png", pilmode="L")
+    im = imageio.imread(fname, pilmode="L")
     assert im.shape == (300, 451) and im.dtype == "uint8"
 
-    im = imageio.imread("imageio:chelsea.png", pilmode="F")
+    im = imageio.imread(fname, pilmode="F")
     assert im.shape == (300, 451) and im.dtype == "float32"
 
-    im = imageio.imread("imageio:chelsea.png", as_gray=True)
+    im = imageio.imread(fname, as_gray=True)
     assert im.shape == (300, 451) and im.dtype == "float32"
 
     # Force using pillow (but really, Pillow's imageio's first choice! Except
     # for tiff)
-    im = imageio.imread("imageio:chelsea.png", "PNG-PIL")
+    im = imageio.imread(fname, "PNG-PIL")
 
 
 def test_write_jpg_to_bytes_io():
@@ -432,11 +467,3 @@ def test_write_jpg_to_bytes_io():
 
     image_from_file = imageio.imread(bytes_io)
     assert np.allclose(image_from_file, image)
-
-
-if __name__ == "__main__":
-    # test_inside_zipfile()
-    # test_png()
-    # test_animated_gif()
-    # test_bmp()
-    run_tests_if_main()

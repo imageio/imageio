@@ -1,22 +1,13 @@
 """ Test fits plugin functionality.
 """
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
 
 import imageio
-from imageio.core import get_remote_file, Request, IS_PYPY
+from imageio.core import Request
 
 import numpy as np
 
-test_dir = get_test_dir()
-
-try:
-    import astropy
-
-    # io is not imported by default
-    import astropy.io.fits
-except ImportError:
-    astropy = None
+fits = pytest.importorskip("astropy.io.fits", reason="astropy is not installed")
 
 
 def setup_module():
@@ -38,9 +29,7 @@ def normal_plugin_order():
     setup_module()
 
 
-@pytest.mark.skipif("astropy is None")
-def test_fits_format():
-    need_internet()  # We keep the fits files in the imageio-binary repo
+def test_fits_format(test_images):
 
     # Test selection
     for name in ["fits", ".fits"]:
@@ -49,23 +38,17 @@ def test_fits_format():
         assert format.__module__.endswith(".fits")
 
     # Test cannot read
-    png = get_remote_file("images/chelsea.png")
+    png = test_images / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 
 
-@pytest.mark.skipif("astropy is None")
-def test_fits_reading():
+def test_fits_reading(test_images):
     """Test reading fits"""
 
-    need_internet()  # We keep the fits files in the imageio-binary repo
-
-    if IS_PYPY:
-        return  # no support for fits format :(
-
-    simple = get_remote_file("images/simple.fits")
-    multi = get_remote_file("images/multi.fits")
-    compressed = get_remote_file("images/compressed.fits.fz")
+    simple = test_images / "simple.fits"
+    multi = test_images / "multi.fits"
+    compressed = test_images / "compressed.fits.fz"
 
     # One image
     im = imageio.imread(simple, format="fits")
@@ -94,8 +77,6 @@ def test_fits_reading():
     assert im.shape == (2042, 3054)
 
 
-@pytest.mark.skipif("astropy is None")
-@pytest.mark.skipif("IS_PYPY", reason="pypy doesn't support astropy.fits.")
 def test_fits_get_reader(normal_plugin_order, tmp_path):
     """Test reading fits with get_reader method
     This is a regression test that closes GitHub issue #636
@@ -107,11 +88,8 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
         -((xx ** 2) + (yy ** 2)) / (2 * (sigma ** 2))
     )
     img = np.log(z)
-    phdu = astropy.io.fits.PrimaryHDU()
-    ihdu = astropy.io.fits.ImageHDU(img)
-    hdul = astropy.io.fits.HDUList([phdu, ihdu])
+    phdu = fits.PrimaryHDU()
+    ihdu = fits.ImageHDU(img)
+    hdul = fits.HDUList([phdu, ihdu])
     hdul.writeto(tmp_path / "test.fits")
     imageio.get_reader(tmp_path / "test.fits", format="fits")
-
-
-run_tests_if_main()

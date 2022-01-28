@@ -1,26 +1,15 @@
 """ Test gdal plugin functionality.
 """
 import pytest
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-
 import imageio
-from imageio.core import get_remote_file
 
-test_dir = get_test_dir()
-
-
-try:
-    from osgeo import gdal
-except ImportError:
-    gdal = None
+pytest.importorskip("osgeo", reason="gdal is not installed")
 
 
-@pytest.mark.skipif("gdal is None")
-def test_gdal_reading():
+def test_gdal_reading(test_images):
     """Test reading gdal"""
-    need_internet()
 
-    filename = get_remote_file("images/geotiff.tif")
+    filename = test_images / "geotiff.tif"
 
     im = imageio.imread(filename, "gdal")
     assert im.shape == (929, 699)
@@ -31,9 +20,7 @@ def test_gdal_reading():
     assert "TIFFTAG_XRESOLUTION" in meta_data
 
     # Fail
-    raises = pytest.raises
-    raises(IndexError, R.get_data, -1)
-    raises(IndexError, R.get_data, 3)
-
-
-run_tests_if_main()
+    with pytest.raises(IndexError):
+        R.get_data(-1)
+    with pytest.raises(IndexError):
+        R.get_data(3)

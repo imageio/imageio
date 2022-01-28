@@ -45,7 +45,7 @@ def test(ctx, unit=False, installed=False, style=False, cover=False):
             elif p == ROOT_DIR or p == os.path.dirname(ROOT_DIR):
                 sys.path.remove(p)
         os.environ["IMAGEIO_NO_INTERNET"] = "1"
-        sys.exit(pytest_wrapper())
+        sys.exit(pytest_wrapper(needs_internet=False))
 
     if cover:
         res = pytest_wrapper(cov_report="html")
@@ -98,19 +98,26 @@ def black_wrapper(writeback):
     black.main()
 
 
-def pytest_wrapper(cov_report="term"):
+def pytest_wrapper(cov_report="term", needs_internet=True):
     """Helper function to run tests."""
     import pytest
 
-    return pytest.main(
-        [
-            "-v",
-            "--cov",
-            "imageio",
-            "--cov-config",
-            ".coveragerc",
-            "--cov-report",
-            cov_report,
-            os.path.join(ROOT_DIR, "tests"),
-        ]
-    )
+    # basic opts
+    args = ["-v"]
+    if not needs_internet:
+        args += ["-m", "not needs_internet"]
+
+    # coverage add-on
+    args += [
+        "--cov",
+        "imageio",
+        "--cov-config",
+        ".coveragerc",
+        "--cov-report",
+        cov_report,
+    ]
+
+    # test location
+    args += [os.path.join(ROOT_DIR, "tests")]
+
+    return pytest.main(args)

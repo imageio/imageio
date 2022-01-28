@@ -176,7 +176,7 @@ install_requires = ["numpy", "pillow >= 8.3.2"]
 extras_require = {
     "build": ["wheel"],
     "linting": ["black", "flake8"],
-    "test": ["invoke", "pytest", "pytest-cov"],
+    "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     "itk": ["itk"],
     "bsdf": [],

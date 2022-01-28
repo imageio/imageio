@@ -2,9 +2,11 @@
 """ Tests specific to parsing ffmpeg info.
 """
 
-from imageio.testing import run_tests_if_main, need_internet
-
+import pytest
 import imageio
+
+
+pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
 
 
 def dedent(text, dedent=8):
@@ -43,11 +45,10 @@ def test_webcam_parse_device_names():
     assert len(device_names) == 2
 
 
-def test_overload_fps():
-    need_internet()
+def test_overload_fps(test_images):
 
     # Native
-    r = imageio.get_reader("imageio:cockatoo.mp4")
+    r = imageio.get_reader(test_images / "cockatoo.mp4")
     assert r.count_frames() == 280  # native
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 280
     ims = [im for im in r]
@@ -55,7 +56,7 @@ def test_overload_fps():
     # imageio.mimwrite('~/parot280.gif', ims[:30])
 
     # Less
-    r = imageio.get_reader("imageio:cockatoo.mp4", fps=8)
+    r = imageio.get_reader(test_images / "cockatoo.mp4", fps=8)
     # assert r.count_frames() == 112  # cant :(
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 112  # note the mismatch
     ims = [im for im in r]
@@ -63,7 +64,7 @@ def test_overload_fps():
     # imageio.mimwrite('~/parot112.gif', ims[:30])
 
     # More
-    r = imageio.get_reader("imageio:cockatoo.mp4", fps=24)
+    r = imageio.get_reader(test_images / "cockatoo.mp4", fps=24)
     # assert r.count_frames() == 336  # cant :(
     ims = [im for im in r]
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 336
@@ -74,7 +75,7 @@ def test_overload_fps():
     # read beyond what it thinks how many frames it has. But this at least
     # makes sure that this works.
     for fps in (8.0, 8.02, 8.04, 8.06, 8.08):
-        r = imageio.get_reader("imageio:cockatoo.mp4", fps=fps)
+        r = imageio.get_reader(test_images / "cockatoo.mp4", fps=fps)
         n = int(r._meta["fps"] * r._meta["duration"] + 0.5)
         i = 0
         try:
@@ -85,6 +86,3 @@ def test_overload_fps():
             pass
         # print(r._meta['duration'], r._meta['fps'], r._meta['duration'] * fps, r._meta['nframes'], n)
         assert n - 2 <= i <= n + 2
-
-
-run_tests_if_main()

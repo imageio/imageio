@@ -1,18 +1,12 @@
 """ Test simpleitk plugin functionality.
 """
 
-import os
-
 import numpy as np
 
 import pytest
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
 
 import imageio
-
-test_dir = get_test_dir()
-
 
 itk = None
 try:
@@ -27,11 +21,11 @@ except ImportError:
 
 
 @pytest.mark.skipif("itk is None")
-def test_simpleitk_reading_writing():
+def test_simpleitk_reading_writing(tmp_path):
     """Test reading and saveing tiff"""
     im2 = np.ones((10, 10, 3), np.uint8) * 2
 
-    filename1 = os.path.join(test_dir, "test_tiff.tiff")
+    filename1 = tmp_path / "test_tiff.tiff"
 
     # One image
     imageio.imsave(filename1, im2, "itk")
@@ -58,6 +52,3 @@ def test_simpleitk_reading_writing():
     raises(IndexError, R.get_data, -1)
     raises(IndexError, R.get_data, 3)
     raises(RuntimeError, R.get_meta_data)
-
-
-run_tests_if_main()

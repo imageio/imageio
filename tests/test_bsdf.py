@@ -1,18 +1,14 @@
 """ Test BSDF plugin.
 """
 
-import os
 
 import numpy as np
 
 from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-from imageio.core import get_remote_file
 from imageio import core
 
 import imageio
 from imageio.plugins import _bsdf as bsdf
-
 
 import pytest
 import sys
@@ -21,22 +17,13 @@ xfail_big_endian = pytest.mark.xfail(
     sys.byteorder == "big", reason="expected failure on big-endian"
 )
 
-test_dir = get_test_dir()
 
-
-def setup_module():
-    if not os.path.isdir(test_dir):
-        os.makedirs(test_dir)
-
-
-def test_select():
+def test_select(test_images):
 
     F = imageio.formats["BSDF"]
     assert F.name == "BSDF"
 
-    need_internet()
-
-    fname1 = get_remote_file("images/chelsea.bsdf", test_dir)
+    fname1 = test_images / "chelsea.bsdf"
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))
@@ -58,9 +45,9 @@ def test_select():
     )
 
 
-def test_not_an_image():
+def test_not_an_image(tmp_path):
 
-    fname = os.path.join(test_dir, "notanimage.bsdf")
+    fname = str(tmp_path / "notanimage.bsdf")
 
     # Not an image not a list
     bsdf.save(fname, 1)
@@ -80,11 +67,11 @@ def test_not_an_image():
 
 
 @xfail_big_endian
-def test_singleton():
+def test_singleton(test_images, tmp_path):
 
-    im1 = imageio.imread("imageio:chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
 
-    fname = os.path.join(test_dir, "chelsea.bsdf")
+    fname = str(tmp_path / "chelsea.bsdf")
     imageio.imsave(fname, im1)
 
     # Does it look alright if we open it in bsdf without extensions?
@@ -111,12 +98,13 @@ def test_singleton():
 
 
 @xfail_big_endian
-def test_series():
+def test_series(test_images, tmp_path):
 
-    im1 = imageio.imread("imageio:chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
+
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = str(tmp_path / "chelseam.bsdf")
     imageio.mimsave(fname, ims1)
 
     # Does it look alright if we open it in bsdf without extensions?
@@ -144,11 +132,11 @@ def test_series():
 
 
 @xfail_big_endian
-def test_series_unclosed():
-    im1 = imageio.imread("imageio:chelsea.png")
+def test_series_unclosed(test_images, tmp_path):
+    im1 = imageio.imread(test_images / "chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = tmp_path / "chelseam.bsdf"
     w = imageio.get_writer(fname)
     for im in ims1:
         w.append_data(im)
@@ -174,12 +162,12 @@ def test_series_unclosed():
 
 
 @xfail_big_endian
-def test_random_access():
+def test_random_access(test_images, tmp_path):
 
-    im1 = imageio.imread("imageio:chelsea.png")
+    im1 = imageio.imread(test_images / "chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
-    fname = os.path.join(test_dir, "chelseam.bsdf")
+    fname = tmp_path / "chelseam.bsdf"
     imageio.mimsave(fname, ims1)
 
     r = imageio.get_reader(fname)
@@ -191,12 +179,13 @@ def test_random_access():
 
 
 @xfail_big_endian
-def test_volume():
+def test_volume(test_images, tmp_path):
 
-    vol1 = imageio.imread("imageio:stent.npz")
+    fname1 = test_images / "stent.npz"
+    vol1 = imageio.imread(fname1)
     assert vol1.shape == (256, 128, 128)
 
-    fname = os.path.join(test_dir, "stent.bsdf")
+    fname = tmp_path / "stent.bsdf"
     imageio.volsave(fname, vol1)
 
     vol2 = imageio.volread(fname)
@@ -204,9 +193,8 @@ def test_volume():
     assert np.all(vol1 == vol2)
 
 
-def test_from_url():
-
-    need_internet()
+@pytest.mark.needs_internet
+def test_from_url(test_images):
 
     im = imageio.imread(
         "https://raw.githubusercontent.com/imageio/"
@@ -225,6 +213,3 @@ def test_from_url():
     # No rewinding, because we read in streaming mode
     with raises(IndexError):
         r.get_data(9)
-
-
-run_tests_if_main()

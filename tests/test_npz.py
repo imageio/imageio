@@ -1,20 +1,15 @@
 """ Test npz plugin functionality.
 """
 
-import os
+import pytest
 
 import numpy as np
 
-from pytest import raises
-from imageio.testing import run_tests_if_main, get_test_dir
-
 import imageio
-from imageio.core import get_remote_file, Request, IS_PYPY
-
-test_dir = get_test_dir()
+from imageio.core import Request, IS_PYPY
 
 
-def test_npz_format():
+def test_npz_format(test_images):
 
     # Test selection
     for name in ["npz", ".npz"]:
@@ -23,12 +18,12 @@ def test_npz_format():
         assert format.__module__.endswith(".npz")
 
     # Test cannot read
-    png = get_remote_file("images/chelsea.png")
+    png = test_images / "chelsea.png"
     assert not format.can_read(Request(png, "ri"))
     assert not format.can_write(Request(png, "wi"))
 
 
-def test_npz_reading_writing():
+def test_npz_reading_writing(tmp_path):
     """Test reading and saveing npz"""
 
     if IS_PYPY:
@@ -38,7 +33,7 @@ def test_npz_reading_writing():
     im3 = np.ones((10, 10, 10), np.uint8) * 3
     im4 = np.ones((10, 10, 10, 10), np.uint8) * 4
 
-    filename1 = os.path.join(test_dir, "test_npz.npz")
+    filename1 = tmp_path / "test_npz.npz"
 
     # One image
     imageio.imsave(filename1, im2)
@@ -67,7 +62,7 @@ def test_npz_reading_writing():
     W.append_data(im2)
     W.append_data(im3)
     W.append_data(im4)
-    raises(RuntimeError, W.set_meta_data, {})  # no meta data support
+    pytest.raises(RuntimeError, W.set_meta_data, {})  # no meta data support
     W.close()
     #
     R = imageio.read(filename1)
@@ -77,10 +72,7 @@ def test_npz_reading_writing():
     assert (ims[1] == im3).all()
     assert (ims[2] == im4).all()
     # Fail
-    raises(IndexError, R.get_data, -1)
-    raises(IndexError, R.get_data, 3)
-    raises(RuntimeError, R.get_meta_data, None)  # no meta data support
-    raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
-
-
-run_tests_if_main()
+    pytest.raises(IndexError, R.get_data, -1)
+    pytest.raises(IndexError, R.get_data, 3)
+    pytest.raises(RuntimeError, R.get_meta_data, None)  # no meta data support
+    pytest.raises(RuntimeError, R.get_meta_data, 0)  # no meta data support

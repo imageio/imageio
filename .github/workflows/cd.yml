@@ -105,7 +105,7 @@ jobs:
         run: |
             pip install -q -U simpleitk astropy
       - name: Run All Unit tests
-        run: pytest -v
+        run: pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
 
   pypy_tests:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
@@ -134,7 +134,7 @@ jobs:
             pypy3 -m pip install .[test,ffmpeg,tifffile]
       - name: Run Unit tests
         run: |
-            invoke test --unit
+            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
   
   build_test:
     name: Wheel Building Test

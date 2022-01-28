@@ -5,11 +5,6 @@ import pytest
 
 import imageio
 from imageio.plugins import spe
-from imageio.testing import run_tests_if_main, get_test_dir, need_internet
-from imageio.core import get_remote_file
-
-
-test_dir = get_test_dir()
 
 
 def test_spe_format():
@@ -18,9 +13,8 @@ def test_spe_format():
         assert isinstance(fmt, spe.SpeFormat)
 
 
-def test_spe_reading():
-    need_internet()
-    fname = get_remote_file("images/test_000_.SPE")
+def test_spe_reading(test_images):
+    fname = test_images / "test_000_.SPE"
 
     fr1 = np.zeros((32, 32), np.uint16)
     fr2 = np.ones_like(fr1)
@@ -80,6 +74,3 @@ def test_spe_reading():
     assert sdt_meta["sdt_minor_version"] == 18
     assert isinstance(sdt_meta["modulation_script"], str)
     assert sdt_meta["sequence_type"] == "standard"
-
-
-run_tests_if_main()
