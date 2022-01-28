@@ -19,12 +19,12 @@ def pytest_configure(config):
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--imageio-binaries",
+        "--test-images",
         action="store",
         metavar="GIT_REPO",
-        default="https://github.com/imageio/imageio-binaries.git",
-        help="Repository to use for checking out binary data used for tests"
-        " (default: %(default)s).  Use 'file:///path/to/imageio-binaries'"
+        default="https://github.com/imageio/test_images.git",
+        help="Repository containing the test images "
+        " (default: %(default)s).  Use `file:///path/to/test_images`"
         " to clone from a local repository and save testing bandwidth.",
     )
 
@@ -82,7 +82,8 @@ def test_images(request):
             pass  # dir exist, validate and fail later
         else:
             with working_directory(checkout_dir):
-                os.system("git clone https://github.com/imageio/test_images.git .")
+                repo_location = request.config.getoption("--test-images")
+                os.system(f"git clone {repo_location} .")
 
         request.config.cache.set("imageio_test_binaries", str(checkout_dir))
 
