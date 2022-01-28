@@ -1,6 +1,7 @@
 """ Tests for imageio's pillow plugin
 """
 
+from pathlib import Path
 from imageio.core.request import Request
 import os
 import io
@@ -204,7 +205,7 @@ def test_png_transparent_pixel(test_images):
     assert im.shape == (24, 30, 4)
 
 
-def test_png_gamma_correction(test_images):
+def test_png_gamma_correction(test_images: Path):
     # opens the file twice, but touches more parts of the API
     im1 = iio.v3.imread(test_images / "kodim03.png", plugin="pillow")
     im1_meta = iio.v3.immeta(

@@ -34,8 +34,6 @@ from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
 
-from typing import Dict, Any
-
 
 def _is_multichannel(mode: str) -> bool:
     """Returns true if the color mode uses more than one channel.
