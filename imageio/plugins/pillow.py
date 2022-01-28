@@ -150,7 +150,9 @@ class PillowPlugin(object):
 
         self._request.finish()
 
-    def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False) -> np.ndarray:
+    def read(
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+    ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -244,7 +246,9 @@ class PillowPlugin(object):
 
         return image
 
-    def write(self, image: np.ndarray, *, mode=None, format=None, **kwargs) -> Optional[bytes]:
+    def write(
+        self, image: np.ndarray, *, mode=None, format=None, **kwargs
+    ) -> Optional[bytes]:
         """
         Write an ndimage to the URI specified in path.
 
