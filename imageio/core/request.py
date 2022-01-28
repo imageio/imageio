@@ -185,7 +185,7 @@ EXAMPLE_IMAGES = {
 
 
 class Request(object):
-    """Request(uri, mode, **kwargs)
+    """ImageResource handling utility.
 
     Represents a request for reading or saving an image resource. This
     object wraps information to that request and acts as an interface
@@ -200,7 +200,7 @@ class Request(object):
     information between different formats and between a format and
     associated reader/writer.
 
-    parameters
+    Parameters
     ----------
     uri : {str, bytes, file}
         The resource to load the image from.
@@ -209,6 +209,7 @@ class Request(object):
         request. The second character is used to indicate the kind of data:
         "i" for an image, "I" for multiple images, "v" for a volume,
         "V" for multiple volumes, "?" for don't care.
+
     """
 
     def __init__(self, uri, mode, **kwargs):
@@ -389,7 +390,10 @@ class Request(object):
 
     @property
     def filename(self):
-        """The uri for which reading/saving was requested. This
+        """Name of the ImageResource.
+
+
+        The uri for which reading/saving was requested. This
         can be a filename, an http address, or other resource
         identifier. Do not rely on the filename to obtain the data,
         but use ``get_file()`` or ``get_local_filename()`` instead.
@@ -397,7 +401,7 @@ class Request(object):
         return self._filename
 
     @property
-    def extension(self):
+    def extension(self) -> str:
         """The (lowercase) extension of the requested filename.
         Suffixes in url's are stripped. Can be None if the request is
         not based on a filename.

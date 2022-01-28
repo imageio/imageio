@@ -1,5 +1,5 @@
-Creating ImageIO Plugins
-========================
+The ImageIO Plugin API
+======================
 
 .. automodule:: imageio.plugins
 
@@ -10,4 +10,5 @@ Example / template plugin
     :linenos:
 
     {% for line in example_plugin %}
-    {{line}}{% endfor %}
+    {{line}}
+    {% endfor %}
