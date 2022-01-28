@@ -28,6 +28,7 @@ Methods
 
 """
 
+from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
@@ -91,7 +92,7 @@ def _exif_orientation_transform(orientation, mode):
 
 
 class PillowPlugin(object):
-    def __init__(self, request: Request):
+    def __init__(self, request: Request) -> None:
         """Instantiate a new Pillow Plugin Object
 
         Parameters
@@ -143,13 +144,15 @@ class PillowPlugin(object):
         if self._request.mode.io_mode == IOMode.read:
             self._image = Image.open(self._request.get_file())
 
-    def close(self):
+    def close(self) -> None:
         if self._image:
             self._image.close()
 
         self._request.finish()
 
-    def read(self, *, index=None, mode=None, rotate=False, apply_gamma=False):
+    def read(
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+    ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -197,7 +200,7 @@ class PillowPlugin(object):
                 image = np.squeeze(image, axis=0)
             return image
 
-    def iter(self, *, mode=None, rotate=False, apply_gamma=False):
+    def iter(self, *, mode=None, rotate=False, apply_gamma=False) -> np.ndarray:
         """
         Iterate over all ndimages/frames in the URI
 
@@ -218,7 +221,7 @@ class PillowPlugin(object):
         for im in ImageSequence.Iterator(self._image):
             yield self._apply_transforms(im, mode, rotate, apply_gamma)
 
-    def _apply_transforms(self, image, mode, rotate, apply_gamma):
+    def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
         elif image.format == "GIF":
@@ -243,7 +246,9 @@ class PillowPlugin(object):
 
         return image
 
-    def write(self, image: np.ndarray, *, mode=None, format=None, **kwargs):
+    def write(
+        self, image: np.ndarray, *, mode=None, format=None, **kwargs
+    ) -> Optional[bytes]:
         """
         Write an ndimage to the URI specified in path.
 
@@ -323,7 +328,7 @@ class PillowPlugin(object):
         if self._request._uri_type == URI_BYTES:
             return self._request.get_file().getvalue()
 
-    def get_meta(self, *, index=None):
+    def get_meta(self, *, index=None) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -338,6 +343,8 @@ class PillowPlugin(object):
             self._image.seek(index)
 
         metadata = self._image.info
+        metadata["mode"] = self._image.mode
+        metadata["shape"] = self._image.size
 
         if self._image.mode == "P":
             metadata["palette"] = self._image.palette
@@ -352,10 +359,10 @@ class PillowPlugin(object):
 
         return self._image.info
 
-    def __enter__(self):
+    def __enter__(self) -> "PillowPlugin":
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type, value, traceback) -> None:
         self.close()
 
     def __del__(self) -> None:
