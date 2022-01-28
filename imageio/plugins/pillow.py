@@ -73,43 +73,6 @@ def _is_multichannel(mode: str) -> bool:
     return Image.getmodebands(mode) > 1
 
 
-def _mode_to_dtype(mode: str) -> np.dtype:
-    # this is synced to pillow 9.0.0
-    # refactor if https://github.com/python-pillow/Pillow/issues/5990 gets
-    # resolved in an admissible way
-    _MODE_CONV = {
-        # official modes
-        "1": "|b1",  # Bits need to be extended to bytes
-        "L": "|u1",
-        "LA": "|u1",
-        "I": "i4",
-        "F": "f4",
-        "P": "|u1",
-        "RGB": "|u1",
-        "RGBX": "|u1",
-        "RGBA": "|u1",
-        "CMYK": "|u1",
-        "YCbCr": "|u1",
-        "LAB": "|u1",  # UNDONE - unsigned |u1i1i1
-        "HSV": "|u1",
-        # I;16 == I;16L, and I;32 == I;32L
-        "I;16": "<u2",
-        "I;16B": ">u2",
-        "I;16L": "<u2",
-        "I;16S": "<i2",
-        "I;16BS": ">i2",
-        "I;16LS": "<i2",
-        "I;32": "<u4",
-        "I;32B": ">u4",
-        "I;32L": "<u4",
-        "I;32S": "<i4",
-        "I;32BS": ">i4",
-        "I;32LS": "<i4",
-    }
-
-    return np.dtype(_MODE_CONV[mode])
-
-
 def _exif_orientation_transform(orientation, mode):
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
@@ -431,19 +394,19 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        shape = self._image.size[::-1]
-
         if self._image.format == "GIF":
-            # GIF will have the first mode as P and the following as
-            # RGB or RGBA depending on the pallette type
-            shape = (*shape, Image.getmodebands(self._image.palette.mode))
-        elif _is_multichannel(self._image.mode):
-            shape = (*shape, Image.getmodebands(self._image.mode))
+            # GIF mode is determined by pallette
+            mode = self._image.palette.mode
+        else:
+            mode = self._image.mode
 
-        if index is None:
-            shape = (self._image.n_frames, *shape)
+        dummy = np.asarray(Image.new(mode, (1, 1)))
+
+        shape = list(dummy.shape)
+        shape[:2] = self._image.size[::-1]
+        shape = (self._image.n_frames, *shape) if index is None else tuple(shape)
 
         return ImageProperties(
             shape=shape,
-            dtype=_mode_to_dtype(self._image.mode),
+            dtype=dummy.dtype,
         )
