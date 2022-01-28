@@ -26,7 +26,12 @@ def vendored_lib(tmp_path_factory):
     elif platform.system() == "Windows":
         lib_extension = ".dll"
 
-    fs = fsspec.filesystem("github", org="imageio", repo="imageio-binaries")
+    fs = fsspec.filesystem(
+        "github",
+        org="imageio",
+        repo="imageio-binaries",
+        token=os.environ.get("GITHUB_TOKEN"),
+    )
     fs.get(
         [x for x in fs.ls("freeimage/") if x.endswith(lib_extension)],
         lib_dir.as_posix(),
