@@ -1003,6 +1003,7 @@ def test_imopen_format_hint_malformatted(invalid_file):
         # format_hint should be ".png"
         iio.v3.imopen(invalid_file, "r", format_hint="PNG")
 
-    with pytest.raises(IOError):
-        # format_hint is invalid and opening should fail
-        iio.v3.imopen(invalid_file, "r", format_hint=".cap")
+    with pytest.warns(UserWarning):
+        # format_hint is invalid and should emit a warning
+        with iio.v3.imopen(invalid_file, "r", format_hint=".cap"):
+            pass

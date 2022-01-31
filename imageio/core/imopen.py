@@ -11,6 +11,7 @@ from .request import (
 from ..config.plugins import PluginConfig
 from ..config import known_plugins
 from ..config.extensions import known_extensions
+import warnings
 
 
 def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
@@ -227,9 +228,10 @@ def imopen(
 
                 return plugin_instance
         else:
-            raise IOError(
-                f"The ImageResource can not be opened as a `{format_hint}` file."
+            resource = (
+                "<bytes>" if isinstance(request.raw_uri, bytes) else request.raw_uri
             )
+            warnings.warn(f"`{resource}` can not be opened as a `{format_hint}` file.")
 
     # fast-path based on file extension
     if request.extension in known_extensions:
