@@ -26,16 +26,15 @@ def imread(
         If the URI contains multiple ndimages, select the index-th ndimage
         from among them and return it. The exact behavior is plugin dependent.
     plugin : {str, None}
-        The plugin to use. If set to None (default) imopen will perform a
+        The plugin to use. If set to None (default) imread will perform a
         search for a matching plugin. If not None, this takes priority over
-        the provided format hint.
+        the provided format hint  (if present).
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
         ImageResources that don't have an explicit extension, e.g. streams, or
         for ImageResources where the extension does not match the resource's
-        content. If the ImageResource lacks an explicit extension, it will be
-        set to this format.
+        content.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's read call.
 
@@ -67,9 +66,9 @@ def imiter(
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
     plugin : {str, None}
-        The plugin to use. If set to None (default) imopen will perform a
+        The plugin to use. If set to None (default) imiter will perform a
         search for a matching plugin. If not None, this takes priority over
-        the provided format hint.
+        the provided format hint (if present).
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
@@ -113,9 +112,9 @@ def imwrite(
     image : np.ndarray
         The image to write to disk.
     plugin : {str, None}
-        The plugin to use. If set to None (default) imopen will perform a
+        The plugin to use. If set to None (default) imwrite will perform a
         search for a matching plugin. If not None, this takes priority over
-        the provided format hint.
+        the provided format hint (if present).
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
