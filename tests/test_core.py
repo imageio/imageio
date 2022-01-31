@@ -998,12 +998,11 @@ def test_imopen_format_hint(image_files):
 
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
-def test_imopen_format_hint_malformatted(invalid_file):
+def test_imopen_format_hint_malformatted(invalid_file, test_images):
     with pytest.raises(ValueError):
         # format_hint should be ".png"
         iio.v3.imopen(invalid_file, "r", format_hint="PNG")
 
     with pytest.warns(UserWarning):
         # format_hint is invalid and should emit a warning
-        with iio.v3.imopen(invalid_file, "r", format_hint=".cap"):
-            pass
+        iio.v3.imread(test_images / "chelsea.png", format_hint=".cap")
