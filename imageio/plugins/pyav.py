@@ -86,34 +86,34 @@ def _guess_video_format(ndimage: np.ndarray) -> av.VideoFormat:
     if dtype == bool:
         # we assume that True == white
         return "monow"
-    
+
     if ndim == 2:
         is_planar = False
     else:
         # this may fail for planar frames with small width
         is_planar = shape[-1] not in [2, 3, 4, 6]
-    
+
     n_channels = shape[0] if is_planar else shape[-1]
     bits_per_pixel = n_channels * dtype.itemsize * 8
-    
+
     if ndim == 2:
         colorspace = "gray"
     else:
         colorspace = {
             2: "ya",
             3: "rgb",  # this is an assumption
-            4: "rgba", # this, too is an assumption. yuv422 is another good candidate
-            6: "yuv411"
+            4: "rgba",  # this, too is an assumption. yuv422 is another good candidate
+            6: "yuv411",
         }[n_channels]
-    
+
     # only those with matching colorspace
     candidate_names = [x for x in video_format_names if colorspace in x]
 
     candidates = [av.VideoFormat(x) for x in candidate_names]
-    
+
     # only those with components
     candidates = [x for x in candidates if len(x.components) > 0]
-    
+
     # only those matching channel first/last
     candidates = [x for x in candidates if x.is_planar == is_planar]
 
@@ -123,22 +123,26 @@ def _guess_video_format(ndimage: np.ndarray) -> av.VideoFormat:
     # only those with enough bits per channel
     tmp_candidates = list()
     for candidate in candidates:
-        if all([channel.bits >= dtype.itemsize*8 for channel in candidate.components]):
+        if all(
+            [channel.bits >= dtype.itemsize * 8 for channel in candidate.components]
+        ):
             tmp_candidates.append(candidate)
     candidates = tmp_candidates
 
     # only tightly packed formats (ndimage is tightly packed, too)
     if ndimage.flags["C_CONTIGUOUS"]:
-        candidates = [x for x in candidates if x.padded_bits_per_pixel == bits_per_pixel]
-
+        candidates = [
+            x for x in candidates if x.padded_bits_per_pixel == bits_per_pixel
+        ]
 
     if len(candidates) == 0:
         raise ValueError(
             "No suitable video format for array of type"
             f" `{dtype}` and shape `{ndimage.shape}`"
         )
-    
+
     return candidates[0]
+
 
 class ImageProperties:
     def __init__(self, shape: Tuple[int, ...], dtype: np.dtype) -> None:

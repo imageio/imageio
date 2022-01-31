@@ -2,11 +2,11 @@ import pytest
 import imageio as iio
 from pathlib import Path
 import numpy as np
-from imageio.plugins.pyav import _video_format_to_dtype
 
-av = pytest.importorskip("av")
+av = pytest.importorskip("av", reason="pyAV is not installed.")
 
 from av.video.format import names as video_format_names
+from imageio.plugins.pyav import _video_format_to_dtype
 
 
 @pytest.fixture()
