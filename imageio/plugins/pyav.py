@@ -8,6 +8,7 @@ offers nicer bindings and aims to superseed it in the future.
 
 """
 
+from multiprocessing.sharedctypes import Value
 from ..core import Request
 from numpy.typing import ArrayLike
 import numpy as np
@@ -79,27 +80,65 @@ def _guess_video_format(ndimage: np.ndarray) -> av.VideoFormat:
     """
 
     dtype = ndimage.dtype
-    shape = ndimage.shape[1:]
-    ndim = ndimage.ndim
+    shape = ndimage.shape[1:]  # pop batch dim
+    ndim = ndimage.ndim - 1  # pop batch dim
 
     if dtype == bool:
         # we assume that True == white
         return "monow"
-
+    
     if ndim == 2:
-        # gray image
-        for name in (name for name in video_format_names if "gray" in name):
-            format = av.VideoFormat(name)
-            format_dtype = _video_format_to_dtype(format)
-            if format_dtype == dtype:
-                return format
+        is_planar = False
+    else:
+        # this may fail for planar frames with small width
+        is_planar = shape[-1] not in [2, 3, 4, 6]
+    
+    n_channels = shape[0] if is_planar else shape[-1]
+    bits_per_pixel = n_channels * dtype.itemsize * 8
+    
+    if ndim == 2:
+        colorspace = "gray"
+    else:
+        colorspace = {
+            2: "ya",
+            3: "rgb",  # this is an assumption
+            4: "rgba", # this, too is an assumption. yuv422 is another good candidate
+            6: "yuv411"
+        }[n_channels]
+    
+    # only those with matching colorspace
+    candidate_names = [x for x in video_format_names if colorspace in x]
 
-    for name in video_format_names:
-        format = av.VideoFormat(name)
-        format_dtype = _video_format_to_dtype(format)
+    candidates = [av.VideoFormat(x) for x in candidate_names]
+    
+    # only those with components
+    candidates = [x for x in candidates if len(x.components) > 0]
+    
+    # only those matching channel first/last
+    candidates = [x for x in candidates if x.is_planar == is_planar]
 
-    return "rgb24"
+    # only those matching dtype
+    candidates = [x for x in candidates if _video_format_to_dtype(x) == dtype]
 
+    # only those with enough bits per channel
+    tmp_candidates = list()
+    for candidate in candidates:
+        if all([channel.bits >= dtype.itemsize*8 for channel in candidate.components]):
+            tmp_candidates.append(candidate)
+    candidates = tmp_candidates
+
+    # only tightly packed formats (ndimage is tightly packed, too)
+    if ndimage.flags["C_CONTIGUOUS"]:
+        candidates = [x for x in candidates if x.padded_bits_per_pixel == bits_per_pixel]
+
+
+    if len(candidates) == 0:
+        raise ValueError(
+            "No suitable video format for array of type"
+            f" `{dtype}` and shape `{ndimage.shape}`"
+        )
+    
+    return candidates[0]
 
 class ImageProperties:
     def __init__(self, shape: Tuple[int, ...], dtype: np.dtype) -> None:
@@ -281,7 +320,7 @@ class PyAVPlugin:
             The codec to use when encoding frames. If None (default) it is
             chosen automatically.
         fps : str
-            The resulting videos frames per second. If None (default) use let
+            The resulting videos frames per second. If None (default) let
             pyAV decide.
         pixel_format : str
             The pixel format to use while encoding frames. If None (default)
@@ -297,7 +336,7 @@ class PyAVPlugin:
         Notes
         -----
         Leaving FPS at None typically results in 24 FPS, since this is the
-        hardcoded default inside pyAV.
+        currently hardcoded default inside pyAV.
 
         FFMPEG (and by extension pyAV) is, by default, liberal with the pixel
         format (colorspace). If the given ``pixel_format`` is not compatible
@@ -403,9 +442,16 @@ class PyAVPlugin:
 
         shape = [height, width]
 
+        # TODO: make this more sophisticated, once we roll our own YUV unpacking
+        # (the pyAV one is limted to YUV444)
         n_channels = len(video_format.components)
         if n_channels > 1:
-            shape += [len(video_format.components)]
+            # Note: this will cause problems for NV formats
+            # but pyav doesn't support them yet
+            if video_format.is_planar:
+                shape = [len(video_format.components)] + shape
+            else:
+                shape += [len(video_format.components)]
 
         if index is None:
             n_frames = self._video_stream.frames
