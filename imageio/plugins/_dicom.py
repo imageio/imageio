@@ -540,21 +540,21 @@ class SimpleDicomReader(object):
                 if minReq < 0:
                     # Signed integer type
                     maxReq = max([-minReq, maxReq])
-                    if maxReq < 2 ** 7:
+                    if maxReq < 2**7:
                         dtype = np.int8
-                    elif maxReq < 2 ** 15:
+                    elif maxReq < 2**15:
                         dtype = np.int16
-                    elif maxReq < 2 ** 31:
+                    elif maxReq < 2**31:
                         dtype = np.int32
                     else:
                         dtype = np.float32
                 else:
                     # Unsigned integer type
-                    if maxReq < 2 ** 8:
+                    if maxReq < 2**8:
                         dtype = np.int8
-                    elif maxReq < 2 ** 16:
+                    elif maxReq < 2**16:
                         dtype = np.int16
-                    elif maxReq < 2 ** 32:
+                    elif maxReq < 2**32:
                         dtype = np.int32
                     else:
                         dtype = np.float32

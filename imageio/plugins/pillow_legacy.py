@@ -424,7 +424,7 @@ class PNGFormat(PillowFormat):
                 kwargs["compress_level"] = compression
             if quantize is not None:
                 for bits in range(1, 9):
-                    if 2 ** bits == quantize:
+                    if 2**bits == quantize:
                         break
                 else:
                     raise ValueError(

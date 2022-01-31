@@ -70,8 +70,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"imageio"
-copyright = u"2014-2021, imageio contributors"
+project = "imageio"
+copyright = "2014-2021, imageio contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -233,8 +233,8 @@ latex_documents = [
     (
         "index",
         "imageio.tex",
-        u"imageio Documentation",
-        u"imageio contributors",
+        "imageio Documentation",
+        "imageio contributors",
         "manual",
     )
 ]
@@ -264,9 +264,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    ("index", "imageio", u"imageio Documentation", [u"imageio contributors"], 1)
-]
+man_pages = [("index", "imageio", "imageio Documentation", ["imageio contributors"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -281,8 +279,8 @@ texinfo_documents = [
     (
         "index",
         "imageio",
-        u"imageio Documentation",
-        u"imageio contributors",
+        "imageio Documentation",
+        "imageio contributors",
         "imageio",
         "One line description of project.",
         "Miscellaneous",

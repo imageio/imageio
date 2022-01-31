@@ -403,7 +403,7 @@ class SDTControlSpec:
         "sdt_major_version": CommentDesc(4, slice(66, 68), int),
         "sdt_minor_version": CommentDesc(4, slice(68, 70), int),
         "sdt_controller_name": CommentDesc(4, slice(0, 6), str),
-        "exposure_time": CommentDesc(1, slice(64, 73), float, 10 ** -6),
+        "exposure_time": CommentDesc(1, slice(64, 73), float, 10**-6),
         "color_code": CommentDesc(4, slice(10, 14), str),
         "detection_channels": CommentDesc(4, slice(15, 16), int),
         "background_subtraction": CommentDesc(4, 14, lambda x: x == "B"),
@@ -414,18 +414,18 @@ class SDTControlSpec:
         "sequence_type": CommentDesc(
             4, slice(6, 10), lambda x: __class__.sequence_types[x]
         ),
-        "grid": CommentDesc(4, slice(16, 25), float, 10 ** -6),
+        "grid": CommentDesc(4, slice(16, 25), float, 10**-6),
         "n_macro": CommentDesc(1, slice(0, 4), int),
-        "delay_macro": CommentDesc(1, slice(10, 19), float, 10 ** -3),
+        "delay_macro": CommentDesc(1, slice(10, 19), float, 10**-3),
         "n_mini": CommentDesc(1, slice(4, 7), int),
-        "delay_mini": CommentDesc(1, slice(19, 28), float, 10 ** -6),
+        "delay_mini": CommentDesc(1, slice(19, 28), float, 10**-6),
         "n_micro": CommentDesc(1, slice(7, 10), int),
-        "delay_micro": CommentDesc(1, slice(28, 37), float, 10 ** -6),
+        "delay_micro": CommentDesc(1, slice(28, 37), float, 10**-6),
         "n_subpics": CommentDesc(1, slice(7, 10), int),
-        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10 ** -6),
-        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10 ** -6),
-        "bleach_time": CommentDesc(1, slice(46, 55), float, 10 ** -6),
-        "recovery_time": CommentDesc(1, slice(55, 64), float, 10 ** -6),
+        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10**-6),
+        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10**-6),
+        "bleach_time": CommentDesc(1, slice(46, 55), float, 10**-6),
+        "recovery_time": CommentDesc(1, slice(55, 64), float, 10**-6),
     }
 
     @staticmethod

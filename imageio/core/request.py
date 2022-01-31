@@ -18,6 +18,7 @@ from ..core import urlopen, get_remote_file
 
 from pathlib import Path
 from urllib.parse import urlparse
+from typing import Optional
 
 # URI types
 URI_BYTES = 1
@@ -212,13 +213,14 @@ class Request(object):
 
     """
 
-    def __init__(self, uri, mode, **kwargs):
+    def __init__(self, uri, mode, *, format_hint: str = None, **kwargs):
 
         # General
         self.raw_uri = uri
         self._uri_type = None
         self._filename = None
         self._extension = None
+        self._format_hint = None
         self._kwargs = kwargs
         self._result = None  # Some write actions may have a result
 
@@ -253,6 +255,8 @@ class Request(object):
                 path = urlparse(self._filename).path
             ext = Path(path).suffix.lower()
             self._extension = ext if ext != "" else None
+
+        self.format_hint = format_hint
 
     def _parse_uri(self, uri):
         """Try to figure our what we were given"""
@@ -407,6 +411,16 @@ class Request(object):
         not based on a filename.
         """
         return self._extension
+
+    @property
+    def format_hint(self) -> Optional[str]:
+        return self._format_hint
+
+    @format_hint.setter
+    def format_hint(self, format: str) -> None:
+        self._format_hint = format
+        if self._extension is None:
+            self._extension = format
 
     @property
     def mode(self):

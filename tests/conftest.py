@@ -150,7 +150,7 @@ def clear_plugins():
 def invalid_file(tmp_path, request):
     ext = request.param
     with open(tmp_path / ("foo" + ext), "w") as file:
-        file.write("Actually not a file.")
+        file.write("This is not an image.")
 
     return tmp_path / ("foo" + ext)
 

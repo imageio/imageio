@@ -102,7 +102,7 @@ COMMIT_TYPES = [
 
 _commit_filter = "|".join(c.tag for c in COMMIT_TYPES)
 re_parser = re.compile(
-    fr"(?P<tag>{_commit_filter})?"
+    rf"(?P<tag>{_commit_filter})?"
     r"(?:\((?P<scope>[^\n]+)\))?"
     r":? "
     r"(?P<subject>[^\n]+):?"
