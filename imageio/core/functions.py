@@ -17,9 +17,9 @@ MEMTEST_DEFAULT_MVOL = "1GB"
 mem_re = re.compile(r"^(\d+\.?\d*)\s*([kKMGTPEZY]?i?)B?$")
 sizes = {"": 1, None: 1}
 for i, si in enumerate([""] + list("kMGTPEZY")):
-    sizes[si] = 1000 ** i
+    sizes[si] = 1000**i
     if si:
-        sizes[si.upper() + "i"] = 1024 ** i
+        sizes[si.upper() + "i"] = 1024**i
 
 
 def to_nbytes(arg, default=None) -> Number:

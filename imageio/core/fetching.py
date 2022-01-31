@@ -239,7 +239,7 @@ def _sizeof_fmt(num):
     """Human friendly file size"""
     if num > 1:
         exponent = min(int(log(num, 1024)), len(units) - 1)
-        quotient = float(num) / 1024 ** exponent
+        quotient = float(num) / 1024**exponent
         unit = units[exponent]
         num_decimals = decimals[exponent]
         format_string = "{0:.%sf} {1}" % num_decimals

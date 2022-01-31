@@ -279,7 +279,7 @@ def floats2bits(arr):
         i1 = int(i)
         i2 = i - i1
         bits += int2bits(i1, 15)
-        bits += int2bits(i2 * 2 ** 16, 16)
+        bits += int2bits(i2 * 2**16, 16)
     return bits
 
 

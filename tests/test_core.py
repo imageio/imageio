@@ -518,10 +518,10 @@ def test_util_image_as_uint():
 
     test_arrays = (  # (input, output bitdepth, expected output)
         # No bitdepth specified, assumed to be 8-bit
-        (np.array([0, 2 ** 8 - 1], "uint8"), None, np.uint8([0, 255])),
-        (np.array([0, 2 ** 16 - 1], "uint16"), None, np.uint8([0, 255])),
-        (np.array([0, 2 ** 32 - 1], "uint32"), None, np.uint8([0, 255])),
-        (np.array([0, 2 ** 64 - 1], "uint64"), None, np.uint8([0, 255])),
+        (np.array([0, 2**8 - 1], "uint8"), None, np.uint8([0, 255])),
+        (np.array([0, 2**16 - 1], "uint16"), None, np.uint8([0, 255])),
+        (np.array([0, 2**32 - 1], "uint32"), None, np.uint8([0, 255])),
+        (np.array([0, 2**64 - 1], "uint64"), None, np.uint8([0, 255])),
         (np.array([-2, 2], "int8"), None, np.uint8([0, 255])),
         (np.array([-2, 2], "int16"), None, np.uint8([0, 255])),
         (np.array([-2, 2], "int32"), None, np.uint8([0, 255])),
@@ -533,10 +533,10 @@ def test_util_image_as_uint():
         (np.array([-1.0, 1.0], "float32"), None, np.uint8([0, 255])),
         (np.array([-1.0, 1.0], "float64"), None, np.uint8([0, 255])),
         # 8-bit output
-        (np.array([0, 2 ** 8 - 1], "uint8"), 8, np.uint8([0, 255])),
-        (np.array([0, 2 ** 16 - 1], "uint16"), 8, np.uint8([0, 255])),
-        (np.array([0, 2 ** 32 - 1], "uint32"), 8, np.uint8([0, 255])),
-        (np.array([0, 2 ** 64 - 1], "uint64"), 8, np.uint8([0, 255])),
+        (np.array([0, 2**8 - 1], "uint8"), 8, np.uint8([0, 255])),
+        (np.array([0, 2**16 - 1], "uint16"), 8, np.uint8([0, 255])),
+        (np.array([0, 2**32 - 1], "uint32"), 8, np.uint8([0, 255])),
+        (np.array([0, 2**64 - 1], "uint64"), 8, np.uint8([0, 255])),
         (np.array([-2, 2], "int8"), 8, np.uint8([0, 255])),
         (np.array([-2, 2], "int16"), 8, np.uint8([0, 255])),
         (np.array([-2, 2], "int32"), 8, np.uint8([0, 255])),
@@ -548,10 +548,10 @@ def test_util_image_as_uint():
         (np.array([-1.0, 1.0], "float32"), 8, np.uint8([0, 255])),
         (np.array([-1.0, 1.0], "float64"), 8, np.uint8([0, 255])),
         # 16-bit output
-        (np.array([0, 2 ** 8 - 1], "uint8"), 16, np.uint16([0, 65535])),
-        (np.array([0, 2 ** 16 - 1], "uint16"), 16, np.uint16([0, 65535])),
-        (np.array([0, 2 ** 32 - 1], "uint32"), 16, np.uint16([0, 65535])),
-        (np.array([0, 2 ** 64 - 1], "uint64"), 16, np.uint16([0, 65535])),
+        (np.array([0, 2**8 - 1], "uint8"), 16, np.uint16([0, 65535])),
+        (np.array([0, 2**16 - 1], "uint16"), 16, np.uint16([0, 65535])),
+        (np.array([0, 2**32 - 1], "uint32"), 16, np.uint16([0, 65535])),
+        (np.array([0, 2**64 - 1], "uint64"), 16, np.uint16([0, 65535])),
         (np.array([-2, 2], "int8"), 16, np.uint16([0, 65535])),
         (np.array([-2, 2], "int16"), 16, np.uint16([0, 65535])),
         (np.array([-2, 2], "int32"), 16, np.uint16([0, 65535])),
@@ -716,10 +716,10 @@ def test_functions(test_images, tmp_path):
         (1, 1),
         ("1", 1),
         ("8B", 8),
-        ("1MB", 1000 ** 2),
-        ("1M", 1000 ** 2),
-        ("1GiB", 1024 ** 3),
-        ("1.5TB", 1.5 * 1000 ** 4),
+        ("1MB", 1000**2),
+        ("1M", 1000**2),
+        ("1GiB", 1024**3),
+        ("1.5TB", 1.5 * 1000**4),
     ],
 )
 def test_to_nbytes_correct(arg, expected):
@@ -736,7 +736,7 @@ def test_to_nbytes_incorrect(arg):
 def test_memtest(test_images, tmp_path):
     fname3 = test_images / "newtonscradle.gif"
     imageio.mimread(fname3)  # trivial case
-    imageio.mimread(fname3, memtest=1000 ** 2 * 256)
+    imageio.mimread(fname3, memtest=1000**2 * 256)
     imageio.mimread(fname3, memtest="256MB")
     imageio.mimread(fname3, memtest="256M")
     imageio.mimread(fname3, memtest="256MiB")

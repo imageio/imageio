@@ -236,7 +236,7 @@ class GifWriter:
         if loop == 1:
             return b""
         if loop == 0:
-            loop = 2 ** 16 - 1
+            loop = 2**16 - 1
         bb = b""
         if loop != 0:  # omit the extension if we would like a nonlooping gif
             bb = b"\x21\xFF\x0B"  # application extension
