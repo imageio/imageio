@@ -39,7 +39,7 @@ class plugins:
         You can always check existing plugins if you want to see examples.
 
     What methods to implement
-    --------------------------
+    -------------------------
 
     To implement a new plugin, create a new class that inherits from
     :class:`imageio.core.Format`. and implement the following functions:
