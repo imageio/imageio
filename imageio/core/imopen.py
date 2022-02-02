@@ -1,8 +1,6 @@
 from pathlib import Path
-from typing import Any, Iterator, Optional, Union
+from typing import Any, Union
 import warnings
-
-import numpy as np
 
 from ..config import known_plugins
 from ..config.extensions import known_extensions

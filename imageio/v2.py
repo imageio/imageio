@@ -443,13 +443,6 @@ __all__ = [
     "mimwrite",
     "volwrite",
     "mvolwrite",
-    # aliases
-    "read",
-    "save",
-    "imsave",
-    "mimsave",
-    "volsave",
-    "mvolsave",
     # misc
     "help",
     "get_reader",

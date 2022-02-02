@@ -34,7 +34,7 @@ from . import plugins
 # import config after core to avoid circular import
 from . import config
 
-# import v2 into top level namespace
+# import all APIs into the top level (meta API)
 from .v2 import (
     imread,
     mimread,
@@ -56,6 +56,12 @@ from .v2 import (
     get_reader,
     get_writer,
 )
+from .v3 import (
+    imopen,
+    #imread,
+    #imwrite,
+    imiter,
+)
 
 
 # expose the show method of formats
@@ -66,6 +72,11 @@ __all__ = [
     "v3",
     "config",
     "plugins",
+    # v3 API
+    "imopen",
+    "imread",
+    "imwrite",
+    "imiter",
     # v2 API
     "imread",
     "mimread",
@@ -82,7 +93,7 @@ __all__ = [
     "mimsave",
     "volsave",
     "mvolsave",
-    # v2 misc
+    # functions to deprecate
     "help",
     "get_reader",
     "get_writer",
