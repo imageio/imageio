@@ -2,7 +2,7 @@ from typing import Iterator, Optional
 
 import numpy as np
 
-from .core.v3_api import imopen
+from .core.imopen import imopen
 
 
 def imread(
@@ -138,5 +138,6 @@ def imwrite(
         encoded = img_file.write(image, **kwargs)
 
     return encoded
+
 
 __all__ = ["imopen", "imread", "imwrite", "imiter"]

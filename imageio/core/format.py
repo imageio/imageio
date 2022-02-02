@@ -39,7 +39,7 @@ from . import Array, asarray
 from .request import ImageMode, Request
 from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
 from ..config.plugins import _original_order
-from .v3_api import imopen, _get_config
+from .imopen import imopen, _get_config
 
 
 # survived for backwards compatibility

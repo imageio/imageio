@@ -19,7 +19,7 @@ Main website: https://imageio.readthedocs.io/
 __version__ = "2.14.1"
 
 # v3.0.0 API
-from .core.v3_api import imopen
+from .core.imopen import imopen
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES

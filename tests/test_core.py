@@ -21,7 +21,7 @@ from imageio.core.functions import to_nbytes
 
 import imageio
 import imageio as iio
-import imageio.core.v3_api as imopen_module
+import imageio.core.imopen as imopen_module
 from imageio import core
 from imageio.core import Request
 from imageio.core import IS_PYPY, get_remote_file
