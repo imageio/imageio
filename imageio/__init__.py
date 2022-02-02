@@ -27,15 +27,35 @@ from .core import FormatManager, RETURN_BYTES
 # Instantiate the old format manager
 formats = FormatManager()
 
-# import v2 into top level namespace
-from .v2 import *
-
 from . import v2
 from . import v3
 from . import plugins
 
 # import config after core to avoid circular import
 from . import config
+
+# import v2 into top level namespace
+from .v2 import (
+    imread,
+    mimread,
+    volread,
+    mvolread,
+    imwrite,
+    mimwrite,
+    volwrite,
+    mvolwrite,
+    # aliases
+    get_reader as read,
+    get_writer as save,
+    imwrite as imsave,
+    mimwrite as mimsave,
+    volwrite as volsave,
+    mvolwrite as mvolsave,
+    # misc
+    help,
+    get_reader,
+    get_writer,
+)
 
 
 # expose the show method of formats
