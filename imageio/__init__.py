@@ -18,14 +18,12 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.14.1"
 
-# v3.0.0 API
-from .core.imopen import imopen
-
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
 # Instantiate the old format manager
 formats = FormatManager()
+show_formats = formats.show
 
 from . import v2
 from . import v3
@@ -36,7 +34,7 @@ from . import config
 
 # import all APIs into the top level (meta API)
 from .v2 import (
-    imread,
+    imread as imread_v2,
     mimread,
     volread,
     mvolread,
@@ -58,14 +56,35 @@ from .v2 import (
 )
 from .v3 import (
     imopen,
-    #imread,
-    #imwrite,
+    # imread,  # Will take over once v3 is released
+    # imwrite, # Will take over once v3 is released
     imiter,
 )
 
 
-# expose the show method of formats
-show_formats = formats.show
+def imread(uri, format=None, **kwargs):
+    """imread(uri, format=None, **kwargs)
+
+    Reads an image from the specified file. Returns a numpy array, which
+    comes with a dict of meta data at its 'meta' attribute.
+
+    Note that the image data is returned as-is, and may not always have
+    a dtype of uint8 (and thus may differ from what e.g. PIL returns).
+
+    Parameters
+    ----------
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path,
+        http address or file object, see the docs for more info.
+    format : str
+        The format to use to read the file. By default imageio selects
+        the appropriate for you based on the filename and its contents.
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
+    """
+    return imread_v2(uri, format=format, **kwargs)
+
 
 __all__ = [
     "v2",
