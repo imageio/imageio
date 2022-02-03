@@ -26,7 +26,7 @@ class plugins:
     ImageIO to access a new backend. Plugins are quite object oriented, and
     the relevant classes and their interaction are documented here:
 
-        .. currentmodule:: imageio
+    .. currentmodule:: imageio
 
     .. autosummary::
         :toctree: ../_autosummary
