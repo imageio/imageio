@@ -59,6 +59,7 @@ jobs:
   docs:
     name: Build Docs
     needs: initial_check
+    if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
