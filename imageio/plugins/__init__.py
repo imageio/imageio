@@ -29,7 +29,7 @@ class plugins:
         .. currentmodule:: imageio
 
     .. autosummary::
-        :toctree: _autosummary
+        :toctree: ../_autosummary
         :template: better_class.rst
 
         imageio.core.Format
@@ -45,7 +45,7 @@ class plugins:
     :class:`imageio.core.Format`. and implement the following functions:
 
     .. autosummary::
-        :toctree: _autosummary
+        :toctree: ../_autosummary
 
         imageio.core.Format.__init__
         imageio.core.Format._can_read

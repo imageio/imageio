@@ -25,7 +25,7 @@ done in the form of additional keyword arguments (``kwarg``). Below you can find
 a list of available plugins and which arguments they support.
 
 .. autosummary::
-    :toctree: _backends/
+    :toctree: ../_autosummary/
     :template: plugin.rst
 
     imageio.plugins.bsdf
