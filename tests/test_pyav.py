@@ -6,7 +6,7 @@ import numpy as np
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
 from av.video.format import names as video_format_names
-from imageio.plugins.pyav import _video_format_to_dtype
+from imageio.plugins.pyav import _format_to_dtype
 
 
 @pytest.fixture()
@@ -113,7 +113,19 @@ def test_video_format_to_dtype():
         if name in fake_formats:
             # should fail
             with pytest.raises(ValueError):
-                dtype = _video_format_to_dtype(format)
+                dtype = _format_to_dtype(format)
         else:
             # should succseed
-            dtype = _video_format_to_dtype(format)
+            dtype = _format_to_dtype(format)
+
+
+def test_shape_from_frame():
+    foo = list()
+    for name in video_format_names:
+        try:
+            test_format = desired_frame.reformat(format=name)
+            foo.append((name, _get_frame_shape(desired_frame.reformat(format=name))))
+        except IOError:
+            pass
+        except ValueError:
+            pass # unspported by FFMPEG

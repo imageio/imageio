@@ -8,17 +8,18 @@ offers nicer bindings and aims to superseed it in the future.
 
 """
 
-from multiprocessing.sharedctypes import Value
-from ..core import Request
-from numpy.typing import ArrayLike
-import numpy as np
-from typing import Optional, Dict, Any, Tuple, Union, List
-from ..core.request import InitializationError, IOMode
 from dataclasses import dataclass
 from math import ceil
+from multiprocessing.sharedctypes import Value
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import av
+import numpy as np
 from av.video.format import names as video_format_names
+from numpy.typing import ArrayLike
+
+from ..core import Request
+from ..core.request import InitializationError, IOMode
 
 
 @dataclass
@@ -35,7 +36,7 @@ available_pix_formats = [
 ]
 
 
-def _video_format_to_dtype(format: av.VideoFormat) -> np.dtype:
+def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
     """Convert a pyAV video format into a numpy dtype"""
 
     if len(format.components) == 0:
@@ -52,12 +53,63 @@ def _video_format_to_dtype(format: av.VideoFormat) -> np.dtype:
     return np.dtype(endian + dtype + n_bytes)
 
 
+def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
+    """Compute the frame's array shape
+
+    Notes
+    -----
+
+    I can't work out how to express some of the formats as strided arrays.
+    For these, an exception will be raised upstream. This affects the following
+    formats: nv21, yuv420p. Videos in these formats can still be read, but
+    you will have to explicitly specify a stridable format to convert into, e.g.
+    rgb24 or YUV444p
+
+    This function assumes that channel components will be byte-aligned upstream
+    if necessary. This applies to the formats monow, monob, rgb4, and rgb8.
+    (This will be converted to gray8/rgb24 upstream.)
+
+    """
+
+    widths = tuple(x.width for x in frame.format.components)
+    heights = tuple(x.height for x in frame.format.components)
+    shape = [min(heights), min(widths)]
+
+    if len(frame.format.components) == 0:
+        # fake format
+        raise ValueError(
+            f"Can't determine shape for format `{frame.format.name}`. It has no channels."
+        )
+
+    # compute distribution of macropixel components per plane
+    # (YUV can be strided on a marcopixel level [at least the channel-last variants])
+    components_per_plane = [0] * len(frame.planes)
+    for component in frame.format.components:
+        components_per_plane[component.plane] += (component.width // min(widths)) * (component.height // min(heights))
+
+    if not components_per_plane[:-1] == components_per_plane[1:]:
+        raise IOError(
+            f"Can not express pixel format `{frame.format.name}` as strided array."
+            " Set `format=` explicitly to convert to a stridable format."
+        )
+    
+    components = components_per_plane[0]
+
+    if frame.format.is_planar:
+        shape = [len(frame.planes)] + shape
+
+    if components > 1:
+        shape = shape + [components]
+
+    return shape
+
+
 def _extension_to_codec(extension: str) -> str:
     # TODO: populate
     return "mpeg4"
 
 
-def _guess_video_format(ndimage: np.ndarray) -> av.VideoFormat:
+def _guess_format(ndimage: np.ndarray) -> av.VideoFormat:
     """Guesses the video format from array dtype and shape.
 
     This will !! __NOT__ !! always do the right thing. dtype + shape is too
@@ -118,7 +170,7 @@ def _guess_video_format(ndimage: np.ndarray) -> av.VideoFormat:
     candidates = [x for x in candidates if x.is_planar == is_planar]
 
     # only those matching dtype
-    candidates = [x for x in candidates if _video_format_to_dtype(x) == dtype]
+    candidates = [x for x in candidates if _format_to_dtype(x) == dtype]
 
     # only those with enough bits per channel
     tmp_candidates = list()
@@ -274,6 +326,9 @@ class PyAVPlugin:
         self._seek(index, constant_framerate=constant_framerate)
 
         desired_frame = next(self._container.decode(video=0))
+
+        shape = _get_frame_shape(desired_frame)
+
         return desired_frame.to_ndarray(format=format)
 
     def iter(self, *, format="rgb24", thread_count: int = 0) -> np.ndarray:
@@ -411,9 +466,7 @@ class PyAVPlugin:
             stream.pix_fmt = pixel_format
 
         for img in ndimage:
-            frame = av.VideoFrame.from_ndarray(
-                img, format=_guess_video_format(ndimage).name
-            )
+            frame = av.VideoFrame.from_ndarray(img, format=_guess_format(ndimage).name)
             for packet in stream.encode(frame):
                 self._container.mux(packet)
 
@@ -461,9 +514,7 @@ class PyAVPlugin:
             n_frames = self._video_stream.frames
             shape = [n_frames] + shape
 
-        return ImageProperties(
-            shape=tuple(shape), dtype=_video_format_to_dtype(video_format)
-        )
+        return ImageProperties(shape=tuple(shape), dtype=_format_to_dtype(video_format))
 
     def metadata(
         self,
