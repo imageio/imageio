@@ -1,12 +1,12 @@
 import pytest
-import imageio as iio
 from pathlib import Path
+import imageio as iio
 import numpy as np
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
-from av.video.format import names as video_format_names
-from imageio.plugins.pyav import _format_to_dtype
+from av.video.format import names as video_format_names  # noqa: E402
+from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
 
 
 @pytest.fixture()
@@ -34,19 +34,26 @@ def test_mp4_read(test_images: Path):
             if idx == 4:
                 break
 
+    # ImageIO serves the data channel-first
     expected = frame.to_ndarray(format="rgb24")
 
-    result = iio.v3.imread(test_images / "cockatoo.mp4", index=42, plugin="pyav")
+    result = iio.v3.imread(
+        test_images / "cockatoo.mp4", index=42, plugin="pyav", format="rgb24"
+    )
     np.allclose(result, expected)
 
     result = iio.v3.imread(
-        test_images / "cockatoo.mp4", index=42, plugin="pyav", constant_framerate=False
+        test_images / "cockatoo.mp4",
+        index=42,
+        plugin="pyav",
+        constant_framerate=False,
+        format="rgb24",
     )
     np.allclose(result, expected)
 
 
 def test_realshort(test_images: Path):
-    result = iio.v3.imread(test_images / "realshort.mp4", index=10, plugin="pyav")
+    iio.v3.imread(test_images / "realshort.mp4", index=10, plugin="pyav", format="yuv444p")
     print("")
 
 
@@ -77,14 +84,14 @@ def test_mp4_writing(tmp_path, video_array):
 
 def test_metadata(test_images: Path):
     with iio.v3.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
-        meta = plugin.metadata()
-        meta2 = plugin.metadata(index=4)
+        plugin.metadata()
+        plugin.metadata(index=4)
 
 
 def test_properties(test_images: Path):
     with iio.v3.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
-        props = plugin.properties()
-        props2 = plugin.properties(index=4)
+        plugin.properties()
+        plugin.properties(index=4)
 
 
 def test_video_format_to_dtype():
@@ -113,19 +120,19 @@ def test_video_format_to_dtype():
         if name in fake_formats:
             # should fail
             with pytest.raises(ValueError):
-                dtype = _format_to_dtype(format)
+                _format_to_dtype(format)
         else:
             # should succseed
-            dtype = _format_to_dtype(format)
+            _format_to_dtype(format)
 
 
-def test_shape_from_frame():
-    foo = list()
-    for name in video_format_names:
-        try:
-            test_format = desired_frame.reformat(format=name)
-            foo.append((name, _get_frame_shape(desired_frame.reformat(format=name))))
-        except IOError:
-            pass
-        except ValueError:
-            pass # unspported by FFMPEG
+# def test_shape_from_frame():
+#     foo = list()
+#     for name in video_format_names:
+#         try:
+#             test_format = desired_frame.reformat(format=name)
+#             foo.append((name, _get_frame_shape(desired_frame.reformat(format=name))))
+#         except IOError:
+#             pass
+#         except ValueError:
+#             pass  # unspported by FFMPEG

@@ -8,9 +8,7 @@ offers nicer bindings and aims to superseed it in the future.
 
 """
 
-from dataclasses import dataclass
 from math import ceil
-from multiprocessing.sharedctypes import Value
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import av
@@ -20,20 +18,6 @@ from numpy.typing import ArrayLike
 
 from ..core import Request
 from ..core.request import InitializationError, IOMode
-
-
-@dataclass
-class PixelFormat:
-    name: str
-    dtype: str
-
-
-available_pix_formats = [
-    PixelFormat(
-        name="rgb24",
-        dtype="|u1",
-    )
-]
 
 
 def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
@@ -85,14 +69,16 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     # (YUV can be strided on a marcopixel level [at least the channel-last variants])
     components_per_plane = [0] * len(frame.planes)
     for component in frame.format.components:
-        components_per_plane[component.plane] += (component.width // min(widths)) * (component.height // min(heights))
+        components_per_plane[component.plane] += (component.width // min(widths)) * (
+            component.height // min(heights)
+        )
 
     if not components_per_plane[:-1] == components_per_plane[1:]:
         raise IOError(
             f"Can not express pixel format `{frame.format.name}` as strided array."
-            " Set `format=` explicitly to convert to a stridable format."
+            " Set `format=` explicitly and use a stridable format."
         )
-    
+
     components = components_per_plane[0]
 
     if frame.format.is_planar:
@@ -258,7 +244,7 @@ class PyAVPlugin:
         self,
         *,
         index: int = 0,
-        format: str = "rgb24",
+        format: str = None,
         constant_framerate: bool = True,
         thread_count: int = 0,
     ) -> np.ndarray:
@@ -277,7 +263,8 @@ class PyAVPlugin:
             along a new, prepended, batch dimension.
         format : str
             If not None, convert the data into the given format before returning
-            it.
+            it. If None (default) return the data in the encoded format if it
+            can be expressed as a strided array; otherwise raise an Exception.
         constant_framerate : bool
             If True (default) assume the video's framerate is constant. This
             allows for faster seeking in side the file. If False, the video
@@ -295,13 +282,18 @@ class PyAVPlugin:
 
         Notes
         -----
-        Accessing random frames repeatedly is costly (O(n)) so you should do so
-        only sparingly if possible. In some cases, it can be faster to
-        bulk-load the video (if it fits into memory) and to then access the
-        returned ndarray randomly.
+        Accessing random frames repeatedly is costly (O(k), where k is the
+        average distance between two keyframes). You should do so only sparingly
+        if possible. In some cases, it can be faster to bulk-read the video (if
+        it fits into memory) and to then access the returned ndarray randomly.
 
-        This may cause problems for b-frames, i.e., bidirectionaly predicted
-        pictures. I don't have any test videos for this ...
+        The current implementation may cause problems for b-frames, i.e.,
+        bidirectionaly predicted pictures. I don't have any test videos for this
+        ...
+
+        ``format``s that do not have their pixel components byte-aligned, will
+        be promoted to equivalent formats with byte-alignment for compatibility
+        with numpy.
 
         """
 
@@ -324,12 +316,59 @@ class PyAVPlugin:
         self._video_stream.codec_context.thread_count = thread_count
 
         self._seek(index, constant_framerate=constant_framerate)
-
         desired_frame = next(self._container.decode(video=0))
 
+        if format is not None:
+            desired_frame = desired_frame.reformat(format=format)
+
+        # byte-align channel components if necessary (by promoting the type)
+        if desired_frame.format in ["monow", "monob"]:
+            byte_aligned = desired_frame.reformat(format="gray")
+        elif desired_frame.format in [
+            "rgb4",
+            "rgb4_byte",
+            "rgb8",
+            "rgb444le",
+            "rgb555le",
+            "rgb565le",
+            "rgb444be",
+            "rgb555be",
+            "rgb565be",
+        ]:
+            byte_aligned = desired_frame.reformat(format="rgb24")
+        elif desired_frame.format in [
+            "bgr4",
+            "bgr4_byte",
+            "bgr8",
+            "bgr444le",
+            "bgr555le",
+            "bgr565le",
+            "bgr444be",
+            "bgr555be",
+            "bgr565be",
+        ]:
+            byte_aligned = desired_frame.reformat(format="bgr24")
+        else:
+            byte_aligned = desired_frame
+
+        dtype = _format_to_dtype(desired_frame.format)
         shape = _get_frame_shape(desired_frame)
 
-        return desired_frame.to_ndarray(format=format)
+        # Note: the planes *should* exist inside a contigous memory block
+        # somewhere inside av.Frame however pyAV does not appear to expose this,
+        # so we are forced to copy the planes individually instead of wrapping
+        # them :(
+        # Note2: This may also be a good thing, because I don't know about pyAVs
+        # memory model, and it would be bad if it frees the pixel data that we
+        # would point to (if we could).
+        frame_data = np.concatenate(
+            [
+                np.frombuffer(byte_aligned.planes[idx], dtype=dtype)
+                for idx in range(len(byte_aligned.planes))
+            ]
+        )
+
+        return frame_data.reshape(shape)
 
     def iter(self, *, format="rgb24", thread_count: int = 0) -> np.ndarray:
         """Yield frames from the video.
