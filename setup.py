@@ -174,14 +174,12 @@ class build_with_images(sdist):
 install_requires = ["numpy >= 1.20.0", "pillow >= 8.3.2"]
 
 plugins = {
-    "itk": ["itk"],
     "bsdf": [],
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "freeimage": [],
-    # "gdal": ["gdal"],
     "lytro": [],
     "numpy": [],
     "pillow": [],
@@ -197,6 +195,8 @@ extras_require = {
     "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
+    "gdal": ["gdal"],  # gdal currently fails to install :(
+    "itk": ["itk"],  # itk needs to build from source on pypy which slows down CI - A LOT.
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
