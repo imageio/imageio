@@ -63,7 +63,7 @@ jobs:
             # Build to force downloading images (but this step needs numpy and pillow)
             pip install -q -U numpy pillow
             python setup.py sdist
-            pip install .[test,ffmpeg,tifffile]
+            pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
@@ -95,7 +95,7 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[test,ffmpeg,tifffile]
+            pip install .[test,all-plugins]
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
@@ -130,7 +130,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pypy3 -m pip install .[test,ffmpeg,tifffile]
+            pypy3 -m pip install .[test,all-plugins]
       - name: Run Unit tests
         run: |
             pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}

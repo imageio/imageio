@@ -173,11 +173,7 @@ class build_with_images(sdist):
 # See: https://github.com/advisories/GHSA-98vv-pw6r-q6q4
 install_requires = ["numpy >= 1.20.0", "pillow >= 8.3.2"]
 
-extras_require = {
-    "build": ["wheel"],
-    "linting": ["black", "flake8"],
-    "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
-    "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
+plugins = {
     "itk": ["itk"],
     "bsdf": [],
     "dicom": [],
@@ -195,12 +191,22 @@ extras_require = {
     "tifffile": ["tifffile"],
     "pyav": ["av"],
 }
+extras_require = {
+    "build": ["wheel"],
+    "linting": ["black", "flake8"],
+    "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
+    "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
+    **plugins,
+}
+
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
+extras_require["all-plugins"] = sorted(set(chain.from_iterable(plugins.values())))
 
 
 setup(
-    cmdclass={  # 'bdist_wheel_all': bdist_wheel_all,
+    cmdclass={
+        # 'bdist_wheel_all': bdist_wheel_all,
         # 'sdist_all': sdist_all,
         "build_with_images": build_with_images,
         "build_with_fi": build_with_fi,

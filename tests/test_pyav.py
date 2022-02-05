@@ -53,7 +53,9 @@ def test_mp4_read(test_images: Path):
 
 
 def test_realshort(test_images: Path):
-    iio.v3.imread(test_images / "realshort.mp4", index=10, plugin="pyav", format="yuv444p")
+    iio.v3.imread(
+        test_images / "realshort.mp4", index=10, plugin="pyav", format="yuv444p"
+    )
     print("")
 
 
