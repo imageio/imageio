@@ -220,6 +220,7 @@ class PyAVPlugin:
         """
 
         self._request = request
+        self._container = None
 
         if request.mode.io_mode == IOMode.read:
             try:
@@ -640,7 +641,8 @@ class PyAVPlugin:
     def close(self) -> None:
         """Close the Video."""
 
-        self._container.close()
+        if self._container is not None:
+            self._container.close()
         self.request.finish()
 
     @property
