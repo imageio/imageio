@@ -181,7 +181,7 @@ plugins = {
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
     "fits": ["astropy"],
     "freeimage": [],
-    "gdal": ["gdal"],
+    # "gdal": ["gdal"],
     "lytro": [],
     "numpy": [],
     "pillow": [],
