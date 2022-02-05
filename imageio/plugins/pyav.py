@@ -248,6 +248,7 @@ class PyAVPlugin:
         format: str = None,
         constant_framerate: bool = True,
         thread_count: int = 0,
+        thread_type: str = None,
     ) -> np.ndarray:
         """Read frames from the video.
 
@@ -275,6 +276,14 @@ class PyAVPlugin:
             which will set the number using ffmpeg's default, which is based on
             the codec, number of available cores, threadding model, and other
             considerations.
+        thread_type : str
+            The threading model to be used. One of
+
+            - `"SLICE"`: threads assemble parts of the current frame
+            - `"Frame"`: threads may assemble future frames
+            - None (default): Uses SLICE when reading single frames and FRAME
+              when reading batches of frames.
+
 
         Returns
         -------
@@ -299,12 +308,16 @@ class PyAVPlugin:
         """
 
         if index is None:
-            if self._video_stream.codec.frame_threads:
-                # "FRAME" is the better threadding model for bulk reads
-                self._video_stream.thread_type = "FRAME"
 
             frames = np.stack(
-                [x for x in self.iter(format=format, thread_count=thread_count)]
+                [
+                    x
+                    for x in self.iter(
+                        format=format,
+                        thread_count=thread_count,
+                        thread_type=thread_type or "FRAME",
+                    )
+                ]
             )
 
             # reset stream container, because threading model can't change after
@@ -314,6 +327,7 @@ class PyAVPlugin:
 
             return frames
 
+        self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
 
         self._seek(index, constant_framerate=constant_framerate)
@@ -371,7 +385,9 @@ class PyAVPlugin:
 
         return frame_data.reshape(shape)
 
-    def iter(self, *, format="rgb24", thread_count: int = 0) -> np.ndarray:
+    def iter(
+        self, *, format="rgb24", thread_count: int = 0, thread_type: str = None
+    ) -> np.ndarray:
         """Yield frames from the video.
 
         Parameters
@@ -383,6 +399,11 @@ class PyAVPlugin:
             which will set the number using ffmpeg's default, which is based on
             the codec, number of available cores, threadding model, and other
             considerations.
+        thread_type : str
+            The threading model to be used. One of
+
+            - `"SLICE"` (default): threads assemble parts of the current frame
+            - `"Frame"`: threads may assemble future frames
 
 
         Yields
@@ -393,6 +414,7 @@ class PyAVPlugin:
 
         """
 
+        self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
 
         for frame in self._container.decode(video=0):
