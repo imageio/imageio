@@ -333,60 +333,10 @@ class PyAVPlugin:
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._container.decode(video=0))
 
-        if format is not None:
-            desired_frame = desired_frame.reformat(format=format)
-
-        # byte-align channel components if necessary (by promoting the type)
-        if desired_frame.format in ["monow", "monob"]:
-            byte_aligned = desired_frame.reformat(format="gray")
-        elif desired_frame.format in [
-            "rgb4",
-            "rgb4_byte",
-            "rgb8",
-            "rgb444le",
-            "rgb555le",
-            "rgb565le",
-            "rgb444be",
-            "rgb555be",
-            "rgb565be",
-        ]:
-            byte_aligned = desired_frame.reformat(format="rgb24")
-        elif desired_frame.format in [
-            "bgr4",
-            "bgr4_byte",
-            "bgr8",
-            "bgr444le",
-            "bgr555le",
-            "bgr565le",
-            "bgr444be",
-            "bgr555be",
-            "bgr565be",
-        ]:
-            byte_aligned = desired_frame.reformat(format="bgr24")
-        else:
-            byte_aligned = desired_frame
-
-        dtype = _format_to_dtype(desired_frame.format)
-        shape = _get_frame_shape(desired_frame)
-
-        # Note: the planes *should* exist inside a contigous memory block
-        # somewhere inside av.Frame however pyAV does not appear to expose this,
-        # so we are forced to copy the planes individually instead of wrapping
-        # them :(
-        # Note2: This may also be a good thing, because I don't know about pyAVs
-        # memory model, and it would be bad if it frees the pixel data that we
-        # would point to (if we could).
-        frame_data = np.concatenate(
-            [
-                np.frombuffer(byte_aligned.planes[idx], dtype=dtype)
-                for idx in range(len(byte_aligned.planes))
-            ]
-        )
-
-        return frame_data.reshape(shape)
+        return self._unpack_frame(desired_frame, format=format)
 
     def iter(
-        self, *, format="rgb24", thread_count: int = 0, thread_type: str = None
+        self, *, format:str=None, thread_count: int = 0, thread_type: str = None
     ) -> np.ndarray:
         """Yield frames from the video.
 
@@ -394,6 +344,10 @@ class PyAVPlugin:
         ----------
         frame : np.ndarray
             A numpy array containing loaded frame data.
+        format : str
+            If not None, convert the data into the given format before returning
+            it. If None (default) return the data in the encoded format if it
+            can be expressed as a strided array; otherwise raise an Exception.
         thread_count : int
             How many threads to use when decoding a frame. The default is 0,
             which will set the number using ffmpeg's default, which is based on
@@ -418,7 +372,74 @@ class PyAVPlugin:
         self._video_stream.codec_context.thread_count = thread_count
 
         for frame in self._container.decode(video=0):
-            yield frame.to_ndarray(format=format)
+            yield self._unpack_frame(frame, format=format)
+
+    def _unpack_frame(self, frame:av.VideoFrame, *, format:str=None, out:np.ndarray=None) -> np.ndarray:
+        """Convert a av.VideoFrame into a ndarray
+
+        Parameters
+        ----------
+        frame : av.VideoFrame
+            The frame to unpack.
+        format : str
+            If not None, convert the frame to the given format before unpacking.
+        out : np.ndarray
+            If not None, the destination to place the result into. It is assumed
+            that the buffer is of the correct size.
+        """
+
+        if format is not None:
+            frame = frame.reformat(format=format)
+
+        # byte-align channel components if necessary (by promoting the type)
+        if frame.format in ["monow", "monob"]:
+            byte_aligned = frame.reformat(format="gray")
+        elif frame.format in [
+            "rgb4",
+            "rgb4_byte",
+            "rgb8",
+            "rgb444le",
+            "rgb555le",
+            "rgb565le",
+            "rgb444be",
+            "rgb555be",
+            "rgb565be",
+        ]:
+            byte_aligned = frame.reformat(format="rgb24")
+        elif frame.format in [
+            "bgr4",
+            "bgr4_byte",
+            "bgr8",
+            "bgr444le",
+            "bgr555le",
+            "bgr565le",
+            "bgr444be",
+            "bgr555be",
+            "bgr565be",
+        ]:
+            byte_aligned = frame.reformat(format="bgr24")
+        else:
+            byte_aligned = frame
+
+        dtype = _format_to_dtype(frame.format)
+        shape = _get_frame_shape(frame)
+
+        # Note: the planes *should* exist inside a contigous memory block
+        # somewhere inside av.Frame however pyAV does not appear to expose this,
+        # so we are forced to copy the planes individually instead of wrapping
+        # them :(
+        # Note2: This may also be a good thing, because I don't know about pyAVs
+        # memory model, and it would be bad if it frees the pixel data that we
+        # would point to (if we could).
+        frame_data = np.concatenate(
+            [
+                np.frombuffer(byte_aligned.planes[idx], dtype=dtype)
+                for idx in range(len(byte_aligned.planes))
+            ],
+            out=out,
+        )
+
+        return frame_data.reshape(shape)
 
     def write(
         self,
@@ -612,7 +633,12 @@ class PyAVPlugin:
 
         if index is None:
             # useful flags defined on the container and/or video stream
-            metadata.update({"video_format": self._video_stream.codec_context.pix_fmt})
+            metadata.update({
+                "video_format": self._video_stream.codec_context.pix_fmt,
+                "codec": self._video_stream.codec.name,
+                "long_codec": self._video_stream.codec.long_name,
+                "profile": self._video_stream.profile,
+            })
 
             metadata.update(self._container.metadata)
             metadata.update(self._video_stream.metadata)

@@ -86,8 +86,12 @@ def test_mp4_writing(tmp_path, video_array):
 
 def test_metadata(test_images: Path):
     with iio.v3.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
-        plugin.metadata()
+        meta = plugin.metadata()
+        assert meta["profile"] == 'High 4:4:4 Predictive'
+        assert meta["codec"] == "h264"
+
         plugin.metadata(index=4)
+    print("")
 
 
 def test_properties(test_images: Path):
