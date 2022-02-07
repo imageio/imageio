@@ -27,7 +27,7 @@ Functions for reading
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
-    :toctree: _core_29/
+    :toctree: ../_autosummary/
 
     imageio.imread
     imageio.mimread
@@ -39,7 +39,7 @@ Functions for writing
 ^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
-    :toctree: _core_29/
+    :toctree: ../_autosummary/
 
     imageio.imwrite
     imageio.mimwrite

@@ -26,10 +26,10 @@ class plugins:
     ImageIO to access a new backend. Plugins are quite object oriented, and
     the relevant classes and their interaction are documented here:
 
-        .. currentmodule:: imageio
+    .. currentmodule:: imageio
 
     .. autosummary::
-        :toctree: _autosummary
+        :toctree: ../_autosummary
         :template: better_class.rst
 
         imageio.core.Format
@@ -39,13 +39,13 @@ class plugins:
         You can always check existing plugins if you want to see examples.
 
     What methods to implement
-    --------------------------
+    -------------------------
 
     To implement a new plugin, create a new class that inherits from
     :class:`imageio.core.Format`. and implement the following functions:
 
     .. autosummary::
-        :toctree: _autosummary
+        :toctree: ../_autosummary
 
         imageio.core.Format.__init__
         imageio.core.Format._can_read
