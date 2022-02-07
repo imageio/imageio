@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.15.0 (2022-02-07)
+### Fix
+* Fix webcam FPS settings on MacOS ([#738](https://github.com/imageio/imageio/issues/738)) ([`a08b0c4`](https://github.com/imageio/imageio/commit/a08b0c45b035b1630a93b3ebe7f1dc628d83f952))
+
+### Feature
+* Add format_hint to v3 API ([#734](https://github.com/imageio/imageio/issues/734)) ([`dd538ec`](https://github.com/imageio/imageio/commit/dd538eca734132191635b2b767566d437b3e542b))
+* Make tifffile read `resolution` metadata ([#732](https://github.com/imageio/imageio/issues/732)) ([`4f7f334`](https://github.com/imageio/imageio/commit/4f7f334893a07964cba5bb2b96f238095d2813e8))
+
+### Other
+* Make RTD fail on warnings during CI ([#747](https://github.com/imageio/imageio/issues/747)) ([`252839c`](https://github.com/imageio/imageio/commit/252839c367e7a04a141237c2d953f09375dc73b9))
+* Add missing ! to download tracker banner ([#746](https://github.com/imageio/imageio/issues/746)) ([`8e8c546`](https://github.com/imageio/imageio/commit/8e8c5466a66b80119c36bb4fb4f37f6ebd92b06f))
+* Remove link to download tracker ([#744](https://github.com/imageio/imageio/issues/744)) ([`33fe89f`](https://github.com/imageio/imageio/commit/33fe89fa4ea3820efb65ce467c24b06fb7b05cb6))
+* Type annotations for pillow ([#743](https://github.com/imageio/imageio/issues/743)) ([`269d9e1`](https://github.com/imageio/imageio/commit/269d9e1839a4a91debec11ec44822cb03e6018e6))
+* Contribution guidelines ([#729](https://github.com/imageio/imageio/issues/729)) ([`ff2e3fd`](https://github.com/imageio/imageio/commit/ff2e3fde245b1f237c68072430f67e8bd748d94d))
+* Deprecate python 3.6 support ([#740](https://github.com/imageio/imageio/issues/740)) ([`e104505`](https://github.com/imageio/imageio/commit/e104505d4b5a53b11fd0023c83829795d4b31853))
+
 ## v2.14.1 (2022-01-24)
 ### Fix
 * Avoid raw bytes in exception message ([#733](https://github.com/imageio/imageio/issues/733)) ([`6252636`](https://github.com/imageio/imageio/commit/625263647cf1d564e43882ce1356fae4967569ed))
