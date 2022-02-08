@@ -295,12 +295,6 @@ class LegacyPlugin(PluginV3):
 
         return self.legacy_get_reader().get_meta_data(index=index)
 
-    def __enter__(self) -> "LegacyPlugin":
-        return self
-
-    def __exit__(self, type, value, traceback) -> None:
-        self._request.finish()
-
     def __del__(self) -> None:
         pass
         # turns out we can't close the file here for LegacyPlugin
