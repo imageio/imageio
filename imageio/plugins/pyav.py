@@ -10,14 +10,54 @@ offers nicer bindings and aims to superseed it in the future.
 
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union
+import io
 
 import av
 import numpy as np
 from av.video.format import names as video_format_names
+from av.codec.codec import UnknownCodecError
 from numpy.typing import ArrayLike
 
 from ..core import Request
 from ..core.request import InitializationError, IOMode
+
+
+VIDEO_CODECS = list()
+for x in av.codecs_available:
+    try:
+        codec = av.Codec(x)
+    except UnknownCodecError:
+        continue  # codec not supported by pyAV
+
+    if codec.type != "video":
+        continue
+
+    VIDEO_CODECS.append(x)
+
+WRITE_CONTAINERS = set()
+WRITE_CODEC_BY_CONTAINER: Dict[str, List[str]] = dict()
+for x in av.formats_available:
+    container_format = av.format.ContainerFormat(x)
+
+    try:
+        file = av.open(io.BytesIO(), mode="w", format=x)
+    except ValueError:
+        continue
+
+    with file:
+        if file.format.name != x:
+            continue
+
+        for codec in VIDEO_CODECS:
+            try:
+                file.add_stream(codec)
+            except UnknownCodecError:
+                continue
+            except ValueError:
+                continue  # Unsupported Format
+
+            WRITE_CODEC_BY_CONTAINER.setdefault(x, list()).append(codec)
+            WRITE_CONTAINERS.add(x)
 
 
 def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
@@ -91,8 +131,15 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
 
 
 def _extension_to_codec(extension: str) -> str:
-    # TODO: populate
-    return "mpeg4"
+    for container in WRITE_CONTAINERS:
+        container_format = av.format.ContainerFormat(container)
+
+        if not extension[1:] in container_format.extensions:
+            continue
+
+        return WRITE_CODEC_BY_CONTAINER[container][0]
+    else:
+        raise ValueError(f"No suitable codec for extension `{extension}`.")
 
 
 def _guess_format(ndimage: np.ndarray) -> av.VideoFormat:
@@ -445,9 +492,11 @@ class PyAVPlugin:
         self,
         ndimage: Union[ArrayLike, List[ArrayLike]],
         *,
+        container: str = None,
         codec: str = None,
         fps: int = None,
         pixel_format: str = None,
+        is_batch: bool = True
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -456,17 +505,25 @@ class PyAVPlugin:
 
         Parameters
         ----------
-        ndimage : ArrayLike
+        ndimage : ArrayLike, List[ArrayLike]
             The ndimage to encode and write to the current ImageResource.
+        container: str
+            The container format to use when writing the video. If None
+            (default) this is chosen automatically based on the file's extension
+            and caller capability.
         codec : str
             The codec to use when encoding frames. If None (default) it is
-            chosen automatically.
+            chosen automatically based on the files's extension and the calling
+            capability.
         fps : str
             The resulting videos frames per second. If None (default) let
             pyAV decide.
         pixel_format : str
             The pixel format to use while encoding frames. If None (default)
             use the codec's default FPS.
+        is_batch : bool
+            If True (default), the ndimage is a batch of images, otherwise it is
+            a single image. This parameter has no effect on lists of ndimages.
 
         Returns
         -------
@@ -501,30 +558,10 @@ class PyAVPlugin:
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage)
             was_list = True
+        elif not is_batch:
+            ndimage = np.asarray(ndimage)[None, ...]
         else:
             ndimage = np.asarray(ndimage)
-
-        # normalize array dimensions to
-        # (time, height, width, [channel])
-        if was_list:
-            pass
-        elif ndimage.ndim == 1:
-            raise ValueError("ndimage should be at least 2D.")
-        elif ndimage.ndim == 2:
-            ndimage = ndimage[None, ...]
-        elif ndimage.ndim == 3:
-            # TODO: be more sophisticated
-            # basing this on shape[-1] is hacky af
-            if ndimage.shape[-1] <= 4:
-                # single channel-last frame
-                ndimage = ndimage[None, ...]
-            else:
-                # stack of single-channel frames
-                pass
-        elif ndimage.ndim == 4:
-            pass
-        else:
-            raise ValueError("Unsuitable array shape for video.")
 
         if codec is None:
             extension = self.request.extension
