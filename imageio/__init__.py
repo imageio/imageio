@@ -97,7 +97,6 @@ __all__ = [
     "imwrite",
     "imiter",
     # v2 API
-    "imread",
     "mimread",
     "volread",
     "mvolread",
