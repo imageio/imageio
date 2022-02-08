@@ -1,10 +1,10 @@
-from typing import Iterator, Optional
+from typing import Any, Dict, Iterator, Optional
 
-from imageio.core.v3_plugin_api import ImageProperties
 import numpy as np
 
+from imageio.core.v3_plugin_api import ImageProperties
+
 from .core.imopen import imopen
-from typing import Optional, Iterator, Dict, Any
 
 
 def imread(
