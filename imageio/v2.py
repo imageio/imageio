@@ -6,8 +6,8 @@ import re
 
 import numpy as np
 
-from .. import formats
-from .imopen import imopen
+from . import formats
+from .core.imopen import imopen
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
@@ -432,3 +432,19 @@ def mvolwrite(uri, ims, format=None, **kwargs):
 
     with imopen(uri, "wV", plugin=format) as file:
         return file.write(ims, **kwargs)
+
+
+__all__ = [
+    "imread",
+    "mimread",
+    "volread",
+    "mvolread",
+    "imwrite",
+    "mimwrite",
+    "volwrite",
+    "mvolwrite",
+    # misc
+    "help",
+    "get_reader",
+    "get_writer",
+]

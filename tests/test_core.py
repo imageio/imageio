@@ -17,7 +17,7 @@ import pytest
 from pytest import raises, skip
 from imageio.config import FileExtension
 
-from imageio.core.functions import to_nbytes
+from imageio.v2 import to_nbytes
 
 import imageio
 import imageio as iio

@@ -2,7 +2,7 @@
 Core API v2.9
 -------------
 
-.. py:currentmodule:: imageio.core.functions
+.. py:currentmodule:: imageio.v2
 
 These functions represent imageio's main interface for the user. They
 provide a common API to read and write image data for a large

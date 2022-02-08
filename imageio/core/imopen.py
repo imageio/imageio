@@ -1,17 +1,17 @@
 from pathlib import Path
 from typing import Any, Union
+import warnings
 
-from .request import (
-    IOMode,
-    Request,
-    InitializationError,
-    URI_FILENAME,
-    SPECIAL_READ_URIS,
-)
-from ..config.plugins import PluginConfig
 from ..config import known_plugins
 from ..config.extensions import known_extensions
-import warnings
+from ..config.plugins import PluginConfig
+from .request import (
+    SPECIAL_READ_URIS,
+    URI_FILENAME,
+    InitializationError,
+    IOMode,
+    Request,
+)
 
 
 def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:

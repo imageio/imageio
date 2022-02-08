@@ -18,18 +18,23 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.15.0"
 
-# v3.0.0 API
-from .core.imopen import imopen
-
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
 # Instantiate the old format manager
 formats = FormatManager()
+show_formats = formats.show
 
-# Load legacy API
-from .core.functions import (
-    imread,
+from . import v2
+from . import v3
+from . import plugins
+
+# import config after core to avoid circular import
+from . import config
+
+# import all APIs into the top level (meta API)
+from .v2 import (
+    imread as imread_v2,
     mimread,
     volread,
     mvolread,
@@ -49,17 +54,67 @@ from .core.functions import (
     get_reader,
     get_writer,
 )
+from .v3 import (
+    imopen,
+    # imread,  # Will take over once v3 is released
+    # imwrite, # Will take over once v3 is released
+    imiter,
+)
 
-from .core import v3_api as v3
 
-# import config after core to avoid circular import
-from . import config
+def imread(uri, format=None, **kwargs):
+    """imread(uri, format=None, **kwargs)
 
-# Load all the plugins
-from . import plugins
+    Reads an image from the specified file. Returns a numpy array, which
+    comes with a dict of meta data at its 'meta' attribute.
 
-# expose the show method of formats
-show_formats = formats.show
+    Note that the image data is returned as-is, and may not always have
+    a dtype of uint8 (and thus may differ from what e.g. PIL returns).
 
-# Clean up some names
-del FormatManager
+    Parameters
+    ----------
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path,
+        http address or file object, see the docs for more info.
+    format : str
+        The format to use to read the file. By default imageio selects
+        the appropriate for you based on the filename and its contents.
+    kwargs : ...
+        Further keyword arguments are passed to the reader. See :func:`.help`
+        to see what arguments are available for a particular format.
+    """
+    return imread_v2(uri, format=format, **kwargs)
+
+
+__all__ = [
+    "v2",
+    "v3",
+    "config",
+    "plugins",
+    # v3 API
+    "imopen",
+    "imread",
+    "imwrite",
+    "imiter",
+    # v2 API
+    "mimread",
+    "volread",
+    "mvolread",
+    "imwrite",
+    "mimwrite",
+    "volwrite",
+    "mvolwrite",
+    # v2 aliases
+    "read",
+    "save",
+    "imsave",
+    "mimsave",
+    "volsave",
+    "mvolsave",
+    # functions to deprecate
+    "help",
+    "get_reader",
+    "get_writer",
+    "formats",
+    "show_formats",
+]

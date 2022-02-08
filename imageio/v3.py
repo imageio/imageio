@@ -1,10 +1,8 @@
-from .imopen import imopen
+from typing import Iterator, Optional
+
 import numpy as np
-from typing import Optional, Iterator
 
-
-# create name in this namespace to allow ``import imageio.v3 as iio``
-imopen = imopen
+from .core.imopen import imopen
 
 
 def imread(
@@ -140,3 +138,6 @@ def imwrite(
         encoded = img_file.write(image, **kwargs)
 
     return encoded
+
+
+__all__ = ["imopen", "imread", "imwrite", "imiter"]
