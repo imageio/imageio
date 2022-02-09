@@ -240,7 +240,11 @@ class LegacyPlugin(PluginV3):
         # for backwards compatibility ... actually reads pixel data :(
         image = self.read(index=index)
 
-        return ImageProperties(shape=image.shape, dtype=image.dtype)
+        return ImageProperties(
+            shape=image.shape,
+            dtype=image.dtype,
+            is_batch=True if index is None else False,
+        )
 
     def get_meta(self, *, index: Optional[int] = 0) -> Dict[str, Any]:
         """Read ndimage metadata from the URI

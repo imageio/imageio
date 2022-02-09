@@ -404,4 +404,5 @@ class PillowPlugin(PluginV3):
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
+            is_batch=True if index is None else False,
         )
