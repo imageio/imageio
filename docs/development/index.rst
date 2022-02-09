@@ -330,6 +330,7 @@ API, which is documented below:
     imageio.plugins
 
 .. autosummary::
+    :template: better_class.rst
     :toctree: ../_autosummary
 
     imageio.core.v3_plugin_api.PluginV3

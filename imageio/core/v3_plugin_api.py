@@ -194,7 +194,7 @@ class PluginV3:
         ImageResource (e.g., by checking ``request.extension``), or by providing
         a mechanism to explicitly set the format (perhaps with a - sensible -
         default value). If the plugin can not determine the desired format, it
-        _must not_ write to the ImageResource, but raise an exception instead.
+        **must not** write to the ImageResource, but raise an exception instead.
 
         If the backend supports at least one format that can hold multiple
         ndimages it should be capable of handling ndimage batches and lists of
