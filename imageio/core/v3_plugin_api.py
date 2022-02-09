@@ -2,13 +2,48 @@ from . import Request
 from numpy.typing import ArrayLike
 import numpy as np
 from typing import Optional, Dict, Any, Tuple, Union, List
+from dataclasses import dataclass
 
 
+@dataclass
 class ImageProperties:
-    def __init__(self, shape: Tuple[int, ...], dtype: np.dtype) -> None:
-        # TODO: replace with dataclass once py3.6 is dropped.
-        self.shape = shape
-        self.dtype = dtype
+    """Standardized Metadata
+
+    ImageProperties represent a set of standardized metadata that is available
+    under the same name for every supported format. If the ImageResource (or
+    format) does not specify the value, a sensible default value is chosen
+    instead.
+
+    Attributes
+    ----------
+    shape : Tuple[int, ...]
+        The shape of the loaded ndimage.
+    dtype : np.dtype
+        The dtype of the loaded ndimage.
+    is_batch : bool
+        If True, the first dimension of the ndimage represents a batch dimension
+        along which several images are stacked.
+    spacing : Tuple
+        A tuple describing the spacing between pixels along each axis of the
+        ndimage. If the spacing is uniform along an axis the value corresponding
+        to that axis is a single int. If the spacing is non-uniform, the value
+        corresponding to that axis is a tuple in which the i-th element
+        indicates the spacing between the i-th and (i+1)-th pixel along that
+        axis.
+
+    """
+
+    shape: Tuple[int, ...]
+    dtype: np.dtype
+    is_batch: bool = False
+    spacing: Tuple = None
+
+    def __post_init__(self):
+        if self.spacing is None:
+            if self.is_batch:
+                self.spacing = (1,) * (len(self.shape) - 1)
+            else:
+                self.spacing = (1,) * len(self.shape)
 
 
 class PluginV3:
