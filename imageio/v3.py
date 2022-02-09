@@ -8,7 +8,12 @@ from .core.imopen import imopen
 
 
 def imread(
-    uri, *, index: int = None, plugin: str = None, format_hint: str = None, **kwargs
+    uri,
+    *,
+    index: Optional[int] = 0,
+    plugin: str = None,
+    format_hint: str = None,
+    **kwargs
 ) -> np.ndarray:
     """Read an ndimage from a URI.
 
@@ -142,7 +147,9 @@ def imwrite(
     return encoded
 
 
-def improps(uri, *, index: int = None, plugin: str = None, **kwargs) -> ImageProperties:
+def improps(
+    uri, *, index: Optional[int] = 0, plugin: str = None, **kwargs
+) -> ImageProperties:
     """Read standardized metadata.
 
     Opens the given URI and reads the properties of an ndimage from it. The
@@ -188,7 +195,7 @@ def improps(uri, *, index: int = None, plugin: str = None, **kwargs) -> ImagePro
 def immeta(
     uri,
     *,
-    index: int = None,
+    index: Optional[int] = 0,
     plugin: str = None,
     exclude_applied: bool = True,
     **kwargs

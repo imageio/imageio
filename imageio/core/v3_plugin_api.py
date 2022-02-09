@@ -113,7 +113,7 @@ class PluginV3:
 
         self._request = request
 
-    def read(self, *, index: int = None) -> np.ndarray:
+    def read(self, *, index: int = 0) -> np.ndarray:
         """Read a ndimage.
 
         The ``read`` method loads a (single) ndimage, located at ``index`` from
@@ -279,7 +279,7 @@ class PluginV3:
         """
         raise NotImplementedError()
 
-    def properties(self, index: int = None) -> ImageProperties:
+    def properties(self, index: int = 0) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
@@ -298,9 +298,7 @@ class PluginV3:
         """
         raise NotImplementedError()
 
-    def metadata(
-        self, index: int = None, exclude_applied: bool = True
-    ) -> Dict[str, Any]:
+    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
         """Format-Specific ndimage metadata.
 
         The method reads metadata stored in the ImageResource and returns it as

@@ -85,7 +85,7 @@ def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
 )
 def test_read(test_images, im_in, mode):
     im_path = test_images / im_in
-    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode)
+    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode, index=None)
 
     pil_im = np.asarray(
         [
@@ -93,8 +93,6 @@ def test_read(test_images, im_in, mode):
             for frame in ImageSequence.Iterator(Image.open(im_path))
         ]
     )
-    if pil_im.shape[0] == 1:
-        pil_im = pil_im.squeeze(axis=0)
 
     assert np.allclose(iio_im, pil_im)
 
@@ -116,7 +114,7 @@ def test_gif_legacy_pillow(test_images, im_in, mode):
 
     im_path = test_images / im_in
     with iio.imopen(im_path, "r", legacy_mode=True, plugin="GIF-PIL") as file:
-        iio_im = file.read(pilmode=mode)
+        iio_im = file.read(pilmode=mode, index=None)
 
     pil_im = np.asarray(
         [
@@ -593,7 +591,9 @@ def test_properties(image_files: Path):
     assert properties.dtype == np.uint8
 
     # test a ndimage (GIF)
-    properties = iio.v3.improps(image_files / "newtonscradle.gif", plugin="pillow")
+    properties = iio.v3.improps(
+        image_files / "newtonscradle.gif", plugin="pillow", index=None
+    )
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
 

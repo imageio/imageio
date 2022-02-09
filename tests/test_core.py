@@ -886,6 +886,7 @@ def test_imiter(test_images):
 
     full_image = iio.v3.imread(
         test_images / "newtonscradle.gif",
+        index=None,
         plugin="pillow",
         mode="RGB",
     )

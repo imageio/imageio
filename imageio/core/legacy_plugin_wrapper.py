@@ -103,7 +103,7 @@ class LegacyPlugin(PluginV3):
         self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
-    def read(self, *, index=None, **kwargs) -> np.ndarray:
+    def read(self, *, index: Optional[int] = 0, **kwargs) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -221,7 +221,7 @@ class LegacyPlugin(PluginV3):
         for image in reader:
             yield image
 
-    def properties(self, index: int = None) -> ImageProperties:
+    def properties(self, index: Optional[int] = 0) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
@@ -244,7 +244,7 @@ class LegacyPlugin(PluginV3):
 
         return ImageProperties(shape=image.shape, dtype=image.dtype)
 
-    def get_meta(self, *, index=None) -> Dict[str, Any]:
+    def get_meta(self, *, index: Optional[int] = 0) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -267,7 +267,7 @@ class LegacyPlugin(PluginV3):
         return self.metadata(index=index, exclude_applied=False)
 
     def metadata(
-        self, index: int = None, exclude_applied: bool = True
+        self, index: Optional[int] = 0, exclude_applied: bool = True
     ) -> Dict[str, Any]:
         """Format-Specific ndimage metadata.
 

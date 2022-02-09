@@ -153,7 +153,7 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+        self, *, index=0, mode=None, rotate=False, apply_gamma=False
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -330,12 +330,10 @@ class PillowPlugin(PluginV3):
         if self._request._uri_type == URI_BYTES:
             return self._request.get_file().getvalue()
 
-    def get_meta(self, *, index=None) -> Dict[str, Any]:
+    def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
 
-    def metadata(
-        self, index: int = None, exclude_applied: bool = True
-    ) -> Dict[str, Any]:
+    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -369,7 +367,7 @@ class PillowPlugin(PluginV3):
 
         return metadata
 
-    def properties(self, index: int = None) -> ImageProperties:
+    def properties(self, index: int = 0) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
