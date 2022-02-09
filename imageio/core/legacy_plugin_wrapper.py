@@ -127,8 +127,6 @@ class LegacyPlugin(PluginV3):
 
         if index is None:
             img = np.stack([im for im in self.iter(**kwargs)])
-            if len(img) == 1:
-                img = np.squeeze(img, axis=0)
             return img
 
         reader = self.legacy_get_reader(**kwargs)

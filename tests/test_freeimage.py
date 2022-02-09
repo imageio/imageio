@@ -689,3 +689,11 @@ def test_gamma_correction(setup_library, test_images):
     # test_regression_302
     for im in (im1, im2, im3):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
+
+
+def test_improps(test_images):
+    props = imageio.v3.improps(test_images / "kodim03.png", plugin="PNG-FI")
+
+    assert props.shape == (512, 768, 3)
+    assert props.dtype == np.uint8
+    assert props.is_batch is False

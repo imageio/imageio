@@ -603,3 +603,8 @@ def test_properties(image_files: Path):
 
     assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8
+
+
+def test_metadata(test_images):
+    meta = iio.v3.immeta(test_images / "newtonscradle.gif")
+    assert "version" in meta and meta["version"] == b"GIF89a"

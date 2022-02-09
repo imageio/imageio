@@ -363,13 +363,12 @@ class PillowPlugin(PluginV3):
             metadata.update(exif_data)
 
         if exclude_applied:
-            metadata.pop("Orientation")
+            metadata.pop("Orientation", None)
 
         return metadata
 
     def properties(self, index: int = 0) -> ImageProperties:
-        """Standardized ndimage metadata.
-
+        """Standardized ndimage metadata
         Parameters
         ----------
         index : int
