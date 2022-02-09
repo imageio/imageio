@@ -596,7 +596,7 @@ def test_properties(image_files: Path):
     )
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
-    assert properties.is_batch == True
+    assert properties.is_batch is True
 
     # test a flat gray image
     with iio.v3.imopen(image_files / "text.png", "r", plugin="pillow") as file:
