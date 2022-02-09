@@ -328,6 +328,7 @@ API, which is documented below:
 .. autosummary::
 
     imageio.plugins
+    imageio.core.v3_plugin.api.PluginV3
 
 The file itself should be placed into our plugins folder at
 ``imageio\plugins\your_plugin.py``.

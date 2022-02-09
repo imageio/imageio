@@ -64,12 +64,11 @@ class PluginV3:
     ----------
     request : iio.Request
         A request object that represents the users intent. It provides a
-        standard interface to access various the various ImageResources and
-        serves them to the plugin as a file object (or file). Check the docs for
-        details.
+        standard interface to access the various ImageResources and serves them
+        to the plugin as a file object (or file). Check the docs for details.
     **kwargs : Any
         Additional configuration arguments for the plugin or backend. Usually
-        these match with configuration arguments available on the backend and
+        these match the configuration arguments available on the backend and
         are forwarded to it.
 
 
@@ -163,8 +162,6 @@ class PluginV3:
 
         Notes
         -----
-        Plugins may choose a different (more sensible) default value for ``index``.
-
         The ImageResource from which the plugin should read is managed by the
         provided request object. Directly accessing the managed ImageResource is
         _not_ permitted. Instead, you can get FileLike access to the
@@ -201,14 +198,14 @@ class PluginV3:
 
         If the backend supports at least one format that can hold multiple
         ndimages it should be capable of handling ndimage batches and lists of
-        ndimages. If the ``ndimage`` input is as a list of ndimages, the plugin
-        should expect that the ndimages are not stackable, i.e., that they have
-        different shapes and/or dimensions. Otherwise, the ``ndimage`` may be a
-        batch of multiple ndimages stacked along the first axis of the array.
-        The plugin must be able to discover this, either automatically or via
-        additional `kwargs`. If there is ambiguity in the process, the plugin
-        must clearly document what happens in such cases and, if possible,
-        describe how to resolve this ambiguity.
+        ndimages. If the ``ndimage`` input is a list of ndimages, the plugin
+        should not assume that the ndimages are not stackable, i.e., ndimages
+        may have different shapes. Otherwise, the ``ndimage`` may be a batch of
+        multiple ndimages stacked along the first axis of the array. The plugin
+        must be able to discover this, either automatically or via additional
+        `kwargs`. If there is ambiguity in the process, the plugin must clearly
+        document what happens in such cases and, if possible, describe how to
+        resolve this ambiguity.
 
         Parameters
         ----------
@@ -304,8 +301,9 @@ class PluginV3:
         The method reads metadata stored in the ImageResource and returns it as
         a python dict. The plugin is free to choose which name to give a piece
         of metadata; however, if possible, it should match the name given by the
-        format. On top, there is no requirement regarding which fields should be
-        present, with exception of ``exclude_applied``.
+        format. There is no requirement regarding the fields a plugin must
+        expose; however, if a plugin does expose any,``exclude_applied`` applies
+        to these fields.
 
         If the plugin does return metadata items, it must check the value of
         ``exclude_applied`` before returning them. If ``exclude applied`` is
@@ -320,8 +318,7 @@ class PluginV3:
         with one exception: If the ``index`` is None, then global metadata is
         returned instead of returning a combination of all metadata items. If
         there is no global metadata, the Plugin should return an empty dict or
-        raise an exception. Just like before, the plugin may choose a more
-        sensible default value for ``index``.
+        raise an exception.
 
         Parameters
         ----------
@@ -350,13 +347,10 @@ class PluginV3:
             ...
             image_file.close()
 
-        It is used by context manager and deconstructor below to avoid leaking
-        ImageResources. If the plugin has no other cleanup to do it doesn#t have
+        It is used by the context manager and deconstructor below to avoid leaking
+        ImageResources. If the plugin has no other cleanup to do it doesn't have
         to overwrite this method itself and can rely on the implementation
         below.
-
-        Notes
-        -----
 
         """
 
