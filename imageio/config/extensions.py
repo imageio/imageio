@@ -81,6 +81,12 @@ extension_list = [
         priority=["RAW-FI"],
     ),
     FileExtension(
+        name="Animated Portable Network Graphics",
+        external_link="https://en.wikipedia.org/wiki/APNG",
+        extension=".apng",
+        priority=["pillow"],
+    ),
+    FileExtension(
         name="Audio Video Interleave",
         extension=".avi",
         priority=["FFMPEG"],
