@@ -232,7 +232,7 @@ class PillowPlugin(PluginV3):
             image = image.convert(image.palette.mode)
         image = np.asarray(image)
 
-        meta = self.metadata(exclude_applied=False)
+        meta = self.metadata(index=self._image.tell(), exclude_applied=False)
         if rotate and "Orientation" in meta:
             transformation = _exif_orientation_transform(
                 meta["Orientation"], self._image.mode
@@ -344,7 +344,7 @@ class PillowPlugin(PluginV3):
             for the last read ndimage/frame.
         """
 
-        if index is not None:
+        if index is not None and self._image.tell() != index:
             self._image.seek(index)
 
         metadata = self._image.info.copy()
