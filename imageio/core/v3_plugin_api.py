@@ -26,7 +26,7 @@ class ImageProperties:
     spacing : Tuple
         A tuple describing the spacing between pixels along each axis of the
         ndimage. If the spacing is uniform along an axis the value corresponding
-        to that axis is a single int. If the spacing is non-uniform, the value
+        to that axis is a single float. If the spacing is non-uniform, the value
         corresponding to that axis is a tuple in which the i-th element
         indicates the spacing between the i-th and (i+1)-th pixel along that
         axis.
