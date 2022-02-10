@@ -32,6 +32,7 @@ from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
+from ..core.v3_plugin_api import PluginV3, ImageProperties
 
 
 def _is_multichannel(mode: str) -> bool:
@@ -91,7 +92,7 @@ def _exif_orientation_transform(orientation, mode):
     return EXIF_ORIENTATION[orientation]
 
 
-class PillowPlugin(object):
+class PillowPlugin(PluginV3):
     def __init__(self, request: Request) -> None:
         """Instantiate a new Pillow Plugin Object
 
@@ -102,7 +103,8 @@ class PillowPlugin(object):
 
         """
 
-        self._request = request
+        super().__init__(request)
+
         self._image = None
 
         if request.mode.io_mode == IOMode.read:
@@ -151,7 +153,7 @@ class PillowPlugin(object):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+        self, *, index=0, mode=None, rotate=False, apply_gamma=False
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -230,7 +232,7 @@ class PillowPlugin(object):
             image = image.convert(image.palette.mode)
         image = np.asarray(image)
 
-        meta = self.get_meta()
+        meta = self.metadata(exclude_applied=False)
         if rotate and "Orientation" in meta:
             transformation = _exif_orientation_transform(
                 meta["Orientation"], self._image.mode
@@ -328,7 +330,10 @@ class PillowPlugin(object):
         if self._request._uri_type == URI_BYTES:
             return self._request.get_file().getvalue()
 
-    def get_meta(self, *, index=None) -> Dict[str, Any]:
+    def get_meta(self, *, index=0) -> Dict[str, Any]:
+        return self.metadata(index=index, exclude_applied=False)
+
+    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -342,7 +347,7 @@ class PillowPlugin(object):
         if index is not None:
             self._image.seek(index)
 
-        metadata = self._image.info
+        metadata = self._image.info.copy()
         metadata["mode"] = self._image.mode
         metadata["shape"] = self._image.size
 
@@ -357,13 +362,47 @@ class PillowPlugin(object):
             exif_data.pop("unknown", None)
             metadata.update(exif_data)
 
-        return self._image.info
+        if exclude_applied:
+            metadata.pop("Orientation", None)
 
-    def __enter__(self) -> "PillowPlugin":
-        return self
+        return metadata
 
-    def __exit__(self, type, value, traceback) -> None:
-        self.close()
+    def properties(self, index: int = 0) -> ImageProperties:
+        """Standardized ndimage metadata
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage for which to return properties. If the
+            index is out of bounds a ``ValueError`` is raised. If ``None``,
+            return the properties for the ndimage stack. If this is impossible,
+            e.g., due to shape missmatch, an exception will be raised.
 
-    def __del__(self) -> None:
-        self.close()
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+
+        """
+
+        if index is None:
+            self._image.seek(0)
+        else:
+            self._image.seek(index)
+
+        if self._image.format == "GIF":
+            # GIF mode is determined by pallette
+            mode = self._image.palette.mode
+        else:
+            mode = self._image.mode
+
+        dummy = np.asarray(Image.new(mode, (1, 1)))
+
+        shape = list(dummy.shape)
+        shape[:2] = self._image.size[::-1]
+        shape = (self._image.n_frames, *shape) if index is None else tuple(shape)
+
+        return ImageProperties(
+            shape=shape,
+            dtype=dummy.dtype,
+            is_batch=True if index is None else False,
+        )

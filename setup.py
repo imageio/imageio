@@ -171,7 +171,7 @@ class build_with_images(sdist):
 
 # pinned to > 8.3.2 due to security vulnerability
 # See: https://github.com/advisories/GHSA-98vv-pw6r-q6q4
-install_requires = ["numpy", "pillow >= 8.3.2"]
+install_requires = ["numpy >= 1.20.0", "pillow >= 8.3.2"]
 
 extras_require = {
     "build": ["wheel"],

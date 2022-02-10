@@ -1,6 +1,7 @@
 """ Tests for imageio's pillow plugin
 """
 
+from pathlib import Path
 from imageio.core.request import Request
 import os
 import io
@@ -9,6 +10,7 @@ import numpy as np
 from PIL import Image, ImageSequence
 
 import imageio as iio
+from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
 from imageio.core.request import InitializationError
 
@@ -83,7 +85,7 @@ def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
 )
 def test_read(test_images, im_in, mode):
     im_path = test_images / im_in
-    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode)
+    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode, index=None)
 
     pil_im = np.asarray(
         [
@@ -91,8 +93,6 @@ def test_read(test_images, im_in, mode):
             for frame in ImageSequence.Iterator(Image.open(im_path))
         ]
     )
-    if pil_im.shape[0] == 1:
-        pil_im = pil_im.squeeze(axis=0)
 
     assert np.allclose(iio_im, pil_im)
 
@@ -114,7 +114,7 @@ def test_gif_legacy_pillow(test_images, im_in, mode):
 
     im_path = test_images / im_in
     with iio.imopen(im_path, "r", legacy_mode=True, plugin="GIF-PIL") as file:
-        iio_im = file.read(pilmode=mode)
+        iio_im = file.read(pilmode=mode, index=None)
 
     pil_im = np.asarray(
         [
@@ -203,10 +203,12 @@ def test_png_transparent_pixel(test_images):
     assert im.shape == (24, 30, 4)
 
 
-def test_png_gamma_correction(test_images):
-    with iio.imopen(test_images / "kodim03.png", "r", plugin="pillow") as f:
-        im1 = f.read()
-        im1_meta = f.get_meta()
+def test_png_gamma_correction(test_images: Path):
+    # opens the file twice, but touches more parts of the API
+    im1 = iio.v3.imread(test_images / "kodim03.png", plugin="pillow")
+    im1_meta = iio.v3.immeta(
+        test_images / "kodim03.png", plugin="pillow", exclude_applied=False
+    )
 
     im2 = iio.v3.imread(
         test_images / "kodim03.png",
@@ -576,3 +578,34 @@ def test_quantized_gif(test_images, tmp_path):
 
     for original_frame, quantized_frame in zip(original, quantized):
         assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))
+
+
+def test_properties(image_files: Path):
+    file: PluginV3
+
+    # test a flat image (RGB PNG)
+    with iio.v3.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
+        properties = file.properties(index=0)
+
+    assert properties.shape == (300, 451, 3)
+    assert properties.dtype == np.uint8
+
+    # test a ndimage (GIF)
+    properties = iio.v3.improps(
+        image_files / "newtonscradle.gif", plugin="pillow", index=None
+    )
+    assert properties.shape == (36, 150, 200, 3)
+    assert properties.dtype == np.uint8
+    assert properties.is_batch is True
+
+    # test a flat gray image
+    with iio.v3.imopen(image_files / "text.png", "r", plugin="pillow") as file:
+        properties = file.properties(index=0)
+
+    assert properties.shape == (172, 448)
+    assert properties.dtype == np.uint8
+
+
+def test_metadata(test_images):
+    meta = iio.v3.immeta(test_images / "newtonscradle.gif")
+    assert "version" in meta and meta["version"] == b"GIF89a"

@@ -3,9 +3,10 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 
 from .request import IOMode, Request, InitializationError
+from .v3_plugin_api import PluginV3, ImageProperties
 
 
-class LegacyPlugin:
+class LegacyPlugin(PluginV3):
     """A plugin to  make old (v2.9) plugins compatible with v3.0
 
     .. depreciated:: 2.9
@@ -102,7 +103,7 @@ class LegacyPlugin:
         self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
-    def read(self, *, index=None, **kwargs) -> np.ndarray:
+    def read(self, *, index: Optional[int] = 0, **kwargs) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -126,8 +127,6 @@ class LegacyPlugin:
 
         if index is None:
             img = np.stack([im for im in self.iter(**kwargs)])
-            if len(img) == 1:
-                img = np.squeeze(img, axis=0)
             return img
 
         reader = self.legacy_get_reader(**kwargs)
@@ -220,7 +219,34 @@ class LegacyPlugin:
         for image in reader:
             yield image
 
-    def get_meta(self, *, index=None) -> Dict[str, Any]:
+    def properties(self, index: Optional[int] = 0) -> ImageProperties:
+        """Standardized ndimage metadata.
+
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage for which to return properties. If the
+            index is out of bounds a ``ValueError`` is raised. If ``None``,
+            return the properties for the ndimage stack. If this is impossible,
+            e.g., due to shape missmatch, an exception will be raised.
+
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+
+        """
+
+        # for backwards compatibility ... actually reads pixel data :(
+        image = self.read(index=index)
+
+        return ImageProperties(
+            shape=image.shape,
+            dtype=image.dtype,
+            is_batch=True if index is None else False,
+        )
+
+    def get_meta(self, *, index: Optional[int] = 0) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -240,13 +266,36 @@ class LegacyPlugin:
 
         """
 
+        return self.metadata(index=index, exclude_applied=False)
+
+    def metadata(
+        self, index: Optional[int] = 0, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
+        """Format-Specific ndimage metadata.
+
+        Parameters
+        ----------
+        index : int
+            The index of the ndimage to read. If the index is out of bounds a
+            ``ValueError`` is raised. If ``None``, global metadata is returned.
+        exclude_applied : bool
+            If True (default), do not report metadata fields that the plugin
+            would apply/consume while reading the image.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary filled with format-specific metadata fields and their
+            values.
+
+        """
+
+        if exclude_applied:
+            raise ValueError(
+                "Legacy plugins don't support excluding applied metadata fields."
+            )
+
         return self.legacy_get_reader().get_meta_data(index=index)
-
-    def __enter__(self) -> "LegacyPlugin":
-        return self
-
-    def __exit__(self, type, value, traceback) -> None:
-        self._request.finish()
 
     def __del__(self) -> None:
         pass

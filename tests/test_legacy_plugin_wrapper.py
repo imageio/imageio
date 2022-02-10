@@ -22,3 +22,10 @@ def test_exception_message_bytes():
     except ValueError as e:
         assert "This will not be reported." not in str(e)
         assert "<bytes>" in str(e)
+
+
+def test_exclude_applied(test_images):
+    with pytest.raises(ValueError):
+        iio.v3.immeta(
+            test_images / "chelsea.png", exclude_applied=True, plugin="PNG-PIL"
+        )
