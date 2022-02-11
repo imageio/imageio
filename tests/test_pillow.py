@@ -2,6 +2,7 @@
 """
 
 from pathlib import Path
+
 from imageio.core.request import Request
 import os
 import io
@@ -609,3 +610,31 @@ def test_properties(image_files: Path):
 def test_metadata(test_images):
     meta = iio.v3.immeta(test_images / "newtonscradle.gif")
     assert "version" in meta and meta["version"] == b"GIF89a"
+
+    with iio.v3.imopen(
+        test_images / "newtonscradle.gif", "r", plugin="pillow"
+    ) as image_file:
+        image_file.read(index=5)
+        meta = image_file.metadata(index=0)
+        assert "version" in meta and meta["version"] == b"GIF89a"
+
+
+def test_apng_reading(tmp_path, test_images):
+    # create a APNG
+    img = iio.v3.imread(test_images / "newtonscradle.gif", index=None)
+    iio.v3.imwrite(tmp_path / "test.apng", img)
+
+    # test single image read
+    with Image.open(tmp_path / "test.apng") as im:
+        im.seek(8)
+        expected = np.asarray(im)
+    actual = iio.v3.imread(tmp_path / "test.apng", index=8)
+    assert np.allclose(actual, expected)
+
+    # test reading all frames
+    all_frames = iio.v3.imread(tmp_path / "test.apng", index=None)
+    with Image.open(tmp_path / "test.apng") as im:
+        for idx, frame in enumerate(ImageSequence.Iterator(im)):
+            expected = np.asarray(frame)
+            actual = all_frames[idx]
+            assert np.allclose(actual, expected)
