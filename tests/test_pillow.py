@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-from matplotlib import image
 from imageio.core.request import Request
 import os
 import io
