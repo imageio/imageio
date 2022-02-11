@@ -97,6 +97,10 @@ extension_list = [
         priority=["RAW-FI"],
     ),
     FileExtension(
+        extension=".blp",
+        priority=["pillow"],
+    ),
+    FileExtension(
         name="Bitmap",
         extension=".bmp",
         priority=["pillow", "BMP-PIL", "BMP-FI", "ITK"],
@@ -183,7 +187,7 @@ extension_list = [
     ),
     FileExtension(
         name="Windows Bitmap",
-        extension=".DIB",
+        extension=".dib",
         priority=["pillow", "DIB-PIL"],
     ),
     FileExtension(
@@ -334,6 +338,10 @@ extension_list = [
     FileExtension(
         extension=".ia",
         priority=["RAW-FI"],
+    ),
+    FileExtension(
+        extension=".icb",
+        priority=["pillow"],
     ),
     FileExtension(
         name="Mac OS Icon File",
@@ -551,12 +559,12 @@ extension_list = [
     FileExtension(
         name="Moving Picture Experts Group",
         extension=".mpeg",
-        priority=["FFMPEG"],
+        priority=["pillow", "FFMPEG"],
     ),
     FileExtension(
         name="Moving Picture Experts Group",
         extension=".mpg",
-        priority=["FFMPEG"],
+        priority=["pillow", "FFMPEG"],
     ),
     FileExtension(
         name="JPEG Multi-Picture Format",
@@ -616,6 +624,10 @@ extension_list = [
         priority=["RAW-FI"],
     ),
     FileExtension(
+        extension=".palm",
+        priority=["pillow"],
+    ),
+    FileExtension(
         name="Portable Bitmap",
         extension=".pbm",
         priority=["PGM-FI", "PGMRAW-FI"],
@@ -636,6 +648,10 @@ extension_list = [
         priority=["pillow", "PCX-FI", "PCX-PIL"],
     ),
     FileExtension(
+        extension=".pdf",
+        priority=["pillow"],
+    ),
+    FileExtension(
         extension=".pef",
         priority=["RAW-FI"],
     ),
@@ -646,7 +662,7 @@ extension_list = [
     FileExtension(
         name="Portable Greymap",
         extension=".pgm",
-        priority=["PGM-FI", "PGMRAW-FI"],
+        priority=["pillow", "PGM-FI", "PGMRAW-FI"],
     ),
     FileExtension(
         name="Macintosh PICT",
@@ -664,13 +680,12 @@ extension_list = [
         priority=["pillow", "PNG-PIL", "PNG-FI", "ITK"],
     ),
     FileExtension(
-        name="Pbmplus image",
-        extension=".ppm",
-        priority=["pillow", "PPM-PIL"],
+        extension=".pnm",
+        priority=["pillow"],
     ),
     FileExtension(
         name="Pbmplus image",
-        extension=".pbm",
+        extension=".ppm",
         priority=["pillow", "PPM-PIL"],
     ),
     FileExtension(
@@ -796,7 +811,7 @@ extension_list = [
     FileExtension(
         name="Truevision TGA",
         extension=".targa",
-        priority=["TARGA-FI"],
+        priority=["pillow", "TARGA-FI"],
     ),
     FileExtension(
         name="Truevision TGA",
@@ -812,6 +827,14 @@ extension_list = [
         name="Tagged Image File Format",
         extension=".tiff",
         priority=["TIFF", "pillow", "TIFF-PIL", "TIFF-FI", "FEI", "ITK", "GDAL"],
+    ),
+    FileExtension(
+        extension=".vda",
+        priority=["pillow"],
+    ),
+    FileExtension(
+        extension=".vst",
+        priority=["pillow"],
     ),
     FileExtension(
         extension=".vtk",
@@ -844,7 +867,7 @@ extension_list = [
     FileExtension(
         name="Google WebP",
         extension=".webp",
-        priority=["WEBP-FI"],
+        priority=["pillow", "WEBP-FI"],
     ),
     FileExtension(
         name="Windows Meta File",
