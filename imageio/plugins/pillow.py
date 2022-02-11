@@ -123,28 +123,26 @@ class PillowPlugin(PluginV3):
                     raise InitializationError(
                         f"Pillow can not read {request.raw_uri}."
                     ) from None
+
+            self._image = Image.open(self._request.get_file())
         else:
-            # it would be nice if pillow would expose a
-            # function to check if an extension can be written
-            # instead of us digging in the internals
-
-            Image.preinit()
-            if request.extension not in Image.EXTENSION:
-                Image.init()
-
-            if request._uri_type == URI_FILE:
-                pass  # OK, is file-like object
-            elif request._uri_type == URI_BYTES:
-                pass  # OK, is bytes string
-            elif request.extension in Image.EXTENSION:
-                pass  # OK, is extension known to pillow
-            else:
+            extension = self.request.extension or self.request.format_hint
+            if extension is None:
                 raise InitializationError(
-                    f"Pillow can not write `{request.extension}` files"
+                    f"Can't determine file format to write. Use `format_hint` to disambiguate."
                 ) from None
 
-        if self._request.mode.io_mode == IOMode.read:
-            self._image = Image.open(self._request.get_file())
+            Image.preinit()
+            if extension in Image.registered_extensions().keys():
+                return
+
+            Image.init()
+            if extension in Image.registered_extensions().keys():
+                return
+
+            raise InitializationError(
+                f"Pillow can not write `{extension}` files."
+            ) from None
 
     def close(self) -> None:
         if self._image:
@@ -289,6 +287,9 @@ class PillowPlugin(PluginV3):
         image.
 
         """
+
+        extension = self.request.extension or self.request.format_hint
+        format = format or Image.registered_extensions()[extension]
 
         save_args = {
             "format": format,
