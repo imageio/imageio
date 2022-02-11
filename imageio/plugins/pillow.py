@@ -31,8 +31,9 @@ Methods
 from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
-from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
+from ..core.request import Request, IOMode, InitializationError, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
+import warnings
 
 
 def _is_multichannel(mode: str) -> bool:
@@ -128,9 +129,13 @@ class PillowPlugin(PluginV3):
         else:
             extension = self.request.extension or self.request.format_hint
             if extension is None:
-                raise InitializationError(
-                    f"Can't determine file format to write. Use `format_hint` to disambiguate."
-                ) from None
+                warnings.warn(
+                    "Can't determine file format to write. Use "
+                    "`format_hint` to disambiguate. "
+                    "This will raise an exception in ImageIO v3.0.0",
+                    FutureWarning,
+                )
+                return
 
             Image.preinit()
             if extension in Image.registered_extensions().keys():
@@ -288,11 +293,17 @@ class PillowPlugin(PluginV3):
 
         """
 
+        if format is not None:
+            warnings.warn(
+                "Using `format` is deprecated and it will be removed "
+                "in ImageIO v3.0.0. Use the `format_hint` instead.",
+                DeprecationWarning,
+            )
+
         extension = self.request.extension or self.request.format_hint
-        format = format or Image.registered_extensions()[extension]
 
         save_args = {
-            "format": format,
+            "format": format or Image.registered_extensions()[extension],
         }
 
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
