@@ -20,6 +20,7 @@ from numpy.typing import ArrayLike
 
 from ..core import Request
 from ..core.request import InitializationError, IOMode
+from ..core.v3_plugin_api import PluginV3, ImageProperties
 
 
 def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
@@ -92,14 +93,7 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     return shape
 
 
-class ImageProperties:
-    def __init__(self, shape: Tuple[int, ...], dtype: np.dtype) -> None:
-        # TODO: replace with dataclass once py3.6 is dropped.
-        self.shape = shape
-        self.dtype = dtype
-
-
-class PyAVPlugin:
+class PyAVPlugin(PluginV3):
     """Support for pyAV as backend.
 
     Parameters
@@ -129,7 +123,8 @@ class PyAVPlugin:
 
         """
 
-        self._request = request
+        super().__init__(request)
+
         self._container = None
         self._video_stream = None
 
@@ -242,7 +237,7 @@ class PyAVPlugin:
 
         """
 
-        constant_framerate = constant_framerate or self._container.variable_fps
+        constant_framerate = constant_framerate or not self._container.format.variable_fps
 
         if index is None:
 
@@ -660,15 +655,5 @@ class PyAVPlugin:
             self._container.close()
         self.request.finish()
 
-    @property
-    def request(self) -> Request:
-        return self._request
-
     def __enter__(self) -> "PyAVPlugin":
-        return self
-
-    def __exit__(self, type, value, traceback) -> None:
-        self.close()
-
-    def __del__(self) -> None:
-        self.close()
+        return super().__enter__()
