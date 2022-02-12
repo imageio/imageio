@@ -22,44 +22,6 @@ from ..core import Request
 from ..core.request import InitializationError, IOMode
 
 
-VIDEO_CODECS = list()
-for x in av.codecs_available:
-    try:
-        codec = av.Codec(x)
-    except UnknownCodecError:
-        continue  # codec not supported by pyAV
-
-    if codec.type != "video":
-        continue
-
-    VIDEO_CODECS.append(x)
-
-WRITE_CONTAINERS = set()
-WRITE_CODEC_BY_CONTAINER: Dict[str, List[str]] = dict()
-for x in av.formats_available:
-    container_format = av.format.ContainerFormat(x)
-
-    try:
-        file = av.open(io.BytesIO(), mode="w", format=x)
-    except ValueError:
-        continue
-
-    with file:
-        if file.format.name != x:
-            continue
-
-        for codec in VIDEO_CODECS:
-            try:
-                file.add_stream(codec)
-            except UnknownCodecError:
-                continue
-            except ValueError:
-                continue  # Unsupported Format
-
-            WRITE_CODEC_BY_CONTAINER.setdefault(x, list()).append(codec)
-            WRITE_CONTAINERS.add(x)
-
-
 def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
     """Convert a pyAV video format into a numpy dtype"""
 
@@ -130,19 +92,7 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     return shape
 
 
-def _extension_to_codec(extension: str) -> str:
-    for container in WRITE_CONTAINERS:
-        container_format = av.format.ContainerFormat(container)
-
-        if not extension[1:] in container_format.extensions:
-            continue
-
-        return WRITE_CODEC_BY_CONTAINER[container][0]
-    else:
-        raise ValueError(f"No suitable codec for extension `{extension}`.")
-
-
-def _guess_format(ndimage: np.ndarray) -> av.VideoFormat:
+def _guess_pixel_format(ndimage: np.ndarray) -> av.VideoFormat:
     """Guesses the video format from array dtype and shape.
 
     This will !! __NOT__ !! always do the right thing. dtype + shape is too
@@ -246,14 +196,14 @@ class PyAVPlugin:
         standard interface to access various the various ImageResources and
         serves them to the plugin as a file object (or file). Check the docs for
         details.
-    **kwargs : Any
-        Additional configuration arguments for the plugin or backend. Usually
-        these match with configuration arguments available on the backend and
-        are forwarded to it.
+    container_format: str
+        The container format to use when writing the video. If None (default)
+        this is chosen based on the request if possible. This only affects
+        writing.
 
     """
 
-    def __init__(self, request: Request) -> None:
+    def __init__(self, request: Request, *, container_format: str = None) -> None:
         """Initialize a new Plugin Instance.
 
         See Plugin's docstring for detailed documentation.
@@ -280,13 +230,36 @@ class PyAVPlugin:
                 else:
                     msg = f"PyAV does not support `{request.raw_uri}`"
                 raise InitializationError(msg)
-        elif request.mode.io_mode == IOMode.write:
-            try:
-                self._container = av.open(request.get_file(), mode="w")
-            except av.AVError:
-                raise InitializationError(f"PyAV can not write to `{request.raw_uri}`")
         else:
-            raise InitializationError("Unsupported mode.")
+            file_handle = request.get_file()
+
+            # this assumes a certain implementation of av.open, but beats
+            # running our own format selection logic (since av_guess_format is
+            # not exposed)
+            if (
+                container_format is None
+                and hasattr(file_handle, "name")
+                and file_handle.name is None
+            ):
+                extension = self.request.extension or self.request.format_hint
+                if extension is not None:
+                    setattr(file_handle, "name", "tmp" + extension)
+
+            try:
+                self._container = av.open(
+                    file_handle, mode="w", format=container_format
+                )
+            except ValueError:
+                if container_format is not None:
+                    raise InitializationError(
+                        "Could not find a suitable container for "
+                        f"extension `.{extension}`. Set `container` explicitly."
+                    ) from None
+            except av.AVError:
+                resource = (
+                    "<bytes>" if isinstance(request.raw_uri, bytes) else request.raw_uri
+                )
+                raise InitializationError(f"PyAV can not write to `{resource}`")
 
     def read(
         self,
@@ -383,7 +356,7 @@ class PyAVPlugin:
         return self._unpack_frame(desired_frame, format=format)
 
     def iter(
-        self, *, format:str=None, thread_count: int = 0, thread_type: str = None
+        self, *, format: str = None, thread_count: int = 0, thread_type: str = None
     ) -> np.ndarray:
         """Yield frames from the video.
 
@@ -421,7 +394,9 @@ class PyAVPlugin:
         for frame in self._container.decode(video=0):
             yield self._unpack_frame(frame, format=format)
 
-    def _unpack_frame(self, frame:av.VideoFrame, *, format:str=None, out:np.ndarray=None) -> np.ndarray:
+    def _unpack_frame(
+        self, frame: av.VideoFrame, *, format: str = None, out: np.ndarray = None
+    ) -> np.ndarray:
         """Convert a av.VideoFrame into a ndarray
 
         Parameters
@@ -492,11 +467,11 @@ class PyAVPlugin:
         self,
         ndimage: Union[ArrayLike, List[ArrayLike]],
         *,
-        container: str = None,
         codec: str = None,
         fps: int = None,
-        pixel_format: str = None,
-        is_batch: bool = True
+        in_pixel_format: str = "rgb24",
+        out_pixel_format: str = None,
+        is_batch: bool = True,
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -507,20 +482,17 @@ class PyAVPlugin:
         ----------
         ndimage : ArrayLike, List[ArrayLike]
             The ndimage to encode and write to the current ImageResource.
-        container: str
-            The container format to use when writing the video. If None
-            (default) this is chosen automatically based on the file's extension
-            and caller capability.
         codec : str
             The codec to use when encoding frames. If None (default) it is
-            chosen automatically based on the files's extension and the calling
-            capability.
+            chosen automatically based on the chosen container.
         fps : str
             The resulting videos frames per second. If None (default) let
             pyAV decide.
-        pixel_format : str
+        in_pixel_format : str
+            The pixel format of the incoming ndarray. Defaults to "rgb24".
+        out_pixel_format : str
             The pixel format to use while encoding frames. If None (default)
-            use the codec's default FPS.
+            use the codec's default.
         is_batch : bool
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
@@ -537,56 +509,61 @@ class PyAVPlugin:
         Leaving FPS at None typically results in 24 FPS, since this is the
         currently hardcoded default inside pyAV.
 
-        FFMPEG (and by extension pyAV) is, by default, liberal with the pixel
-        format (colorspace). If the given ``pixel_format`` is not compatible
-        with the selected codec it will emit a warning and switch to a
-        compatible one. To raise an exception instead prepend the format with a
-        ``+``. For example, to force the rgb24 format (or fail) use
-        ``pixel_format="+rgb24"``.
-
-        The typical colorspace in pydata land is RGB (specifically rgb24).
-        However, this is not the default colorspace for most codecs. This means
-        that the colorspace will typically change during encoding. If this is
-        undesired use ``pixel_format="+"`` to force the output format to match
-        the input format (and fail if that format isn't supported by the chosen
-        codec).
-
         """
 
-        was_list = False
+        stream = None
 
         if isinstance(ndimage, list):
+            # frames shapes must agree for video
             ndimage = np.stack(ndimage)
-            was_list = True
         elif not is_batch:
             ndimage = np.asarray(ndimage)[None, ...]
         else:
             ndimage = np.asarray(ndimage)
 
         if codec is None:
-            extension = self.request.extension
-            # TODO: use format hint (once merged) if extension is still None
+            # TODO: once/if av_guess_codec is exposed use this instead
+            # TODO: alternatively, once the default codec for a container
+            # is exposed, use that one instead.
+            codecs = ["libx264", "mpeg4", *av.codecs_available]
+            for x in codecs:
+                try:
+                    codec = av.Codec(x, "w")
+                except UnknownCodecError:
+                    continue  # codec known but not installed
 
-            if extension is None:
-                raise ValueError(
-                    "Can't automatically choose a codec. Set `codec` explicitly."
-                )
+                if codec.type != "video":
+                    continue
 
-            codec = _extension_to_codec(extension)
+                if out_pixel_format is not None:
+                    for supported_format in codec.video_formats:
+                        if out_pixel_format == supported_format:
+                            break
+                    else:
+                        continue
 
-            if codec is None:
+                try:
+                    stream = self._container.add_stream(codec, rate=fps)
+                except UnknownCodecError:
+                    continue
+                except ValueError:
+                    continue  # Unsupported Format
+
+                break
+            else:
                 raise ValueError(
                     "Failed to automatically choose a codec. Set `codec` explicitly."
                 )
+        else:
+            stream = self._container.add_stream(codec)
 
-        stream = self._container.add_stream(codec, rate=fps)
         stream.width = ndimage.shape[2]
         stream.height = ndimage.shape[1]
-        if pixel_format:
-            stream.pix_fmt = pixel_format
+        if out_pixel_format:
+            stream.pix_fmt = out_pixel_format
 
         for img in ndimage:
-            frame = av.VideoFrame.from_ndarray(img, format=_guess_format(ndimage).name)
+            frame = av.VideoFrame.from_ndarray(img, format=in_pixel_format)
             for packet in stream.encode(frame):
                 self._container.mux(packet)
 
@@ -670,12 +647,14 @@ class PyAVPlugin:
 
         if index is None:
             # useful flags defined on the container and/or video stream
-            metadata.update({
-                "video_format": self._video_stream.codec_context.pix_fmt,
-                "codec": self._video_stream.codec.name,
-                "long_codec": self._video_stream.codec.long_name,
-                "profile": self._video_stream.profile,
-            })
+            metadata.update(
+                {
+                    "video_format": self._video_stream.codec_context.pix_fmt,
+                    "codec": self._video_stream.codec.name,
+                    "long_codec": self._video_stream.codec.long_name,
+                    "profile": self._video_stream.profile,
+                }
+            )
 
             metadata.update(self._container.metadata)
             metadata.update(self._video_stream.metadata)

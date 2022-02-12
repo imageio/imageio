@@ -63,7 +63,7 @@ def test_mp4_writing(tmp_path, video_array):
     # shamelessly based on the pyav example
 
     with av.open(str(tmp_path / "expected.mp4"), mode="w") as container:
-        stream = container.add_stream("mpeg4", rate=24)
+        stream = container.add_stream("libx264", rate=24)
         stream.width = 480
         stream.height = 320
         stream.pix_fmt = "yuv420p"
@@ -87,7 +87,7 @@ def test_mp4_writing(tmp_path, video_array):
 def test_metadata(test_images: Path):
     with iio.v3.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
         meta = plugin.metadata()
-        assert meta["profile"] == 'High 4:4:4 Predictive'
+        assert meta["profile"] == "High 4:4:4 Predictive"
         assert meta["codec"] == "h264"
 
         plugin.metadata(index=4)

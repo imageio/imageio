@@ -196,7 +196,7 @@ extras_require = {
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
     "gdal": ["gdal"],  # gdal currently fails to install :(
-    "itk": ["itk"],  # itk needs to build from source on pypy which slows down CI - A LOT.
+    "itk": ["itk"],  # itk bulds from source (expensive on CI).
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
