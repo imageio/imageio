@@ -131,6 +131,7 @@ class PyAVPlugin:
 
         self._request = request
         self._container = None
+        self._video_stream = None
 
         if request.mode.io_mode == IOMode.read:
             try:
@@ -179,7 +180,7 @@ class PyAVPlugin:
         *,
         index: int = 0,
         format: str = None,
-        constant_framerate: bool = True,
+        constant_framerate: bool = None,
         thread_count: int = 0,
         thread_type: str = None,
     ) -> np.ndarray:
@@ -201,9 +202,10 @@ class PyAVPlugin:
             it. If None (default) return the data in the encoded format if it
             can be expressed as a strided array; otherwise raise an Exception.
         constant_framerate : bool
-            If True (default) assume the video's framerate is constant. This
-            allows for faster seeking in side the file. If False, the video
-            is reset before each read and searched from the beginning.
+            If True assume the video's framerate is constant. This allows for
+            faster seeking in side the file. If False, the video is reset before
+            each read and searched from the beginning. If None (default), this
+            value will be read from the container format.
         thread_count : int
             How many threads to use when decoding a frame. The default is 0,
             which will set the number using ffmpeg's default, which is based on
@@ -239,6 +241,8 @@ class PyAVPlugin:
         with numpy.
 
         """
+
+        constant_framerate = constant_framerate or self._container.variable_fps
 
         if index is None:
 
@@ -380,11 +384,11 @@ class PyAVPlugin:
         self,
         ndimage: Union[ArrayLike, List[ArrayLike]],
         *,
+        is_batch: bool = True,
         codec: str = None,
         fps: int = None,
         in_pixel_format: str = "rgb24",
         out_pixel_format: str = None,
-        is_batch: bool = True,
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -395,6 +399,9 @@ class PyAVPlugin:
         ----------
         ndimage : ArrayLike, List[ArrayLike]
             The ndimage to encode and write to the current ImageResource.
+        is_batch : bool
+            If True (default), the ndimage is a batch of images, otherwise it is
+            a single image. This parameter has no effect on lists of ndimages.
         codec : str
             The codec to use when encoding frames. If None (default) it is
             chosen automatically based on the chosen container.
@@ -402,13 +409,11 @@ class PyAVPlugin:
             The resulting videos frames per second. If None (default) let
             pyAV decide.
         in_pixel_format : str
-            The pixel format of the incoming ndarray. Defaults to "rgb24".
+            The pixel format of the incoming ndarray. Defaults to "rgb24" and can
+            be any pix_fmt supported by pyAV.
         out_pixel_format : str
             The pixel format to use while encoding frames. If None (default)
             use the codec's default.
-        is_batch : bool
-            If True (default), the ndimage is a batch of images, otherwise it is
-            a single image. This parameter has no effect on lists of ndimages.
 
         Returns
         -------
@@ -424,8 +429,6 @@ class PyAVPlugin:
 
         """
 
-        stream = None
-
         if isinstance(ndimage, list):
             # frames shapes must agree for video
             ndimage = np.stack(ndimage)
@@ -434,7 +437,47 @@ class PyAVPlugin:
         else:
             ndimage = np.asarray(ndimage)
 
-        if codec is None:
+        if self._video_stream is None:
+            self._init_write_stream(
+                codec, fps, ndimage.shape, in_pixel_format, out_pixel_format
+            )
+        stream = self._video_stream
+
+        for img in ndimage:
+            frame = av.VideoFrame.from_ndarray(img, format=in_pixel_format)
+            for packet in stream.encode(frame):
+                self._container.mux(packet)
+
+    def _init_write_stream(
+        self,
+        codec: Optional[str],
+        fps: Optional[int],
+        shape: Tuple[int, ...],
+        in_pixel_format: Optional[str],
+        out_pixel_format: Optional[str],
+    ) -> None:
+        """Initialize encoder and create a new video stream.
+
+        Parameters
+        ----------
+        codec : str
+            The codec to use. Can be None, in which case a codec is selected automagically.
+        fps : str
+            The resulting videos frames per second. If None (default) let
+            pyAV decide.
+        shape : Tuple[int, ...]
+            The shape of the frames that will be written.
+        in_pixel_format : str
+            The pixel format of the incoming ndarray.
+        out_pixel_format : str
+            The pixel format to use while encoding frames. If None (default)
+            use the codec's default.
+
+        """
+
+        if codec is not None:
+            stream = self._container.add_stream(codec)
+        else:
             # TODO: once/if av_guess_codec is exposed use this instead
             # TODO: alternatively, once the default codec for a container
             # is exposed, use that one instead.
@@ -457,8 +500,6 @@ class PyAVPlugin:
 
                 try:
                     stream = self._container.add_stream(codec, rate=fps)
-                except UnknownCodecError:
-                    continue
                 except ValueError:
                     continue  # Unsupported Format
 
@@ -467,22 +508,13 @@ class PyAVPlugin:
                 raise ValueError(
                     "Failed to automatically choose a codec. Set `codec` explicitly."
                 )
-        else:
-            stream = self._container.add_stream(codec)
 
-        stream.width = ndimage.shape[2]
-        stream.height = ndimage.shape[1]
-        if out_pixel_format:
-            stream.pix_fmt = out_pixel_format
+        px_format = av.VideoFormat(in_pixel_format)
+        stream.width = shape[3 if px_format.is_planar else 2]
+        stream.height = shape[2 if px_format.is_planar else 1]
+        stream.pix_fmt = out_pixel_format or stream.pix_fmt
 
-        for img in ndimage:
-            frame = av.VideoFrame.from_ndarray(img, format=in_pixel_format)
-            for packet in stream.encode(frame):
-                self._container.mux(packet)
-
-        # encode a frame=None to flush any pending packets
-        for packet in stream.encode():
-            self._container.mux(packet)
+        self._video_stream = stream
 
     def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata.
@@ -617,6 +649,12 @@ class PyAVPlugin:
 
     def close(self) -> None:
         """Close the Video."""
+
+        is_write = self.request.mode.io_mode == IOMode.write
+        if is_write and self._video_stream is not None:
+            # encode a frame=None to flush any pending packets
+            for packet in self._video_stream.encode():
+                self._container.mux(packet)
 
         if self._container is not None:
             self._container.close()
