@@ -132,6 +132,34 @@ def test_video_format_to_dtype():
             _format_to_dtype(format)
 
 
+def test_filter_sequence(test_images):
+    frames = iio.v3.imread(
+        test_images / "cockatoo.mp4",
+        index=None,
+        plugin="pyav",
+        filter_sequence=[
+            ("drawgrid", "w=iw/3:h=ih/3:t=2:c=white@0.5"),
+            ("scale", {"size": "vga", "flags": "lanczos"}),
+        ],
+    )
+
+    assert frames.shape == (280, 3, 480, 640)
+
+
+def test_filter_sequence2(test_images):
+    frames = iio.v3.imread(
+        test_images / "cockatoo.mp4",
+        index=None,
+        plugin="pyav",
+        filter_sequence=[
+            ("framestep", "5"),
+            ("scale", {"size": "vga", "flags": "lanczos"}),
+        ],
+    )
+
+    assert frames.shape == (56, 3, 480, 640)
+
+
 # def test_shape_from_frame():
 #     foo = list()
 #     for name in video_format_names:

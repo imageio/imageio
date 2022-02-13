@@ -174,7 +174,7 @@ class PyAVPlugin(PluginV3):
         *,
         index: int = 0,
         format: str = None,
-        filter_sequence: List[Tuple[str, str, dict]] = None,
+        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, dict] = None,
         constant_framerate: bool = None,
         thread_count: int = 0,
@@ -246,10 +246,8 @@ class PyAVPlugin(PluginV3):
         be promoted to equivalent formats with byte-alignment for compatibility
         with numpy.
 
-        Currently, filters are limited to a single source and sink, i.e., the
-        video being pointed to by the request and the returned ndimage. If you
-        have a usecase that needs multiple sources, open a new issue and we can
-        see if it would fit the library.
+        Reading from an index other than None currently doesn't support filters
+        that introduce delays.
 
         """
 
@@ -263,6 +261,8 @@ class PyAVPlugin(PluginV3):
                     x
                     for x in self.iter(
                         format=format,
+                        filter_sequence=filter_sequence,
+                        filter_graph=filter_graph,
                         thread_count=thread_count,
                         thread_type=thread_type or "FRAME",
                     )
@@ -282,21 +282,15 @@ class PyAVPlugin(PluginV3):
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._container.decode(video=0))
 
-        sequence_graph = None
         if filter_sequence is not None:
             sequence_graph = self._build_filter_sequence(filter_sequence)
+            sequence_graph.push(desired_frame)
+            desired_frame = sequence_graph.pull()
 
-        complex_graph = None
         if filter_graph is not None:
             complex_graph = self._build_filter_graph(*filter_graph)
-
-        if sequence_graph is not None:
-            sequence_graph.push(frame)
-            frame = sequence_graph.pull()
-
-        if complex_graph is not None:
-            complex_graph.push(frame)
-            frame = complex_graph.pull()
+            complex_graph.push(desired_frame)
+            desired_frame = complex_graph.pull()
 
         return self._unpack_frame(desired_frame, format=format)
 
@@ -304,7 +298,7 @@ class PyAVPlugin(PluginV3):
         self,
         *,
         format: str = None,
-        filter_sequence: List[Tuple[str, str, dict]] = None,
+        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, dict] = None,
         thread_count: int = 0,
         thread_type: str = None,
@@ -360,16 +354,26 @@ class PyAVPlugin(PluginV3):
         if filter_graph is not None:
             complex_graph = self._build_filter_graph(*filter_graph)
 
-        for frame in self._container.decode(video=0):
-            if sequence_graph is not None:
-                sequence_graph.push(frame)
-                frame = sequence_graph.pull()
+        for raw_frame in self._container.decode(video=0):
+            if sequence_graph is None:
+                sequence_frame = raw_frame
+            else:
+                sequence_graph.push(raw_frame)
+                try:
+                    sequence_frame = sequence_graph.pull()
+                except av.error.BlockingIOError:
+                    continue  # filter needs more frames
 
-            if complex_graph is not None:
-                complex_graph.push(frame)
-                frame = complex_graph.pull()
+            if complex_graph is None:
+                graph_frame = sequence_frame
+            else:
+                complex_graph.push(sequence_frame)
+                try:
+                    graph_frame = complex_graph.pull()
+                except av.error.BlockingIOError:
+                    continue  # filter needs more frames
 
-            yield self._unpack_frame(frame, format=format)
+            yield self._unpack_frame(graph_frame, format=format)
 
     def _build_filter_graph(
         self, node_descriptors: Dict[str, Tuple[str, str, Dict]], edges: Dict[str, str]
@@ -390,13 +394,16 @@ class PyAVPlugin(PluginV3):
         return graph
 
     def _build_filter_sequence(
-        self, filters: List[Tuple[str, str, Dict]]
+        self, filters: List[Tuple[str, Union[str, dict]]]
     ) -> av.filter.Graph:
         graph = av.filter.Graph()
 
         previous_node = graph.add_buffer(template=self._video_stream)
-        for filter_name, args, kwargs in filters:
-            current_node = graph.add(filter_name, args, **kwargs)
+        for filter_name, argument in filters:
+            if isinstance(argument, str):
+                current_node = graph.add(filter_name, argument)
+            else:
+                current_node = graph.add(filter_name, **argument)
             previous_node.link_to(current_node)
             previous_node = current_node
         current_node.link_to(graph.add("buffersink"))
@@ -623,6 +630,12 @@ class PyAVPlugin(PluginV3):
         -------
         properties : ImageProperties
             A dataclass filled with standardized image metadata.
+
+        Notes
+        -----
+        The provided metadata provides information about the ImageResource and
+        does not include modifications by any filters (through
+        ``filter_sequence`` or ``filter_graph``).
 
         """
 
