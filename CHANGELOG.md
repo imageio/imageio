@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.16.0 (2022-02-14)
+### Fix
+* Read metadata of current frame when iterating + APNG fast path ([#750](https://github.com/imageio/imageio/issues/750)) ([`87f290a`](https://github.com/imageio/imageio/commit/87f290a074cbb4e856d6c68e7f0ddb2c9ca904cc))
+
+### Feature
+* Improps and immeta ([#739](https://github.com/imageio/imageio/issues/739)) ([`05d6f33`](https://github.com/imageio/imageio/commit/05d6f3332c8d072e253e9fceda3e8bbfbe4c8df1))
+
+### Other
+* Dedicated namespaces for APIs ([#720](https://github.com/imageio/imageio/issues/720)) ([`c0c032a`](https://github.com/imageio/imageio/commit/c0c032a7fa97c8771f9bdd61ac628ac0c7630dee))
+
 ## v2.15.0 (2022-02-07)
 ### Fix
 * Fix webcam FPS settings on MacOS ([#738](https://github.com/imageio/imageio/issues/738)) ([`a08b0c4`](https://github.com/imageio/imageio/commit/a08b0c45b035b1630a93b3ebe7f1dc628d83f952))
