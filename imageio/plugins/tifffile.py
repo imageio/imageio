@@ -465,12 +465,12 @@ class TiffFormat(Format):
             if 282 in page.tags and 283 in page.tags and 296 in page.tags:
                 resolution_x = page.tags[282].value
                 resolution_y = page.tags[283].value
-
-                meta["resolution"] = (
-                    resolution_x[0] / resolution_x[1],
-                    resolution_y[0] / resolution_y[1],
-                    page.tags[296].value.name,
-                )
+                if resolution_x[1] != 0 and resolution_y[1] != 0:
+                    meta["resolution"] = (
+                        resolution_x[0] / resolution_x[1],
+                        resolution_y[0] / resolution_y[1],
+                        page.tags[296].value.name,
+                    )
 
             return meta
 
