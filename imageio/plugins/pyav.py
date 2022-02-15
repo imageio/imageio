@@ -572,6 +572,12 @@ class PyAVPlugin(PluginV3):
                 self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
+            # bytes are immutuable, so we have to flush immediately
+            # and can't support appending to an active stream
+            self._video_stream = None
+            for packet in stream.encode():
+                self._container.mux(packet)
+
             return self.request.get_file().getvalue()
 
     def _init_write_stream(
