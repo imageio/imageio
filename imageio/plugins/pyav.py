@@ -255,6 +255,8 @@ class PyAVPlugin(PluginV3):
         )
 
         if index is None:
+            self._container.seek(0)
+
             frames = np.stack(
                 [
                     x
