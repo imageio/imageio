@@ -16,9 +16,10 @@ import av.filter
 import numpy as np
 from av.codec.codec import UnknownCodecError
 from numpy.typing import ArrayLike
+from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
-from ..core.request import InitializationError, IOMode
+from ..core.request import InitializationError, IOMode, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
 
 
@@ -144,10 +145,8 @@ class PyAVPlugin(PluginV3):
             # this assumes a certain implementation of av.open, but beats
             # running our own format selection logic (since av_guess_format is
             # not exposed)
-            if (
-                container_format is None
-                and hasattr(file_handle, "name")
-                and file_handle.name is None
+            if container_format is None and (
+                not hasattr(file_handle, "name") or file_handle.name is None
             ):
                 extension = self.request.extension or self.request.format_hint
                 if extension is not None:
@@ -509,7 +508,7 @@ class PyAVPlugin(PluginV3):
             pyAV decide.
         in_pixel_format : str
             The pixel format of the incoming ndarray. Defaults to "rgb24" and can
-            be any pix_fmt supported by pyAV.
+            be any stridable pix_fmt supported by FFmpeg.
         out_pixel_format : str
             The pixel format to use while encoding frames. If None (default)
             use the codec's default.
@@ -543,9 +542,37 @@ class PyAVPlugin(PluginV3):
         stream = self._video_stream
 
         for img in ndimage:
-            frame = av.VideoFrame.from_ndarray(img, format=in_pixel_format)
+            pixel_format = av.VideoFormat(in_pixel_format)
+            img_dtype = _format_to_dtype(pixel_format)
+
+            if pixel_format.is_planar:
+                frame = av.VideoFrame(*img.shape[2:0:-1], in_pixel_format)
+
+                for idx, plane in enumerate(frame.planes):
+                    plane_array = np.frombuffer(plane, dtype=img_dtype)
+                    plane_array = as_strided(
+                        plane_array,
+                        shape=(plane.height, plane.width),
+                        strides=(plane.line_size, img_dtype.itemsize),
+                    )
+                    plane_array[...] = img[idx]
+            else:
+                frame = av.VideoFrame(*img.shape[1::-1], in_pixel_format)
+                n_channels = len(pixel_format.components)
+                plane = frame.planes[0]
+                plane_array = np.frombuffer(plane, dtype=img_dtype)
+                plane_array = as_strided(
+                    plane_array,
+                    shape=(plane.height, plane.width, n_channels),
+                    strides=(plane.line_size, n_channels*img_dtype.itemsize, img_dtype.itemsize),
+                )
+                plane_array[...] = img
+
             for packet in stream.encode(frame):
                 self._container.mux(packet)
+
+        if self.request._uri_type == URI_BYTES:
+            return self.request.get_file().getvalue()
 
     def _init_write_stream(
         self,
