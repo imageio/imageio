@@ -174,7 +174,7 @@ class PyAVPlugin(PluginV3):
         index: int = 0,
         format: str = None,
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
-        filter_graph: Tuple[dict, dict] = None,
+        filter_graph: Tuple[dict, List] = None,
         constant_framerate: bool = None,
         thread_count: int = 0,
         thread_type: str = None,
@@ -200,7 +200,7 @@ class PyAVPlugin(PluginV3):
             If not None, apply the given sequence of FFmpeg filters to each
             ndimage. Check the (module-level) plugin docs for details and
             examples.
-        filters : (dict, dict)
+        filter_graph : (dict, List)
             If not None, apply the given graph of FFmpeg filters to each
             ndimage. The graph is given as a tuple of two dicts. The first dict
             contains a (named) set of nodes, and the second dict contains a set
@@ -283,15 +283,10 @@ class PyAVPlugin(PluginV3):
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._container.decode(video=0))
 
-        if filter_sequence is not None:
-            sequence_graph = self._build_filter_sequence(filter_sequence)
-            sequence_graph.push(desired_frame)
-            desired_frame = sequence_graph.pull()
-
-        if filter_graph is not None:
-            complex_graph = self._build_filter_graph(*filter_graph)
-            complex_graph.push(desired_frame)
-            desired_frame = complex_graph.pull()
+        if filter_sequence is not None or filter_graph is not None:
+            ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+            ffmpeg_filter.push(desired_frame)
+            desired_frame = ffmpeg_filter.pull()
 
         return self._unpack_frame(desired_frame, format=format)
 
@@ -300,7 +295,7 @@ class PyAVPlugin(PluginV3):
         *,
         format: str = None,
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
-        filter_graph: Tuple[dict, dict] = None,
+        filter_graph: Tuple[dict, List] = None,
         thread_count: int = 0,
         thread_type: str = None,
     ) -> np.ndarray:
@@ -318,11 +313,11 @@ class PyAVPlugin(PluginV3):
             If not None, apply the given sequence of FFmpeg filters to each
             ndimage. Check the (module-level) plugin docs for details and
             examples.
-        filters : (dict, dict)
+        filter_graph : (dict, List)
             If not None, apply the given graph of FFmpeg filters to each
             ndimage. The graph is given as a tuple of two dicts. The first dict
             contains a (named) set of nodes, and the second dict contains a set
-            of edges between nodes of the previous dict.Check the (module-level)
+            of edges between nodes of the previous dict. Check the (module-level)
             plugin docs for details and examples.
         thread_count : int
             How many threads to use when decoding a frame. The default is 0,
@@ -347,69 +342,30 @@ class PyAVPlugin(PluginV3):
         self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
 
-        sequence_graph = None
-        if filter_sequence is not None:
-            sequence_graph = self._build_filter_sequence(filter_sequence)
-
-        complex_graph = None
-        if filter_graph is not None:
-            complex_graph = self._build_filter_graph(*filter_graph)
+        ffmpeg_filter = None
+        if filter_sequence is not None or filter_graph is not None:
+            ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
 
         for raw_frame in self._container.decode(video=0):
-            if sequence_graph is None:
-                sequence_frame = raw_frame
+            if ffmpeg_filter is None:
+                graph_frame = raw_frame
             else:
-                sequence_graph.push(raw_frame)
+                ffmpeg_filter.push(raw_frame)
                 try:
-                    sequence_frame = sequence_graph.pull()
+                    graph_frame = ffmpeg_filter.pull()
                 except av.error.BlockingIOError:
-                    continue  # filter needs more frames
-
-            if complex_graph is None:
-                graph_frame = sequence_frame
-            else:
-                complex_graph.push(sequence_frame)
-                try:
-                    graph_frame = complex_graph.pull()
-                except av.error.BlockingIOError:
-                    continue  # filter needs more frames
+                    continue  # filter has delay and needs more frames
 
             yield self._unpack_frame(graph_frame, format=format)
 
-    def _build_filter_graph(
-        self, node_descriptors: Dict[str, Tuple[str, str, Dict]], edges: Dict[str, str]
-    ) -> av.filter.Graph:
-        nodes = dict()
-        graph = av.filter.Graph()
-        nodes["video_in"] = graph.add_buffer(template=self._video_stream)
-        nodes["video_out"] = graph.add("buffersink")
-
-        for name, (filter_name, args, kwargs) in node_descriptors.items():
-            nodes[name] = graph.add(filter_name, args, **kwargs)
-
-        for from_note, to_node in edges.items():
-            nodes[from_note].link_to(nodes[to_node])
-
-        graph.configure()
-
-        return graph
-
-    def _build_filter_sequence(
-        self, filters: List[Tuple[str, Union[str, dict]]]
-    ) -> av.filter.Graph:
-        graph = av.filter.Graph()
-
-        previous_node = graph.add_buffer(template=self._video_stream)
-        for filter_name, argument in filters:
-            if isinstance(argument, str):
-                current_node = graph.add(filter_name, argument)
-            else:
-                current_node = graph.add(filter_name, **argument)
-            previous_node.link_to(current_node)
-            previous_node = current_node
-        current_node.link_to(graph.add("buffersink"))
-
-        return graph
+        if ffmpeg_filter is not None:
+            while True:
+                try:
+                    graph_frame = ffmpeg_filter.pull()
+                except av.error.BlockingIOError:
+                    break  # graph exhausted
+                else:
+                    yield self._unpack_frame(graph_frame, format=format)
 
     def _unpack_frame(
         self, frame: av.VideoFrame, *, format: str = None, out: np.ndarray = None
@@ -489,6 +445,8 @@ class PyAVPlugin(PluginV3):
         fps: int = None,
         in_pixel_format: str = "rgb24",
         out_pixel_format: str = None,
+        # filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
+        # filter_graph: Tuple[dict, List] = None,
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -514,6 +472,16 @@ class PyAVPlugin(PluginV3):
         out_pixel_format : str
             The pixel format to use while encoding frames. If None (default)
             use the codec's default.
+        filter_sequence : List[str, str, dict]
+            If not None, apply the given sequence of FFmpeg filters to each
+            ndimage. Check the (module-level) plugin docs for details and
+            examples.
+        filter_graph : (dict, List)
+            If not None, apply the given graph of FFmpeg filters to each
+            ndimage. The graph is given as a tuple of two dicts. The first dict
+            contains a (named) set of nodes, and the second dict contains a set
+            of edges between nodes of the previous dict. Check the (module-level)
+            plugin docs for details and examples.
 
         Returns
         -------
@@ -543,10 +511,17 @@ class PyAVPlugin(PluginV3):
             )
         stream = self._video_stream
 
+        # ffmpeg_filter = None
+        # if filter_sequence is not None or filter_graph is not None:
+        #     ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+
         for img in ndimage:
             pixel_format = av.VideoFormat(in_pixel_format)
             img_dtype = _format_to_dtype(pixel_format)
 
+            # manual packing of ndarray into frame
+            # (this should live in pyAV, but it doesn't support many formats
+            # and PRs there are slow)
             if pixel_format.is_planar:
                 frame = av.VideoFrame(*img.shape[2:0:-1], in_pixel_format)
 
@@ -566,12 +541,35 @@ class PyAVPlugin(PluginV3):
                 plane_array = as_strided(
                     plane_array,
                     shape=(plane.height, plane.width, n_channels),
-                    strides=(plane.line_size, n_channels*img_dtype.itemsize, img_dtype.itemsize),
+                    strides=(
+                        plane.line_size,
+                        n_channels * img_dtype.itemsize,
+                        img_dtype.itemsize,
+                    ),
                 )
                 plane_array[...] = img
 
-            for packet in stream.encode(frame):
+            filtered_frame = frame
+            # if ffmpeg_filter is None:
+            #     filtered_frame = frame
+            # else:
+            #     ffmpeg_filter.push(frame)
+            #     try:
+            #         filtered_frame = ffmpeg_filter.pull()
+            #     except av.error.BlockingIOError:
+            #         continue  # filter needs more frames
+
+            for packet in stream.encode(filtered_frame):
                 self._container.mux(packet)
+
+        # while True:
+        #     try:
+        #         filtered_frame = ffmpeg_filter.pull()
+        #     except av.error.BlockingIOError:
+        #         break  # filter exhausted
+
+        #     for packet in stream.encode(filtered_frame):
+        #         self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
@@ -649,6 +647,49 @@ class PyAVPlugin(PluginV3):
         stream.pix_fmt = out_pixel_format or stream.pix_fmt
 
         self._video_stream = stream
+
+    def _build_filter(
+        self,
+        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
+        filter_graph: Tuple[dict, List] = None,
+    ) -> av.filter.Graph:
+        node_descriptors: Dict[str, Tuple[str, Union[str, Dict]]]
+        edges: List[Tuple[str, str, int, int]]
+
+        if filter_sequence is None:
+            filter_sequence = list()
+
+        if filter_graph is None:
+            node_descriptors, edges = dict(), [("video_in", "video_out", 0, 0)]
+        else:
+            node_descriptors, edges = filter_graph
+
+        graph = av.filter.Graph()
+
+        previous_node = graph.add_buffer(template=self._video_stream)
+        for filter_name, argument in filter_sequence:
+            if isinstance(argument, str):
+                current_node = graph.add(filter_name, argument)
+            else:
+                current_node = graph.add(filter_name, **argument)
+            previous_node.link_to(current_node)
+            previous_node = current_node
+
+        nodes = dict()
+        nodes["video_in"] = previous_node
+        nodes["video_out"] = graph.add("buffersink")
+        for name, (filter_name, arguments) in node_descriptors.items():
+            if isinstance(arguments, str):
+                nodes[name] = graph.add(filter_name, arguments)
+            else:
+                nodes[name] = graph.add(filter_name, **arguments)
+
+        for from_note, to_node, out_idx, in_idx in edges:
+            nodes[from_note].link_to(nodes[to_node], out_idx, in_idx)
+
+        graph.configure()
+
+        return graph
 
     def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata.

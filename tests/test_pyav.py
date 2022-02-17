@@ -160,6 +160,57 @@ def test_filter_sequence2(test_images):
     assert frames.shape == (56, 3, 480, 640)
 
 
+def test_write_bytes(test_images):
+    img = iio.v3.imread(
+        test_images / "cockatoo.mp4",
+        index=None,
+        plugin="pyav",
+        filter_sequence=[
+            ("framestep", "5"),
+            ("scale", {"size": "vga", "flags": "lanczos"}),
+        ],
+    )
+    img_bytes = iio.v3.imwrite(
+        "<bytes>", img, format_hint=".mp4", plugin="pyav", in_pixel_format="yuv444p"
+    )
+
+    assert img_bytes is not None
+
+
+def test_gif_gen(test_images):
+    frames = iio.v3.imread(
+        test_images / "cockatoo.mp4", plugin="pyav", index=None, format="rgb24"
+    )
+
+    iio.v3.imwrite(
+        "test.gif",
+        frames,
+        plugin="pyav",
+        filter_sequence=[
+            ("fps", "15"),
+            ("scale", "320:-1:flags=lanczos"),
+        ],
+        filter_graph=(
+            {  # Nodes
+                "split": ("split", ""),
+                "palettegen": ("palettegen", {"stats_mode": "single"}),
+                "paletteuse": ("paletteuse", ""),
+            },
+            [  # Edges
+                ("video_in", "split", 0, 0),
+                ("split", "palettegen", 0, 0),
+                ("split", "paletteuse", 1, 0),
+                ("palettegen", "paletteuse", 0, 1),
+                ("paletteuse", "video_out", 0, 0),
+            ],
+        ),
+    )
+
+    # iio.v3.imwrite("test.gif", frames, loop=0)
+
+    # ffmpeg -ss 30 -t 3 -i input.mp4 -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 output.gif
+
+
 # def test_shape_from_frame():
 #     foo = list()
 #     for name in video_format_names:
