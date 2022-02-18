@@ -10,7 +10,9 @@ advantage of a backend and its unique features.
 Core API
 ^^^^^^^^
 
-The API documented in this section builds on top of the individual plugins.
+The core API is ImageIOs public frontend. It provides convenient (and powerful)
+access to the growing number of individual plugins on top of which ImageIO is
+built.
 
 .. toctree::
     :maxdepth: 1
