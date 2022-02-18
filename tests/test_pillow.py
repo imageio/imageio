@@ -645,6 +645,8 @@ def test_apng_reading(tmp_path, test_images):
 def test_write_format_deprecation():
     frames = iio.v3.imread("imageio:chelsea.png")
     bytes_image = iio.v3.imwrite("<bytes>", frames, format_hint=".png")
-    old_bytes = iio.v3.imwrite("<bytes>", frames, format="PNG")
+
+    with pytest.warns(UserWarning):
+        old_bytes = iio.v3.imwrite("<bytes>", frames, format="PNG")
 
     assert bytes_image == old_bytes

@@ -130,20 +130,18 @@ class PillowPlugin(PluginV3):
             extension = self.request.extension or self.request.format_hint
             if extension is None:
                 warnings.warn(
-                    "Can't determine file format to write. Use "
-                    "`format_hint` to disambiguate. "
-                    "This will raise an exception in ImageIO v3.0.0",
-                    FutureWarning,
+                    "Can't determine file format to write as. You _must_"
+                    " set `format` during write or the call will fail. Use "
+                    "`format_hint` to supress this warning. ",
+                    UserWarning,
                 )
                 return
 
-            Image.preinit()
-            if extension in Image.registered_extensions().keys():
-                return
-
-            Image.init()
-            if extension in Image.registered_extensions().keys():
-                return
+            tirage = [Image.preinit, Image.init]
+            for format_loader in tirage:
+                format_loader()
+                if extension in Image.registered_extensions().keys():
+                    return
 
             raise InitializationError(
                 f"Pillow can not write `{extension}` files."
