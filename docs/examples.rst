@@ -28,37 +28,43 @@ If the image is a GIF:
 
     import imageio.v3 as iio
     
+    # index=None means: read all images in the file and stack along first axis
     frames = iio.imread("imageio:newtonscradle.gif", index=None)
     # ndarray with (num_frames, height, width, channel)
-    print(frames.shape)  # (36, 150, 200, 3)
-    
-If the GIF is stored in memory:
-
-.. code-block:: python
-
-    import imageio.v3 as iio
-
-    # create bytes containing an encoded GIF
-    frames = iio.imread("imageio:newtonscradle.gif", index=None)
-    bytes_image = iio.imwrite("<bytes>", frames, format_hint=".gif")
-    
-    # read GIF from bytes
-    frames = iio.v3.imread(bytes_image, index=None)
-    
+    print(frames.shape)  # (36, 150, 200, 3)   
 
 Read from fancy sources
 -----------------------
 
-Imageio can read from filenames, file objects, http, zipfiles and bytes.
+Imageio can read from filenames, file objects.
 
 .. code-block:: python
 
     import imageio.v3 as iio
-    import matplotlib.pyplot as plt
+    import io
 
-    im = iio.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
-    plt.imshow(im, cmap="gray")
-    plt.show()
+
+    # from HTTPS
+    web_image = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif"
+    frames = iio.imread(web_image, index=None)
+
+    # from bytes
+    bytes_image = iio.imwrite("<bytes>", frames, format_hint=".gif")
+    frames = iio.imread(bytes_image, index=None)
+
+    # from byte streams
+    byte_stream = io.BytesIO(bytes_image)
+    frames = iio.imread(byte_stream, index=None)
+   
+    # from file objects
+    class MyFileObject:
+        def read(size:int=-1):
+            return bytes_image
+
+        def close():
+            return  # nothing to do
+
+    frames = iio.imread(MyFileObject())
 
 Read all Images in a Folder
 ---------------------------
@@ -73,7 +79,7 @@ Read all Images in a Folder
         if not file.is_file():
             continue
 
-        images.append(iio.v3.imread(file))
+        images.append(iio.imread(file))
 
 Note, however, that ``Path().iterdir()`` does not guarantees the order in which
 files are read.
@@ -97,38 +103,38 @@ Grab screenshot or image from the clipboard
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    im_screen = iio.v3.imread('<screen>')
-    im_clipboard = iio.v3.imread('<clipboard>')
+    im_screen = iio.imread('<screen>')
+    im_clipboard = iio.imread('<clipboard>')
 
 
 Grab frames from your webcam
 ----------------------------
 
-Use the special ``<video0>`` uri to read frames from your webcam (via the ffmpeg
-plugin). You can replace the zero with another index in case you have multiple
-cameras attached. You need to ``pip install imageio[ffmpeg]`` in order to use
-this plugin.
+.. note::
+    For this to work, you need to install the ffmpeg backend::
+
+        pip install imageio[ffmpeg]
 
 .. code-block:: python
 
-    import imageio as iio
-    import visvis as vv
+    import imageio.v3 as iio
+    import numpy as np
 
-    with iio.v3.imopen("<video0>", "r") as reader:
-        t = vv.imshow(reader.read(index=0), clim=(0, 255))
-        for im in reader.iter():
-            vv.processEvents()
-            t.SetData(im)
+    for idx, frame in enumerate(iio.imiter("<video0>")):
+        print(f"Frame {idx}: avg. color {np.sum(frame, axis=-1)}")
 
+Note: You can replace the zero with another index in case you have multiple
+devices attached.
 
 Convert a short movie to grayscale
 ----------------------------------
 
-Here we take a movie and convert it to gray colors. Of course, you could apply
-any kind of (image) processing to the image here. You need to ``pip install
-imageio-ffmpeg`` in order to use the ffmpeg plugin.
+.. note::
+    For this to work, you need to install the ffmpeg backend::
+
+        pip install imageio[ffmpeg]
 
 .. code-block:: python
 
@@ -136,17 +142,18 @@ imageio-ffmpeg`` in order to use the ffmpeg plugin.
     import numpy as np
 
     # read the video (it fits into memory)
-    with iio.v3.imopen("imageio:cockatoo.mp4", "r") as reader:
-        frames = reader.read(index=None)
-        fps = reader.get_meta()["fps"]
-
-    # convert the video
+    # Note: this will open the image twice. Check the docs (advanced usage) if
+    # this is an issue for your use-case
+    metadata = iio.immeta("imageio:cockatoo.mp4", exclude_applied=False)
+    frames = iio.imread("imageio:cockatoo.mp4", index=None)
+    
+    # manually convert the video
     gray_frames = np.dot(frames, [0.2989, 0.5870, 0.1140])
     gray_frames = np.round(gray_frames).astype(np.uint8)
     gray_frames_as_rgb = np.stack([gray_frames] * 3, axis=-1)
 
     # write the video
-    iio.v3.imwrite("cockatoo_gray.mp4", gray_frames_as_rgb, fps=fps)
+    iio.imwrite("cockatoo_gray.mp4", gray_frames_as_rgb, fps=metadata["fps"])
 
 
 Read medical data (DICOM)
@@ -154,15 +161,15 @@ Read medical data (DICOM)
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     dirname = 'path/to/dicom/files'
 
     # Read multiple images of different shape
-    ims = [img for img in iio.v3.imiter(dirname, plugin='DICOM')]
+    ims = [img for img in iio.imiter(dirname, plugin='DICOM')]
     # Read as volume
-    vol = iio.v3.imread(dirname, plugin='DICOM')
+    vol = iio.imread(dirname, plugin='DICOM')
     # Read multiple volumes of different shape
-    vols = [img for img in iio.v3.imiter(dirname, plugin='DICOM')]
+    vols = [img for img in iio.imiter(dirname, plugin='DICOM')]
 
 
 Volume data
@@ -170,28 +177,28 @@ Volume data
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     import visvis as vv
 
-    vol = iio.v3.imread('imageio:stent.npz')
+    vol = iio.imread('imageio:stent.npz')
     vv.volshow(vol)
 
 
 Writing videos with FFMPEG and vaapi
 ------------------------------------
-Using vaapi (on Linux only) (intel only?) can help free up resources on your
-laptop while you are encoding videos. One notable difference between vaapi and
-x264 is that vaapi doesn't support the color format yuv420p.
+Using vaapi can help free up CPU time on your device while you are encoding
+videos. One notable difference between vaapi and x264 is that vaapi doesn't
+support the color format yuv420p.
 
 Note, you will need ffmpeg compiled with vaapi for this to work.
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v2 as iio
     import numpy as np
 
     # All images must be of the same size
-    image1 = np.stack([imageio.imread('imageio:camera.png')] * 3, 2)
+    image1 = np.stack([iio.imread('imageio:camera.png')] * 3, 2)
     image2 = iio.imread('imageio:astronaut.png')
     image3 = iio.imread('imageio:immunohistochemistry.png')
 
@@ -226,32 +233,28 @@ A little bit of explanation:
 Writing to Bytes (Encoding)
 ---------------------------
 
-You can convert ndimages into byte strings. For this, you have to explicitly
-specify the desired format, as a byte string doesn't carry any information about
-the format or color space to use. Since backends differ in the way this
-information should be provided, you also have to explicitly specify the backend
-(plugin) to use. Note that, if the backend supports writing to file-like
-objects, the entire process will happen without touching your file-system. If
-you, for example, want to write with pillow, you can use:
+You can convert ndimages into byte strings. For this, you have to hint the
+desired format (using ``format_hint=``), as a byte string doesn't specify any
+information about the format or color space to use. Note that, if the backend
+supports writing to file-like objects, the entire process will happen without
+touching your file-system.
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
 
     # load an example image
-    img = iio.v3.imread('imageio:astronaut.png')
+    img = iio.imread('imageio:astronaut.png')
 
     # png-encoded bytes string
-    # Note: defaults to RGB color space
-    png_encoded = iio.v3.imwrite("<bytes>", img, plugin="pillow", format="PNG")
+    png_encoded = iio.imwrite("<bytes>", img, format_hint=".png")
     
     # jpg-encoded bytes string
-    # Note: defaults to RGB color space
-    jpg_encoded = iio.v3.imwrite("<bytes>", img, plugin="pillow", format="JPEG")
+    jpg_encoded = iio.imwrite("<bytes>", img, format_hint=".jpeg")
 
     # RGBA bytes string
-    img = iio.v3.imread('imageio:astronaut.png', mode="RGBA")
-    jpg_encoded = iio.v3.imwrite("<bytes>", img, plugin="pillow", format="JPEG", mode="RGBA")
+    img = iio.imread('imageio:astronaut.png', mode="RGBA")
+    png_encoded = iio.imwrite("<bytes>", img, format_hint=".png")
 
 Writing to BytesIO
 ------------------
@@ -260,19 +263,19 @@ Similar to writing to byte strings, you can also write to BytesIO directly.
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     import io
 
     # load an example image
-    img = iio.v3.imread('imageio:astronaut.png')
+    img = iio.imread('imageio:astronaut.png')
 
     # write as PNG
     output = io.BytesIO()
-    iio.v3.imwrite(output, img, plugin="pillow", format="PNG")
+    iio.imwrite(output, img, plugin="pillow", format_hint=".png")
     
     # write as JPG
     output = io.BytesIO()
-    iio.v3.imwrite(output, img, plugin="pillow", format="JPEG")
+    iio.imwrite(output, img, plugin="pillow", format_hint=".jpeg")
 
 Optimizing a GIF using pygifsicle
 ------------------------------------
@@ -302,7 +305,7 @@ Now, let's start by creating a gif using imageio:
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     import matplotlib.pyplot as plt
     
     n = 100
@@ -318,11 +321,11 @@ Now, let's start by creating a gif using imageio:
         plt.savefig(f"{x}.jpg")
 
     frames = np.stack(
-        [iio.v3.imread("{i}.jpg") for i in range(n)],
+        [iio.imread("{i}.jpg") for i in range(n)],
         axis=0
     )
     
-    iio.v3.imwrite(gif_path, frames, mode=I)
+    iio.imwrite(gif_path, frames, mode="I")
             
 This way we obtain a 2.5MB gif.
 
@@ -343,7 +346,7 @@ Putting everything together:
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     import matplotlib.pyplot as plt
     from pygifsicle import optimize
     
@@ -360,11 +363,11 @@ Putting everything together:
         plt.savefig(f"{x}.jpg")
 
     frames = np.stack(
-        [iio.v3.imread("{i}.jpg") for i in range(n)],
+        [iio.imread("{i}.jpg") for i in range(n)],
         axis=0
     )
     
-    iio.v3.imwrite(gif_path, frames, mode=I)
+    iio.imwrite(gif_path, frames, mode=I)
             
     optimize(gif_path)
 
@@ -379,9 +382,9 @@ Reading Images from ZIP archives
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    image = iio.v3.imread("Path/to/file.zip/path/inside/zip/to/image.png")
+    image = iio.imread("Path/to/file.zip/path/inside/zip/to/image.png")
 
 
 
@@ -396,10 +399,10 @@ them with a simple script like the one below.
 
     import os
     from zipfile import ZipFile
-    import imageio as iio
+    import imageio.v3 as iio
 
     images = list()
     with ZipFile("imageio.zip") as zf:
         for name in zf.namelist():
-            im = iio.v3.imread(name)
+            im = iio.imread(name)
             images.append(im)
