@@ -642,7 +642,7 @@ def test_apng_reading(tmp_path, test_images):
             assert np.allclose(actual, expected)
 
 
-def test_write_format_deprecation():
+def test_write_format_warning():
     frames = iio.v3.imread("imageio:chelsea.png")
     bytes_image = iio.v3.imwrite("<bytes>", frames, format_hint=".png")
 

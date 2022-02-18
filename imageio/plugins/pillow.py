@@ -264,7 +264,9 @@ class PillowPlugin(PluginV3):
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
         # if mode is given, use it; otherwise fall back to image.ndim only
         if mode is not None:
-            is_batch = image.ndim > 3 if Image.getmodebands(mode) > 1 else image.ndim > 2
+            is_batch = (
+                image.ndim > 3 if Image.getmodebands(mode) > 1 else image.ndim > 2
+            )
         elif image.ndim == 2:
             is_batch = False
         elif image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
