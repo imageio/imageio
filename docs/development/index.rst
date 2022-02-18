@@ -326,11 +326,13 @@ To write a new plugin, you have to create a new class that follows our plugin
 API, which is documented below:
 
 **v2 plugin docs**
+
 .. autosummary::
 
     imageio.plugins
 
 **v3 plugin docs**
+
 .. autosummary::
     :template: better_class.rst
     :toctree: ../_autosummary
