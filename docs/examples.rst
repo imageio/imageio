@@ -17,18 +17,18 @@ Probably the most important thing you'll ever need.
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    im = iio.v3.imread('imageio:chelsea.png')
+    im = iio.imread('imageio:chelsea.png')
     print(im.shape)  # (300, 451, 3)
     
 If the image is a GIF:
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     
-    frames = iio.v3.imread("newtonscradle.gif", index=None)
+    frames = iio.imread("imageio:newtonscradle.gif", index=None)
     # ndarray with (num_frames, height, width, channel)
     print(frames.shape)  # (36, 150, 200, 3)
     
@@ -36,14 +36,13 @@ If the GIF is stored in memory:
 
 .. code-block:: python
 
-    import imageio as iio
-    from pathlib import Path
+    import imageio.v3 as iio
 
-    # setup
-    image_path = iio.core.get_remote_file("images/newtonscradle.gif") 
-    bytes_image = Path(image_path).read_bytes()
+    # create bytes containing an encoded GIF
+    frames = iio.imread("imageio:newtonscradle.gif", index=None)
+    bytes_image = iio.imwrite("<bytes>", frames, format_hint=".gif")
     
-    # the actual reading
+    # read GIF from bytes
     frames = iio.v3.imread(bytes_image, index=None)
     
 
@@ -54,38 +53,30 @@ Imageio can read from filenames, file objects, http, zipfiles and bytes.
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     import matplotlib.pyplot as plt
 
-    im = iio.v3.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
+    im = iio.imread('http://upload.wikimedia.org/wikipedia/commons/d/de/Wikipedia_Logo_1.0.png')
     plt.imshow(im, cmap="gray")
     plt.show()
-
-Note: reading from HTTP and zipfiles works for many formats including png and
-jpeg, but may not work for all formats (some plugins "seek" the file object,
-which HTTP/zip streams do not support). In such a case one can download/extract
-the file first. For HTTP one can use something like
-``imageio.imread(imageio.core.urlopen(url).read(), '.gif')``.
 
 Read all Images in a Folder
 ---------------------------
 
-One common scenario is that you want to read all images in a folder, e.g. for a
-scientific analysis, or because these are all your training examples. Assuming
-the folder only contains image files, you can read it using a snippet like
-
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
     from pathlib import Path
 
     images = list()
     for file in Path("path/to/folder").iterdir():
-        im = iio.v3.imread(file)
-        images.append(im)
+        if not file.is_file():
+            continue
 
-Note, however, that ``Path().iterdir()`` does not make any guarantees about the
-order in which files are read.
+        images.append(iio.v3.imread(file))
+
+Note, however, that ``Path().iterdir()`` does not guarantees the order in which
+files are read.
 
 
 Iterate over frames in a movie
@@ -93,9 +84,9 @@ Iterate over frames in a movie
 
 .. code-block:: python
 
-    import imageio as iio
+    import imageio.v3 as iio
 
-    for i, frame in enumerate(iio.v3.imiter("imageio:cockatoo.mp4")):
+    for i, frame in enumerate(iio.imiter("imageio:cockatoo.mp4")):
         print("Mean of frame %i is %1.1f" % (i, frame.mean()))
 
 
