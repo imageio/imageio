@@ -86,7 +86,7 @@ def imiter(
         call.
 
     Yields
-    -------
+    ------
     image : ndimage
         The next ndimage located at the given URI.
 
