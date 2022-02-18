@@ -293,13 +293,6 @@ class PillowPlugin(PluginV3):
 
         """
 
-        if format is not None:
-            warnings.warn(
-                "Using `format` is deprecated and it will be removed "
-                "in ImageIO v3.0.0. Use the `format_hint` instead.",
-                DeprecationWarning,
-            )
-
         extension = self.request.extension or self.request.format_hint
 
         save_args = {
