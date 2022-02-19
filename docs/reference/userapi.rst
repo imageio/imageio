@@ -79,26 +79,30 @@ that best suits that file-format.
 
 .. _migration_from_v2:
 
-Migrating to ImageIO v3
+Migrating to the v3 API
 ^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note::
+    Make sure to have a look at the :doc:`narrative docs for the v3 API <core_v3>`
+    to build some intuition on how to use the new API.
 
 The primary novelty of the v3 API compared to the v2 API is that images are now
 treated as ndimages, a generalization of (flat) 2D images to N dimensions. This
 change allows us to design a much simpler API; however, comes with a few
 backwards incompatible changes.
 
-Avoiding API Migration for Legacy Scripts
------------------------------------------
+.. rubric:: Avoiding Migration for Legacy Scripts
 
-If you have an old script where you do not wish to migrate the API, you can
-explicitly import the old v2 API and avoid migration. While this will keep the
-old (v2) API, it will rely on the new (v3) plugins and backends, which may
-contain other backwards incompatible changes. As such, you should prefer a full
-migration to v3 and should avoid using the v2 API in new code. To import the v2
-API, depending on your script/code, use::
+If you have an old script that you do not wish to migrate, you can avoid most of 
+the migration by explicitly importing the v2 API::
 
-    import imageio.v2 as iio
     import imageio.v2 as imageio
+
+This will give you access to most of the old API. However, calls will still rely
+on the new (v3) plugins and backends, which may cause behavioral changes. As
+such, you should prefer a full migration to v3 and should avoid using the v2 API
+in new code. This is primarily as a quick way for you to postpone a full
+migration until it is convenient for you to do so.
   
 
 Reading Images 
@@ -188,13 +192,13 @@ served independently from pixel data::
     # metadata = iio.imread(image_resource).meta
     metadata = iio.immeta(image_resource)
 
-Further, ImageIO now provides a curated set of standardized metadata which is
-called ImageProperties in addition to above metadata. The difference between the
-two is as follows: The metadata dict contains metadata using format-specific
-keys to the extent the reading plugin supports them. The ImageProperties
-dataclass contains metadata using standardized attribute names. Each plugin
-provides the same set of properties, and if the plugin or format doesn't provide a field
-it is set to a (sensible) default value. To access
-ImageProperties use::
+Further, ImageIO now provides a curated set of standardized metadata, which is
+called :class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>`, in
+addition to above metadata. The difference between the two is as follows: The
+metadata dict contains metadata using format-specific keys to the extent the
+reading plugin supports them. The ImageProperties dataclass contains generally
+available metadata using standardized attribute names. Each plugin provides the
+same set of properties, and if the plugin or format doesn't provide a field it
+is set to a (sensible) default value. To access ImageProperties use::
 
     props = iio.improps(image_resource)
