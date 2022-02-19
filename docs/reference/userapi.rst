@@ -5,9 +5,10 @@ Core API v2
 .. py:currentmodule:: imageio.v2
 
 .. warning::
-    This API is deprecated and will be superseeded by :doc:`the v3 API <core_v3>`
-    starting with ImageIO v3. Check the migration instructions below for
-    detailed information on how to migrate.
+
+    This API exists for backwards compatibility. It is a wrapper around calls to
+    the v3 API and new code should use the v3 API directly. Check the migration
+    instructions below for detailed information on how to migrate.
 
 These functions represent imageio's main interface for the user. They
 provide a common API to read and write image data for a large
@@ -34,10 +35,10 @@ Functions for reading
 .. autosummary::
     :toctree: ../_autosummary/
 
-    imageio.imread
-    imageio.mimread
-    imageio.volread
-    imageio.mvolread
+    imageio.v2.imread
+    imageio.v2.mimread
+    imageio.v2.volread
+    imageio.v2.mvolread
 
 
 Functions for writing
@@ -46,10 +47,10 @@ Functions for writing
 .. autosummary::
     :toctree: ../_autosummary/
 
-    imageio.imwrite
-    imageio.mimwrite
-    imageio.volwrite
-    imageio.mvolwrite
+    imageio.v2.imwrite
+    imageio.v2.mimwrite
+    imageio.v2.volwrite
+    imageio.v2.mvolwrite
 
 More control
 ^^^^^^^^^^^^
@@ -62,9 +63,9 @@ This also allows specific scientific formats to be exposed in a way
 that best suits that file-format.
 
 
-.. autofunction:: imageio.get_reader
+.. autofunction:: imageio.v2.get_reader
 
-.. autofunction:: imageio.get_writer
+.. autofunction:: imageio.v2.get_writer
 
 ----
 

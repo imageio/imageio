@@ -76,6 +76,53 @@ the documentation of the respective function (imread/imwrite/etc.).
 Handling Metadata
 ^^^^^^^^^^^^^^^^^
 
+ImageIO serves two types of metadata: ImageProperties and format-specific metadata.
+
+:class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>` are a
+collection of standardized metadata fields and are supported by all plugins and
+for all supported formats. If a file doesn't carray the relevat field or if a
+format doesn't support it, its value is set to a sensible default. You can
+access the properties of an image by calling :func:`improps
+<imageio.v3.improps>`::
+
+    import imageio.v3 as iio
+
+    props = iio.improps("imageio:newtonscradle.gif")
+    props.shape
+    props.dtype
+    # ...
+
+As with the other functions of the API, you can pass generally available kwargs
+(`plugin`, `index`, ...) to `improps` to modify the behavior. Plugins may
+specify additional plugin-specific keyword arguments, and those are documented
+in the plugin-specific docs. Further, accessing this metadata is efficient in 
+the sense that it doesn't load (decode) pixel data.
+
+Format-specific metadata is handled by :func:`immeta <imageio.v3.immeta>`::
+
+    import imageio.v3 as iio
+
+    meta = iio.immeta("imageio:newtonscradle.gif")
+
+It returns a dictionary of non-standardized metadata fields. It, too, supports
+general kwargs (`plugin`, `index`, ...) which may be extended by a specific
+plugin. Further, it accepts a kwarg called ``exclude_applied``. If set to True,
+this will remove any items from the dictionary that would be consumed by a read
+call to the plugin. For example, if the metadata sets a rotation flag (the raw
+pixel data should be rotated before displaying it) and the plugin's read call
+will rotate the image because if it, then setting ``expluce_applied=True`` will
+remove the rotation field from the returned metadata. This can be useful to keep
+an image and it's metadata in sync.
+
+Further, this type of metadata is much more specific than ImageProperties
+because different plugins (and formats) may return and support different fields.
+This means that you can get much more specific metadata for a format, e.g., a
+frame's side data in a video format, but you need to be mindful of the plugin
+and format used because these fields may not exist all the time, e.g., jpeg and
+most other image formats have no side data. In general we try to match a fields
+name to the name it has in a format; however, we may adjust this if the name is
+not a valid python string. The best way to know which fields exist for your
+specific ImageResource is to call ``immeta`` on it and inspect the result.
 
 .. _v3_advanced_usage:
 
