@@ -177,6 +177,23 @@ def test_write_bytes(test_images):
     assert img_bytes is not None
 
 
+def test_read_png(test_images):
+    img_expected = iio.v3.imread(test_images / "chelsea.png", plugin="pillow")
+    img_actual = iio.v3.imread(test_images / "chelsea.png", plugin="pyav")
+
+    assert np.allclose(img_actual, img_expected)
+
+
+def test_write_png(test_images, tmp_path):
+    img_expected = iio.v3.imread(test_images / "chelsea.png", plugin="pyav")
+    iio.v3.imwrite(
+        tmp_path / "out.png", img_expected, plugin="pyav", codec="png", is_batch=False
+    )
+    img_actual = iio.v3.imread(tmp_path / "out.png", plugin="pyav")
+
+    assert np.allclose(img_actual, img_expected)
+
+
 def test_gif_gen(test_images):
     frames = iio.v3.imread(
         test_images / "cockatoo.mp4", plugin="pyav", index=None, format="rgb24"
@@ -186,6 +203,8 @@ def test_gif_gen(test_images):
         "test.gif",
         frames,
         plugin="pyav",
+        codec="gif",
+        out_pixel_format="pal8",
         filter_sequence=[
             ("fps", "15"),
             ("scale", "320:-1:flags=lanczos"),
@@ -195,19 +214,18 @@ def test_gif_gen(test_images):
                 "split": ("split", ""),
                 "palettegen": ("palettegen", {"stats_mode": "single"}),
                 "paletteuse": ("paletteuse", ""),
+                "format": ("format", "pal8"),
             },
             [  # Edges
                 ("video_in", "split", 0, 0),
                 ("split", "palettegen", 0, 0),
                 ("split", "paletteuse", 1, 0),
                 ("palettegen", "paletteuse", 0, 1),
-                ("paletteuse", "video_out", 0, 0),
+                ("paletteuse", "format", 0, 0),
+                ("format", "video_out", 0, 0),
             ],
         ),
     )
-
-    # iio.v3.imwrite("test.gif", frames, loop=0)
-
     # ffmpeg -ss 30 -t 3 -i input.mp4 -vf "split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 output.gif
 
 
