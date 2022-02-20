@@ -9,7 +9,7 @@ offers nicer bindings and aims to superseed it in the future.
 """
 
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, Union, Dict
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import av
 import av.filter
@@ -279,16 +279,13 @@ class PyAVPlugin(PluginV3):
 
         self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
+        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+        ffmpeg_filter.send(None)  # init
 
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._container.decode(video=0))
 
-        if filter_sequence is not None or filter_graph is not None:
-            ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
-            ffmpeg_filter.push(desired_frame)
-            desired_frame = ffmpeg_filter.pull()
-
-        return self._unpack_frame(desired_frame, format=format)
+        return self._unpack_frame(ffmpeg_filter.send(desired_frame), format=format)
 
     def iter(
         self,
@@ -341,31 +338,19 @@ class PyAVPlugin(PluginV3):
 
         self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
+        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+        ffmpeg_filter.send(None)  # init
 
-        ffmpeg_filter = None
-        if filter_sequence is not None or filter_graph is not None:
-            ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+        for frame in self._container.decode(video=0):
+            frame = ffmpeg_filter.send(frame)
 
-        for raw_frame in self._container.decode(video=0):
-            if ffmpeg_filter is None:
-                graph_frame = raw_frame
-            else:
-                ffmpeg_filter.push(raw_frame)
-                try:
-                    graph_frame = ffmpeg_filter.pull()
-                except av.error.BlockingIOError:
-                    continue  # filter has delay and needs more frames
+            if frame is None:
+                continue
 
-            yield self._unpack_frame(graph_frame, format=format)
+            yield self._unpack_frame(frame, format=format)
 
-        if ffmpeg_filter is not None:
-            while True:
-                try:
-                    graph_frame = ffmpeg_filter.pull()
-                except av.error.BlockingIOError:
-                    break  # graph exhausted
-                else:
-                    yield self._unpack_frame(graph_frame, format=format)
+        for frame in ffmpeg_filter:
+            yield self._unpack_frame(frame, format=format)
 
     def _unpack_frame(
         self, frame: av.VideoFrame, *, format: str = None, out: np.ndarray = None
@@ -419,6 +404,27 @@ class PyAVPlugin(PluginV3):
         dtype = _format_to_dtype(frame.format)
         shape = _get_frame_shape(frame)
 
+        planes = list()
+        for idx in range(len(byte_aligned.planes)):
+            n_channels = sum(
+                [
+                    x.bits // (dtype.itemsize * 8)
+                    for x in frame.format.components
+                    if x.plane == idx
+                ]
+            )
+            av_plane = byte_aligned.planes[idx]
+            np_plane = as_strided(
+                np.frombuffer(av_plane, dtype=dtype),
+                shape=(av_plane.height, av_plane.width, n_channels),
+                strides=(
+                    av_plane.line_size,
+                    n_channels * dtype.itemsize,
+                    dtype.itemsize,
+                ),
+            )
+            planes.append(np_plane)
+
         # Note: the planes *should* exist inside a contigous memory block
         # somewhere inside av.Frame however pyAV does not appear to expose this,
         # so we are forced to copy the planes individually instead of wrapping
@@ -426,14 +432,7 @@ class PyAVPlugin(PluginV3):
         # Note2: This may also be a good thing, because I don't know about pyAVs
         # memory model, and it would be bad if it frees the pixel data that we
         # would point to (if we could).
-        frame_data = np.concatenate(
-            [
-                np.frombuffer(byte_aligned.planes[idx], dtype=dtype)
-                for idx in range(len(byte_aligned.planes))
-            ],
-            out=out,
-        )
-
+        frame_data = np.concatenate(planes, out=out)
         return frame_data.reshape(shape)
 
     def write(
@@ -445,8 +444,8 @@ class PyAVPlugin(PluginV3):
         fps: int = None,
         in_pixel_format: str = "rgb24",
         out_pixel_format: str = None,
-        # filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
-        # filter_graph: Tuple[dict, List] = None,
+        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
+        filter_graph: Tuple[dict, List] = None,
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -511,9 +510,8 @@ class PyAVPlugin(PluginV3):
             )
         stream = self._video_stream
 
-        # ffmpeg_filter = None
-        # if filter_sequence is not None or filter_graph is not None:
-        #     ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
+        ffmpeg_filter.send(None)  # init
 
         for img in ndimage:
             pixel_format = av.VideoFormat(in_pixel_format)
@@ -549,34 +547,23 @@ class PyAVPlugin(PluginV3):
                 )
                 plane_array[...] = img
 
-            filtered_frame = frame
-            # if ffmpeg_filter is None:
-            #     filtered_frame = frame
-            # else:
-            #     ffmpeg_filter.push(frame)
-            #     try:
-            #         filtered_frame = ffmpeg_filter.pull()
-            #     except av.error.BlockingIOError:
-            #         continue  # filter needs more frames
+            frame = ffmpeg_filter.send(frame)
+            if frame is None:
+                continue
 
-            for packet in stream.encode(filtered_frame):
+            for packet in stream.encode(frame):
                 self._container.mux(packet)
 
-        # while True:
-        #     try:
-        #         filtered_frame = ffmpeg_filter.pull()
-        #     except av.error.BlockingIOError:
-        #         break  # filter exhausted
-
-        #     for packet in stream.encode(filtered_frame):
-        #         self._container.mux(packet)
+        for frame in ffmpeg_filter:
+            for packet in stream.encode(frame):
+                self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
             # and can't support appending to an active stream
-            self._video_stream = None
-            for packet in stream.encode():
+            for packet in self._video_stream.encode():
                 self._container.mux(packet)
+            self._video_stream = None
 
             return self.request.get_file().getvalue()
 
@@ -644,7 +631,13 @@ class PyAVPlugin(PluginV3):
         px_format = av.VideoFormat(in_pixel_format)
         stream.width = shape[3 if px_format.is_planar else 2]
         stream.height = shape[2 if px_format.is_planar else 1]
-        stream.pix_fmt = out_pixel_format or stream.pix_fmt
+
+        if out_pixel_format is not None:
+            stream.pix_fmt = out_pixel_format
+        elif in_pixel_format in [x.name for x in stream.codec.video_formats]:
+            stream.pix_fmt = in_pixel_format
+        else:
+            pass  # use the default pixel format
 
         self._video_stream = stream
 
@@ -652,9 +645,47 @@ class PyAVPlugin(PluginV3):
         self,
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
-    ) -> av.filter.Graph:
+    ) -> av.VideoFrame:
+        """Create a FFmpeg filter graph.
+
+        This function is a python co-routine. This means it returns a
+        generator and you can feed it frames using ``generator.send(frame)``
+        and it will return the next frame or None (if the filter has lag).
+        To send EOF use ``generator.send(None)``
+
+
+        Parameters
+        ----------
+        filter_sequence : List[str, str, dict]
+            If not None, apply the given sequence of FFmpeg filters to each
+            ndimage. Check the (module-level) plugin docs for details and
+            examples.
+        filter_graph : (dict, List)
+            If not None, apply the given graph of FFmpeg filters to each
+            ndimage. The graph is given as a tuple of two dicts. The first dict
+            contains a (named) set of nodes, and the second dict contains a set
+            of edges between nodes of the previous dict.Check the (module-level)
+            plugin docs for details and examples.
+
+        Yields
+        -------
+        frame : Optional[av.VideoFrame]
+            A frame that was filtered using the created filter or None if the
+            filter has lag and didn't send any frames yet.
+
+        """
+
         node_descriptors: Dict[str, Tuple[str, Union[str, Dict]]]
         edges: List[Tuple[str, str, int, int]]
+
+        # Nothing to do :)
+        if filter_sequence is None and filter_graph is None:
+            frame = yield
+
+            while frame is not None:
+                frame = yield frame
+
+            return
 
         if filter_sequence is None:
             filter_sequence = list()
@@ -689,7 +720,25 @@ class PyAVPlugin(PluginV3):
 
         graph.configure()
 
-        return graph
+        # this starts a co-routine
+        # send frames using graph.send()
+        frame = yield None
+
+        # send and receive frames in "parallel"
+        while frame is not None:
+            graph.push(frame)
+            try:
+                frame = yield graph.pull()
+            except av.error.BlockingIOError:
+                # filter has lag and needs more frames
+                frame = yield None
+
+        # all frames have been sent, empty the filter
+        while True:
+            try:
+                yield graph.pull()
+            except av.error.BlockingIOError:
+                break  # graph exhausted
 
     def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata.
@@ -812,9 +861,7 @@ class PyAVPlugin(PluginV3):
             self._container.seek(0)
             frames_to_yield = index
         else:
-            n_frames = self._video_stream.frames
-            duration = self._video_stream.duration
-            frame_delta = duration // n_frames
+            frame_delta = 1000 // self._video_stream.guessed_rate
             requested_index = frame_delta * index
 
             # this only seeks to the closed (preceeding) keyframe
