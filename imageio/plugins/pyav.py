@@ -425,22 +425,25 @@ class PyAVPlugin(PluginV3):
             )
             planes.append(np_plane)
 
-        # Note: the planes *should* exist inside a contigous memory block
-        # somewhere inside av.Frame however pyAV does not appear to expose this,
-        # so we are forced to copy the planes individually instead of wrapping
-        # them :(
-        # Note2: This may also be a good thing, because I don't know about pyAVs
-        # memory model, and it would be bad if it frees the pixel data that we
-        # would point to (if we could).
-        frame_data = np.concatenate(planes, out=out)
-        return frame_data.reshape(shape)
+        if len(planes) > 1:
+            # Note: the planes *should* exist inside a contigous memory block
+            # somewhere inside av.Frame however pyAV does not appear to expose this,
+            # so we are forced to copy the planes individually instead of wrapping
+            # them :(
+            out = np.concatenate(planes, out=out).reshape(shape)
+        elif out is not None:
+            out[:] = planes[0].ravel()
+        else:
+            out = planes[0]
+
+        return out
 
     def write(
         self,
         ndimage: Union[ArrayLike, List[ArrayLike]],
         *,
+        codec: str,
         is_batch: bool = True,
-        codec: str = None,
         fps: int = None,
         in_pixel_format: str = "rgb24",
         out_pixel_format: str = None,
@@ -456,12 +459,11 @@ class PyAVPlugin(PluginV3):
         ----------
         ndimage : ArrayLike, List[ArrayLike]
             The ndimage to encode and write to the current ImageResource.
+        codec : str
+            The codec to use when encoding frames.
         is_batch : bool
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
-        codec : str
-            The codec to use when encoding frames. If None (default) it is
-            chosen automatically based on the chosen container.
         fps : str
             The resulting videos frames per second. If None (default) let
             pyAV decide.
@@ -513,16 +515,28 @@ class PyAVPlugin(PluginV3):
         ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
         ffmpeg_filter.send(None)  # init
 
-        for img in ndimage:
-            pixel_format = av.VideoFormat(in_pixel_format)
-            img_dtype = _format_to_dtype(pixel_format)
+        pixel_format = av.VideoFormat(in_pixel_format)
+        img_dtype = _format_to_dtype(pixel_format)
+        width = ndimage.shape[3 if pixel_format.is_planar else 2]
+        height = ndimage.shape[2 if pixel_format.is_planar else 1]
 
+        frame = av.VideoFrame(width, height, in_pixel_format)
+        n_channels = [
+            sum(
+                [
+                    x.bits // (img_dtype.itemsize * 8)
+                    for x in frame.format.components
+                    if x.plane == idx
+                ]
+            )
+            for idx in range(len(frame.planes))
+        ]
+
+        for img in ndimage:
             # manual packing of ndarray into frame
             # (this should live in pyAV, but it doesn't support many formats
             # and PRs there are slow)
             if pixel_format.is_planar:
-                frame = av.VideoFrame(*img.shape[2:0:-1], in_pixel_format)
-
                 for idx, plane in enumerate(frame.planes):
                     plane_array = np.frombuffer(plane, dtype=img_dtype)
                     plane_array = as_strided(
@@ -532,7 +546,6 @@ class PyAVPlugin(PluginV3):
                     )
                     plane_array[...] = img[idx]
             else:
-                frame = av.VideoFrame(*img.shape[1::-1], in_pixel_format)
                 n_channels = len(pixel_format.components)
                 plane = frame.planes[0]
                 plane_array = np.frombuffer(plane, dtype=img_dtype)
@@ -547,15 +560,15 @@ class PyAVPlugin(PluginV3):
                 )
                 plane_array[...] = img
 
-            frame = ffmpeg_filter.send(frame)
-            if frame is None:
+            out_frame = ffmpeg_filter.send(frame)
+            if out_frame is None:
                 continue
 
-            for packet in stream.encode(frame):
+            for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
-        for frame in ffmpeg_filter:
-            for packet in stream.encode(frame):
+        for out_frame in ffmpeg_filter:
+            for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
@@ -569,7 +582,7 @@ class PyAVPlugin(PluginV3):
 
     def _init_write_stream(
         self,
-        codec: Optional[str],
+        codec: str,
         fps: Optional[int],
         shape: Tuple[int, ...],
         in_pixel_format: Optional[str],
@@ -580,7 +593,7 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         codec : str
-            The codec to use. Can be None, in which case a codec is selected automagically.
+            The codec to use.
         fps : str
             The resulting videos frames per second. If None (default) let
             pyAV decide.
@@ -594,40 +607,7 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        if codec is not None:
-            stream = self._container.add_stream(codec)
-        else:
-            # TODO: once/if av_guess_codec is exposed use this instead
-            # TODO: alternatively, once the default codec for a container
-            # is exposed, use that one instead.
-            codecs = ["libx264", "mpeg4", *av.codecs_available]
-            for x in codecs:
-                try:
-                    codec = av.Codec(x, "w")
-                except UnknownCodecError:
-                    continue  # codec known but not installed
-
-                if codec.type != "video":
-                    continue
-
-                if out_pixel_format is not None:
-                    for supported_format in codec.video_formats:
-                        if out_pixel_format == supported_format:
-                            break
-                    else:
-                        continue
-
-                try:
-                    stream = self._container.add_stream(codec, rate=fps)
-                except ValueError:
-                    continue  # Unsupported Format
-
-                break
-            else:
-                raise ValueError(
-                    "Failed to automatically choose a codec. Set `codec` explicitly."
-                )
-
+        stream = self._container.add_stream(codec, fps)
         px_format = av.VideoFormat(in_pixel_format)
         stream.width = shape[3 if px_format.is_planar else 2]
         stream.height = shape[2 if px_format.is_planar else 1]

@@ -76,7 +76,7 @@ def test_mp4_writing(tmp_path, video_array):
         for packet in stream.encode():
             container.mux(packet)
 
-    iio.v3.imwrite(tmp_path / "foo.mp4", video_array, plugin="pyav")
+    iio.v3.imwrite(tmp_path / "foo.mp4", video_array, plugin="pyav", codec="libx264")
 
     expected = Path(tmp_path / "expected.mp4").read_bytes()
     result = Path(tmp_path / "foo.mp4").read_bytes()
@@ -171,7 +171,12 @@ def test_write_bytes(test_images):
         ],
     )
     img_bytes = iio.v3.imwrite(
-        "<bytes>", img, format_hint=".mp4", plugin="pyav", in_pixel_format="yuv444p"
+        "<bytes>",
+        img,
+        format_hint=".mp4",
+        plugin="pyav",
+        in_pixel_format="yuv444p",
+        codec="libx264",
     )
 
     assert img_bytes is not None
