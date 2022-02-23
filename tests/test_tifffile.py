@@ -176,16 +176,16 @@ def test_invalid_resolution_metadata(tmp_path, resolution):
     # Overwrite low level metadata the exact way we want it
     # to avoid any re-interpretation of the metadata by imageio
     # For example, it seems that (0, 0) gets rewritten as (0, 1)
-    with tifffile.TiffFile(tif_path, mode='r+b') as tif:
+    with tifffile.TiffFile(tif_path, mode="r+b") as tif:
         tags = tif.pages[0].tags
-        tags['XResolution'].overwrite(resolution)
-        tags['YResolution'].overwrite(resolution)
+        tags["XResolution"].overwrite(resolution)
+        tags["YResolution"].overwrite(resolution)
 
     # Validate with low level library that the invalid metadata is written
-    with tifffile.TiffFile(tif_path, mode='rb') as tif:
+    with tifffile.TiffFile(tif_path, mode="rb") as tif:
         tags = tif.pages[0].tags
-        assert tags['XResolution'].value == resolution
-        assert tags['YResolution'].value == resolution
+        assert tags["XResolution"].value == resolution
+        assert tags["YResolution"].value == resolution
 
     read_image = iio.imread(tmp_path / "test.tif")
 
