@@ -218,7 +218,7 @@ setup(
     long_description=long_description.replace("__doc__", __doc__),
     platforms="any",
     provides=["imageio"],
-    python_requires=">=3.5",
+    python_requires=">=3.7",
     install_requires=install_requires,
     extras_require=extras_require,
     packages=["imageio", "imageio.core", "imageio.plugins", "imageio.config"],
