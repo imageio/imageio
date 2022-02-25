@@ -14,7 +14,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import av
 import av.filter
 import numpy as np
-from av.codec.codec import UnknownCodecError
 from numpy.typing import ArrayLike
 from numpy.lib.stride_tricks import as_strided
 
@@ -103,14 +102,15 @@ class PyAVPlugin(PluginV3):
         standard interface to access various the various ImageResources and
         serves them to the plugin as a file object (or file). Check the docs for
         details.
-    container_format: str
-        The container format to use when writing the video. If None (default)
-        this is chosen based on the request if possible. This only affects
-        writing.
 
     """
 
-    def __init__(self, request: Request, *, container_format: str = None) -> None:
+    def __init__(
+        self,
+        request: Request,
+        *,
+        container: str = None,
+    ) -> None:
         """Initialize a new Plugin Instance.
 
         See Plugin's docstring for detailed documentation.
@@ -140,31 +140,26 @@ class PyAVPlugin(PluginV3):
                     msg = f"PyAV does not support `{request.raw_uri}`"
                 raise InitializationError(msg)
         else:
-            file_handle = request.get_file()
+            file_handle = self.request.get_file()
+            filename = getattr(file_handle, "name", None)
+            extension = self.request.extension or self.request.format_hint
+            if extension is None:
+                raise InitializationError("Can't determine output container to use.")
 
-            # this assumes a certain implementation of av.open, but beats
-            # running our own format selection logic (since av_guess_format is
-            # not exposed)
-            if container_format is None and (
-                not hasattr(file_handle, "name") or file_handle.name is None
-            ):
-                extension = self.request.extension or self.request.format_hint
-                if extension is not None:
-                    setattr(file_handle, "name", "tmp" + extension)
+            # hacky, but beats running our own format selection logic
+            # (since av_guess_format is not exposed)
+            try:
+                setattr(file_handle, "name", filename or "tmp" + extension)
+            except AttributeError:
+                pass  # read-only, nothing we can do
 
             try:
-                self._container = av.open(
-                    file_handle, mode="w", format=container_format
-                )
-            except ValueError:
-                if container_format is not None:
-                    raise InitializationError(
-                        "Could not find a suitable container for "
-                        f"extension `.{extension}`. Set `container` explicitly."
-                    ) from None
+                self._container = av.open(file_handle, mode="w", format=container)
             except av.AVError:
                 resource = (
-                    "<bytes>" if isinstance(request.raw_uri, bytes) else request.raw_uri
+                    "<bytes>"
+                    if isinstance(self.request.raw_uri, bytes)
+                    else self.request.raw_uri
                 )
                 raise InitializationError(f"PyAV can not write to `{resource}`")
 
@@ -250,9 +245,8 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        constant_framerate = (
-            constant_framerate or not self._container.format.variable_fps
-        )
+        if constant_framerate is None:
+            constant_framerate = self._container.format.variable_fps
 
         if index is None:
             self._container.seek(0)
@@ -414,14 +408,16 @@ class PyAVPlugin(PluginV3):
                 ]
             )
             av_plane = byte_aligned.planes[idx]
+            plane_shape = (av_plane.height, av_plane.width)
+            plane_strides = (av_plane.line_size, n_channels * dtype.itemsize)
+            if n_channels > 1:
+                plane_shape += (n_channels,)
+                plane_strides += (dtype.itemsize,)
+
             np_plane = as_strided(
                 np.frombuffer(av_plane, dtype=dtype),
-                shape=(av_plane.height, av_plane.width, n_channels),
-                strides=(
-                    av_plane.line_size,
-                    n_channels * dtype.itemsize,
-                    dtype.itemsize,
-                ),
+                shape=plane_shape,
+                strides=plane_strides,
             )
             planes.append(np_plane)
 
@@ -461,6 +457,10 @@ class PyAVPlugin(PluginV3):
             The ndimage to encode and write to the current ImageResource.
         codec : str
             The codec to use when encoding frames.
+        container_format: str
+            The container format to use when writing the video. If None (default)
+            this is chosen based on the request if possible. This only affects
+            writing.
         is_batch : bool
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
@@ -548,21 +548,25 @@ class PyAVPlugin(PluginV3):
             else:
                 n_channels = len(pixel_format.components)
                 plane = frame.planes[0]
-                plane_array = np.frombuffer(plane, dtype=img_dtype)
+
+                plane_shape = (plane.height, plane.width)
+                plane_strides = (plane.line_size, n_channels * img_dtype.itemsize)
+                if n_channels > 1:
+                    plane_shape += (n_channels,)
+                    plane_strides += (img_dtype.itemsize,)
+
                 plane_array = as_strided(
-                    plane_array,
-                    shape=(plane.height, plane.width, n_channels),
-                    strides=(
-                        plane.line_size,
-                        n_channels * img_dtype.itemsize,
-                        img_dtype.itemsize,
-                    ),
+                    np.frombuffer(plane, dtype=img_dtype),
+                    shape=plane_shape,
+                    strides=plane_strides,
                 )
                 plane_array[...] = img
 
             out_frame = ffmpeg_filter.send(frame)
             if out_frame is None:
                 continue
+
+            out_frame = out_frame.reformat(format=out_pixel_format)
 
             for packet in stream.encode(out_frame):
                 self._container.mux(packet)
@@ -577,6 +581,7 @@ class PyAVPlugin(PluginV3):
             for packet in self._video_stream.encode():
                 self._container.mux(packet)
             self._video_stream = None
+            self._container.close()
 
             return self.request.get_file().getvalue()
 
@@ -720,7 +725,7 @@ class PyAVPlugin(PluginV3):
             except av.error.BlockingIOError:
                 break  # graph exhausted
 
-    def properties(self, index: int = None) -> ImageProperties:
+    def properties(self, index: int = 0, *, format: str = None) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
@@ -730,6 +735,10 @@ class PyAVPlugin(PluginV3):
             index is out of bounds a ``ValueError`` is raised. If ``None``,
             return the properties for the ndimage stack. If this is impossible,
             e.g., due to shape missmatch, an exception will be raised.
+        format : str
+            If not None, convert the data into the given format before returning
+            it. If None (default) return the data in the encoded format if it
+            can be expressed as a strided array; otherwise raise an Exception.
 
         Returns
         -------
@@ -744,29 +753,53 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        width = self._video_stream.codec_context.width
-        height = self._video_stream.codec_context.height
-        pix_format = self._video_stream.codec_context.pix_fmt
-        video_format = av.VideoFormat(pix_format)
+        video_width = self._video_stream.codec_context.width
+        video_height = self._video_stream.codec_context.height
+        pix_format = format or self._video_stream.codec_context.pix_fmt
+        frame_context = av.VideoFrame(video_width, video_height, pix_format)
 
-        shape = [height, width]
+        video_format = frame_context.format
+        subsampling_y = [
+            video_height // component.height for component in video_format.components
+        ]
+        subsampling_x = [
+            video_width // component.width for component in video_format.components
+        ]
+        if max(subsampling_x) > 1 or max(subsampling_y) > 1:
+            raise IOError(
+                f"The ImageResource uses pixel-format `{pix_format}`,"
+                " but this can't be converted into a stridable array."
+            )
 
-        # TODO: make this more sophisticated, once we roll our own YUV unpacking
-        # (the pyAV one is limted to YUV444)
-        n_channels = len(video_format.components)
+        n_planes = max([component.plane for component in video_format.components]) + 1
+        channels_per_plane = [0] * n_planes
+        for component in video_format.components:
+            channels_per_plane[component.plane] += 1
+        n_channels = max(channels_per_plane)
+
+        if channels_per_plane[:-1] != channels_per_plane[1:]:
+            raise IOError(
+                f"The ImageResource uses pixel-format `{pix_format}`,"
+                " but this can't be converted into a stridable array."
+            )
+
+        shape = [video_height, video_width]
+
+        if n_planes > 1:
+            shape = [n_planes] + shape
+
         if n_channels > 1:
-            # Note: this will cause problems for NV formats
-            # but pyav doesn't support them yet
-            if video_format.is_planar:
-                shape = [len(video_format.components)] + shape
-            else:
-                shape += [len(video_format.components)]
+            shape = shape + [n_channels]
 
         if index is None:
             n_frames = self._video_stream.frames
             shape = [n_frames] + shape
 
-        return ImageProperties(shape=tuple(shape), dtype=_format_to_dtype(video_format))
+        return ImageProperties(
+            shape=tuple(shape),
+            dtype=_format_to_dtype(video_format),
+            is_batch=True if index is None else False,
+        )
 
     def metadata(
         self,
