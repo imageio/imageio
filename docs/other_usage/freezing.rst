@@ -26,4 +26,4 @@ extra steps to include necessary binaries_.
 
 .. _PyInstaller: https://pyinstaller.readthedocs.io/en/stable/
 
-.. _binary: https://pyinstaller.readthedocs.io/en/stable/usage.html#cmdoption-add-binary
+.. _binaries: https://pyinstaller.readthedocs.io/en/stable/usage.html#cmdoption-add-binary
