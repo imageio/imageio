@@ -9,3 +9,4 @@ Other Usage
   Environment Variables <envvariables>
   Transitioning from Scipy <scipy>
   Depreciating Python 2.7 <drop27>
+  Freezing ImageIO <freezing>
