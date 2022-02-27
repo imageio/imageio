@@ -187,7 +187,8 @@ def test_invalid_resolution_metadata(tmp_path, resolution):
         assert tags["XResolution"].value == resolution
         assert tags["YResolution"].value == resolution
 
-    read_image = iio.imread(tmp_path / "test.tif")
+    with pytest.warns(RuntimeWarning):
+        read_image = iio.imread(tmp_path / "test.tif")
 
     assert "resolution" not in read_image.meta
 
