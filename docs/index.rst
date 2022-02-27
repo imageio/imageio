@@ -9,7 +9,7 @@ Contents:
 .. toctree::
   :maxdepth: 2
   
-  Getting Started <getting_started/index>
+  User Guide <user_guide/index>
   Examples <examples>
   Supported Formats <formats/index>
   API Reference <reference/index>

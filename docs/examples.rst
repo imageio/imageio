@@ -4,7 +4,7 @@ Imageio Usage Examples
 Some of these examples use Visvis to visualize the image data,
 but one can also use Matplotlib to show the images.
 
-Imageio provides a range of :doc:`example images <getting_started/standardimages>`,
+Imageio provides a range of :doc:`example images <user_guide/standardimages>`,
 which can be used by using a URI like ``'imageio:chelsea.png'``. The images
 are automatically downloaded if not already present on your system.
 Therefore most examples below should just work.
