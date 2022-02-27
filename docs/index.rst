@@ -10,7 +10,6 @@ Contents:
   :maxdepth: 2
   
   User Guide <user_guide/index>
-  Other Usage <other_usage/index>
   Examples <examples>
   Supported Formats <formats/index>
   API Reference <reference/index>
