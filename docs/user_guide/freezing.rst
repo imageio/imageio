@@ -7,9 +7,11 @@ because plugins are lazy-loaded upon first use for better platform support and
 reduced loading times. This lazy-loading is an interesting case as (1) these
 plugins are exactly the kind of thing that PyInstaller_ tries desperately to
 avoid collecting to minimize package size and (2) these plugins are - by
-themself- super lightweight and won't bloat the package. 
+themself - super lightweight and won't bloat the package. 
 
-To add plugins to the application your first option is to add all of imageio to your package, which will also include the plugins. This can be done by using a command-line switch when calling pyinstaller that will gather all plugins:
+To add plugins to the application your first option is to add all of imageio to
+your package, which will also include the plugins. This can be done by using a
+command-line switch when calling pyinstaller that will gather all plugins:
 
 .. code-block::
 
