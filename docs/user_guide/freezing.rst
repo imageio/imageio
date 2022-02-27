@@ -1,28 +1,32 @@
 Freezing ImageIO
-=======================
+================
 
-ImageIO has wide-ranging platform support, and to achieve this we now lazy-load
-plugins. Most users only use a few plugins (1 or 2), so lazy-loading helps
-mitigate a combinatoric explosion of interactions. ImageIO's lazy loading is an
-interesting case as (1) these plugins are exactly the kind of thing that
-PyInstaller_ tries desperately to avoid collecting to minimize package size and
-(2) these plugins are super lightweight and won't bloat the package. 
+When freezing ImageIO you need to make sure that you are collecting the plugins
+you need in addition to the core library. This will not happen automagically,
+because plugins are lazy-loaded upon first use for better platform support and
+reduced loading times. This lazy-loading is an interesting case as (1) these
+plugins are exactly the kind of thing that PyInstaller_ tries desperately to
+avoid collecting to minimize package size and (2) these plugins are - by
+themself- super lightweight and won't bloat the package. 
 
-A simple workaround that is to add a command line switch when calling
-pyinstaller that will gather all plugins:
+To add plugins to the application your first option is to add all of imageio to your package, which will also include the plugins. This can be done by using a command-line switch when calling pyinstaller that will gather all plugins:
 
 .. code-block::
 
   pyinstaller --collect-submodules imageio <entry_script.py>
 
-Alternatively, if you really want to limit the plugins used:
+Alternatively, if you want to limit the plugins used, you can include them
+individually using ``--hidden-import``:
 
 .. code-block::
 
   pyinstaller --hidden-import imageio.plugins.<plugin> <entry_script.py>
 
-Plugins that make use of external programs (like ffmpeg) will need to take
-extra steps to include necessary binaries_.
+In addition, some plugins (e.g., ffmpeg) make use of external programs, and for
+these, you will need to take extra steps to also include necessary binaries_. If
+you can't make it work, feel free to submit a `new issue
+<https://github.com/imageio/imageio/issues>`_, so that we can see how to improve
+this documentation further.
 
 .. _PyInstaller: https://pyinstaller.readthedocs.io/en/stable/
 
