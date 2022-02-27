@@ -466,16 +466,10 @@ class TiffFormat(Format):
             if 282 in page.tags and 283 in page.tags and 296 in page.tags:
                 resolution_x = page.tags[282].value
                 resolution_y = page.tags[283].value
-                if resolution_x[1] == 0:
+                if resolution_x[1] == 0 or resolution_y[1] == 0:
                     warnings.warn(
                         "Ignoring resulution metadata, "
-                        "because the x-direction has 0 denominator.",
-                        RuntimeWarning,
-                    )
-                elif resolution_y[1] == 0:
-                    warnings.warn(
-                        "Ignoring resulution metadata, "
-                        "because the y-direction has 0 denominator.",
+                        "because at least one direction has a 0 denominator.",
                         RuntimeWarning,
                     )
                 else:
