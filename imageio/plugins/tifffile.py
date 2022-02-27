@@ -169,6 +169,7 @@ from ..core import Format
 from ..core.request import URI_BYTES, URI_FILE
 
 import numpy as np
+import warnings
 
 
 try:
@@ -465,12 +466,18 @@ class TiffFormat(Format):
             if 282 in page.tags and 283 in page.tags and 296 in page.tags:
                 resolution_x = page.tags[282].value
                 resolution_y = page.tags[283].value
-
-                meta["resolution"] = (
-                    resolution_x[0] / resolution_x[1],
-                    resolution_y[0] / resolution_y[1],
-                    page.tags[296].value.name,
-                )
+                if resolution_x[1] == 0 or resolution_y[1] == 0:
+                    warnings.warn(
+                        "Ignoring resulution metadata, "
+                        "because at least one direction has a 0 denominator.",
+                        RuntimeWarning,
+                    )
+                else:
+                    meta["resolution"] = (
+                        resolution_x[0] / resolution_x[1],
+                        resolution_y[0] / resolution_y[1],
+                        page.tags[296].value.name,
+                    )
 
             return meta
 

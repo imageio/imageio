@@ -144,6 +144,8 @@ def test_imagej_hyperstack(tmp_path):
 @pytest.mark.parametrize(
     "dpi,expected_resolution",
     [
+        ((0, 1), (0, 1, "INCH")),
+        ((0, 12), (0, 12, "INCH")),
         ((100, 200), (100, 200, "INCH")),
         ((0.5, 0.5), (0.5, 0.5, "INCH")),
         (((1, 3), (1, 3)), (1 / 3, 1 / 3, "INCH")),
@@ -160,6 +162,35 @@ def test_resolution_metadata(tmp_path, dpi, expected_resolution):
 
     assert read_image.meta["resolution"] == expected_resolution
     assert read_image.meta["resolution_unit"] == 2
+
+
+@pytest.mark.parametrize("resolution", [(1, 0), (0, 0)])
+def test_invalid_resolution_metadata(tmp_path, resolution):
+    data = np.zeros((200, 100), dtype=np.uint8)
+
+    tif_path = tmp_path / "test.tif"
+
+    writer = imageio.get_writer(tif_path)
+    writer.append_data(data)
+    writer.close()
+    # Overwrite low level metadata the exact way we want it
+    # to avoid any re-interpretation of the metadata by imageio
+    # For example, it seems that (0, 0) gets rewritten as (0, 1)
+    with tifffile.TiffFile(tif_path, mode="r+b") as tif:
+        tags = tif.pages[0].tags
+        tags["XResolution"].overwrite(resolution)
+        tags["YResolution"].overwrite(resolution)
+
+    # Validate with low level library that the invalid metadata is written
+    with tifffile.TiffFile(tif_path, mode="rb") as tif:
+        tags = tif.pages[0].tags
+        assert tags["XResolution"].value == resolution
+        assert tags["YResolution"].value == resolution
+
+    with pytest.warns(RuntimeWarning):
+        read_image = iio.imread(tmp_path / "test.tif")
+
+    assert "resolution" not in read_image.meta
 
 
 def test_read_bytes(tmp_path):
