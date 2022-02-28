@@ -2,6 +2,7 @@ import pytest
 from pathlib import Path
 import imageio.v3 as iio
 import numpy as np
+import io
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
@@ -33,21 +34,13 @@ def test_mp4_read(test_images: Path):
     np.allclose(result, expected)
 
 
-def test_realshort(test_images: Path):
-    iio.imread(test_images / "realshort.mp4", index=10, plugin="pyav", format="yuv444p")
-    print("")
-
-
 def test_mp4_writing(tmp_path, test_images):
-    # shamelessly based on the pyav example
-
     frames = iio.imread(test_images / "newtonscradle.gif", index=None)
 
     with av.open(str(tmp_path / "expected.mp4"), mode="w") as container:
-        stream = container.add_stream("libx264", rate=24)
-        stream.width = 200
-        stream.height = 150
-        stream.pix_fmt = "yuv420p"
+        stream = container.add_stream("libx264", rate=None)
+        stream.width = frames.shape[2]
+        stream.height = frames.shape[1]
 
         for frame in frames:
             av_frame = av.VideoFrame.from_ndarray(frame, format="rgb24")
@@ -63,10 +56,10 @@ def test_mp4_writing(tmp_path, test_images):
         format_hint=".mp4",
         plugin="pyav",
         codec="libx264",
-        out_pixel_format="yuv420p",
     )
 
     expected = Path(tmp_path / "expected.mp4").read_bytes()
+    # actual = Path(tmp_path / "actual.mp4").read_bytes()
     assert expected == mp4_bytes
 
 
@@ -146,10 +139,11 @@ def test_filter_sequence(test_images):
         filter_sequence=[
             ("drawgrid", "w=iw/3:h=ih/3:t=2:c=white@0.5"),
             ("scale", {"size": "vga", "flags": "lanczos"}),
+            ("tpad", "start=3"),
         ],
     )
 
-    assert frames.shape == (280, 3, 480, 640)
+    assert frames.shape == (283, 3, 480, 640)
 
 
 def test_filter_sequence2(test_images):
@@ -166,7 +160,7 @@ def test_filter_sequence2(test_images):
     assert frames.shape == (56, 3, 480, 640)
 
 
-def test_write_bytes(test_images):
+def test_write_bytes(test_images, tmp_path):
     img = iio.imread(
         test_images / "cockatoo.mp4",
         index=None,
@@ -185,7 +179,17 @@ def test_write_bytes(test_images):
         codec="libx264",
     )
 
+    iio.imwrite(
+        tmp_path / "foo.mp4",
+        img,
+        plugin="pyav",
+        in_pixel_format="yuv444p",
+        codec="libx264",
+    )
+    expected = Path(tmp_path / "foo.mp4").read_bytes()
+
     assert img_bytes is not None
+    assert img_bytes == expected
 
 
 def test_read_png(test_images):
@@ -209,9 +213,13 @@ def test_gif_write(test_images, tmp_path):
     frames_expected = iio.imread(
         test_images / "newtonscradle.gif", plugin="pyav", index=None, format="gray"
     )
+
+    # touch the codepath that creates a video from a list of frames
+    frame_list = list(frames_expected)
+
     iio.imwrite(
         tmp_path / "test.gif",
-        frames_expected,
+        frame_list,
         plugin="pyav",
         codec="gif",
         out_pixel_format="gray",
@@ -274,6 +282,32 @@ def test_variable_fps_seek(test_images):
     )
 
     assert np.allclose(actual, expected)
+
+
+def test_multiple_writes(test_images, tmp_path):
+    frames = iio.imread(test_images / "newtonscradle.gif", index=None, plugin="pyav")
+
+    expected = iio.imwrite(
+        "<bytes>",
+        frames,
+        format_hint=".mp4",
+        plugin="pyav",
+        codec="libx264",
+        in_pixel_format="rgba",
+        filter_sequence=[("tpad", "start=3")],
+    )
+
+    out_buffer = io.BytesIO()
+    with iio.imopen(out_buffer, "w", plugin="pyav", format_hint=".mp4") as file:
+        for frame in iio.imiter(
+            test_images / "newtonscradle.gif",
+            plugin="pyav",
+            filter_sequence=[("tpad", "start=3")],
+        ):
+            file.write(frame, is_batch=False, codec="libx264", in_pixel_format="rgba")
+
+    actual = out_buffer.getvalue()
+    assert expected == actual
 
 
 # def test_shape_from_frame():
