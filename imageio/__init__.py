@@ -16,7 +16,7 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.16.0"
+__version__ = "2.16.1"
 
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES

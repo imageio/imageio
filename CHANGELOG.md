@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.16.1 (2022-02-28)
+### Fix
+* Ignore TIFF ``XResolution`` or ``YResolution`` with 0 in the denominator. ([#753](https://github.com/imageio/imageio/issues/753)) ([`6b44a1b`](https://github.com/imageio/imageio/commit/6b44a1beb6db73eb53372debf99bb2e24450546f))
+
+### Other
+* Add section on freezing ([#759](https://github.com/imageio/imageio/issues/759)) ([`7699e32`](https://github.com/imageio/imageio/commit/7699e32cee4f48bebdd8ace6a24c05b03ce75eec))
+* Update "python_requires" to 3.7+ ([#757](https://github.com/imageio/imageio/issues/757)) ([`f80f068`](https://github.com/imageio/imageio/commit/f80f068329123fc3c164c522391969ac8eeb0dd4))
+
 ## v2.16.0 (2022-02-14)
 ### Fix
 * Read metadata of current frame when iterating + APNG fast path ([#750](https://github.com/imageio/imageio/issues/750)) ([`87f290a`](https://github.com/imageio/imageio/commit/87f290a074cbb4e856d6c68e7f0ddb2c9ca904cc))
