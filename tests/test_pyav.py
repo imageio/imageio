@@ -294,7 +294,6 @@ def test_multiple_writes(test_images, tmp_path):
         plugin="pyav",
         codec="libx264",
         in_pixel_format="rgba",
-        filter_sequence=[("tpad", "start=3")],
     )
 
     out_buffer = io.BytesIO()
@@ -302,7 +301,6 @@ def test_multiple_writes(test_images, tmp_path):
         for frame in iio.imiter(
             test_images / "newtonscradle.gif",
             plugin="pyav",
-            filter_sequence=[("tpad", "start=3")],
         ):
             file.write(frame, is_batch=False, codec="libx264", in_pixel_format="rgba")
 
