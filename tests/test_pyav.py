@@ -273,8 +273,6 @@ def test_variable_fps_seek(test_images):
 
 
 def test_multiple_writes(test_images, tmp_path):
-    frames = iio.imread(test_images / "newtonscradle.gif", index=None, plugin="pyav")
-
     out_buffer = io.BytesIO()
     with iio.imopen(out_buffer, "w", plugin="pyav", format_hint=".mp4") as file:
         for frame in iio.imiter(
