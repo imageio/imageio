@@ -365,41 +365,11 @@ class PyAVPlugin(PluginV3):
         if format is not None:
             frame = frame.reformat(format=format)
 
-        # byte-align channel components if necessary (by promoting the type)
-        if frame.format in ["monow", "monob"]:
-            byte_aligned = frame.reformat(format="gray")
-        elif frame.format in [
-            "rgb4",
-            "rgb4_byte",
-            "rgb8",
-            "rgb444le",
-            "rgb555le",
-            "rgb565le",
-            "rgb444be",
-            "rgb555be",
-            "rgb565be",
-        ]:
-            byte_aligned = frame.reformat(format="rgb24")
-        elif frame.format in [
-            "bgr4",
-            "bgr4_byte",
-            "bgr8",
-            "bgr444le",
-            "bgr555le",
-            "bgr565le",
-            "bgr444be",
-            "bgr555be",
-            "bgr565be",
-        ]:
-            byte_aligned = frame.reformat(format="bgr24")
-        else:
-            byte_aligned = frame
-
         dtype = _format_to_dtype(frame.format)
         shape = _get_frame_shape(frame)
 
         planes = list()
-        for idx in range(len(byte_aligned.planes)):
+        for idx in range(len(frame.planes)):
             n_channels = sum(
                 [
                     x.bits // (dtype.itemsize * 8)
@@ -407,7 +377,7 @@ class PyAVPlugin(PluginV3):
                     if x.plane == idx
                 ]
             )
-            av_plane = byte_aligned.planes[idx]
+            av_plane = frame.planes[idx]
             plane_shape = (av_plane.height, av_plane.width)
             plane_strides = (av_plane.line_size, n_channels * dtype.itemsize)
             if n_channels > 1:
