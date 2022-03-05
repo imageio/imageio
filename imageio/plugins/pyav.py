@@ -346,9 +346,7 @@ class PyAVPlugin(PluginV3):
         for frame in ffmpeg_filter:
             yield self._unpack_frame(frame, format=format)
 
-    def _unpack_frame(
-        self, frame: av.VideoFrame, *, format: str = None, out: np.ndarray = None
-    ) -> np.ndarray:
+    def _unpack_frame(self, frame: av.VideoFrame, *, format: str = None) -> np.ndarray:
         """Convert a av.VideoFrame into a ndarray
 
         Parameters
@@ -357,9 +355,7 @@ class PyAVPlugin(PluginV3):
             The frame to unpack.
         format : str
             If not None, convert the frame to the given format before unpacking.
-        out : np.ndarray
-            If not None, the destination to place the result into. It is assumed
-            that the buffer is of the correct size.
+
         """
 
         if format is not None:
@@ -396,9 +392,7 @@ class PyAVPlugin(PluginV3):
             # somewhere inside av.Frame however pyAV does not appear to expose this,
             # so we are forced to copy the planes individually instead of wrapping
             # them :(
-            out = np.concatenate(planes, out=out).reshape(shape)
-        elif out is not None:
-            out[:] = planes[0].ravel()
+            out = np.concatenate(planes).reshape(shape)
         else:
             out = planes[0]
 
@@ -465,6 +459,8 @@ class PyAVPlugin(PluginV3):
         -----
         Leaving FPS at None typically results in 24 FPS, since this is the
         currently hardcoded default inside pyAV.
+
+        Writing currently only supports filters that don't introduce delay.
 
         """
 
@@ -533,17 +529,17 @@ class PyAVPlugin(PluginV3):
                 plane_array[...] = img
 
             out_frame = ffmpeg_filter.send(frame)
-            if out_frame is None:
-                continue
+            # if out_frame is None:
+            #     continue
 
             out_frame = out_frame.reformat(format=out_pixel_format)
 
             for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
-        for out_frame in ffmpeg_filter:
-            for packet in stream.encode(out_frame):
-                self._container.mux(packet)
+        # for out_frame in ffmpeg_filter:
+        #     for packet in stream.encode(out_frame):
+        #         self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
