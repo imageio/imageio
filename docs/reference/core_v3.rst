@@ -19,7 +19,7 @@ API Overview
 ------------
 
 .. autosummary::
-    :toctree: _core_v3/
+    :toctree: ../_autosummary/
 
     imageio.v3.imread
     imageio.v3.imwrite
@@ -51,7 +51,7 @@ corresponding function::
 
     # (Check the examples section for many more examples.)
 
-Both functions accept any :doc:`ImageResource <../getting_started/requests>` as
+Both functions accept any :doc:`ImageResource <../user_guide/requests>` as
 their first argument, which means you can read/write almost anything image
 related; from simple JPGs through ImageJ hyperstacks to MP4 video or RAW formats.
 Check the :doc:`Supported Formats <../formats/index>` docs for a list of all formats
