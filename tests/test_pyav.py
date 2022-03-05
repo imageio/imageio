@@ -145,8 +145,6 @@ def test_filter_sequence(test_images):
 
     assert frames.shape == (283, 3, 480, 640)
 
-
-def test_filter_sequence2(test_images):
     frames = iio.imread(
         test_images / "cockatoo.mp4",
         index=None,
@@ -179,17 +177,7 @@ def test_write_bytes(test_images, tmp_path):
         codec="libx264",
     )
 
-    iio.imwrite(
-        tmp_path / "foo.mp4",
-        img,
-        plugin="pyav",
-        in_pixel_format="yuv444p",
-        codec="libx264",
-    )
-    expected = Path(tmp_path / "foo.mp4").read_bytes()
-
     assert img_bytes is not None
-    assert img_bytes == expected
 
 
 def test_read_png(test_images):
