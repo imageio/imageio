@@ -308,6 +308,19 @@ def test_multiple_writes(test_images, tmp_path):
     assert expected == actual
 
 
+def test_exceptions(tmp_path):
+    with pytest.raises(IOError):
+        iio.imopen(io.BytesIO(), "w", plugin="pyav", legacy_mode=False)
+
+    with pytest.raises(IOError):
+        iio.imopen(b"nonsense", "r", plugin="pyav", legacy_mode=False)
+
+    foo_file = tmp_path / "faulty.mp4"
+    foo_file.write_bytes(b"nonsense")
+    with pytest.raises(IOError):
+        iio.imopen(foo_file, "r", plugin="pyav", legacy_mode=False)
+
+
 # def test_shape_from_frame():
 #     fake_formats = [
 #         "vdpau",
