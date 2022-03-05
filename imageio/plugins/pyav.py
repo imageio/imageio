@@ -42,14 +42,18 @@ def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
 def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     """Compute the frame's array shape
 
+    Parameters
+    ----------
+    frame : av.VideoFrame
+        A frame for which the resulting shape should be computed.
+
+    Returns
+    -------
+    shape : Tuple[int, ...]
+        A tuple describing the shape of the image data in the frame.
+
     Notes
     -----
-
-    I can't work out how to express some of the formats as strided arrays.
-    For these, an exception will be raised upstream. This affects the following
-    formats: nv21, yuv420p. Videos in these formats can still be read, but
-    you will have to explicitly specify a stridable format to convert into, e.g.
-    rgb24 or YUV444p
 
     This function assumes that channel components will be byte-aligned upstream
     if necessary. This applies to the formats monow, monob, rgb4, and rgb8.
@@ -57,39 +61,35 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
 
     """
 
-    widths = tuple(x.width for x in frame.format.components)
-    heights = tuple(x.height for x in frame.format.components)
-    shape = [min(heights), min(widths)]
+    widths = [component.width for component in frame.format.components]
+    heights = [component.height for component in frame.format.components]
+    bits = np.array([component.bits for component in frame.format.components])
+    line_sizes = [plane.line_size for plane in frame.planes]
 
-    if len(frame.format.components) == 0:
-        # fake format
-        raise ValueError(
-            f"Can't determine shape for format `{frame.format.name}`. It has no channels."
-        )
-
-    # compute distribution of macropixel components per plane
-    # (YUV can be strided on a marcopixel level [at least the channel-last variants])
-    components_per_plane = [0] * len(frame.planes)
-    for component in frame.format.components:
-        components_per_plane[component.plane] += (component.width // min(widths)) * (
-            component.height // min(heights)
-        )
-
-    if not components_per_plane[:-1] == components_per_plane[1:]:
+    subsampled_width = widths[:-1] != widths[1:]
+    subsampled_height = heights[:-1] != heights[1:]
+    unaligned_components = np.any(bits % 8 != 0) or (line_sizes[:-1] != line_sizes[1:])
+    if subsampled_width or subsampled_height or unaligned_components:
         raise IOError(
-            f"Can not express pixel format `{frame.format.name}` as strided array."
-            " Set `format=` explicitly and use a stridable format."
+            f"{frame.format.name} can't be expressed as a strided array."
+            "Use `format=` to select a format to convert into."
         )
 
-    components = components_per_plane[0]
+    shape = [frame.height, frame.width]
 
-    if frame.format.is_planar:
-        shape = [len(frame.planes)] + shape
+    n_planes = max([component.plane for component in frame.format.components]) + 1
+    if n_planes > 1:
+        shape = [n_planes] + shape
 
-    if components > 1:
-        shape = shape + [components]
+    channels_per_plane = [0] * n_planes
+    for component in frame.format.components:
+        channels_per_plane[component.plane] += 1
+    n_channels = max(channels_per_plane)
 
-    return shape
+    if n_channels > 1:
+        shape = shape + [n_channels]
+
+    return tuple(shape)
 
 
 class PyAVPlugin(PluginV3):
@@ -756,48 +756,16 @@ class PyAVPlugin(PluginV3):
         video_width = self._video_stream.codec_context.width
         video_height = self._video_stream.codec_context.height
         pix_format = format or self._video_stream.codec_context.pix_fmt
-        frame_context = av.VideoFrame(video_width, video_height, pix_format)
+        frame_template = av.VideoFrame(video_width, video_height, pix_format)
 
-        video_format = frame_context.format
-        subsampling_y = [
-            video_height // component.height for component in video_format.components
-        ]
-        subsampling_x = [
-            video_width // component.width for component in video_format.components
-        ]
-        if max(subsampling_x) > 1 or max(subsampling_y) > 1:
-            raise IOError(
-                f"The ImageResource uses pixel-format `{pix_format}`,"
-                " but this can't be converted into a stridable array."
-            )
-
-        n_planes = max([component.plane for component in video_format.components]) + 1
-        channels_per_plane = [0] * n_planes
-        for component in video_format.components:
-            channels_per_plane[component.plane] += 1
-        n_channels = max(channels_per_plane)
-
-        if channels_per_plane[:-1] != channels_per_plane[1:]:
-            raise IOError(
-                f"The ImageResource uses pixel-format `{pix_format}`,"
-                " but this can't be converted into a stridable array."
-            )
-
-        shape = [video_height, video_width]
-
-        if n_planes > 1:
-            shape = [n_planes] + shape
-
-        if n_channels > 1:
-            shape = shape + [n_channels]
-
+        shape = _get_frame_shape(frame_template)
         if index is None:
             n_frames = self._video_stream.frames
-            shape = [n_frames] + shape
+            shape = (n_frames,) + shape
 
         return ImageProperties(
             shape=tuple(shape),
-            dtype=_format_to_dtype(video_format),
+            dtype=_format_to_dtype(frame_template.format),
             is_batch=True if index is None else False,
         )
 

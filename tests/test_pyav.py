@@ -309,6 +309,25 @@ def test_multiple_writes(test_images, tmp_path):
 
 
 # def test_shape_from_frame():
+#     fake_formats = [
+#         "vdpau",
+#         "dxva2_vld",
+#         "vaapi_moco",
+#         "drm_prime",
+#         "mediacodec",
+#         "qsv",
+#         "mmal",
+#         "vulkan",
+#         "vaapi_vld",
+#         "d3d11",
+#         "d3d11va_vld",
+#         "videotoolbox_vld",
+#         "vaapi_idct",
+#         "opencl",
+#         "cuda",
+#         "xvmc",
+#     ]
+
 #     foo = list()
 #     for name in video_format_names:
 #         try:
