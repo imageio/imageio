@@ -138,7 +138,7 @@ class PyAVPlugin(PluginV3):
                     msg = "PyAV does not support these `<bytes>`"
                 else:
                     msg = f"PyAV does not support `{request.raw_uri}`"
-                raise InitializationError(msg)
+                raise InitializationError(msg) from None
         else:
             file_handle = self.request.get_file()
             filename = getattr(file_handle, "name", None)
