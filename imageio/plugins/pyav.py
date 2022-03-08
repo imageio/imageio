@@ -233,7 +233,7 @@ class PyAVPlugin(PluginV3):
         it fits into memory) and to then access the returned ndarray randomly.
 
         The current implementation may cause problems for b-frames, i.e.,
-        bidirectionaly predicted pictures. I don't have any test videos this
+        bidirectionaly predicted pictures. I don't have any test videos of this
         though.
 
         ``format``s that do not have their pixel components byte-aligned, will
