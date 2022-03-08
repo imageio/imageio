@@ -203,7 +203,7 @@ class PyAVPlugin(PluginV3):
             plugin docs for details and examples.
         constant_framerate : bool
             If True assume the video's framerate is constant. This allows for
-            faster seeking in side the file. If False, the video is reset before
+            faster seeking inside the file. If False, the video is reset before
             each read and searched from the beginning. If None (default), this
             value will be read from the container format.
         thread_count : int
