@@ -155,13 +155,12 @@ snippets::
 Reader and Writer
 -----------------
 
-Plugins now longer have nested ``Reader`` and ``Writer`` classes and they are no
-longer global singletons. Instead, a new plugin object is instantiated in mode ``r``
-(reading) or  ``w`` (writing) for each `ImageResource` being opened.
-As such, the functions ``iio.get_reader``, ``iio.get_writer``, ``iio.read``, and
-``iio.save`` have become obsolete and the plugin object is used directly
-instead. Using these is considered advanced usage, happens inside a context
-manager, and uses `iio.imopen`::
+Previously, the `reader` and `writer` objects provided an advanced way to
+read/write data with more control. These are no longer needed. Likewise, the
+functions ``iio.get_reader``, ``iio.get_writer``, ``iio.read``, and ``iio.save``
+have become obsolete. Instead, the plugin object is used directly, which is
+instantiated in mode ``r`` (reading) or  ``w`` (writing). To create a plugin
+object, call `iio.imopen` and use it as a context manager::
 
     # reader = iio.get_reader(image_resource)
     # reader = iio.read(image_resource)
