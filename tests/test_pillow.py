@@ -476,7 +476,7 @@ def test_write_to_bytes():
 
     # writing to bytes with imageIO
     with io.BytesIO() as output:
-        iio.v3.imwrite(output, image, plugin="pillow", format="PNG")
+        iio.v3.imwrite(output, image, plugin="pillow", format_hint=".png")
         iio_contents = output.getvalue()
 
     assert iio_contents == contents
@@ -492,7 +492,7 @@ def test_write_to_bytes_rgba():
 
     # writing to bytes with imageIO
     with io.BytesIO() as output:
-        iio.v3.imwrite(output, image, plugin="pillow", format="PNG", mode="RGBA")
+        iio.v3.imwrite(output, image, plugin="pillow", format_hint=".png", mode="RGBA")
         iio_contents = output.getvalue()
 
     assert iio_contents == contents
@@ -507,7 +507,7 @@ def test_write_to_bytes_imwrite():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="PNG")
+    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format_hint=".png")
 
     assert contents == bytes_string
 
@@ -521,7 +521,9 @@ def test_write_to_bytes_jpg():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", format="JPEG")
+    bytes_string = iio.v3.imwrite(
+        "<bytes>", image, plugin="pillow", format_hint=".jpeg"
+    )
 
     assert contents == bytes_string
 
@@ -532,7 +534,7 @@ def test_write_jpg_to_bytes_io():
 
     image = np.zeros((200, 200), dtype=np.uint8)
     bytes_io = io.BytesIO()
-    iio.v3.imwrite(bytes_io, image, plugin="pillow", format="jpeg", mode="L")
+    iio.v3.imwrite(bytes_io, image, plugin="pillow", format_hint=".jpeg", mode="L")
     bytes_io.seek(0)
 
     image_from_file = iio.v3.imread(bytes_io, plugin="pillow")
@@ -638,3 +640,13 @@ def test_apng_reading(tmp_path, test_images):
             expected = np.asarray(frame)
             actual = all_frames[idx]
             assert np.allclose(actual, expected)
+
+
+def test_write_format_warning():
+    frames = iio.v3.imread("imageio:chelsea.png")
+    bytes_image = iio.v3.imwrite("<bytes>", frames, format_hint=".png", plugin="pillow")
+
+    with pytest.warns(UserWarning):
+        old_bytes = iio.v3.imwrite("<bytes>", frames, plugin="pillow", format="PNG")
+
+    assert bytes_image == old_bytes

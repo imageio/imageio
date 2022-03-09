@@ -31,44 +31,9 @@ Methods
 from typing import Optional, Dict, Any
 import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
-from ..core.request import Request, IOMode, InitializationError, URI_FILE, URI_BYTES
+from ..core.request import Request, IOMode, InitializationError, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
-
-
-def _is_multichannel(mode: str) -> bool:
-    """Returns true if the color mode uses more than one channel.
-
-    We need an easy way to test for this to, for example, figure out which
-    dimension to rotate when we encounter an exif rotation flag. I didn't find a
-    good way to do this using pillow, so instead we have a local list of all
-    (currently) supported modes.
-
-    If somebody comes across a better way to do this, in particular if it
-    automatically grabs available modes from pillow a PR is very welcome :)
-
-    Parameters
-    ----------
-    mode : str
-        A valid pillow mode string
-
-    Returns
-    -------
-    is_multichannel : bool
-        True if the image uses more than one channel to represent a color, False
-        otherwise.
-
-    """
-    multichannel = {
-        "BGR;15": True,
-        "BGR;16": True,
-        "BGR;24": True,
-        "BGR;32": True,
-    }
-
-    if mode in multichannel:
-        return multichannel[mode]
-
-    return Image.getmodebands(mode) > 1
+import warnings
 
 
 def _exif_orientation_transform(orientation, mode):
@@ -76,7 +41,7 @@ def _exif_orientation_transform(orientation, mode):
     # given EXIF orientation into the standard orientation
 
     # -1 if the mode has color channel, 0 otherwise
-    axis = -2 if _is_multichannel(mode) else -1
+    axis = -2 if Image.getmodebands(mode) > 1 else -1
 
     EXIF_ORIENTATION = {
         1: lambda x: x,
@@ -123,28 +88,28 @@ class PillowPlugin(PluginV3):
                     raise InitializationError(
                         f"Pillow can not read {request.raw_uri}."
                     ) from None
-        else:
-            # it would be nice if pillow would expose a
-            # function to check if an extension can be written
-            # instead of us digging in the internals
 
-            Image.preinit()
-            if request.extension not in Image.EXTENSION:
-                Image.init()
-
-            if request._uri_type == URI_FILE:
-                pass  # OK, is file-like object
-            elif request._uri_type == URI_BYTES:
-                pass  # OK, is bytes string
-            elif request.extension in Image.EXTENSION:
-                pass  # OK, is extension known to pillow
-            else:
-                raise InitializationError(
-                    f"Pillow can not write `{request.extension}` files"
-                ) from None
-
-        if self._request.mode.io_mode == IOMode.read:
             self._image = Image.open(self._request.get_file())
+        else:
+            extension = self.request.extension or self.request.format_hint
+            if extension is None:
+                warnings.warn(
+                    "Can't determine file format to write as. You _must_"
+                    " set `format` during write or the call will fail. Use "
+                    "`format_hint` to supress this warning. ",
+                    UserWarning,
+                )
+                return
+
+            tirage = [Image.preinit, Image.init]
+            for format_loader in tirage:
+                format_loader()
+                if extension in Image.registered_extensions().keys():
+                    return
+
+            raise InitializationError(
+                f"Pillow can not write `{extension}` files."
+            ) from None
 
     def close(self) -> None:
         if self._image:
@@ -290,14 +255,18 @@ class PillowPlugin(PluginV3):
 
         """
 
+        extension = self.request.extension or self.request.format_hint
+
         save_args = {
-            "format": format,
+            "format": format or Image.registered_extensions()[extension],
         }
 
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
         # if mode is given, use it; otherwise fall back to image.ndim only
         if mode is not None:
-            is_batch = image.ndim > 3 if _is_multichannel(mode) else image.ndim > 2
+            is_batch = (
+                image.ndim > 3 if Image.getmodebands(mode) > 1 else image.ndim > 2
+            )
         elif image.ndim == 2:
             is_batch = False
         elif image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
