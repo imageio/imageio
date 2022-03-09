@@ -559,7 +559,7 @@ extension_list = [
     FileExtension(
         name="Moving Picture Experts Group",
         extension=".mpeg",
-        priority=["pillow", "FFMPEG"],
+        priority=["FFMPEG"],
     ),
     FileExtension(
         name="Moving Picture Experts Group",
