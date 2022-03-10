@@ -224,14 +224,13 @@ def test_gif_write(test_images, tmp_path):
 
 def test_gif_gen(test_images):
     frames = iio.imread(
-        test_images / "cockatoo.mp4",
+        test_images / "realshort.mp4",
         plugin="pyav",
         index=None,
-        format="gray",
+        format="rgb24",
         filter_sequence=[
             ("fps", "50"),
             ("scale", "320:-1:flags=lanczos"),
-            ("format", "gray"),
         ],
     )
 
@@ -241,14 +240,12 @@ def test_gif_gen(test_images):
         plugin="pyav",
         codec="gif",
         fps=50,
-        in_pixel_format="gray",
         out_pixel_format="gray",
         filter_graph=(
             {  # Nodes
                 "split": ("split", ""),
                 "palettegen": ("palettegen", {"stats_mode": "single"}),
                 "paletteuse": ("paletteuse", "new=1"),
-                # "format": ("format", "gray"),
             },
             [  # Edges
                 ("video_in", "split", 0, 0),
@@ -296,34 +293,3 @@ def test_exceptions(tmp_path):
     foo_file.write_bytes(b"nonsense")
     with pytest.raises(IOError):
         iio.imopen(foo_file, "r", plugin="pyav", legacy_mode=False)
-
-
-# def test_shape_from_frame():
-#     fake_formats = [
-#         "vdpau",
-#         "dxva2_vld",
-#         "vaapi_moco",
-#         "drm_prime",
-#         "mediacodec",
-#         "qsv",
-#         "mmal",
-#         "vulkan",
-#         "vaapi_vld",
-#         "d3d11",
-#         "d3d11va_vld",
-#         "videotoolbox_vld",
-#         "vaapi_idct",
-#         "opencl",
-#         "cuda",
-#         "xvmc",
-#     ]
-
-#     foo = list()
-#     for name in video_format_names:
-#         try:
-#             test_format = desired_frame.reformat(format=name)
-#             foo.append((name, _get_frame_shape(desired_frame.reformat(format=name))))
-#         except IOError:
-#             pass
-#         except ValueError:
-#             pass  # unspported by FFMPEG

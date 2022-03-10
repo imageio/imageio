@@ -10,6 +10,7 @@ offers nicer bindings and aims to superseed it in the future.
 
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union
+from fractions import Fraction
 
 import av
 import av.filter
@@ -404,7 +405,7 @@ class PyAVPlugin(PluginV3):
         *,
         codec: str,
         is_batch: bool = True,
-        fps: int = None,
+        fps: int = 24,
         in_pixel_format: str = "rgb24",
         out_pixel_format: str = None,
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
@@ -429,8 +430,7 @@ class PyAVPlugin(PluginV3):
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
         fps : str
-            The resulting videos frames per second. If None (default) let
-            pyAV decide.
+            The resulting videos frames per second.
         in_pixel_format : str
             The pixel format of the incoming ndarray. Defaults to "rgb24" and can
             be any stridable pix_fmt supported by FFmpeg.
@@ -487,6 +487,7 @@ class PyAVPlugin(PluginV3):
         height = ndimage.shape[2 if pixel_format.is_planar else 1]
 
         frame = av.VideoFrame(width, height, in_pixel_format)
+        frame.time_base = Fraction(1, fps)
         n_channels = [
             sum(
                 [
@@ -499,6 +500,7 @@ class PyAVPlugin(PluginV3):
         ]
 
         for img in ndimage:
+            frame.pts = self._video_stream.frames
             # manual packing of ndarray into frame
             # (this should live in pyAV, but it doesn't support many formats
             # and PRs there are slow)
@@ -529,17 +531,17 @@ class PyAVPlugin(PluginV3):
                 plane_array[...] = img
 
             out_frame = ffmpeg_filter.send(frame)
-            # if out_frame is None:
-            #     continue
+            if out_frame is None:
+                continue
 
             out_frame = out_frame.reformat(format=out_pixel_format)
 
             for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
-        # for out_frame in ffmpeg_filter:
-        #     for packet in stream.encode(out_frame):
-        #         self._container.mux(packet)
+        for out_frame in ffmpeg_filter:
+            for packet in stream.encode(out_frame):
+                self._container.mux(packet)
 
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
@@ -554,7 +556,7 @@ class PyAVPlugin(PluginV3):
     def _init_write_stream(
         self,
         codec: str,
-        fps: Optional[int],
+        fps: int,
         shape: Tuple[int, ...],
         in_pixel_format: Optional[str],
         out_pixel_format: Optional[str],
@@ -566,8 +568,7 @@ class PyAVPlugin(PluginV3):
         codec : str
             The codec to use.
         fps : str
-            The resulting videos frames per second. If None (default) let
-            pyAV decide.
+            The resulting videos frames per second.
         shape : Tuple[int, ...]
             The shape of the frames that will be written.
         in_pixel_format : str
@@ -582,6 +583,7 @@ class PyAVPlugin(PluginV3):
         px_format = av.VideoFormat(in_pixel_format)
         stream.width = shape[3 if px_format.is_planar else 2]
         stream.height = shape[2 if px_format.is_planar else 1]
+        stream.time_base = Fraction(1, fps)
 
         if out_pixel_format is not None:
             stream.pix_fmt = out_pixel_format
