@@ -540,6 +540,7 @@ class PyAVPlugin(PluginV3):
                 self._container.mux(packet)
 
         for out_frame in ffmpeg_filter:
+            out_frame.pts = self._video_stream.frames
             for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
@@ -686,10 +687,18 @@ class PyAVPlugin(PluginV3):
                 # filter has lag and needs more frames
                 frame = yield None
 
+        try:
+            # send EOF in av>=9.0
+            graph.push(None)
+        except ValueError:
+            pass
+
         # all frames have been sent, empty the filter
         while True:
             try:
                 yield graph.pull()
+            except av.error.EOFError:
+                break  # EOF
             except av.error.BlockingIOError:
                 break  # graph exhausted
 

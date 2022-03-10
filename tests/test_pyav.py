@@ -222,7 +222,7 @@ def test_gif_write(test_images, tmp_path):
     #     file.write(frames, codec="gif", out_pixel_format="gray", in_pixel_format="gray")
 
 
-def test_gif_gen(test_images):
+def test_gif_gen(test_images, tmp_path):
     frames = iio.imread(
         test_images / "realshort.mp4",
         plugin="pyav",
@@ -235,7 +235,7 @@ def test_gif_gen(test_images):
     )
 
     iio.imwrite(
-        "test.gif",
+        tmp_path / "test.gif",
         frames,
         plugin="pyav",
         codec="gif",
@@ -244,7 +244,7 @@ def test_gif_gen(test_images):
         filter_graph=(
             {  # Nodes
                 "split": ("split", ""),
-                "palettegen": ("palettegen", {"stats_mode": "single"}),
+                "palettegen": ("palettegen", ""),
                 "paletteuse": ("paletteuse", "new=1"),
             },
             [  # Edges
