@@ -178,7 +178,7 @@ plugins = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "fits": ["astropy"],
+    "fits": ["astropy", "markupsafe"],
     "freeimage": [],
     "lytro": [],
     "numpy": [],
