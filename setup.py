@@ -206,7 +206,9 @@ extras_require = {
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
-extras_require["all-plugins"] = sorted(set(chain(*plugins.values(), *cpython_only_plugins.values())))
+extras_require["all-plugins"] = sorted(
+    set(chain(*plugins.values(), *cpython_only_plugins.values()))
+)
 extras_require["all-plugins-pypy"] = sorted(set(chain(*plugins.values())))
 
 
