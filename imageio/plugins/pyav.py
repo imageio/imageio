@@ -53,13 +53,6 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     shape : Tuple[int, ...]
         A tuple describing the shape of the image data in the frame.
 
-    Notes
-    -----
-
-    This function assumes that channel components will be byte-aligned upstream
-    if necessary. This applies to the formats monow, monob, rgb4, and rgb8.
-    (This will be converted to gray8/rgb24 upstream.)
-
     """
 
     widths = [component.width for component in frame.format.components]
@@ -78,6 +71,12 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
 
     shape = [frame.height, frame.width]
 
+    # ffmpeg doesn't have a notion of channel-first or channel-last formats
+    # instead it stores frames in one or more planes which contain individual
+    # components of a pixel depending on the pixel format. For channel-first
+    # formats each component lives on a separate plane (n_planes) and for
+    # channel-last formats all components are packed on a single plane
+    # (n_channels)
     n_planes = max([component.plane for component in frame.format.components]) + 1
     if n_planes > 1:
         shape = [n_planes] + shape
