@@ -277,3 +277,15 @@ def test_exceptions(tmp_path):
     foo_file.write_bytes(b"nonsense")
     with pytest.raises(IOError):
         iio.imopen(foo_file, "r", plugin="pyav", legacy_mode=False)
+
+
+def test_native_pixformat_reading(test_images):
+    frames = iio.imread(
+        test_images / "cockatoo.mp4",
+        index=5,
+        plugin="pyav",
+        format=None,
+    )
+
+    # cockatoo.mp4 uses YUV444p
+    assert frames.shape == (3, 720, 1280)
