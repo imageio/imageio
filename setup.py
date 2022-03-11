@@ -178,7 +178,6 @@ plugins = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "fits": ["astropy"],
     "freeimage": [],
     "lytro": [],
     "numpy": [],
@@ -187,21 +186,28 @@ plugins = {
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
+    "pyav": ["av"],
 }
+
+cpython_only_plugins = {
+    "fits": ["astropy"],
+}
+
 extras_require = {
     "build": ["wheel"],
     "linting": ["black", "flake8"],
     "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
-    "pyav": ["av"],
+    **cpython_only_plugins,
     "gdal": ["gdal"],  # gdal currently fails to install :(
     "itk": ["itk"],  # itk bulds from source (expensive on CI).
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
 extras_require["dev"] = extras_require["test"] + extras_require["linting"]
-extras_require["all-plugins"] = sorted(set(chain.from_iterable(plugins.values())))
+extras_require["all-plugins"] = sorted(set(chain(*plugins.values(), *cpython_only_plugins.values())))
+extras_require["all-plugins-pypy"] = sorted(set(chain(*plugins.values())))
 
 
 setup(
