@@ -168,7 +168,7 @@ class PyAVPlugin(PluginV3):
         self,
         *,
         index: int = 0,
-        format: str = None,
+        format: str = "rgb24",
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
         constant_framerate: bool = None,
@@ -189,9 +189,10 @@ class PyAVPlugin(PluginV3):
             frame. If ``None``, read all the frames in the video and stack them
             along a new, prepended, batch dimension.
         format : str
-            If not None, convert the data into the given format before returning
-            it. If None (default) return the data in the encoded format if it
-            can be expressed as a strided array; otherwise raise an Exception.
+            Set the returned pixel format. If not None (default: rgb24), convert
+            the data into the given format before returning it if needed. If
+            ``None`` return the data in the encoded format if it can be
+            expressed as a strided array; otherwise raise an Exception.
         filter_sequence : List[str, str, dict]
             If not None, apply the given sequence of FFmpeg filters to each
             ndimage. Check the (module-level) plugin docs for details and
