@@ -178,7 +178,7 @@ plugins = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "fits": ["astropy", "markupsafe"],
+    "fits": ["astropy"],
     "freeimage": [],
     "lytro": [],
     "numpy": [],
@@ -187,7 +187,6 @@ plugins = {
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
-    "pyav": ["av"],
 }
 extras_require = {
     "build": ["wheel"],
@@ -195,6 +194,7 @@ extras_require = {
     "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
+    "pyav": ["av"],
     "gdal": ["gdal"],  # gdal currently fails to install :(
     "itk": ["itk"],  # itk bulds from source (expensive on CI).
 }
