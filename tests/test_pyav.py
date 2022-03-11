@@ -57,7 +57,8 @@ def test_metadata(test_images: Path):
         assert meta["codec"] == "h264"
 
         meta = plugin.metadata(index=4)
-        assert meta["encoder"] == 'Lavf56.4.101'
+        assert meta["encoder"] == "Lavf56.4.101"
+
 
 def test_properties(test_images: Path):
     with iio.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
@@ -86,6 +87,10 @@ def test_properties(test_images: Path):
 
 
 def test_video_format_to_dtype():
+    # technically not fake, but mostly hwaccel formats which are unsupported in
+    # pyAV at the time of writing (2022/03/06). PyAV can instantiate them, but
+    # they have no components. Therefore we can't deduce an appropriate dtype
+    # from these so we have to raise instead.
     fake_formats = [
         "vdpau",
         "dxva2_vld",
