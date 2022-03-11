@@ -325,15 +325,20 @@ To develop a new plugin, you can start off with a simple def install::
 To write a new plugin, you have to create a new class that follows our plugin
 API, which is documented below:
 
+**v2 plugin docs**
+
 .. autosummary::
 
     imageio.plugins
+
+**v3 plugin docs**
 
 .. autosummary::
     :template: better_class.rst
     :toctree: ../_autosummary
 
     imageio.core.v3_plugin_api.PluginV3
+    imageio.core.v3_plugin_api.ImageProperties
 
 The file itself should be placed into our plugins folder at
 ``imageio\plugins\your_plugin.py``.
