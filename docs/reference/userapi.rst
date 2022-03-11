@@ -198,6 +198,6 @@ metadata dict contains metadata using format-specific keys to the extent the
 reading plugin supports them. The ImageProperties dataclass contains generally
 available metadata using standardized attribute names. Each plugin provides the
 same set of properties, and if the plugin or format doesn't provide a field it
-is set to a (sensible) default value. To access ImageProperties use::
+is set to a default value; usually ``None``. To access ImageProperties use::
 
     props = iio.improps(image_resource)
