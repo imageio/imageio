@@ -17,6 +17,11 @@ command-line switch when calling pyinstaller that will gather all plugins:
 
   pyinstaller --collect-submodules imageio <entry_script.py>
 
+Note that it is generally recommended to do this from within a virtual
+environment in which you don't have unnecessary backends installed. Otherwise,
+any backend that is present will be included in the package and, if it is not
+being used, may increase package size unnecessarily.
+
 Alternatively, if you want to limit the plugins used, you can include them
 individually using ``--hidden-import``:
 
