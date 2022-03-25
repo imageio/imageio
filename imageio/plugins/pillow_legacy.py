@@ -169,6 +169,7 @@ when saving RGB images.
 
 import logging
 import threading
+import warnings
 
 import numpy as np
 
@@ -212,6 +213,12 @@ GENERIC_DOCS = """
         according to `mode`, and the result is then "flattened" using
         mode 'F'.
 """
+
+warnings.warn(
+    "The `PillowFormat` plugin is deprecated and will be removed in ImageIO v3."
+    " Use the new `PillowPlugin` instead.",
+    DeprecationWarning,
+)
 
 
 class PillowFormat(Format):
