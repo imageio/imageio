@@ -175,6 +175,12 @@ import warnings
 try:
     import tifffile as _tifffile
 except ImportError:
+    warnings.warn(
+        "ImageIO's vendored tifffile backend is deprecated and will be"
+        " removed in ImageIO v3. Install the tifffile directly:"
+        " `pip install imageio[tifffile]`", 
+        DeprecationWarning
+    )
     from . import _tifffile
 
 
