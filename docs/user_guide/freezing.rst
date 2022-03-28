@@ -1,6 +1,11 @@
 Freezing ImageIO
 ================
 
+.. note::
+    Starting with ``pyinstaller-hooks-contrib==2022.3`` pyinstaller will
+    automatically include any ImageIO plugins that are installed in your
+    environment. The techniques described here target earlier versions.
+
 When freezing ImageIO you need to make sure that you are collecting the plugins
 you need in addition to the core library. This will not happen automagically,
 because plugins are lazy-loaded upon first use for better platform support and
@@ -15,14 +20,19 @@ command-line switch when calling pyinstaller that will gather all plugins:
 
 .. code-block::
 
-  pyinstaller --collect-submodules imageio <entry_script.py>
+    pyinstaller --collect-submodules imageio <entry_script.py>
+
+Note that it is generally recommended to do this from within a virtual
+environment in which you don't have unnecessary backends installed. Otherwise,
+any backend that is present will be included in the package and, if it is not
+being used, may increase package size unnecessarily.
 
 Alternatively, if you want to limit the plugins used, you can include them
 individually using ``--hidden-import``:
 
 .. code-block::
 
-  pyinstaller --hidden-import imageio.plugins.<plugin> <entry_script.py>
+    pyinstaller --hidden-import imageio.plugins.<plugin> <entry_script.py>
 
 In addition, some plugins (e.g., ffmpeg) make use of external programs, and for
 these, you will need to take extra steps to also include necessary binaries_. If
