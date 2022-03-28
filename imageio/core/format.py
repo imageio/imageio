@@ -31,6 +31,7 @@ a format object using ``imageio.formats.add_format()``.
 
 import sys
 from typing import Optional
+import warnings
 
 import numpy as np
 from pathlib import Path
@@ -622,6 +623,12 @@ class FormatManager(object):
         return "\n".join(ss)
 
     def __getitem__(self, name):
+        warnings.warn(
+            "The usage of `FormatManager` is deprecated and it will be "
+            "removed in Imageio v3. Use `iio.imopen` instead.",
+            DeprecationWarning,
+        )
+
         if not isinstance(name, str):
             raise ValueError(
                 "Looking up a format should be done by name or by extension."
@@ -668,6 +675,17 @@ class FormatManager(object):
 
         Also see the ``IMAGEIO_FORMAT_ORDER`` environment variable.
         """
+
+        warnings.warn(
+            "`FormatManager` is deprecated and it will be removed in ImageIO v3."
+            " Migrating `FormatManager.sort` depends on your use-case:\n"
+            "\t- modify `iio.config.known_plugins` to specify the search order for "
+            "unrecognized formats."
+            "\t- modify `iio.config.known_extensions[<extension>].priority`"
+            " to control a specific extension.",
+            DeprecationWarning,
+        )
+
         # Check and sanitize imput
         for name in names:
             if not isinstance(name, str):
@@ -716,6 +734,14 @@ class FormatManager(object):
         same name already exists, an error is raised, unless overwrite is True,
         in which case the current format is replaced.
         """
+
+        warnings.warn(
+            "`FormatManager` is deprecated and it will be removed in ImageIO v3."
+            "To migrate `FormatManager.add_format` add the plugin directly to "
+            "`iio.config.known_plugins`.",
+            DeprecationWarning,
+        )
+
         if not isinstance(iio_format, Format):
             raise ValueError("add_format needs argument to be a Format object")
         elif not overwrite and iio_format.name in self.get_format_names():
@@ -783,6 +809,13 @@ class FormatManager(object):
 
     def get_format_names(self):
         """Get the names of all registered formats."""
+
+        warnings.warn(
+            "`FormatManager` is deprecated and it will be removed in ImageIO v3."
+            "To migrate `FormatManager.get_format_names` use `iio.config.known_plugins.keys()` instead.",
+            DeprecationWarning,
+        )
+
         return [f.name for f in self._formats]
 
     def show(self):
