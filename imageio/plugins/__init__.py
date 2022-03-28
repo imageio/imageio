@@ -20,7 +20,41 @@ formats.sort(*os.getenv("IMAGEIO_FORMAT_ORDER", "").split(","))
 # this class replaces plugin module. For details
 # see https://stackoverflow.com/questions/2447353/getattr-on-a-module
 class plugins:
-    """
+    # copy values from module into module-class
+    __path__ = __path__
+    __name__ = __name__
+    __loader__ = __loader__
+    __file__ = __file__
+
+    __all__ = list(set(vars().keys()) - {"__module__", "__qualname__"})
+
+    def __getattr__(self, name):
+        """Lazy-Import Plugins
+
+        This function dynamically loads plugins into the imageio.plugin
+        namespace upon first access. For example, the following snippet will
+        delay importing freeimage until the second line:
+
+        >>> import imageio
+        >>> imageio.plugins.freeimage.download()
+
+        """
+
+        try:
+            return importlib.import_module(f"imageio.plugins.{name}")
+        except ImportError:
+            raise AttributeError(
+                f"module '{__name__}' has no attribute '{name}'"
+            ) from None
+
+
+# see https://stackoverflow.com/questions/2447353/getattr-on-a-module
+# for an explanation why this works
+plugin_module = plugins()
+
+# in py3.9+ the docs need to be defined on the instance and not the class.
+# See: https://github.com/sphinx-doc/sphinx/issues/10182
+plugin_module.__doc__ = """
 
     Here you can find documentation on how to write your own plugin to allow
     ImageIO to access a new backend. Plugins are quite object oriented, and
@@ -79,34 +113,5 @@ class plugins:
 
     """
 
-    # copy values from module into module-class
-    __path__ = __path__
-    __name__ = __name__
-    __loader__ = __loader__
-    __file__ = __file__
 
-    __all__ = list(set(vars().keys()) - {"__module__", "__qualname__"})
-
-    def __getattr__(self, name):
-        """Lazy-Import Plugins
-
-        This function dynamically loads plugins into the imageio.plugin
-        namespace upon first access. For example, the following snippet will
-        delay importing freeimage until the second line:
-
-        >>> import imageio
-        >>> imageio.plugins.freeimage.download()
-
-        """
-
-        try:
-            return importlib.import_module(f"imageio.plugins.{name}")
-        except ImportError:
-            raise AttributeError(
-                f"module '{__name__}' has no attribute '{name}'"
-            ) from None
-
-
-# see https://stackoverflow.com/questions/2447353/getattr-on-a-module
-# for an explanation why this works
-sys.modules[__name__] = plugins()
+sys.modules[__name__] = plugin_module
