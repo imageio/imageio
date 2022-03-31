@@ -21,7 +21,7 @@ def imopen(
     *,
     plugin: Union[str, Any] = None,
     format_hint: str = None,
-    legacy_mode: bool = True,
+    legacy_mode: bool = False,
     **kwargs,
 ) -> PluginV3:
     """Open an ImageResource.
@@ -103,13 +103,6 @@ def imopen(
 
     """
 
-    if legacy_mode:
-        warnings.warn(
-            "Setting `legacy_mode` is deprecated and it will be removed in ImageIO v3."
-            "Use the v2 API (`iio.v2`) instead.",
-            DeprecationWarning
-        )
-
     if format_hint is not None and format_hint[0] != ".":
         raise ValueError(
             "`format_hint` should be a file extension starting with a `.`,"
@@ -117,6 +110,13 @@ def imopen(
         )
 
     if isinstance(uri, Request) and legacy_mode:
+        warnings.warn(
+            "`iio.core.Request` is a low-level object and using it"
+            " directly as input to `imopen` is discouraged. This will raise"
+            " an exception in ImageIO v3.",
+            DeprecationWarning,
+        )
+
         request = uri
         uri = request.raw_uri
         io_mode = request.mode.io_mode
@@ -134,7 +134,9 @@ def imopen(
                 config = known_plugins[plugin]
             except KeyError:
                 request.finish()
-                raise ValueError(f"`{plugin}` is not a registered plugin name.") from None
+                raise ValueError(
+                    f"`{plugin}` is not a registered plugin name."
+                ) from None
 
             def loader(request, **kwargs):
                 return config.plugin_class(request, **kwargs)

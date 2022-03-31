@@ -21,8 +21,8 @@ if env_plugin_order is not None:
         " deprecated and will be removed in ImageIO v3. There is no"
         " replacement planned for this feature. If you have an"
         " active use-case for it, please reach out to us on GitHub.",
-        DeprecationWarning
-        )
+        DeprecationWarning,
+    )
 
     formats.sort(*os.getenv("IMAGEIO_FORMAT_ORDER", "").split(","))
 

@@ -813,7 +813,7 @@ def test_imwrite_symbol_name():
 
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
-        with iio.imopen("foo.bmp", "wI", plugin="GIF-PIL") as file:
+        with iio.imopen("foo.bmp", "wI", plugin="GIF-PIL", legacy_mode=True) as file:
             file.write([])
 
 
