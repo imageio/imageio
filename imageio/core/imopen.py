@@ -113,6 +113,10 @@ def imopen(
         content. If the ImageResource lacks an explicit extension, it will be
         set to this format.
     legacy_mode : bool
+        .. deprecated:: 2.16.1
+            This kwarg is deprecated and will be removed in ImageIO v3. Use
+            the v2 API (`iio.v2`) instead.
+
         If true (default) use the v2 behavior when searching for a suitable
         plugin. This will ignore v3 plugins and will check ``plugin``
         against known extensions if no plugin with the given name can be found.
@@ -146,6 +150,13 @@ def imopen(
     >>>     file.write(im)
 
     """
+
+    if legacy_mode:
+        warnings.warn(
+            "Setting `legacy_mode` is deprecated and it will be removed in ImageIO v3."
+            "Use the v2 API (`iio.v2`) instead.",
+            DeprecationWarning
+        )
 
     if format_hint is not None and format_hint[0] != ".":
         raise ValueError(
