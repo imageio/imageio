@@ -40,13 +40,50 @@ from . import Array, asarray
 from .request import ImageMode, Request
 from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
 from ..config.plugins import _original_order
-from .imopen import imopen, _get_config
+from .imopen import imopen
 
 
 # survived for backwards compatibility
 # I don't know if external plugin code depends on it existing
 # We no longer do
 MODENAMES = ImageMode
+
+
+def _get_config(plugin: str) -> PluginConfig:
+    """Look up the config for the given plugin name
+
+    Factored out for legacy compatibility with FormatManager. Move
+    back into imopen in V3.
+    """
+
+    extension_name = None
+
+    if Path(plugin).suffix.lower() in known_extensions:
+        extension_name = Path(plugin).suffix.lower()
+    elif plugin in known_plugins:
+        pass
+    elif plugin.upper() in known_plugins:
+        plugin = plugin.upper()
+    elif plugin.lower() in known_extensions:
+        extension_name = plugin.lower()
+    elif "." + plugin.lower() in known_extensions:
+        extension_name = "." + plugin.lower()
+    else:
+        raise IndexError(f"No format known by name `{plugin}`.")
+
+    if extension_name is not None:
+        for plugin_name in [
+            x
+            for file_extension in known_extensions[extension_name]
+            for x in file_extension.priority
+        ]:
+            if known_plugins[plugin_name].is_legacy:
+                plugin = plugin_name
+                break
+        else:  # pragma: no cover
+            raise IndexError(f"No format known by name `{plugin}`.")
+
+    return known_plugins[plugin]
 
 
 class Format(object):
@@ -646,7 +683,7 @@ class FormatManager(object):
                 # no plugin can read the file
                 pass
 
-        config = _get_config(name.upper(), legacy_mode=True)
+        config = _get_config(name.upper())
 
         try:
             return config.format

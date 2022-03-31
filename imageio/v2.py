@@ -3,7 +3,7 @@
 
 from numbers import Number
 import re
-from typing import Dict
+from typing import Dict, Union
 from pathlib import Path
 
 import numpy as np
@@ -72,7 +72,7 @@ def help(name=None):
         print(formats[name])
 
 
-def decypher_format_arg(format_name:str) -> Dict[str, str]:
+def decypher_format_arg(format_name:Union[str,None]) -> Dict[str, str]:
     """ Split format into plugin and format
 
     The V2 API aliases plugins and supported formats. This function
@@ -80,10 +80,13 @@ def decypher_format_arg(format_name:str) -> Dict[str, str]:
 
     """
 
+
     plugin = None
     extension = None
 
-    if Path(format_name).suffix.lower() in known_extensions:
+    if format_name is None:
+        pass  # nothing to do
+    elif Path(format_name).suffix.lower() in known_extensions:
         extension = Path(plugin).suffix.lower()
     elif format_name in known_plugins:
         plugin = format_name
@@ -125,7 +128,9 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, "r" + mode, plugin=format)
+    imopen_args = decypher_format_arg(format)
+
+    image_file = imopen(uri, "r" + mode, **imopen_args)
     return image_file.legacy_get_reader(**kwargs)
 
 
@@ -152,7 +157,9 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, "w" + mode, plugin=format)
+    imopen_args = decypher_format_arg(format)
+
+    image_file = imopen(uri, "w" + mode, **imopen_args)
     return image_file.legacy_get_writer(**kwargs)
 
 
