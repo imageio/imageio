@@ -5,16 +5,18 @@ import datetime
 import numpy as np
 import pytest
 
-import imageio
-import imageio as iio
+import imageio.v2 as imageio
+import imageio.v2 as iio
+from conftest import deprecated_test
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
 
 
+@deprecated_test
 def test_tifffile_format():
     # Test selection
     for name in ["tiff", ".tif"]:
-        format = imageio.formats[name]
+        format = iio.formats[name]
         assert format.name == "TIFF"
 
 
@@ -26,17 +28,17 @@ def test_tifffile_reading_writing(test_images, tmp_path):
     filename1 = tmp_path / "test_tiff.tiff"
 
     # One image
-    imageio.imsave(filename1, im2)
-    im = imageio.imread(filename1)
-    ims = imageio.mimread(filename1)
+    iio.imsave(filename1, im2)
+    im = iio.imread(filename1)
+    ims = iio.mimread(filename1)
     assert im.shape == im2.shape
     assert (im == im2).all()
     assert len(ims) == 1
 
     # Multiple images
-    imageio.mimsave(filename1, [im2, im2, im2])
-    im = imageio.imread(filename1)
-    ims = imageio.mimread(filename1)
+    iio.mimsave(filename1, [im2, im2, im2])
+    im = iio.imread(filename1)
+    ims = iio.mimread(filename1)
     assert im.shape == im2.shape
     assert (im == im2).all()  # note: this does not imply that the shape match!
     assert len(ims) == 3
@@ -45,9 +47,9 @@ def test_tifffile_reading_writing(test_images, tmp_path):
         assert (ims[i] == im2).all()
 
     # volumetric data
-    imageio.volwrite(filename1, np.tile(im2, (3, 1, 1, 1)))
-    vol = imageio.volread(filename1)
-    vols = imageio.mvolread(filename1)
+    iio.volwrite(filename1, np.tile(im2, (3, 1, 1, 1)))
+    vol = iio.volread(filename1)
+    vols = iio.mvolread(filename1)
     assert vol.shape == (3,) + im2.shape
     assert len(vols) == 1 and vol.shape == vols[0].shape
     for i in range(3):
@@ -55,19 +57,19 @@ def test_tifffile_reading_writing(test_images, tmp_path):
 
     # remote channel-first volume rgb (2, 3, 10, 10)
     filename2 = test_images / "multipage_rgb.tif"
-    img = imageio.mimread(filename2)
+    img = iio.mimread(filename2)
     assert len(img) == 2
     assert img[0].shape == (3, 10, 10)
 
     # Mixed
-    W = imageio.save(filename1)
+    W = iio.save(filename1)
     W.set_meta_data({"planarconfig": "SEPARATE"})  # was "planar"
     assert W.format.name == "TIFF"
     W.append_data(im2)
     W.append_data(im2)
     W.close()
     #
-    R = imageio.read(filename1)
+    R = iio.read(filename1)
     assert R.format.name == "TIFF"
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
@@ -82,24 +84,24 @@ def test_tifffile_reading_writing(test_images, tmp_path):
 
     # Ensure imread + imwrite works round trip
     filename3 = tmp_path / "test_tiff2.tiff"
-    im1 = imageio.imread(filename1)
-    imageio.imwrite(filename3, im1)
-    im3 = imageio.imread(filename3)
+    im1 = iio.imread(filename1)
+    iio.imwrite(filename3, im1)
+    im3 = iio.imread(filename3)
     assert im1.ndim == 3
     assert im1.shape == im3.shape
     assert (im1 == im3).all()
 
     # Ensure imread + imwrite works round trip - volume like
     filename3 = tmp_path / "test_tiff2.tiff"
-    im1 = np.stack(imageio.mimread(filename1))
-    imageio.volwrite(filename3, im1)
-    im3 = imageio.volread(filename3)
+    im1 = np.stack(iio.mimread(filename1))
+    iio.volwrite(filename3, im1)
+    im3 = iio.volread(filename3)
     assert im1.ndim == 4
     assert im1.shape == im3.shape
     assert (im1 == im3).all()
 
     # Read metadata
-    md = imageio.get_reader(filename2).get_meta_data()
+    md = iio.get_reader(filename2).get_meta_data()
     assert md["is_imagej"] is None
     assert md["description"] == "shape=(2,3,10,10)"
     assert md["description1"] == ""
@@ -108,12 +110,12 @@ def test_tifffile_reading_writing(test_images, tmp_path):
 
     # Write metadata
     dt = datetime.datetime(2018, 8, 6, 15, 35, 5)
-    with imageio.get_writer(filename1, software="testsoftware") as w:
+    with iio.get_writer(filename1, software="testsoftware") as w:
         w.append_data(
             np.zeros((10, 10)), meta={"description": "test desc", "datetime": dt}
         )
         w.append_data(np.zeros((10, 10)), meta={"description": "another desc"})
-    with imageio.get_reader(filename1) as r:
+    with iio.get_reader(filename1) as r:
         for md in r.get_meta_data(), r.get_meta_data(0):
             assert "datetime" in md
             assert md["datetime"] == dt
@@ -154,7 +156,7 @@ def test_imagej_hyperstack(tmp_path):
 def test_resolution_metadata(tmp_path, dpi, expected_resolution):
     data = np.zeros((200, 100), dtype=np.uint8)
 
-    writer = imageio.get_writer(tmp_path / "test.tif")
+    writer = iio.get_writer(tmp_path / "test.tif")
     writer.append_data(data, dict(resolution=dpi))
     writer.close()
 
@@ -170,7 +172,7 @@ def test_invalid_resolution_metadata(tmp_path, resolution):
 
     tif_path = tmp_path / "test.tif"
 
-    writer = imageio.get_writer(tif_path)
+    writer = iio.get_writer(tif_path)
     writer.append_data(data)
     writer.close()
     # Overwrite low level metadata the exact way we want it
