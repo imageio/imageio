@@ -489,6 +489,14 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         return file.write(ims, **kwargs)
 
 
+# aliases
+read = get_reader
+save = get_writer
+imsave = imwrite
+mimsave = mimwrite
+volsave = volwrite
+mvolsave = mvolwrite
+
 __all__ = [
     "imread",
     "mimread",

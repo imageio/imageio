@@ -214,12 +214,6 @@ GENERIC_DOCS = """
         mode 'F'.
 """
 
-warnings.warn(
-    "The `PillowFormat` plugin is deprecated and will be removed in ImageIO v3."
-    " Use the new `PillowPlugin` instead.",
-    DeprecationWarning,
-)
-
 
 class PillowFormat(Format):
     """

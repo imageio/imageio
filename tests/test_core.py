@@ -28,6 +28,8 @@ from imageio.core import IS_PYPY, get_remote_file
 from imageio.core.request import Mode, InitializationError
 from imageio.config.plugins import PluginConfig
 
+from conftest import deprecated_test
+
 
 try:
     from pathlib import Path
@@ -592,8 +594,12 @@ def test_util_has_has_module():
     assert core.has_module("sys")
 
 
+# TODO: update this test after deprecations are removed
+@deprecated_test
 def test_functions(test_images, tmp_path):
     """Test the user-facing API functions"""
+
+    import imageio.plugins.example
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
@@ -751,8 +757,11 @@ def test_memtest(test_images, tmp_path):
         imageio.mimread(fname3, memtest="64b")
 
 
+@deprecated_test
 def test_example_plugin(test_images, tmp_path):
     """Test the example plugin"""
+
+    from imageio.plugins import example
 
     fname = tmp_path / "out.png"
     r = Request(test_images / "chelsea.png", "r?")

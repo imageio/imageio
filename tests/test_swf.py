@@ -5,15 +5,18 @@ import numpy as np
 
 import pytest
 
-import imageio
+import imageio.v2 as imageio
+import imageio.plugins
 from imageio import core
 from imageio.core import IS_PYPY
+from conftest import deprecated_test
 
 
 def mean(x):
     return x.sum() / x.size  # pypy-compat mean
 
 
+@deprecated_test
 def test_format_selection(test_images):
 
     fname1 = test_images / "stent.swf"
@@ -135,6 +138,7 @@ def test_read_from_url():
     assert len(ims) == 10
 
 
+@deprecated_test
 def test_invalid(test_images):
 
     fname1 = test_images / "stent.swf"
