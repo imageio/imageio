@@ -74,61 +74,6 @@ def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
     assert iio_file.read_bytes() == pil_file.read_bytes()
 
 
-@pytest.mark.parametrize(
-    "im_in,mode",
-    [
-        ("chelsea.png", "RGB"),
-        ("chelsea.jpg", "RGB"),
-        ("chelsea.bmp", "RGB"),
-        ("newtonscradle.gif", "RGB"),
-        ("newtonscradle.gif", "RGBA"),
-    ],
-)
-def test_read(test_images, im_in, mode):
-    im_path = test_images / im_in
-    iio_im = iio.v3.imread(im_path, plugin="pillow", mode=mode, index=None)
-
-    pil_im = np.asarray(
-        [
-            np.array(frame.convert(mode))
-            for frame in ImageSequence.Iterator(Image.open(im_path))
-        ]
-    )
-
-    assert np.allclose(iio_im, pil_im)
-
-
-@pytest.mark.parametrize(
-    "im_in,mode",
-    [
-        ("newtonscradle.gif", "RGB"),
-        ("newtonscradle.gif", "RGBA"),
-    ],
-)
-def test_gif_legacy_pillow(test_images, im_in, mode):
-    """
-    This test tests backwards compatibility of using the new API
-    with a legacy plugin. IN particular reading ndimages
-
-    I'm not sure where this test should live, so it is here for now.
-    """
-
-    im_path = test_images / im_in
-    with iio.imopen(im_path, "r", legacy_mode=True, plugin="GIF-PIL") as file:
-        iio_im = file.read(pilmode=mode, index=None)
-
-    pil_im = np.asarray(
-        [
-            np.array(frame.convert(mode))
-            for frame in ImageSequence.Iterator(Image.open(im_path))
-        ]
-    )
-    if pil_im.shape[0] == 1:
-        pil_im = pil_im.squeeze(axis=0)
-
-    assert np.allclose(iio_im, pil_im)
-
-
 def test_png_compression(test_images, tmp_path):
     # Note: Note sure if we should test this or pillow
 
