@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-import imageio.v2 as imageio
+import imageio.v2 as iio
 from imageio.plugins import spe
 from conftest import deprecated_test
 
@@ -11,7 +11,7 @@ from conftest import deprecated_test
 @deprecated_test
 def test_spe_format():
     for name in ("spe", ".spe"):
-        fmt = imageio.formats[name]
+        fmt = iio.formats[name]
         assert isinstance(fmt, spe.SpeFormat)
 
 
@@ -22,21 +22,21 @@ def test_spe_reading(test_images):
     fr2 = np.ones_like(fr1)
 
     # Test imread
-    im = imageio.imread(fname)
-    ims = imageio.mimread(fname)
+    im = iio.imread(fname)
+    ims = iio.mimread(fname)
 
     np.testing.assert_equal(im, fr1)
     np.testing.assert_equal(ims, [fr1, fr2])
 
     # Test volread
-    vol = imageio.volread(fname)
-    vols = imageio.mvolread(fname)
+    vol = iio.volread(fname)
+    vols = iio.mvolread(fname)
 
     np.testing.assert_equal(vol, [fr1, fr2])
     np.testing.assert_equal(vols, [[fr1, fr2]])
 
     # Test get_reader
-    r = imageio.get_reader(fname, sdt_meta=False)
+    r = iio.get_reader(fname, sdt_meta=False)
 
     np.testing.assert_equal(r.get_data(1), fr2)
     np.testing.assert_equal(list(r), [fr1, fr2])
@@ -64,7 +64,7 @@ def test_spe_reading(test_images):
     np.testing.assert_equal(md["frame_shape"], fr1.shape)
 
     # Check reading SDT-control metadata
-    with imageio.get_reader(fname) as r2:
+    with iio.get_reader(fname) as r2:
         sdt_meta = r2.get_meta_data()
 
     assert sdt_meta["delay_shutter"] == pytest.approx(0.001)
