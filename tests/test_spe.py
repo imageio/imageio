@@ -3,10 +3,12 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-import imageio
+import imageio.v2 as imageio
 from imageio.plugins import spe
+from conftest import deprecated_test
 
 
+@deprecated_test
 def test_spe_format():
     for name in ("spe", ".spe"):
         fmt = imageio.formats[name]
