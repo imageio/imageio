@@ -10,9 +10,11 @@ import numpy as np
 import imageio
 import imageio as iio
 from imageio.core import Format, FormatManager, Request
+from conftest import deprecated_test
 
 
 @pytest.fixture(scope="module", autouse=True)
+@deprecated_test
 def resort():
     imageio.formats.sort()
     yield
@@ -78,6 +80,7 @@ class MyFormat(Format):
             self._meta = meta
 
 
+@deprecated_test
 def test_format(test_images, tmp_path):
     """Test the working of the Format class"""
 
@@ -148,6 +151,7 @@ def test_format(test_images, tmp_path):
     assert set(ids) == set(F._closed)
 
 
+@deprecated_test
 def test_reader_and_writer(test_images, tmp_path):
 
     # Prepare
@@ -217,6 +221,7 @@ def test_reader_and_writer(test_images, tmp_path):
     raises(ValueError, W.set_meta_data, "not a dict")
 
 
+@deprecated_test
 def test_default_can_read_and_can_write(tmp_path):
 
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
@@ -240,6 +245,7 @@ def test_default_can_read_and_can_write(tmp_path):
     assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
+@deprecated_test
 def test_format_selection(test_images, tmp_path):
 
     formats = imageio.formats
@@ -277,6 +283,7 @@ def test_format_selection(test_images, tmp_path):
 # Format manager
 
 
+@deprecated_test
 def test_format_manager(test_images):
     """Test working of the format manager"""
 
@@ -346,6 +353,7 @@ def test_format_manager(test_images):
 #   assert F is formats['DUMMY']
 
 
+@deprecated_test
 def test_sorting_errors():
 
     with raises(TypeError):
@@ -356,6 +364,7 @@ def test_sorting_errors():
         imageio.formats.sort("foo.png")
 
 
+@deprecated_test
 def test_default_order():
 
     assert imageio.formats[".tiff"].name == "TIFF"
@@ -363,6 +372,7 @@ def test_default_order():
     assert imageio.formats[".pfm"].name == "PFM-FI"
 
 
+@deprecated_test
 def test_preferring_fi():
 
     # Prefer FI all the way
@@ -379,6 +389,7 @@ def test_preferring_fi():
     assert imageio.formats[".pfm"].name == "PFM-FI"
 
 
+@deprecated_test
 def test_preferring_arbitrary():
 
     # Normally, these exotic formats are somewhere in the back
@@ -403,6 +414,7 @@ def test_preferring_arbitrary():
     assert "NPZ" not in names[:10]
 
 
+@deprecated_test
 def test_bad_formats(tmp_path):
     # test looking up a read format from file
     bogus_file = tmp_path / "bogus.fil"
@@ -416,10 +428,12 @@ def test_bad_formats(tmp_path):
         iio.formats[""]
 
 
+@deprecated_test
 def test_write_format_search_fail(tmp_path):
     req = iio.core.Request(tmp_path / "foo.bogus", "w")
     assert iio.formats.search_write_format(req) is None
 
 
+@deprecated_test
 def test_format_by_filename():
     iio.formats["test.jpg"]

@@ -717,7 +717,7 @@ class FormatManager(object):
             "`FormatManager` is deprecated and it will be removed in ImageIO v3."
             " Migrating `FormatManager.sort` depends on your use-case:\n"
             "\t- modify `iio.config.known_plugins` to specify the search order for "
-            "unrecognized formats."
+            "unrecognized formats.\n"
             "\t- modify `iio.config.known_extensions[<extension>].priority`"
             " to control a specific extension.",
             DeprecationWarning,
