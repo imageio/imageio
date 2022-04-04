@@ -16,7 +16,7 @@ def test_exception_message_bytes():
         assert "<bytes>" in str(e)
 
     try:
-        iio.imread(b"This will not be reported.")
+        iio.v2.imread(b"This will not be reported.")
     except BytesWarning:
         pytest.fail("raw bytes used in string.")
     except ValueError as e:
