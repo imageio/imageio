@@ -11,6 +11,7 @@ import numpy as np
 from . import formats
 from .core.imopen import imopen
 from .config import known_extensions, known_plugins
+from .core import RETURN_BYTES
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
