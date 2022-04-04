@@ -5,15 +5,17 @@ import pytest
 
 import numpy as np
 
-import imageio
+import imageio.v2 as iio
 from imageio.core import Request, IS_PYPY
+from conftest import deprecated_test
 
 
+@deprecated_test
 def test_npz_format(test_images):
 
     # Test selection
     for name in ["npz", ".npz"]:
-        format = imageio.formats["npz"]
+        format = iio.formats["npz"]
         assert format.name == "NPZ"
         assert format.__module__.endswith(".npz")
 
@@ -36,28 +38,28 @@ def test_npz_reading_writing(tmp_path):
     filename1 = tmp_path / "test_npz.npz"
 
     # One image
-    imageio.imsave(filename1, im2)
-    im = imageio.imread(filename1)
-    ims = imageio.mimread(filename1)
+    iio.imsave(filename1, im2)
+    im = iio.imread(filename1)
+    ims = iio.mimread(filename1)
     assert (im == im2).all()
     assert len(ims) == 1
 
     # Multiple images
-    imageio.mimsave(filename1, [im2, im2, im2])
-    im = imageio.imread(filename1)
-    ims = imageio.mimread(filename1)
+    iio.mimsave(filename1, [im2, im2, im2])
+    im = iio.imread(filename1)
+    ims = iio.mimread(filename1)
     assert (im == im2).all()
     assert len(ims) == 3
 
     # Volumes
-    imageio.mvolsave(filename1, [im3, im3])
-    im = imageio.volread(filename1)
-    ims = imageio.mvolread(filename1)
+    iio.mvolsave(filename1, [im3, im3])
+    im = iio.volread(filename1)
+    ims = iio.mvolread(filename1)
     assert (im == im3).all()
     assert len(ims) == 2
 
     # Mixed
-    W = imageio.save(filename1)
+    W = iio.save(filename1)
     assert W.format.name == "NPZ"
     W.append_data(im2)
     W.append_data(im3)
@@ -65,7 +67,7 @@ def test_npz_reading_writing(tmp_path):
     pytest.raises(RuntimeError, W.set_meta_data, {})  # no meta data support
     W.close()
     #
-    R = imageio.read(filename1)
+    R = iio.read(filename1)
     assert R.format.name == "NPZ"
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
