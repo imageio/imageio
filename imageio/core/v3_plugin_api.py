@@ -38,13 +38,6 @@ class ImageProperties:
     is_batch: bool = False
     spacing: Tuple = None
 
-    def __post_init__(self):
-        if self.spacing is None:
-            if self.is_batch:
-                self.spacing = (1,) * (len(self.shape) - 1)
-            else:
-                self.spacing = (1,) * len(self.shape)
-
 
 class PluginV3:
     """A ImageIO Plugin.
