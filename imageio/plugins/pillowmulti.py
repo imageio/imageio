@@ -3,17 +3,10 @@ PIL formats for multiple images.
 """
 
 import logging
-import warnings
 
 import numpy as np
 
 from .pillow_legacy import PillowFormat, ndarray_to_pil, image_as_uint
-
-warnings.warn(
-    "The `PillowFormat` plugin is deprecated and will be removed in ImageIO v3."
-    " Use the new `PillowPlugin` instead.",
-    DeprecationWarning,
-)
 
 
 logger = logging.getLogger(__name__)

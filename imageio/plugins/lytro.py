@@ -40,7 +40,7 @@ import logging
 import numpy as np
 
 from ..core import Format
-from .. import imread
+from ..v2 import imread
 
 
 logger = logging.getLogger(__name__)

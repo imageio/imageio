@@ -5,8 +5,9 @@ import numpy as np
 import json
 import pytest
 
-import imageio
+import imageio.v2 as iio
 from imageio.core import Request
+from conftest import deprecated_test
 
 
 # Set file names for test images in imageio-binaries repo
@@ -20,6 +21,7 @@ RAW_F0_META_FILENAME = "IMG_0001__frame.json"
 PNG_FILENAME = "chelsea.png"
 
 
+@deprecated_test
 def test_lytro_lfr_format(test_images):
     """
     Test basic read/write properties of LytroLfrFormat
@@ -32,7 +34,7 @@ def test_lytro_lfr_format(test_images):
     png_file = test_images / PNG_FILENAME
 
     # Test lytro lfr format
-    format = imageio.formats["lytro-lfr"]
+    format = iio.formats["lytro-lfr"]
     assert format.name == "LYTRO-LFR"
     assert format.__module__.endswith("lytro")
 
@@ -55,6 +57,7 @@ def test_lytro_lfr_format(test_images):
     assert not format.can_write(Request(png_file, "wi"))
 
 
+@deprecated_test
 def test_lytro_illum_raw_format(test_images):
     """
     Test basic read/write properties of LytroRawFormat
@@ -67,7 +70,7 @@ def test_lytro_illum_raw_format(test_images):
     png_file = test_images / PNG_FILENAME
 
     # Test lytro raw format
-    format = imageio.formats["lytro-illum-raw"]
+    format = iio.formats["lytro-illum-raw"]
     assert format.name == "LYTRO-ILLUM-RAW"
     assert format.__module__.endswith("lytro")
 
@@ -89,6 +92,7 @@ def test_lytro_illum_raw_format(test_images):
     assert not format.can_write(Request(png_file, "wi"))
 
 
+@deprecated_test
 def test_lytro_f01_raw_format(test_images):
     """
     Test basic read/write properties of LytroRawFormat
@@ -101,7 +105,7 @@ def test_lytro_f01_raw_format(test_images):
     png_file = test_images / PNG_FILENAME
 
     # Test lytro raw format
-    format = imageio.formats["lytro-illum-raw"]
+    format = iio.formats["lytro-illum-raw"]
     assert format.name == "LYTRO-ILLUM-RAW"
     assert format.__module__.endswith("lytro")
 
@@ -123,6 +127,7 @@ def test_lytro_f01_raw_format(test_images):
     assert not format.can_write(Request(png_file, "wi"))
 
 
+@deprecated_test
 def test_lytro_lfp_format(test_images):
     """
     Test basic read/write properties of LytroRawFormat
@@ -135,7 +140,7 @@ def test_lytro_lfp_format(test_images):
     png_file = test_images / PNG_FILENAME
 
     # Test lytro raw format
-    format = imageio.formats["lytro-lfp"]
+    format = iio.formats["lytro-lfp"]
     assert format.name == "LYTRO-LFP"
     assert format.__module__.endswith("lytro")
 
@@ -165,8 +170,8 @@ def test_lytro_lfr_reading(test_images):
     thumb_file = test_images / THUMB_FILENAME
 
     # Read image and thumbnail
-    img = imageio.imread(lfr_file, format="lytro-lfr")
-    thumb_gt = imageio.imread(thumb_file)
+    img = iio.imread(lfr_file, format="lytro-lfr")
+    thumb_gt = iio.imread(thumb_file)
 
     # Test image shape and some pixel values
     # Pixel values are extracted from the Matlab reference implementation
@@ -421,14 +426,14 @@ def test_lytro_lfr_reading(test_images):
     assert img._meta["privateMetadata"] == private_metadata_gt
 
     # Read metadata only (with thumbnail)
-    img = imageio.imread(lfr_file, format="lytro-lfr", meta_only=True)
+    img = iio.imread(lfr_file, format="lytro-lfr", meta_only=True)
     assert np.array_equal(img, [])
     assert img._meta["metadata"] == metadata_gt
     assert img._meta["privateMetadata"] == private_metadata_gt
     assert np.array_equal(img._meta["thumbnail"]["image"], thumb_gt)
 
     # Read metadata only (without thumbnail)
-    img = imageio.imread(
+    img = iio.imread(
         lfr_file, format="lytro-lfr", meta_only=True, include_thumbnail=False
     )
     assert np.array_equal(img, [])
@@ -437,7 +442,7 @@ def test_lytro_lfr_reading(test_images):
     assert "thumbnail" not in img._meta.keys()
 
     # Test fail
-    test_reader = imageio.read(lfr_file, "lytro-lfr")
+    test_reader = iio.read(lfr_file, "lytro-lfr")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
 
@@ -451,7 +456,7 @@ def test_lytro_lfp_reading(test_images):
     lfp_file = test_images / LFP_FILENAME
 
     # Read image and thumbnail
-    img = imageio.imread(lfp_file, format="lytro-lfp")
+    img = iio.imread(lfp_file, format="lytro-lfp")
 
     # Test image shape and some pixel values
     # Pixel values are extracted from the Matlab reference implementation
@@ -591,13 +596,13 @@ def test_lytro_lfp_reading(test_images):
     assert img._meta["privateMetadata"] == private_metadata_gt
 
     # Read metadata only
-    img = imageio.imread(lfp_file, format="lytro-lfp", meta_only=True)
+    img = iio.imread(lfp_file, format="lytro-lfp", meta_only=True)
     assert np.array_equal(img, [])
     assert img._meta["metadata"] == metadata_gt
     assert img._meta["privateMetadata"] == private_metadata_gt
 
     # Test fail
-    test_reader = imageio.read(lfp_file, "lytro-lfp")
+    test_reader = iio.read(lfp_file, "lytro-lfp")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
     with pytest.raises(IndexError):
@@ -611,7 +616,7 @@ def test_lytro_raw_illum_reading(test_images):
     raw_meta_file = test_images / RAW_ILLUM_META_FILENAME
 
     # Read image and metadata file
-    img = imageio.imread(raw_file, format="lytro-illum-raw")
+    img = iio.imread(raw_file, format="lytro-illum-raw")
     meta_gt = json.load(open(raw_meta_file))
 
     # Test image shape and some pixel values
@@ -631,12 +636,12 @@ def test_lytro_raw_illum_reading(test_images):
     assert img._meta == meta_gt
 
     # Read metadata only
-    img = imageio.imread(raw_file, format="lytro-illum-raw", meta_only=True)
+    img = iio.imread(raw_file, format="lytro-illum-raw", meta_only=True)
     assert np.array_equal(img, [])
     assert img._meta == meta_gt
 
     # Test fail
-    test_reader = imageio.read(raw_file, "lytro-illum-raw")
+    test_reader = iio.read(raw_file, "lytro-illum-raw")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
 
@@ -651,7 +656,7 @@ def test_lytro_raw_f0_reading(test_images):
     raw_meta_file = test_images / RAW_F0_META_FILENAME
 
     # Read image and metadata file
-    img = imageio.imread(raw_file, format="lytro-f01-raw")
+    img = iio.imread(raw_file, format="lytro-f01-raw")
     meta_gt = json.load(open(raw_meta_file))
 
     # Test image shape and some pixel values
@@ -671,12 +676,12 @@ def test_lytro_raw_f0_reading(test_images):
     assert img._meta == meta_gt
 
     # Read metadata only
-    img = imageio.imread(raw_file, format="lytro-f01-raw", meta_only=True)
+    img = iio.imread(raw_file, format="lytro-f01-raw", meta_only=True)
     assert np.array_equal(img, [])
     assert img._meta == meta_gt
 
     # Test fail
-    test_reader = imageio.read(raw_file, "lytro-f01-raw")
+    test_reader = iio.read(raw_file, "lytro-f01-raw")
     with pytest.raises(IndexError):
         test_reader.get_data(-1)
 
