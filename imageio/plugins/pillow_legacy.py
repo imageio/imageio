@@ -671,7 +671,8 @@ def _palette_is_grayscale(pil_image):
     elif pil_image.info.get("transparency", None):  # see issue #475
         return False
     # get palette as an array with R, G, B columns
-    palette = np.asarray(pil_image.getpalette()).reshape((256, 3))
+    # Note: starting in pillow 9.1 palettes may have less than 256 entries
+    palette = np.asarray(pil_image.getpalette()).reshape((-1, 3))
     # Not all palette colors are used; unused colors have junk values.
     start, stop = pil_image.getextrema()
     valid_palette = palette[start : stop + 1]
