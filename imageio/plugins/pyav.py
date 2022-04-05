@@ -702,7 +702,7 @@ class PyAVPlugin(PluginV3):
             except av.error.BlockingIOError:
                 break  # graph exhausted
 
-    def properties(self, index: int = 0, *, format: str = None) -> ImageProperties:
+    def properties(self, index: int = 0, *, format: str = "rgb24") -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
@@ -714,8 +714,8 @@ class PyAVPlugin(PluginV3):
             e.g., due to shape missmatch, an exception will be raised.
         format : str
             If not None, convert the data into the given format before returning
-            it. If None (default) return the data in the encoded format if it
-            can be expressed as a strided array; otherwise raise an Exception.
+            it. If None return the data in the encoded format if it can be
+            expressed as a strided array; otherwise raise an Exception.
 
         Returns
         -------
