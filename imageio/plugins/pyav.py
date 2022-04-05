@@ -2,10 +2,9 @@
 
 Backend Library: `PyAV <https://pyav.org/docs/stable/>`_
 
-This plugin that wraps pyAV, a set of pythonic bindings for the
-FFMPEG library. It is similar to our famous FFMPEG plugin, but offers a more
-performant and robut interface and aims to superseed the FFMPEG plugin in the
-future.
+This plugin that wraps pyAV, a set of pythonic bindings for the FFMPEG library.
+It is similar to our famous FFMPEG plugin, but offers a more performant and
+robut interface and aims to superseed the FFMPEG plugin in the future.
 
 
 Methods
@@ -51,27 +50,28 @@ Filters
 
 On top of providing basic read/write functionality, this plugin allows you to
 use the full collection of `video filters available in FFMPEG
-<https://ffmpeg.org/ffmpeg-filters.html#Video-Filters>`_. This means that you can apply
-excessive preprocessing to your video before retrieving it as
-a numpy array or apply excessive post-processing before you encode your data.
+<https://ffmpeg.org/ffmpeg-filters.html#Video-Filters>`_. This means that you
+can apply excessive preprocessing to your video before retrieving it as a numpy
+array or apply excessive post-processing before you encode your data.
 
 Filters come in two forms: sequences or graphs. Filter sequences are, as the
 name suggests, sequences of filters that are applied one after the other. They
-are specified using the ``filter_sequence`` kwarg. Filter
-graphs, on the other hand, come in the form of a directed graph and are
-specified using the ``filter_graph`` kwarg.
+are specified using the ``filter_sequence`` kwarg. Filter graphs, on the other
+hand, come in the form of a directed graph and are specified using the
+``filter_graph`` kwarg.
 
 .. note::
     All filters are either sequences or graphs. If all you want is to apply a
     single filter, you can do this by specifying a filter sequence with a single
     entry.
 
-A ``filter_sequence`` is a list of filters, each defined through a 2-element tuple
-of the form ``(filter_name, filter_parameters)``. The first element of the tuple
-is the name of the filter. The second element are the filter parameters, which
-can be given either as a string or a dict. The string matches the same format that
-you would use when specifying the filter using the ffmpeg command-line tool and
-the dict has entries of the form ``parameter:value``. For example::
+A ``filter_sequence`` is a list of filters, each defined through a 2-element
+tuple of the form ``(filter_name, filter_parameters)``. The first element of the
+tuple is the name of the filter. The second element are the filter parameters,
+which can be given either as a string or a dict. The string matches the same
+format that you would use when specifying the filter using the ffmpeg
+command-line tool and the dict has entries of the form ``parameter:value``. For
+example::
 
     import imageio.v3 as iio
 
@@ -95,8 +95,8 @@ the dict has entries of the form ``parameter:value``. For example::
         ]
     )
 
-A ``filter_graph``, on the other hand, is specified using a 
-``(nodes, edges)`` tuple. It is best explained using an example::
+A ``filter_graph``, on the other hand, is specified using a ``(nodes, edges)``
+tuple. It is best explained using an example::
 
     img = iio.imread(
         "imageio:cockatoo.mp4",
@@ -123,7 +123,7 @@ left corner. As you can see, nodes are specified using a dict which has names as
 its keys and filter tuples as values; the same tuples as the ones used when
 defining a filter sequence. Edges are a list of a 4-tuples of the form
 ``(node_out, node_in, output_idx, input_idx)`` and specify which two filters are
-connected and which inputs/outputs should be used for this. 
+connected and which inputs/outputs should be used for this.
 
 Further, there are two special nodes in a filter graph: ``video_in`` and
 ``video_out``, which represent the graph's input and output respectively. These
