@@ -2,9 +2,139 @@
 
 Backend Library: `PyAV <https://pyav.org/docs/stable/>`_
 
-PyAVPlugin is a plugin that wraps pyAV. pyAV is a set of pythonic bindings for
-the FFMPEG library. As such this plugin is similar our famous FFMPEG plugin, but
-offers nicer bindings and aims to superseed it in the future.
+This plugin that wraps pyAV, a set of pythonic bindings for the
+FFMPEG library. It is similar to our famous FFMPEG plugin, but offers a more
+performant and robut interface and aims to superseed the FFMPEG plugin in the
+future.
+
+
+Methods
+-------
+.. note::
+    Check the respective function for a list of supported kwargs and their
+    documentation.
+
+.. autosummary::
+    :toctree:
+
+    PyAVPlugin.read
+    PyAVPlugin.iter
+    PyAVPlugin.write
+    PyAVPlugin.properties
+    PyAVPlugin.metadata
+
+Pixel Formats (Colorspaces)
+---------------------------
+
+By default, this plugin converts the video into 8-bit RGB (called ``rgb24`` in
+ffmpeg). This is a useful behavior for many use-cases, but sometimes you may
+want to use the video's native colorspace or you may wish to convert the video
+into an entirely different colorspace. This is controlled using the ``format``
+kwarg. You can use ``format=None`` to leave the image in its native colorspace
+or specify any colorspace supported by FFMPEG as long as it is stridable, i.e.,
+as long as it can be represented by a single numpy array. Some useful choices
+include:
+
+- rgb24 (default; 8-bit RGB)
+- rgb48le (16-bit lower-endian RGB)
+- bgr24 (8-bit BGR; openCVs default colorspace)
+- gray (8-bit grayscale)
+- yuv444p (8-bit channel-first YUV)
+
+Further, FFMPEG maintains a list of available formats, albeit not as part of the
+narrative docs. It can be `found here
+<https://ffmpeg.org/doxygen/trunk/pixfmt_8h_source.html>`_ (warning: C source
+code).
+
+Filters
+-------
+
+On top of providing basic read/write functionality, this plugin allows you to
+use the full collection of `video filters available in FFMPEG
+<https://ffmpeg.org/ffmpeg-filters.html#Video-Filters>`_. This means that you can apply
+excessive preprocessing to your video before retrieving it as
+a numpy array or apply excessive post-processing before you encode your data.
+
+Filters come in two forms: sequences or graphs. Filter sequences are, as the
+name suggests, sequences of filters that are applied one after the other. They
+are specified using the ``filter_sequence`` kwarg. Filter
+graphs, on the other hand, come in the form of a directed graph and are
+specified using the ``filter_graph`` kwarg.
+
+.. note::
+    All filters are either sequences or graphs. If all you want is to apply a
+    single filter, you can do this by specifying a filter sequence with a single
+    entry.
+
+A ``filter_sequence`` is a list of filters, each defined through a 2-element tuple
+of the form ``(filter_name, filter_parameters)``. The first element of the tuple
+is the name of the filter. The second element are the filter parameters, which
+can be given either as a string or a dict. The string matches the same format that
+you would use when specifying the filter using the ffmpeg command-line tool and
+the dict has entries of the form ``parameter:value``. For example::
+
+    import imageio.v3 as iio
+
+    # using a filter_parameters str
+    img1 = iio.imread(
+        "imageio:cockatoo.mp4",
+        plugin="pyav",
+        index=None,
+        filter_sequence=[
+            ("rotate", "45*PI/180")
+        ]
+    )
+
+    # using a filter_parameters dict
+    img2 = iio.imread(
+        "imageio:cockatoo.mp4",
+        plugin="pyav",
+        index=None,
+        filter_sequence=[
+            ("rotate", {"angle":"45*PI/180", "fillcolor":"AliceBlue"})
+        ]
+    )
+
+A ``filter_graph``, on the other hand, is specified using a 
+``(nodes, edges)`` tuple. It is best explained using an example::
+
+    img = iio.imread(
+        "imageio:cockatoo.mp4",
+        plugin="pyav",
+        index=None,
+        filter_graph=(
+            {
+                "split": ("split", ""),
+                "scale_overlay":("scale", "512:-1"),
+                "overlay":("overlay", "x=25:y=25:enable='between(t,1,8)'"),
+            },
+            [
+                ("video_in", "split", 0, 0),
+                ("split", "overlay", 0, 0),
+                ("split", "scale_overlay", 1, 0),
+                ("scale_overlay", "overlay", 0, 1),
+                ("overlay", "video_out", 0, 0),
+            ]
+        )
+    )
+
+The above transforms the video to have picture-in-picture of itself in the top
+left corner. As you can see, nodes are specified using a dict which has names as
+its keys and filter tuples as values; the same tuples as the ones used when
+defining a filter sequence. Edges are a list of a 4-tuples of the form
+``(node_out, node_in, output_idx, input_idx)`` and specify which two filters are
+connected and which inputs/outputs should be used for this. 
+
+Further, there are two special nodes in a filter graph: ``video_in`` and
+``video_out``, which represent the graph's input and output respectively. These
+names can not be chosen for other nodes (those nodes would simply be
+overwritten), and for a graph to be valid there must be a path from the input to
+the output and all nodes in the graph must be connected.
+
+While most graphs are quite simple, they can become very complex and we
+recommend that you read through the `FFMPEG documentation
+<https://ffmpeg.org/ffmpeg-filters.html#Filtergraph-description>`_ and their
+examples to better understand how to use them.
 
 """
 
@@ -176,7 +306,7 @@ class PyAVPlugin(PluginV3):
     ) -> np.ndarray:
         """Read frames from the video.
 
-        If ``index`` is numerical, this function reads the index-th frame from
+        If ``index`` is an integer, this function reads the index-th frame from
         the file. If ``index`` is None, this function reads all frames from the
         video, stacks them along the first dimension, and returns a batch of
         frames.
@@ -188,10 +318,10 @@ class PyAVPlugin(PluginV3):
             frame. If ``None``, read all the frames in the video and stack them
             along a new, prepended, batch dimension.
         format : str
-            Set the returned pixel format. If not None (default: rgb24), convert
-            the data into the given format before returning it if needed. If
-            ``None`` return the data in the encoded format if it can be
-            expressed as a strided array; otherwise raise an Exception.
+            Set the returned colorspace. If not None (default: rgb24), convert
+            the data into the given format before returning it. If ``None``
+            return the data in the encoded format if it can be expressed as a
+            strided array; otherwise raise an Exception.
         filter_sequence : List[str, str, dict]
             If not None, apply the given sequence of FFmpeg filters to each
             ndimage. Check the (module-level) plugin docs for details and
@@ -200,7 +330,7 @@ class PyAVPlugin(PluginV3):
             If not None, apply the given graph of FFmpeg filters to each
             ndimage. The graph is given as a tuple of two dicts. The first dict
             contains a (named) set of nodes, and the second dict contains a set
-            of edges between nodes of the previous dict.Check the (module-level)
+            of edges between nodes of the previous dict. Check the (module-level)
             plugin docs for details and examples.
         constant_framerate : bool
             If True assume the video's framerate is constant. This allows for
@@ -216,7 +346,7 @@ class PyAVPlugin(PluginV3):
             The threading model to be used. One of
 
             - `"SLICE"`: threads assemble parts of the current frame
-            - `"Frame"`: threads may assemble future frames
+            - `"FRAME"`: threads may assemble future frames
             - None (default): Uses SLICE when reading single frames and FRAME
               when reading batches of frames.
 
@@ -237,11 +367,7 @@ class PyAVPlugin(PluginV3):
         bidirectionaly predicted pictures. I don't have any test videos of this
         though.
 
-        ``format``s that do not have their pixel components byte-aligned, will
-        be promoted to equivalent formats with byte-alignment for compatibility
-        with numpy.
-
-        Reading from an index other than None currently doesn't support filters
+        Reading from an index other than ``None`` currently doesn't support filters
         that introduce delays.
 
         """
@@ -302,9 +428,10 @@ class PyAVPlugin(PluginV3):
             it. If None (default) return the data in the encoded format if it
             can be expressed as a strided array; otherwise raise an Exception.
         filter_sequence : List[str, str, dict]
-            If not None, apply the given sequence of FFmpeg filters to each
-            ndimage. Check the (module-level) plugin docs for details and
-            examples.
+            Set the returned colorspace. If not None (default: rgb24), convert
+            the data into the given format before returning it. If ``None``
+            return the data in the encoded format if it can be expressed as a
+            strided array; otherwise raise an Exception.
         filter_graph : (dict, List)
             If not None, apply the given graph of FFmpeg filters to each
             ndimage. The graph is given as a tuple of two dicts. The first dict
@@ -320,7 +447,7 @@ class PyAVPlugin(PluginV3):
             The threading model to be used. One of
 
             - `"SLICE"` (default): threads assemble parts of the current frame
-            - `"Frame"`: threads may assemble future frames
+            - `"FRAME"`: threads may assemble future frames
 
 
         Yields
@@ -414,18 +541,14 @@ class PyAVPlugin(PluginV3):
         """Save a ndimage as a video.
 
         Given a batch of frames (stacked along the first axis) or a list of
-        frames, encode them and save the result in the ImageResource.
+        frames, encode them and add the result to the ImageResource.
 
         Parameters
         ----------
         ndimage : ArrayLike, List[ArrayLike]
-            The ndimage to encode and write to the current ImageResource.
+            The ndimage to encode and write to the ImageResource.
         codec : str
             The codec to use when encoding frames.
-        container_format: str
-            The container format to use when writing the video. If None (default)
-            this is chosen based on the request if possible. This only affects
-            writing.
         is_batch : bool
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
@@ -457,10 +580,9 @@ class PyAVPlugin(PluginV3):
 
         Notes
         -----
-        Leaving FPS at None typically results in 24 FPS, since this is the
-        currently hardcoded default inside pyAV.
-
-        Writing currently only supports filters that don't introduce delay.
+        When writing ``<bytes>``, the video is finalized immediately after the
+        first write call and calling write multiple times to append frames is
+        not possible.
 
         """
 
@@ -710,14 +832,13 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return properties. If the
-            index is out of bounds a ``ValueError`` is raised. If ``None``,
-            return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            The index of the ndimage for which to return properties. If ``None``
+            (default), return the properties for the resulting batch of frames.
         format : str
-            If not None, convert the data into the given format before returning
-            it. If None return the data in the encoded format if it can be
-            expressed as a strided array; otherwise raise an Exception.
+            If not None (default: rgb24), convert the data into the given format
+            before returning it. If None return the data in the encoded format
+            if that can be expressed as a strided array; otherwise raise an
+            Exception.
 
         Returns
         -------
@@ -726,9 +847,10 @@ class PyAVPlugin(PluginV3):
 
         Notes
         -----
-        The provided metadata provides information about the ImageResource and
-        does not include modifications by any filters (through
-        ``filter_sequence`` or ``filter_graph``).
+        This function is efficient and won't process any pixel data.
+
+        The provided metadata does not include modifications by any filters
+        (through ``filter_sequence`` or ``filter_graph``).
 
         """
 
@@ -754,7 +876,10 @@ class PyAVPlugin(PluginV3):
         exclude_applied: bool = True,
         constant_framerate: bool = True,
     ) -> Dict[str, Any]:
-        """Read a dictionary filled with metadata.
+        """Format-specific metadata.
+
+        Returns a dictionary filled with metadata that is either stored in the
+        container, the video stream, or the frame's side-data.
 
         Parameters
         ----------
@@ -766,9 +891,10 @@ class PyAVPlugin(PluginV3):
             Currently, this parameter has no effect. It exists for compliance with
             the ImageIO v3 API.
         constant_framerate : bool
-            If True (default) assume the video's framerate is constant. This
-            allows for faster seeking in side the file. If False, the video
-            is reset before each read and searched from the beginning.
+            If True assume the video's framerate is constant. This allows for
+            faster seeking inside the file. If False, the video is reset before
+            each read and searched from the beginning. If None (default), this
+            value will be read from the container format.
 
         Returns
         -------
