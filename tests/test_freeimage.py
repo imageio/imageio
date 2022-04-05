@@ -5,6 +5,7 @@ import os
 import shutil
 import sys
 import platform
+import warnings
 
 import fsspec
 import imageio.plugins
@@ -46,7 +47,6 @@ def vendored_lib(request, tmp_path_factory):
 
 # TODD: update fixture once we transition into v3
 @pytest.fixture(scope="module")
-@deprecated_test
 def setup_library(tmp_path_factory, vendored_lib):
 
     # Checks if freeimage is installed by the system
@@ -55,7 +55,8 @@ def setup_library(tmp_path_factory, vendored_lib):
     use_imageio_binary = not fi.has_lib()
 
     # During this test, pretend that FI is the default format
-    iio.formats.sort("-FI")
+    with warnings.catch_warnings(record=True):
+        iio.formats.sort("-FI")
 
     if use_imageio_binary:
 
@@ -86,7 +87,8 @@ def setup_library(tmp_path_factory, vendored_lib):
             del os.environ[user_dir_env]
 
     # Sort formats back to normal
-    iio.formats.sort()
+    with warnings.catch_warnings(record=True):
+        iio.formats.sort()
 
 
 # Create test images LUMINANCE
