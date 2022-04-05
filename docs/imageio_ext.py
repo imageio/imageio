@@ -86,9 +86,7 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
     if docname == "development/plugins":
-        example_plugin = Path(
-            imageio.plugins.example.__file__.replace(".pyc", ".py")
-        ).read_text()
+        example_plugin = (Path(imageio.plugins.__file__).parent / "example.py").read_text()
         example_plugin = [line.rstrip() for line in example_plugin.splitlines()]
 
         src = source[0]
