@@ -702,7 +702,9 @@ class PyAVPlugin(PluginV3):
             except av.error.BlockingIOError:
                 break  # graph exhausted
 
-    def properties(self, index: int = None, *, format: str = "rgb24") -> ImageProperties:
+    def properties(
+        self, index: int = None, *, format: str = "rgb24"
+    ) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
