@@ -759,7 +759,7 @@ def test_memtest(test_images, tmp_path):
 def test_example_plugin(test_images, tmp_path):
     """Test the example plugin"""
 
-    from imageio.plugins import example
+    import imageio.plugins.example  # noqa: F401
 
     fname = tmp_path / "out.png"
     r = Request(test_images / "chelsea.png", "r?")

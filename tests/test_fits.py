@@ -4,7 +4,6 @@ import pytest
 
 import imageio.v2 as iio
 from imageio.core import Request
-import warnings
 
 import numpy as np
 from conftest import deprecated_test

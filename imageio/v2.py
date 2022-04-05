@@ -511,4 +511,5 @@ __all__ = [
     "help",
     "get_reader",
     "get_writer",
+    "RETURN_BYTES",
 ]

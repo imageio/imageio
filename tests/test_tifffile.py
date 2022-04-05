@@ -5,7 +5,6 @@ import datetime
 import numpy as np
 import pytest
 
-import imageio.v2 as imageio
 import imageio.v2 as iio
 from conftest import deprecated_test
 

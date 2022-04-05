@@ -4,7 +4,6 @@ import warnings
 
 from ..config import known_plugins
 from ..config.extensions import known_extensions
-from ..config.plugins import PluginConfig
 from .request import (
     SPECIAL_READ_URIS,
     URI_FILENAME,

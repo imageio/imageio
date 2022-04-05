@@ -169,7 +169,6 @@ when saving RGB images.
 
 import logging
 import threading
-import warnings
 
 import numpy as np
 
