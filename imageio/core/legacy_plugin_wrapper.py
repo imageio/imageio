@@ -4,6 +4,18 @@ from pathlib import Path
 
 from .request import IOMode, Request, InitializationError
 from .v3_plugin_api import PluginV3, ImageProperties
+from .sentinels import PLUGIN_DEFAULT
+
+
+def _legacy_default_index(format):
+    if format._name == "FFMPEG":
+        index = None
+    elif format._name == "GIF-PIL":
+        index = None
+    else:
+        index = 0
+
+    return index
 
 
 class LegacyPlugin(PluginV3):
@@ -103,7 +115,7 @@ class LegacyPlugin(PluginV3):
         self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
-    def read(self, *, index: Optional[int] = 0, **kwargs) -> np.ndarray:
+    def read(self, *, index: Optional[int] = PLUGIN_DEFAULT, **kwargs) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -124,6 +136,9 @@ class LegacyPlugin(PluginV3):
             A numpy array containing the decoded image data.
 
         """
+
+        if index is PLUGIN_DEFAULT:
+            index = _legacy_default_index(self._format)
 
         if index is None:
             img = np.stack([im for im in self.iter(**kwargs)])
@@ -219,7 +234,7 @@ class LegacyPlugin(PluginV3):
         for image in reader:
             yield image
 
-    def properties(self, index: Optional[int] = 0) -> ImageProperties:
+    def properties(self, index: Optional[int] = PLUGIN_DEFAULT) -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
@@ -246,7 +261,7 @@ class LegacyPlugin(PluginV3):
             is_batch=True if index is None else False,
         )
 
-    def get_meta(self, *, index: Optional[int] = 0) -> Dict[str, Any]:
+    def get_meta(self, *, index: Optional[int] = PLUGIN_DEFAULT) -> Dict[str, Any]:
         """Read ndimage metadata from the URI
 
         Parameters
@@ -269,7 +284,7 @@ class LegacyPlugin(PluginV3):
         return self.metadata(index=index, exclude_applied=False)
 
     def metadata(
-        self, index: Optional[int] = 0, exclude_applied: bool = True
+        self, index: Optional[int] = PLUGIN_DEFAULT, exclude_applied: bool = True
     ) -> Dict[str, Any]:
         """Format-Specific ndimage metadata.
 
@@ -294,6 +309,9 @@ class LegacyPlugin(PluginV3):
             raise ValueError(
                 "Legacy plugins don't support excluding applied metadata fields."
             )
+
+        if index is PLUGIN_DEFAULT:
+            index = _legacy_default_index(self._format)
 
         return self.legacy_get_reader().get_meta_data(index=index)
 

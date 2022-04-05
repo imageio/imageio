@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 from imageio import core
 from imageio.core import IS_PYPY
+import imageio.v3 as iio3
 
 from conftest import deprecated_test
 
@@ -177,6 +178,13 @@ def test_read_and_write(test_images):
             assert (diff.sum() / diff.size) < 100
         else:
             assert diff.mean() < 2.5
+
+
+def test_v3_read(test_images):
+    # this should trigger the plugin default
+    # and read all frames by default
+    frames = iio3.imread(test_images / "cockatoo.mp4")
+    assert frames.shape == (280, 720, 1280, 3)
 
 
 def test_write_not_contiguous(test_images):

@@ -5,12 +5,13 @@ import numpy as np
 from imageio.core.v3_plugin_api import ImageProperties
 
 from .core.imopen import imopen
+from .core.sentinels import PLUGIN_DEFAULT
 
 
 def imread(
     uri,
     *,
-    index: Optional[int] = 0,
+    index: Optional[int] = PLUGIN_DEFAULT,
     plugin: str = None,
     format_hint: str = None,
     **kwargs
@@ -51,8 +52,12 @@ def imread(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
+    call_kwargs = kwargs
+    if index != PLUGIN_DEFAULT:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        return np.asarray(img_file.read(index=index, **kwargs))
+        return np.asarray(img_file.read(**call_kwargs))
 
 
 def imiter(
@@ -186,8 +191,12 @@ def improps(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
+    call_kwargs = kwargs
+    if index != PLUGIN_DEFAULT:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        properties = img_file.properties(index=index, **kwargs)
+        properties = img_file.properties(**call_kwargs)
 
     return properties
 
@@ -195,7 +204,7 @@ def improps(
 def immeta(
     uri,
     *,
-    index: Optional[int] = 0,
+    index: Optional[int] = PLUGIN_DEFAULT,
     plugin: str = None,
     exclude_applied: bool = True,
     **kwargs
@@ -233,10 +242,13 @@ def immeta(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
+    call_kwargs = kwargs
+    call_kwargs["exclude_applied"] = exclude_applied
+    if index != PLUGIN_DEFAULT:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        metadata = img_file.metadata(
-            index=index, exclude_applied=exclude_applied, **kwargs
-        )
+        metadata = img_file.metadata(**call_kwargs)
 
     return metadata
 

@@ -33,6 +33,7 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
+from ..core.sentinels import PLUGIN_DEFAULT
 import warnings
 
 
@@ -118,7 +119,7 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=0, mode=None, rotate=False, apply_gamma=False
+        self, *, index=PLUGIN_DEFAULT, mode=None, rotate=False, apply_gamma=False
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -129,7 +130,9 @@ class PillowPlugin(PluginV3):
             If the URI contains a list of ndimages (multiple frames) return the
             index-th image/frame. If None, read all ndimages (frames) in the URI
             and attempt to stack them along a new 0-th axis (equivalent to
-            np.stack(imgs, axis=0))
+            np.stack(imgs, axis=0)). If unspecified (``PLUGIN_DEFAULT``) index is
+            set to ``0`` for formats that contain exactly one image and to ``None``
+            for formats that may contain more than one image (e.g. GIF).
         mode : {str, None}
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
@@ -154,6 +157,14 @@ class PillowPlugin(PluginV3):
         is discarded during conversion to ndarray.
 
         """
+
+        if index is PLUGIN_DEFAULT:
+            if self._image.format == "GIF":
+                index = None
+            elif self._image.custom_mimetype == "image/apng":
+                index = None
+            else:
+                index = 0
 
         if index is not None:
             # will raise IO error if index >= number of frames in image
@@ -298,16 +309,33 @@ class PillowPlugin(PluginV3):
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
 
-    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
-        """Read ndimage metadata from the URI
+    def metadata(
+        self, index: int = PLUGIN_DEFAULT, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
+        """Read ndimage metadata.
 
         Parameters
         ----------
         index : {integer, None}
             If the URI contains a list of ndimages return the metadata
             corresponding to the index-th image. If None, return the metadata
-            for the last read ndimage/frame.
+            for the last read ndimage/frame. If not set (``PLUGIN_DEFAULT``)
+            use ``None`` for multi-image formats (GIF) and ``0`` otherwise.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary of format-specific metadata.
+
         """
+
+        if index is PLUGIN_DEFAULT:
+            if self._image.format == "GIF":
+                index = None
+            elif self._image.custom_mimetype == "image/apng":
+                index = None
+            else:
+                index = 0
 
         if index is not None and self._image.tell() != index:
             self._image.seek(index)
