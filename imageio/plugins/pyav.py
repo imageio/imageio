@@ -166,7 +166,7 @@ class PyAVPlugin(PluginV3):
     def read(
         self,
         *,
-        index: int = 0,
+        index: int = None,
         format: str = "rgb24",
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
@@ -702,7 +702,7 @@ class PyAVPlugin(PluginV3):
             except av.error.BlockingIOError:
                 break  # graph exhausted
 
-    def properties(self, index: int = 0, *, format: str = "rgb24") -> ImageProperties:
+    def properties(self, index: int = None, *, format: str = "rgb24") -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
