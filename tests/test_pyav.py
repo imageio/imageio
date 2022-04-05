@@ -71,19 +71,19 @@ def test_properties(test_images: Path):
             plugin.properties(format="nv24")
 
         props = plugin.properties()
-        assert props.shape == (3, 720, 1280)
+        assert props.shape == (280, 720, 1280, 3)
         assert props.dtype == np.uint8
-        assert props.is_batch is False
+        assert props.is_batch is True
 
         props = plugin.properties(index=4, format="rgb48")
         assert props.shape == (720, 1280, 3)
         assert props.dtype == np.uint16
         assert props.is_batch is False
 
-        props = plugin.properties(index=None)
-        assert props.shape == (280, 3, 720, 1280)
+        props = plugin.properties(index=5)
+        assert props.shape == (720, 1280, 3)
         assert props.dtype == np.uint8
-        assert props.is_batch is True
+        assert props.is_batch is False
 
 
 def test_video_format_to_dtype():
