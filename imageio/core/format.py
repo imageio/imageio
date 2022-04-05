@@ -50,10 +50,9 @@ MODENAMES = ImageMode
 
 
 def _get_config(plugin: str) -> PluginConfig:
-    """Look up the config for the given plugin name
+    """Old Plugin resolution logic.
 
-    Factored out for legacy compatibility with FormatManager. Move
-    back into imopen in V3.
+    Remove once we remove the old format manager.
     """
 
     extension_name = None
