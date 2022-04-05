@@ -231,12 +231,12 @@ def test_gif_gen(test_images, tmp_path):
         plugin="pyav",
         codec="gif",
         fps=50,
-        out_pixel_format="gray",
+        out_pixel_format="pal8",
         filter_graph=(
             {  # Nodes
                 "split": ("split", ""),
                 "palettegen": ("palettegen", ""),
-                "paletteuse": ("paletteuse", "new=1"),
+                "paletteuse": ("paletteuse", ""),
             },
             [  # Edges
                 ("video_in", "split", 0, 0),
