@@ -92,7 +92,7 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
     z = (1 / (2 * np.pi * (sigma**2))) * np.exp(
         -((xx**2) + (yy**2)) / (2 * (sigma**2))
     )
-    img = np.log(z, where=z!=0, out=np.zeros_like(z))
+    img = np.log(z, where=z != 0, out=np.zeros_like(z))
     phdu = fits.PrimaryHDU()
     ihdu = fits.ImageHDU(img)
     hdul = fits.HDUList([phdu, ihdu])

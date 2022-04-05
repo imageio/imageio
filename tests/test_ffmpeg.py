@@ -2,22 +2,25 @@
 
 """
 
-from io import BytesIO
-import os
-import sys
 import gc
-import time
-import threading
+import os
 import platform
+import sys
+import threading
+import time
+import warnings
+from io import BytesIO
 from pathlib import Path
 
+import imageio.plugins
+import imageio.v2 as iio
+import imageio.v3 as iio3
 import numpy as np
-
 import pytest
-
-import imageio
 from imageio import core
 from imageio.core import IS_PYPY
+
+from conftest import deprecated_test
 
 psutil = pytest.importorskip(
     "psutil", reason="ffmpeg support cannot be tested without psutil"
@@ -77,11 +80,12 @@ def test_get_exe_env():
     assert path == path2
 
 
+@deprecated_test
 def test_select(test_images):
 
     fname1 = test_images / "cockatoo.mp4"
 
-    F = imageio.formats["ffmpeg"]
+    F = iio.formats["ffmpeg"]
     assert F.name == "FFMPEG"
 
     assert F.can_read(core.Request(fname1, "rI"))
@@ -90,18 +94,14 @@ def test_select(test_images):
     assert not F.can_read(core.Request(fname1, "rv"))
 
     # ffmpeg is default
-    assert type(imageio.formats[".mp4"]) is type(F)
-    assert type(
-        imageio.formats.search_write_format(core.Request(fname1, "wI"))
-    ) is type(F)
-    assert type(imageio.formats.search_read_format(core.Request(fname1, "rI"))) is type(
-        F
-    )
+    assert type(iio.formats[".mp4"]) is type(F)
+    assert type(iio.formats.search_write_format(core.Request(fname1, "wI"))) is type(F)
+    assert type(iio.formats.search_read_format(core.Request(fname1, "rI"))) is type(F)
 
 
 def test_integer_reader_length(test_images):
     # Avoid regression for #280
-    r = imageio.get_reader(test_images / "cockatoo.mp4")
+    r = iio.get_reader(test_images / "cockatoo.mp4")
     assert r.get_length() == float("inf")
     assert isinstance(len(r), int)
     assert len(r) == sys.maxsize
@@ -113,8 +113,8 @@ def test_read_and_write(test_images):
 
     fname1 = test_images / "cockatoo.mp4"
 
-    R = imageio.read(fname1, "ffmpeg")
-    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
+    R = iio.read(fname1, "ffmpeg")
+    assert isinstance(R, imageio.plugins.ffmpeg.FfmpegFormat.Reader)
 
     fname2 = fname1.with_suffix(".out.mp4")
 
@@ -122,7 +122,7 @@ def test_read_and_write(test_images):
 
     # Read
     ims1 = []
-    with imageio.read(fname1, "ffmpeg") as R:
+    with iio.read(fname1, "ffmpeg") as R:
         for i in range(10):
             im = R.get_next_data()
             ims1.append(im)
@@ -160,12 +160,12 @@ def test_read_and_write(test_images):
         assert not (im11 == im13).all()
 
     # Save
-    with imageio.save(fname2, "ffmpeg") as W:
+    with iio.save(fname2, "ffmpeg") as W:
         for im in ims1:
             W.append_data(im)
 
     # Read the result
-    ims2 = imageio.mimread(fname2, "ffmpeg")
+    ims2 = iio.mimread(fname2, "ffmpeg")
     assert len(ims1) == len(ims2)
     for im in ims2:
         assert im.shape == (720, 1280, 3)
@@ -183,20 +183,20 @@ def test_write_not_contiguous(test_images):
 
     fname1 = test_images / "cockatoo.mp4"
 
-    R = imageio.read(fname1, "ffmpeg")
-    assert isinstance(R.format, type(imageio.formats["ffmpeg"]))
+    R = iio.read(fname1, "ffmpeg")
+    assert isinstance(R, imageio.plugins.ffmpeg.FfmpegFormat.Reader)
 
     fname2 = fname1.with_suffix(".out.mp4")
 
     # Read
     ims1 = []
-    with imageio.read(fname1, "ffmpeg") as R:
+    with iio.read(fname1, "ffmpeg") as R:
         for i in range(10):
             im = R.get_next_data()
             ims1.append(im)
 
     # Save non contiguous data
-    with imageio.save(fname2, "ffmpeg") as W:
+    with iio.save(fname2, "ffmpeg") as W:
         for im in ims1:
             # DOn't slice the first dimension since it won't be
             # a multiple of 16. This will cause the writer to expand
@@ -206,7 +206,7 @@ def test_write_not_contiguous(test_images):
             assert not im.flags.c_contiguous
             W.append_data(im)
 
-    ims2 = imageio.mimread(fname2, "ffmpeg")
+    ims2 = iio.mimread(fname2, "ffmpeg")
 
     # Check
     for im1, im2 in zip(ims1, ims2):
@@ -224,7 +224,7 @@ def test_reader_more(test_images):
     fname3 = fname1.with_suffix(".stub.mp4")
 
     # Get meta data
-    R = imageio.read(fname1, "ffmpeg", loop=True)
+    R = iio.read(fname1, "ffmpeg", loop=True)
     meta = R.get_meta_data()
     assert len(R) == 280
     assert isinstance(meta, dict)
@@ -232,17 +232,17 @@ def test_reader_more(test_images):
     R.close()
 
     # Test size argument
-    im = imageio.read(fname1, "ffmpeg", size=(50, 50)).get_data(0)
+    im = iio.read(fname1, "ffmpeg", size=(50, 50)).get_data(0)
     assert im.shape == (50, 50, 3)
-    im = imageio.read(fname1, "ffmpeg", size="40x40").get_data(0)
+    im = iio.read(fname1, "ffmpeg", size="40x40").get_data(0)
     assert im.shape == (40, 40, 3)
     with pytest.raises(ValueError):
-        imageio.read(fname1, "ffmpeg", size=20)
+        iio.read(fname1, "ffmpeg", size=20)
     with pytest.raises(ValueError):
-        imageio.read(fname1, "ffmpeg", pixelformat=20)
+        iio.read(fname1, "ffmpeg", pixelformat=20)
 
     # Read all frames and test length
-    R = imageio.read(test_images / "realshort.mp4", "ffmpeg")
+    R = iio.read(test_images / "realshort.mp4", "ffmpeg")
     count = 0
     while True:
         try:
@@ -276,7 +276,7 @@ def test_reader_more(test_images):
         R.get_data(-1)  # Test index error -1
 
     # Test loop
-    R = imageio.read(test_images / "realshort.mp4", "ffmpeg", loop=1)
+    R = iio.read(test_images / "realshort.mp4", "ffmpeg", loop=1)
     im1 = R.get_next_data()
     for i in range(1, len(R)):
         R.get_next_data()
@@ -291,10 +291,10 @@ def test_reader_more(test_images):
     # Read invalid
     open(fname3, "wb")
     with pytest.raises(IOError):
-        imageio.read(fname3, "ffmpeg")
+        iio.read(fname3, "ffmpeg")
 
     # Read printing info
-    imageio.read(fname1, "ffmpeg", print_info=True)
+    iio.read(fname1, "ffmpeg", print_info=True)
 
 
 def test_writer_more(test_images):
@@ -302,7 +302,7 @@ def test_writer_more(test_images):
     fname1 = test_images / "cockatoo.mp4"
     fname2 = fname1.with_suffix(".out.mp4")
 
-    W = imageio.save(fname2, "ffmpeg")
+    W = iio.save(fname2, "ffmpeg")
     with pytest.raises(ValueError):  # Invalid shape
         W.append_data(np.zeros((20, 20, 5), np.uint8))
     W.append_data(np.zeros((20, 20, 3), np.uint8))
@@ -319,11 +319,11 @@ def test_writer_file_properly_closed(tmpdir):
     # Test to catch if file is correctly closed.
     # Otherwise it won't play in most players. This seems to occur on windows.
     tmpf = tmpdir.join("test.mp4")
-    W = imageio.get_writer(str(tmpf))
+    W = iio.get_writer(str(tmpf))
     for i in range(12):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     # If Duration: N/A reported by ffmpeg, then the file was not
     # correctly closed.
     # This will cause the file to not be readable in many players.
@@ -335,7 +335,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
 
     # Make sure verbose option works and that default pixelformat is yuv420p
     tmpf = tmpdir.join("test.mp4")
-    W = imageio.get_writer(str(tmpf), ffmpeg_log_level="warning")
+    W = iio.get_writer(str(tmpf), ffmpeg_log_level="warning")
     nframes = 4  # Number of frames in video
     for i in range(nframes):
         # Use size divisible by 16 or it gets changed.
@@ -344,37 +344,37 @@ def test_writer_pixelformat_size_verbose(tmpdir):
 
     # Check that video is correct size & default output video pixel format
     # is correct
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (64, 64)
     assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now check that macroblock size gets turned off if requested
-    W = imageio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
+    W = iio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((100, 106, 3), np.uint8))
     W.close()
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (106, 100)
     assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now double check values different than default work
-    W = imageio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
+    W = iio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
     for i in range(nframes):
         W.append_data(np.zeros((64, 65, 3), np.uint8))
     W.close()
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (68, 64)
     assert "yuv420p" == W._meta["pix_fmt"]
 
     # Now check that the macroblock works as expected for the default of 16
-    W = imageio.get_writer(str(tmpf), ffmpeg_log_level="debug")
+    W = iio.get_writer(str(tmpf), ffmpeg_log_level="debug")
     for i in range(nframes):
         W.append_data(np.zeros((111, 140, 3), np.uint8))
     W.close()
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     # Check for warning message with macroblock
     assert W._meta["size"] == (144, 112)
@@ -386,11 +386,11 @@ def test_writer_ffmpeg_params(tmpdir):
     # Also putting in an image size that is not divisible by macroblock size
     # To check that the -vf scale overwrites what it does.
     tmpf = tmpdir.join("test.mp4")
-    W = imageio.get_writer(str(tmpf), ffmpeg_params=["-vf", "scale=320:240"])
+    W = iio.get_writer(str(tmpf), ffmpeg_params=["-vf", "scale=320:240"])
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     # Check that the optional argument scaling worked.
     assert W._meta["size"] == (320, 240)
 
@@ -398,12 +398,12 @@ def test_writer_ffmpeg_params(tmpdir):
 def test_writer_wmv(tmpdir):
     # WMV has different default codec, make sure it works.
     tmpf = tmpdir.join("test.wmv")
-    W = imageio.get_writer(str(tmpf), ffmpeg_params=["-v", "info"])
+    W = iio.get_writer(str(tmpf), ffmpeg_params=["-v", "info"])
     for i in range(10):
         W.append_data(np.zeros((100, 100, 3), np.uint8))
     W.close()
 
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     # Check that default encoder is msmpeg4 for wmv
     assert W._meta["codec"].startswith("msmpeg4")
 
@@ -481,12 +481,11 @@ def test_webcam():
     good_paths = ["<video0>", "<video42>"]
     for path in good_paths:
         # regression test for https://github.com/imageio/imageio/issues/676
-        tmp_request = imageio.core.Request(path, "rI")
-        assert imageio.formats["ffmpeg"].can_read(tmp_request)
-        tmp_request.finish()
+        with iio3.imopen(path, "r", plugin="FFMPEG"):
+            pass
 
         try:
-            imageio.read(path, format="ffmpeg")
+            iio.read(path, format="ffmpeg")
         except IndexError:
             # IndexError should be raised when
             # path string is good but camera doesnt exist
@@ -495,12 +494,12 @@ def test_webcam():
     bad_paths = ["<videof1>", "<video0x>", "<video>"]
     for path in bad_paths:
         with pytest.raises(ValueError):
-            imageio.read(path)
+            iio.read(path)
 
 
 def test_webcam_get_next_data():
     try:
-        reader = imageio.get_reader("<video0>")
+        reader = iio.get_reader("<video0>")
     except IndexError:
         pytest.xfail("no webcam")
 
@@ -523,8 +522,8 @@ def test_process_termination(test_images):
 
     pids0 = get_ffmpeg_pids()
 
-    r1 = imageio.get_reader(test_images / "cockatoo.mp4")
-    r2 = imageio.get_reader(test_images / "cockatoo.mp4")
+    r1 = iio.get_reader(test_images / "cockatoo.mp4")
+    r2 = iio.get_reader(test_images / "cockatoo.mp4")
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 2
 
@@ -533,8 +532,8 @@ def test_process_termination(test_images):
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 0
 
-    r1 = imageio.get_reader(test_images / "cockatoo.mp4")
-    r2 = imageio.get_reader(test_images / "cockatoo.mp4")
+    r1 = iio.get_reader(test_images / "cockatoo.mp4")
+    r2 = iio.get_reader(test_images / "cockatoo.mp4")
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 2
 
@@ -556,7 +555,7 @@ def test_webcam_process_termination():
 
     try:
         # Open the first webcam found.
-        with imageio.get_reader("<video0>") as reader:
+        with iio.get_reader("<video0>") as reader:
             assert reader._read_gen is not None
             assert get_ffmpeg_pids().difference(pids0)
         # Ensure that the corresponding ffmpeg process has been terminated.
@@ -575,8 +574,9 @@ def test_webcam_resource_warnings():
      (see https://github.com/pytest-dev/pytest/issues/9404)
     """
     try:
-        with pytest.warns(None) as warnings:
-            with imageio.get_reader("<video0>"):
+        with warnings.catch_warnings(record=True) as warns:
+            warnings.simplefilter("error")
+            with iio.get_reader("<video0>"):
                 pass
     except IndexError:
         pytest.xfail("no webcam")
@@ -585,16 +585,16 @@ def test_webcam_resource_warnings():
         # We still expect imagio_ffmpeg 0.4.5 to generate (at most) one warning.
         # todo: remove this assertion when a fix for imageio_ffmpeg issue #61
         #  has been released
-        assert len(warnings) < 2
+        assert len(warns) < 2
         return
 
     # There should not be any warnings, but show warning messages if there are.
-    assert not [w.message for w in warnings]
+    assert not [w.message for w in warns]
 
 
 def show_in_console(test_images):
-    reader = imageio.read(test_images / "cockatoo.mp4", "ffmpeg")
-    # reader = imageio.read('<video0>')
+    reader = iio.read(test_images / "cockatoo.mp4", "ffmpeg")
+    # reader = iio.read('<video0>')
     im = reader.get_next_data()
     while True:
         im = reader.get_next_data()
@@ -605,8 +605,8 @@ def show_in_console(test_images):
 
 
 def show_in_visvis(test_images):
-    # reader = imageio.read(test_images / "cockatoo.mp4", "ffmpeg")
-    reader = imageio.read("<video0>", fps=20)
+    # reader = iio.read(test_images / "cockatoo.mp4", "ffmpeg")
+    reader = iio.read("<video0>", fps=20)
 
     import visvis as vv
 
@@ -626,12 +626,12 @@ def test_reverse_read(tmpdir):
     # Ensure we can read a file in reverse without error.
 
     tmpf = tmpdir.join("test_vid.mp4")
-    W = imageio.get_writer(str(tmpf))
+    W = iio.get_writer(str(tmpf))
     for i in range(120):
         W.append_data(np.zeros((64, 64, 3), np.uint8))
     W.close()
 
-    W = imageio.get_reader(str(tmpf))
+    W = iio.get_reader(str(tmpf))
     for i in range(W.count_frames() - 1, 0, -1):
         print("reading", i)
         W.get_data(i)
@@ -643,7 +643,7 @@ def test_read_stream(test_images):
 
     video_blob = Path(test_images / "cockatoo.mp4").read_bytes()
 
-    result = imageio.v3.imread(video_blob, index=5, format_hint=".mp4")
-    expected = imageio.v3.imread("imageio:cockatoo.mp4", index=5)
+    result = iio3.imread(video_blob, index=5, format_hint=".mp4")
+    expected = iio3.imread("imageio:cockatoo.mp4", index=5)
 
     assert np.allclose(result, expected)
