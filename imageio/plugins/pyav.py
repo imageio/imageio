@@ -3,8 +3,8 @@
 Backend Library: `PyAV <https://pyav.org/docs/stable/>`_
 
 This plugin wraps pyAV, a pythonic binding for the FFMPEG library.
-It is similar to our famous FFMPEG plugin, but offers a more performant and
-robut interface and aims to superseed the FFMPEG plugin in the future.
+It is similar to our FFMPEG plugin, but offers a more performant and
+robut interface, and aims to superseed the FFMPEG plugin in the future.
 
 
 Methods
@@ -525,7 +525,7 @@ class PyAVPlugin(PluginV3):
 
     def write(
         self,
-        ndimage: Union[ArrayLike, List[ArrayLike]],
+        ndimage: Union[np.ndarray, List[np.ndarray]],
         *,
         codec: str,
         is_batch: bool = True,
