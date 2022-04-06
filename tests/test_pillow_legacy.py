@@ -373,6 +373,13 @@ def test_animated_gif(test_images, tmp_path):
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
+def test_v3_gif(test_images):
+    img = imageio.v3.imread(
+        test_images / "newtonscradle.gif", plugin="GIF-PIL", index=None
+    )
+    assert img.shape == (36, 150, 200, 4)
+
+
 @deprecated_test
 def test_images_with_transparency(test_images):
     # Not alpha channel, but transparent pixels, see issue #245 and #246
