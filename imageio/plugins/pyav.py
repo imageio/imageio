@@ -285,13 +285,10 @@ class PyAVPlugin(PluginV3):
 
             try:
                 self._container = av.open(file_handle, mode="w", format=container)
-            except av.AVError:
-                resource = (
-                    "<bytes>"
-                    if isinstance(self.request.raw_uri, bytes)
-                    else self.request.raw_uri
+            except ValueError:
+                raise InitializationError(
+                    f"PyAV can not write to `{self.request.raw_uri}`"
                 )
-                raise InitializationError(f"PyAV can not write to `{resource}`")
 
     def read(
         self,
@@ -812,7 +809,8 @@ class PyAVPlugin(PluginV3):
         try:
             # send EOF in av>=9.0
             graph.push(None)
-        except ValueError:
+        except ValueError:  # pragma: no cover
+            # handle av<9.0
             pass
 
         # all frames have been sent, empty the filter
@@ -821,8 +819,9 @@ class PyAVPlugin(PluginV3):
                 yield graph.pull()
             except av.error.EOFError:
                 break  # EOF
-            except av.error.BlockingIOError:
-                break  # graph exhausted
+            except av.error.BlockingIOError:  # pragma: no cover
+                # handle av<9.0
+                break
 
     def properties(
         self, index: int = None, *, format: str = "rgb24"

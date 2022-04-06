@@ -149,6 +149,27 @@ def test_filter_sequence(test_images):
     assert frames.shape == (56, 480, 640, 3)
 
 
+def test_filter_graph(test_images):
+    frames = iio.imread(
+        test_images / "cockatoo.mp4",
+        index=None,
+        plugin="pyav",
+        filter_graph=(
+            {
+                "step": ("framestep", "5"),
+                "scale": ("scale", {"size": "vga", "flags": "lanczos"}),
+            },
+            [
+                ("video_in", "step", 0, 0),
+                ("step", "scale", 0, 0),
+                ("scale", "video_out", 0, 0),
+            ],
+        ),
+    )
+
+    assert frames.shape == (56, 480, 640, 3)
+
+
 def test_write_bytes(test_images, tmp_path):
     img = iio.imread(
         test_images / "cockatoo.mp4",
@@ -294,3 +315,10 @@ def test_native_pixformat_reading(test_images):
 
     # cockatoo.mp4 uses YUV444p
     assert frames.shape == (3, 720, 1280)
+
+
+def test_invalid_resource(tmp_path):
+    img = np.zeros((100, 100, 3))
+
+    with pytest.raises(IOError):
+        iio.imwrite(tmp_path / "foo.abc", img, plugin="pyav")
