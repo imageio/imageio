@@ -145,7 +145,6 @@ from fractions import Fraction
 import av
 import av.filter
 import numpy as np
-from numpy.typing import ArrayLike
 from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
