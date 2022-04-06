@@ -61,8 +61,6 @@ def _get_config(plugin: str) -> PluginConfig:
         extension_name = Path(plugin).suffix.lower()
     elif plugin in known_plugins:
         pass
-    elif plugin.upper() in known_plugins:
-        plugin = plugin.upper()
     elif plugin.lower() in known_extensions:
         extension_name = plugin.lower()
     elif "." + plugin.lower() in known_extensions:
@@ -79,8 +77,6 @@ def _get_config(plugin: str) -> PluginConfig:
             if known_plugins[plugin_name].is_legacy:
                 plugin = plugin_name
                 break
-        else:  # pragma: no cover
-            raise IndexError(f"No format known by name `{plugin}`.")
 
     return known_plugins[plugin]
 

@@ -714,6 +714,19 @@ def test_functions(test_images, tmp_path):
     raises(ValueError, iio.mvolsave, fname6, [42])
 
 
+@deprecated_test
+def test_v2_format_resolution(test_images):
+    img1 = iio.v2.imread(test_images / "chelsea.png", format=".png")
+    assert img1.shape == (300, 451, 3)
+
+    # I still don't understand why we allow "format" to be a file-path
+    # but I am keeping it for backwards compatibility
+    img2 = iio.v2.imread(
+        test_images / "chelsea.png", format=test_images / "chelsea.png"
+    )
+    assert img2.shape == (300, 451, 3)
+
+
 @pytest.mark.parametrize(
     "arg,expected",
     [

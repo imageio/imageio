@@ -87,7 +87,7 @@ def decypher_format_arg(format_name: Union[str, None]) -> Dict[str, str]:
     if format_name is None:
         pass  # nothing to do
     elif Path(format_name).suffix.lower() in known_extensions:
-        extension = Path(plugin).suffix.lower()
+        extension = Path(format_name).suffix.lower()
     elif format_name in known_plugins:
         plugin = format_name
     elif format_name.upper() in known_plugins:

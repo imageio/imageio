@@ -15,7 +15,7 @@ from .. import formats
 # v2 allows formatting plugins by environment variable
 # this is done here.
 env_plugin_order = os.getenv("IMAGEIO_FORMAT_ORDER", None)
-if env_plugin_order is not None:
+if env_plugin_order is not None:  # pragma: no cover
     warnings.warn(
         "Setting plugin priority through an environment variable is"
         " deprecated and will be removed in ImageIO v3. There is no"
