@@ -8,6 +8,14 @@ this module generates this info and writes it to its own bottom half
 if run as a script.
 """
 
+import warnings
+
+warnings.warn(
+    "The `PillowFormat` plugin is deprecated and will be removed in ImageIO v3."
+    " Use the new `PillowPlugin` instead.",
+    DeprecationWarning,
+)
+
 
 def generate_info():  # pragma: no cover
     from urllib.request import urlopen

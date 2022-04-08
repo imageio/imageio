@@ -7,9 +7,10 @@ import numpy as np
 
 import pytest
 
-import imageio
+import imageio.v2 as iio
 from imageio import core
 import imageio.plugins.dicom
+from conftest import deprecated_test
 
 
 @pytest.fixture(scope="module")
@@ -39,10 +40,11 @@ def examples(test_images, tmp_path_factory):
     yield dname1, dname2, fname1, fname2
 
 
+@deprecated_test
 def test_read_empty_dir(tmp_path):
     # Test that no format is found, but no error is raised
     request = core.Request(tmp_path, "ri")
-    assert imageio.formats.search_read_format(request) is None
+    assert iio.formats.search_read_format(request) is None
 
 
 def test_dcmtk():
@@ -51,14 +53,15 @@ def test_dcmtk():
     imageio.plugins.dicom.get_dcmdjpeg_exe()
 
 
+@deprecated_test
 def test_selection(test_images, tmp_path, examples):
 
     dname1, dname2, fname1, fname2 = examples
 
     # Test that DICOM can examine file
-    F = imageio.formats.search_read_format(core.Request(fname1, "ri"))
+    F = iio.formats.search_read_format(core.Request(fname1, "ri"))
     assert F.name == "DICOM"
-    assert isinstance(F, type(imageio.formats["DICOM"]))
+    assert isinstance(F, type(iio.formats["DICOM"]))
 
     # Test that we cannot save
     request = core.Request(tmp_path / "test.dcm", "wi")
@@ -73,24 +76,24 @@ def test_selection(test_images, tmp_path, examples):
         F.get_reader(core.Request(fname2, "ri"))
 
     # Test special files with other formats
-    im = imageio.imread(test_images / "dicom_file01.dcm")
+    im = iio.imread(test_images / "dicom_file01.dcm")
     assert im.shape == (512, 512)
-    im = imageio.imread(test_images / "dicom_file03.dcm")
+    im = iio.imread(test_images / "dicom_file03.dcm")
     assert im.shape == (512, 512)
-    im = imageio.imread(test_images / "dicom_file04.dcm")
+    im = iio.imread(test_images / "dicom_file04.dcm")
     assert im.shape == (512, 512)
 
     # Expected fails
     fname = test_images / "dicom_file90.dcm"
     with pytest.raises(RuntimeError):
-        imageio.imread(fname)  # 1.2.840.10008.1.2.4.91
+        iio.imread(fname)  # 1.2.840.10008.1.2.4.91
     fname = test_images / "dicom_file91.dcm"
     with pytest.raises(RuntimeError):
-        imageio.imread(fname)  # not pixel data
+        iio.imread(fname)  # not pixel data
 
     # This one *should* work, but does not, see issue #18
     try:
-        imageio.imread(test_images / "dicom_file02.dcm")
+        iio.imread(test_images / "dicom_file02.dcm")
     except Exception:
         pass
 
@@ -99,11 +102,11 @@ def test_progress(examples):
 
     dname1, dname2, fname1, fname2 = examples
 
-    imageio.imread(fname1, progress=True)
-    imageio.imread(fname1, progress=core.StdoutProgressIndicator("test"))
-    imageio.imread(fname1, progress=None)
+    iio.imread(fname1, progress=True)
+    iio.imread(fname1, progress=core.StdoutProgressIndicator("test"))
+    iio.imread(fname1, progress=None)
     with pytest.raises(ValueError):
-        imageio.imread(fname1, progress=3)
+        iio.imread(fname1, progress=3)
 
 
 def test_different_read_modes(examples):
@@ -113,30 +116,30 @@ def test_different_read_modes(examples):
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
 
         # Test imread()
-        im = imageio.imread(fname)
+        im = iio.imread(fname)
         assert isinstance(im, np.ndarray)
         assert im.shape == (512, 512)
 
         # Test mimread()
-        ims = imageio.mimread(fname)
+        ims = iio.mimread(fname)
         assert isinstance(ims, list)
         assert ims[0].shape == im.shape
         assert len(ims) > 1
         #
-        ims2 = imageio.mimread(dname, format="DICOM")
+        ims2 = iio.mimread(dname, format="DICOM")
         assert len(ims) == len(ims2)
 
         # Test volread()
-        vol = imageio.volread(dname, format="DICOM")
+        vol = iio.volread(dname, format="DICOM")
         assert vol.ndim == 3
         assert vol.shape[0] > 10
         assert vol.shape[1:] == (512, 512)
         #
-        vol2 = imageio.volread(fname)  # fname works as well
+        vol2 = iio.volread(fname)  # fname works as well
         assert (vol == vol2).all()
 
         # Test mvolread()
-        vols = imageio.mvolread(dname, format="DICOM")
+        vols = iio.mvolread(dname, format="DICOM")
         assert isinstance(vols, list)
         assert len(vols) == n
         assert vols[0].shape == vol.shape
@@ -150,13 +153,13 @@ def test_different_read_modes_with_readers(examples):
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
 
         # Test imread()
-        R = imageio.read(fname, "DICOM", "i")
+        R = iio.read(fname, "DICOM", "i")
         assert len(R) == 1
         assert isinstance(R.get_meta_data(), dict)
         assert isinstance(R.get_meta_data(0), dict)
 
         # Test mimread()
-        R = imageio.read(fname, "DICOM", "I")
+        R = iio.read(fname, "DICOM", "I")
         if n == 1:
             assert len(R) > 10
         else:
@@ -165,13 +168,13 @@ def test_different_read_modes_with_readers(examples):
         assert isinstance(R.get_meta_data(0), dict)
 
         # Test volread()
-        R = imageio.read(fname, "DICOM", "v")
+        R = iio.read(fname, "DICOM", "v")
         assert len(R) == n  # we ask for one, but get an honest number
         assert isinstance(R.get_meta_data(), dict)
         assert isinstance(R.get_meta_data(0), dict)
 
         # Test mvolread()
-        R = imageio.read(fname, "DICOM", "V")
+        R = iio.read(fname, "DICOM", "V")
         assert len(R) == n
         assert isinstance(R.get_meta_data(), dict)
         assert isinstance(R.get_meta_data(0), dict)
@@ -181,6 +184,6 @@ def test_different_read_modes_with_readers(examples):
         assert R._series[0].description
         assert len(R._series[0].sampling) == 3
 
-        R = imageio.read(fname, "DICOM", "?")
+        R = iio.read(fname, "DICOM", "?")
         with pytest.raises(RuntimeError):
             R.get_length()

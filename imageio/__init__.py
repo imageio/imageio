@@ -18,6 +18,8 @@ Main website: https://imageio.readthedocs.io/
 
 __version__ = "2.16.1"
 
+import warnings
+
 # Load some bits from core
 from .core import FormatManager, RETURN_BYTES
 
@@ -83,6 +85,14 @@ def imread(uri, format=None, **kwargs):
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
     """
+
+    warnings.warn(
+        "Starting with ImageIO v3 the behavior of this function will switch to that of"
+        " iio.v3.imread. To keep the current behavior (and make this warning dissapear)"
+        " use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.",
+        DeprecationWarning,
+    )
+
     return imread_v2(uri, format=format, **kwargs)
 
 

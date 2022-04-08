@@ -7,9 +7,12 @@ source = ./imageio
 omit = 
     imageio/testing.py
     imageio/freeze.py
-    imageio/plugins/_tifffile.py
     tests/*
     docs/*
+    
+    # ignore files that will be removed
+    imageio/plugins/_tifffile.py
+    imageio/plugins/pillow_info.py
 
 exclude_lines =
     # Remember that these are reg exp

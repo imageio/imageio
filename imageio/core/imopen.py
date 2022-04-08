@@ -4,7 +4,6 @@ import warnings
 
 from ..config import known_plugins
 from ..config.extensions import known_extensions
-from ..config.plugins import PluginConfig
 from .request import (
     SPECIAL_READ_URIS,
     URI_FILENAME,
@@ -15,61 +14,13 @@ from .request import (
 from .v3_plugin_api import PluginV3
 
 
-def _get_config(plugin: str, legacy_mode: bool) -> PluginConfig:
-    """Look up the config for the given plugin name
-
-    Factored out for legacy compatibility with FormatManager. Move
-    back into imopen in V3.
-    """
-
-    # for v2 compatibility, delete in v3
-    extension_name = None
-
-    if legacy_mode and Path(plugin).suffix.lower() in known_extensions:
-        # for v2 compatibility, delete in v3
-        extension_name = Path(plugin).suffix.lower()
-    elif plugin in known_plugins:
-        pass
-    elif not legacy_mode:
-        raise ValueError(f"`{plugin}` is not a registered plugin name.")
-    elif plugin.upper() in known_plugins:
-        # for v2 compatibility, delete in v3
-        plugin = plugin.upper()
-    elif plugin.lower() in known_extensions:
-        # for v2 compatibility, delete in v3
-        extension_name = plugin.lower()
-    elif "." + plugin.lower() in known_extensions:
-        # for v2 compatibility, delete in v3
-        extension_name = "." + plugin.lower()
-    else:
-        # for v2 compatibility, delete in v3
-        raise IndexError(f"No format known by name `{plugin}`.")
-
-    # for v2 compatibility, delete in v3
-    if extension_name is not None:
-        for plugin_name in [
-            x
-            for file_extension in known_extensions[extension_name]
-            for x in file_extension.priority
-        ]:
-            if known_plugins[plugin_name].is_legacy:
-                plugin = plugin_name
-                break
-        else:  # pragma: no cover
-            # currently there is no format that is only supported
-            # by v3 plugins
-            raise IndexError(f"No format known by name `{plugin}`.")
-
-    return known_plugins[plugin]
-
-
 def imopen(
     uri,
     io_mode: str,
     *,
     plugin: Union[str, Any] = None,
     format_hint: str = None,
-    legacy_mode: bool = True,
+    legacy_mode: bool = False,
     **kwargs,
 ) -> PluginV3:
     """Open an ImageResource.
@@ -154,6 +105,13 @@ def imopen(
         )
 
     if isinstance(uri, Request) and legacy_mode:
+        warnings.warn(
+            "`iio.core.Request` is a low-level object and using it"
+            " directly as input to `imopen` is discouraged. This will raise"
+            " an exception in ImageIO v3.",
+            DeprecationWarning,
+        )
+
         request = uri
         uri = request.raw_uri
         io_mode = request.mode.io_mode
@@ -168,10 +126,12 @@ def imopen(
     if plugin is not None:
         if isinstance(plugin, str):
             try:
-                config = _get_config(plugin, legacy_mode)
-            except (IndexError, ValueError):
+                config = known_plugins[plugin]
+            except KeyError:
                 request.finish()
-                raise
+                raise ValueError(
+                    f"`{plugin}` is not a registered plugin name."
+                ) from None
 
             def loader(request, **kwargs):
                 return config.plugin_class(request, **kwargs)

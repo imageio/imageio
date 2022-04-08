@@ -3,11 +3,15 @@
 
 from numbers import Number
 import re
+from typing import Dict, Union
+from pathlib import Path
 
 import numpy as np
 
 from . import formats
 from .core.imopen import imopen
+from .config import known_extensions, known_plugins
+from .core import RETURN_BYTES
 
 
 MEMTEST_DEFAULT_MIM = "256MB"
@@ -69,6 +73,35 @@ def help(name=None):
         print(formats[name])
 
 
+def decypher_format_arg(format_name: Union[str, None]) -> Dict[str, str]:
+    """Split format into plugin and format
+
+    The V2 API aliases plugins and supported formats. This function
+    splits these so that they can be fed separately to `iio.imopen`.
+
+    """
+
+    plugin = None
+    extension = None
+
+    if format_name is None:
+        pass  # nothing to do
+    elif Path(format_name).suffix.lower() in known_extensions:
+        extension = Path(format_name).suffix.lower()
+    elif format_name in known_plugins:
+        plugin = format_name
+    elif format_name.upper() in known_plugins:
+        plugin = format_name.upper()
+    elif format_name.lower() in known_extensions:
+        extension = format_name.lower()
+    elif "." + format_name.lower() in known_extensions:
+        extension = "." + format_name.lower()
+    else:
+        raise IndexError(f"No format known by name `{plugin}`.")
+
+    return {"plugin": plugin, "format_hint": extension}
+
+
 # Base functions that return a reader/writer
 
 
@@ -95,7 +128,10 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, "r" + mode, plugin=format)
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+
+    image_file = imopen(uri, "r" + mode, **imopen_args)
     return image_file.legacy_get_reader(**kwargs)
 
 
@@ -122,7 +158,10 @@ def get_writer(uri, format=None, mode="?", **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    image_file = imopen(uri, "w" + mode, plugin=format)
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+
+    image_file = imopen(uri, "w" + mode, **imopen_args)
     return image_file.legacy_get_writer(**kwargs)
 
 
@@ -156,7 +195,10 @@ def imread(uri, format=None, **kwargs):
             'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
         )
 
-    with imopen(uri, "ri", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+
+    with imopen(uri, "ri", **imopen_args) as file:
         return file.read(index=0, **kwargs)
 
 
@@ -192,7 +234,9 @@ def imwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
-    with imopen(uri, "wi", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "wi", **imopen_args) as file:
         return file.write(im, **kwargs)
 
 
@@ -244,7 +288,9 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
     images = list()
     nbytes = 0
 
-    with imopen(uri, "rI", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "rI", **imopen_args) as file:
         for image in file.iter(**kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -280,7 +326,9 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen(uri, "wI", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "wI", **imopen_args) as file:
         return file.write(ims, **kwargs)
 
 
@@ -306,7 +354,9 @@ def volread(uri, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen(uri, "rv", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "rv", **imopen_args) as file:
         return file.read(index=0, **kwargs)
 
 
@@ -342,7 +392,9 @@ def volwrite(uri, im, format=None, **kwargs):
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
-    with imopen(uri, "wv", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "wv", **imopen_args) as file:
         return file.write(im, **kwargs)
 
 
@@ -393,7 +445,9 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
 
     images = list()
     nbytes = 0
-    with imopen(uri, "rV", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "rV", **imopen_args) as file:
         for image in file.iter(**kwargs):
             images.append(image)
             nbytes += image.nbytes
@@ -430,9 +484,19 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    with imopen(uri, "wV", plugin=format) as file:
+    imopen_args = decypher_format_arg(format)
+    imopen_args["legacy_mode"] = True
+    with imopen(uri, "wV", **imopen_args) as file:
         return file.write(ims, **kwargs)
 
+
+# aliases
+read = get_reader
+save = get_writer
+imsave = imwrite
+mimsave = mimwrite
+volsave = volwrite
+mvolsave = mvolwrite
 
 __all__ = [
     "imread",
@@ -447,4 +511,5 @@ __all__ = [
     "help",
     "get_reader",
     "get_writer",
+    "RETURN_BYTES",
 ]

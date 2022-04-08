@@ -17,8 +17,6 @@ import pytest
 from pytest import raises, skip
 from imageio.config import FileExtension
 
-from imageio.v2 import to_nbytes
-
 import imageio
 import imageio as iio
 import imageio.core.imopen as imopen_module
@@ -27,6 +25,8 @@ from imageio.core import Request
 from imageio.core import IS_PYPY, get_remote_file
 from imageio.core.request import Mode, InitializationError
 from imageio.config.plugins import PluginConfig
+
+from conftest import deprecated_test
 
 
 try:
@@ -151,7 +151,7 @@ def test_request(test_images, tmp_userdir):
     assert R._uri_type == core.request.URI_FILENAME
     R = Request("<video0>", "rI")
     assert R._uri_type == core.request.URI_BYTES
-    R = Request(imageio.RETURN_BYTES, "wi")
+    R = Request(iio.RETURN_BYTES, "wi")
     assert R._uri_type == core.request.URI_BYTES
     #
     fname = test_images / "chelsea.png"
@@ -291,7 +291,7 @@ def test_request_save_sources(test_images, tmp_path):
             filename2,
             os.path.join(zipfilename2, fname2),
             file2,
-            imageio.RETURN_BYTES,  # This one last to fill `res`
+            iio.RETURN_BYTES,  # This one last to fill `res`
         ):
             R = Request(uri, "wi")
             if file_or_filename == 0:
@@ -592,8 +592,12 @@ def test_util_has_has_module():
     assert core.has_module("sys")
 
 
+# TODO: update this test after deprecations are removed
+@deprecated_test
 def test_functions(test_images, tmp_path):
     """Test the user-facing API functions"""
+
+    import imageio.plugins.example
 
     # Test help(), it prints stuff, so we just check whether that goes ok
     imageio.help()  # should print overview
@@ -605,33 +609,33 @@ def test_functions(test_images, tmp_path):
     open(fname3, "wb")
 
     # Test read()
-    R1 = imageio.read(fname1)
-    R2 = imageio.read(fname1, "png")
+    R1 = iio.read(fname1)
+    R2 = iio.read(fname1, "png")
 
     # this tests if the highest priority png plugin and the highest
     # priority fallback plugin match.
     # Do we really what to enforce this?
     assert type(R1) is type(R2)
 
-    raises(ValueError, imageio.read, fname3)  # existing but not readable
-    raises(IndexError, imageio.read, fname1, "notexistingformat")
+    raises(ValueError, iio.read, fname3)  # existing but not readable
+    raises(IndexError, iio.read, fname1, "notexistingformat")
 
     # Note: This is actually a test of Requests. We should probably
     # migrate or remove it.
-    raises(FileNotFoundError, imageio.read, "notexisting.barf")
+    raises(FileNotFoundError, iio.read, "notexisting.barf")
 
     # Test save()
-    W1 = imageio.save(fname2)
-    W2 = imageio.save(fname2, "JPG")
+    W1 = iio.save(fname2)
+    W2 = iio.save(fname2, "JPG")
     W1.close()
     W2.close()
     assert type(W1) is type(W2)
     # Fail
-    raises(FileNotFoundError, imageio.save, "~/dirdoesnotexist/wtf.notexistingfile")
+    raises(FileNotFoundError, iio.save, "~/dirdoesnotexist/wtf.notexistingfile")
 
     # Test imread()
-    im1 = imageio.imread(fname1)
-    im2 = imageio.imread(fname1, "png")
+    im1 = iio.imread(fname1)
+    im2 = iio.imread(fname1, "png")
     assert im1.shape[2] == 3
     assert np.all(im1 == im2)
 
@@ -639,20 +643,20 @@ def test_functions(test_images, tmp_path):
     if os.path.isfile(fname2):
         os.remove(fname2)
     assert not os.path.isfile(fname2)
-    imageio.imsave(fname2, im1[:, :, 0])
-    imageio.imsave(fname2, im1)
+    iio.imsave(fname2, im1[:, :, 0])
+    iio.imsave(fname2, im1)
     assert os.path.isfile(fname2)
 
     # Test mimread()
     fname3 = test_images / "newtonscradle.gif"
-    ims = imageio.mimread(fname3)
+    ims = iio.mimread(fname3)
     assert isinstance(ims, list)
     assert len(ims) > 1
     assert ims[0].ndim == 3
     assert ims[0].shape[2] in (1, 3, 4)
     # Test protection
     with raises(RuntimeError):
-        imageio.mimread(test_images / "chelsea.png", "dummy", length=np.inf)
+        iio.mimread(test_images / "chelsea.png", "dummy", length=np.inf)
 
     if IS_PYPY:
         return  # no support for npz format :(
@@ -663,13 +667,13 @@ def test_functions(test_images, tmp_path):
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)
-    imageio.mimsave(fname5, [im[:, :, 0] for im in ims])
-    imageio.mimsave(fname5, ims)
+    iio.mimsave(fname5, [im[:, :, 0] for im in ims])
+    iio.mimsave(fname5, ims)
     assert os.path.isfile(fname5)
 
     # Test volread()
     fname4 = test_images / "stent.npz"
-    vol = imageio.volread(fname4)
+    vol = iio.volread(fname4)
     assert vol.ndim == 3
     assert vol.shape[0] == 256
     assert vol.shape[1] == 128
@@ -681,12 +685,12 @@ def test_functions(test_images, tmp_path):
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
-    imageio.volsave(fname6, volc)
-    imageio.volsave(fname6, vol)
+    iio.volsave(fname6, volc)
+    iio.volsave(fname6, vol)
     assert os.path.isfile(fname6)
 
     # Test mvolread()
-    vols = imageio.mvolread(fname4)
+    vols = iio.mvolread(fname4)
     assert isinstance(vols, list)
     assert len(vols) == 1
     assert vols[0].shape == vol.shape
@@ -695,19 +699,32 @@ def test_functions(test_images, tmp_path):
     if os.path.isfile(fname6):
         os.remove(fname6)
     assert not os.path.isfile(fname6)
-    imageio.mvolsave(fname6, [volc, volc])
-    imageio.mvolsave(fname6, vols)
+    iio.mvolsave(fname6, [volc, volc])
+    iio.mvolsave(fname6, vols)
     assert os.path.isfile(fname6)
 
     # Fail for save functions
-    raises(ValueError, imageio.imsave, fname2, np.zeros((100, 100, 5)))
-    raises(ValueError, imageio.imsave, fname2, 42)
-    raises(ValueError, imageio.mimsave, fname5, [np.zeros((100, 100, 5))])
-    raises(ValueError, imageio.mimsave, fname5, [42])
-    raises(ValueError, imageio.volsave, fname6, np.zeros((100, 100, 100, 40)))
-    raises(ValueError, imageio.volsave, fname6, 42)
-    raises(ValueError, imageio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
-    raises(ValueError, imageio.mvolsave, fname6, [42])
+    raises(ValueError, iio.imsave, fname2, np.zeros((100, 100, 5)))
+    raises(ValueError, iio.imsave, fname2, 42)
+    raises(ValueError, iio.mimsave, fname5, [np.zeros((100, 100, 5))])
+    raises(ValueError, iio.mimsave, fname5, [42])
+    raises(ValueError, iio.volsave, fname6, np.zeros((100, 100, 100, 40)))
+    raises(ValueError, iio.volsave, fname6, 42)
+    raises(ValueError, iio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
+    raises(ValueError, iio.mvolsave, fname6, [42])
+
+
+@deprecated_test
+def test_v2_format_resolution(test_images):
+    img1 = iio.v2.imread(test_images / "chelsea.png", format=".png")
+    assert img1.shape == (300, 451, 3)
+
+    # I still don't understand why we allow "format" to be a file-path
+    # but I am keeping it for backwards compatibility
+    img2 = iio.v2.imread(
+        test_images / "chelsea.png", format=test_images / "chelsea.png"
+    )
+    assert img2.shape == (300, 451, 3)
 
 
 @pytest.mark.parametrize(
@@ -723,41 +740,44 @@ def test_functions(test_images, tmp_path):
     ],
 )
 def test_to_nbytes_correct(arg, expected):
-    n = to_nbytes(arg)
+    n = iio.v2.to_nbytes(arg)
     assert n == expected
 
 
 @pytest.mark.parametrize("arg", ["1mb", "1Giib", "GB", "1.3.2TB", "8b"])
 def test_to_nbytes_incorrect(arg):
     with raises(ValueError):
-        to_nbytes(arg)
+        iio.v2.to_nbytes(arg)
 
 
 def test_memtest(test_images, tmp_path):
     fname3 = test_images / "newtonscradle.gif"
-    imageio.mimread(fname3)  # trivial case
-    imageio.mimread(fname3, memtest=1000**2 * 256)
-    imageio.mimread(fname3, memtest="256MB")
-    imageio.mimread(fname3, memtest="256M")
-    imageio.mimread(fname3, memtest="256MiB")
+    iio.mimread(fname3)  # trivial case
+    iio.mimread(fname3, memtest=1000**2 * 256)
+    iio.mimread(fname3, memtest="256MB")
+    iio.mimread(fname3, memtest="256M")
+    iio.mimread(fname3, memtest="256MiB")
 
     # low limit should be hit
     with raises(RuntimeError):
-        imageio.mimread(fname3, memtest=10)
+        iio.mimread(fname3, memtest=10)
     with raises(RuntimeError):
-        imageio.mimread(fname3, memtest="64B")
+        iio.mimread(fname3, memtest="64B")
 
     with raises(ValueError):
-        imageio.mimread(fname3, memtest="64b")
+        iio.mimread(fname3, memtest="64b")
 
 
+@deprecated_test
 def test_example_plugin(test_images, tmp_path):
     """Test the example plugin"""
 
+    import imageio.plugins.example  # noqa: F401
+
     fname = tmp_path / "out.png"
     r = Request(test_images / "chelsea.png", "r?")
-    R = imageio.formats["dummy"].get_reader(r)
-    W = imageio.formats["dummy"].get_writer(Request(fname, "w?"))
+    R = iio.formats["dummy"].get_reader(r)
+    W = iio.formats["dummy"].get_writer(Request(fname, "w?"))
     #
     assert len(R) == 1
     assert R.get_data(0).ndim
@@ -780,8 +800,8 @@ def test_imwrite_not_subclass(tmpdir):
             return np.zeros((4, 4), dtype=dtype)
 
     filename = os.path.join(str(tmpdir), "foo.bmp")
-    imageio.imwrite(filename, Foo())
-    im = imageio.imread(filename)
+    iio.v2.imwrite(filename, Foo())
+    im = iio.v2.imread(filename)
     assert im.shape == (4, 4)
 
 
@@ -791,9 +811,9 @@ def test_imwrite_not_array_like():
             pass
 
     with raises(ValueError):
-        imageio.imwrite("foo.bmp", Foo())
+        iio.imwrite("foo.bmp", Foo())
     with raises(ValueError):
-        imageio.imwrite("foo.bmp", "asd")
+        iio.imwrite("foo.bmp", "asd")
 
 
 def test_imwrite_symbol_name():
@@ -813,7 +833,7 @@ def test_imwrite_symbol_name():
 
 def test_legacy_empty_image():
     with pytest.raises(RuntimeError):
-        with iio.imopen("foo.bmp", "wI", plugin="GIF-PIL") as file:
+        with iio.imopen("foo.bmp", "wI", plugin="GIF-PIL", legacy_mode=True) as file:
             file.write([])
 
 
@@ -917,7 +937,7 @@ def test_faulty_legacy_mode_access():
 @pytest.mark.needs_internet
 def test_mvolread_out_of_bytes(test_images):
     with pytest.raises(RuntimeError):
-        imageio.mvolread(
+        iio.mvolread(
             "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
             memtest="1B",
         )
@@ -976,6 +996,7 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
 
 
+@deprecated_test
 def test_sort_order_restore():
     # this is a proxy test; only test PNG instead of all formats
     # since that already reproduces the issue

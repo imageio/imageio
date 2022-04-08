@@ -2,22 +2,25 @@
 """
 import pytest
 
-import imageio
+import imageio.v2 as iio
 from imageio.core import Request
 
 import numpy as np
+from conftest import deprecated_test
 
 fits = pytest.importorskip("astropy.io.fits", reason="astropy is not installed")
 
 
+@deprecated_test
 def setup_module():
     # During this test, pretend that FITS is the default format
-    imageio.formats.sort("FITS")
+    iio.formats.sort("FITS")
 
 
+@deprecated_test
 def teardown_module():
     # Set back to normal
-    imageio.formats.sort()
+    iio.formats.sort()
 
 
 @pytest.fixture
@@ -29,11 +32,12 @@ def normal_plugin_order():
     setup_module()
 
 
+@deprecated_test
 def test_fits_format(test_images):
 
     # Test selection
     for name in ["fits", ".fits"]:
-        format = imageio.formats["fits"]
+        format = iio.formats["fits"]
         assert format.name == "FITS"
         assert format.__module__.endswith(".fits")
 
@@ -51,16 +55,16 @@ def test_fits_reading(test_images):
     compressed = test_images / "compressed.fits.fz"
 
     # One image
-    im = imageio.imread(simple, format="fits")
-    ims = imageio.mimread(simple, format="fits")
+    im = iio.imread(simple, format="fits")
+    ims = iio.mimread(simple, format="fits")
     assert (im == ims[0]).all()
     assert len(ims) == 1
 
     # Multiple images
-    ims = imageio.mimread(multi, format="fits")
+    ims = iio.mimread(multi, format="fits")
     assert len(ims) == 3
 
-    R = imageio.read(multi, format="fits")
+    R = iio.read(multi, format="fits")
     assert R.format.name == "FITS"
     ims = list(R)  # == [im for im in R]
     assert len(ims) == 3
@@ -73,7 +77,7 @@ def test_fits_reading(test_images):
     raises(RuntimeError, R.get_meta_data, 0)  # no meta data support
 
     # Compressed image
-    im = imageio.imread(compressed, format="fits")
+    im = iio.imread(compressed, format="fits")
     assert im.shape == (2042, 3054)
 
 
@@ -87,9 +91,9 @@ def test_fits_get_reader(normal_plugin_order, tmp_path):
     z = (1 / (2 * np.pi * (sigma**2))) * np.exp(
         -((xx**2) + (yy**2)) / (2 * (sigma**2))
     )
-    img = np.log(z)
+    img = np.log(z, where=z != 0, out=np.zeros_like(z))
     phdu = fits.PrimaryHDU()
     ihdu = fits.ImageHDU(img)
     hdul = fits.HDUList([phdu, ihdu])
     hdul.writeto(tmp_path / "test.fits")
-    imageio.get_reader(tmp_path / "test.fits", format="fits")
+    iio.get_reader(tmp_path / "test.fits", format="fits")

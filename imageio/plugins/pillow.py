@@ -163,8 +163,6 @@ class PillowPlugin(PluginV3):
         else:
             iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
             image = np.stack([im for im in iterator], axis=0)
-            if image.shape[0] == 1:
-                image = np.squeeze(image, axis=0)
             return image
 
     def iter(self, *, mode=None, rotate=False, apply_gamma=False) -> np.ndarray:
@@ -276,22 +274,20 @@ class PillowPlugin(PluginV3):
         else:
             is_batch = True
 
+        if not is_batch:
+            image = image[None, ...]
+
+        pil_frames = list()
+        for frame in image:
+            pil_frame = Image.fromarray(frame, mode=mode)
+            if "bits" in kwargs:
+                pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
+            pil_frames.append(pil_frame)
+        primary_image, other_images = pil_frames[0], pil_frames[1:]
+
         if is_batch:
             save_args["save_all"] = True
-            primary_image = Image.fromarray(image[0], mode=mode)
-
-            append_images = list()
-            for frame in image[1:]:
-                pil_frame = Image.fromarray(frame, mode=mode)
-                if "bits" in kwargs:
-                    pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
-                append_images.append(pil_frame)
-            save_args["append_images"] = append_images
-        else:
-            primary_image = Image.fromarray(image, mode=mode)
-
-        if "bits" in kwargs:
-            primary_image = primary_image.quantize(colors=2 ** kwargs["bits"])
+            save_args["append_images"] = other_images
 
         save_args.update(kwargs)
         primary_image.save(self._request.get_file(), **save_args)

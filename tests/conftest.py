@@ -2,8 +2,9 @@ import os
 import sys
 import shutil
 from pathlib import Path
+from functools import wraps
 import contextlib
-
+import warnings
 import pytest
 
 import imageio as iio
@@ -175,3 +176,12 @@ def tmp_userdir(tmp_path):
         os.environ[user_dir_env] = old_user_dir
     else:
         del os.environ[user_dir_env]
+
+
+def deprecated_test(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        with warnings.catch_warnings(record=True):
+            return fn(*args, **kwargs)
+
+    return wrapper

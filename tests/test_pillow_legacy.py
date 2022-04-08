@@ -11,8 +11,10 @@ import pytest
 
 import imageio
 from imageio import core
+from conftest import deprecated_test
 
 
+@deprecated_test
 def setup_module():
     # Make sure format order is the default
     imageio.formats.sort()
@@ -70,6 +72,7 @@ def assert_close(im1, im2, tol=0.0):
     # vv.subplot(121); vv.imshow(im1); vv.subplot(122); vv.imshow(im2)
 
 
+@deprecated_test
 def test_pillow_format(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
@@ -98,6 +101,7 @@ def test_pillow_format(test_images, tmp_path):
         W.append_data(im0)
 
 
+@deprecated_test
 def test_png(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
@@ -173,6 +177,7 @@ def test_png(test_images, tmp_path):
 
 
 @pytest.mark.needs_internet
+@deprecated_test
 def test_png_remote():
     # issue #202
     im = imageio.imread(
@@ -182,6 +187,7 @@ def test_png_remote():
     assert im.shape == (512, 512, 3)
 
 
+@deprecated_test
 def test_jpg(tmp_path):
 
     fnamebase = str(tmp_path / "test")
@@ -220,6 +226,7 @@ def test_jpg(tmp_path):
         imageio.imsave(fnamebase + ".jpg", im, quality=120)
 
 
+@deprecated_test
 def test_jpg_more(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
@@ -255,6 +262,7 @@ def test_jpg_more(test_images, tmp_path):
     assert im.meta.EXIF_MAIN
 
 
+@deprecated_test
 def test_gif(tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -283,6 +291,7 @@ def test_gif(tmp_path):
         imageio.imsave(fnamebase + "1.gif", im, notavalidk=True)
 
 
+@deprecated_test
 def test_animated_gif(test_images, tmp_path):
 
     fnamebase = str(tmp_path / "test")
@@ -364,6 +373,14 @@ def test_animated_gif(test_images, tmp_path):
     assert isinstance(imageio.read(fname).get_meta_data(), dict)
 
 
+def test_v3_gif(test_images):
+    img = imageio.v3.imread(
+        test_images / "newtonscradle.gif", plugin="GIF-PIL", index=None
+    )
+    assert img.shape == (36, 150, 200, 4)
+
+
+@deprecated_test
 def test_images_with_transparency(test_images):
     # Not alpha channel, but transparent pixels, see issue #245 and #246
 
@@ -376,6 +393,7 @@ def test_images_with_transparency(test_images):
     assert im.shape == (24, 30, 4)
 
 
+@deprecated_test
 def test_gamma_correction(test_images):
 
     fname = test_images / "kodim03.png"
@@ -398,6 +416,7 @@ def test_gamma_correction(test_images):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
+@deprecated_test
 def test_inside_zipfile(test_images, tmp_path):
 
     fname = str(tmp_path / "pillowtest.zip")
@@ -415,6 +434,7 @@ def test_inside_zipfile(test_images, tmp_path):
         imageio.imread(fname + "/" + name)
 
 
+@deprecated_test
 def test_bmp(test_images):
     fname = test_images / "scribble_P_RGB.bmp"
 
@@ -423,6 +443,7 @@ def test_bmp(test_images):
     imageio.imread(fname, pilmode="RGBA")
 
 
+@deprecated_test
 def test_scipy_imread_compat(test_images):
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.misc.imread.html
     # https://github.com/scipy/scipy/blob/41a3e69ca3141d8bf996bccb5eca5fc7bbc21a51/scipy/misc/pilutil.py#L111
@@ -456,6 +477,7 @@ def test_scipy_imread_compat(test_images):
     im = imageio.imread(fname, "PNG-PIL")
 
 
+@deprecated_test
 def test_write_jpg_to_bytes_io():
     # this is a regression test
     # see: https://github.com/imageio/imageio/issues/687
