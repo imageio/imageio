@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from pytest import raises
 
-import imageio
+import imageio.v2 as iio
 
 itk = None
 try:
@@ -28,23 +28,23 @@ def test_simpleitk_reading_writing(tmp_path):
     filename1 = tmp_path / "test_tiff.tiff"
 
     # One image
-    imageio.imsave(filename1, im2, "itk")
-    im = imageio.imread(filename1, "itk")
+    iio.imsave(filename1, im2, "itk")
+    im = iio.imread(filename1, "itk")
     print(im.shape)
-    ims = imageio.mimread(filename1, "itk")
+    ims = iio.mimread(filename1, "itk")
     print(im2.shape)
     assert (im == im2).all()
     assert len(ims) == 1
 
     # Mixed
-    W = imageio.save(filename1, "itk")
+    W = iio.save(filename1, "itk")
     raises(RuntimeError, W.set_meta_data, 1)
     assert W.format.name == "ITK"
     W.append_data(im2)
     W.append_data(im2)
     W.close()
     #
-    R = imageio.read(filename1, "itk")
+    R = iio.read(filename1, "itk")
     assert R.format.name == "ITK"
     ims = list(R)  # == [im for im in R]
     assert (ims[0] == im2).all()
