@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 from imageio import core
 from imageio.core import IS_PYPY
-import imageio.v3 as iio3
 
 from conftest import deprecated_test
 

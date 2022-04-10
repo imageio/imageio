@@ -347,10 +347,7 @@ def test_unknown_image(tmp_path):
 def test_gif_transparent_pixel(test_images):
     # see issue #245
     im = iio.v3.imread(
-        test_images / "imageio_issue245.gif",
-        plugin="pillow",
-        mode="RGBA",
-        index=0
+        test_images / "imageio_issue245.gif", plugin="pillow", mode="RGBA", index=0
     )
     assert im.shape == (24, 30, 4)
 
