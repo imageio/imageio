@@ -350,6 +350,7 @@ def test_gif_transparent_pixel(test_images):
         test_images / "imageio_issue245.gif",
         plugin="pillow",
         mode="RGBA",
+        index=0
     )
     assert im.shape == (24, 30, 4)
 
