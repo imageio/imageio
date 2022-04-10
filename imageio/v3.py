@@ -1,17 +1,16 @@
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, Union
 
 import numpy as np
 
 from imageio.core.v3_plugin_api import ImageProperties
 
 from .core.imopen import imopen
-from .core.sentinels import PLUGIN_DEFAULT
 
 
 def imread(
     uri,
     *,
-    index: Optional[int] = PLUGIN_DEFAULT,
+    index: Union[int, None] = None,
     plugin: str = None,
     format_hint: str = None,
     **kwargs
@@ -53,7 +52,7 @@ def imread(
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
     call_kwargs = kwargs
-    if index != PLUGIN_DEFAULT:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
@@ -153,7 +152,7 @@ def imwrite(
 
 
 def improps(
-    uri, *, index: Optional[int] = 0, plugin: str = None, **kwargs
+    uri, *, index: Union[int, None] = None, plugin: str = None, **kwargs
 ) -> ImageProperties:
     """Read standardized metadata.
 
@@ -192,7 +191,7 @@ def improps(
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
     call_kwargs = kwargs
-    if index != PLUGIN_DEFAULT:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
@@ -204,7 +203,7 @@ def improps(
 def immeta(
     uri,
     *,
-    index: Optional[int] = PLUGIN_DEFAULT,
+    index: Union[int, None] = None,
     plugin: str = None,
     exclude_applied: bool = True,
     **kwargs
@@ -244,7 +243,7 @@ def immeta(
 
     call_kwargs = kwargs
     call_kwargs["exclude_applied"] = exclude_applied
-    if index != PLUGIN_DEFAULT:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:

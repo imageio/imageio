@@ -33,7 +33,6 @@ import numpy as np
 from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
 from ..core.request import Request, IOMode, InitializationError, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
-from ..core.sentinels import PLUGIN_DEFAULT
 import warnings
 
 
@@ -119,7 +118,7 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=PLUGIN_DEFAULT, mode=None, rotate=False, apply_gamma=False
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -158,15 +157,15 @@ class PillowPlugin(PluginV3):
 
         """
 
-        if index is PLUGIN_DEFAULT:
+        if index is None:
             if self._image.format == "GIF":
-                index = None
+                index = Ellipsis
             elif self._image.custom_mimetype == "image/apng":
-                index = None
+                index = Ellipsis
             else:
                 index = 0
 
-        if index is not None:
+        if isinstance(index, int):
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
             image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
@@ -310,7 +309,7 @@ class PillowPlugin(PluginV3):
         return self.metadata(index=index, exclude_applied=False)
 
     def metadata(
-        self, index: int = PLUGIN_DEFAULT, exclude_applied: bool = True
+        self, index: int = None, exclude_applied: bool = True
     ) -> Dict[str, Any]:
         """Read ndimage metadata.
 
@@ -329,15 +328,15 @@ class PillowPlugin(PluginV3):
 
         """
 
-        if index is PLUGIN_DEFAULT:
+        if index is None:
             if self._image.format == "GIF":
-                index = None
+                index = Ellipsis
             elif self._image.custom_mimetype == "image/apng":
-                index = None
+                index = Ellipsis
             else:
                 index = 0
 
-        if index is not None and self._image.tell() != index:
+        if isinstance(index, int) and self._image.tell() != index:
             self._image.seek(index)
 
         metadata = self._image.info.copy()
@@ -360,7 +359,7 @@ class PillowPlugin(PluginV3):
 
         return metadata
 
-    def properties(self, index: int = 0) -> ImageProperties:
+    def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata
         Parameters
         ----------
@@ -378,6 +377,14 @@ class PillowPlugin(PluginV3):
         """
 
         if index is None:
+            if self._image.format == "GIF":
+                index = Ellipsis
+            elif self._image.custom_mimetype == "image/apng":
+                index = Ellipsis
+            else:
+                index = 0
+
+        if index is Ellipsis:
             self._image.seek(0)
         else:
             self._image.seek(index)
@@ -392,10 +399,10 @@ class PillowPlugin(PluginV3):
 
         shape = list(dummy.shape)
         shape[:2] = self._image.size[::-1]
-        shape = (self._image.n_frames, *shape) if index is None else tuple(shape)
+        shape = (self._image.n_frames, *shape) if index is Ellipsis else tuple(shape)
 
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
-            is_batch=True if index is None else False,
+            is_batch=True if index is Ellipsis else False,
         )
