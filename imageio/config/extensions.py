@@ -5,8 +5,6 @@ supporting backend.
 
 """
 
-from typing import List, Dict
-
 
 class FileExtension:
     """File Extension Metadata
@@ -50,14 +48,8 @@ class FileExtension:
     """
 
     def __init__(
-        self,
-        *,
-        extension: str,
-        priority: List[str],
-        name: str = None,
-        description: str = None,
-        external_link: str = None
-    ) -> None:
+        self, *, extension, priority, name=None, description=None, external_link=None
+    ):
         self.extension = extension
         self.priority = priority
         self.name = name
@@ -65,7 +57,7 @@ class FileExtension:
         self.external_link = external_link
         self.default_priority = priority.copy()
 
-    def reset(self) -> None:
+    def reset(self):
         self.priority = self.default_priority.copy()
 
 
@@ -898,7 +890,7 @@ extension_list = [
 extension_list.sort(key=lambda x: x.extension)
 
 
-known_extensions: Dict[str, List[FileExtension]] = dict()
+known_extensions = dict()
 for ext in extension_list:
     if ext.extension not in known_extensions:
         known_extensions[ext.extension] = list()
@@ -917,7 +909,7 @@ _video_extension_strings = [
     ".wmv",
     ".gif",
 ]
-video_extensions: List[FileExtension] = list()
+video_extensions = list()
 for ext_string in _video_extension_strings:
     formats = known_extensions[ext_string]
     video_extensions.append(formats[0])

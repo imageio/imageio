@@ -1,4 +1,3 @@
-from typing import Any
 import importlib
 
 from ..core.legacy_plugin_wrapper import LegacyPlugin
@@ -53,15 +52,15 @@ class PluginConfig:
 
     def __init__(
         self,
-        name: str,
-        class_name: str,
-        module_name: str,
+        name,
+        class_name,
+        module_name,
         *,
-        is_legacy: bool = False,
-        package_name: str = None,
-        install_name: str = None,
-        legacy_args: dict = None,
-    ) -> None:
+        is_legacy=False,
+        package_name=None,
+        install_name=None,
+        legacy_args=None,
+    ):
         legacy_args = legacy_args or dict()
 
         self.name = name
@@ -75,7 +74,7 @@ class PluginConfig:
         self.legacy_args.update(legacy_args)
 
     @property
-    def format(self) -> Any:
+    def format(self):
         """For backwards compatibility with FormatManager
 
         Delete when migrating to v3
@@ -88,7 +87,7 @@ class PluginConfig:
         return clazz(**self.legacy_args)
 
     @property
-    def plugin_class(self) -> Any:
+    def plugin_class(self):
         """Get the plugin class (import if needed)
 
         Returns
