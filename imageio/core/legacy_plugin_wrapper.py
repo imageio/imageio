@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 
-from .request import IOMode, Request, InitializationError
+from .request import IOMode, InitializationError
 from .v3_plugin_api import PluginV3, ImageProperties
 
 

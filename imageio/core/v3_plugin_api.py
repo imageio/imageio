@@ -36,7 +36,7 @@ class ImageProperties:
     shape: Tuple[int, ...]
     dtype: np.dtype
     is_batch: bool = False
-    spacing: Tuple = None
+    spacing: Optional[tuple] = None
 
 
 class PluginV3:

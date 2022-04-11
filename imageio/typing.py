@@ -8,3 +8,9 @@ except ImportError:
     from numpy import ndarray as ArrayLike
 
 ImageResource = Union[str, BytesIO]
+
+
+__all__ = [
+    "ArrayLike",
+    "ImageResource",
+]
