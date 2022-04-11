@@ -126,12 +126,13 @@ class PillowPlugin(PluginV3):
         Parameters
         ----------
         index : {integer}
-            If the URI contains a list of ndimages (multiple frames) return the
-            index-th image/frame. If None, read all ndimages (frames) in the URI
-            and attempt to stack them along a new 0-th axis (equivalent to
-            np.stack(imgs, axis=0)). If unspecified (``PLUGIN_DEFAULT``) index is
-            set to ``0`` for formats that contain exactly one image and to ``None``
-            for formats that may contain more than one image (e.g. GIF).
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return it.
+            If index is an ellipsis (...), read all ndimages in the file and
+            stack them along a new batch dimension and return them. If index is
+            None, this plugin reads the first image of the file (index=0) unless
+            the image is a GIF or APNG, in which case all images are read
+            (index=...).
         mode : {str, None}
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
@@ -316,10 +317,12 @@ class PillowPlugin(PluginV3):
         Parameters
         ----------
         index : {integer, None}
-            If the URI contains a list of ndimages return the metadata
-            corresponding to the index-th image. If None, return the metadata
-            for the last read ndimage/frame. If not set (``PLUGIN_DEFAULT``)
-            use ``None`` for multi-image formats (GIF) and ``0`` otherwise.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return its
+            metadata. If index is an ellipsis (...), read and return global
+            metadata. If index is None, this plugin reads metadata from the
+            first image of the file (index=0) unless the image is a GIF or APNG,
+            in which case global metadata is read (index=...).
 
         Returns
         -------
@@ -364,15 +367,23 @@ class PillowPlugin(PluginV3):
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return properties. If the
-            index is out of bounds a ``ValueError`` is raised. If ``None``,
-            return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return its
+            properties. If index is an ellipsis (...), read and return the
+            properties of all ndimages in the file stacked along a new batch
+            dimension. If index is None, this plugin reads and returns the
+            properties of the first image (index=0) unless the image is a GIF or
+            APNG, in which case it reads and returns the properties all images
+            (index=...).
 
         Returns
         -------
         properties : ImageProperties
             A dataclass filled with standardized image metadata.
+
+        Notes
+        -----
+        This does not decode pixel data and is fast for large images.
 
         """
 

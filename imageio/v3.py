@@ -27,9 +27,11 @@ def imread(
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
-    index : {int, None}
-        If the URI contains multiple ndimages, select the index-th ndimage
-        from among them and return it. The exact behavior is plugin dependent.
+    index : {int, Ellipsis, None}
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return it. If
+        index is an ellipsis (...), read all ndimages in the file and stack them
+        along a new batch dimension. If index is None, let the plugin decide.
     plugin : {str, None}
         The plugin to use. If set to None (default) imread will perform a
         search for a matching plugin. If not None, this takes priority over
@@ -166,10 +168,11 @@ def improps(
     Parameters
     ----------
     index : int
-        The index of the ndimage for which to return properties. If the
-        index is out of bounds a ``ValueError`` is raised. If ``None``,
-        return the properties for the ndimage stack. If this is impossible,
-        e.g., due to shape missmatch, an exception will be raised.
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return its
+        properties. If index is an ellipsis (...), read all ndimages in the file
+        and stack them along a new batch dimension and return their properties.
+        If index is None, let the plugin decide.
     plugin : {str, None}
         The plugin to be used. If None, performs a search for a matching
         plugin.
@@ -223,8 +226,10 @@ def immeta(
         The resource to load the image from, e.g. a filename, pathlib.Path, http
         address or file object, see the docs for more info.
     index : {int, None}
-        If the URI contains multiple ndimages, select the index-th ndimage from
-        among them and return it.
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return its
+        metadata. If index is an ellipsis (...), return global metadata. If
+        index is None, let the plugin decide the default.
     plugin : {str, None}
         The plugin to be used. If None (default), performs a search for a
         matching plugin.
