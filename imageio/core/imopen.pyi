@@ -6,7 +6,7 @@ from .legacy_plugin_wrapper import LegacyPlugin
 @overload
 def imopen(
     uri,
-    io_mode: str,
+    io_mode: Literal["r", "w"],
     *,
     plugin: Literal["pillow"],
     format_hint: str = None,
@@ -16,7 +16,7 @@ def imopen(
 @overload
 def imopen(
     uri,
-    io_mode: str,
+    io_mode: Literal["r", "w"],
     *,
     plugin: Union[str, Any] = None,
     format_hint: str = None,
@@ -26,7 +26,7 @@ def imopen(
 @overload
 def imopen(
     uri,
-    io_mode: str,
+    io_mode: Literal["r", "w"],
     *,
     plugin: Union[str, Any] = None,
     format_hint: str = None,

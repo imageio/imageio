@@ -3,7 +3,6 @@
 
 from numbers import Number
 import re
-from typing import Dict, Union
 from pathlib import Path
 
 import numpy as np
@@ -26,7 +25,7 @@ for i, si in enumerate([""] + list("kMGTPEZY")):
         sizes[si.upper() + "i"] = 1024**i
 
 
-def to_nbytes(arg, default=None) -> Number:
+def to_nbytes(arg, default=None):
     if not arg:
         arg = float("inf")
 
@@ -73,7 +72,7 @@ def help(name=None):
         print(formats[name])
 
 
-def decypher_format_arg(format_name: Union[str, None]) -> Dict[str, str]:
+def decypher_format_arg(format_name):
     """Split format into plugin and format
 
     The V2 API aliases plugins and supported formats. This function

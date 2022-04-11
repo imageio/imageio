@@ -1,11 +1,11 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class FileExtension:
     extension: str
     priority: List[str]
-    name: str = None
-    description: str = None
-    external_link: str = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    external_link: Optional[str] = None
 
     def __init__(
         self,

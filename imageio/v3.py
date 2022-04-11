@@ -1,20 +1,9 @@
-from typing import Any, Dict, Iterator, Optional, Union
-
 import numpy as np
-
-from imageio.core.v3_plugin_api import ImageProperties
 
 from .core.imopen import imopen
 
 
-def imread(
-    uri,
-    *,
-    index: Union[int, None] = None,
-    plugin: str = None,
-    format_hint: str = None,
-    **kwargs
-) -> np.ndarray:
+def imread(uri, *, index=None, plugin=None, format_hint=None, **kwargs):
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -61,9 +50,7 @@ def imread(
         return np.asarray(img_file.read(**call_kwargs))
 
 
-def imiter(
-    uri, *, plugin: str = None, format_hint: str = None, **kwargs
-) -> Iterator[np.ndarray]:
+def imiter(uri, *, plugin=None, format_hint=None, **kwargs):
     """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
@@ -98,18 +85,16 @@ def imiter(
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
-
-    with imopen(uri, "r", **plugin_kwargs) as img_file:
+    with imopen(
+        uri, "r", legacy_mode=False, plugin=plugin, format_hint=format_hint
+    ) as img_file:
         for image in img_file.iter(**kwargs):
             # Note: casting to ndarray here to ensure compatibility
             # with the v2.9 API
             yield np.asarray(image)
 
 
-def imwrite(
-    uri, image: np.ndarray, *, plugin: str = None, format_hint: str = None, **kwargs
-) -> Optional[bytes]:
+def imwrite(uri, image, *, plugin=None, format_hint=None, **kwargs):
     """Write an ndimage to the given URI.
 
     The exact behavior depends on the file type and plugin used. To learn about
@@ -145,17 +130,15 @@ def imwrite(
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
-
-    with imopen(uri, "w", **plugin_kwargs) as img_file:
+    with imopen(
+        uri, "w", legacy_mode=False, plugin=plugin, format_hint=format_hint
+    ) as img_file:
         encoded = img_file.write(image, **kwargs)
 
     return encoded
 
 
-def improps(
-    uri, *, index: Union[int, None] = None, plugin: str = None, **kwargs
-) -> ImageProperties:
+def improps(uri, *, index=None, plugin=None, **kwargs):
     """Read standardized metadata.
 
     Opens the given URI and reads the properties of an ndimage from it. The
@@ -203,14 +186,7 @@ def improps(
     return properties
 
 
-def immeta(
-    uri,
-    *,
-    index: Union[int, None] = None,
-    plugin: str = None,
-    exclude_applied: bool = True,
-    **kwargs
-) -> Dict[str, Any]:
+def immeta(uri, *, index=None, plugin=None, exclude_applied=True, **kwargs):
     """Read format-specific metadata.
 
     Opens the given URI and reads metadata for an ndimage from it. The contents

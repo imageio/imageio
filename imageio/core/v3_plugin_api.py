@@ -1,7 +1,7 @@
 from . import Request
 from ..typing import ArrayLike
 import numpy as np
-from typing import Optional, Dict, Any, Tuple, Union, List
+from typing import Optional, Dict, Any, Tuple, Union, List, Iterator
 from dataclasses import dataclass
 
 
@@ -234,7 +234,7 @@ class PluginV3:
         """
         raise NotImplementedError()
 
-    def iter(self) -> np.ndarray:
+    def iter(self) -> Iterator[np.ndarray]:
         """Iterate the ImageResource.
 
         This method returns a generator that yields ndimages in the order in which
