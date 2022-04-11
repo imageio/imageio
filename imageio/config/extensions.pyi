@@ -1,6 +1,12 @@
 from typing import List, Dict
 
 class FileExtension:
+    extension: str
+    priority: List[str]
+    name: str = None
+    description: str = None
+    external_link: str = None
+
     def __init__(
         self,
         *,
