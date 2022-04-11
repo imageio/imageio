@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Any, Union
 import warnings
 
 from ..config import known_plugins
@@ -11,18 +10,9 @@ from .request import (
     IOMode,
     Request,
 )
-from .v3_plugin_api import PluginV3
 
 
-def imopen(
-    uri,
-    io_mode: str,
-    *,
-    plugin: Union[str, Any] = None,
-    format_hint: str = None,
-    legacy_mode: bool = False,
-    **kwargs,
-) -> PluginV3:
+def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **kwargs):
     """Open an ImageResource.
 
     .. warning::

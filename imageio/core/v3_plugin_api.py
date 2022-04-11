@@ -1,5 +1,5 @@
 from . import Request
-from numpy.typing import ArrayLike
+from ..typing import ArrayLike
 import numpy as np
 from typing import Optional, Dict, Any, Tuple, Union, List
 from dataclasses import dataclass
