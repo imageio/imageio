@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.16.2 (2022-04-11)
+### Fix
+* Handle PIL paletts with <256 color palettes ([#775](https://github.com/imageio/imageio/issues/775)) ([`309242d`](https://github.com/imageio/imageio/commit/309242d42bf43103290ee57934e9b64abd0fac9f))
+* Set spacing to None by default ([#773](https://github.com/imageio/imageio/issues/773)) ([`1b93434`](https://github.com/imageio/imageio/commit/1b93434f9b4798e966b68c18f0b39d05f817d247))
+
+### Other
+* Deprecation warnings to transition to v3 ([#769](https://github.com/imageio/imageio/issues/769)) ([`fba08a7`](https://github.com/imageio/imageio/commit/fba08a76fdef1921925139e1b55fc91e442b8a71))
+* Remove unused test file ([#780](https://github.com/imageio/imageio/issues/780)) ([`9f8d296`](https://github.com/imageio/imageio/commit/9f8d2968a51a94f084f9f8e109b4b0398c1c8e56))
+* Update license ([#771](https://github.com/imageio/imageio/issues/771)) ([`ec9de36`](https://github.com/imageio/imageio/commit/ec9de36750b3191bc337e8625372ee23e8876154))
+* Build docs using python 3.10 ([#770](https://github.com/imageio/imageio/issues/770)) ([`8b563f5`](https://github.com/imageio/imageio/commit/8b563f5663cad5e7dd767606c63539b5bab79aea))
+* Note on preferring venv ([#768](https://github.com/imageio/imageio/issues/768)) ([`cd25e19`](https://github.com/imageio/imageio/commit/cd25e1948701b3bd83ba47abdfab02f034b8906c))
+* V3 API docs ([#718](https://github.com/imageio/imageio/issues/718)) ([`6c47524`](https://github.com/imageio/imageio/commit/6c475242282823a73573164fd180dd78871588a4))
+* Update DOI ([#764](https://github.com/imageio/imageio/issues/764)) ([`2cf60c1`](https://github.com/imageio/imageio/commit/2cf60c1a524ffd158e3a3f5578dc5ecdcb8c9362))
+* Cleanly determine write format in pillow ([#752](https://github.com/imageio/imageio/issues/752)) ([`8cba510`](https://github.com/imageio/imageio/commit/8cba5105ec51650d1c8d8273c63d6b76a7fa9627))
+
 ## v2.16.1 (2022-02-28)
 ### Fix
 * Ignore TIFF ``XResolution`` or ``YResolution`` with 0 in the denominator. ([#753](https://github.com/imageio/imageio/issues/753)) ([`6b44a1b`](https://github.com/imageio/imageio/commit/6b44a1beb6db73eb53372debf99bb2e24450546f))
