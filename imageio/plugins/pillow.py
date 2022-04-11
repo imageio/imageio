@@ -383,7 +383,7 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        This does not decode pixel data and is fast for large images.
+        This does not decode pixel data and is 394fast for large images.
 
         """
 
