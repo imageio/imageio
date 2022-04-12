@@ -69,7 +69,7 @@ def rstjinja(app, docname, source):
         )
         source[0] = rendered
 
-    if docname == "getting_started/standardimages":
+    if docname.endswith("standardimages"):
         from imageio.core.request import EXAMPLE_IMAGES
 
         src = source[0]
