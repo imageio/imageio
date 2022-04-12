@@ -35,8 +35,14 @@ def test_ellipsis_index(test_images):
     img = iio.v3.imread(test_images / "chelsea.png", plugin="PNG-FI", index=...)
     assert img.shape == (1, 300, 451, 3)
 
-    props = iio.v3.improps(test_images / "chelsea.png", plugin="PNG-FI", index=...,)
+    props = iio.v3.improps(
+        test_images / "chelsea.png",
+        plugin="PNG-FI",
+        index=...,
+    )
     assert props.shape == (1, 300, 451, 3)
 
-    metadata = iio.v3.immeta(test_images / "chelsea.png", plugin="PNG-FI", index=0, exclude_applied=False)
+    metadata = iio.v3.immeta(
+        test_images / "chelsea.png", plugin="PNG-FI", index=0, exclude_applied=False
+    )
     assert metadata == {}
