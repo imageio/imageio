@@ -131,7 +131,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-            pypy3 -m pip install .[test,ffmpeg,tifffile]
+            pypy3 -m pip install .[test,all-plugins-pypy]
       - name: Run Unit tests
         run: |
             pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
