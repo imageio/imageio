@@ -35,7 +35,7 @@ def test_mp4_read(test_images: Path):
 
 
 def test_mp4_writing(tmp_path, test_images):
-    frames = iio.imread(test_images / "newtonscradle.gif", index=None)
+    frames = iio.imread(test_images / "newtonscradle.gif")
 
     mp4_bytes = iio.imwrite(
         "<bytes>",
@@ -125,7 +125,6 @@ def test_video_format_to_dtype():
 def test_filter_sequence(test_images):
     frames = iio.imread(
         test_images / "cockatoo.mp4",
-        index=None,
         plugin="pyav",
         filter_sequence=[
             ("drawgrid", "w=iw/3:h=ih/3:t=2:c=white@0.5"),
@@ -138,7 +137,6 @@ def test_filter_sequence(test_images):
 
     frames = iio.imread(
         test_images / "cockatoo.mp4",
-        index=None,
         plugin="pyav",
         filter_sequence=[
             ("framestep", "5"),
@@ -152,7 +150,6 @@ def test_filter_sequence(test_images):
 def test_filter_graph(test_images):
     frames = iio.imread(
         test_images / "cockatoo.mp4",
-        index=None,
         plugin="pyav",
         filter_graph=(
             {
@@ -173,7 +170,6 @@ def test_filter_graph(test_images):
 def test_write_bytes(test_images, tmp_path):
     img = iio.imread(
         test_images / "cockatoo.mp4",
-        index=None,
         plugin="pyav",
         filter_sequence=[
             ("framestep", "5"),
@@ -200,7 +196,7 @@ def test_read_png(test_images):
 
 
 def test_write_png(test_images, tmp_path):
-    img_expected = iio.imread(test_images / "chelsea.png", plugin="pyav")
+    img_expected = iio.imread(test_images / "chelsea.png", plugin="pyav", index=0)
     iio.imwrite(
         tmp_path / "out.png", img_expected, plugin="pyav", codec="png", is_batch=False
     )
@@ -211,7 +207,7 @@ def test_write_png(test_images, tmp_path):
 
 def test_gif_write(test_images, tmp_path):
     frames_expected = iio.imread(
-        test_images / "newtonscradle.gif", plugin="pyav", index=None, format="gray"
+        test_images / "newtonscradle.gif", plugin="pyav", format="gray"
     )
 
     # touch the codepath that creates a video from a list of frames
@@ -225,9 +221,7 @@ def test_gif_write(test_images, tmp_path):
         out_pixel_format="gray",
         in_pixel_format="gray",
     )
-    frames_actual = iio.imread(
-        tmp_path / "test.gif", plugin="pyav", index=None, format="gray"
-    )
+    frames_actual = iio.imread(tmp_path / "test.gif", plugin="pyav", format="gray")
     np.allclose(frames_actual, frames_expected)
 
     # with iio.v3.imopen("test2.gif", "w", plugin="pyav", container_format="gif", legacy_mode=False) as file:
@@ -238,7 +232,6 @@ def test_gif_gen(test_images, tmp_path):
     frames = iio.imread(
         test_images / "realshort.mp4",
         plugin="pyav",
-        index=None,
         format="rgb24",
         filter_sequence=[
             ("fps", "50"),

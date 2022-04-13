@@ -79,7 +79,6 @@ example::
     img1 = iio.imread(
         "imageio:cockatoo.mp4",
         plugin="pyav",
-        index=None,
         filter_sequence=[
             ("rotate", "45*PI/180")
         ]
@@ -89,7 +88,6 @@ example::
     img2 = iio.imread(
         "imageio:cockatoo.mp4",
         plugin="pyav",
-        index=None,
         filter_sequence=[
             ("rotate", {"angle":"45*PI/180", "fillcolor":"AliceBlue"})
         ]
@@ -101,7 +99,6 @@ tuple. It is best explained using an example::
     img = iio.imread(
         "imageio:cockatoo.mp4",
         plugin="pyav",
-        index=None,
         filter_graph=(
             {
                 "split": ("split", ""),
@@ -292,7 +289,7 @@ class PyAVPlugin(PluginV3):
     def read(
         self,
         *,
-        index: int = None,
+        index: int = ...,
         format: str = "rgb24",
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
@@ -303,15 +300,15 @@ class PyAVPlugin(PluginV3):
         """Read frames from the video.
 
         If ``index`` is an integer, this function reads the index-th frame from
-        the file. If ``index`` is None, this function reads all frames from the
-        video, stacks them along the first dimension, and returns a batch of
-        frames.
+        the file. If ``index`` is ... (Ellipsis), this function reads all frames
+        from the video, stacks them along the first dimension, and returns a
+        batch of frames.
 
         Parameters
         ----------
         index : int
             The index of the frame to read, e.g. ``index=5`` reads the 5th
-            frame. If ``None``, read all the frames in the video and stack them
+            frame. If ``...``, read all the frames in the video and stack them
             along a new, prepended, batch dimension.
         format : str
             Set the returned colorspace. If not None (default: rgb24), convert
@@ -363,15 +360,15 @@ class PyAVPlugin(PluginV3):
         bidirectionaly predicted pictures. I don't have any test videos of this
         though.
 
-        Reading from an index other than ``None`` currently doesn't support filters
-        that introduce delays.
+        Reading from an index other than ``...``, i.e. reading a single frame,
+        currently doesn't support filters that introduce delays.
 
         """
 
         if constant_framerate is None:
             constant_framerate = self._container.format.variable_fps
 
-        if index is None:
+        if index is ...:
             self._container.seek(0)
 
             frames = np.stack(
@@ -822,16 +819,15 @@ class PyAVPlugin(PluginV3):
                 # handle av<9.0
                 break
 
-    def properties(
-        self, index: int = None, *, format: str = "rgb24"
-    ) -> ImageProperties:
+    def properties(self, index: int = ..., *, format: str = "rgb24") -> ImageProperties:
         """Standardized ndimage metadata.
 
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return properties. If ``None``
-            (default), return the properties for the resulting batch of frames.
+            The index of the ndimage for which to return properties. If ``...``
+            (Ellipsis, default), return the properties for the resulting batch
+            of frames.
         format : str
             If not None (default: rgb24), convert the data into the given format
             before returning it. If None return the data in the encoded format
@@ -858,19 +854,19 @@ class PyAVPlugin(PluginV3):
         frame_template = av.VideoFrame(video_width, video_height, pix_format)
 
         shape = _get_frame_shape(frame_template)
-        if index is None:
+        if index is ...:
             n_frames = self._video_stream.frames
             shape = (n_frames,) + shape
 
         return ImageProperties(
             shape=tuple(shape),
             dtype=_format_to_dtype(frame_template.format),
-            is_batch=True if index is None else False,
+            is_batch=True if index is ... else False,
         )
 
     def metadata(
         self,
-        index: int = None,
+        index: int = ...,
         exclude_applied: bool = True,
         constant_framerate: bool = True,
     ) -> Dict[str, Any]:
@@ -882,9 +878,9 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         index : int
-            If None (default) return global metadata (the metadata stored in the
-            container and video stream). If not None, return the side data
-            stored in the frame at the given index.
+            If ... (Ellipsis, default) return global metadata (the metadata
+            stored in the container and video stream). If not ..., return the
+            side data stored in the frame at the given index.
         exclude_applied : bool
             Currently, this parameter has no effect. It exists for compliance with
             the ImageIO v3 API.
@@ -904,7 +900,7 @@ class PyAVPlugin(PluginV3):
 
         metadata = dict()
 
-        if index is None:
+        if index is ...:
             # useful flags defined on the container and/or video stream
             metadata.update(
                 {
