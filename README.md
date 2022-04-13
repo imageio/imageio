@@ -30,21 +30,22 @@ Here's a minimal example of how to use imageio. See the docs for
 <a href='https://imageio.readthedocs.io/en/stable/examples.html'>more examples</a>.
 
 ```python
-import imageio
-im = imageio.imread('imageio:chelsea.png')  # read a standard image
+import imageio.v3 as iio
+im = iio.imread('imageio:chelsea.png')  # read a standard image
 im.shape  # im is a NumPy array
 >> (300, 451, 3)
-imageio.imwrite('~/chelsea-gray.jpg', im[:, :, 0])
+imageio.imwrite('chelsea-gray.jpg', im)  # convert to jpg
 ```
 
 <h2>API in a nutshell</h2>
 As a user, you just have to remember a handful of functions:
 
 <ul>
-    <li>imread() and imwrite() - for single images</li>
-    <li>mimread() and mimwrite() - for image series (animations)</li>
-    <li>volread() and volwrite() - for volumetric image data</li>
-    <li>get_reader() and get_writer() - for more control (e.g. streaming or compression)</li>
+    <li>imread() and imwrite() - for reading and writing</li>
+    <li>imiter() - for iterating image series (animations/videos/...)</li>
+    <li>improps() - for standardized metadata</li>
+    <li>immeta() - for format-specific metadata</li>
+    <li>imopen() - for advanced usage (check the docs)</li>
     <li>See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>API docs</a> for more information</li>
 </ul>
 
