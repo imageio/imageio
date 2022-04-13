@@ -136,7 +136,7 @@ Some formats (GIF, MP4, TIFF, among others) allow storage of more than one
 ndimage in the same file, and you may wish to process all ndimages in such a
 file instead of just a single one. While :func:`iio.imread(...)
 <imageio.core.v3_api.imread>` allows you to read all ndimages and stack them
-into a ndarray (using `index=None`; check the docs), this comes with two
+into a ndarray (using `index=...`; check the docs), this comes with two
 problems:
 
 - Some formats (e.g., SPE or TIFF) allow multiple ndimages with different shapes

@@ -137,11 +137,12 @@ class PluginV3:
         Parameters
         ----------
         index : int
-            The index of the ndimage to read. If the index is out of bounds a
-            ``ValueError`` is raised. If ``None``, the plugin reads all ndimages
-            in the file and stacks them along a new, prepended, batch dimension.
-            If stacking is impossible, e.g., due to shape missmatch, an
-            exception will be raised.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return it.
+            If index is an ellipsis (...), read all ndimages in the file and
+            stack them along a new batch dimension. If index is None, let the
+            plugin decide. If the index is out of bounds a ``ValueError`` is
+            raised.
         **kwargs : Any
             The read method may accept any number of plugin-specific keyword
             arguments to further customize the read behavior. Usually these
@@ -275,10 +276,11 @@ class PluginV3:
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return properties. If the
-            index is out of bounds a ``ValueError`` is raised. If ``None``,
-            return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return its
+        properties. If index is an ellipsis (...), read all ndimages in the file
+        and stack them along a new batch dimension and return their properties.
+        If index is None, the plugin decides the default.
 
         Returns
         -------
@@ -316,8 +318,10 @@ class PluginV3:
         Parameters
         ----------
         index : int
-            The index of the ndimage to read. If the index is out of bounds a
-            ``ValueError`` is raised. If ``None``, global metadata is returned.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return its
+            metadata. If index is an ellipsis (...), return global metadata. If
+            index is None, the plugin decides the default.
         exclude_applied : bool
             If True (default), do not report metadata fields that the plugin
             would apply/consume while reading the image.

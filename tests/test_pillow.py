@@ -347,9 +347,7 @@ def test_unknown_image(tmp_path):
 def test_gif_transparent_pixel(test_images):
     # see issue #245
     im = iio.v3.imread(
-        test_images / "imageio_issue245.gif",
-        plugin="pillow",
-        mode="RGBA",
+        test_images / "imageio_issue245.gif", plugin="pillow", mode="RGBA", index=0
     )
     assert im.shape == (24, 30, 4)
 
@@ -533,22 +531,19 @@ def test_properties(image_files: Path):
 
     # test a flat image (RGB PNG)
     with iio.v3.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
-        properties = file.properties(index=0)
+        properties = file.properties()
 
     assert properties.shape == (300, 451, 3)
     assert properties.dtype == np.uint8
 
     # test a ndimage (GIF)
-    properties = iio.v3.improps(
-        image_files / "newtonscradle.gif", plugin="pillow", index=None
-    )
+    properties = iio.v3.improps(image_files / "newtonscradle.gif", plugin="pillow")
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
     assert properties.is_batch is True
 
     # test a flat gray image
-    with iio.v3.imopen(image_files / "text.png", "r", plugin="pillow") as file:
-        properties = file.properties(index=0)
+    properties = iio.v3.improps(image_files / "text.png", plugin="pillow", index=0)
 
     assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8
@@ -568,8 +563,12 @@ def test_metadata(test_images):
 
 def test_apng_reading(tmp_path, test_images):
     # create a APNG
-    img = iio.v3.imread(test_images / "newtonscradle.gif", index=None)
+    img = iio.v3.imread(test_images / "newtonscradle.gif")
     iio.v3.imwrite(tmp_path / "test.apng", img)
+
+    props = iio.v3.improps(tmp_path / "test.apng")
+    assert props.shape == (36, 150, 200, 3)
+    assert props.is_batch is True
 
     # test single image read
     with Image.open(tmp_path / "test.apng") as im:
@@ -579,12 +578,26 @@ def test_apng_reading(tmp_path, test_images):
     assert np.allclose(actual, expected)
 
     # test reading all frames
-    all_frames = iio.v3.imread(tmp_path / "test.apng", index=None)
+    all_frames = iio.v3.imread(tmp_path / "test.apng")
     with Image.open(tmp_path / "test.apng") as im:
         for idx, frame in enumerate(ImageSequence.Iterator(im)):
             expected = np.asarray(frame)
             actual = all_frames[idx]
             assert np.allclose(actual, expected)
+
+
+def test_apng_metadata(tmp_path, test_images):
+    # create a APNG
+    img = iio.v3.imread(test_images / "newtonscradle.gif")
+    iio.v3.imwrite(tmp_path / "test.apng", img)
+
+    metadata = iio.v3.immeta(tmp_path / "test.apng")
+    assert metadata["shape"] == (200, 150)
+    assert metadata["loop"] == 0
+
+    # set default index explicitly
+    metadata2 = iio.v3.immeta(tmp_path / "test.apng", index=...)
+    assert metadata == metadata2
 
 
 def test_write_format_warning():

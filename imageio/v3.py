@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, Union
 
 import numpy as np
 
@@ -10,7 +10,7 @@ from .core.imopen import imopen
 def imread(
     uri,
     *,
-    index: Optional[int] = 0,
+    index: Union[int, None] = None,
     plugin: str = None,
     format_hint: str = None,
     **kwargs
@@ -27,9 +27,11 @@ def imread(
     uri : {str, pathlib.Path, bytes, file}
         The resource to load the image from, e.g. a filename, pathlib.Path,
         http address or file object, see the docs for more info.
-    index : {int, None}
-        If the URI contains multiple ndimages, select the index-th ndimage
-        from among them and return it. The exact behavior is plugin dependent.
+    index : {int, Ellipsis, None}
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return it. If
+        index is an ellipsis (...), read all ndimages in the file and stack them
+        along a new batch dimension. If index is None, let the plugin decide.
     plugin : {str, None}
         The plugin to use. If set to None (default) imread will perform a
         search for a matching plugin. If not None, this takes priority over
@@ -51,8 +53,12 @@ def imread(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
 
+    call_kwargs = kwargs
+    if index is not None:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        return np.asarray(img_file.read(index=index, **kwargs))
+        return np.asarray(img_file.read(**call_kwargs))
 
 
 def imiter(
@@ -148,7 +154,7 @@ def imwrite(
 
 
 def improps(
-    uri, *, index: Optional[int] = 0, plugin: str = None, **kwargs
+    uri, *, index: Union[int, None] = None, plugin: str = None, **kwargs
 ) -> ImageProperties:
     """Read standardized metadata.
 
@@ -162,10 +168,11 @@ def improps(
     Parameters
     ----------
     index : int
-        The index of the ndimage for which to return properties. If the
-        index is out of bounds a ``ValueError`` is raised. If ``None``,
-        return the properties for the ndimage stack. If this is impossible,
-        e.g., due to shape missmatch, an exception will be raised.
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return its
+        properties. If index is an ellipsis (...), read all ndimages in the file
+        and stack them along a new batch dimension and return their properties.
+        If index is None, let the plugin decide.
     plugin : {str, None}
         The plugin to be used. If None, performs a search for a matching
         plugin.
@@ -186,8 +193,12 @@ def improps(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
+    call_kwargs = kwargs
+    if index is not None:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        properties = img_file.properties(index=index, **kwargs)
+        properties = img_file.properties(**call_kwargs)
 
     return properties
 
@@ -195,7 +206,7 @@ def improps(
 def immeta(
     uri,
     *,
-    index: Optional[int] = 0,
+    index: Union[int, None] = None,
     plugin: str = None,
     exclude_applied: bool = True,
     **kwargs
@@ -215,8 +226,10 @@ def immeta(
         The resource to load the image from, e.g. a filename, pathlib.Path, http
         address or file object, see the docs for more info.
     index : {int, None}
-        If the URI contains multiple ndimages, select the index-th ndimage from
-        among them and return it.
+        If the ImageResource contains multiple ndimages, and index is an
+        integer, select the index-th ndimage from among them and return its
+        metadata. If index is an ellipsis (...), return global metadata. If
+        index is None, let the plugin decide the default.
     plugin : {str, None}
         The plugin to be used. If None (default), performs a search for a
         matching plugin.
@@ -233,10 +246,13 @@ def immeta(
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
 
+    call_kwargs = kwargs
+    call_kwargs["exclude_applied"] = exclude_applied
+    if index is not None:
+        call_kwargs["index"] = index
+
     with imopen(uri, "r", **plugin_kwargs) as img_file:
-        metadata = img_file.metadata(
-            index=index, exclude_applied=exclude_applied, **kwargs
-        )
+        metadata = img_file.metadata(**call_kwargs)
 
     return metadata
 

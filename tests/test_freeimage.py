@@ -669,7 +669,8 @@ def test_other(setup_library, tmp_path):
 
     # Cannot save float
     im = get_ref_im(3, 0, 1)
-    raises(Exception, iio.imsave, fnamebase + ".jng", im, "JNG")
+    with pytest.raises(Exception):
+        iio.imsave(fnamebase + ".jng", im, "JNG")
 
 
 def test_gamma_correction(setup_library, test_images):

@@ -118,7 +118,7 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=0, mode=None, rotate=False, apply_gamma=False
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -126,10 +126,13 @@ class PillowPlugin(PluginV3):
         Parameters
         ----------
         index : {integer}
-            If the URI contains a list of ndimages (multiple frames) return the
-            index-th image/frame. If None, read all ndimages (frames) in the URI
-            and attempt to stack them along a new 0-th axis (equivalent to
-            np.stack(imgs, axis=0))
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return it.
+            If index is an ellipsis (...), read all ndimages in the file and
+            stack them along a new batch dimension and return them. If index is
+            None, this plugin reads the first image of the file (index=0) unless
+            the image is a GIF or APNG, in which case all images are read
+            (index=...).
         mode : {str, None}
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
@@ -155,7 +158,15 @@ class PillowPlugin(PluginV3):
 
         """
 
-        if index is not None:
+        if index is None:
+            if self._image.format == "GIF":
+                index = Ellipsis
+            elif self._image.custom_mimetype == "image/apng":
+                index = Ellipsis
+            else:
+                index = 0
+
+        if isinstance(index, int):
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
             image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
@@ -298,18 +309,37 @@ class PillowPlugin(PluginV3):
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
 
-    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
-        """Read ndimage metadata from the URI
+    def metadata(
+        self, index: int = None, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
+        """Read ndimage metadata.
 
         Parameters
         ----------
         index : {integer, None}
-            If the URI contains a list of ndimages return the metadata
-            corresponding to the index-th image. If None, return the metadata
-            for the last read ndimage/frame.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return its
+            metadata. If index is an ellipsis (...), read and return global
+            metadata. If index is None, this plugin reads metadata from the
+            first image of the file (index=0) unless the image is a GIF or APNG,
+            in which case global metadata is read (index=...).
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary of format-specific metadata.
+
         """
 
-        if index is not None and self._image.tell() != index:
+        if index is None:
+            if self._image.format == "GIF":
+                index = Ellipsis
+            elif self._image.custom_mimetype == "image/apng":
+                index = Ellipsis
+            else:
+                index = 0
+
+        if isinstance(index, int) and self._image.tell() != index:
             self._image.seek(index)
 
         metadata = self._image.info.copy()
@@ -332,24 +362,40 @@ class PillowPlugin(PluginV3):
 
         return metadata
 
-    def properties(self, index: int = 0) -> ImageProperties:
+    def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata
         Parameters
         ----------
         index : int
-            The index of the ndimage for which to return properties. If the
-            index is out of bounds a ``ValueError`` is raised. If ``None``,
-            return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            If the ImageResource contains multiple ndimages, and index is an
+            integer, select the index-th ndimage from among them and return its
+            properties. If index is an ellipsis (...), read and return the
+            properties of all ndimages in the file stacked along a new batch
+            dimension. If index is None, this plugin reads and returns the
+            properties of the first image (index=0) unless the image is a GIF or
+            APNG, in which case it reads and returns the properties all images
+            (index=...).
 
         Returns
         -------
         properties : ImageProperties
             A dataclass filled with standardized image metadata.
 
+        Notes
+        -----
+        This does not decode pixel data and is 394fast for large images.
+
         """
 
         if index is None:
+            if self._image.format == "GIF":
+                index = Ellipsis
+            elif self._image.custom_mimetype == "image/apng":
+                index = Ellipsis
+            else:
+                index = 0
+
+        if index is Ellipsis:
             self._image.seek(0)
         else:
             self._image.seek(index)
@@ -364,10 +410,10 @@ class PillowPlugin(PluginV3):
 
         shape = list(dummy.shape)
         shape[:2] = self._image.size[::-1]
-        shape = (self._image.n_frames, *shape) if index is None else tuple(shape)
+        shape = (self._image.n_frames, *shape) if index is Ellipsis else tuple(shape)
 
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
-            is_batch=True if index is None else False,
+            is_batch=True if index is Ellipsis else False,
         )
