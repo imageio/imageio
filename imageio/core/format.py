@@ -30,14 +30,13 @@ a format object using ``imageio.formats.add_format()``.
 # imageio.get_reader and imageio.get_writer.
 
 import sys
-from typing import Optional
 import warnings
 
 import numpy as np
 from pathlib import Path
 
 from . import Array, asarray
-from .request import ImageMode, Request
+from .request import ImageMode
 from ..config import known_plugins, known_extensions, PluginConfig, FileExtension
 from ..config.plugins import _original_order
 from .imopen import imopen
@@ -49,7 +48,7 @@ from .imopen import imopen
 MODENAMES = ImageMode
 
 
-def _get_config(plugin: str) -> PluginConfig:
+def _get_config(plugin):
     """Old Plugin resolution logic.
 
     Remove once we remove the old format manager.
@@ -117,9 +116,7 @@ class Format(object):
         formats when reading/saving a file.
     """
 
-    def __init__(
-        self, name: str, description: str, extensions=None, modes: str = None
-    ) -> None:
+    def __init__(self, name, description, extensions=None, modes=None):
         """Initialize the Plugin.
 
         Parameters
@@ -250,7 +247,7 @@ class Format(object):
         """
         return self._can_write(request)
 
-    def _can_read(self, request: Request) -> bool:  # pragma: no cover
+    def _can_read(self, request):  # pragma: no cover
         """Check if Plugin can read from ImageResource.
 
         This method is called when the format manager is searching for a format
@@ -280,7 +277,7 @@ class Format(object):
         """
         return None  # Plugins must implement this
 
-    def _can_write(self, request: Request) -> bool:  # pragma: no cover
+    def _can_write(self, request):  # pragma: no cover
         """Check if Plugin can write to ImageResource.
 
         Parameters
@@ -809,7 +806,7 @@ class FormatManager(object):
             )
             known_extensions.setdefault(extension, list()).append(ext)
 
-    def search_read_format(self, request: Request) -> Optional[Format]:
+    def search_read_format(self, request):
         """search_read_format(request)
 
         Search a format that can read a file according to the given request.
@@ -824,7 +821,7 @@ class FormatManager(object):
             # but the legacy API doesn't raise
             return None
 
-    def search_write_format(self, request: Request) -> Optional[Format]:
+    def search_write_format(self, request):
         """search_write_format(request)
 
         Search a format that can write a file according to the given request.

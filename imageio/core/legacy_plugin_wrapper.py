@@ -1,8 +1,7 @@
 import numpy as np
-from typing import Optional, Dict, Any, Union
 from pathlib import Path
 
-from .request import IOMode, Request, InitializationError
+from .request import IOMode, InitializationError
 from .v3_plugin_api import PluginV3, ImageProperties
 
 
@@ -55,7 +54,7 @@ class LegacyPlugin(PluginV3):
 
     """
 
-    def __init__(self, request: Request, legacy_plugin):
+    def __init__(self, request, legacy_plugin):
         """Instantiate a new Legacy Plugin
 
         Parameters
@@ -114,7 +113,7 @@ class LegacyPlugin(PluginV3):
         self._request.get_file().seek(0)
         return self._format.get_reader(self._request)
 
-    def read(self, *, index: Union[int, None] = None, **kwargs) -> np.ndarray:
+    def read(self, *, index=None, **kwargs):
         """
         Parses the given URI and creates a ndarray from it.
 
@@ -163,7 +162,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, image, **kwargs) -> Optional[bytes]:
+    def write(self, ndimage, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -182,31 +181,31 @@ class LegacyPlugin(PluginV3):
         """
         with self.legacy_get_writer(**kwargs) as writer:
             if self._request.mode.image_mode in "iv":
-                writer.append_data(image)
+                writer.append_data(ndimage)
             else:
-                if len(image) == 0:
+                if len(ndimage) == 0:
                     raise RuntimeError("Zero images were written.")
-                for written, image in enumerate(image):
+                for written, ndimage in enumerate(ndimage):
                     # Test image
-                    imt = type(image)
-                    image = np.asanyarray(image)
-                    if not np.issubdtype(image.dtype, np.number):
+                    imt = type(ndimage)
+                    ndimage = np.asanyarray(ndimage)
+                    if not np.issubdtype(ndimage.dtype, np.number):
                         raise ValueError(
                             "Image is not numeric, but {}.".format(imt.__name__)
                         )
                     elif self._request.mode.image_mode == "I":
-                        if image.ndim == 2:
+                        if ndimage.ndim == 2:
                             pass
-                        elif image.ndim == 3 and image.shape[2] in [1, 3, 4]:
+                        elif ndimage.ndim == 3 and ndimage.shape[2] in [1, 3, 4]:
                             pass
                         else:
                             raise ValueError(
                                 "Image must be 2D " "(grayscale, RGB, or RGBA)."
                             )
                     else:  # self._request.mode.image_mode == "V"
-                        if image.ndim == 3:
+                        if ndimage.ndim == 3:
                             pass
-                        elif image.ndim == 4 and image.shape[3] < 32:
+                        elif ndimage.ndim == 4 and ndimage.shape[3] < 32:
                             pass  # How large can a tuple be?
                         else:
                             raise ValueError(
@@ -214,11 +213,11 @@ class LegacyPlugin(PluginV3):
                             )
 
                     # Add image
-                    writer.append_data(image)
+                    writer.append_data(ndimage)
 
         return writer.request.get_result()
 
-    def iter(self, **kwargs) -> np.ndarray:
+    def iter(self, **kwargs):
         """Iterate over a list of ndimages given by the URI
 
         Parameters
@@ -233,7 +232,7 @@ class LegacyPlugin(PluginV3):
         for image in reader:
             yield image
 
-    def properties(self, index: Union[int, None] = None) -> ImageProperties:
+    def properties(self, index=None):
         """Standardized ndimage metadata.
 
         Parameters
@@ -263,7 +262,7 @@ class LegacyPlugin(PluginV3):
             is_batch=True if index is None else False,
         )
 
-    def get_meta(self, *, index: Union[int, None] = None) -> Dict[str, Any]:
+    def get_meta(self, *, index=None):
         """Read ndimage metadata from the URI
 
         Parameters
@@ -285,9 +284,7 @@ class LegacyPlugin(PluginV3):
 
         return self.metadata(index=index, exclude_applied=False)
 
-    def metadata(
-        self, index: Union[int, None] = None, exclude_applied: bool = True
-    ) -> Dict[str, Any]:
+    def metadata(self, index=None, exclude_applied: bool = True):
         """Format-Specific ndimage metadata.
 
         Parameters

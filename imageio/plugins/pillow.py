@@ -28,15 +28,17 @@ Methods
 
 """
 
-from typing import Optional, Dict, Any
+from io import BytesIO
+from typing import Callable, Optional, Dict, Any, Tuple, cast, Iterator, Union, List
 import numpy as np
-from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags
+from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags  # type: ignore
 from ..core.request import Request, IOMode, InitializationError, URI_BYTES
 from ..core.v3_plugin_api import PluginV3, ImageProperties
 import warnings
+from ..typing import ArrayLike
 
 
-def _exif_orientation_transform(orientation, mode):
+def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
 
@@ -70,7 +72,7 @@ class PillowPlugin(PluginV3):
 
         super().__init__(request)
 
-        self._image = None
+        self._image: Image = None
 
         if request.mode.io_mode == IOMode.read:
             try:
@@ -176,7 +178,9 @@ class PillowPlugin(PluginV3):
             image = np.stack([im for im in iterator], axis=0)
             return image
 
-    def iter(self, *, mode=None, rotate=False, apply_gamma=False) -> np.ndarray:
+    def iter(
+        self, *, mode: str = None, rotate: bool = False, apply_gamma: bool = False
+    ) -> Iterator[np.ndarray]:
         """
         Iterate over all ndimages/frames in the URI
 
@@ -223,7 +227,12 @@ class PillowPlugin(PluginV3):
         return image
 
     def write(
-        self, image: np.ndarray, *, mode=None, format=None, **kwargs
+        self,
+        ndimage: Union[ArrayLike, List[ArrayLike]],
+        *,
+        mode: str = None,
+        format: str = None,
+        **kwargs,
     ) -> Optional[bytes]:
         """
         Write an ndimage to the URI specified in path.
@@ -270,15 +279,24 @@ class PillowPlugin(PluginV3):
             "format": format or Image.registered_extensions()[extension],
         }
 
+        if isinstance(ndimage, list):
+            ndimage = np.stack(ndimage, axis=0)
+            is_batch = True
+        else:
+            ndimage = np.asarray(ndimage)
+            is_batch = None
+
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
         # if mode is given, use it; otherwise fall back to image.ndim only
+        if is_batch is True:
+            pass  # ndimage was list; we know it is a batch
         if mode is not None:
             is_batch = (
-                image.ndim > 3 if Image.getmodebands(mode) > 1 else image.ndim > 2
+                ndimage.ndim > 3 if Image.getmodebands(mode) > 1 else ndimage.ndim > 2
             )
-        elif image.ndim == 2:
+        elif ndimage.ndim == 2:
             is_batch = False
-        elif image.ndim == 3 and image.shape[-1] in [2, 3, 4]:
+        elif ndimage.ndim == 3 and ndimage.shape[-1] in [2, 3, 4]:
             # Note: this makes a channel-last assumption
             # (pillow seems to make it as well)
             is_batch = False
@@ -286,10 +304,10 @@ class PillowPlugin(PluginV3):
             is_batch = True
 
         if not is_batch:
-            image = image[None, ...]
+            ndimage = ndimage[None, ...]
 
         pil_frames = list()
-        for frame in image:
+        for frame in ndimage:
             pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
@@ -304,7 +322,10 @@ class PillowPlugin(PluginV3):
         primary_image.save(self._request.get_file(), **save_args)
 
         if self._request._uri_type == URI_BYTES:
-            return self._request.get_file().getvalue()
+            file = cast(BytesIO, self._request.get_file())
+            return file.getvalue()
+
+        return None
 
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
@@ -406,11 +427,18 @@ class PillowPlugin(PluginV3):
         else:
             mode = self._image.mode
 
-        dummy = np.asarray(Image.new(mode, (1, 1)))
+        width: int = self._image.width
+        height: int = self._image.height
+        shape: Tuple[int, ...] = (height, width)
 
-        shape = list(dummy.shape)
-        shape[:2] = self._image.size[::-1]
-        shape = (self._image.n_frames, *shape) if index is Ellipsis else tuple(shape)
+        n_frames: int = self._image.n_frames
+        if index is ...:
+            shape = (n_frames, *shape)
+
+        dummy = np.asarray(Image.new(mode, (1, 1)))
+        pil_shape: Tuple[int, ...] = dummy.shape
+        if len(pil_shape) > 2:
+            shape = (*shape, *pil_shape[2:])
 
         return ImageProperties(
             shape=shape,

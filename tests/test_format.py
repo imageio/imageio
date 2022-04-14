@@ -1,15 +1,15 @@
-from pytest import raises
-import pytest
-
 import gc
 import shutil
 from pathlib import Path
-
-import numpy as np
+from typing import List
 
 import imageio
 import imageio as iio
+import numpy as np
+import pytest
 from imageio.core import Format, FormatManager, Request
+from pytest import raises
+
 from conftest import deprecated_test
 
 
@@ -24,7 +24,7 @@ def resort():
 class MyFormat(Format):
     """TEST DOCS"""
 
-    _closed = []
+    _closed: List[int] = []
 
     def _can_read(self, request):
         return request.filename.lower().endswith(self.extensions + (".haha",))

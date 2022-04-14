@@ -8,16 +8,13 @@ from pytest import raises
 
 import imageio.v2 as iio
 
-itk = None
 try:
-    import itk
+    import itk  # type: ignore
 except ImportError:
-    pass
-try:
-    if not itk:
-        import SimpleITK as itk
-except ImportError:
-    pass
+    try:
+        import SimpleITK as itk  # type: ignore
+    except ImportError:
+        itk = None
 
 
 @pytest.mark.skipif("itk is None")
