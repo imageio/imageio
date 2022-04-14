@@ -266,6 +266,7 @@ class PyAVPlugin(PluginV3):
                     msg = f"PyAV does not support `{request.raw_uri}`"
                 raise InitializationError(msg) from None
         else:
+            self.frames_written = 0
             file_handle = self.request.get_file()
             filename = getattr(file_handle, "name", None)
             extension = self.request.extension or self.request.format_hint
@@ -615,7 +616,8 @@ class PyAVPlugin(PluginV3):
         ]
 
         for img in ndimage:
-            frame.pts = self._video_stream.frames
+            frame.pts = self.frames_written
+            self.frames_written += 1
             # manual packing of ndarray into frame
             # (this should live in pyAV, but it doesn't support many formats
             # and PRs there are slow)
@@ -655,7 +657,6 @@ class PyAVPlugin(PluginV3):
                 self._container.mux(packet)
 
         for out_frame in ffmpeg_filter:
-            out_frame.pts = self._video_stream.frames
             for packet in stream.encode(out_frame):
                 self._container.mux(packet)
 
