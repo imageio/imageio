@@ -323,27 +323,6 @@ def test_unknown_image(tmp_path):
         PillowPlugin(r)
 
 
-# TODO: introduce new plugin for writing compressed GIF
-# This is not what pillow does, and hence unexpected when explicitly calling
-# for pillow
-# def test_gif_subrectangles(test_images, tmp_path):
-#     # feature might be made obsolete by upstream (pillow) supporting it natively
-#     # related issues: https://github.com/python-pillow/Pillow/issues/4977
-#     im = iio.v3.imread(test_images / "newtonscradle.gif", legacy_api=False, plugin="pillow", mode="RGBA")
-#     im = np.stack((*im, im[-1]), axis=0)
-#     print(im.dtype)
-
-#     with iio.v3.imopen(tmp_path / "1.gif", legacy_api=False, plugin="pillow") as f:
-#         f.write(im, subrectangles=False, mode="RGBA")
-
-#     with iio.v3.imopen(tmp_path / "2.gif", legacy_api=False, plugin="pillow") as f:
-#         f.write(im, subrectangles=True, mode="RGBA")
-
-#     size_1 = os.stat(tmp_path / "1.gif").st_size
-#     size_2 = os.stat(tmp_path / "2.gif").st_size
-#     assert size_2 < size_1
-
-
 def test_gif_transparent_pixel(test_images):
     # see issue #245
     im = iio.v3.imread(
@@ -352,16 +331,13 @@ def test_gif_transparent_pixel(test_images):
     assert im.shape == (24, 30, 4)
 
 
-# TODO: Pillow actually doesn't read zip. This should be a different plugin.
-# def test_inside_zipfile(test_images):
+def test_gif_list_write(test_images, tmp_path):
+    im = iio.v3.imread(test_images / "imageio_issue245.gif", plugin="pillow")
+    im_list = [x for x in im]
+    iio.v3.imwrite(tmp_path / "test.gif", im_list, plugin="pillow")
+    im2 = iio.v3.imread(test_images / "imageio_issue245.gif", plugin="pillow", index=0)
 
-#     fname = os.path.join(tmp_path, "pillowtest.zip")
-#     with ZipFile(fname, "w") as z:
-#         z.writestr("x.png", open(test_images / "chelsea.png", "rb").read())
-#         z.writestr("x.jpg", open(test_images / "rommel.jpg", "rb").read())
-
-#     for name in ("x.png", "x.jpg"):
-#         imageio.imread(fname + "/" + name)
+    assert im2.shape == (24, 30, 3)
 
 
 def test_legacy_exif_orientation(test_images, tmp_path):
