@@ -7,7 +7,7 @@ import sys
 import platform
 import warnings
 
-import fsspec
+import fsspec  # type: ignore
 import imageio.plugins
 import imageio.v3 as iio3
 import imageio.v2 as iio

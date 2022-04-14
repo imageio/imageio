@@ -28,11 +28,7 @@ from imageio.config.plugins import PluginConfig
 
 from conftest import deprecated_test
 
-
-try:
-    from pathlib import Path
-except ImportError:
-    Path = None
+from pathlib import Path
 
 
 class UselessDummyPlugin:

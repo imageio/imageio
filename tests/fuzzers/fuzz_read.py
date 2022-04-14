@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
-import atheris
+import atheris  # type: ignore
 
 import imageio
 

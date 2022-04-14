@@ -615,7 +615,7 @@ def show_in_visvis(test_images):
     # reader = iio.read(test_images / "cockatoo.mp4", "ffmpeg")
     reader = iio.read("<video0>", fps=20)
 
-    import visvis as vv
+    import visvis as vv  # type: ignore
 
     im = reader.get_next_data()
     f = vv.clf()
