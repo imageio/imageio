@@ -8,7 +8,7 @@ import os
 import io
 import pytest
 import numpy as np
-from PIL import Image, ImageSequence
+from PIL import Image, ImageSequence  # type: ignore
 
 import imageio as iio
 from imageio.core.v3_plugin_api import PluginV3
@@ -186,7 +186,7 @@ def test_jpg_compression(test_images, tmp_path):
 
 
 def test_exif_orientation(test_images, tmp_path):
-    from PIL.Image import Exif
+    from PIL.Image import Exif  # type: ignore
 
     im = np.load(test_images / "chelsea.npy")
 
@@ -204,7 +204,7 @@ def test_exif_orientation(test_images, tmp_path):
         exif=exif_tag,
     )
 
-    with iio.imopen(
+    with iio.v3.imopen(
         tmp_path / "chelsea_tagged.png",
         "r",
         plugin="pillow",
@@ -265,7 +265,7 @@ def test_gif_irregular_duration(test_images, tmp_path):
     )
     duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
-    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+    with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
         for frame, duration in zip(im, duration):
             file.write(frame, duration=duration)
 
@@ -293,7 +293,7 @@ def test_gif_loop_and_fps(test_images, tmp_path):
         mode="RGBA",
     )
 
-    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+    with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
         for frame in im:
             file.write(frame, palettesize=100, fps=20, loop=2)
 
@@ -304,7 +304,7 @@ def test_gif_indexed_read(test_images):
     idx = 0
     numpy_im = np.load(test_images / "newtonscradle_rgb.npy")[idx, ...]
 
-    with iio.imopen(test_images / "newtonscradle.gif", "r", plugin="pillow") as file:
+    with iio.v3.imopen(test_images / "newtonscradle.gif", "r", plugin="pillow") as file:
         # exists to touch branch, would be better two write an explicit test
         meta = file.get_meta(index=idx)
         assert "version" in meta
@@ -333,10 +333,10 @@ def test_unknown_image(tmp_path):
 #     im = np.stack((*im, im[-1]), axis=0)
 #     print(im.dtype)
 
-#     with iio.imopen(tmp_path / "1.gif", legacy_api=False, plugin="pillow") as f:
+#     with iio.v3.imopen(tmp_path / "1.gif", legacy_api=False, plugin="pillow") as f:
 #         f.write(im, subrectangles=False, mode="RGBA")
 
-#     with iio.imopen(tmp_path / "2.gif", legacy_api=False, plugin="pillow") as f:
+#     with iio.v3.imopen(tmp_path / "2.gif", legacy_api=False, plugin="pillow") as f:
 #         f.write(im, subrectangles=True, mode="RGBA")
 
 #     size_1 = os.stat(tmp_path / "1.gif").st_size
@@ -383,7 +383,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
         exif=exif_tag,
     )
 
-    with iio.imopen(
+    with iio.v3.imopen(
         tmp_path / "chelsea_tagged.png",
         "r",
         legacy_mode=True,

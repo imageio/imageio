@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterator, Literal, Optional, overload
 import numpy as np
 
 from .core.v3_plugin_api import ImageProperties
+from .core.imopen import imopen as imopen
 from .typing import ArrayLike, ImageResource
 
 def imread(
