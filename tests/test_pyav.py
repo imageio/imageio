@@ -6,7 +6,7 @@ import io
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
-from av.video.format import names as video_format_names  # noqa: E402
+from av.video.format import names as video_format_names  # type: ignore # noqa: E402
 from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
 
 
@@ -61,7 +61,9 @@ def test_metadata(test_images: Path):
 
 
 def test_properties(test_images: Path):
-    with iio.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
+    with iio.imopen(
+        str(test_images / "cockatoo.mp4"), "r", plugin="pyav", legacy_mode=False
+    ) as plugin:
         with pytest.raises(IOError):
             # subsampled format
             plugin.properties(format="yuv420p")
