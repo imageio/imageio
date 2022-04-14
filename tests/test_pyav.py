@@ -272,7 +272,7 @@ def test_variable_fps_seek(test_images):
     assert np.allclose(actual, expected)
 
 
-def test_multiple_writes(test_images, tmp_path):
+def test_multiple_writes(test_images):
     out_buffer = io.BytesIO()
     with iio.imopen(out_buffer, "w", plugin="pyav", format_hint=".mp4") as file:
         for frame in iio.imiter(
