@@ -629,9 +629,12 @@ class PyAVPlugin(PluginV3):
                     )
                     plane_array[...] = img[idx]
             else:
-                n_channels = len(pixel_format.components)
-                plane = frame.planes[0]
+                if in_pixel_format.startswith("bayer_"):
+                    n_channels = 1
+                else:
+                    n_channels = len(pixel_format.components)
 
+                plane = frame.planes[0]
                 plane_shape = (plane.height, plane.width)
                 plane_strides = (plane.line_size, n_channels * img_dtype.itemsize)
                 if n_channels > 1:
