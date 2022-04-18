@@ -1,5 +1,6 @@
 from typing import Literal, Type, TypeVar, overload
 
+from ..plugins.opencv import OpenCVPlugin
 from ..plugins.pillow import PillowPlugin
 from ..plugins.pyav import PyAVPlugin
 from ..typing import ImageResource
@@ -38,16 +39,26 @@ def imopen(
     uri: ImageResource,
     io_mode: Literal["r", "w"],
     *,
-    plugin: Literal["pyav"],
-    container: str = None,
-) -> PyAVPlugin: ...
+    plugin: Literal["pillow"],
+    format_hint: str = None,
+) -> PillowPlugin: ...
 @overload
 def imopen(
     uri: ImageResource,
     io_mode: Literal["r", "w"],
     *,
-    plugin: Literal["pillow"],
-) -> PillowPlugin: ...
+    plugin: Literal["pyav"],
+    format_hint: str = None,
+    container: str = None,
+) -> PyAVPlugin: ...
+@overload
+def imopen(
+    uri,
+    io_mode: Literal["r", "w"],
+    *,
+    plugin: Literal["opencv"],
+    format_hint: str = None,
+) -> OpenCVPlugin: ...
 @overload
 def imopen(
     uri: ImageResource,
