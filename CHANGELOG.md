@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.17.0 (2022-04-18)
+### Feature
+* New Plugin for pyAV ([#745](https://github.com/imageio/imageio/issues/745)) ([`22ab97e`](https://github.com/imageio/imageio/commit/22ab97ea0facccfb1c888fb1a8fafded1a0e0f78))
+* Add plugin default sentinel ([#779](https://github.com/imageio/imageio/issues/779)) ([`d1d13ef`](https://github.com/imageio/imageio/commit/d1d13ef4fe1e8ac7538ceb81f0e8e7612413c771))
+
+### Other
+* Better Type Annotations + mypy support ([#784](https://github.com/imageio/imageio/issues/784)) ([`607600d`](https://github.com/imageio/imageio/commit/607600d92d9eb454df5320b4b4d6047aeb5a567d))
+* Add fast-paths for pyav formats ([#785](https://github.com/imageio/imageio/issues/785)) ([`13cb5e2`](https://github.com/imageio/imageio/commit/13cb5e2899e30c9a30456b83bd7f16a72dbfc5e0))
+* Update readme ([#786](https://github.com/imageio/imageio/issues/786)) ([`7f1bb1d`](https://github.com/imageio/imageio/commit/7f1bb1d6fb185ae7aa5c182ef8eea3216a42f622))
+* Fix docs on standard images ([#783](https://github.com/imageio/imageio/issues/783)) ([`7c65efa`](https://github.com/imageio/imageio/commit/7c65efae21554309767a9df95ecc3032e33712a1))
+
 ## v2.16.2 (2022-04-11)
 ### Fix
 * Handle PIL paletts with <256 color palettes ([#775](https://github.com/imageio/imageio/issues/775)) ([`309242d`](https://github.com/imageio/imageio/commit/309242d42bf43103290ee57934e9b64abd0fac9f))
