@@ -187,6 +187,7 @@ plugins = {
     "swf": [],
     "tifffile": ["tifffile"],
     "pyav": ["av"],
+    "opencv": ["opencv-python"],
 }
 
 cpython_only_plugins = {

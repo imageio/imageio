@@ -506,7 +506,9 @@ class Request(object):
             return self._filename
         else:
             # Get filename
-            if self._uri_type in (URI_HTTP, URI_FTP):
+            if self.format_hint is not None:
+                ext = self.format_hint
+            elif self._uri_type in (URI_HTTP, URI_FTP):
                 ext = os.path.splitext(self._filename.split("?")[0])[1]
             else:
                 ext = os.path.splitext(self._filename)[1]
