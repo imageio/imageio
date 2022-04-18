@@ -2,6 +2,8 @@ import imageio.v3 as iio
 import numpy as np
 import pytest
 
+pytest.importorskip("imageio.plugins.opencv")
+
 
 def test_basic_reading(test_images):
     img_expected = iio.imread(test_images / "chelsea.png")
