@@ -187,11 +187,11 @@ plugins = {
     "swf": [],
     "tifffile": ["tifffile", "imagecodecs"],
     "pyav": ["av"],
-    "opencv": ["opencv-python"],
 }
 
 cpython_only_plugins = {
     "fits": ["astropy"],
+    "opencv": ["opencv-python"],
 }
 
 extras_require = {
