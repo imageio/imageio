@@ -185,7 +185,7 @@ plugins = {
     "simpleitk": [],
     "spe": [],
     "swf": [],
-    "tifffile": ["tifffile"],
+    "tifffile": ["tifffile", "imagecodecs"],
     "pyav": ["av"],
     "opencv": ["opencv-python"],
 }
