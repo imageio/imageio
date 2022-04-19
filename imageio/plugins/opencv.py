@@ -31,15 +31,17 @@ images are converted to RGB, RGBA, or grayscale (where applicable) by default.
 """
 
 
-from ..core.v3_plugin_api import PluginV3, ImageProperties
-from ..core import Request
-from ..core.request import IOMode, InitializationError, URI_BYTES
+import warnings
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import cv2
 import numpy as np
-from typing import Dict, List, Union, Optional, Any
+
+from ..core import Request
+from ..core.request import URI_BYTES, InitializationError, IOMode
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
-from pathlib import Path
 
 
 class OpenCVPlugin(PluginV3):
@@ -294,4 +296,6 @@ class OpenCVPlugin(PluginV3):
             This parameter has no effect.
 
         """
-        raise NotImplementedError("OpenCV does not support metadata.")
+
+        warnings.warn("OpenCV does not support reading metadata.", UserWarning)
+        return dict()

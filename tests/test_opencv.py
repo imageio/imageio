@@ -1,3 +1,5 @@
+import warnings
+
 import imageio.v3 as iio
 import numpy as np
 import pytest
@@ -133,7 +135,7 @@ def test_props(test_images, tmp_path):
 
 
 def test_metadata(test_images):
-    try:
-        iio.immeta(test_images / "astronaut.png", plugin="opencv")
-    except NotImplementedError:
-        pytest.xfail("CV2 still doesn't support metadata.")
+    with warnings.catch_warnings(record=True):
+        metadata = iio.immeta(test_images / "astronaut.png", plugin="opencv")
+
+    assert metadata == dict()
