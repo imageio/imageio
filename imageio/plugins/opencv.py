@@ -24,7 +24,7 @@ Methods
 Pixel Formats (Colorspaces)
 ---------------------------
 
-OpenCV is known to process images in BGR; however, most of the python echosystem
+OpenCV is known to process images in BGR; however, most of the python ecosystem
 (in particular matplotlib and other pydata libraries) use the RGB. As such,
 images are converted to RGB, RGBA, or grayscale (where applicable) by default.
 
