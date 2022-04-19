@@ -4,7 +4,8 @@ import imageio.v3 as iio
 import numpy as np
 import pytest
 
-cv2 = pytest.importorskip("imageio.plugins.opencv")
+pytest.importorskip("imageio.plugins.opencv")
+import cv2  # noqa: E402
 
 
 def test_basic_reading(test_images, tmp_path):
