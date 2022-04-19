@@ -26,7 +26,7 @@ Pixel Formats (Colorspaces)
 
 OpenCV is known to process images in BGR; however, most of the python echosystem
 (in particular matplotlib and other pydata libraries) use the RGB. As such,
-images are converted to RGB by default.
+images are converted to RGB, RGBA, or grayscale (where applicable) by default.
 
 """
 
@@ -58,19 +58,36 @@ class OpenCVPlugin(PluginV3):
         elif mode == IOMode.write and not cv2.haveImageWriter(self.file_handle):
             raise InitializationError(f"OpenCV can't write to `{self.filename}`.")
 
-    def read(self, *, index: int = 0, **kwargs) -> np.ndarray:
+    def read(
+        self,
+        *,
+        index: int = None,
+        colorspace: Union[int, str] = None,
+        flags: int = cv2.IMREAD_COLOR,
+    ) -> np.ndarray:
         """Read an image from the ImageResource.
 
         Parameters
         ----------
         index : int, Ellipsis
-            The index of the image to read for formats that may contain more
-            than one image, e.g. ``index=5`` reads the 5th image in the file. If
-            ``...``, read all images in the ImageResource and stack them along a
-            new, prepended, batch dimension. Defaults to 0.
-        kwargs
-            Additional kwargs are forwarded to OpenCVs ``imread`` or
-            ``imreadmulti`` function.
+            If int, read the index-th image from the ImageResource. If ``...``,
+            read all images from the ImageResource and stack them along a new,
+            prepended, batch dimension. If None (default), use ``index=0`` if
+            the image contains exactly one image and ``index=...`` otherwise.
+        colorspace : str, int
+            The colorspace to convert into after loading and before returning
+            the image. If None (default) keep grayscale images as is, convert
+            images with an alpha channel to ``RGBA`` and all other images to
+            ``RGB``. If int, interpret ``colorspace`` as one of OpenCVs
+            `conversion flags
+            <https://docs.opencv.org/4.x/d8/d01/group__imgproc__color__conversions.html>`_
+            and use it for conversion. If str, convert the image into the given
+            colorspace. Possible string values are: ``"RGB"``, ``"BGR"``,
+            ``"RGBA"``, ``"BGRA"``, ``"GRAY"``, ``"HSV"``, or ``"LAB"``.
+        flags : int
+            The OpenCV flag(s) to pass to the reader. Refer to the `OpenCV docs
+            <https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56>`_
+            for details.
 
         Returns
         -------
@@ -78,35 +95,69 @@ class OpenCVPlugin(PluginV3):
             The decoded image as a numpy array.
 
         """
+
+        if index is None:
+            n_images = cv2.imcount(self.file_handle, flags)
+            index = 0 if n_images == 1 else ...
+
         if index is ...:
-            retval, img = cv2.imreadmulti(self.file_handle, **kwargs)
+            retval, img = cv2.imreadmulti(self.file_handle, flags=flags)
             is_batch = True
-        elif index == 0:
-            img = cv2.imread(self.file_handle, **kwargs)
-            retval = img is not None
-            is_batch = False
         else:
-            retval, img = cv2.imreadmulti(self.file_handle, index, 1, **kwargs)
-            img = img[0] if retval else None
+            retval, img = cv2.imreadmulti(self.file_handle, index, 1, flags=flags)
             is_batch = False
 
         if retval is False:
             raise ValueError(f"Could not read index `{index}` from `{self.filename}`.")
 
-        if is_batch:
-            img = np.stack([cv2.cvtColor(x, cv2.COLOR_BGR2RGB) for x in img])
+        if img[0].ndim == 2:
+            in_colorspace = "GRAY"
+            out_colorspace = colorspace or "GRAY"
+        elif img[0].shape[-1] == 4:
+            in_colorspace = "BGRA"
+            out_colorspace = colorspace or "RGBA"
         else:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            in_colorspace = "BGR"
+            out_colorspace = colorspace or "RGB"
 
-        return img
+        if isinstance(colorspace, int):
+            cvt_space = colorspace
+        elif in_colorspace == out_colorspace.upper():
+            cvt_space = None
+        else:
+            out_colorspace = out_colorspace.upper()
+            cvt_space = getattr(cv2, f"COLOR_{in_colorspace}2{out_colorspace}")
 
-    def iter(self, **kwargs) -> np.ndarray:
+        if cvt_space is not None:
+            img = np.stack([cv2.cvtColor(x, cvt_space) for x in img])
+        else:
+            img = np.stack(img)
+
+        return img if is_batch else img[0]
+
+    def iter(
+        self,
+        colorspace: Union[int, str] = None,
+        flags: int = cv2.IMREAD_COLOR,
+    ) -> np.ndarray:
         """Yield images from the ImageResource.
 
         Parameters
         ----------
-        kwargs
-            All kwargs are forwarded to OpenCVs ``imreadmulti`` function.
+        colorspace : str, int
+            The colorspace to convert into after loading and before returning
+            the image. If None (default) keep grayscale images as is, convert
+            images with an alpha channel to ``RGBA`` and all other images to
+            ``RGB``. If int, interpret ``colorspace`` as one of OpenCVs
+            `conversion flags
+            <https://docs.opencv.org/4.x/d8/d01/group__imgproc__color__conversions.html>`_
+            and use it for conversion. If str, convert the image into the given
+            colorspace. Possible string values are: ``"RGB"``, ``"BGR"``,
+            ``"RGBA"``, ``"BGRA"``, ``"GRAY"``, ``"HSV"``, or ``"LAB"``.
+        flags : int
+            The OpenCV flag(s) to pass to the reader. Refer to the `OpenCV docs
+            <https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56>`_
+            for details.
 
         Yields
         -------
@@ -115,7 +166,7 @@ class OpenCVPlugin(PluginV3):
 
         """
         for idx in range(cv2.imcount(self.file_handle)):
-            yield self.read(index=idx, **kwargs)
+            yield self.read(index=idx, flags=flags, colorspace=colorspace)
 
     def write(
         self,
@@ -175,17 +226,35 @@ class OpenCVPlugin(PluginV3):
         if self.request._uri_type == URI_BYTES:
             return Path(self.file_handle).read_bytes()
 
-    def properties(self, index: int = 0, **kwargs) -> ImageProperties:
+    def properties(
+        self,
+        index: int = 0,
+        colorspace: Union[int, str] = None,
+        flags: int = cv2.IMREAD_COLOR,
+    ) -> ImageProperties:
         """Standardized image metadata.
 
         Parameters
         ----------
         index : int, Ellipsis
-            The index of the image to read metadata for. See ``read`` for details.
-            Defaults to 0.
-        kwargs
-            Additional kwargs are forwarded to OpenCVs ``imread`` or
-            ``imreadmulti`` function.
+            If int, get the properties of the index-th image in the
+            ImageResource. If ``...``, get the properties of the image stack
+            that contains all images. If None (default), use ``index=0`` if the
+            image contains exactly one image and ``index=...`` otherwise.
+        colorspace : str, int
+            The colorspace to convert into after loading and before returning
+            the image. If None (default) keep grayscale images as is, convert
+            images with an alpha channel to ``RGBA`` and all other images to
+            ``RGB``. If int, interpret ``colorspace`` as one of OpenCVs
+            `conversion flags
+            <https://docs.opencv.org/4.x/d8/d01/group__imgproc__color__conversions.html>`_
+            and use it for conversion. If str, convert the image into the given
+            colorspace. Possible string values are: ``"RGB"``, ``"BGR"``,
+            ``"RGBA"``, ``"BGRA"``, ``"GRAY"``, ``"HSV"``, or ``"LAB"``.
+        flags : int
+            The OpenCV flag(s) to pass to the reader. Refer to the `OpenCV docs
+            <https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html#ga288b8b3da0892bd651fce07b3bbd3a56>`_
+            for details.
 
         Returns
         -------
@@ -200,7 +269,7 @@ class OpenCVPlugin(PluginV3):
         """
 
         # unfortunately, OpenCV doesn't allow reading shape without reading pixel data
-        img = self.read(index=index, **kwargs)
+        img = self.read(index=index, flags=flags, colorspace=colorspace)
 
         return ImageProperties(
             shape=img.shape,
@@ -208,12 +277,21 @@ class OpenCVPlugin(PluginV3):
             is_batch=(index is ...),
         )
 
-    def metadata(self, index: int = 0, exclude_applied: bool = True) -> Dict[str, Any]:
+    def metadata(
+        self, index: int = None, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
         """Format-specific metadata.
 
         .. warning::
             OpenCV does not support reading metadata. When called, this function
             will raise a ``NotImplementedError``.
+
+        Parameters
+        ----------
+        index : int
+            This parameter has no effect.
+        exclude_applied : bool
+            This parameter has no effect.
 
         """
         raise NotImplementedError("OpenCV does not support metadata.")

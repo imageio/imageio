@@ -2,15 +2,34 @@ import imageio.v3 as iio
 import numpy as np
 import pytest
 
-pytest.importorskip("imageio.plugins.opencv")
+cv2 = pytest.importorskip("imageio.plugins.opencv")
 
 
-def test_basic_reading(test_images):
+def test_basic_reading(test_images, tmp_path):
     img_expected = iio.imread(test_images / "chelsea.png")
     img = iio.imread(test_images / "chelsea.png", plugin="opencv")
-
     assert img.shape == (300, 451, 3)
-    np.allclose(img, img_expected)
+    assert np.allclose(img, img_expected)
+
+    img = iio.imread(
+        test_images / "chelsea.png", plugin="opencv", colorspace=cv2.COLOR_BGR2RGBA
+    )
+    img2 = iio.imread(test_images / "chelsea.png", plugin="opencv", colorspace="RGBA")
+    assert img.shape == (300, 451, 4)
+    assert np.allclose(img, img2)
+
+    img_expected = iio.imread(test_images / "camera.png")
+    img = iio.imread(
+        test_images / "camera.png", plugin="opencv", flags=cv2.IMREAD_ANYCOLOR
+    )
+    assert img.shape == (512, 512)
+    assert np.allclose(img, img_expected)
+
+    img_expected = iio.imread(test_images / "astronaut.png", mode="RGBA")
+    iio.imwrite(tmp_path / "test.png", img_expected)
+    img = iio.imread(tmp_path / "test.png", plugin="opencv", flags=cv2.IMREAD_UNCHANGED)
+    assert img.shape == (512, 512, 4)
+    assert np.allclose(img, img_expected)
 
     with pytest.raises(IOError):
         iio.imread("nonexistant.png", plugin="opencv")
@@ -30,7 +49,7 @@ def test_multi_reading(test_images, tmp_path):
     img_expected = iio.imread(test_images / "newtonscradle.gif")
     iio.imwrite(tmp_path / "test.tiff", img_expected)
 
-    img = iio.imread(tmp_path / "test.tiff", index=..., plugin="opencv")
+    img = iio.imread(tmp_path / "test.tiff", plugin="opencv")
 
     assert img.shape == (36, 150, 200, 3)
     np.allclose(img, img_expected)
