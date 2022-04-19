@@ -185,13 +185,13 @@ plugins = {
     "simpleitk": [],
     "spe": [],
     "swf": [],
-    "tifffile": ["tifffile", "imagecodecs"],
+    "tifffile": ["tifffile"],
     "pyav": ["av"],
+    "opencv": ["opencv-python"],
 }
 
 cpython_only_plugins = {
     "fits": ["astropy"],
-    "opencv": ["opencv-python"],
 }
 
 extras_require = {

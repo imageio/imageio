@@ -111,12 +111,12 @@ def test_write_batch(test_images, tmp_path):
     img_expected = iio.imread(test_images / "newtonscradle.gif")
 
     iio.imwrite(tmp_path / "test.tiff", img_expected, plugin="opencv", is_batch=True)
-    img = iio.imread(tmp_path / "test.tiff")
+    img = iio.imread(tmp_path / "test.tiff", plugin="opencv")
     np.allclose(img, img_expected)
 
     img_list = [x for x in img_expected]
     iio.imwrite(tmp_path / "test.tiff", img_list, plugin="opencv", is_batch=True)
-    img = iio.imread(tmp_path / "test.tiff")
+    img = iio.imread(tmp_path / "test.tiff", plugin="opencv")
     np.allclose(img, img_expected)
 
 
