@@ -1,10 +1,10 @@
-from typing import Literal, overload, Type, TypeVar
-from .v3_plugin_api import PluginV3
+from typing import Literal, Type, TypeVar, overload
+
 from ..plugins.pillow import PillowPlugin
 from ..plugins.pyav import PyAVPlugin
-from .legacy_plugin_wrapper import LegacyPlugin
-
 from ..typing import ImageResource
+from .legacy_plugin_wrapper import LegacyPlugin
+from .v3_plugin_api import PluginV3
 
 CustomPlugin = TypeVar("CustomPlugin", bound=PluginV3)
 
@@ -23,7 +23,7 @@ def imopen(
     plugin: str = None,
     format_hint: str = None,
     legacy_mode: Literal[True],
-    **kwargs
+    **kwargs,
 ) -> LegacyPlugin: ...
 @overload
 def imopen(
@@ -55,5 +55,5 @@ def imopen(
     *,
     plugin: Type[CustomPlugin],
     format_hint: str = None,
-    **kwargs
+    **kwargs,
 ) -> CustomPlugin: ...
