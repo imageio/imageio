@@ -317,3 +317,36 @@ def test_invalid_resource(tmp_path):
 
     with pytest.raises(IOError):
         iio.imwrite(tmp_path / "foo.abc", img, plugin="pyav")
+
+
+def test_bayer_write():
+    image_shape = (128, 128)
+    image = np.zeros(image_shape, dtype="uint8")
+    buffer = io.BytesIO()
+
+    with iio.imopen(buffer, "w", plugin="pyav", format_hint=".mp4") as file:
+        image[...] = 0
+        for i in range(256):
+            image[::2, ::2] = i
+            file.write(
+                image, is_batch=False, codec="h264", in_pixel_format="bayer_rggb8"
+            )
+
+        image[...] = 0
+        for i in range(256):
+            image[0::2, 1::2] = i
+            image[1::2, 0::2] = i
+            file.write(
+                image, is_batch=False, codec="h264", in_pixel_format="bayer_rggb8"
+            )
+
+        image[...] = 0
+        for i in range(256):
+            image[1::2, 1::2] = i
+            file.write(
+                image, is_batch=False, codec="h264", in_pixel_format="bayer_rggb8"
+            )
+
+    buffer.seek(0)
+    img = iio.imread(buffer, plugin="pyav")
+    assert img.shape == (768, 128, 128, 3)
