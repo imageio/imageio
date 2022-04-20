@@ -62,7 +62,7 @@ def test_metadata(test_images: Path):
 
 def test_properties(test_images: Path):
     with iio.imopen(
-        str(test_images / "cockatoo.mp4"), "r", plugin="pyav", legacy_mode=False
+        str(test_images / "cockatoo.mp4"), "r", plugin="pyav"
     ) as plugin:
         with pytest.raises(IOError):
             # subsampled format
