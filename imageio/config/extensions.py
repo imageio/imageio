@@ -1499,11 +1499,6 @@ extension_list = [
     ),
     FileExtension(
         name="QuickTime / MOV",
-        extension=".mp4",
-        priority=["pyav"],
-    ),
-    FileExtension(
-        name="QuickTime / MOV",
         extension=".psp",
         priority=["pyav"],
     ),

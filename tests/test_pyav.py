@@ -34,6 +34,15 @@ def test_mp4_read(test_images: Path):
     np.allclose(result, expected)
 
 
+def test_mp4_read_bytes(test_images):
+    encoded_video = (test_images / "cockatoo.mp4").read_bytes()
+
+    img_expected = iio.imread(encoded_video, index=5)
+    img = iio.imread(encoded_video, plugin="pyav", index=5)
+
+    np.allclose(img, img_expected)
+
+
 def test_mp4_writing(tmp_path, test_images):
     frames = iio.imread(test_images / "newtonscradle.gif")
 

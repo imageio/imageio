@@ -235,6 +235,9 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
         if legacy_mode and not config.is_legacy:
             continue
 
+        # each plugin gets its own request
+        request = Request(uri, io_mode, format_hint=format_hint)
+
         try:
             plugin_instance = config.plugin_class(request, **kwargs)
         except InitializationError:
