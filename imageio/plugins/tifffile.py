@@ -492,10 +492,10 @@ class TiffFormat(Format):
         def _open(self, bigtiff=None, byteorder=None, software=None):
             try:
                 self._tf = _tifffile.TiffWriter(
-                    self.request.get_file(), 
-                    bigtiff=bigtiff, 
-                    byteorder=byteorder, 
-                    software=software
+                    self.request.get_file(),
+                    bigtiff=bigtiff,
+                    byteorder=byteorder,
+                    software=software,
                 )
                 self._software = None
             except TypeError:
