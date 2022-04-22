@@ -66,11 +66,7 @@ def working_directory(path):
         os.chdir(prev_cwd)
 
 
-# uses the fixture marking workaround from:
-# https://github.com/pytest-dev/pytest/issues/1368#issuecomment-466339463
-@pytest.fixture(
-    scope="session", params=[pytest.param(0, marks=pytest.mark.needs_internet)]
-)
+@pytest.fixture(scope="session")
 def test_images(request):
     """A collection of test images.
 
@@ -176,6 +172,12 @@ def tmp_userdir(tmp_path):
         os.environ[user_dir_env] = old_user_dir
     else:
         del os.environ[user_dir_env]
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        if "test_images" in getattr(item, "fixturenames", ()):
+            item.add_marker("needs_internet")
 
 
 def deprecated_test(fn):
