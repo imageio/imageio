@@ -101,7 +101,7 @@ def test_tifffile_reading_writing(test_images, tmp_path):
 
     # Read metadata
     md = iio.get_reader(filename2).get_meta_data()
-    assert md["is_imagej"] is None
+    assert not md["is_imagej"]
     assert md["description"] == "shape=(2,3,10,10)"
     assert md["description1"] == ""
     assert md["datetime"] == datetime.datetime(2015, 5, 9, 9, 8, 29)
