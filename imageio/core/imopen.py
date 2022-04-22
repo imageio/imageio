@@ -132,6 +132,7 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
                 return plugin(request, **kwargs)
 
         else:
+            request.finish()
             raise ValueError("The `plugin` argument must be a string.")
 
         try:
@@ -212,6 +213,7 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
     # this is hacky; can we come up with a better solution for this?
     if request.mode.io_mode == IOMode.write:
         if isinstance(uri, str) and uri.startswith(SPECIAL_READ_URIS):
+            request.finish()
             err_type = ValueError if legacy_mode else IOError
             err_msg = f"`{source}` is read-only."
             raise err_type(err_msg)
@@ -220,6 +222,7 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
     # this is a bit hacky and should be cleaned once we decide
     # how to gracefully handle DICOM
     if request._uri_type == URI_FILENAME and Path(request.raw_uri).is_dir():
+        request.finish()
         err_type = ValueError if legacy_mode else IOError
         err_msg = (
             "ImageIO does not generally support reading folders. "
@@ -227,6 +230,12 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
             "Specify the plugin explicitly using the `plugin` kwarg, e.g. `plugin='DICOM'`"
         )
         raise err_type(err_msg)
+
+    # close the current request here and use fresh/new ones while trying each
+    # plugin This is slow (means potentially reopening a resource several
+    # times), but should only happen rarely because this is the fallback if all
+    # else fails.
+    request.finish()
 
     # fallback option: try all plugins
     for config in known_plugins.values():
