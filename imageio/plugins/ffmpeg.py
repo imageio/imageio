@@ -553,6 +553,8 @@ class FfmpegFormat(Format):
             ffmpeg_log_level="quiet",
             quality=5,
             macro_block_size=16,
+            audio_path=None,
+            audio_codec=None,
         ):
             self._ffmpeg_api = _get_ffmpeg_api()
             self._filename = self.request.get_local_filename()
@@ -628,6 +630,8 @@ class FfmpegFormat(Format):
             pixelformat = self.request.kwargs.get("pixelformat", None)
             macro_block_size = self.request.kwargs.get("macro_block_size", 16)
             ffmpeg_log_level = self.request.kwargs.get("ffmpeg_log_level", None)
+            audio_path = self.request.kwargs.get("audio_path", None)
+            audio_codec = self.request.kwargs.get("audio_codec", None)
 
             macro_block_size = macro_block_size or 1  # None -> 1
 
@@ -645,6 +649,8 @@ class FfmpegFormat(Format):
                 ffmpeg_log_level=ffmpeg_log_level,
                 input_params=input_params,
                 output_params=output_params,
+                audio_path=audio_path,
+                audio_codec=audio_codec,
             )
 
             # Seed the generator (this is where the ffmpeg subprocess starts)
