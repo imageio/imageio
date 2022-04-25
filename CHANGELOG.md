@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.18.0 (2022-04-25)
+### Fix
+* Do not pass optional kwargs by position in tifffile ([#794](https://github.com/imageio/imageio/issues/794)) ([`512fe11`](https://github.com/imageio/imageio/commit/512fe117fe4d31dd2617e7875b80826dddf46871))
+* Ensure pts increases even if pyav doesn't flush the frame immediately ([#787](https://github.com/imageio/imageio/issues/787)) ([`5b74e8d`](https://github.com/imageio/imageio/commit/5b74e8d26fa530d831d49d04a739c022c90d4258))
+
+### Feature
+* Allow writing bayer formats in pyav ([#788](https://github.com/imageio/imageio/issues/788)) ([`4596262`](https://github.com/imageio/imageio/commit/45962620f592f4efeb2df73357191626f2eee129))
+
+### Other
+* Update imopen types ([#793](https://github.com/imageio/imageio/issues/793)) ([`7ecea02`](https://github.com/imageio/imageio/commit/7ecea02d7c5633c1aa8afe39af6f4f0de59d8ae3))
+
 ## v2.17.0 (2022-04-18)
 ### Feature
 * New Plugin for pyAV ([#745](https://github.com/imageio/imageio/issues/745)) ([`22ab97e`](https://github.com/imageio/imageio/commit/22ab97ea0facccfb1c888fb1a8fafded1a0e0f78))
