@@ -59,7 +59,7 @@ SphinxDocString._str_member_list = lambda self, name: []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-autodoc_mock_imports = ["av"]
+autodoc_mock_imports = ["av", "cv2"]
 
 # The suffix of source filenames.
 source_suffix = ".rst"

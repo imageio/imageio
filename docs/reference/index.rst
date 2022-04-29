@@ -91,6 +91,7 @@ support.
     imageio.plugins.gdal
     imageio.plugins.lytro
     imageio.plugins.npz
+    imageio.plugins.opencv
     imageio.plugins.pillow
     imageio.plugins.pillow_legacy
     imageio.plugins.pyav

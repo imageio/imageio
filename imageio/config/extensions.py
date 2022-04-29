@@ -95,7 +95,13 @@ extension_list = [
     FileExtension(
         name="Bitmap",
         extension=".bmp",
-        priority=["pillow", "BMP-PIL", "BMP-FI", "ITK", "pyav"],
+        priority=["pillow", "BMP-PIL", "BMP-FI", "ITK", "pyav", "opencv"],
+        external_link="https://en.wikipedia.org/wiki/BMP_file_format",
+    ),
+    FileExtension(
+        name="Device-Independent Bitmap",
+        extension=".dip",
+        priority=["opencv"],
         external_link="https://en.wikipedia.org/wiki/BMP_file_format",
     ),
     FileExtension(
@@ -221,7 +227,7 @@ extension_list = [
     FileExtension(
         name="ILM OpenEXR",
         extension=".exr",
-        priority=["EXR-FI", "pyav"],
+        priority=["EXR-FI", "pyav", "opencv"],
     ),
     FileExtension(
         extension=".fff",
@@ -325,7 +331,7 @@ extension_list = [
     FileExtension(
         name="High Dynamic Range Image",
         extension=".hdr",
-        priority=["HDR-FI", "ITK"],
+        priority=["HDR-FI", "ITK", "opencv"],
     ),
     FileExtension(
         extension=".ia",
@@ -410,7 +416,7 @@ extension_list = [
     FileExtension(
         name="JPEG 2000",
         extension=".jp2",
-        priority=["pillow", "JP2-FI", "JPEG2000-PIL", "pyav"],
+        priority=["pillow", "JP2-FI", "JPEG2000-PIL", "pyav", "opencv"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -420,12 +426,12 @@ extension_list = [
     FileExtension(
         name="JPEG",
         extension=".jpe",
-        priority=["pillow", "JPEG-FI", "JPEG-PIL"],
+        priority=["pillow", "JPEG-FI", "JPEG-PIL", "opencv"],
     ),
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpeg",
-        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL", "pyav"],
+        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL", "pyav", "opencv"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -435,7 +441,7 @@ extension_list = [
     FileExtension(
         name="Joint Photographic Experts Group",
         extension=".jpg",
-        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL", "pyav"],
+        priority=["pillow", "JPEG-PIL", "JPEG-FI", "ITK", "GDAL", "pyav", "opencv"],
     ),
     FileExtension(
         name="JPEG 2000",
@@ -622,7 +628,7 @@ extension_list = [
     FileExtension(
         name="Portable Bitmap",
         extension=".pbm",
-        priority=["PGM-FI", "PGMRAW-FI", "pyav"],
+        priority=["PGM-FI", "PGMRAW-FI", "pyav", "opencv"],
     ),
     FileExtension(
         name="Kodak PhotoCD",
@@ -649,17 +655,17 @@ extension_list = [
     ),
     FileExtension(
         extension=".pfm",
-        priority=["PFM-FI", "pyav"],
+        priority=["PFM-FI", "pyav", "opencv"],
     ),
     FileExtension(
         name="Portable Greymap",
         extension=".pgm",
-        priority=["pillow", "PGM-FI", "PGMRAW-FI", "pyav"],
+        priority=["pillow", "PGM-FI", "PGMRAW-FI", "pyav", "opencv"],
     ),
     FileExtension(
         name="Macintosh PICT",
         extension=".pic",
-        priority=["PICT-FI", "ITK"],
+        priority=["PICT-FI", "ITK", "opencv"],
     ),
     FileExtension(
         name="Macintosh PICT",
@@ -669,11 +675,12 @@ extension_list = [
     FileExtension(
         name="Portable Network Graphics",
         extension=".png",
-        priority=["pillow", "PNG-PIL", "PNG-FI", "ITK", "pyav"],
+        priority=["pillow", "PNG-PIL", "PNG-FI", "ITK", "pyav", "opencv"],
     ),
     FileExtension(
+        name="Portable Image Format",
         extension=".pnm",
-        priority=["pillow"],
+        priority=["pillow", "opencv"],
     ),
     FileExtension(
         name="Pbmplus image",
@@ -686,9 +693,14 @@ extension_list = [
         priority=["pillow", "PPM-PIL", "PPM-FI"],
     ),
     FileExtension(
+        name="Portable image format",
+        extension=".pxm",
+        priority=["opencv"],
+    ),
+    FileExtension(
         name="Portable Pixelmap (ASCII)",
         extension=".ppm",
-        priority=["PPM-FI"],
+        priority=["PPM-FI", "opencv"],
     ),
     FileExtension(
         name="Portable Pixelmap (Raw)",
@@ -729,7 +741,12 @@ extension_list = [
     FileExtension(
         name="Sun Raster File",
         extension=".ras",
-        priority=["pillow", "SUN-PIL", "RAS-FI", "pyav"],
+        priority=["pillow", "SUN-PIL", "RAS-FI", "pyav", "opencv"],
+    ),
+    FileExtension(
+        name="Sun Raster File",
+        extension=".sr",
+        priority=["opencv"],
     ),
     FileExtension(
         extension=".raw",
@@ -822,6 +839,7 @@ extension_list = [
             "ITK",
             "GDAL",
             "pyav",
+            "opencv",
         ],
     ),
     FileExtension(
@@ -836,6 +854,7 @@ extension_list = [
             "ITK",
             "GDAL",
             "pyav",
+            "opencv",
         ],
     ),
     FileExtension(
@@ -878,7 +897,7 @@ extension_list = [
     FileExtension(
         name="Google WebP",
         extension=".webp",
-        priority=["pillow", "WEBP-FI", "pyav"],
+        priority=["pillow", "WEBP-FI", "pyav", "opencv"],
     ),
     FileExtension(
         name="Windows Meta File",
