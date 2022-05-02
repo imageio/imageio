@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.0 (2022-05-02)
+### Feature
+* OpenCV plugin ([#791](https://github.com/imageio/imageio/issues/791)) ([`36c56a8`](https://github.com/imageio/imageio/commit/36c56a84e5cbb2383a55b6fe670429e055c7cdc8))
+
 ## v2.18.0 (2022-04-25)
 ### Fix
 * Do not pass optional kwargs by position in tifffile ([#794](https://github.com/imageio/imageio/issues/794)) ([`512fe11`](https://github.com/imageio/imageio/commit/512fe117fe4d31dd2617e7875b80826dddf46871))
