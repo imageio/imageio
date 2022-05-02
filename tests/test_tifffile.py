@@ -214,6 +214,6 @@ def test_stk_volume():
     # https://github.com/imageio/imageio/issues/802
 
     expected = iio.volread("test.stk")
-    actual = iio3.imread("test.stk", index=...)
+    actual = iio3.imread("test.stk")
 
     np.allclose(actual, expected)
