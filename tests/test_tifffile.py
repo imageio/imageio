@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import imageio.v2 as iio
-import imageio.v3 as iio3
+# import imageio.v3 as iio3
 from conftest import deprecated_test
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
