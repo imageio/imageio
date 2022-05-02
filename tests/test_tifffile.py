@@ -207,3 +207,13 @@ def test_write_file():
     # https://github.com/imageio/imageio/issues/810
     img = np.zeros((32, 32), dtype=np.uint16)
     iio3.imwrite("v.tif", img)
+
+
+def test_stk_volume():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/802
+
+    expected = iio.volread("test.stk")
+    actual = iio3.imread("test.stk", index=...)
+
+    np.allclose(actual, expected)
