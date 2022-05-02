@@ -100,7 +100,7 @@ def test_write_bytes(test_images):
     img_expected = iio.imread(test_images / "chelsea.png")
 
     img_encoded = iio.imwrite(
-        "<bytes>", img_expected, plugin="opencv", format_hint=".png"
+        "<bytes>", img_expected, plugin="opencv", extension=".png"
     )
     result = iio.imread(img_encoded)
 

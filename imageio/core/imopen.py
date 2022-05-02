@@ -12,7 +12,16 @@ from .request import (
 )
 
 
-def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **kwargs):
+def imopen(
+    uri,
+    io_mode,
+    *,
+    plugin=None,
+    extension=None,
+    format_hint=None,
+    legacy_mode=False,
+    **kwargs,
+):
     """Open an ImageResource.
 
     .. warning::
@@ -46,6 +55,10 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
         The plugin to use. If set to None (default) imopen will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint.
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered, and
+        when writing this may also influence the format used when encoding.
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
@@ -88,12 +101,6 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
 
     """
 
-    if format_hint is not None and format_hint[0] != ".":
-        raise ValueError(
-            "`format_hint` should be a file extension starting with a `.`,"
-            f" but is `{format_hint}`."
-        )
-
     if isinstance(uri, Request) and legacy_mode:
         warnings.warn(
             "`iio.core.Request` is a low-level object and using it"
@@ -107,7 +114,7 @@ def imopen(uri, io_mode, *, plugin=None, format_hint=None, legacy_mode=False, **
         io_mode = request.mode.io_mode
         request.format_hint = format_hint
     else:
-        request = Request(uri, io_mode, format_hint=format_hint)
+        request = Request(uri, io_mode, format_hint=format_hint, extension=extension)
 
     source = "<bytes>" if isinstance(uri, bytes) else uri
 

@@ -62,8 +62,8 @@ arguments (`kwargs`) to overwrite any defaults ImageIO uses when reading or
 writing. The following `kwargs` are always available:
 
 - ``plugin``: The name of the plugin to use for reading/writing.
-- ``format_hint``: A format hint to help ImageIO select the correct plugin if no
-  ``plugin`` was specified.
+- ``extension``: Treat the provided ImageResource as if it had the given
+  extension.
 - ``index`` (reading only): The index of the ndimage to read. Useful if the format
   supports storing more than one (GIF, multi-page TIFF, video, etc.).
 

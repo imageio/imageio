@@ -1004,10 +1004,10 @@ def test_sort_order_restore():
     assert old_order == new_order
 
 
-def test_imopen_format_hint(image_files):
+def test_imopen_extension(image_files):
     image_bytes = Path(image_files / "chelsea.png").read_bytes()
 
-    with iio.v3.imopen(image_bytes, "r", format_hint=".png") as resource:
+    with iio.v3.imopen(image_bytes, "r", extension=".png") as resource:
         result = resource.read()
 
     expected = iio.v3.imread(image_files / "chelsea.png")
@@ -1016,11 +1016,20 @@ def test_imopen_format_hint(image_files):
 
 
 @pytest.mark.parametrize("invalid_file", [".jpg"], indirect=["invalid_file"])
-def test_imopen_format_hint_malformatted(invalid_file, test_images):
+def test_imopen_extension_malformatted(invalid_file, test_images):
     with pytest.raises(ValueError):
-        # format_hint should be ".png"
-        iio.v3.imopen(invalid_file, "r", format_hint="PNG")
+        # extension should be ".png"
+        iio.v3.imopen(invalid_file, "r", extension="PNG")
 
     with pytest.warns(UserWarning):
-        # format_hint is invalid and should emit a warning
-        iio.v3.imread(test_images / "chelsea.png", format_hint=".cap")
+        # extension is invalid and should emit a warning
+        iio.v3.imread(test_images / "chelsea.png", extension=".cap")
+
+
+def test_writing_foreign_extension(test_images, tmp_path):
+    expected = iio.v3.imread(test_images / "chelsea.png")
+
+    iio.v3.imwrite(tmp_path / "test.png.part", expected, extension=".png")
+    actual = iio.v3.imread(tmp_path / "test.png.part", extension=".png")
+
+    np.allclose(actual, expected)

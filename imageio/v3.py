@@ -3,7 +3,7 @@ import numpy as np
 from .core.imopen import imopen
 
 
-def imread(uri, *, index=None, plugin=None, format_hint=None, **kwargs):
+def imread(uri, *, index=None, plugin=None, extension=None, format_hint=None, **kwargs):
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -25,6 +25,9 @@ def imread(uri, *, index=None, plugin=None, format_hint=None, **kwargs):
         The plugin to use. If set to None (default) imread will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint  (if present).
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered.
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
@@ -40,7 +43,12 @@ def imread(uri, *, index=None, plugin=None, format_hint=None, **kwargs):
         The ndimage located at the given URI.
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "format_hint": format_hint}
+    plugin_kwargs = {
+        "legacy_mode": False,
+        "plugin": plugin,
+        "format_hint": format_hint,
+        "extension": extension,
+    }
 
     call_kwargs = kwargs
     if index is not None:
@@ -50,7 +58,7 @@ def imread(uri, *, index=None, plugin=None, format_hint=None, **kwargs):
         return np.asarray(img_file.read(**call_kwargs))
 
 
-def imiter(uri, *, plugin=None, format_hint=None, **kwargs):
+def imiter(uri, *, plugin=None, extension=None, format_hint=None, **kwargs):
     """Read a sequence of ndimages from a URI.
 
     Returns an iterable that yields ndimages from the given URI. The exact
@@ -67,6 +75,9 @@ def imiter(uri, *, plugin=None, format_hint=None, **kwargs):
         The plugin to use. If set to None (default) imiter will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint (if present).
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered.
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
@@ -86,7 +97,12 @@ def imiter(uri, *, plugin=None, format_hint=None, **kwargs):
     """
 
     with imopen(
-        uri, "r", legacy_mode=False, plugin=plugin, format_hint=format_hint
+        uri,
+        "r",
+        legacy_mode=False,
+        plugin=plugin,
+        format_hint=format_hint,
+        extension=extension,
     ) as img_file:
         for image in img_file.iter(**kwargs):
             # Note: casting to ndarray here to ensure compatibility
@@ -94,7 +110,7 @@ def imiter(uri, *, plugin=None, format_hint=None, **kwargs):
             yield np.asarray(image)
 
 
-def imwrite(uri, image, *, plugin=None, format_hint=None, **kwargs):
+def imwrite(uri, image, *, plugin=None, extension=None, format_hint=None, **kwargs):
     """Write an ndimage to the given URI.
 
     The exact behavior depends on the file type and plugin used. To learn about
@@ -111,6 +127,10 @@ def imwrite(uri, image, *, plugin=None, format_hint=None, **kwargs):
         The plugin to use. If set to None (default) imwrite will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint (if present).
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered, and
+        may also influence the format used when encoding.
     format_hint : str
         A format hint to help optimize plugin selection given as the format's
         extension, e.g. ".png". This can speed up the selection process for
@@ -131,14 +151,19 @@ def imwrite(uri, image, *, plugin=None, format_hint=None, **kwargs):
     """
 
     with imopen(
-        uri, "w", legacy_mode=False, plugin=plugin, format_hint=format_hint
+        uri,
+        "w",
+        legacy_mode=False,
+        plugin=plugin,
+        format_hint=format_hint,
+        extension=extension,
     ) as img_file:
         encoded = img_file.write(image, **kwargs)
 
     return encoded
 
 
-def improps(uri, *, index=None, plugin=None, **kwargs):
+def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     """Read standardized metadata.
 
     Opens the given URI and reads the properties of an ndimage from it. The
@@ -159,6 +184,9 @@ def improps(uri, *, index=None, plugin=None, **kwargs):
     plugin : {str, None}
         The plugin to be used. If None, performs a search for a matching
         plugin.
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's ``properties``
         call.
@@ -174,7 +202,7 @@ def improps(uri, *, index=None, plugin=None, **kwargs):
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "extension": extension}
 
     call_kwargs = kwargs
     if index is not None:
@@ -186,7 +214,9 @@ def improps(uri, *, index=None, plugin=None, **kwargs):
     return properties
 
 
-def immeta(uri, *, index=None, plugin=None, exclude_applied=True, **kwargs):
+def immeta(
+    uri, *, index=None, plugin=None, extension=None, exclude_applied=True, **kwargs
+):
     """Read format-specific metadata.
 
     Opens the given URI and reads metadata for an ndimage from it. The contents
@@ -209,6 +239,9 @@ def immeta(uri, *, index=None, plugin=None, exclude_applied=True, **kwargs):
     plugin : {str, None}
         The plugin to be used. If None (default), performs a search for a
         matching plugin.
+    extension : str
+        If not None, treat the provided ImageResource as if it had the given
+        extension. This affects the order in which backends are considered.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's metadata
         method.
@@ -220,7 +253,7 @@ def immeta(uri, *, index=None, plugin=None, exclude_applied=True, **kwargs):
 
     """
 
-    plugin_kwargs = {"legacy_mode": False, "plugin": plugin}
+    plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "extension": extension}
 
     call_kwargs = kwargs
     call_kwargs["exclude_applied"] = exclude_applied

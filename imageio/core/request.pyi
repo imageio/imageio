@@ -63,7 +63,13 @@ class Request(object):
     @property
     def firstbytes(self) -> bytes: ...
     def __init__(
-        self, uri: ImageResource, mode: str, *, format_hint: str = None, **kwargs
+        self,
+        uri: ImageResource,
+        mode: str,
+        *,
+        extension: str = None,
+        format_hint: str = None,
+        **kwargs
     ) -> None: ...
     def _parse_uri(self, uri: ImageResource) -> None: ...
     def get_file(self) -> BinaryIO: ...

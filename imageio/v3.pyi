@@ -11,11 +11,17 @@ def imread(
     *,
     index: Optional[int] = 0,
     plugin: str = None,
+    extension: str = None,
     format_hint: str = None,
     **kwargs
 ) -> np.ndarray: ...
 def imiter(
-    uri: ImageResource, *, plugin: str = None, format_hint: str = None, **kwargs
+    uri: ImageResource,
+    *,
+    plugin: str = None,
+    extension: str = None,
+    format_hint: str = None,
+    **kwargs
 ) -> Iterator[np.ndarray]: ...
 @overload
 def imwrite(
@@ -23,6 +29,7 @@ def imwrite(
     image: ArrayLike,
     *,
     plugin: str = None,
+    extension: str = None,
     format_hint: str = None,
     **kwargs
 ) -> bytes: ...
@@ -32,17 +39,24 @@ def imwrite(
     image: ArrayLike,
     *,
     plugin: str = None,
+    extension: str = None,
     format_hint: str = None,
     **kwargs
 ) -> None: ...
 def improps(
-    uri, *, index: Optional[int] = 0, plugin: str = None, **kwargs
+    uri,
+    *,
+    index: Optional[int] = 0,
+    plugin: str = None,
+    extension: str = None,
+    **kwargs
 ) -> ImageProperties: ...
 def immeta(
     uri,
     *,
     index: Optional[int] = 0,
     plugin: str = None,
+    extension: str = None,
     exclude_applied: bool = True,
     **kwargs
 ) -> Dict[str, Any]: ...

@@ -98,7 +98,7 @@ def decypher_format_arg(format_name):
     else:
         raise IndexError(f"No format known by name `{plugin}`.")
 
-    return {"plugin": plugin, "format_hint": extension}
+    return {"plugin": plugin, "extension": extension}
 
 
 # Base functions that return a reader/writer

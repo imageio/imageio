@@ -98,7 +98,7 @@ class PillowPlugin(PluginV3):
                 warnings.warn(
                     "Can't determine file format to write as. You _must_"
                     " set `format` during write or the call will fail. Use "
-                    "`format_hint` to supress this warning. ",
+                    "`extension` to supress this warning. ",
                     UserWarning,
                 )
                 return
