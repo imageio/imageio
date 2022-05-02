@@ -1023,7 +1023,7 @@ def test_imopen_extension_malformatted(invalid_file, test_images):
 
     with pytest.warns(UserWarning):
         # extension is invalid and should emit a warning
-        iio.v3.imread(test_images / "chelsea.png", extension=".cap")
+        iio.v3.imread(test_images / "chelsea.png", format_hint=".cap")
 
 
 def test_writing_foreign_extension(test_images, tmp_path):
