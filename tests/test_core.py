@@ -1031,5 +1031,8 @@ def test_writing_foreign_extension(test_images, tmp_path):
 
     iio.v3.imwrite(tmp_path / "test.png.part", expected, extension=".png")
     actual = iio.v3.imread(tmp_path / "test.png.part", extension=".png")
+    np.allclose(actual, expected)
 
+    iio.v2.imwrite(tmp_path / "test2.jpg.part", expected, format=".jpg")
+    actual = iio.v3.imread(tmp_path / "test2.jpg.part", extension=".jpg")
     np.allclose(actual, expected)
