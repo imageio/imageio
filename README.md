@@ -32,22 +32,23 @@ Here's a minimal example of how to use imageio. See the docs for
 ```python
 import imageio.v3 as iio
 im = iio.imread('imageio:chelsea.png')  # read a standard image
-im.shape  # im is a NumPy array
->> (300, 451, 3)
-imageio.imwrite('chelsea-gray.jpg', im)  # convert to jpg
+im.shape  # im is a NumPy array of shape (300, 451, 3)
+imageio.imwrite('chelsea.jpg', im)  # convert to jpg
 ```
 
 <h2>API in a nutshell</h2>
 As a user, you just have to remember a handful of functions:
 
 <ul>
-    <li>imread() and imwrite() - for reading and writing</li>
-    <li>imiter() - for iterating image series (animations/videos/...)</li>
+    <li>imread() - for reading</li>
+    <li>imwrite() - for writing</li>
+    <li>imiter() - for iterating image series (animations/videos/OME-TIFF/...)</li>
     <li>improps() - for standardized metadata</li>
     <li>immeta() - for format-specific metadata</li>
-    <li>imopen() - for advanced usage (check the docs)</li>
-    <li>See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>API docs</a> for more information</li>
+    <li>imopen() - for advanced usage</li>
 </ul>
+
+See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>API docs</a> for more information.
 
 
 <h2>Features</h2>
@@ -57,8 +58,8 @@ As a user, you just have to remember a handful of functions:
     <li>Few dependencies (only NumPy and Pillow)</li>
     <li>Pure Python, runs on Python 3.7+, and PyPy</li>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
-    <li>Lots of supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
-    <li>Read/Write support for various [resources](https://imageio.readthedocs.io/en/stable/getting_started/requests.html) (files, URLs, bytes(), file objects, ...)</li>
+    <li>More than 295 supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
+    <li>Read/Write support for various <a href='https://imageio.readthedocs.io/en/stable/getting_started/requests.html'>resources</a> (files, URLs, bytes, FileLike objects, ...)</li>
     <li>Code quality is maintained via continuous integration and continous deployment</li>
 </ul>
 
@@ -75,9 +76,10 @@ Minimal requirements:
 Optional Python packages:
 <ul>
     <li>imageio-ffmpeg (for working with video files)</li>
+    <li>pyav (for working with video files)</li>
+    <li>tifffile (for working with TIFF files)</li>
     <li>itk or SimpleITK (for ITK plugin)</li>
     <li>astropy (for FITS plugin)</li>
-    <li>osgeo (for GDAL plugin)</li>
     <li><a href='https://codeberg.org/monilophyta/imageio-flif'>imageio-flif</a> (for working with <a href='https://github.com/FLIF-hub/FLIF'>FLIF</a> image files)</li>
 </ul>
 
@@ -105,7 +107,7 @@ The maintainers of imageio and thousands of other packages are working with Tide
 
 <h2>Details</h2>
 <p>
-    The core of ImageIO is a set of user-facing APIs combined with a plugin manager. API calls choose sensible defaults and then call the plugin manager, which deduces the correct plugin/backend to use for the given resource and file format. The plugin manager then adds sensible backend-specific defaults and then calles one of ImageIOs many backends to perform the actual loading. This allows ImageIO to take care of most of the gory details of loading images for you, while still allowing you to customize the behavior when and where you need to. You can find a more detailed explanation of this process in [our documentation](https://imageio.readthedocs.io/en/stable/getting_started/overview.html).
+    The core of ImageIO is a set of user-facing APIs combined with a plugin manager. API calls choose sensible defaults and then call the plugin manager, which deduces the correct plugin/backend to use for the given resource and file format. The plugin manager then adds sensible backend-specific defaults and then calles one of ImageIOs many backends to perform the actual loading. This allows ImageIO to take care of most of the gory details of loading images for you, while still allowing you to customize the behavior when and where you need to. You can find a more detailed explanation of this process in <a href='https://imageio.readthedocs.io/en/stable/getting_started/overview.htmle'>our documentation</a>.
 
 <h2>Contributing</h2>
 
