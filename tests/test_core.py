@@ -1036,3 +1036,9 @@ def test_writing_foreign_extension(test_images, tmp_path):
     iio.v2.imwrite(tmp_path / "test2.jpg.part", expected, format=".jpg")
     actual = iio.v3.imread(tmp_path / "test2.jpg.part", extension=".jpg")
     np.allclose(actual, expected)
+
+
+@deprecated_test
+def test_format_hint_malformatted(test_images):
+    with pytest.raises(ValueError):
+        iio.core.Request(test_images / "chelsea.png", "r", format_hint="PNG")
