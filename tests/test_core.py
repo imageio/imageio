@@ -1042,3 +1042,26 @@ def test_writing_foreign_extension(test_images, tmp_path):
 def test_format_hint_malformatted(test_images):
     with pytest.raises(ValueError):
         iio.core.Request(test_images / "chelsea.png", "r", format_hint="PNG")
+
+
+@deprecated_test
+def test_format_hint(test_images):
+    im_new = iio.v3.imread(test_images / "chelsea.png", format_hint=".png")
+    im_old = iio.v2.imread(test_images / "chelsea.png", format=".png")
+
+    assert np.allclose(im_new, im_old)
+
+    req = iio.core.Request("https://sample.com/my/resource", "r", format_hint=".jpg")
+    filename = req.get_local_filename()
+
+    assert Path(filename).suffix == ".jpg"
+
+
+def test_standard_images():
+    im = np.ones((800, 600, 3), dtype=np.uint8)
+
+    with pytest.raises(RuntimeError):
+        iio.v3.imwrite("imageio:chelsea.png", im)
+
+    with pytest.raises(ValueError):
+        iio.v3.imread("imageio:nonexistant_standard_image.png")

@@ -529,8 +529,6 @@ class Request(object):
                 ext = self.extension
             elif self.format_hint is not None:
                 ext = self.format_hint
-            elif self._uri_type in (URI_HTTP, URI_FTP):
-                ext = os.path.splitext(self._filename.split("?")[0])[1]
             else:
                 ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, "imageio_")
