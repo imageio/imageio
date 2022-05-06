@@ -1047,7 +1047,11 @@ def test_format_hint_malformatted(test_images):
 @deprecated_test
 def test_format_hint(test_images):
     im_new = iio.v3.imread(test_images / "chelsea.png", format_hint=".png")
-    im_old = iio.v2.imread(test_images / "chelsea.png", format=".png")
+
+    with iio.v3.imopen(
+        test_images / "chelsea.png", "r", format_hint=".png", legacy_mode=True
+    ) as file:
+        im_old = file.read()
 
     assert np.allclose(im_new, im_old)
 

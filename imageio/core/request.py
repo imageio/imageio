@@ -526,9 +526,7 @@ class Request(object):
         else:
             # Get filename
             if self.extension is not None:
-                ext = self.extension
-            elif self.format_hint is not None:
-                ext = self.format_hint
+                ext = self.extensions
             else:
                 ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, "imageio_")
