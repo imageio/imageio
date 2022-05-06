@@ -49,7 +49,7 @@ Imageio can read from filenames, file objects.
     frames = iio.imread(web_image, index=None)
 
     # from bytes
-    bytes_image = iio.imwrite("<bytes>", frames, format_hint=".gif")
+    bytes_image = iio.imwrite("<bytes>", frames, extension=".gif")
     frames = iio.imread(bytes_image, index=None)
 
     # from byte streams
@@ -234,7 +234,7 @@ Writing to Bytes (Encoding)
 ---------------------------
 
 You can convert ndimages into byte strings. For this, you have to hint the
-desired format (using ``format_hint=``), as a byte string doesn't specify any
+desired extension (using ``extension=``), as a byte string doesn't specify any
 information about the format or color space to use. Note that, if the backend
 supports writing to file-like objects, the entire process will happen without
 touching your file-system.
@@ -247,14 +247,14 @@ touching your file-system.
     img = iio.imread('imageio:astronaut.png')
 
     # png-encoded bytes string
-    png_encoded = iio.imwrite("<bytes>", img, format_hint=".png")
+    png_encoded = iio.imwrite("<bytes>", img, extension=".png")
     
     # jpg-encoded bytes string
-    jpg_encoded = iio.imwrite("<bytes>", img, format_hint=".jpeg")
+    jpg_encoded = iio.imwrite("<bytes>", img, extension=".jpeg")
 
     # RGBA bytes string
     img = iio.imread('imageio:astronaut.png', mode="RGBA")
-    png_encoded = iio.imwrite("<bytes>", img, format_hint=".png")
+    png_encoded = iio.imwrite("<bytes>", img, extension=".png")
 
 Writing to BytesIO
 ------------------
@@ -271,11 +271,11 @@ Similar to writing to byte strings, you can also write to BytesIO directly.
 
     # write as PNG
     output = io.BytesIO()
-    iio.imwrite(output, img, plugin="pillow", format_hint=".png")
+    iio.imwrite(output, img, plugin="pillow", extension=".png")
     
     # write as JPG
     output = io.BytesIO()
-    iio.imwrite(output, img, plugin="pillow", format_hint=".jpeg")
+    iio.imwrite(output, img, plugin="pillow", extension=".jpeg")
 
 Optimizing a GIF using pygifsicle
 ------------------------------------

@@ -14,6 +14,7 @@ def imopen(
     uri: ImageResource,
     io_mode: Literal["r", "w"],
     *,
+    extension: str = None,
     format_hint: str = None,
 ) -> PluginV3: ...
 @overload
@@ -23,6 +24,7 @@ def imopen(
     *,
     plugin: str = None,
     format_hint: str = None,
+    extension: str = None,
     legacy_mode: Literal[True],
     **kwargs,
 ) -> LegacyPlugin: ...
@@ -32,6 +34,7 @@ def imopen(
     io_mode: Literal["r", "w"],
     *,
     format_hint: str = None,
+    extension: str = None,
     legacy_mode: Literal[False] = False,
 ) -> PluginV3: ...
 @overload
@@ -40,6 +43,7 @@ def imopen(
     io_mode: Literal["r", "w"],
     *,
     plugin: Literal["pillow"],
+    extension: str = None,
     format_hint: str = None,
 ) -> PillowPlugin: ...
 @overload
@@ -48,6 +52,7 @@ def imopen(
     io_mode: Literal["r", "w"],
     *,
     plugin: Literal["pyav"],
+    extension: str = None,
     format_hint: str = None,
     container: str = None,
 ) -> PyAVPlugin: ...
@@ -57,6 +62,7 @@ def imopen(
     io_mode: Literal["r", "w"],
     *,
     plugin: Literal["opencv"],
+    extension: str = None,
     format_hint: str = None,
 ) -> OpenCVPlugin: ...
 @overload
@@ -65,6 +71,7 @@ def imopen(
     io_mode: Literal["r", "w"],
     *,
     plugin: Type[CustomPlugin],
+    extension: str = None,
     format_hint: str = None,
     **kwargs,
 ) -> CustomPlugin: ...

@@ -40,7 +40,7 @@ def test_mp4_writing(tmp_path, test_images):
     mp4_bytes = iio.imwrite(
         "<bytes>",
         frames,
-        format_hint=".mp4",
+        extension=".mp4",
         plugin="pyav",
         codec="libx264",
     )
@@ -179,7 +179,7 @@ def test_write_bytes(test_images, tmp_path):
     img_bytes = iio.imwrite(
         "<bytes>",
         img,
-        format_hint=".mp4",
+        extension=".mp4",
         plugin="pyav",
         in_pixel_format="yuv444p",
         codec="libx264",
@@ -274,7 +274,7 @@ def test_variable_fps_seek(test_images):
 
 def test_multiple_writes(test_images):
     out_buffer = io.BytesIO()
-    with iio.imopen(out_buffer, "w", plugin="pyav", format_hint=".mp4") as file:
+    with iio.imopen(out_buffer, "w", plugin="pyav", extension=".mp4") as file:
         for frame in iio.imiter(
             test_images / "newtonscradle.gif",
             plugin="pyav",
@@ -322,7 +322,7 @@ def test_bayer_write():
     image = np.zeros(image_shape, dtype="uint8")
     buffer = io.BytesIO()
 
-    with iio.imopen(buffer, "w", plugin="pyav", format_hint=".mp4") as file:
+    with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
         image[...] = 0
         for i in range(256):
             image[::2, ::2] = i

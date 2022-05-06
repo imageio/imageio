@@ -213,7 +213,7 @@ class Request(object):
 
     """
 
-    def __init__(self, uri, mode, *, format_hint: str = None, **kwargs):
+    def __init__(self, uri, mode, *, extension=None, format_hint: str = None, **kwargs):
 
         # General
         self.raw_uri = uri
@@ -248,13 +248,32 @@ class Request(object):
         self._parse_uri(uri)
 
         # Set extension
-        if self._filename is not None:
+        if extension is not None:
+            if extension[0] != ".":
+                raise ValueError(
+                    "`extension` should be a file extension starting with a `.`,"
+                    f" but is `{extension}`."
+                )
+            self._extension = extension
+        elif self._filename is not None:
             if self._uri_type in (URI_FILENAME, URI_ZIPPED):
                 path = self._filename
             else:
                 path = urlparse(self._filename).path
             ext = Path(path).suffix.lower()
             self._extension = ext if ext != "" else None
+
+        if format_hint is not None:
+            warnings.warn(
+                "The usage of `format_hint` is deprecated and will be removed in ImageIO v3."
+                " Use `extension` instead."
+            )
+
+        if format_hint is not None and format_hint[0] != ".":
+            raise ValueError(
+                "`format_hint` should be a file extension starting with a `.`,"
+                f" but is `{format_hint}`."
+            )
 
         self.format_hint = format_hint
 
@@ -506,10 +525,8 @@ class Request(object):
             return self._filename
         else:
             # Get filename
-            if self.format_hint is not None:
-                ext = self.format_hint
-            elif self._uri_type in (URI_HTTP, URI_FTP):
-                ext = os.path.splitext(self._filename.split("?")[0])[1]
+            if self.extension is not None:
+                ext = self.extension
             else:
                 ext = os.path.splitext(self._filename)[1]
             self._filename_local = tempfile.mktemp(ext, "imageio_")
