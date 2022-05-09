@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.1 (2022-05-09)
+### Fix
+* Reset request when iterating over plugins ([#792](https://github.com/imageio/imageio/issues/792)) ([`46a49c4`](https://github.com/imageio/imageio/commit/46a49c442a743d9afe7721ebde59e190f84f60e6))
+* Rename format_hint to extension and prefer it over actual file extensions ([#807](https://github.com/imageio/imageio/issues/807)) ([`4830f15`](https://github.com/imageio/imageio/commit/4830f1582cbe8963259652709e44f4d4559d84f2))
+
+### Other
+* Fix broken links in readme ([#806](https://github.com/imageio/imageio/issues/806)) ([`52954bc`](https://github.com/imageio/imageio/commit/52954bcedcc3987b9437cde218840543905c05bb))
+
 ## v2.19.0 (2022-05-02)
 ### Feature
 * OpenCV plugin ([#791](https://github.com/imageio/imageio/issues/791)) ([`36c56a8`](https://github.com/imageio/imageio/commit/36c56a84e5cbb2383a55b6fe670429e055c7cdc8))
