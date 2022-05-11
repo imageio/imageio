@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 import imageio.v2 as iio
+import imageio.v3 as iio3
 from conftest import deprecated_test
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
@@ -194,8 +195,15 @@ def test_invalid_resolution_metadata(tmp_path, resolution):
     assert "resolution" not in read_image.meta
 
 
-def test_read_bytes(tmp_path):
+def test_read_bytes():
     # regression test for: https://github.com/imageio/imageio/issues/703
 
     some_bytes = iio.imwrite("<bytes>", [[0]], format="tiff")
     assert some_bytes is not None
+
+
+def test_write_file():
+    # regression test for
+    # https://github.com/imageio/imageio/issues/810
+    img = np.zeros((32, 32), dtype=np.uint16)
+    iio3.imwrite("v.tif", img)
