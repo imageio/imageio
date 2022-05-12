@@ -91,6 +91,7 @@ def imread(uri, format=None, **kwargs):
         " iio.v3.imread. To keep the current behavior (and make this warning dissapear)"
         " use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.",
         DeprecationWarning,
+        stacklevel=2,
     )
 
     return imread_v2(uri, format=format, **kwargs)

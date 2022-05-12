@@ -107,6 +107,7 @@ def imopen(
             " directly as input to `imopen` is discouraged. This will raise"
             " an exception in ImageIO v3.",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         request = uri
