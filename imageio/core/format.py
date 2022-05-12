@@ -656,6 +656,7 @@ class FormatManager(object):
             "The usage of `FormatManager` is deprecated and it will be "
             "removed in Imageio v3. Use `iio.imopen` instead.",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         if not isinstance(name, str):
@@ -713,6 +714,7 @@ class FormatManager(object):
             "\t- modify `iio.config.known_extensions[<extension>].priority`"
             " to control a specific extension.",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         # Check and sanitize imput
@@ -769,6 +771,7 @@ class FormatManager(object):
             "To migrate `FormatManager.add_format` add the plugin directly to "
             "`iio.config.known_plugins`.",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         if not isinstance(iio_format, Format):
@@ -843,6 +846,7 @@ class FormatManager(object):
             "`FormatManager` is deprecated and it will be removed in ImageIO v3."
             "To migrate `FormatManager.get_format_names` use `iio.config.known_plugins.keys()` instead.",
             DeprecationWarning,
+            stacklevel=2,
         )
 
         return [f.name for f in self._formats]
