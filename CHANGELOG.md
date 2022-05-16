@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.2 (2022-05-16)
+### Fix
+* Don't treat im_mode ? as im_mode V ([#811](https://github.com/imageio/imageio/issues/811)) ([`45739d5`](https://github.com/imageio/imageio/commit/45739d5507f75095ae8dc34049b55432c5dc288c))
+
+### Other
+* Add stacklevel=2 to some warnings. ([#813](https://github.com/imageio/imageio/issues/813)) ([`75edcee`](https://github.com/imageio/imageio/commit/75edcee181631be4ab6f6a69c5d93982c7381bd9))
+
 ## v2.19.1 (2022-05-09)
 ### Fix
 * Reset request when iterating over plugins ([#792](https://github.com/imageio/imageio/issues/792)) ([`46a49c4`](https://github.com/imageio/imageio/commit/46a49c442a743d9afe7721ebde59e190f84f60e6))
