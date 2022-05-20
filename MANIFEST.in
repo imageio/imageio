@@ -8,3 +8,5 @@ include tests/*.py tests/*.md
 global-exclude .git*
 global-exclude *.pyo
 global-exclude *.pyc
+global-include *.pyi
+global-include *.typed
