@@ -173,9 +173,6 @@ class FfmpegFormat(Format):
     """
 
     def _can_read(self, request):
-        if request.mode[1] not in "I?":
-            return False
-
         # Read from video stream?
         # Note that we could write the _video flag here, but a user might
         # select this format explicitly (and this code is not run)
@@ -187,9 +184,8 @@ class FfmpegFormat(Format):
             return True
 
     def _can_write(self, request):
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
-                return True
+        if request.extension in self.extensions:
+            return True
 
     # --
 
