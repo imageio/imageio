@@ -228,7 +228,7 @@ def imwrite(uri, im, format=None, **kwargs):
         raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
     elif im.ndim == 2:
         pass
-    elif im.ndim == 3 and im.shape[2] in [1, 3, 4]:
+    elif im.ndim == 3 and im.shape[2] < 5:
         pass
     else:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
@@ -325,10 +325,19 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
+    if isinstance(ims, list):
+        pass
+    elif ims.ndim > 3:
+        pass
+    elif ims.ndim == 3 and ims.shape[2] >= 5:
+        pass
+    else:
+        raise ValueError("Image data must be a sequence of ndimages.")
+
     imopen_args = decypher_format_arg(format)
     imopen_args["legacy_mode"] = True
     with imopen(uri, "wI", **imopen_args) as file:
-        return file.write(ims, **kwargs)
+        return file.write(ims, is_batch=True, **kwargs)
 
 
 # Volumes
@@ -380,13 +389,10 @@ def volwrite(uri, im, format=None, **kwargs):
     """
 
     # Test image
-    imt = type(im)
     im = np.asanyarray(im)
-    if not np.issubdtype(im.dtype, np.number):
-        raise ValueError(f"Image is not numeric, but {imt.__name__}.")
-    elif im.ndim == 3:
+    if im.ndim == 3:
         pass
-    elif im.ndim == 4 and im.shape[3] < 32:  # How large can a tuple be?
+    elif im.ndim == 4 and im.shape[3] < 5:
         pass
     else:
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
@@ -397,7 +403,7 @@ def volwrite(uri, im, format=None, **kwargs):
     kwargs["is_batch"] = False
 
     with imopen(uri, "wv", **imopen_args) as file:
-        return file.write(im, **kwargs)
+        return file.write(im, is_batch=False, **kwargs)
 
 
 # Multiple volumes
@@ -486,10 +492,19 @@ def mvolwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
+    for im in ims:
+        im = np.asanyarray(im)
+        if im.ndim == 3:
+            pass
+        elif im.ndim == 4 and im.shape[3] < 5:
+            pass
+        else:
+            raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
+
     imopen_args = decypher_format_arg(format)
     imopen_args["legacy_mode"] = True
     with imopen(uri, "wV", **imopen_args) as file:
-        return file.write(ims, **kwargs)
+        return file.write(ims, is_batch=True, **kwargs)
 
 
 # aliases
