@@ -240,6 +240,7 @@ setup(
     extras_require=extras_require,
     packages=["imageio", "imageio.core", "imageio.plugins", "imageio.config"],
     package_dir={"imageio": "imageio"},
+    zip_safe=False,
     # Data in the package
     package_data={"imageio": package_data},
     entry_points={
