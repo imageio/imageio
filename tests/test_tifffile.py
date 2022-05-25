@@ -6,8 +6,7 @@ import numpy as np
 import pytest
 
 import imageio.v2 as iio
-
-# import imageio.v3 as iio3
+import imageio.v3 as iio3
 from conftest import deprecated_test
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
@@ -213,6 +212,8 @@ def test_write_file():
 def test_stk_volume():
     # this is a regression test for
     # https://github.com/imageio/imageio/issues/802
+
+    pytest.xfail("This test requires a suitable STK image.")
 
     expected = iio.volread("test.stk")
     actual = iio3.imread("test.stk")
