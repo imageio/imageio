@@ -489,6 +489,9 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
                     )
                 )
 
+    if len(images) == 1 and not is_volume(images[0]):
+        images = [*images[0]]
+
     return images
 
 

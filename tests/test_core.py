@@ -178,10 +178,8 @@ def test_request(test_images, tmp_userdir):
     raises(ValueError, Request, "/some/file", None)  # mode must be str
     raises(ValueError, Request, "/some/file", 3)  # mode must be str
     raises(ValueError, Request, "/some/file", "")  # mode must be len 2
-    # raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "rii")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "xi")  # mode[0] must be in rw
-    raises(ValueError, Request, "/some/file", "rx")  # mode[1] must be in iIvV?
     #
     raises(IOError, Request, ["invalid", "uri"] * 10, "ri")  # invalid uri
     raises(IOError, Request, 4, "ri")  # invalid uri
