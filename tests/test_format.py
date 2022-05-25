@@ -236,13 +236,11 @@ def test_default_can_read_and_can_write(tmp_path):
     assert F.can_read(Request(filename1 + ".foo", "rv"))
     assert F.can_read(Request(filename1 + ".bar", "r?"))
     assert not F.can_read(Request(filename1 + ".spam", "r?"))
-    assert not F.can_read(Request(filename1 + ".foo", "ri"))
 
     # Test _can_write()
     assert F.can_write(Request(filename1 + ".foo", "wv"))
     assert F.can_write(Request(filename1 + ".bar", "w?"))
     assert not F.can_write(Request(filename1 + ".spam", "w?"))
-    assert not F.can_write(Request(filename1 + ".foo", "wi"))
 
 
 @deprecated_test
