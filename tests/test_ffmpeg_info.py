@@ -4,6 +4,7 @@
 
 import pytest
 import imageio
+import sys
 
 
 pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
@@ -45,6 +46,7 @@ def test_webcam_parse_device_names():
     assert len(device_names) == 2
 
 
+@pytest.mark.skipif("__pypy__" in sys.builtin_module_names, reason="Skipping on PYPI")
 def test_overload_fps(test_images):
 
     # Native
