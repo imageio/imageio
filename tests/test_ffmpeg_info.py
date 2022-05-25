@@ -4,6 +4,7 @@
 
 import pytest
 import imageio
+import sys
 
 
 pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
@@ -45,31 +46,27 @@ def test_webcam_parse_device_names():
     assert len(device_names) == 2
 
 
+@pytest.mark.skipif("__pypy__" in sys.builtin_module_names, reason="Skipping on PYPI")
 def test_overload_fps(test_images):
 
     # Native
     r = imageio.get_reader(test_images / "cockatoo.mp4")
     assert r.count_frames() == 280  # native
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 280
-    ims = [im for im in r]
+    ims = [1 for _ in r]
     assert len(ims) in (280, 281)
-    # imageio.mimwrite('~/parot280.gif', ims[:30])
 
     # Less
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=8)
-    # assert r.count_frames() == 112  # cant :(
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 112  # note the mismatch
-    ims = [im for im in r]
+    ims = [1 for _ in r]
     assert len(ims) == 114
-    # imageio.mimwrite('~/parot112.gif', ims[:30])
 
     # More
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=24)
-    # assert r.count_frames() == 336  # cant :(
-    ims = [im for im in r]
+    ims = [1 for _ in r]
     assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 336
     assert len(ims) in (336, 337)
-    # imageio.mimwrite('~/parot336.gif', ims[:30])
 
     # Do we calculate nframes correctly? To be fair, the reader wont try to
     # read beyond what it thinks how many frames it has. But this at least
@@ -84,5 +81,4 @@ def test_overload_fps(test_images):
                 i += 1
         except (StopIteration, IndexError):
             pass
-        # print(r._meta['duration'], r._meta['fps'], r._meta['duration'] * fps, r._meta['nframes'], n)
         assert n - 2 <= i <= n + 2

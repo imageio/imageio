@@ -426,7 +426,7 @@ class TiffFormat(Format):
                 self._f.close()
 
         def _get_length(self):
-            if self.request.mode[1] in "vV":
+            if self.request.mode[1] in "vV?":
                 return len(self._tf.series)
             else:
                 # for backwards compatibility
@@ -434,17 +434,18 @@ class TiffFormat(Format):
                 return len(self._tf.pages)
 
         def _get_data(self, index):
-            if self.request.mode[1] in "vV":
+            if index < 0 or index >= self._get_length():
+                raise IndexError("Index out of range while reading from tiff file")
+
+            if self.request.mode[1] in "vV?":
                 # this might regress #559 / #558
                 # but it is hard to test without a test image
                 im = self._tf.asarray(series=index)
             else:
-                # Read as 2D image
-                if index < 0 or index >= self._get_length():
-                    raise IndexError("Index out of range while reading from tiff file")
                 im = self._tf.pages[index].asarray()
-            # Return array and empty meta data
+
             meta = self._get_meta_data(index)
+
             return im, meta
 
         def _get_meta_data(self, index):
