@@ -101,6 +101,32 @@ def decypher_format_arg(format_name):
     return {"plugin": plugin, "extension": extension}
 
 
+def is_batch(ndimage):
+    if isinstance(ndimage, list):
+        return True
+
+    ndimage = np.asarray(ndimage)
+    if ndimage.ndim <= 2:
+        return False
+    elif ndimage.ndim == 3 and ndimage.shape[2] < 5:
+        return False
+
+    return True
+
+
+def is_volume(ndimage):
+    ndimage = np.asarray(ndimage)
+    if not is_batch(ndimage):
+        return False
+
+    if ndimage.ndim == 3 and ndimage.shape[2] >= 5:
+        return True
+    elif ndimage.ndim == 4 and ndimage.shape[3] < 5:
+        return True
+    else:
+        return False
+
+
 # Base functions that return a reader/writer
 
 
@@ -198,7 +224,12 @@ def imread(uri, format=None, **kwargs):
     imopen_args["legacy_mode"] = True
 
     with imopen(uri, "ri", **imopen_args) as file:
-        return file.read(index=0, **kwargs)
+        result = file.read(index=0, **kwargs)
+
+    if is_batch(result):
+        return result[0]
+    else:
+        return result
 
 
 def imwrite(uri, im, format=None, **kwargs):
@@ -226,11 +257,8 @@ def imwrite(uri, im, format=None, **kwargs):
     im = np.asarray(im)
     if not np.issubdtype(im.dtype, np.number):
         raise ValueError("Image is not numeric, but {}.".format(imt.__name__))
-    elif im.ndim == 2:
-        pass
-    elif im.ndim == 3 and im.shape[2] < 5:
-        pass
-    else:
+
+    if is_batch(im) or im.ndim < 2:
         raise ValueError("Image must be 2D (grayscale, RGB, or RGBA).")
 
     imopen_args = decypher_format_arg(format)
@@ -302,6 +330,9 @@ def mimread(uri, format=None, memtest=MEMTEST_DEFAULT_MIM, **kwargs):
                     )
                 )
 
+    if len(images) == 1 and is_batch(images[0]):
+        images = [*images[0]]
+
     return images
 
 
@@ -325,13 +356,7 @@ def mimwrite(uri, ims, format=None, **kwargs):
         to see what arguments are available for a particular format.
     """
 
-    if isinstance(ims, list):
-        pass
-    elif ims.ndim > 3:
-        pass
-    elif ims.ndim == 3 and ims.shape[2] >= 5:
-        pass
-    else:
+    if not is_batch(ims):
         raise ValueError("Image data must be a sequence of ndimages.")
 
     imopen_args = decypher_format_arg(format)
@@ -389,12 +414,8 @@ def volwrite(uri, im, format=None, **kwargs):
     """
 
     # Test image
-    im = np.asanyarray(im)
-    if im.ndim == 3:
-        pass
-    elif im.ndim == 4 and im.shape[3] < 5:
-        pass
-    else:
+    im = np.asarray(im)
+    if not is_volume(im):
         raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
     imopen_args = decypher_format_arg(format)
@@ -493,12 +514,7 @@ def mvolwrite(uri, ims, format=None, **kwargs):
     """
 
     for im in ims:
-        im = np.asanyarray(im)
-        if im.ndim == 3:
-            pass
-        elif im.ndim == 4 and im.shape[3] < 5:
-            pass
-        else:
+        if not is_volume(im):
             raise ValueError("Image must be 3D, or 4D if each voxel is a tuple.")
 
     imopen_args = decypher_format_arg(format)
