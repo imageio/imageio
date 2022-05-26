@@ -226,10 +226,7 @@ def imread(uri, format=None, **kwargs):
     with imopen(uri, "ri", **imopen_args) as file:
         result = file.read(index=0, **kwargs)
 
-    if is_batch(result):
-        return result[0]
-    else:
-        return result
+    return result
 
 
 def imwrite(uri, im, format=None, **kwargs):
@@ -488,9 +485,6 @@ def mvolread(uri, format=None, memtest=MEMTEST_DEFAULT_MVOL, **kwargs):
                         int(nbyte_limit)
                     )
                 )
-
-    if len(images) == 1 and not is_volume(images[0]):
-        images = [*images[0]]
 
     return images
 
