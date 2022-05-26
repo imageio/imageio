@@ -102,7 +102,7 @@ def decypher_format_arg(format_name):
 
 
 def is_batch(ndimage):
-    if isinstance(ndimage, list):
+    if isinstance(ndimage, (list, tuple)):
         return True
 
     ndimage = np.asarray(ndimage)
