@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.3 (2022-05-30)
+### Fix
+* Correctly read STK volumes in v3 ([#805](https://github.com/imageio/imageio/issues/805)) ([`9b739ab`](https://github.com/imageio/imageio/commit/9b739abebcab6b7364863bc4f25bcdc5b8c8c1a7))
+
+### Other
+* Include py.typed in package ([#815](https://github.com/imageio/imageio/issues/815)) ([`ba63485`](https://github.com/imageio/imageio/commit/ba63485e82bc7eec9399037375887d22ad0a6c82))
+* Add GA token ([#814](https://github.com/imageio/imageio/issues/814)) ([`c9a2852`](https://github.com/imageio/imageio/commit/c9a2852bbdca166cff546a99f65ef1057e34dd38))
+
 ## v2.19.2 (2022-05-16)
 ### Fix
 * Don't treat im_mode ? as im_mode V ([#811](https://github.com/imageio/imageio/issues/811)) ([`45739d5`](https://github.com/imageio/imageio/commit/45739d5507f75095ae8dc34049b55432c5dc288c))
