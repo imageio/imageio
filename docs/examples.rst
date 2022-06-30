@@ -367,7 +367,7 @@ Putting everything together:
         axis=0
     )
     
-    iio.imwrite(gif_path, frames, mode=I)
+    iio.imwrite(gif_path, frames, mode="I")
             
     optimize(gif_path)
 
