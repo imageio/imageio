@@ -7,6 +7,10 @@ from pathlib import Path
 
 import numpy as np
 
+from imageio.core.v3_plugin_api import PluginV3
+from imageio.core.util import Array
+from imageio.core.legacy_plugin_wrapper import LegacyPlugin
+
 from . import formats
 from .core.imopen import imopen
 from .config import known_extensions, known_plugins
@@ -101,7 +105,126 @@ def decypher_format_arg(format_name):
     return {"plugin": plugin, "extension": extension}
 
 
-# Base functions that return a reader/writer
+class LegacyReader:
+    def __init__(self, plugin_instance: PluginV3):
+        self.instance = plugin_instance
+        self.last_index = 0
+        self.closed = False
+
+    def open(self):
+        pass
+
+    def close(self):
+        if not self.closed:
+            self.instance.close()
+        self.closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    @property
+    def request(self):
+        return self.instance.request
+
+    @property
+    def format(self):
+        if isinstance(self.instance, LegacyPlugin):
+            return self.instance._format
+        else:
+            raise ValueError("V3 Plugins don't have a format.")
+
+    def get_length(self):
+        props = self.instance.properties()
+        return props.shape[0] if props.is_batch else 1
+
+    def get_data(self, index):
+        self.last_index = index
+        img = self.instance.read(index=index)
+        metadata = self.instance.metadata(index=index, exclude_applied=False)
+        return Array(img, metadata)
+
+    def get_next_data(self):
+        return self.get_data(self.last_index + 1)
+
+    def set_image_index(self, index):
+        self.last_index = index - 1
+
+    def get_meta_data(self, index=None):
+        return self.instance.metadata(index=index, exclude_applied=False)
+
+    def iter_data(self):
+        """iter_data()
+
+        Iterate over all images in the series. (Note: you can also
+        iterate over the reader object.)
+
+        """
+        for idx, img in enumerate(self.instance.iter()):
+            metadata = self.instance.metadata(index=idx, exclude_applied=False)
+            yield Array(img, metadata)
+
+    def __iter__(self):
+        return self.iter_data()
+
+    def __len__(self):
+        return self.get_length()
+
+    # -----
+
+
+class LegacyWriter:
+    def __init__(self, plugin_instance: PluginV3):
+        self.instance = plugin_instance
+        self.last_index = 0
+        self.closed = False
+
+    def open(self):
+        pass
+
+    def close(self):
+        if not self.closed:
+            self.instance.close()
+        self.closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    @property
+    def request(self):
+        return self.instance.request
+
+    @property
+    def format(self):
+        if isinstance(self.instance, LegacyPlugin):
+            return self.instance._format
+        else:
+            raise ValueError("V3 Plugins don't have a format.")
+
+    def append_data(self, im, meta=None):
+        if not isinstance(im, np.ndarray):
+            raise ValueError("append_data requires ndarray as first arg")
+
+        total_meta = dict()
+        if hasattr(im, "meta") and isinstance(im.meta, dict):
+            total_meta.update(im.meta)
+        total_meta.update(meta)
+
+        return self.instance.write(im)  # TODO: write metadata
+
+    def set_meta_data(self, meta):
+        pass  # TODO: write metadata
 
 
 def get_reader(uri, format=None, mode="?", **kwargs):
@@ -131,7 +254,11 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     imopen_args["legacy_mode"] = True
 
     image_file = imopen(uri, "r" + mode, **imopen_args)
-    return image_file.legacy_get_reader(**kwargs)
+
+    if isinstance(image_file, LegacyPlugin):
+        return image_file.legacy_get_reader(**kwargs)
+    else:
+        return LegacyReader(image_file)
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
@@ -161,7 +288,10 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     imopen_args["legacy_mode"] = True
 
     image_file = imopen(uri, "w" + mode, **imopen_args)
-    return image_file.legacy_get_writer(**kwargs)
+    if isinstance(image_file, LegacyPlugin):
+        return image_file.legacy_get_writer(**kwargs)
+    else:
+        return LegacyWriter(image_file)
 
 
 # Images
@@ -188,11 +318,6 @@ def imread(uri, format=None, **kwargs):
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
     """
-
-    if "mode" in kwargs:
-        raise TypeError(
-            'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
-        )
 
     imopen_args = decypher_format_arg(format)
     imopen_args["legacy_mode"] = True

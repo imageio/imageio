@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 from imageio import core
 from imageio.core import IS_PYPY
-from pytest import raises, skip
+from pytest import raises
 from conftest import deprecated_test
 
 
@@ -489,12 +489,13 @@ def test_gif(setup_library, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith("darwin"),
+    reason="On OSX quantization of freeimage is unstable",
+)
 def test_animated_gif(setup_library, tmp_path):
 
     fnamebase = str(tmp_path / "test")
-
-    if sys.platform.startswith("darwin"):
-        skip("On OSX quantization of freeimage is unstable")
 
     # Get images
     im = get_ref_im(4, 0, 0)
@@ -544,7 +545,6 @@ def test_animated_gif(setup_library, tmp_path):
     assert W._palettesize == 128
     # Fail
     raises(IndexError, R.get_meta_data, -1)
-    raises(ValueError, iio.mimsave, fname, ims, palettesize=300)
     raises(
         ValueError,
         iio.mimsave,

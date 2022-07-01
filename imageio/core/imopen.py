@@ -134,14 +134,10 @@ def imopen(
             def loader(request, **kwargs):
                 return config.plugin_class(request, **kwargs)
 
-        elif not legacy_mode:
+        else:
 
             def loader(request, **kwargs):
                 return plugin(request, **kwargs)
-
-        else:
-            request.finish()
-            raise ValueError("The `plugin` argument must be a string.")
 
         try:
             return loader(request, **kwargs)
@@ -170,10 +166,6 @@ def imopen(
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
 
-                # v2 compatibility; delete in v3
-                if legacy_mode and not config.is_legacy:
-                    continue
-
                 try:
                     candidate_plugin = config.plugin_class
                 except ImportError:
@@ -198,10 +190,6 @@ def imopen(
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
-
-                # v2 compatibility; delete in v3
-                if legacy_mode and not config.is_legacy:
-                    continue
 
                 try:
                     candidate_plugin = config.plugin_class
@@ -247,11 +235,6 @@ def imopen(
 
     # fallback option: try all plugins
     for config in known_plugins.values():
-        # Note: for v2 compatibility
-        # this branch can be removed in ImageIO v3.0
-        if legacy_mode and not config.is_legacy:
-            continue
-
         # each plugin gets its own request
         request = Request(uri, io_mode, format_hint=format_hint)
 
