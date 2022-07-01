@@ -94,12 +94,12 @@ jobs:
           python-version: ${{ matrix.pyversion }}
       - name: Install dependencies for tests
         shell: bash
-        if: matrix.pyversion != "3.11-dev"
+        if: matrix.pyversion != '3.11-dev'
         run: |
             pip install .[test,all-plugins]
       - name: Install dependencies for 3.11-dev tests
         shell: bash
-        if: matrix.pyversion == "3.11-dev"
+        if: matrix.pyversion == '3.11-dev'
         run: |
             pip install .[test,ffmpeg,tifffile]
       - name: Install optional dependencies for tests
