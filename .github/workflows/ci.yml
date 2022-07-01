@@ -102,7 +102,7 @@ jobs:
         if: matrix.pyversion == '3.11-dev'
         run: |
             pip install --no-deps .
-            pip install numpy tifffile pytest coverage
+            pip install numpy tifffile pytest coverage fsspec
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
