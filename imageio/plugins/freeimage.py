@@ -26,17 +26,10 @@ flags : int
 """
 
 import numpy as np
-import pytest
 
 from ..core import Format, image_as_uint
 from ..core.request import RETURN_BYTES
-
-
-pytest.importorskip("._freeimage")
-
-
-from ._freeimage import fi, download, IO_FLAGS, FNAME_PER_PLATFORM  # noqa
-
+from ._freeimage import FNAME_PER_PLATFORM, IO_FLAGS, download, fi  # noqa
 
 # todo: support files with only meta data
 
