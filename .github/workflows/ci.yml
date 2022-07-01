@@ -96,7 +96,8 @@ jobs:
         shell: bash
         if: matrix.pyversion != '3.11-dev'
         run: |
-            pip install .[test,all-plugins]
+            pip install --no-deps .
+            pip install numpy tifffile
       - name: Install dependencies for 3.11-dev tests
         shell: bash
         if: matrix.pyversion == '3.11-dev'
