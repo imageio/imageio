@@ -81,7 +81,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11-dev"]
+        pyversion: ["3.7", "3.8", "3.9", "3.10"]
         include:
           - name: Linux py37 full
             os: ubuntu-latest
