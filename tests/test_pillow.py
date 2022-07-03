@@ -1,23 +1,17 @@
 """ Tests for imageio's pillow plugin
 """
 
+import io
+import os
 from pathlib import Path
 
-from imageio.core.request import Request
-import os
-import io
-import pytest
-import numpy as np
-
 import imageio as iio
+import numpy as np
+import pytest
+from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from imageio.core.request import InitializationError
-
-
-pytest.importorskip("PIL")
-
-from PIL import Image, ImageSequence  # type: ignore # noqa: E402
+from PIL import Image, ImageSequence  # type: ignore
 
 
 @pytest.mark.parametrize(
