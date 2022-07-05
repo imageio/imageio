@@ -33,7 +33,7 @@ Here's a minimal example of how to use imageio. See the docs for
 import imageio.v3 as iio
 im = iio.imread('imageio:chelsea.png')  # read a standard image
 im.shape  # im is a NumPy array of shape (300, 451, 3)
-imageio.imwrite('chelsea.jpg', im)  # convert to jpg
+iio.imwrite('chelsea.jpg', im)  # convert to jpg
 ```
 
 <h2>API in a nutshell</h2>
