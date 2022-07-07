@@ -392,8 +392,17 @@ class PyAVPlugin(PluginV3):
 
             return frames
 
-        self._video_stream.thread_type = thread_type or "SLICE"
-        self._video_stream.codec_context.thread_count = thread_count
+        thread_type = thread_type or "SLICE"
+        if thread_type != self._video_stream.thread_type:
+            self._video_stream.thread_type = thread_type or "SLICE"
+        if (
+            thread_count != 0
+            and thread_count != self._video_stream.codec_context.thread_count
+        ):
+            # in FFMPEG thread_count == 0 means use the default count, which we
+            # change to mean don't change the thread count.
+            self._video_stream.codec_context.thread_count = thread_count
+
         ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
         ffmpeg_filter.send(None)  # init
 
