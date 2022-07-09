@@ -369,24 +369,9 @@ def test_default_order():
 
     assert imageio.formats[".tiff"].name == "TIFF"
     assert imageio.formats[".png"].name == "PNG-PIL"
-    assert imageio.formats[".pfm"].name == "PFM-FI"
 
-
-@deprecated_test
-def test_preferring_fi():
-
-    # Prefer FI all the way
-    imageio.formats.sort("-FI")
-
-    assert imageio.formats[".tiff"].name == "TIFF-FI"
-    assert imageio.formats[".png"].name == "PNG-FI"
-    assert imageio.formats[".pfm"].name == "PFM-FI"
-
-    # This would be better
-    imageio.formats.sort("TIFF", "-FI")
-    assert imageio.formats[".tiff"].name == "TIFF"
-    assert imageio.formats[".png"].name == "PNG-FI"
-    assert imageio.formats[".pfm"].name == "PFM-FI"
+    with pytest.raises(IndexError):
+        imageio.formats[".pfm"].name == "PFM-FI"
 
 
 @deprecated_test

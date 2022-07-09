@@ -73,9 +73,17 @@ def _get_config(plugin):
             for file_extension in known_extensions[extension_name]
             for x in file_extension.priority
         ]:
-            if known_plugins[plugin_name].is_legacy:
+            try:
+                config = known_plugins[plugin_name]
+            except KeyError:
+                # external plugin and not registered
+                continue
+
+            if config.is_legacy:
                 plugin = plugin_name
                 break
+        else:
+            raise IndexError(f"No plugin installed for format `{plugin}`.")
 
     return known_plugins[plugin]
 

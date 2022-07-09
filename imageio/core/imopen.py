@@ -168,7 +168,11 @@ def imopen(
     if request.format_hint is not None:
         for candidate_format in known_extensions[format_hint]:
             for plugin_name in candidate_format.priority:
-                config = known_plugins[plugin_name]
+                try:
+                    config = known_plugins[plugin_name]
+                except KeyError:
+                    # external plugin and not registered
+                    continue
 
                 # v2 compatibility; delete in v3
                 if legacy_mode and not config.is_legacy:
@@ -197,7 +201,11 @@ def imopen(
     if request.extension in known_extensions:
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
-                config = known_plugins[plugin_name]
+                try:
+                    config = known_plugins[plugin_name]
+                except KeyError:
+                    # external plugin and not registered
+                    continue
 
                 # v2 compatibility; delete in v3
                 if legacy_mode and not config.is_legacy:
