@@ -4,6 +4,8 @@
 from pathlib import Path
 
 import imageio
+from imageio.config import known_plugins, extension_list, video_extensions
+from imageio.core.request import EXAMPLE_IMAGES
 
 
 def setup(app):
@@ -52,8 +54,6 @@ def prepare_reader_and_witer():
 
 def rstjinja(app, docname, source):
     if docname == "formats/index":
-        from imageio.config import known_plugins, extension_list
-
         src = source[0]
         rendered = app.builder.templates.render_string(
             src, {"formats": extension_list, "plugins": known_plugins}
@@ -61,8 +61,6 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
     if docname == "formats/video_formats":
-        from imageio.config import known_plugins, video_extensions
-
         src = source[0]
         rendered = app.builder.templates.render_string(
             src, {"formats": video_extensions, "plugins": known_plugins}
@@ -70,8 +68,6 @@ def rstjinja(app, docname, source):
         source[0] = rendered
 
     if docname.endswith("standardimages"):
-        from imageio.core.request import EXAMPLE_IMAGES
-
         src = source[0]
         rendered = app.builder.templates.render_string(
             src,
