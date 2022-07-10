@@ -22,7 +22,6 @@ import imageio.plugins.dicom
 import imageio.plugins.feisem
 import imageio.plugins.ffmpeg
 import imageio.plugins.fits
-import imageio.plugins.freeimage
 import imageio.plugins.gdal
 import imageio.plugins.lytro
 import imageio.plugins.npz

@@ -4,7 +4,7 @@ Below you can find a list of each plugin that exists in ImageIO together with th
 that this plugin supports. This can be useful, for example, if you have to decide which
 plugins to install and/or depend on in your project.
 
-:mod:`FreeImage <imageio.plugins.freeimage>`
+`FreeImage <https://github.com/imageio/imageio-freeimage>`_
     tif, tiff, jpeg, jpg, bmp, png, bw, dds, gif, ico, j2c, j2k, jp2,pbm, pcd, PCX,
     pgm, ppm, psd, ras, rgb, rgba, sgi, tga, xbm, xpm, pic, raw, 3fr, arw, bay,
     bmq, cap, cine, cr2, crw, cs1, cut, dc2, dcr, dng, drf, dsc, erf, exr, fff, g3,

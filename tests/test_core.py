@@ -117,10 +117,6 @@ def test_findlib2():
 
     # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir("imageio"), "freeimage")
-    if not os.path.isdir(fi_dir):
-        os.mkdir(fi_dir)
-    dirs, paths = core.findlib.generate_candidate_libs(["libfreeimage"], [fi_dir])
-    # assert fi_dir in dirs -> Cannot test: lib may not exist
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
 

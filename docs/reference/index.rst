@@ -87,7 +87,6 @@ support.
     imageio.plugins.feisem
     imageio.plugins.ffmpeg
     imageio.plugins.fits
-    imageio.plugins.freeimage
     imageio.plugins.gdal
     imageio.plugins.lytro
     imageio.plugins.npz
