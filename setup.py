@@ -92,6 +92,8 @@ package_data = [
     "resources/images/*.*",
     "resources/freeimage/*.*",
     "py.typed",
+    "**/*.pyi",
+    "*.pyi",
 ]
 
 

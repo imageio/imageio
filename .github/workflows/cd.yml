@@ -116,7 +116,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        pyversion: ["pypy-3.7", "pypy-3.8"]
+        pyversion: ["pypy-3.7", "pypy-3.8", "pypy-3.9"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up pypy
