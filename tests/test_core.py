@@ -117,6 +117,7 @@ def test_findlib2():
 
     # Candidate libs for common freeimage
     fi_dir = os.path.join(core.appdata_dir("imageio"), "freeimage")
+    Path(fi_dir).mkdir(exist_ok=True, parents=True)
 
     open(os.path.join(fi_dir, "notalib.test.so"), "wb")
 
