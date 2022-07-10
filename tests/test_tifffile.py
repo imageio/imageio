@@ -202,11 +202,11 @@ def test_read_bytes():
     assert some_bytes is not None
 
 
-def test_write_file():
+def test_write_file(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/810
     img = np.zeros((32, 32), dtype=np.uint16)
-    iio3.imwrite("v.tif", img)
+    iio3.imwrite(tmp_path / "v.tif", img)
 
 
 def test_stk_volume():
