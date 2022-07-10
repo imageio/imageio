@@ -69,7 +69,7 @@ See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>
 Minimal requirements:
 <ul>
     <li>Python 3.7+</li>
-    <li>NumPy >=1.20.0</li>
+    <li>NumPy</li>
     <li>Pillow >= 8.3.2</li>
 </ul>
 
