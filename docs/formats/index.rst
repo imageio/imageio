@@ -51,11 +51,5 @@ you would call::
     by `creating a new issue <https://github.com/imageio/imageio/issues>`_.
 
 {% for format in formats %}
-{% if format.external_link %}
-- **{{ format.extension }}** (`{{ format.name }} <{{format.external_link}}>`_): {% for name in format.priority %}{% if name in plugins %} :mod:`{{name}} <{{plugins[name].module_name}}>` {% endif %}{% endfor %}
-{% elif format.name %}
-- **{{ format.extension }}** ({{ format.name }}): {% for name in format.priority %}{% if name in plugins %} :mod:`{{name}} <{{plugins[name].module_name}}>` {% endif %}{% endfor %}
-{% else %}
-- **{{ format.extension }}**: {% for name in format.priority %}{% if name in plugins %} :mod:`{{name}} <{{plugins[name].module_name}}>` {% endif %}{% endfor %}
-{%endif%}
+{{ createFormatEntry(format) }}
 {% endfor %}

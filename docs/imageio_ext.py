@@ -6,6 +6,34 @@ from pathlib import Path
 import imageio
 from imageio.config import known_plugins, extension_list, video_extensions
 from imageio.core.request import EXAMPLE_IMAGES
+from imageio.config import FileExtension
+
+
+def createFormatEntry(format: FileExtension):
+    plugin_list = []
+
+    for name in format.priority:
+        if name in known_plugins:
+            plugin_list.append(f":mod:`{name} <{known_plugins[name].module_name}>`")
+        elif name.endswith("-FI"):
+            plugin_list.append(
+                f"`{name} <https://github.com/imageio/imageio-freeimage>`_"
+            )
+        else:
+            raise RuntimeError(
+                f"The format `{name}` does not have a registered plugin."
+            )
+
+    if format.external_link:
+        format_name = (
+            f"- **{format.extension}** (`{format.name} <{format.external_link}>`_): "
+        )
+    elif format.name:
+        format_name = f"- **{format.extension}** ({format.name}): "
+    else:
+        format_name = f"- **{format.extension}**: "
+
+    return format_name + ", ".join(plugin_list)
 
 
 def setup(app):
@@ -56,14 +84,24 @@ def rstjinja(app, docname, source):
     if docname == "formats/index":
         src = source[0]
         rendered = app.builder.templates.render_string(
-            src, {"formats": extension_list, "plugins": known_plugins}
+            src,
+            {
+                "formats": extension_list,
+                "plugins": known_plugins,
+                "createFormatEntry": createFormatEntry,
+            },
         )
         source[0] = rendered
 
     if docname == "formats/video_formats":
         src = source[0]
         rendered = app.builder.templates.render_string(
-            src, {"formats": video_extensions, "plugins": known_plugins}
+            src,
+            {
+                "formats": video_extensions,
+                "plugins": known_plugins,
+                "createFormatEntry": createFormatEntry,
+            },
         )
         source[0] = rendered
 
