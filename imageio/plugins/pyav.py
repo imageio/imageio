@@ -341,8 +341,8 @@ class PyAVPlugin(PluginV3):
 
             - `"SLICE"`: threads assemble parts of the current frame
             - `"FRAME"`: threads may assemble future frames
-            - None (default): Uses SLICE when reading single frames and FRAME
-              when reading batches of frames.
+            - None (default): Uses ``"FRAME"`` if ``index=...`` and ffmpeg's
+              default otherwise.
 
 
         Returns
@@ -392,9 +392,8 @@ class PyAVPlugin(PluginV3):
 
             return frames
 
-        thread_type = thread_type or "SLICE"
-        if thread_type != self._video_stream.thread_type:
-            self._video_stream.thread_type = thread_type or "SLICE"
+        if thread_type is not None and thread_type != self._video_stream.thread_type:
+            self._video_stream.thread_type = thread_type
         if (
             thread_count != 0
             and thread_count != self._video_stream.codec_context.thread_count
@@ -450,7 +449,7 @@ class PyAVPlugin(PluginV3):
             The threading model to be used. One of
 
             - `"SLICE"` (default): threads assemble parts of the current frame
-            - `"FRAME"`: threads may assemble future frames
+            - `"FRAME"`: threads may assemble future frames (faster for bulk reading)
 
 
         Yields

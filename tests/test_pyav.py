@@ -366,6 +366,8 @@ def test_sequential_reading(test_images):
     ]
 
     with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as img_file:
-        actual_imgs = [img_file.read(index=1), img_file.read(index=5)]
+        first_read = img_file.read(index=1, thread_type="FRAME", thread_count=2)
+        second_read = img_file.read(index=5)
+        actual_imgs = [first_read, second_read]
 
     np.allclose(actual_imgs, expected_imgs)
