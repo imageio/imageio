@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.4 (2022-07-11)
+### Fix
+* Resolve infinite recursion in python 3.11 (and add CI for pypy-3.9) ([#826](https://github.com/imageio/imageio/issues/826)) ([`301f941`](https://github.com/imageio/imageio/commit/301f941d334e1b3a8c0aa9cebd3d2ea883645fc1))
+* Include PYI files in package ([#825](https://github.com/imageio/imageio/issues/825)) ([`fff16fb`](https://github.com/imageio/imageio/commit/fff16fb915b75beb7a6f8f3dd118d8ab02051dc4))
+
+### Other
+* Fix typo in readme ([#828](https://github.com/imageio/imageio/issues/828)) ([`67dac41`](https://github.com/imageio/imageio/commit/67dac41184c230fb3158100080dbec68bc61c98d))
+* Add quotes to "I" in GIF optimization example ([#823](https://github.com/imageio/imageio/issues/823)) ([`9fd2b35`](https://github.com/imageio/imageio/commit/9fd2b3504ee7dd55bb7f717fafdf5ae6fe0a294f))
+
 ## v2.19.3 (2022-05-30)
 ### Fix
 * Correctly read STK volumes in v3 ([#805](https://github.com/imageio/imageio/issues/805)) ([`9b739ab`](https://github.com/imageio/imageio/commit/9b739abebcab6b7364863bc4f25bcdc5b8c8c1a7))
