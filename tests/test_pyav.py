@@ -357,3 +357,17 @@ def test_bayer_write():
     buffer.seek(0)
     img = iio.imread(buffer, plugin="pyav")
     assert img.shape == (768, 128, 128, 3)
+
+
+def test_sequential_reading(test_images):
+    expected_imgs = [
+        iio.imread(test_images / "cockatoo.mp4", index=1),
+        iio.imread(test_images / "cockatoo.mp4", index=5),
+    ]
+
+    with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as img_file:
+        first_read = img_file.read(index=1, thread_type="FRAME", thread_count=2)
+        second_read = img_file.read(index=5)
+        actual_imgs = [first_read, second_read]
+
+    np.allclose(actual_imgs, expected_imgs)
