@@ -14,6 +14,10 @@
 import sys
 import os
 import imageio
+import inspect
+import importlib
+from pathlib import Path
+
 
 # import/load the plugins so that they can be documented
 # this may require mocking imports in the future
@@ -49,6 +53,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "numpydoc",
     "imageio_ext",
+    "sphinx.ext.linkcode",
 ]
 
 # Monkey-patch numpydoc to don't do the autosummary thing
@@ -116,6 +121,54 @@ pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
+
+
+# Function to generate source links pointing to GitHub
+def linkcode_resolve(domain, info):
+    if domain != "py":
+        return None
+
+    obj = importlib.import_module(info["module"])
+    source_file = Path(inspect.getsourcefile(obj))
+    file_path = "/" + "/".join(info["module"].split("."))
+
+    # try to get a better file path
+    add_linenumbers = False
+    for part in info["fullname"].split("."):
+        try:
+            obj = getattr(obj, part)
+        except AttributeError:
+            break
+
+        try:
+            source_file = Path(inspect.getsourcefile(obj))
+        except TypeError:
+            break
+
+        path_elements = [source_file.name]
+        for parent in source_file.parents:
+            path_elements = [parent.name] + path_elements
+            if parent.name == "imageio":
+                break
+
+        file_path = "/".join(path_elements)
+    else:
+        add_linenumbers = True
+
+    source_url = (
+        f"https://github.com/imageio/imageio/blob/v{imageio.__version__}/{file_path}"
+    )
+
+    if add_linenumbers:
+        try:
+            source_lines, start = inspect.getsourcelines(obj)
+        except OSError:
+            pass
+        else:
+            end = start + len(source_lines) - 1
+            source_url += f"#L{start}-L{end}"
+
+    return source_url
 
 
 # -- Options for HTML output ---------------------------------------------------
