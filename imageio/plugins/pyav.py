@@ -256,7 +256,14 @@ class PyAVPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             try:
-                self._container = av.open(request.get_file())
+                if request._uri_type == 5:  # 5 is the value of URI_HTTP
+                    # pyav should read from HTTP by itself. This enables reading
+                    # HTTP-based streams like DASH. Note that solving streams
+                    # like this is temporary until the new request object gets
+                    # implemented.
+                    self._container = av.open(request.raw_uri)
+                else:
+                    self._container = av.open(request.get_file())
                 self._video_stream = self._container.streams.video[0]
                 self._decoder = self._container.decode(video=0)
             except av.AVError:
