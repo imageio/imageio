@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.19.5 (2022-07-18)
+### Fix
+* Allow multiple reads from imopen ([#830](https://github.com/imageio/imageio/issues/830)) ([`18e3cb6`](https://github.com/imageio/imageio/commit/18e3cb6d3228ac1ca27160d0e6c91e720213dd9f))
+
+### Other
+* Fix typos in v3 narrative docs. ([#835](https://github.com/imageio/imageio/issues/835)) ([`d68f16b`](https://github.com/imageio/imageio/commit/d68f16baaf2f6fcfe8523dec4227203e8b22797a))
+* Point source links to github ([#834](https://github.com/imageio/imageio/issues/834)) ([`20eef2a`](https://github.com/imageio/imageio/commit/20eef2a3ead7e892b18e7726260b9bf652217527))
+* Remove outdated numpy minimum version ([#833](https://github.com/imageio/imageio/issues/833)) ([`39947a7`](https://github.com/imageio/imageio/commit/39947a7506d4d7a28b6402ddcce9211e6ccfbe84))
+
 ## v2.19.4 (2022-07-11)
 ### Fix
 * Resolve infinite recursion in python 3.11 (and add CI for pypy-3.9) ([#826](https://github.com/imageio/imageio/issues/826)) ([`301f941`](https://github.com/imageio/imageio/commit/301f941d334e1b3a8c0aa9cebd3d2ea883645fc1))

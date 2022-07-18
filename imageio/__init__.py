@@ -16,7 +16,7 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.19.4"
+__version__ = "2.19.5"
 
 import warnings
 
