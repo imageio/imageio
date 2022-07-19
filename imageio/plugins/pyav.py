@@ -942,7 +942,7 @@ class PyAVPlugin(PluginV3):
         # side data
         metadata.update({key: value for key, value in desired_frame.side_data.items()})
 
-        return self._container.metadata
+        return metadata
 
     def _seek(self, index, *, constant_framerate: bool = True) -> None:
         """Seeks to the frame at the given index."""

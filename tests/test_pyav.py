@@ -64,9 +64,11 @@ def test_metadata(test_images: Path):
         meta = plugin.metadata()
         assert meta["profile"] == "High 4:4:4 Predictive"
         assert meta["codec"] == "h264"
+        assert meta["encoder"] == "Lavf56.4.101"
 
         meta = plugin.metadata(index=4)
-        assert meta["encoder"] == "Lavf56.4.101"
+        assert meta["time"] == 0.2
+        assert meta["key_frame"] is False
 
 
 def test_properties(test_images: Path):
