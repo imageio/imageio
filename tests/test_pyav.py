@@ -371,3 +371,29 @@ def test_sequential_reading(test_images):
         actual_imgs = [first_read, second_read]
 
     np.allclose(actual_imgs, expected_imgs)
+
+
+@pytest.mark.parametrize('rotate', [None, '0', '90', '180', '270'])
+def test_rotate(rotate):
+    image_shape = (128, 64, 3)
+    image = np.zeros(image_shape, dtype="uint8")
+    buffer = io.BytesIO()
+
+    with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
+        for i in range(4):
+            image[...] = i
+            file.write(
+                image,
+                is_batch=False,
+                codec="h264",
+                rotate=rotate,
+            )
+
+    buffer.seek(0)
+    with iio.imopen(buffer, "r", plugin="pyav", extension=".mp4") as file:
+        metadata = file.metadata()
+        # "0" and None are implied and will not appear in the metadata
+        if rotate is None or rotate == "0":
+            assert "rotate" not in metadata
+        else:
+            assert metadata["rotate"] == rotate

@@ -539,6 +539,7 @@ class PyAVPlugin(PluginV3):
         out_pixel_format: str = None,
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
+        rotate: Optional[str] = None,
     ) -> Optional[bytes]:
         """Save a ndimage as a video.
 
@@ -572,6 +573,14 @@ class PyAVPlugin(PluginV3):
             contains a (named) set of nodes, and the second dict contains a set
             of edges between nodes of the previous dict. Check the (module-level)
             plugin docs for details and examples.
+        rotate : str
+            If available by the codec, set the metadata to indicate rotation.
+            This string is typically `'0'`, `'90'`, `'180'`, or `'270'`.
+            Restrictions on this parameters are imposed by the file format and
+            should be used with caution.
+            When reading back a stream, one can read the ``metadata``.
+            A rotation of "0" degrees will not appear as a key in the metadata
+            since it is implied.
 
         Returns
         -------
@@ -598,7 +607,12 @@ class PyAVPlugin(PluginV3):
 
         if self._video_stream is None:
             self._init_write_stream(
-                codec, fps, ndimage.shape, in_pixel_format, out_pixel_format
+                codec,
+                fps,
+                ndimage.shape,
+                in_pixel_format,
+                out_pixel_format,
+                rotate=rotate,
             )
         stream = self._video_stream
 
@@ -688,6 +702,7 @@ class PyAVPlugin(PluginV3):
         shape: Tuple[int, ...],
         in_pixel_format: Optional[str],
         out_pixel_format: Optional[str],
+        rotate: Optional[str],
     ) -> None:
         """Initialize encoder and create a new video stream.
 
@@ -704,6 +719,9 @@ class PyAVPlugin(PluginV3):
         out_pixel_format : str
             The pixel format to use while encoding frames. If None (default)
             use the codec's default.
+        rotate : str
+            If available by the codec, set the metadata to indicate rotation.
+            This string is typically `'0'`, `'90'`, `'180'`, or `'270'`.
 
         """
 
@@ -719,6 +737,9 @@ class PyAVPlugin(PluginV3):
             stream.pix_fmt = in_pixel_format
         else:
             pass  # use the default pixel format
+
+        if rotate is not None:
+            stream.metadata["rotate"] = rotate
 
         self._video_stream = stream
 
