@@ -371,3 +371,19 @@ def test_sequential_reading(test_images):
         actual_imgs = [first_read, second_read]
 
     np.allclose(actual_imgs, expected_imgs)
+
+
+def test_uri_reading(test_images):
+    uri = "https://dash.akamaized.net/dash264/TestCases/2c/qualcomm/1/MultiResMPEG2.mpd"
+
+    with av.open(uri) as container:
+        for idx, frame in enumerate(container.decode(video=0)):
+            if idx < 250:
+                continue
+
+            expected = frame.to_ndarray(format="rgb24")
+            break
+
+    actual = iio.imread(uri, plugin="pyav", index=250)
+
+    np.allclose(actual, expected)
