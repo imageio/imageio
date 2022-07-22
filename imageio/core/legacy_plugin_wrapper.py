@@ -304,11 +304,6 @@ class LegacyPlugin(PluginV3):
 
         """
 
-        if exclude_applied:
-            raise ValueError(
-                "Legacy plugins don't support excluding applied metadata fields."
-            )
-
         if index is None:
             index = _legacy_default_index(self._format)
 
