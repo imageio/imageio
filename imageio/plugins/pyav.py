@@ -921,12 +921,14 @@ class PyAVPlugin(PluginV3):
 
         if index is ...:
             # useful flags defined on the container and/or video stream
+            duration = float(self._video_stream.duration * self._video_stream.time_base)
             metadata.update(
                 {
                     "video_format": self._video_stream.codec_context.pix_fmt,
                     "codec": self._video_stream.codec.name,
                     "long_codec": self._video_stream.codec.long_name,
                     "profile": self._video_stream.profile,
+                    "duration": duration,
                 }
             )
 
@@ -949,7 +951,7 @@ class PyAVPlugin(PluginV3):
         # side data
         metadata.update({key: value for key, value in desired_frame.side_data.items()})
 
-        return self._container.metadata
+        return metadata
 
     def _seek(self, index, *, constant_framerate: bool = True) -> None:
         """Seeks to the frame at the given index."""
