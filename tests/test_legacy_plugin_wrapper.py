@@ -24,13 +24,6 @@ def test_exception_message_bytes():
         assert "<bytes>" in str(e)
 
 
-def test_exclude_applied(test_images):
-    with pytest.raises(ValueError):
-        iio.v3.immeta(
-            test_images / "chelsea.png", exclude_applied=True, plugin="PNG-PIL"
-        )
-
-
 def test_ellipsis_index(test_images):
     img = iio.v3.imread(test_images / "chelsea.png", plugin="PNG-FI", index=...)
     assert img.shape == (1, 300, 451, 3)
