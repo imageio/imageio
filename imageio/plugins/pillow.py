@@ -232,6 +232,7 @@ class PillowPlugin(PluginV3):
         *,
         mode: str = None,
         format: str = None,
+        is_batch: bool = None,
         **kwargs,
     ) -> Optional[bytes]:
         """
@@ -284,13 +285,12 @@ class PillowPlugin(PluginV3):
             is_batch = True
         else:
             ndimage = np.asarray(ndimage)
-            is_batch = None
 
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
         # if mode is given, use it; otherwise fall back to image.ndim only
-        if is_batch is True:
-            pass  # ndimage was list; we know it is a batch
-        if mode is not None:
+        if is_batch is not None:
+            pass
+        elif mode is not None:
             is_batch = (
                 ndimage.ndim > 3 if Image.getmodebands(mode) > 1 else ndimage.ndim > 2
             )
