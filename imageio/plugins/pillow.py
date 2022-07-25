@@ -248,17 +248,24 @@ class PillowPlugin(PluginV3):
 
         Parameters
         ----------
-        image : ndarray
-            The ndimage to write.
-        mode : {str, None}
+        image : ndarray or list
+            The ndimage to write. If a list is given each element is expected to
+            be an ndimage.
+        mode : str
             Specify the image's color format. If None (default), the mode is
             inferred from the array's shape and dtype. Possible modes can be
             found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
-        format : {str, None}
-            Optional format override.  If omitted, the format to use is
+        format : str
+            Optional format override. If omitted, the format to use is
             determined from the filename extension. If a file object was used
             instead of a filename, this parameter must always be used.
+        is_batch : bool
+            Explicitly tell the writer that ``image`` is a batch of images
+            (True) or not (False). If None, the writer will guess this from the
+            provided ``mode`` or ``image.shape``. While the latter often works,
+            it may cause problems for small images due to aliasing of spatial
+            and color-channel axes.
         kwargs : ...
             Extra arguments to pass to pillow. If a writer doesn't recognise an
             option, it is silently ignored. The available options are described
