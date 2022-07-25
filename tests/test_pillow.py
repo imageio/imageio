@@ -580,8 +580,3 @@ def test_write_format_warning():
         old_bytes = iio.v3.imwrite("<bytes>", frames, plugin="pillow", format="PNG")
 
     assert bytes_image == old_bytes
-
-
-# def test_trailing_dim():
-#     x = np.zeros((10, 30, 1), dtype=np.uint8)
-#     foo = iio.v3.imwrite("<bytes>", x, extension=".jpg", is_batch=False)
