@@ -55,7 +55,7 @@ def test_mp4_writing(tmp_path, test_images):
     )
 
     # libx264 writing is not deterministic and RGB -> YUV is lossy
-    # so I have good ideas how to do serious assertions on the file
+    # so I have no good ideas how to do serious assertions on the file
     assert mp4_bytes is not None
 
 
