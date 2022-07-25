@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.20.0 (2022-07-25)
+### Fix
+* Expose frame-level metadata and duration in pyav ([#839](https://github.com/imageio/imageio/issues/839)) ([`05fcf2c`](https://github.com/imageio/imageio/commit/05fcf2c443edf78e1807670ba304f51a43c74808))
+
+### Feature
+* Enable HTTP based streams in pyav ([#838](https://github.com/imageio/imageio/issues/838)) ([`fb1150d`](https://github.com/imageio/imageio/commit/fb1150d3fd5a00db036ffb4c603cedeed3a1634f))
+
+### Other
+* Fix typo in test_pyav ([#846](https://github.com/imageio/imageio/issues/846)) ([`f89abf1`](https://github.com/imageio/imageio/commit/f89abf18cd56ba5d8da1939b807c0f3f1e593e0b))
+
 ## v2.19.5 (2022-07-18)
 ### Fix
 * Allow multiple reads from imopen ([#830](https://github.com/imageio/imageio/issues/830)) ([`18e3cb6`](https://github.com/imageio/imageio/commit/18e3cb6d3228ac1ca27160d0e6c91e720213dd9f))
