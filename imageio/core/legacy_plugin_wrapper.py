@@ -293,8 +293,8 @@ class LegacyPlugin(PluginV3):
             The index of the ndimage to read. If the index is out of bounds a
             ``ValueError`` is raised. If ``None``, global metadata is returned.
         exclude_applied : bool
-            If True (default), do not report metadata fields that the plugin
-            would apply/consume while reading the image.
+            This parameter exists for compatibility and has no effect. Legacy
+            plugins always report all metadata they find.
 
         Returns
         -------
