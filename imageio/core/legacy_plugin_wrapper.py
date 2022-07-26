@@ -1,8 +1,9 @@
-import numpy as np
 from pathlib import Path
 
-from .request import IOMode, InitializationError
-from .v3_plugin_api import PluginV3, ImageProperties
+import numpy as np
+
+from .request import InitializationError, IOMode
+from .v3_plugin_api import ImageProperties, PluginV3
 
 
 def _legacy_default_index(format):
@@ -193,9 +194,16 @@ class LegacyPlugin(PluginV3):
 
         if not is_batch:
             ndimage = np.asarray(ndimage)[None, ...]
+        elif isinstance(ndimage, list):
+            ndimage = np.stack(ndimage, axis=0)
 
         if len(ndimage) == 0:
             raise RuntimeError("Can't write zero images.")
+
+        if not np.issubdtype(ndimage[0].dtype, np.number) and not np.issubdtype(
+            ndimage[0].dtype, bool
+        ):
+            raise ValueError(f"ndimage is not numeric, but `{ndimage[0].dtype}`.")
 
         with self.legacy_get_writer(**kwargs) as writer:
             for image in ndimage:

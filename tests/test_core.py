@@ -700,13 +700,10 @@ def test_functions(test_images, tmp_path):
     assert os.path.isfile(fname6)
 
     # Fail for save functions
-    raises(ValueError, iio.imsave, fname2, np.zeros((100, 100, 5)))
     raises(ValueError, iio.imsave, fname2, 42)
-    raises(ValueError, iio.mimsave, fname5, [np.zeros((100, 100, 5))])
     raises(ValueError, iio.mimsave, fname5, [42])
     raises(ValueError, iio.volsave, fname6, np.zeros((100, 100, 100, 40)))
     raises(ValueError, iio.volsave, fname6, 42)
-    raises(ValueError, iio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
     raises(ValueError, iio.mvolsave, fname6, [42])
 
 

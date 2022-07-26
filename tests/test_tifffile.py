@@ -236,7 +236,7 @@ def test_tiff_page_writing():
 
 
 def test_bool_writing():
-    # test related to
+    # regression test for
     # https://github.com/imageio/imageio/issues/852
 
     expected = (np.arange(255 * 123) % 2 == 0).reshape((255, 123))
