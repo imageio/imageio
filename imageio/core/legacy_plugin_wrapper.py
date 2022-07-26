@@ -162,7 +162,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, ndimage, **kwargs):
+    def write(self, ndimage, is_batch=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -179,41 +179,34 @@ class LegacyPlugin(PluginV3):
             :func:`.help` to see what arguments are available for a
             particular format.
         """
-        with self.legacy_get_writer(**kwargs) as writer:
-            if self._request.mode.image_mode in "iv":
-                writer.append_data(ndimage)
-            else:
-                if len(ndimage) == 0:
-                    raise RuntimeError("Zero images were written.")
-                for written, ndimage in enumerate(ndimage):
-                    # Test image
-                    imt = type(ndimage)
-                    ndimage = np.asanyarray(ndimage)
-                    if not np.issubdtype(ndimage.dtype, np.number):
-                        raise ValueError(
-                            "Image is not numeric, but {}.".format(imt.__name__)
-                        )
-                    elif self._request.mode.image_mode == "I":
-                        if ndimage.ndim == 2:
-                            pass
-                        elif ndimage.ndim == 3 and ndimage.shape[2] in [1, 3, 4]:
-                            pass
-                        else:
-                            raise ValueError(
-                                "Image must be 2D " "(grayscale, RGB, or RGBA)."
-                            )
-                    elif self._request.mode.image_mode == "V":
-                        if ndimage.ndim == 3:
-                            pass
-                        elif ndimage.ndim == 4 and ndimage.shape[3] < 32:
-                            pass
-                        else:
-                            raise ValueError(
-                                "Image must be 3D," " or 4D if each voxel is a tuple."
-                            )
 
-                    # Add image
-                    writer.append_data(ndimage)
+        if is_batch is not None:
+            pass
+        elif isinstance(ndimage, list):
+            is_batch = True
+        elif ndimage.ndim == 2:
+            is_batch = False
+        elif ndimage.ndim == 3 and ndimage.shape[-1] < 5:
+            is_batch = False
+        else:
+            is_batch = True
+
+        if not is_batch:
+            ndimage = np.asarray(ndimage)[None, ...]
+
+        if len(ndimage) == 0:
+            raise RuntimeError("Can't write zero images.")
+
+        with self.legacy_get_writer(**kwargs) as writer:
+            for image in ndimage:
+                image = np.asanyarray(image)
+
+                if image.ndim < 2:
+                    raise ValueError(
+                        "The image must have at least two spatial dimensions."
+                    )
+
+                writer.append_data(image)
 
         return writer.request.get_result()
 
