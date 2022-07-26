@@ -233,3 +233,15 @@ def test_tiff_page_writing():
 
     with tifffile.TiffFile(buffer) as file:
         assert len(file.pages) == 1
+
+
+def test_bool_writing():
+    # test related to
+    # https://github.com/imageio/imageio/issues/852
+
+    expected = (np.arange(255 * 123) % 2 == 0).reshape((255, 123))
+
+    img_bytes = iio3.imwrite("<bytes>", expected, extension=".tiff")
+    actual = iio.imread(img_bytes)
+
+    assert np.allclose(actual, expected)
