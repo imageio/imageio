@@ -183,7 +183,7 @@ class LegacyPlugin(PluginV3):
 
         if is_batch is not None:
             pass
-        elif isinstance(ndimage, list):
+        elif isinstance(ndimage, (list, tuple)):
             is_batch = True
         elif ndimage.ndim == 2:
             is_batch = False
