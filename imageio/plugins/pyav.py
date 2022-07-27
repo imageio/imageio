@@ -135,9 +135,9 @@ examples to better understand how to use them.
 
 """
 
+from fractions import Fraction
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union, Generator
-from fractions import Fraction
 
 import av
 import av.filter
@@ -145,8 +145,8 @@ import numpy as np
 from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
-from ..core.request import InitializationError, IOMode, URI_BYTES
-from ..core.v3_plugin_api import PluginV3, ImageProperties
+from ..core.request import URI_BYTES, InitializationError, IOMode
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 
 
 def _format_to_dtype(format: av.VideoFormat) -> np.dtype:
@@ -253,6 +253,7 @@ class PyAVPlugin(PluginV3):
 
         self._container = None
         self._video_stream = None
+        self._video_filter = None
 
         if request.mode.io_mode == IOMode.read:
             try:
@@ -293,6 +294,10 @@ class PyAVPlugin(PluginV3):
                 raise InitializationError(
                     f"PyAV can not write to `{self.request.raw_uri}`"
                 )
+
+    # ---------------------
+    # Standard V3 Interface
+    # ---------------------
 
     def read(
         self,
@@ -365,16 +370,13 @@ class PyAVPlugin(PluginV3):
         it fits into memory) and to then access the returned ndarray randomly.
 
         The current implementation may cause problems for b-frames, i.e.,
-        bidirectionaly predicted pictures. I don't have any test videos of this
-        though.
+        bidirectionaly predicted pictures. I lack test videos to write unit
+        tests for this case.
 
         Reading from an index other than ``...``, i.e. reading a single frame,
         currently doesn't support filters that introduce delays.
 
         """
-
-        if constant_framerate is None:
-            constant_framerate = self._container.format.variable_fps
 
         if index is ...:
             self._container.seek(0)
@@ -409,18 +411,21 @@ class PyAVPlugin(PluginV3):
             # change to mean don't change the thread count.
             self._video_stream.codec_context.thread_count = thread_count
 
-        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
-        ffmpeg_filter.send(None)  # init
-
+        if constant_framerate is None:
+            constant_framerate = self._container.format.variable_fps
         decoder = self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(decoder)
 
-        return self._unpack_frame(ffmpeg_filter.send(desired_frame), format=format)
+        self.set_video_filter(filter_sequence, filter_graph)
+        if self._video_filter is not None:
+            desired_frame = self._video_filter.send(desired_frame)
+
+        return self._unpack_frame(desired_frame, format=format)
 
     def iter(
         self,
         *,
-        format: str = None,
+        format: str = "rgb24",
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
         thread_count: int = 0,
@@ -433,9 +438,9 @@ class PyAVPlugin(PluginV3):
         frame : np.ndarray
             A numpy array containing loaded frame data.
         format : str
-            If not None, convert the data into the given format before returning
-            it. If None (default) return the data in the encoded format if it
-            can be expressed as a strided array; otherwise raise an Exception.
+            Convert the data into the given format before returning it. If None,
+            return the data in the encoded format if it can be expressed as a
+            strided array; otherwise raise an Exception.
         filter_sequence : List[str, str, dict]
             Set the returned colorspace. If not None (default: rgb24), convert
             the data into the given format before returning it. If ``None``
@@ -469,77 +474,27 @@ class PyAVPlugin(PluginV3):
 
         self._video_stream.thread_type = thread_type or "SLICE"
         self._video_stream.codec_context.thread_count = thread_count
-        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
-        ffmpeg_filter.send(None)  # init
+
+        self.set_video_filter(filter_sequence, filter_graph)
 
         for frame in self._container.decode(video=0):
-            frame = ffmpeg_filter.send(frame)
+            if self._video_filter is not None:
+                frame = self._video_filter.send(frame)
 
             if frame is None:
                 continue
 
             yield self._unpack_frame(frame, format=format)
 
-        for frame in ffmpeg_filter:
-            yield self._unpack_frame(frame, format=format)
-
-    def _unpack_frame(self, frame: av.VideoFrame, *, format: str = None) -> np.ndarray:
-        """Convert a av.VideoFrame into a ndarray
-
-        Parameters
-        ----------
-        frame : av.VideoFrame
-            The frame to unpack.
-        format : str
-            If not None, convert the frame to the given format before unpacking.
-
-        """
-
-        if format is not None:
-            frame = frame.reformat(format=format)
-
-        dtype = _format_to_dtype(frame.format)
-        shape = _get_frame_shape(frame)
-
-        planes = list()
-        for idx in range(len(frame.planes)):
-            n_channels = sum(
-                [
-                    x.bits // (dtype.itemsize * 8)
-                    for x in frame.format.components
-                    if x.plane == idx
-                ]
-            )
-            av_plane = frame.planes[idx]
-            plane_shape = (av_plane.height, av_plane.width)
-            plane_strides = (av_plane.line_size, n_channels * dtype.itemsize)
-            if n_channels > 1:
-                plane_shape += (n_channels,)
-                plane_strides += (dtype.itemsize,)
-
-            np_plane = as_strided(
-                np.frombuffer(av_plane, dtype=dtype),
-                shape=plane_shape,
-                strides=plane_strides,
-            )
-            planes.append(np_plane)
-
-        if len(planes) > 1:
-            # Note: the planes *should* exist inside a contigous memory block
-            # somewhere inside av.Frame however pyAV does not appear to expose this,
-            # so we are forced to copy the planes individually instead of wrapping
-            # them :(
-            out = np.concatenate(planes).reshape(shape)
-        else:
-            out = planes[0]
-
-        return out
+        if self._video_filter is not None:
+            for frame in self._video_filter:
+                yield self._unpack_frame(frame, format=format)
 
     def write(
         self,
         ndimage: Union[np.ndarray, List[np.ndarray]],
         *,
-        codec: str,
+        codec: str = None,
         is_batch: bool = True,
         fps: int = 24,
         in_pixel_format: str = "rgb24",
@@ -557,7 +512,8 @@ class PyAVPlugin(PluginV3):
         ndimage : ArrayLike, List[ArrayLike]
             The ndimage to encode and write to the ImageResource.
         codec : str
-            The codec to use when encoding frames.
+            The codec to use when encoding frames. Only needed on first write
+            and ignored on subsequent writes.
         is_batch : bool
             If True (default), the ndimage is a batch of images, otherwise it is
             a single image. This parameter has no effect on lists of ndimages.
@@ -604,239 +560,20 @@ class PyAVPlugin(PluginV3):
             ndimage = np.asarray(ndimage)
 
         if self._video_stream is None:
-            self._init_write_stream(
-                codec, fps, ndimage.shape, in_pixel_format, out_pixel_format
-            )
-        stream = self._video_stream
+            self.init_video_stream(codec, fps=fps, pixel_format=out_pixel_format)
 
-        ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
-        ffmpeg_filter.send(None)  # init
-
-        pixel_format = av.VideoFormat(in_pixel_format)
-        img_dtype = _format_to_dtype(pixel_format)
-        width = ndimage.shape[3 if pixel_format.is_planar else 2]
-        height = ndimage.shape[2 if pixel_format.is_planar else 1]
-
-        frame = av.VideoFrame(width, height, in_pixel_format)
-        frame.time_base = Fraction(1, fps)
-        n_channels = [
-            sum(
-                [
-                    x.bits // (img_dtype.itemsize * 8)
-                    for x in frame.format.components
-                    if x.plane == idx
-                ]
-            )
-            for idx in range(len(frame.planes))
-        ]
+        self.set_video_filter(filter_sequence, filter_graph)
 
         for img in ndimage:
-            frame.pts = self.frames_written
-            self.frames_written += 1
-            # manual packing of ndarray into frame
-            # (this should live in pyAV, but it doesn't support many formats
-            # and PRs there are slow)
-            if pixel_format.is_planar:
-                for idx, plane in enumerate(frame.planes):
-                    plane_array = np.frombuffer(plane, dtype=img_dtype)
-                    plane_array = as_strided(
-                        plane_array,
-                        shape=(plane.height, plane.width),
-                        strides=(plane.line_size, img_dtype.itemsize),
-                    )
-                    plane_array[...] = img[idx]
-            else:
-                if in_pixel_format.startswith("bayer_"):
-                    n_channels = 1
-                else:
-                    n_channels = len(pixel_format.components)
-
-                plane = frame.planes[0]
-                plane_shape = (plane.height, plane.width)
-                plane_strides = (plane.line_size, n_channels * img_dtype.itemsize)
-                if n_channels > 1:
-                    plane_shape += (n_channels,)
-                    plane_strides += (img_dtype.itemsize,)
-
-                plane_array = as_strided(
-                    np.frombuffer(plane, dtype=img_dtype),
-                    shape=plane_shape,
-                    strides=plane_strides,
-                )
-                plane_array[...] = img
-
-            out_frame = ffmpeg_filter.send(frame)
-            if out_frame is None:
-                continue
-
-            out_frame = out_frame.reformat(format=out_pixel_format)
-
-            for packet in stream.encode(out_frame):
-                self._container.mux(packet)
-
-        for out_frame in ffmpeg_filter:
-            for packet in stream.encode(out_frame):
-                self._container.mux(packet)
+            self.write_frame(img, pixel_format=in_pixel_format)
 
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
-            # and can't support appending to an active stream
-            for packet in self._video_stream.encode():
-                self._container.mux(packet)
-            self._video_stream = None
+            # and can't support appending
+            self._flush_writer()
             self._container.close()
 
             return self.request.get_file().getvalue()
-
-    def _init_write_stream(
-        self,
-        codec: str,
-        fps: int,
-        shape: Tuple[int, ...],
-        in_pixel_format: Optional[str],
-        out_pixel_format: Optional[str],
-    ) -> None:
-        """Initialize encoder and create a new video stream.
-
-        Parameters
-        ----------
-        codec : str
-            The codec to use.
-        fps : str
-            The resulting videos frames per second.
-        shape : Tuple[int, ...]
-            The shape of the frames that will be written.
-        in_pixel_format : str
-            The pixel format of the incoming ndarray.
-        out_pixel_format : str
-            The pixel format to use while encoding frames. If None (default)
-            use the codec's default.
-
-        """
-
-        stream = self._container.add_stream(codec, fps)
-        px_format = av.VideoFormat(in_pixel_format)
-        stream.width = shape[3 if px_format.is_planar else 2]
-        stream.height = shape[2 if px_format.is_planar else 1]
-        stream.time_base = Fraction(1, fps)
-
-        if out_pixel_format is not None:
-            stream.pix_fmt = out_pixel_format
-        elif in_pixel_format in [x.name for x in stream.codec.video_formats]:
-            stream.pix_fmt = in_pixel_format
-        else:
-            pass  # use the default pixel format
-
-        self._video_stream = stream
-
-    def _build_filter(
-        self,
-        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
-        filter_graph: Tuple[dict, List] = None,
-    ) -> av.VideoFrame:
-        """Create a FFmpeg filter graph.
-
-        This function is a python co-routine. This means it returns a
-        generator and you can feed it frames using ``generator.send(frame)``
-        and it will return the next frame or None (if the filter has lag).
-        To send EOF use ``generator.send(None)``
-
-
-        Parameters
-        ----------
-        filter_sequence : List[str, str, dict]
-            If not None, apply the given sequence of FFmpeg filters to each
-            ndimage. Check the (module-level) plugin docs for details and
-            examples.
-        filter_graph : (dict, List)
-            If not None, apply the given graph of FFmpeg filters to each
-            ndimage. The graph is given as a tuple of two dicts. The first dict
-            contains a (named) set of nodes, and the second dict contains a set
-            of edges between nodes of the previous dict.Check the (module-level)
-            plugin docs for details and examples.
-
-        Yields
-        -------
-        frame : Optional[av.VideoFrame]
-            A frame that was filtered using the created filter or None if the
-            filter has lag and didn't send any frames yet.
-
-        """
-
-        node_descriptors: Dict[str, Tuple[str, Union[str, Dict]]]
-        edges: List[Tuple[str, str, int, int]]
-
-        # Nothing to do :)
-        if filter_sequence is None and filter_graph is None:
-            frame = yield
-
-            while frame is not None:
-                frame = yield frame
-
-            return
-
-        if filter_sequence is None:
-            filter_sequence = list()
-
-        if filter_graph is None:
-            node_descriptors, edges = dict(), [("video_in", "video_out", 0, 0)]
-        else:
-            node_descriptors, edges = filter_graph
-
-        graph = av.filter.Graph()
-
-        previous_node = graph.add_buffer(template=self._video_stream)
-        for filter_name, argument in filter_sequence:
-            if isinstance(argument, str):
-                current_node = graph.add(filter_name, argument)
-            else:
-                current_node = graph.add(filter_name, **argument)
-            previous_node.link_to(current_node)
-            previous_node = current_node
-
-        nodes = dict()
-        nodes["video_in"] = previous_node
-        nodes["video_out"] = graph.add("buffersink")
-        for name, (filter_name, arguments) in node_descriptors.items():
-            if isinstance(arguments, str):
-                nodes[name] = graph.add(filter_name, arguments)
-            else:
-                nodes[name] = graph.add(filter_name, **arguments)
-
-        for from_note, to_node, out_idx, in_idx in edges:
-            nodes[from_note].link_to(nodes[to_node], out_idx, in_idx)
-
-        graph.configure()
-
-        # this starts a co-routine
-        # send frames using graph.send()
-        frame = yield None
-
-        # send and receive frames in "parallel"
-        while frame is not None:
-            graph.push(frame)
-            try:
-                frame = yield graph.pull()
-            except av.error.BlockingIOError:
-                # filter has lag and needs more frames
-                frame = yield None
-
-        try:
-            # send EOF in av>=9.0
-            graph.push(None)
-        except ValueError:  # pragma: no cover
-            # handle av<9.0
-            pass
-
-        # all frames have been sent, empty the filter
-        while True:
-            try:
-                yield graph.pull()
-            except av.error.EOFError:
-                break  # EOF
-            except av.error.BlockingIOError:  # pragma: no cover
-                # handle av<9.0
-                break
 
     def properties(self, index: int = ..., *, format: str = "rgb24") -> ImageProperties:
         """Standardized ndimage metadata.
@@ -932,8 +669,8 @@ class PyAVPlugin(PluginV3):
                 }
             )
 
-            metadata.update(self._container.metadata)
-            metadata.update(self._video_stream.metadata)
+            metadata.update(self.container_metadata)
+            metadata.update(self.video_stream_metadata)
             return metadata
 
         decoder = self._seek(index, constant_framerate=constant_framerate)
@@ -952,6 +689,275 @@ class PyAVPlugin(PluginV3):
         metadata.update({key: value for key, value in desired_frame.side_data.items()})
 
         return metadata
+
+    def close(self) -> None:
+        """Close the Video."""
+
+        is_write = self.request.mode.io_mode == IOMode.write
+        if is_write and self._video_stream is not None:
+            self._flush_writer()
+
+        if self._container is not None:
+            self._container.close()
+        self.request.finish()
+
+    def __enter__(self) -> "PyAVPlugin":
+        return super().__enter__()
+
+    # ------------------------------
+    # Add-on Interface inside imopen
+    # ------------------------------
+
+    def init_video_stream(
+        self,
+        codec: str,
+        *,
+        fps: int = 24,
+        pixel_format: str = None,
+    ) -> None:
+        """Initialize a new video stream.
+
+        Parameters
+        ----------
+        codec : str
+            The codec to use.
+        fps : str
+            The resulting videos frames per second.
+        pixel_format : str
+            The pixel format to use while encoding frames. If None (default)
+            use the codec's default.
+
+        """
+
+        stream = self._container.add_stream(codec, fps)
+        stream.time_base = Fraction(1, fps)
+        if pixel_format is not None:
+            stream.pix_fmt = pixel_format
+
+        self._video_stream = stream
+
+    def write_frame(self, frame: np.ndarray, *, pixel_format: str = "rgb24") -> None:
+        # manual packing of ndarray into frame
+        # (this should live in pyAV, but it doesn't support all the formats we
+        # want and PRs there are slow)
+        pixel_format = av.VideoFormat(pixel_format)
+        img_dtype = _format_to_dtype(pixel_format)
+        width = frame.shape[2 if pixel_format.is_planar else 1]
+        height = frame.shape[1 if pixel_format.is_planar else 0]
+        av_frame = av.VideoFrame(width, height, pixel_format.name)
+        if pixel_format.is_planar:
+            for idx, plane in enumerate(av_frame.planes):
+                plane_array = np.frombuffer(plane, dtype=img_dtype)
+                plane_array = as_strided(
+                    plane_array,
+                    shape=(plane.height, plane.width),
+                    strides=(plane.line_size, img_dtype.itemsize),
+                )
+                plane_array[...] = frame[idx]
+        else:
+            if pixel_format.name.startswith("bayer_"):
+                # ffmpeg doesn't describe bayer formats correctly
+                # see https://github.com/imageio/imageio/issues/761#issuecomment-1059318851
+                # and following for details.
+                n_channels = 1
+            else:
+                n_channels = len(pixel_format.components)
+
+            plane = av_frame.planes[0]
+            plane_shape = (plane.height, plane.width)
+            plane_strides = (plane.line_size, n_channels * img_dtype.itemsize)
+            if n_channels > 1:
+                plane_shape += (n_channels,)
+                plane_strides += (img_dtype.itemsize,)
+
+            plane_array = as_strided(
+                np.frombuffer(plane, dtype=img_dtype),
+                shape=plane_shape,
+                strides=plane_strides,
+            )
+            plane_array[...] = frame
+
+        stream = self._video_stream
+        av_frame.time_base = stream.codec_context.time_base
+        av_frame.pts = self.frames_written
+        self.frames_written += 1
+
+        if self._video_filter is not None:
+            av_frame = self._video_filter.send(av_frame)
+            if av_frame is None:
+                return
+
+        av_frame = av_frame.reformat(format=stream.codec_context.pix_fmt)
+        if stream.frames == 0:
+            stream.width = av_frame.width
+            stream.height = av_frame.height
+        for packet in stream.encode(av_frame):
+            self._container.mux(packet)
+
+    def set_video_filter(
+        self,
+        filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
+        filter_graph: Tuple[dict, List] = None,
+    ) -> None:
+        """Set the filter to use when reading/writing frames.
+
+        Parameters
+        ----------
+        filter_sequence : List[str, str, dict]
+            If not None, apply the given sequence of FFmpeg filters to each
+            ndimage. Check the (module-level) plugin docs for details and
+            examples.
+        filter_graph : (dict, List)
+            If not None, apply the given graph of FFmpeg filters to each
+            ndimage. The graph is given as a tuple of two dicts. The first dict
+            contains a (named) set of nodes, and the second dict contains a set
+            of edges between nodes of the previous dict. Check the
+            (module-level) plugin docs for details and examples.
+
+        Yields
+        -------
+        frame : Optional[av.VideoFrame]
+            A frame that was filtered using the created filter or None if the
+            filter has lag and didn't send any frames yet.
+
+        """
+
+        if filter_sequence is None and filter_graph is None:
+            self._video_filter = None
+            return
+
+        if filter_sequence is None:
+            filter_sequence = list()
+
+        node_descriptors: Dict[str, Tuple[str, Union[str, Dict]]]
+        edges: List[Tuple[str, str, int, int]]
+        if filter_graph is None:
+            node_descriptors, edges = dict(), [("video_in", "video_out", 0, 0)]
+        else:
+            node_descriptors, edges = filter_graph
+
+        graph = av.filter.Graph()
+
+        previous_node = graph.add_buffer(template=self._video_stream)
+        for filter_name, argument in filter_sequence:
+            if isinstance(argument, str):
+                current_node = graph.add(filter_name, argument)
+            else:
+                current_node = graph.add(filter_name, **argument)
+            previous_node.link_to(current_node)
+            previous_node = current_node
+
+        nodes = dict()
+        nodes["video_in"] = previous_node
+        nodes["video_out"] = graph.add("buffersink")
+        for name, (filter_name, arguments) in node_descriptors.items():
+            if isinstance(arguments, str):
+                nodes[name] = graph.add(filter_name, arguments)
+            else:
+                nodes[name] = graph.add(filter_name, **arguments)
+
+        for from_note, to_node, out_idx, in_idx in edges:
+            nodes[from_note].link_to(nodes[to_node], out_idx, in_idx)
+
+        graph.configure()
+
+        def video_filter():
+            # this starts a co-routine
+            # send frames using graph.send()
+            frame = yield None
+
+            # send and receive frames in "parallel"
+            while frame is not None:
+                graph.push(frame)
+                try:
+                    frame = yield graph.pull()
+                except av.error.BlockingIOError:
+                    # filter has lag and needs more frames
+                    frame = yield None
+
+            try:
+                # send EOF in av>=9.0
+                graph.push(None)
+            except ValueError:  # pragma: no cover
+                # handle av<9.0
+                pass
+
+            # all frames have been sent, empty the filter
+            while True:
+                try:
+                    yield graph.pull()
+                except av.error.EOFError:
+                    break  # EOF
+                except av.error.BlockingIOError:  # pragma: no cover
+                    # handle av<9.0
+                    break
+
+        self._video_filter = video_filter()
+        self._video_filter.send(None)
+
+    @property
+    def container_metadata(self):
+        return self._container.metadata
+
+    @property
+    def video_stream_metadata(self):
+        return self._video_stream.metadata
+
+    # -------------------------------
+    # Internals and private functions
+    # -------------------------------
+
+    def _unpack_frame(self, frame: av.VideoFrame, *, format: str = None) -> np.ndarray:
+        """Convert a av.VideoFrame into a ndarray
+
+        Parameters
+        ----------
+        frame : av.VideoFrame
+            The frame to unpack.
+        format : str
+            If not None, convert the frame to the given format before unpacking.
+
+        """
+
+        if format is not None:
+            frame = frame.reformat(format=format)
+
+        dtype = _format_to_dtype(frame.format)
+        shape = _get_frame_shape(frame)
+
+        planes = list()
+        for idx in range(len(frame.planes)):
+            n_channels = sum(
+                [
+                    x.bits // (dtype.itemsize * 8)
+                    for x in frame.format.components
+                    if x.plane == idx
+                ]
+            )
+            av_plane = frame.planes[idx]
+            plane_shape = (av_plane.height, av_plane.width)
+            plane_strides = (av_plane.line_size, n_channels * dtype.itemsize)
+            if n_channels > 1:
+                plane_shape += (n_channels,)
+                plane_strides += (dtype.itemsize,)
+
+            np_plane = as_strided(
+                np.frombuffer(av_plane, dtype=dtype),
+                shape=plane_shape,
+                strides=plane_strides,
+            )
+            planes.append(np_plane)
+
+        if len(planes) > 1:
+            # Note: the planes *should* exist inside a contigous memory block
+            # somewhere inside av.Frame however pyAV does not appear to expose this,
+            # so we are forced to copy the planes individually instead of wrapping
+            # them :(
+            out = np.concatenate(planes).reshape(shape)
+        else:
+            out = planes[0]
+
+        return out
 
     def _seek(self, index, *, constant_framerate: bool = True) -> Generator:
         """Seeks to the frame at the given index."""
@@ -978,18 +984,27 @@ class PyAVPlugin(PluginV3):
 
         return frame_generator
 
-    def close(self) -> None:
-        """Close the Video."""
+    def _flush_writer(self):
+        """Flush the filter and encoder
 
-        is_write = self.request.mode.io_mode == IOMode.write
-        if is_write and self._video_stream is not None:
-            # encode a frame=None to flush any pending packets
-            for packet in self._video_stream.encode():
-                self._container.mux(packet)
+        This will reset the filter to `None` and send EoF to the encoder,
+        i.e., after calling, no more frames may be written.
 
-        if self._container is not None:
-            self._container.close()
-        self.request.finish()
+        """
 
-    def __enter__(self) -> "PyAVPlugin":
-        return super().__enter__()
+        stream = self._video_stream
+
+        if self._video_filter is not None:
+            # flush encoder
+            for av_frame in self._video_filter:
+                if stream.frames == 0:
+                    stream.width = av_frame.width
+                    stream.height = av_frame.height
+                for packet in stream.encode(av_frame):
+                    self._container.mux(packet)
+            self._video_filter = None
+
+        # flush stream
+        for packet in stream.encode():
+            self._container.mux(packet)
+        self._video_stream = None
