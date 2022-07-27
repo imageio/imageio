@@ -66,6 +66,7 @@ def test_metadata(test_images: Path):
         assert meta["codec"] == "h264"
         assert meta["encoder"] == "Lavf56.4.101"
         assert meta["duration"] == 14
+        assert meta["fps"] == 20.0
 
         meta = plugin.metadata(index=4)
         assert meta["time"] == 0.2

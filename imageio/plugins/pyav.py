@@ -666,6 +666,7 @@ class PyAVPlugin(PluginV3):
                     "long_codec": self._video_stream.codec.long_name,
                     "profile": self._video_stream.profile,
                     "duration": duration,
+                    "fps": float(self._video_stream.guessed_rate),
                 }
             )
 
