@@ -390,3 +390,8 @@ def test_uri_reading(test_images):
     actual = iio.imread(uri, plugin="pyav", index=250)
 
     np.allclose(actual, expected)
+
+
+def test_seek_last(test_images):
+    frame = iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=279)
+    assert frame.shape == (720, 1280, 3)
