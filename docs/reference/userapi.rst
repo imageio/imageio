@@ -113,17 +113,15 @@ As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarily,
 `iio.mimread` and `iio.mvolread` have merged into a new function called
 `iio.imiter`, which returns a generator that yields ndimages from a file in the
 order in which they appear. Further, the default behavior of `iio.imread` has
-changed, and it now returns the first ndimage (instead of the first flat image)
-if the image contains multiple images.
+changed and it has become more context aware. Now it will either return the
+first stored ndimage (like before) or, depending on the format, all images if
+this is the more common use-case.
 
-To reproduce similar behavior to the v2 API behavior use one of the following
-snippets::
+To reproduce similar behavior to the v2 API in cases where the incompatibility
+matters use one of the following snippets::
 
     # img = iio.v2.imread(image_resource)
-    try:
-        img = iio.v3.imread(image_resource, index=None)[0]
-    except ValueError:
-        img = iio.v3.imread(image_resource, index=0)
+    img = iio.v3.imread(image_resource, index=...)[0]
 
     # img = iio.v2.volread(image_resource)
     img = iio.v3.imread(image_resource)
@@ -135,11 +133,11 @@ snippets::
 Writing Images
 --------------
 
-Similar to reading images, the new `iio.imwrite` can handle ndimages.
-``iio.mimwrite``, ``iio.volwrite``, and ``iio.mvolwrite`` have all dissapeared.
-The same goes for their aliases ``iio.mimsave``, ``iio.volsave``,
-``iio.mvolsave``, and ``iio.imsave``. They are now all covered by
-``iio.imwrite``.
+Similar to reading images, the new `iio.imwrite` can handle ndimages and lists
+of images, like ``iio.mimwrite`` and consorts. ``iio.mimwrite``,
+``iio.volwrite``, and ``iio.mvolwrite`` have all dissapeared. The same goes for
+their aliases ``iio.mimsave``, ``iio.volsave``, ``iio.mvolsave``, and
+``iio.imsave``. They are now all covered by ``iio.imwrite``.
 
 To reproduce similar behavior to the v2 API behavior use one of the following
 snippets::
@@ -159,8 +157,8 @@ Previously, the `reader` and `writer` objects provided an advanced way to
 read/write data with more control. These are no longer needed. Likewise, the
 functions ``iio.get_reader``, ``iio.get_writer``, ``iio.read``, and ``iio.save``
 have become obsolete. Instead, the plugin object is used directly, which is
-instantiated in mode ``r`` (reading) or  ``w`` (writing). To create a plugin
-object, call `iio.imopen` and use it as a context manager::
+instantiated in mode ``r`` (reading) or  ``w`` (writing). To create such a
+plugin object, call ``iio.imopen`` and use it as a context manager::
 
     # reader = iio.get_reader(image_resource)
     # reader = iio.read(image_resource)
@@ -201,3 +199,17 @@ same set of properties, and if the plugin or format doesn't provide a field it
 is set to a default value; usually ``None``. To access ImageProperties use::
 
     props = iio.improps(image_resource)
+
+
+Caveats and Notes
+-----------------
+
+This section is a collection of notes and feedback that we got from other
+developers that were migrating to ImageIO V3, which might be useful to know
+while you are migrating your own code.
+
+- The old pillow plugin used to `np.squeeze` the image before writing it. This
+  has been removed in V3 to match pillows native behavior. A trailing axis with
+  dimension 1, e.g., ``(256, 256, 1)`` will now raise an exception. (see `#842
+  <https://github.com/imageio/imageio/issues/842>`_)
+
