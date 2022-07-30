@@ -4,6 +4,7 @@
 import datetime
 import numpy as np
 import pytest
+import io
 
 import imageio.v2 as iio
 import imageio.v3 as iio3
@@ -219,3 +220,28 @@ def test_stk_volume():
     actual = iio3.imread("test.stk")
 
     np.allclose(actual, expected)
+
+
+def test_tiff_page_writing():
+    # regression test for
+    # https://github.com/imageio/imageio/issues/849
+    base_image = np.full((256, 256, 3), 42, dtype=np.uint8)
+
+    buffer = io.BytesIO()
+    iio3.imwrite(buffer, base_image, extension=".tiff")
+    buffer.seek(0)
+
+    with tifffile.TiffFile(buffer) as file:
+        assert len(file.pages) == 1
+
+
+def test_bool_writing():
+    # regression test for
+    # https://github.com/imageio/imageio/issues/852
+
+    expected = (np.arange(255 * 123) % 2 == 0).reshape((255, 123))
+
+    img_bytes = iio3.imwrite("<bytes>", expected, extension=".tiff")
+    actual = iio.imread(img_bytes)
+
+    assert np.allclose(actual, expected)
