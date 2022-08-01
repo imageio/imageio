@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.21.0 (2022-08-01)
+### Fix
+* Write single TIFF page for single RGB image ([#851](https://github.com/imageio/imageio/issues/851)) ([`0f04bc9`](https://github.com/imageio/imageio/commit/0f04bc9cb7f03c964cc978f6c1049879e5a90100))
+
+### Feature
+* Add is_batch kwarg to pillow ([#845](https://github.com/imageio/imageio/issues/845)) ([`21d5c73`](https://github.com/imageio/imageio/commit/21d5c73f3f19ba2093495dfd13a276acb56412e6))
+
+### Other
+* Add a migration note about pillow squeezing ([#850](https://github.com/imageio/imageio/issues/850)) ([`7c55a55`](https://github.com/imageio/imageio/commit/7c55a557c0feb1426bf8fff5a8f61b6f05d305d9))
+* Add missin option to imwrite type hints ([#848](https://github.com/imageio/imageio/issues/848)) ([`6da4a42`](https://github.com/imageio/imageio/commit/6da4a426a1bd3e11e679f0fb4fec5201a4fffa88))
+* Ignore exclude_applied on legacy plugins ([#844](https://github.com/imageio/imageio/issues/844)) ([`f082dde`](https://github.com/imageio/imageio/commit/f082dde8259865804698d8558f36e9fdeb1bfcb9))
+* Remove unneeded CD steps ([#847](https://github.com/imageio/imageio/issues/847)) ([`0d99c51`](https://github.com/imageio/imageio/commit/0d99c51e44d13b49668ef07ae9a8af93084e38a8))
+
 ## v2.20.0 (2022-07-25)
 ### Fix
 * Expose frame-level metadata and duration in pyav ([#839](https://github.com/imageio/imageio/issues/839)) ([`05fcf2c`](https://github.com/imageio/imageio/commit/05fcf2c443edf78e1807670ba304f51a43c74808))
