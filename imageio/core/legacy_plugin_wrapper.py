@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
+from ..config import known_extensions
 from .request import InitializationError, IOMode
 from .v3_plugin_api import ImageProperties, PluginV3
 
@@ -181,21 +182,16 @@ class LegacyPlugin(PluginV3):
             particular format.
         """
 
-        if is_batch is not None:
-            pass
-        elif isinstance(ndimage, (list, tuple)):
+        if isinstance(ndimage, (list, tuple)):
             is_batch = True
-        elif ndimage.ndim == 2:
-            is_batch = False
-        elif ndimage.ndim == 3 and ndimage.shape[-1] < 5:
-            is_batch = False
-        else:
-            is_batch = True
-
-        if not is_batch:
-            ndimage = np.asarray(ndimage)[None, ...]
-        elif isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
+        else:
+            ndimage = np.asarray(ndimage)
+
+        batch_dims = ndimage.ndim
+
+        if ndimage.ndim < 2:
+            raise ValueError("The image must have at least two spatial dimensions.")
 
         if len(ndimage) == 0:
             raise RuntimeError("Can't write zero images.")
@@ -205,15 +201,30 @@ class LegacyPlugin(PluginV3):
         ):
             raise ValueError(f"ndimage is not numeric, but `{ndimage[0].dtype}`.")
 
+        batch_dims -= 2  # two spatial dimensions
+
+        if ndimage.ndim >= 3 and ndimage.shape[-1] < 5:
+            # image is packed (channel-last)
+            batch_dims = max(batch_dims - 1, 0)
+
+        volume_support = False
+        ext_infos = known_extensions.get(self._request.extension, list())
+        for ext_info in ext_infos:
+            if self._format.name in ext_info.priority:
+                volume_support = ext_info.volume_support
+                break
+        if is_batch in [None, False] and volume_support:
+            # image is a volume
+            batch_dims = max(batch_dims - 1, 0)
+
+        if is_batch is None:
+            is_batch = batch_dims > 0
+
+        if not is_batch:
+            ndimage = np.asarray(ndimage)[None, ...]
+
         with self.legacy_get_writer(**kwargs) as writer:
             for image in ndimage:
-                image = np.asanyarray(image)
-
-                if image.ndim < 2:
-                    raise ValueError(
-                        "The image must have at least two spatial dimensions."
-                    )
-
                 writer.append_data(image)
 
         return writer.request.get_result()

@@ -245,3 +245,13 @@ def test_bool_writing():
     actual = iio.imread(img_bytes)
 
     assert np.allclose(actual, expected)
+
+
+def test_roundtrip(tmp_path):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/854
+
+    iio3.imwrite(tmp_path / "test.tiff", np.ones((10, 64, 64), "u4"))
+    actual = iio3.imread(tmp_path / "test.tiff")
+
+    assert actual.shape == (10, 64, 64)
