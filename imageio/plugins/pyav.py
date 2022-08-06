@@ -136,7 +136,7 @@ examples to better understand how to use them.
 """
 
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Generator
 from fractions import Fraction
 
 import av
@@ -412,8 +412,8 @@ class PyAVPlugin(PluginV3):
         ffmpeg_filter = self._build_filter(filter_sequence, filter_graph)
         ffmpeg_filter.send(None)  # init
 
-        self._seek(index, constant_framerate=constant_framerate)
-        desired_frame = next(self._container.decode(video=0))
+        decoder = self._seek(index, constant_framerate=constant_framerate)
+        desired_frame = next(decoder)
 
         return self._unpack_frame(ffmpeg_filter.send(desired_frame), format=format)
 
@@ -936,8 +936,8 @@ class PyAVPlugin(PluginV3):
             metadata.update(self._video_stream.metadata)
             return metadata
 
-        self._seek(index, constant_framerate=constant_framerate)
-        desired_frame = next(self._container.decode(video=0))
+        decoder = self._seek(index, constant_framerate=constant_framerate)
+        desired_frame = next(decoder)
 
         # useful flags defined on the frame
         metadata.update(
@@ -953,7 +953,7 @@ class PyAVPlugin(PluginV3):
 
         return metadata
 
-    def _seek(self, index, *, constant_framerate: bool = True) -> None:
+    def _seek(self, index, *, constant_framerate: bool = True) -> Generator:
         """Seeks to the frame at the given index."""
 
         # this may be made faster for formats that have some kind
@@ -975,6 +975,8 @@ class PyAVPlugin(PluginV3):
         frame_generator = self._container.decode(video=0)
         for _ in range(frames_to_yield):
             next(frame_generator)
+
+        return frame_generator
 
     def close(self) -> None:
         """Close the Video."""
