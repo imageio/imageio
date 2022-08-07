@@ -182,10 +182,8 @@ class LegacyPlugin(PluginV3):
             particular format.
         """
 
-        if isinstance(ndimage, (list, tuple)):
+        if is_batch or isinstance(ndimage, (list, tuple)):
             pass  # ndimage is list of images
-        elif is_batch is True:
-            pass
         elif is_batch is False:
             ndimage = [ndimage]
         else:
@@ -211,9 +209,6 @@ class LegacyPlugin(PluginV3):
 
             if batch_dims == 0:
                 ndimage = [ndimage]
-
-        if len(ndimage) == 0:
-            raise RuntimeError("Can't write zero images.")
 
         with self.legacy_get_writer(**kwargs) as writer:
             for image in ndimage:
