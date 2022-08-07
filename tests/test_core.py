@@ -969,11 +969,6 @@ def test_memory_size(test_images):
     assert len(im) == 36
 
 
-def test_legacy_write_empty(tmp_path):
-    with pytest.raises(RuntimeError):
-        iio.v3.imwrite(tmp_path / "foo.tiff", np.ones((0, 10, 10)))
-
-
 def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
     with pytest.raises(OSError):
         iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=False)
