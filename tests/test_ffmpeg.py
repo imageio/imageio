@@ -654,3 +654,13 @@ def test_read_stream(test_images):
     expected = iio3.imread("imageio:cockatoo.mp4", index=5)
 
     assert np.allclose(result, expected)
+
+
+def test_write_stream(test_images, tmp_path):
+    # regression test
+    expected = iio3.imread(test_images / "newtonscradle.gif")
+    iio3.imwrite(tmp_path / "test.mp4", expected, plugin="FFMPEG")
+
+    # Note: No assertions here, because video compression is lossy and
+    # imageio-python changes the shape of the array. Our PyAV plugin (which
+    # should be preferred) does not have the latter limitaiton :)

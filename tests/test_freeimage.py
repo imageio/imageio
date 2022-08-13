@@ -611,7 +611,7 @@ def test_ico(setup_library, tmp_path):
 
 # Skip on Windows xref: https://github.com/imageio/imageio/issues/21
 @pytest.mark.skipif(
-    sys.platform.startswith("win"),
+    platform.system() == "Windows",
     reason="Windows has a known issue with multi-icon files",
 )
 def test_multi_icon_ico(setup_library, tmp_path):

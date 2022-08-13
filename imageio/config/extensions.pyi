@@ -6,6 +6,7 @@ class FileExtension:
     name: Optional[str] = None
     description: Optional[str] = None
     external_link: Optional[str] = None
+    volume_support: bool
 
     def __init__(
         self,
