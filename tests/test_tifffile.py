@@ -210,14 +210,12 @@ def test_write_file(tmp_path):
     iio3.imwrite(tmp_path / "v.tif", img)
 
 
-def test_stk_volume():
+def test_stk_volume(test_images):
     # this is a regression test for
     # https://github.com/imageio/imageio/issues/802
 
-    pytest.xfail("This test requires a suitable STK image.")
-
-    expected = iio.volread("test.stk")
-    actual = iio3.imread("test.stk")
+    expected = iio.volread(test_images / "movie.stk")
+    actual = iio3.imread(test_images / "movie.stk")
 
     np.allclose(actual, expected)
 
