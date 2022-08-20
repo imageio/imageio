@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.21.1 (2022-08-08)
+### Fix
+* Seeking to last frame caused EoF in pyav ([#855](https://github.com/imageio/imageio/issues/855)) ([`7ff7f02`](https://github.com/imageio/imageio/commit/7ff7f023d4b24a8349c867a50c46cfe52ce724bb))
+
 ## v2.21.0 (2022-08-01)
 ### Fix
 * Write single TIFF page for single RGB image ([#851](https://github.com/imageio/imageio/issues/851)) ([`0f04bc9`](https://github.com/imageio/imageio/commit/0f04bc9cb7f03c964cc978f6c1049879e5a90100))

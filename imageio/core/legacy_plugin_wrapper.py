@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
+from ..config import known_extensions
 from .request import InitializationError, IOMode
 from .v3_plugin_api import ImageProperties, PluginV3
 
@@ -181,37 +182,48 @@ class LegacyPlugin(PluginV3):
             particular format.
         """
 
-        if is_batch is not None:
-            pass
-        elif isinstance(ndimage, (list, tuple)):
-            is_batch = True
-        elif ndimage.ndim == 2:
-            is_batch = False
-        elif ndimage.ndim == 3 and ndimage.shape[-1] < 5:
-            is_batch = False
+        if is_batch or isinstance(ndimage, (list, tuple)):
+            pass  # ndimage is list of images
+        elif is_batch is False:
+            ndimage = [ndimage]
         else:
-            is_batch = True
+            # Write the largest possible block by guessing the meaning of each
+            # dimension from the shape/ndim and then checking if any batch
+            # dimensions are left.
+            ndimage = np.asarray(ndimage)
+            batch_dims = ndimage.ndim
 
-        if not is_batch:
-            ndimage = np.asarray(ndimage)[None, ...]
-        elif isinstance(ndimage, list):
-            ndimage = np.stack(ndimage, axis=0)
+            # two spatial dimensions
+            batch_dims = max(batch_dims - 2, 0)
 
-        if len(ndimage) == 0:
-            raise RuntimeError("Can't write zero images.")
+            # packed (channel-last) image
+            if ndimage.ndim >= 3 and ndimage.shape[-1] < 5:
+                batch_dims = max(batch_dims - 1, 0)
 
-        if not np.issubdtype(ndimage[0].dtype, np.number) and not np.issubdtype(
-            ndimage[0].dtype, bool
-        ):
-            raise ValueError(f"ndimage is not numeric, but `{ndimage[0].dtype}`.")
+            # format supports volumetric images
+            ext_infos = known_extensions.get(self._request.extension, list())
+            for ext_info in ext_infos:
+                if self._format.name in ext_info.priority and ext_info.volume_support:
+                    batch_dims = max(batch_dims - 1, 0)
+                    break
+
+            if batch_dims == 0:
+                ndimage = [ndimage]
 
         with self.legacy_get_writer(**kwargs) as writer:
             for image in ndimage:
-                image = np.asanyarray(image)
+                image = np.asarray(image)
 
                 if image.ndim < 2:
                     raise ValueError(
                         "The image must have at least two spatial dimensions."
+                    )
+
+                if not np.issubdtype(image.dtype, np.number) and not np.issubdtype(
+                    image.dtype, bool
+                ):
+                    raise ValueError(
+                        f"All images have to be numeric, and not `{image.dtype}`."
                     )
 
                 writer.append_data(image)

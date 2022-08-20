@@ -35,6 +35,8 @@ class FileExtension:
     external_link : str
         A link to further information about the format. Typically, the format's
         specification.
+    volume_support : str
+        If True, the format/extension supports volumetric image data.
 
     Examples
     --------
@@ -48,7 +50,14 @@ class FileExtension:
     """
 
     def __init__(
-        self, *, extension, priority, name=None, description=None, external_link=None
+        self,
+        *,
+        extension,
+        priority,
+        name=None,
+        description=None,
+        external_link=None,
+        volume_support=False
     ):
         self.extension = extension
         self.priority = priority
@@ -56,6 +65,7 @@ class FileExtension:
         self.description = description
         self.external_link = external_link
         self.default_priority = priority.copy()
+        self.volume_support = volume_support
 
     def reset(self):
         self.priority = self.default_priority.copy()
@@ -608,6 +618,7 @@ extension_list = [
         name="Numpy Array",
         extension=".npz",
         priority=["NPZ"],
+        volume_support=True,
     ),
     FileExtension(
         extension=".nrrd",
@@ -841,6 +852,7 @@ extension_list = [
             "pyav",
             "opencv",
         ],
+        volume_support=True,
     ),
     FileExtension(
         name="Tagged Image File Format",
@@ -856,6 +868,7 @@ extension_list = [
             "pyav",
             "opencv",
         ],
+        volume_support=True,
     ),
     FileExtension(
         extension=".vda",
