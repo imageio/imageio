@@ -255,3 +255,58 @@ def test_roundtrip(tmp_path):
     actual = iio3.imread(tmp_path / "test.tiff")
 
     assert actual.shape == (10, 64, 64)
+
+
+def test_volume_roudtrip(tmp_path):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/818
+
+    expected_volume = np.full((23, 123, 456, 3), 42, dtype=np.uint8)
+    iio3.imwrite(tmp_path / "volume.tiff", expected_volume)
+
+    # assert that the file indeed contains a volume
+    with tifffile.TiffFile(tmp_path / "volume.tiff") as file:
+        assert file.series[0].shape == (23, 123, 456, 3)
+        assert len(file.series) == 1
+
+    actual_volume = iio3.imread(tmp_path / "volume.tiff")
+    assert np.allclose(actual_volume, expected_volume)
+
+
+def test_multipage_read(tmp_path):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/818
+
+    # this creates a TIFF with two flat images (non-volumetric)
+    # Note: our plugin currently can't do this, but tifffile itself can
+    expected_flat = np.full((35, 73, 3), 114, dtype=np.uint8)
+    with tifffile.TiffWriter(tmp_path / "flat.tiff") as file:
+        file.write(expected_flat)
+        file.write(expected_flat)
+
+    actual_flat = iio3.imread(tmp_path / "flat.tiff")
+    assert np.allclose(actual_flat, expected_flat)
+
+    for idx, page in enumerate(iio3.imiter(tmp_path / "flat.tiff")):
+        assert np.allclose(page, expected_flat)
+    assert idx == 1
+
+
+def test_multiple_ndimages(tmp_path):
+    volumetric = np.full((4, 255, 255, 3), 114, dtype=np.uint8)
+    flat = np.full((255, 255, 3), 114, dtype=np.uint8)
+    different_shape = np.full((120, 73, 3), 114, dtype=np.uint8)
+    with tifffile.TiffWriter(tmp_path / "nightmare.tiff") as file:
+        file.write(volumetric)
+        file.write(flat)
+        file.write(different_shape)
+
+    # imread will read the image at the respective index
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=0).shape == (4, 255, 255, 3)
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=1).shape == (255, 255, 3)
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=2).shape == (120, 73, 3)
+
+    # imiter will yield the three images in order
+    shapes = [(4, 255, 255, 3), (255, 255, 3), (120, 73, 3)]
+    for image, shape in zip(iio3.imiter(tmp_path / "nightmare.tiff"), shapes):
+        assert image.shape == shape
