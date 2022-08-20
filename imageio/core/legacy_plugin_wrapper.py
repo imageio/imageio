@@ -190,7 +190,7 @@ class LegacyPlugin(PluginV3):
             # Write the largest possible block by guessing the meaning of each
             # dimension from the shape/ndim and then checking if any batch
             # dimensions are left.
-            ndimage = np.asarray(ndimage)
+            ndimage = np.asanyarray(ndimage)
             batch_dims = ndimage.ndim
 
             # two spatial dimensions
@@ -212,7 +212,7 @@ class LegacyPlugin(PluginV3):
 
         with self.legacy_get_writer(**kwargs) as writer:
             for image in ndimage:
-                image = np.asarray(image)
+                image = np.asanyarray(image)
 
                 if image.ndim < 2:
                     raise ValueError(
