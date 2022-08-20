@@ -302,11 +302,11 @@ def test_multiple_ndimages(tmp_path):
         file.write(different_shape)
 
     # imread will read the image at the respective index
-    assert iio3.imread("nightmare.tiff", index=0).shape == (4, 255, 255, 3)
-    assert iio3.imread("nightmare.tiff", index=1).shape == (255, 255, 3)
-    assert iio3.imread("nightmare.tiff", index=2).shape == (120, 73, 3)
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=0).shape == (4, 255, 255, 3)
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=1).shape == (255, 255, 3)
+    assert iio3.imread(tmp_path / "nightmare.tiff", index=2).shape == (120, 73, 3)
 
     # imiter will yield the three images in order
     shapes = [(4, 255, 255, 3), (255, 255, 3), (120, 73, 3)]
-    for image, shape in zip(iio3.imiter("nightmare.tiff"), shapes):
+    for image, shape in zip(iio3.imiter(tmp_path / "nightmare.tiff"), shapes):
         assert image.shape == shape
