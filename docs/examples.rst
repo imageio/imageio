@@ -307,6 +307,7 @@ Now, let's start by creating a gif using imageio:
 
     import imageio.v3 as iio
     import matplotlib.pyplot as plt
+    import numpy as np
     
     n = 100
     gif_path = "test.gif"
@@ -348,6 +349,7 @@ Putting everything together:
 
     import imageio.v3 as iio
     import matplotlib.pyplot as plt
+    import numpy as np
     from pygifsicle import optimize
     
     n = 100
