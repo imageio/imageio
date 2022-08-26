@@ -798,9 +798,7 @@ def process_directory(request, progressIndicator, readPixelData=False):
     elif os.path.isfile(request.filename):
         path = os.path.dirname(request.filename)
     else:  # pragma: no cover - tested earlier
-        raise ValueError(
-            "Dicom plugin needs a valid filename to examine " "the directory"
-        )
+        raise ValueError("Dicom plugin needs a valid filename to examine the directory")
 
     # Check files
     files = []

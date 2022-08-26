@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import imageio.v2 as iio
+import imageio.v3 as iio3
 from imageio import core
 import imageio.plugins.dicom
 from conftest import deprecated_test
@@ -187,3 +188,12 @@ def test_different_read_modes_with_readers(examples):
         R = iio.read(fname, "DICOM", "?")
         with pytest.raises(RuntimeError):
             R.get_length()
+
+
+def test_v3_reading(test_images):
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/862
+    expected = iio.imread(test_images / "dicom_file01.dcm")
+    actual = iio3.imread(test_images / "dicom_file01.dcm")
+
+    assert np.allclose(actual, expected)

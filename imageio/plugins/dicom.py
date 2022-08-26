@@ -248,6 +248,17 @@ class DicomFormat(Format):
             else:
                 raise RuntimeError("DICOM plugin should know what to expect.")
 
+        def _get_slice_data(self, index):
+            nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
+
+            # Allow index >1 only if this file contains >1
+            if nslices > 1:
+                return self._data[index], self._info
+            elif index == 0:
+                return self._data, self._info
+            else:
+                raise IndexError("Dicom file contains only one slice.")
+
         def _get_data(self, index):
             if self._data is None:
                 dcm = self.series[0][0]
@@ -257,13 +268,7 @@ class DicomFormat(Format):
             nslices = self._data.shape[0] if (self._data.ndim == 3) else 1
 
             if self.request.mode[1] == "i":
-                # Allow index >1 only if this file contains >1
-                if nslices > 1:
-                    return self._data[index], self._info
-                elif index == 0:
-                    return self._data, self._info
-                else:
-                    raise IndexError("Dicom file contains only one slice.")
+                return self._get_slice_data(index)
             elif self.request.mode[1] == "I":
                 # Return slice from volume, or return item from series
                 if index == 0 and nslices > 1:
@@ -282,8 +287,19 @@ class DicomFormat(Format):
                         self.series[index].get_numpy_array(),
                         self.series[index].info,
                     )
-            else:  # pragma: no cover
-                raise ValueError("DICOM plugin should know what to expect.")
+            # mode is `?` (typically because we are using V3). If there is a
+            # series (multiple files), index referrs to the element of the
+            # series and we read volumes. If there is no series, index
+            # referrs to the slice in the volume we read "flat" images.
+            elif len(self.series) > 1:
+                # mode is `?` and there are multiple series. Each series is a ndimage.
+                return (
+                    self.series[index].get_numpy_array(),
+                    self.series[index].info,
+                )
+            else:
+                # mode is `?` and there is only one series. Each slice is an ndimage.
+                return self._get_slice_data(index)
 
         def _get_meta_data(self, index):
             if self._data is None:
