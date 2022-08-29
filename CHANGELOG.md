@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.21.2 (2022-08-29)
+### Fix
+* Allow v3.imread to read dicom ([#868](https://github.com/imageio/imageio/issues/868)) ([`22c98c2`](https://github.com/imageio/imageio/commit/22c98c201a5289c5ad32c5dc3739de7d7fe08862))
+* Revert to asanyarray ([#863](https://github.com/imageio/imageio/issues/863)) ([`fdaba04`](https://github.com/imageio/imageio/commit/fdaba04a346e5a11c8d7d79cf37f0cc35f5ef4ce))
+
+### Other
+* Add missing numpy import in example ([#866](https://github.com/imageio/imageio/issues/866)) ([`d85bfba`](https://github.com/imageio/imageio/commit/d85bfbaa7957f35e8c68caf610b0193849deb5d2))
+
 ## v2.21.1 (2022-08-08)
 ### Fix
 * Seeking to last frame caused EoF in pyav ([#855](https://github.com/imageio/imageio/issues/855)) ([`7ff7f02`](https://github.com/imageio/imageio/commit/7ff7f023d4b24a8349c867a50c46cfe52ce724bb))
