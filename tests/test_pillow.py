@@ -298,6 +298,23 @@ def test_gif_palletsize(test_images, tmp_path):
     # TODO: assert pallet size is 128
 
 
+def test_gif_loop_and_fps(test_images, tmp_path):
+    # Note: I think this test tests pillow kwargs, not imageio functionality
+    # maybe we should drop it?
+
+    im = iio.v3.imread(
+        test_images / "newtonscradle.gif",
+        plugin="pillow",
+        mode="RGBA",
+    )
+
+    with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+        for frame in im:
+            file.write(frame, palettesize=100, duration=0.00005, loop=2)
+
+    # This test had no assert; how to assert fps and loop count?
+
+
 def test_gif_indexed_read(test_images):
     idx = 0
     numpy_im = np.load(test_images / "newtonscradle_rgb.npy")[idx, ...]
