@@ -298,7 +298,7 @@ def test_gif_palletsize(test_images, tmp_path):
     # TODO: assert pallet size is 128
 
 
-def test_gif_loop_and_fps(test_images, tmp_path):
+def test_gif_loop_and_duration(test_images, tmp_path):
     # Note: I think this test tests pillow kwargs, not imageio functionality
     # maybe we should drop it?
 
