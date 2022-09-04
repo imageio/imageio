@@ -282,8 +282,8 @@ class PillowPlugin(PluginV3):
         """
         if "fps" in kwargs:
             raise NotImplementedError(
-                "The keyword, `fps`, is no longer supported; specify `duration`"
-                "in milliseconds instead, e.g. `fps=60` == `duration=1/60/1000`"
+                "The keyword `fps` is no longer supported. Use `duration`"
+                "(in ms) instead, e.g. `fps=60` == `duration=1/60/1000`."
             )
 
         extension = self.request.extension or self.request.format_hint
