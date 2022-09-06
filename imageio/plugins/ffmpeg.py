@@ -3,6 +3,13 @@
 
 """Read/Write video using FFMPEG
 
+.. note::
+    We are in the process of (slowly) replacing this plugin with a new one that
+    is based on `pyav <https://pyav.org/docs/stable/>`_. It is faster and more
+    flexible than the plugin documented here. Check the :mod:`pyav
+    plugin's documentation <imageio.plugins.pyav>` for more information about
+    this plugin.
+
 Backend Library: https://github.com/imageio/imageio-ffmpeg
 
 .. note::

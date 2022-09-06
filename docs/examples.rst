@@ -155,6 +155,54 @@ Convert a short movie to grayscale
     # write the video
     iio.imwrite("cockatoo_gray.mp4", gray_frames_as_rgb, fps=metadata["fps"])
 
+Read frames in a video
+----------------------
+.. note::
+    For this to work, you need to install the pyav backend::
+
+        pip install av
+
+.. code-block:: python
+
+    import imageio.v3 as iio
+
+    # read a single frame
+    frame = iio.imread(
+        "imageio:cockatoo.mp4", 
+        index=42, 
+        plugin="pyav", 
+    )
+
+    # bulk read all frames
+    # Warning: large videos will consume a lot of memory (RAM)
+    frames = iio.imread("imageio:cockatoo.mp4", plugin="pyav")
+
+    # iterate over large videos
+    for frame in iio.imiter("imageio:cockatoo.mp4", plugin="pyav"):
+        print(frame.shape, frame.dtype)
+
+Re-encode a (large) video
+-------------------------
+
+.. note::
+    For this to work, you need to install the pyav backend::
+
+        pip install av
+
+.. code-block:: python
+
+    import imageio.v3 as iio
+
+    # assume this is too large to keep all frames in memory
+    source = "imageio:cockatoo.mp4"
+    dest = "reencoded_cockatoo.mkv"
+
+    with iio.imopen(source, "r", plugin="pyav") as in_file, iio.imopen(
+        dest, "w", plugin="pyav"
+    ) as out_file:
+        for frame in in_file.iter(format="rgb24"):
+            out_file.write(frame, codec="vp9", is_batch=False)
+
 
 Read medical data (DICOM)
 -------------------------
