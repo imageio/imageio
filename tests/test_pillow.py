@@ -262,7 +262,7 @@ def test_gif_fps_error(test_images, tmp_path):
         mode="L",
     )
 
-    with pytest.raises(TypeError, match="The keyword, `fps`"):
+    with pytest.raises(TypeError):
         iio.v3.imwrite(
             tmp_path / "test.gif",
             im[..., 0],
