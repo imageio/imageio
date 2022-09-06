@@ -255,6 +255,23 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
+def test_gif_fps_error(test_images, tmp_path):
+    im = iio.v3.imread(
+        test_images / "newtonscradle.gif",
+        plugin="pillow",
+        mode="L",
+    )
+
+    with pytest.raises(TypeError):
+        iio.v3.imwrite(
+            tmp_path / "test.gif",
+            im[..., 0],
+            plugin="pillow",
+            fps=60,
+            mode="L",
+        )
+
+
 def test_gif_irregular_duration(test_images, tmp_path):
     im = iio.v3.imread(
         test_images / "newtonscradle.gif",
@@ -281,7 +298,7 @@ def test_gif_palletsize(test_images, tmp_path):
     # TODO: assert pallet size is 128
 
 
-def test_gif_loop_and_fps(test_images, tmp_path):
+def test_gif_loop_and_duration(test_images, tmp_path):
     # Note: I think this test tests pillow kwargs, not imageio functionality
     # maybe we should drop it?
 
@@ -293,7 +310,7 @@ def test_gif_loop_and_fps(test_images, tmp_path):
 
     with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
         for frame in im:
-            file.write(frame, palettesize=100, fps=20, loop=2)
+            file.write(frame, palettesize=100, duration=0.00005, loop=2)
 
     # This test had no assert; how to assert fps and loop count?
 
