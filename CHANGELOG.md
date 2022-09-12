@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.21.3 (2022-09-12)
+### Fix
+* Raise error if fps is specified ([#871](https://github.com/imageio/imageio/issues/871)) ([`1f8d37a`](https://github.com/imageio/imageio/commit/1f8d37ad8e06963a0cd5aaae270eae11fd3e82f2))
+
+### Other
+* Fix small typo ([#873](https://github.com/imageio/imageio/issues/873)) ([`f59e16d`](https://github.com/imageio/imageio/commit/f59e16d40351d12f2539a3d62af1a2bc07af5294))
+* Examples for Pyav ([#865](https://github.com/imageio/imageio/issues/865)) ([`810a7a9`](https://github.com/imageio/imageio/commit/810a7a9ebf7c6fbd8f0e00b3def93f60525967b4))
+
 ## v2.21.2 (2022-08-29)
 ### Fix
 * Allow v3.imread to read dicom ([#868](https://github.com/imageio/imageio/issues/868)) ([`22c98c2`](https://github.com/imageio/imageio/commit/22c98c201a5289c5ad32c5dc3739de7d7fe08862))
