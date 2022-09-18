@@ -66,6 +66,7 @@ def test_metadata(test_images: Path):
         assert meta["codec"] == "h264"
         assert meta["encoder"] == "Lavf56.4.101"
         assert meta["duration"] == 14
+        assert meta["fps"] == 20.0
 
         meta = plugin.metadata(index=4)
         assert meta["time"] == 0.2
@@ -179,7 +180,7 @@ def test_filter_graph(test_images):
     assert frames.shape == (56, 480, 640, 3)
 
 
-def test_write_bytes(test_images, tmp_path):
+def test_write_bytes(test_images):
     img = iio.imread(
         test_images / "cockatoo.mp4",
         plugin="pyav",
@@ -193,7 +194,6 @@ def test_write_bytes(test_images, tmp_path):
         img,
         extension=".mp4",
         plugin="pyav",
-        in_pixel_format="yuv444p",
         codec="libx264",
     )
 
@@ -210,7 +210,12 @@ def test_read_png(test_images):
 def test_write_png(test_images, tmp_path):
     img_expected = iio.imread(test_images / "chelsea.png", plugin="pyav", index=0)
     iio.imwrite(
-        tmp_path / "out.png", img_expected, plugin="pyav", codec="png", is_batch=False
+        tmp_path / "out.png",
+        img_expected,
+        plugin="pyav",
+        codec="png",
+        is_batch=False,
+        out_pixel_format="rgb24",
     )
     img_actual = iio.imread(tmp_path / "out.png", plugin="pyav")
 
@@ -285,11 +290,14 @@ def test_variable_fps_seek(test_images):
 
 
 def test_multiple_writes(test_images):
+    # Note: when opening videos via imopen prefer using the additional API for
+    # writing (see eg. test_procedual_writing)
     out_buffer = io.BytesIO()
     with iio.imopen(out_buffer, "w", plugin="pyav", extension=".mp4") as file:
         for frame in iio.imiter(
             test_images / "newtonscradle.gif",
             plugin="pyav",
+            format="rgba",
         ):
             file.write(frame, is_batch=False, codec="libx264", in_pixel_format="rgba")
 
@@ -395,3 +403,62 @@ def test_uri_reading(test_images):
 def test_seek_last(test_images):
     frame = iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=279)
     assert frame.shape == (720, 1280, 3)
+
+
+def test_procedual_writing(test_images):
+    buffer = io.BytesIO()
+    with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
+        file.init_video_stream("h264")
+        for frame in iio.imiter(test_images / "cockatoo.mp4", plugin="pyav"):
+            file.write_frame(frame)
+
+    buffer.seek(0)
+    actual = iio.imread(buffer, plugin="pyav", extension=".mp4")
+
+    assert actual.shape == (280, 720, 1280, 3)
+
+
+def test_procedual_writing_with_filter(test_images):
+    buffer = io.BytesIO()
+    with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
+        file.init_video_stream("h264", fps=30)
+        file.set_video_filter(
+            filter_sequence=[
+                ("scale", {"size": "vga", "flags": "lanczos"}),
+            ]
+        )
+        for frame in iio.imiter(
+            test_images / "cockatoo.mp4", plugin="pyav", format="yuv444p"
+        ):
+            file.write_frame(frame, pixel_format="yuv444p")
+
+    buffer.seek(0)
+    actual = iio.imread(buffer, plugin="pyav", extension=".mp4")
+
+    assert actual.shape == (280, 480, 640, 3)
+
+
+def test_rotation_flag_metadata(tmp_path):
+    with iio.imopen(tmp_path / "test.mp4", "w", plugin="pyav") as file:
+        file.init_video_stream("libx264")
+        file.container_metadata["comment"] = "This video has a rotation flag."
+        file.video_stream_metadata["rotate"] = "90"
+
+        for _ in range(5):
+            for frame in iio.imiter("imageio:newtonscradle.gif"):
+                file.write_frame(frame)
+
+    meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
+    assert meta["comment"] == "This video has a rotation flag."
+    assert meta["rotate"] == "90"
+
+
+def test_read_filter(test_images):
+    image = iio.imread(
+        test_images / "cockatoo.mp4",
+        index=5,
+        plugin="pyav",
+        filter_sequence=[("scale", {"size": "vga", "flags": "lanczos"})],
+    )
+
+    assert image.shape == (480, 640, 3)
