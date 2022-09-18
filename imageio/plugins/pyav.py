@@ -774,7 +774,7 @@ class PyAVPlugin(PluginV3):
         """
 
         stream = self._container.add_stream(codec, fps)
-        stream.time_base = Fraction(1, fps)
+        stream.time_base = Fraction(1, int(fps))
         if pixel_format is not None:
             stream.pix_fmt = pixel_format
 
