@@ -3,14 +3,14 @@
 Backend Library: `PyAV <https://pyav.org/docs/stable/>`_
 
 This plugin wraps pyAV, a pythonic binding for the FFMPEG library.
-It is similar to our FFMPEG plugin, but offers a more performant and
-robut interface, and aims to superseed the FFMPEG plugin in the future.
+It is similar to our FFMPEG plugin but offers a more performant and
+robut interface and aims to superseed the FFMPEG plugin in the future.
 
 
 Methods
 -------
 .. note::
-    Check the respective function for a list of supported kwargs and their
+    Check the respective function for a list of supported kwargs and detailed
     documentation.
 
 .. autosummary::
@@ -21,6 +21,18 @@ Methods
     PyAVPlugin.write
     PyAVPlugin.properties
     PyAVPlugin.metadata
+
+Additional methods available inside the :func:`imopen <imageio.v3.imopen>`
+context:
+
+.. autosummary::
+    :toctree:
+
+    PyAVPlugin.init_video_stream
+    PyAVPlugin.write_frame
+    PyAVPlugin.set_video_filter
+    PyAVPlugin.container_metadata
+    PyAVPlugin.video_stream_metadata
 
 Pixel Formats (Colorspaces)
 ---------------------------
@@ -718,15 +730,18 @@ class PyAVPlugin(PluginV3):
     ) -> None:
         """Initialize a new video stream.
 
+        This function adds a new video stream to the ImageResource using the
+        selected encoder (codec), framerate, and colorspace.
+
         Parameters
         ----------
         codec : str
-            The codec to use.
+            The codec to use, e.g. ``"x264"`` or ``"vp9"``.
         fps : str
-            The resulting videos frames per second.
+            The desired framerate of the video stream (frames per second).
         pixel_format : str
-            The pixel format to use while encoding frames. If None (default)
-            use the codec's default.
+            The pixel format to use while encoding frames. If None (default) use
+            the codec's default.
 
         """
 
@@ -738,6 +753,28 @@ class PyAVPlugin(PluginV3):
         self._video_stream = stream
 
     def write_frame(self, frame: np.ndarray, *, pixel_format: str = "rgb24") -> None:
+        """Add a frame to the video stream.
+
+        This function appends a new frame to the video. It assumes that the
+        stream previously has been initialized. I.e., ``init_video_stream`` has
+        to be called before calling this function for the write to succeed.
+
+        Parameters
+        ----------
+        frame : np.ndarray
+            The image to be appended/written to the video stream.
+        pixel_format : str
+            The colorspace (pixel format) of the incoming frame.
+
+        Notes
+        -----
+        Frames may be held in a buffer, e.g., by the filter pipeline used during
+        writing or by FFMPEG to batch them prior to encoding. Make sure to
+        ``.close()`` the plugin or to use a context manager to ensure that all
+        frames are written to the ImageResource.
+
+        """
+
         # manual packing of ndarray into frame
         # (this should live in pyAV, but it doesn't support all the formats we
         # want and PRs there are slow)
@@ -800,7 +837,12 @@ class PyAVPlugin(PluginV3):
         filter_sequence: List[Tuple[str, Union[str, dict]]] = None,
         filter_graph: Tuple[dict, List] = None,
     ) -> None:
-        """Set the filter to use when reading/writing frames.
+        """Set the filter(s) to use.
+
+        This function creates a new FFMPEG filter graph to use when reading or
+        writing video. In the case of reading, frames are passed through the
+        filter graph before begin returned and, in case of writing, frames are
+        passed through the filter before being written to the video.
 
         Parameters
         ----------
@@ -815,11 +857,10 @@ class PyAVPlugin(PluginV3):
             of edges between nodes of the previous dict. Check the
             (module-level) plugin docs for details and examples.
 
-        Yields
-        -------
-        frame : Optional[av.VideoFrame]
-            A frame that was filtered using the created filter or None if the
-            filter has lag and didn't send any frames yet.
+        Notes
+        -----
+        Changing a filter graph with lag during reading or writing will
+        currently cause frames in the filter queue to be lost.
 
         """
 
@@ -898,10 +939,20 @@ class PyAVPlugin(PluginV3):
 
     @property
     def container_metadata(self):
+        """Container-specific metadata.
+
+        A dictionary containing metadata stored at the container level.
+
+        """
         return self._container.metadata
 
     @property
     def video_stream_metadata(self):
+        """Stream-specific metadata.
+
+        A dictionary containing metadata stored at the stream level.
+
+        """
         return self._video_stream.metadata
 
     # -------------------------------
