@@ -1,6 +1,9 @@
 """Read/Write Videos (and images) using PyAV.
 
-Backend Library: `PyAV <https://pyav.org/docs/stable/>`_
+.. note::
+    To use this plugin you need to have `PyAV <https://pyav.org/docs/stable/>`_ installed::
+
+        pip install av
 
 This plugin wraps pyAV, a pythonic binding for the FFMPEG library.
 It is similar to our FFMPEG plugin but offers a more performant and
@@ -33,6 +36,31 @@ context:
     PyAVPlugin.set_video_filter
     PyAVPlugin.container_metadata
     PyAVPlugin.video_stream_metadata
+
+Advanced API
+------------
+
+In addition to the default ImageIO v3 API this plugin exposes custom functions
+that are specific to reading/writing video and its metadata. These are available
+inside the :func:`imopen <imageio.v3.imopen>` context and allow fine-grained
+control over how the video is processed. The functions are documented above and
+below you can find a usage example::
+
+    import imageio.v3 as iio
+
+    with iio.imopen("test.mp4", "w", plugin="pyav") as file:
+        file.init_video_stream("libx264")
+        file.container_metadata["comment"] = "This video has a rotation flag."
+        file.video_stream_metadata["rotate"] = "90"
+
+        for _ in range(5):
+            for frame in iio.imiter("imageio:newtonscradle.gif"):
+                file.write_frame(frame)
+
+    meta = iio.immeta("test.mp4", plugin="pyav")
+    assert meta["comment"] == "This video has a rotation flag."
+
+
 
 Pixel Formats (Colorspaces)
 ---------------------------
