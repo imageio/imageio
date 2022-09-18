@@ -84,18 +84,6 @@ Read all Images in a Folder
 Note, however, that ``Path().iterdir()`` does not guarantees the order in which
 files are read.
 
-
-Iterate over frames in a movie
-------------------------------
-
-.. code-block:: python
-
-    import imageio.v3 as iio
-
-    for i, frame in enumerate(iio.imiter("imageio:cockatoo.mp4")):
-        print("Mean of frame %i is %1.1f" % (i, frame.mean()))
-
-
 Grab screenshot or image from the clipboard
 -------------------------------------------
 
@@ -155,8 +143,9 @@ Convert a short movie to grayscale
     # write the video
     iio.imwrite("cockatoo_gray.mp4", gray_frames_as_rgb, fps=metadata["fps"])
 
-Read frames in a video
-----------------------
+Read or iterate frames in a video
+---------------------------------
+
 .. note::
     For this to work, you need to install the pyav backend::
 
@@ -181,6 +170,7 @@ Read frames in a video
     for frame in iio.imiter("imageio:cockatoo.mp4", plugin="pyav"):
         print(frame.shape, frame.dtype)
 
+
 Re-encode a (large) video
 -------------------------
 
@@ -197,11 +187,13 @@ Re-encode a (large) video
     source = "imageio:cockatoo.mp4"
     dest = "reencoded_cockatoo.mkv"
 
-    with iio.imopen(source, "r", plugin="pyav") as in_file, iio.imopen(
-        dest, "w", plugin="pyav"
-    ) as out_file:
-        for frame in in_file.iter(format="rgb24"):
-            out_file.write(frame, codec="vp9", is_batch=False)
+    fps = iio.immeta(source, plugin="pyav")["fps"]
+
+    with iio.imopen(dest, "w", plugin="pyav") as out_file:
+        out_file.init_video_stream("vp9", fps=fps)
+
+        for frame in iio.imiter(source, plugin="pyav"):
+            out_file.write_frame(frame)
 
 
 Read medical data (DICOM)
