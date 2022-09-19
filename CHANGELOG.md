@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.22.0 (2022-09-19)
+### Feature
+* Pyav API for procedural video writing ([#853](https://github.com/imageio/imageio/issues/853)) ([`acbcb64`](https://github.com/imageio/imageio/commit/acbcb645d9fab72e2f73e4ce61fd9af2007c8891))
+
 ## v2.21.3 (2022-09-12)
 ### Fix
 * Raise error if fps is specified ([#871](https://github.com/imageio/imageio/issues/871)) ([`1f8d37a`](https://github.com/imageio/imageio/commit/1f8d37ad8e06963a0cd5aaae270eae11fd3e82f2))
