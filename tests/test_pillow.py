@@ -2,7 +2,6 @@
 """
 
 import io
-from mmap import ALLOCATIONGRANULARITY
 import os
 from pathlib import Path
 
