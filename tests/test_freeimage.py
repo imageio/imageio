@@ -702,3 +702,12 @@ def test_improps(test_images):
     assert props.shape == (512, 768, 3)
     assert props.dtype == np.uint8
     assert props.is_batch is False
+
+
+def test_exr_write():
+    expected = np.full((128, 128, 3), 0.42, dtype=np.float32)
+    buffer = iio3.imwrite("<bytes>", expected, extension=".exr")
+
+    actual = iio3.imread(buffer)
+
+    np.allclose(actual, expected)
