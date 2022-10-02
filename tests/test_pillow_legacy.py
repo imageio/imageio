@@ -181,8 +181,7 @@ def test_png(test_images, tmp_path):
 def test_png_remote():
     # issue #202
     im = imageio.imread(
-        "https://raw.githubusercontent.com/imageio/"
-        + "imageio-binaries/master/images/astronaut.png"
+        "https://raw.githubusercontent.com/imageio/test_images/main/astronaut.png"
     )
     assert im.shape == (512, 512, 3)
 
