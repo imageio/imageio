@@ -132,7 +132,7 @@ def test_png_16bit(test_images, tmp_path):
 def test_png_remote():
     # issue #202
 
-    url = "https://github.com/imageio/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
+    url = "https://raw.githubusercontent.com/imageio/test_images/main/chelsea.png"
     im = iio.v3.imread(url, plugin="pillow")
     assert im.shape == (300, 451, 3)
 
