@@ -69,11 +69,11 @@ that best suits that file-format.
 
 ----
 
-.. autoclass:: imageio.core.format.Reader
+.. autoclass:: imageio.core::Format.Reader
     :inherited-members:
     :members: 
     
-.. autoclass:: imageio.core.format.Writer
+.. autoclass:: imageio.core::Format.Writer
     :inherited-members:
     :members: 
 
