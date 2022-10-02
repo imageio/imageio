@@ -235,8 +235,9 @@ extension_list = [
         priority=["RAW-FI"],
     ),
     FileExtension(
-        name="ILM OpenEXR",
+        name="OpenEXR",
         extension=".exr",
+        external_link="https://openexr.readthedocs.io/en/latest/",
         priority=["EXR-FI", "pyav", "opencv"],
     ),
     FileExtension(
