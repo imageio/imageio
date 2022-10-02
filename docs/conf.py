@@ -20,11 +20,9 @@ from pathlib import Path
 
 
 # import/load the plugins so that they can be documented
-# this may require mocking imports in the future
 import imageio.plugins.bsdf
 import imageio.plugins.dicom
 import imageio.plugins.feisem
-import imageio.plugins.ffmpeg
 import imageio.plugins.fits
 import imageio.plugins.freeimage
 import imageio.plugins.gdal
@@ -64,7 +62,7 @@ SphinxDocString._str_member_list = lambda self, name: []
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-autodoc_mock_imports = ["av", "cv2"]
+autodoc_mock_imports = ["av", "cv2", "imageio_ffmpeg"]
 
 # The suffix of source filenames.
 source_suffix = ".rst"

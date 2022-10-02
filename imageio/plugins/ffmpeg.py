@@ -133,6 +133,7 @@ import logging
 import platform
 import threading
 import subprocess as sp
+import imageio_ffmpeg
 
 import numpy as np
 
@@ -161,26 +162,8 @@ def download(directory=None, force_download=False):  # pragma: no cover
 # For backwards compatibility - we dont use this ourselves
 def get_exe():  # pragma: no cover
     """Wrapper for imageio_ffmpeg.get_ffmpeg_exe()"""
-    import imageio_ffmpeg
 
     return imageio_ffmpeg.get_ffmpeg_exe()
-
-
-_ffmpeg_api = None
-
-
-def _get_ffmpeg_api():
-    global _ffmpeg_api
-    if _ffmpeg_api is None:
-        try:
-            import imageio_ffmpeg
-        except ImportError:
-            raise ImportError(
-                "To use the imageio ffmpeg plugin you need to "
-                "'pip install imageio-ffmpeg'"
-            )
-        _ffmpeg_api = imageio_ffmpeg
-    return _ffmpeg_api
 
 
 class FfmpegFormat(Format):
@@ -221,7 +204,7 @@ class FfmpegFormat(Format):
 
             elif sys.platform.startswith("win"):
                 # Ask ffmpeg for list of dshow device names
-                ffmpeg_api = _get_ffmpeg_api()
+                ffmpeg_api = imageio_ffmpeg
                 cmd = [
                     ffmpeg_api.get_ffmpeg_exe(),
                     "-list_devices",
@@ -275,7 +258,7 @@ class FfmpegFormat(Format):
             fps=None,
         ):
             # Get generator functions
-            self._ffmpeg_api = _get_ffmpeg_api()
+            self._ffmpeg_api = imageio_ffmpeg
             # Process input args
             self._arg_loop = bool(loop)
             if size is None:
@@ -561,7 +544,7 @@ class FfmpegFormat(Format):
             quality=5,
             macro_block_size=16,
         ):
-            self._ffmpeg_api = _get_ffmpeg_api()
+            self._ffmpeg_api = imageio_ffmpeg
             self._filename = self.request.get_local_filename()
             self._pix_fmt = None
             self._depth = None
