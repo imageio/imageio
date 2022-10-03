@@ -418,8 +418,6 @@ def volwrite(uri, im, format=None, **kwargs):
     imopen_args = decypher_format_arg(format)
     imopen_args["legacy_mode"] = True
 
-    kwargs["is_batch"] = False
-
     with imopen(uri, "wv", **imopen_args) as file:
         return file.write(im, is_batch=False, **kwargs)
 
