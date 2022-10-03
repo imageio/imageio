@@ -635,12 +635,9 @@ class FormatManager(object):
         available_formats = list()
 
         for config in known_plugins.values():
-            if config.is_legacy:
-                try:
-                    config.format
-                except ImportError:
-                    pass  # format not installed
-                else:
+            with contextlib.suppress(ImportError):
+                # if an exception is raised, then format not installed
+                if config.is_legacy and config.format is not None:                    
                     available_formats.append(config)
 
         return available_formats
