@@ -631,7 +631,18 @@ class FormatManager(object):
 
     @property
     def _formats(self):
-        return [x for x in known_plugins.values() if x.is_legacy]
+        available_formats = list()
+
+        for config in known_plugins.values():
+            if config.is_legacy:
+                try:
+                    config.format
+                except ImportError:
+                    pass  # format not installed
+                else:
+                    available_formats.append(config)
+
+        return available_formats
 
     def __repr__(self):
         return f"<imageio.FormatManager with {len(self._formats)} registered formats>"

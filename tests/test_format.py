@@ -1,6 +1,7 @@
 import gc
 import shutil
 from pathlib import Path
+import sys
 from typing import List
 
 import imageio
@@ -437,3 +438,21 @@ def test_write_format_search_fail(tmp_path):
 @deprecated_test
 def test_format_by_filename():
     iio.formats["test.jpg"]
+
+
+@pytest.fixture()
+def missing_ffmpeg():
+    old = sys.modules.get("imageio_ffmpeg")
+    sys.modules["imageio_ffmpeg"] = None
+
+    yield
+
+    sys.modules["imageio_ffmpeg"] = old
+
+
+def test_missing_format(missing_ffmpeg):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/887
+
+    for format in imageio.formats:
+        assert format.name != "FFMPEG"
