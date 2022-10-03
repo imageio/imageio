@@ -454,5 +454,7 @@ def test_missing_format(missing_ffmpeg):
     # regression test for
     # https://github.com/imageio/imageio/issues/887
 
+    assert sys.modules["imageio_ffmpeg"] == None
+
     for format in imageio.formats:
         assert format.name != "FFMPEG"
