@@ -597,3 +597,14 @@ def test_write_format_warning():
         old_bytes = iio.v3.imwrite("<bytes>", frames, plugin="pillow", format="PNG")
 
     assert bytes_image == old_bytes
+
+
+def test_8bit_with_16bit_depth():
+    rng = np.random.default_rng()
+
+    img16 = rng.integers(2**0, 2**8, (128, 128), dtype=np.uint16)
+    img16_bytes = iio.v3.imwrite("<bytes>", img16, extension=".png", plugin="pillow")
+    img16_read = iio.v3.imread(img16_bytes)
+
+    assert img16_read.dtype != np.uint8
+    assert np.allclose(img16_read, img16)
