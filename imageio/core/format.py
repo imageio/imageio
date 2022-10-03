@@ -31,6 +31,7 @@ a format object using ``imageio.formats.add_format()``.
 
 import sys
 import warnings
+import contextlib
 
 import numpy as np
 from pathlib import Path
