@@ -442,19 +442,20 @@ def test_format_by_filename():
 
 @pytest.fixture()
 def missing_ffmpeg():
-    old = sys.modules.get("imageio_ffmpeg")
+    old_ffmpeg = sys.modules.get("imageio_ffmpeg")
+    old_plugin = sys.modules.get("imageio.plugins.ffmpeg")
     sys.modules["imageio_ffmpeg"] = None
+    sys.modules.pop("imageio.plugins.ffmpeg")
 
     yield
 
-    sys.modules["imageio_ffmpeg"] = old
+    sys.modules["imageio_ffmpeg"] = old_ffmpeg
+    sys.modules["imageio.plugins.ffmpeg"] = old_plugin
 
 
 def test_missing_format(missing_ffmpeg):
     # regression test for
     # https://github.com/imageio/imageio/issues/887
-
-    assert sys.modules["imageio_ffmpeg"] == None
 
     for format in imageio.formats:
         assert format.name != "FFMPEG"
