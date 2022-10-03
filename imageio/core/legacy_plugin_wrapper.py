@@ -164,7 +164,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, ndimage, is_batch=None, **kwargs):
+    def write(self, ndimage, *, is_batch=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -174,12 +174,34 @@ class LegacyPlugin(PluginV3):
 
         Parameters
         ----------
-        image : numpy.ndarray
+        ndimage : numpy.ndarray
             The ndimage or list of ndimages to write.
+        is_batch : bool
+            If True, treat the supplied ndimage as a batch of images. If False,
+            treat the supplied ndimage as a single image. If None, try to
+            determine ``is_batch`` from the ndimage's shape and ndim.
         kwargs : ...
             Further keyword arguments are passed to the writer. See
             :func:`.help` to see what arguments are available for a
             particular format.
+
+
+        Returns
+        -------
+        buffer : bytes
+            When writing to the special target "<bytes>", this function will
+            return the encoded image data as a bytes string. Otherwise it
+            returns None.
+
+        Notes
+        -----
+        Automatically determining ``is_batch`` may fail for some images due to
+        shape aliasing. For example, it may classify a channel-first color image
+        as a batch of gray images. In most cases this automatic deduction works
+        fine (it has for almost a decade), but if you do have one of those edge
+        cases (or are worried that you might) consider explicitly setting
+        ``is_batch``.
+
         """
 
         if is_batch or isinstance(ndimage, (list, tuple)):
