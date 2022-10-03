@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.22.1 (2022-10-03)
+### Fix
+* Raise ImportError when iio-ffmpeg is missing ([#880](https://github.com/imageio/imageio/issues/880)) ([`e6e7ff4`](https://github.com/imageio/imageio/commit/e6e7ff4383da40c46000c6e8f227aa05983e2d15))
+
+### Other
+* EXR spec ([#885](https://github.com/imageio/imageio/issues/885)) ([`1b6159b`](https://github.com/imageio/imageio/commit/1b6159b063b3b86cbb1322162f97e42127bcb7b2))
+* Remove stale funding platform ([`f428953`](https://github.com/imageio/imageio/commit/f42895310c85f584ed5278f0f36b63c786878d56))
+
 ## v2.22.0 (2022-09-19)
 ### Feature
 * Pyav API for procedural video writing ([#853](https://github.com/imageio/imageio/issues/853)) ([`acbcb64`](https://github.com/imageio/imageio/commit/acbcb645d9fab72e2f73e4ce61fd9af2007c8891))
