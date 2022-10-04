@@ -42,14 +42,6 @@ def test_lytro_lfr_format(test_images):
     assert format.can_read(Request(lfr_file, "ri"))
 
     # Test cannot read, cannot write
-    assert not format.can_read(Request(lfr_file, "rv"))
-    assert not format.can_read(Request(lfr_file, "rI"))
-    assert not format.can_read(Request(lfr_file, "rV"))
-    assert not format.can_read(Request(lfp_file, "ri"))
-    assert not format.can_read(Request(raw_illum_file, "ri"))
-    assert not format.can_read(Request(raw_f01_file, "ri"))
-    assert not format.can_read(Request(png_file, "ri"))
-
     assert not format.can_write(Request(lfr_file, "wi"))
     assert not format.can_write(Request(lfp_file, "wi"))
     assert not format.can_write(Request(raw_f01_file, "wi"))
@@ -78,13 +70,6 @@ def test_lytro_illum_raw_format(test_images):
     assert format.can_read(Request(raw_illum_file, "ri"))
 
     # Test cannot read, cannot write
-    assert not format.can_read(Request(raw_illum_file, "rv"))
-    assert not format.can_read(Request(raw_illum_file, "rI"))
-    assert not format.can_read(Request(raw_illum_file, "rV"))
-    assert not format.can_read(Request(lfr_file, "ri"))
-    assert not format.can_read(Request(lfp_file, "ri"))
-    assert not format.can_read(Request(png_file, "ri"))
-
     assert not format.can_write(Request(raw_illum_file, "wi"))
     assert not format.can_write(Request(lfr_file, "wi"))
     assert not format.can_write(Request(lfp_file, "wi"))
@@ -113,13 +98,6 @@ def test_lytro_f01_raw_format(test_images):
     assert format.can_read(Request(raw_f01_file, "ri"))
 
     # Test cannot read, cannot write
-    assert not format.can_read(Request(raw_f01_file, "rv"))
-    assert not format.can_read(Request(raw_f01_file, "rI"))
-    assert not format.can_read(Request(raw_f01_file, "rV"))
-    assert not format.can_read(Request(lfr_file, "ri"))
-    assert not format.can_read(Request(lfp_file, "ri"))
-    assert not format.can_read(Request(png_file, "ri"))
-
     assert not format.can_write(Request(raw_f01_file, "wi"))
     assert not format.can_write(Request(lfr_file, "wi"))
     assert not format.can_write(Request(lfp_file, "wi"))
@@ -148,14 +126,6 @@ def test_lytro_lfp_format(test_images):
     assert format.can_read(Request(lfp_file, "ri"))
 
     # Test cannot read, cannot write
-    assert not format.can_read(Request(lfp_file, "rv"))
-    assert not format.can_read(Request(lfp_file, "rI"))
-    assert not format.can_read(Request(lfp_file, "rV"))
-    assert not format.can_read(Request(lfr_file, "ri"))
-    assert not format.can_read(Request(raw_f01_file, "ri"))
-    assert not format.can_read(Request(raw_illum_file, "ri"))
-    assert not format.can_read(Request(png_file, "ri"))
-
     assert not format.can_write(Request(lfp_file, "wi"))
     assert not format.can_write(Request(lfr_file, "wi"))
     assert not format.can_write(Request(raw_f01_file, "wi"))

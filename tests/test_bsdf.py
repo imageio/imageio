@@ -176,7 +176,7 @@ def test_random_access(test_images, tmp_path):
 def test_volume(test_images, tmp_path):
 
     fname1 = test_images / "stent.npz"
-    vol1 = iio.imread(fname1)
+    vol1 = iio.volread(fname1)
     assert vol1.shape == (256, 128, 128)
 
     fname = tmp_path / "stent.bsdf"

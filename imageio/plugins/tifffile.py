@@ -426,24 +426,13 @@ class TiffFormat(Format):
                 self._f.close()
 
         def _get_length(self):
-            if self.request.mode[1] in "vV?":
-                return len(self._tf.series)
-            else:
-                # for backwards compatibility
-                # imread/mimread reads all pages individually
-                return len(self._tf.pages)
+            return len(self._tf.series)
 
         def _get_data(self, index):
             if index < 0 or index >= self._get_length():
                 raise IndexError("Index out of range while reading from tiff file")
 
-            if self.request.mode[1] in "vV?":
-                # this might regress #559 / #558
-                # but it is hard to test without a test image
-                im = self._tf.asarray(series=index)
-            else:
-                im = self._tf.pages[index].asarray()
-
+            im = self._tf.asarray(series=index)
             meta = self._get_meta_data(index)
 
             return im, meta

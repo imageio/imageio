@@ -49,11 +49,9 @@ class DummyFormat(Format):
         # request.filename: a representation of the source (only for reporting)
         # request.firstbytes: the first 256 bytes of the file.
         # request.mode[0]: read or write mode
-        # request.mode[1]: what kind of data the user expects: one of 'iIvV?'
 
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
-                return True
+        if request.extension in self.extensions:
+            return True
 
     def _can_write(self, request):
         # This method is called when the format manager is searching
@@ -64,9 +62,8 @@ class DummyFormat(Format):
         # Return True if the format can do it.
 
         # In most cases, this code does suffice:
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
-                return True
+        if request.extension in self.extensions:
+            return True
 
     # -- reader
 

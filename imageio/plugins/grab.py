@@ -61,8 +61,6 @@ class ScreenGrabFormat(BaseGrabFormat):
     """
 
     def _can_read(self, request):
-        if request.mode[1] not in "i?":
-            return False
         if request.filename != "<screen>":
             return False
         return bool(self._init_pillow())
@@ -90,8 +88,6 @@ class ClipboardGrabFormat(BaseGrabFormat):
     """
 
     def _can_read(self, request):
-        if request.mode[1] not in "i?":
-            return False
         if request.filename != "<clipboard>":
             return False
         return bool(self._init_pillow())

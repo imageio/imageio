@@ -90,8 +90,6 @@ def test_select(test_images):
 
     assert F.can_read(core.Request(fname1, "rI"))
     assert F.can_write(core.Request(fname1, "wI"))
-    assert not F.can_read(core.Request(fname1, "ri"))
-    assert not F.can_read(core.Request(fname1, "rv"))
 
     # ffmpeg is default
     assert type(iio.formats[".mp4"]) is type(F)

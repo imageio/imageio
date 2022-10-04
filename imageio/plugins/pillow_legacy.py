@@ -262,22 +262,20 @@ class PillowFormat(Format):
 
     def _can_read(self, request):
         Image = self._init_pillow()
-        if request.mode[1] in (self.modes + "?"):
-            if self.plugin_id in Image.OPEN:
-                factory, accept = Image.OPEN[self.plugin_id]
-                if accept:
-                    if request.firstbytes and accept(request.firstbytes):
-                        return True
+        if self.plugin_id in Image.OPEN:
+            factory, accept = Image.OPEN[self.plugin_id]
+            if accept:
+                if request.firstbytes and accept(request.firstbytes):
+                    return True
 
     def _can_write(self, request):
         Image = self._init_pillow()
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions or request._uri_type in [
-                URI_FILE,
-                URI_BYTES,
-            ]:
-                if self.plugin_id in Image.SAVE:
-                    return True
+        if request.extension in self.extensions or request._uri_type in [
+            URI_FILE,
+            URI_BYTES,
+        ]:
+            if self.plugin_id in Image.SAVE:
+                return True
 
     class Reader(Format.Reader):
         def _open(self, pilmode=None, as_gray=False):
