@@ -31,6 +31,7 @@ a format object using ``imageio.formats.add_format()``.
 
 import sys
 import warnings
+import contextlib
 
 import numpy as np
 from pathlib import Path
@@ -631,7 +632,15 @@ class FormatManager(object):
 
     @property
     def _formats(self):
-        return [x for x in known_plugins.values() if x.is_legacy]
+        available_formats = list()
+
+        for config in known_plugins.values():
+            with contextlib.suppress(ImportError):
+                # if an exception is raised, then format not installed
+                if config.is_legacy and config.format is not None:
+                    available_formats.append(config)
+
+        return available_formats
 
     def __repr__(self):
         return f"<imageio.FormatManager with {len(self._formats)} registered formats>"
