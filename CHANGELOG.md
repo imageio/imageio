@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.22.2 (2022-10-16)
+### Fix
+* Make legacy FormatManager skip uninstalled plugins ([#888](https://github.com/imageio/imageio/issues/888)) ([`76a87c1`](https://github.com/imageio/imageio/commit/76a87c19d060abd12b0f9d0a35413d204fc29c74))
+
+### Other
+* Remove unneeded image_mode references ([#816](https://github.com/imageio/imageio/issues/816)) ([`eeafb8d`](https://github.com/imageio/imageio/commit/eeafb8d5e6b4ec351afa13a9ca05297cd7c8728a))
+* Remove xcode reference (dead link) ([`d1c3e5e`](https://github.com/imageio/imageio/commit/d1c3e5e02f3b2cc2fbf5988ddc8e1c3419b87ceb))
+
 ## v2.22.1 (2022-10-03)
 ### Fix
 * Raise ImportError when iio-ffmpeg is missing ([#880](https://github.com/imageio/imageio/issues/880)) ([`e6e7ff4`](https://github.com/imageio/imageio/commit/e6e7ff4383da40c46000c6e8f227aa05983e2d15))
