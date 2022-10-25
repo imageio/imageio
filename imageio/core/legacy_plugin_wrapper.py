@@ -164,7 +164,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, ndimage, *, is_batch=None, **kwargs):
+    def write(self, ndimage, *, is_batch=None, metadata=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -248,7 +248,7 @@ class LegacyPlugin(PluginV3):
                         f"All images have to be numeric, and not `{image.dtype}`."
                     )
 
-                writer.append_data(image)
+                writer.append_data(image, metadata)
 
         return writer.request.get_result()
 
