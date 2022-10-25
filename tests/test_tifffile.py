@@ -308,3 +308,19 @@ def test_multiple_ndimages(tmp_path):
     shapes = [(4, 255, 255, 3), (255, 255, 3), (120, 73, 3)]
     for image, shape in zip(iio3.imiter(tmp_path / "nightmare.tiff"), shapes):
         assert image.shape == shape
+
+
+def test_compression(tmp_path):
+    img = np.ones((128, 128))
+
+    iio.imwrite(tmp_path / "test.tiff", img, metadata={"compression": "zlib"})
+    with tifffile.TiffFile(tmp_path / "test.tiff") as file:
+        assert file.pages[0].compression == tifffile.COMPRESSION.ADOBE_DEFLATE
+        print("")
+
+    iio.imwrite(
+        tmp_path / "test.tiff",
+        img,
+    )
+    with tifffile.TiffFile(tmp_path / "test.tiff") as file:
+        assert file.pages[0].compression == tifffile.COMPRESSION.NONE

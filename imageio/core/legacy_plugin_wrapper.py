@@ -180,6 +180,8 @@ class LegacyPlugin(PluginV3):
             If True, treat the supplied ndimage as a batch of images. If False,
             treat the supplied ndimage as a single image. If None, try to
             determine ``is_batch`` from the ndimage's shape and ndim.
+        metadata : dict
+            The metadata passed to write alongside the image.
         kwargs : ...
             Further keyword arguments are passed to the writer. See
             :func:`.help` to see what arguments are available for a

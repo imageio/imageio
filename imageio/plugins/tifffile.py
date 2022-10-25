@@ -191,6 +191,8 @@ WRITE_METADATA_KEYS = (
     "resolution",
     "description",
     "compress",
+    "compression",
+    "compressionargs",
     "predictor",
     "volume",
     "writeshape",
@@ -529,6 +531,13 @@ class TiffFormat(Format):
                     # 1(=NONE) translation to False expected by TiffWriter.save
                     if key == "predictor" and not isinstance(value, bool):
                         ret[key] = value > 1
+                    elif key == "compress" and value != 0:
+                        warnings.warn(
+                            "The use of `compress` is deprecated. Use `compression` and `compressionargs` instead.",
+                            DeprecationWarning,
+                        )
+                        ret["compression"] = "zlib"
+                        ret["compressionargs"] = {"level": value}
                     else:
                         ret[key] = value
             return ret
