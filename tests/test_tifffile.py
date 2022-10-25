@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import pytest
 import io
+import warnings
 
 import imageio.v2 as iio
 import imageio.v3 as iio3
@@ -312,6 +313,16 @@ def test_multiple_ndimages(tmp_path):
 
 def test_compression(tmp_path):
     img = np.ones((128, 128))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        iio.imwrite(tmp_path / "test.tiff", img, metadata={"compress": 5})
+
+    with tifffile.TiffFile(tmp_path / "test.tiff") as file:
+        # this should be tifffile.COMPRESSION.ADOBE_DEFLATE
+        # but that isn't supported by tifffile on python 3.7
+        assert file.pages[0].compression == 8
+        print("")
 
     iio.imwrite(tmp_path / "test.tiff", img, metadata={"compression": "zlib"})
     with tifffile.TiffFile(tmp_path / "test.tiff") as file:
