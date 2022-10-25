@@ -536,8 +536,12 @@ class TiffFormat(Format):
                             "The use of `compress` is deprecated. Use `compression` and `compressionargs` instead.",
                             DeprecationWarning,
                         )
-                        ret["compression"] = "zlib"
-                        ret["compressionargs"] = {"level": value}
+
+                        if _tifffile.__version__ < "2022":
+                            ret["compression"] = (8, value)
+                        else:
+                            ret["compression"] = "zlib"
+                            ret["compressionargs"] = {"level": value}
                     else:
                         ret[key] = value
             return ret
