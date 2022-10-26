@@ -366,7 +366,7 @@ Now, let's start by creating a gif using imageio:
         axis=0
     )
     
-    iio.imwrite(gif_path, frames, mode="I")
+    iio.imwrite(gif_path, frames)
             
 This way we obtain a 2.5MB gif.
 
@@ -409,7 +409,7 @@ Putting everything together:
         axis=0
     )
     
-    iio.imwrite(gif_path, frames, mode="I")
+    iio.imwrite(gif_path, frames)
             
     optimize(gif_path)
 
