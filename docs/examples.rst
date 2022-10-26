@@ -362,7 +362,7 @@ Now, let's start by creating a gif using imageio:
         plt.savefig(f"{x}.jpg")
 
     frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
+        [iio.imread(f"{i}.jpg") for i in range(n)],
         axis=0
     )
     
@@ -405,7 +405,7 @@ Putting everything together:
         plt.savefig(f"{x}.jpg")
 
     frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
+        [iio.imread(f"{i}.jpg") for i in range(n)],
         axis=0
     )
     
