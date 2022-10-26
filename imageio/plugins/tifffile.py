@@ -123,6 +123,17 @@ description : str
 compress : int
     Values from 0 to 9 controlling the level of zlib (deflate) compression.
     If 0, data are written uncompressed (default).
+compression : str, (int, int)
+    Compression scheme used while writing the image. If omitted (default) the
+    image is not uncompressed. Compression cannot be used to write contiguous
+    series. Compressors may require certain data shapes, types or value ranges.
+    For example, JPEG compression requires grayscale or RGB(A), uint8 or 12-bit
+    uint16. JPEG compression is experimental. JPEG markers and TIFF tags may not
+    match. Only a limited set of compression schemes are implemented. 'ZLIB' is
+    short for ADOBE_DEFLATE. The value is written to the Compression tag.
+compressionargs:
+    Extra arguments passed to compression codec, e.g., compression level. Refer
+    to the Imagecodecs implementation for supported arguments.
 predictor : bool
     If True, horizontal differencing is applied before compression.
     Note that using an int literal 1 actually means no prediction scheme
