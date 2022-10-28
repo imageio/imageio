@@ -123,6 +123,17 @@ description : str
 compress : int
     Values from 0 to 9 controlling the level of zlib (deflate) compression.
     If 0, data are written uncompressed (default).
+compression : str, (int, int)
+    Compression scheme used while writing the image. If omitted (default) the
+    image is not uncompressed. Compression cannot be used to write contiguous
+    series. Compressors may require certain data shapes, types or value ranges.
+    For example, JPEG compression requires grayscale or RGB(A), uint8 or 12-bit
+    uint16. JPEG compression is experimental. JPEG markers and TIFF tags may not
+    match. Only a limited set of compression schemes are implemented. 'ZLIB' is
+    short for ADOBE_DEFLATE. The value is written to the Compression tag.
+compressionargs:
+    Extra arguments passed to compression codec, e.g., compression level. Refer
+    to the Imagecodecs implementation for supported arguments.
 predictor : bool
     If True, horizontal differencing is applied before compression.
     Note that using an int literal 1 actually means no prediction scheme
@@ -191,6 +202,8 @@ WRITE_METADATA_KEYS = (
     "resolution",
     "description",
     "compress",
+    "compression",
+    "compressionargs",
     "predictor",
     "volume",
     "writeshape",
@@ -529,6 +542,17 @@ class TiffFormat(Format):
                     # 1(=NONE) translation to False expected by TiffWriter.save
                     if key == "predictor" and not isinstance(value, bool):
                         ret[key] = value > 1
+                    elif key == "compress" and value != 0:
+                        warnings.warn(
+                            "The use of `compress` is deprecated. Use `compression` and `compressionargs` instead.",
+                            DeprecationWarning,
+                        )
+
+                        if _tifffile.__version__ < "2022":
+                            ret["compression"] = (8, value)
+                        else:
+                            ret["compression"] = "zlib"
+                            ret["compressionargs"] = {"level": value}
                     else:
                         ret[key] = value
             return ret

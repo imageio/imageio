@@ -117,6 +117,7 @@ def test_video_format_to_dtype():
         "d3d11",
         "d3d11va_vld",
         "videotoolbox_vld",
+        "vaapi",
         "vaapi_idct",
         "opencl",
         "cuda",

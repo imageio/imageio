@@ -164,7 +164,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, ndimage, *, is_batch=None, **kwargs):
+    def write(self, ndimage, *, is_batch=None, metadata=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -180,6 +180,8 @@ class LegacyPlugin(PluginV3):
             If True, treat the supplied ndimage as a batch of images. If False,
             treat the supplied ndimage as a single image. If None, try to
             determine ``is_batch`` from the ndimage's shape and ndim.
+        metadata : dict
+            The metadata passed to write alongside the image.
         kwargs : ...
             Further keyword arguments are passed to the writer. See
             :func:`.help` to see what arguments are available for a
@@ -248,7 +250,7 @@ class LegacyPlugin(PluginV3):
                         f"All images have to be numeric, and not `{image.dtype}`."
                     )
 
-                writer.append_data(image)
+                writer.append_data(image, metadata)
 
         return writer.request.get_result()
 
