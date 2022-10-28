@@ -348,26 +348,22 @@ Now, let's start by creating a gif using imageio:
     import imageio.v3 as iio
     import matplotlib.pyplot as plt
     import numpy as np
-    
+
     n = 100
     gif_path = "test.gif"
-    frames_path = "{i}.jpg"
-    
+
     n = 100
-    plt.figure(figsize=(4,4))
+    plt.figure(figsize=(4, 4))
     for x in range(n):
-        plt.scatter(x/n, x/n)
+        plt.scatter(x / n, x / n)
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.savefig(f"{x}.jpg")
 
-    frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
-        axis=0
-    )
-    
-    iio.imwrite(gif_path, frames, mode="I")
-            
+    frames = np.stack([iio.imread(f"{x}.jpg") for x in range(n)], axis=0)
+
+    iio.imwrite(gif_path, frames)
+
 This way we obtain a 2.5MB gif.
 
 We now want to compress the created GIF.
@@ -391,26 +387,21 @@ Putting everything together:
     import matplotlib.pyplot as plt
     import numpy as np
     from pygifsicle import optimize
-    
+
     n = 100
     gif_path = "test.gif"
-    frames_path = "{i}.jpg"
-    
+
     n = 100
-    plt.figure(figsize=(4,4))
+    plt.figure(figsize=(4, 4))
     for x in range(n):
-        plt.scatter(x/n, x/n)
+        plt.scatter(x / n, x / n)
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.savefig(f"{x}.jpg")
 
-    frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
-        axis=0
-    )
-    
-    iio.imwrite(gif_path, frames, mode="I")
-            
+    frames = np.stack([iio.imread(f"{x}.jpg") for x in range(n)], axis=0)
+
+    iio.imwrite(gif_path, frames)
     optimize(gif_path)
 
 Reading Images from ZIP archives
