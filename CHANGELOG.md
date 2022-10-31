@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.22.3 (2022-10-31)
+### Fix
+* Support `compression` and `compressionargs` in tifffile plugin ([#894](https://github.com/imageio/imageio/issues/894)) ([`3773da4`](https://github.com/imageio/imageio/commit/3773da4a9594db16a97a7ac84cf3eb261b2e3292))
+
 ## v2.22.2 (2022-10-16)
 ### Fix
 * Make legacy FormatManager skip uninstalled plugins ([#888](https://github.com/imageio/imageio/issues/888)) ([`76a87c1`](https://github.com/imageio/imageio/commit/76a87c19d060abd12b0f9d0a35413d204fc29c74))
