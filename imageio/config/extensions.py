@@ -1584,7 +1584,7 @@ extension_list = [
     FileExtension(
         name="raw H.264 video",
         extension=".h264",
-        priority=["pyav"],
+        priority=["pyav", "ffmpeg"],
     ),
     FileExtension(
         name="raw H.264 video",

@@ -224,7 +224,7 @@ known_plugins["FFMPEG"] = PluginConfig(
     install_name="ffmpeg",
     legacy_args={
         "description": "Many video formats and cameras (via ffmpeg)",
-        "extensions": ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv",
+        "extensions": ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv .h264",
         "modes": "I",
     },
 )
