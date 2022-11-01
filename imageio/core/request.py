@@ -265,8 +265,9 @@ class Request(object):
 
         if format_hint is not None:
             warnings.warn(
-                "The usage of `format_hint` is deprecated and will be removed in ImageIO v3."
-                " Use `extension` instead."
+                "The usage of `format_hint` is deprecated and will be removed "
+                "in ImageIO v3. Use `extension` instead.",
+                DeprecationWarning,
             )
 
         if format_hint is not None and format_hint[0] != ".":
