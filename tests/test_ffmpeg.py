@@ -665,9 +665,9 @@ def test_write_stream(test_images, tmp_path):
 
 
 def test_h264_reading(test_images, tmp_path):
-    # regression test for 
+    # regression test for
     # https://github.com/imageio/imageio/issues/900
     frames = iio3.imread(test_images / "cockatoo.mp4")
     iio3.imwrite(tmp_path / "cockatoo.h264", frames, plugin="FFMPEG")
 
-    imageio.get_reader(tmp_path / "cockatoo.h264", 'ffmpeg')
+    imageio.get_reader(tmp_path / "cockatoo.h264", "ffmpeg")
