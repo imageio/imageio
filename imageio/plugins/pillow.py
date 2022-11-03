@@ -283,7 +283,7 @@ class PillowPlugin(PluginV3):
         if "fps" in kwargs:
             raise TypeError(
                 "The keyword `fps` is no longer supported. Use `duration`"
-                "(in ms) instead, e.g. `fps=60` == `duration=1/60/1000`."
+                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
             )
 
         extension = self.request.extension or self.request.format_hint
