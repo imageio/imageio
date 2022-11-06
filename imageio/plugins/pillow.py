@@ -308,9 +308,10 @@ class PillowPlugin(PluginV3):
             )
         elif ndimage.ndim == 2:
             is_batch = False
+        elif ndimage.ndim == 3 and ndimage.shape[-1] == 1:
+            raise ValueError("Can't write images with one color channel.")
         elif ndimage.ndim == 3 and ndimage.shape[-1] in [2, 3, 4]:
             # Note: this makes a channel-last assumption
-            # (pillow seems to make it as well)
             is_batch = False
         else:
             is_batch = True
