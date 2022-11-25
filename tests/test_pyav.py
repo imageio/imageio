@@ -439,14 +439,14 @@ def test_procedual_writing_with_filter(test_images):
     assert actual.shape == (280, 480, 640, 3)
 
 
-def test_rotation_flag_metadata(tmp_path):
+def test_rotation_flag_metadata(test_images, tmp_path):
     with iio.imopen(tmp_path / "test.mp4", "w", plugin="pyav") as file:
         file.init_video_stream("libx264")
         file.container_metadata["comment"] = "This video has a rotation flag."
         file.video_stream_metadata["rotate"] = "90"
 
         for _ in range(5):
-            for frame in iio.imiter("imageio:newtonscradle.gif"):
+            for frame in iio.imiter(test_images / "newtonscradle.gif"):
                 file.write_frame(frame)
 
     meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")

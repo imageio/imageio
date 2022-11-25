@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.22.4 (2022-11-07)
+### Fix
+* Fix silent failure when writing gray images with explicit color channel using pillow ([#906](https://github.com/imageio/imageio/issues/906)) ([`a075c17`](https://github.com/imageio/imageio/commit/a075c1797821ea07fbc4c95ae4113abc820bbe1c))
+* Ffmpeg supports .h264 extension ([#901](https://github.com/imageio/imageio/issues/901)) ([`7571ea9`](https://github.com/imageio/imageio/commit/7571ea96cab2d726e0d2083126b459fe59ba8728))
+* Avoid webcam hang on MacOS ([#899](https://github.com/imageio/imageio/issues/899)) ([`019069f`](https://github.com/imageio/imageio/commit/019069f01761c46f89642928dd2a649bc9714c70))
+
+### Other
+* Fix typo ([#905](https://github.com/imageio/imageio/issues/905)) ([`5355f93`](https://github.com/imageio/imageio/commit/5355f934b2505f1326f6410412c7ecdb95d5b198))
+* Document deprecated format_hint ([#902](https://github.com/imageio/imageio/issues/902)) ([`88b7784`](https://github.com/imageio/imageio/commit/88b77849ed44da48b9fa0c2c7ae28775982cae19))
+
 ## v2.22.3 (2022-10-31)
 ### Fix
 * Support `compression` and `compressionargs` in tifffile plugin ([#894](https://github.com/imageio/imageio/issues/894)) ([`3773da4`](https://github.com/imageio/imageio/commit/3773da4a9594db16a97a7ac84cf3eb261b2e3292))

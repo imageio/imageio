@@ -291,7 +291,7 @@ class PillowPlugin(PluginV3):
         if "fps" in kwargs:
             raise TypeError(
                 "The keyword `fps` is no longer supported. Use `duration`"
-                "(in ms) instead, e.g. `fps=60` == `duration=1/60/1000`."
+                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
             )
 
         extension = self.request.extension or self.request.format_hint
@@ -316,9 +316,10 @@ class PillowPlugin(PluginV3):
             )
         elif ndimage.ndim == 2:
             is_batch = False
+        elif ndimage.ndim == 3 and ndimage.shape[-1] == 1:
+            raise ValueError("Can't write images with one color channel.")
         elif ndimage.ndim == 3 and ndimage.shape[-1] in [2, 3, 4]:
             # Note: this makes a channel-last assumption
-            # (pillow seems to make it as well)
             is_batch = False
         else:
             is_batch = True
