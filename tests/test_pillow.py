@@ -608,3 +608,8 @@ def test_8bit_with_16bit_depth():
 
     assert img16_read.dtype != np.uint8
     assert np.allclose(img16_read, img16)
+
+
+def test_deprecated_as_gray(test_images):
+    with pytest.raises(TypeError):
+        iio.v3.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)

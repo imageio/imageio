@@ -120,14 +120,14 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False, as_gray=None
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
         Parameters
         ----------
-        index : {integer}
+        index : int
             If the ImageResource contains multiple ndimages, and index is an
             integer, select the index-th ndimage from among them and return it.
             If index is an ellipsis (...), read all ndimages in the file and
@@ -135,16 +135,18 @@ class PillowPlugin(PluginV3):
             None, this plugin reads the first image of the file (index=0) unless
             the image is a GIF or APNG, in which case all images are read
             (index=...).
-        mode : {str, None}
+        mode : str
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
-        rotate : {bool}
+        rotate : bool
             If set to ``True`` and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
-        apply_gamma : {bool}
+        apply_gamma : bool
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
+        as_gray : bool
+            Deprecated. Exists to raise a constructive error message.
 
         Returns
         -------
@@ -159,6 +161,12 @@ class PillowPlugin(PluginV3):
         is discarded during conversion to ndarray.
 
         """
+
+        if as_gray is not None:
+            raise TypeError(
+                "The keyword `as_gray` is no longer supported."
+                "Use `mode='L'` instead."
+            )
 
         if index is None:
             if self._image.format == "GIF":
