@@ -612,7 +612,7 @@ def test_8bit_with_16bit_depth():
 
 def test_deprecated_as_gray(test_images):
     with pytest.raises(TypeError):
-        iio.v3.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
+        iio.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
 
 
 def test_png_batch_fail():
