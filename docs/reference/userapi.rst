@@ -208,8 +208,11 @@ This section is a collection of notes and feedback that we got from other
 developers that were migrating to ImageIO V3, which might be useful to know
 while you are migrating your own code.
 
-- The old pillow plugin used to `np.squeeze` the image before writing it. This
+- The old pillow plugin used to ``np.squeeze`` the image before writing it. This
   has been removed in V3 to match pillows native behavior. A trailing axis with
   dimension 1, e.g., ``(256, 256, 1)`` will now raise an exception. (see `#842
   <https://github.com/imageio/imageio/issues/842>`_)
-
+- The old pillow plugin featured a kwarg called ``as_gray`` which would convert
+  images to grayscale before returning them. This is redundant and has been
+  deprecated in favor of using ``mode="L"``, which matches pillow's native
+  kwarg.
