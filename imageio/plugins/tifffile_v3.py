@@ -1,9 +1,10 @@
-from typing import Any, Dict
+from typing import Any, Dict, cast, Optional
 
 import numpy as np
 import tifffile
+from io import BytesIO
 
-from ..core.request import Mode, Request
+from ..core.request import Mode, Request, URI_BYTES
 from ..core.v3_plugin_api import PluginV3
 
 
@@ -32,12 +33,17 @@ class TifffilePlugin(PluginV3):
 
         return self._fh.asarray(**kwargs)
 
-    def write(self, ndimage, is_batch=False, **kwargs):
+    def write(self, ndimage, is_batch=False, **kwargs) -> Optional[bytes]:
         if not is_batch:
             ndimage = np.asarray(ndimage)[None, :]
 
         for image in ndimage:
             self._fh.write(image, **kwargs)
+
+        if self._request._uri_type == URI_BYTES:
+            self._fh.close()
+            file = cast(BytesIO, self._request.get_file())
+            return file.getvalue()
 
     def iter(self, **kwargs):
         for sequence in self._fh.series:
@@ -69,10 +75,10 @@ class TifffilePlugin(PluginV3):
             metadata.update(
                 {
                     # backwards compatibility with old plugin
-                    "planar_configuration": page.planarconfig.name,
+                    "planar_configuration": page.planarconfig,
                     "resolution_unit": page.resolutionunit,
                     "resolution": page.resolution,
-                    "compression": page.compression.value,
+                    "compression": page.compression,
                     "predictor": page.predictor,
                     "orientation": None,  # TODO
                     "description1": page.description1,
