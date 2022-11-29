@@ -610,6 +610,11 @@ def test_8bit_with_16bit_depth():
     assert np.allclose(img16_read, img16)
 
 
+def test_deprecated_as_gray(test_images):
+    with pytest.raises(TypeError):
+        iio.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
+
+
 def test_png_batch_fail():
     # this is a regression test for
     # https://github.com/imageio/imageio/issues/904
