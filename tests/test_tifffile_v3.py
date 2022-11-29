@@ -317,3 +317,17 @@ def test_properties(tmp_path):
     iio.imwrite(filename, data)
 
     iio.improps(filename)
+
+def test_contigous_writing(tmp_path):
+    filename = tmp_path / "test.tiff"
+    data = np.full((128, 128, 3), 42, np.uint8)
+
+    with tifffile.TiffWriter(filename) as tw:
+        tw.write(data, contiguous=True)
+        tw.write(data, contiguous=True)
+        tw.write(data, contiguous=True)
+        tw.write(data, contiguous=True)
+
+    metadata = iio.immeta(filename)
+    assert metadata["is_shaped"] == True
+    assert metadata["shape"] == [4, 128, 128, 3]
