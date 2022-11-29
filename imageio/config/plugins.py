@@ -121,6 +121,11 @@ known_plugins["pyav"] = PluginConfig(
 known_plugins["opencv"] = PluginConfig(
     name="opencv", class_name="OpenCVPlugin", module_name="imageio.plugins.opencv"
 )
+known_plugins["tifffile"] = PluginConfig(
+    name="tifffile",
+    class_name="TifffilePlugin",
+    module_name="imageio.plugins.tifffile_v3",
+)
 
 # Legacy plugins
 # ==============
