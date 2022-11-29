@@ -4,9 +4,12 @@ import numpy as np
 import tifffile
 from io import BytesIO
 
-from ..core.request import Mode, Request, URI_BYTES
-from ..core.v3_plugin_api import PluginV3
+from ..core.request import Request, URI_BYTES
+from ..core.v3_plugin_api import PluginV3, ImageProperties
 
+
+class SERIES_DEFAULT:
+    pass
 
 class TifffilePlugin(PluginV3):
     """Read/Write TIFF files.
@@ -25,13 +28,26 @@ class TifffilePlugin(PluginV3):
         else:
             self._fh = tifffile.TiffWriter(request.get_file(), **kwargs)
 
-    def read(self, *, index=None, **kwargs):
+    def read(self, *, index=None, series=SERIES_DEFAULT, **kwargs):
         if "key" not in kwargs:
             kwargs["key"] = index
         elif index is not None:
             raise ValueError("Can't use `index` and `key` at the same time.")
 
-        return self._fh.asarray(**kwargs)
+        if series is None and index is None:
+            ndimage = np.stack([x for x in self.iter(**kwargs)])
+        elif series is SERIES_DEFAULT and index is None:
+            ndimage = self._fh.asarray(series=0, **kwargs)
+        elif series is SERIES_DEFAULT and index is not None:
+            ndimage = self._fh.asarray(series=None, **kwargs)
+        else:
+            ndimage = self._fh.asarray(series=series, **kwargs)
+
+        return ndimage
+
+    def iter(self, **kwargs):
+        for sequence in self._fh.series:
+            yield sequence.asarray(**kwargs)
 
     def write(self, ndimage, is_batch=False, **kwargs) -> Optional[bytes]:
         if not is_batch:
@@ -44,10 +60,6 @@ class TifffilePlugin(PluginV3):
             self._fh.close()
             file = cast(BytesIO, self._request.get_file())
             return file.getvalue()
-
-    def iter(self, **kwargs):
-        for sequence in self._fh.series:
-            yield sequence.asarray(**kwargs)
 
     def metadata(
         self, index: int = None, exclude_applied: bool = True
@@ -94,6 +106,34 @@ class TifffilePlugin(PluginV3):
                     metadata["is_" + flag] = flag_value
 
         return metadata
+
+    def properties(self, index: int = None, series: int = 0) -> ImageProperties:
+        if index is None and series is None:
+            n_series = len(self._fh.series)
+            props = ImageProperties(
+                shape=(n_series, *target_series.shape),
+                dtype=self._fh.series[0].dtype,
+                is_batch=True,
+                spacing=self._fh.pages[0].resolution,
+            )
+        elif index is None:
+            target_series = self._fh.series[series]
+            props = ImageProperties(
+                shape=target_series.shape,
+                dtype=target_series.dtype,
+                is_batch=False,
+                spacing=target_series.pages[0].resolution,
+            )
+        else:
+            target_page = self._fh.pages[index]
+            props = ImageProperties(
+                shape=target_page.shape,
+                dtype=target_page.dtype,
+                is_batch=False,
+                spacing=target_page.resolution,
+            )
+
+        return props
 
     def close(self) -> None:
         if self._fh is not None:

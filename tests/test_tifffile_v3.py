@@ -56,6 +56,11 @@ def test_multiple_images_roundtrip(tmp_path):
 
     iio.imwrite(filename, [expected] * 3, is_batch=True)
 
+    # read all series as batch
+    actual = iio.imread(filename, series=None)
+    assert actual.shape == (3, 10, 10, 3)
+
+    # read each series individually
     for idx in range(3):
         actual = iio.imread(filename, series=idx)
         np.testing.assert_allclose(actual, expected)
@@ -305,3 +310,10 @@ def test_compression(tmp_path):
     iio.imwrite(tmp_path / "test2.tiff", img)
     page_meta = iio.immeta(tmp_path / "test2.tiff", index=0)
     assert page_meta["compression"] == 1
+
+def test_properties(tmp_path):
+    filename = tmp_path / "test.tiff"
+    data = np.full((255, 255, 3), 42, dtype=np.uint8)
+    iio.imwrite(filename, data)
+
+    iio.improps(filename)
