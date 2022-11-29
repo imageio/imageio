@@ -822,7 +822,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".stk",
-        priority=["tifffile","TIFF"],
+        priority=["tifffile", "TIFF"],
     ),
     FileExtension(
         name="ShockWave Flash",

@@ -5,7 +5,6 @@ import datetime
 import numpy as np
 import pytest
 import io
-import warnings
 from copy import deepcopy
 
 import imageio.v3 as iio
@@ -99,8 +98,8 @@ def test_metadata_reading(test_images):
     filename = test_images / "multipage_rgb.tif"
 
     file_metadata = iio.immeta(filename)
-    assert file_metadata["is_imagej"] == False
-    assert file_metadata["is_shaped"] == True
+    assert file_metadata["is_imagej"] is False
+    assert file_metadata["is_shaped"] is True
 
     page_metadata = iio.immeta(filename, index=0)
     assert page_metadata["description"] == "shape=(2,3,10,10)"
@@ -311,12 +310,14 @@ def test_compression(tmp_path):
     page_meta = iio.immeta(tmp_path / "test2.tiff", index=0)
     assert page_meta["compression"] == 1
 
+
 def test_properties(tmp_path):
     filename = tmp_path / "test.tiff"
     data = np.full((255, 255, 3), 42, dtype=np.uint8)
     iio.imwrite(filename, data)
 
     iio.improps(filename)
+
 
 def test_contigous_writing(tmp_path):
     filename = tmp_path / "test.tiff"
@@ -329,5 +330,5 @@ def test_contigous_writing(tmp_path):
         tw.write(data, contiguous=True)
 
     metadata = iio.immeta(filename)
-    assert metadata["is_shaped"] == True
+    assert metadata["is_shaped"] is True
     assert metadata["shape"] == [4, 128, 128, 3]

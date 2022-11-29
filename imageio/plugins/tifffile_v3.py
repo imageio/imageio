@@ -4,12 +4,13 @@ import numpy as np
 import tifffile
 from io import BytesIO
 
-from ..core.request import Request, URI_BYTES
+from ..core.request import Request, URI_BYTES, InitializationError
 from ..core.v3_plugin_api import PluginV3, ImageProperties
 
 
 class SERIES_DEFAULT:
     pass
+
 
 class TifffilePlugin(PluginV3):
     """Read/Write TIFF files.
@@ -22,9 +23,13 @@ class TifffilePlugin(PluginV3):
 
     def __init__(self, request: Request, **kwargs) -> None:
         super().__init__(request)
+        self._fh = None
 
         if request.mode.io_mode == "r":
-            self._fh = tifffile.TiffFile(request.get_file(), **kwargs)
+            try:
+                self._fh = tifffile.TiffFile(request.get_file(), **kwargs)
+            except tifffile.tifffile.TiffFileError:
+                raise InitializationError("Tifffile can not read this file.")
         else:
             self._fh = tifffile.TiffWriter(request.get_file(), **kwargs)
 
@@ -111,7 +116,7 @@ class TifffilePlugin(PluginV3):
         if index is None and series is None:
             n_series = len(self._fh.series)
             props = ImageProperties(
-                shape=(n_series, *target_series.shape),
+                shape=(n_series, *self._fh.series[0].shape),
                 dtype=self._fh.series[0].dtype,
                 is_batch=True,
                 spacing=self._fh.pages[0].resolution,
