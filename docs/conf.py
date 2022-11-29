@@ -190,7 +190,9 @@ html_theme_options = {
         },
     ],
     "use_edit_page_button": True,
-    "google_analytics_id": "G-EFE74Z5D7E",
+    "analytics": {
+        "google_analytics_id": "G-EFE74Z5D7E",
+    },
 }
 html_context = {
     # "github_url": "https://github.com", # or your GitHub Enterprise interprise
