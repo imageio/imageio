@@ -56,9 +56,8 @@ from ..typing import ArrayLike
 
 
 def _get_resolution(page):
-    """ Get the resolution in a py3.7 compatible way
-    """
-    
+    """Get the resolution in a py3.7 compatible way"""
+
     metadata = {
         # uncomment once py 3.7 reached EoL - in fact, refactor this
         # function :)
@@ -85,6 +84,7 @@ def _get_resolution(page):
             )
 
     return metadata
+
 
 class TifffilePlugin(PluginV3):
     """Support for tifffile as backend.
@@ -276,7 +276,6 @@ class TifffilePlugin(PluginV3):
                     "description": page.description,
                     "software": page.software,
                     "datetime": page.datetime,
-                    
                     # update once python 3.7 reached EoL
                     **_get_resolution(page),
                 }

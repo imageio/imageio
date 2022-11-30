@@ -3,9 +3,7 @@ import numpy as np
 from .core.imopen import imopen
 
 
-def imread(
-    uri, *, index=None, plugin=None, extension=None, format_hint=None, **kwargs
-):
+def imread(uri, *, index=None, plugin=None, extension=None, format_hint=None, **kwargs):
     """Read an ndimage from a URI.
 
     Opens the given URI and reads an ndimage from it. The exact behavior
@@ -203,13 +201,7 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
 
 
 def immeta(
-    uri,
-    *,
-    index=None,
-    plugin=None,
-    extension=None,
-    exclude_applied=True,
-    **kwargs
+    uri, *, index=None, plugin=None, extension=None, exclude_applied=True, **kwargs
 ):
     """Read format-specific metadata.
 
