@@ -1,11 +1,48 @@
-from typing import Any, Dict, cast, Optional
+"""Read/Write TIFF files using tifffile.
+
+.. note::
+    To use this plugin you need to have `tifffile
+    <https://github.com/cgohlke/tifffile>`_ installed::
+
+        pip install tifffile
+
+This plugin wraps tifffile, a powerfull library to manipulate TIFF files. It
+superseeds our previous tifffile plugin and aims to expose all the features of
+tifffile.
+
+Methods
+-------
+.. note::
+    Check the respective function for a list of supported kwargs and detailed
+    documentation.
+
+.. autosummary::
+    :toctree:
+
+    TifffilePlugin.read
+    TifffilePlugin.iter
+    TifffilePlugin.write
+    TifffilePlugin.properties
+    TifffilePlugin.metadata
+
+Additional methods available inside the :func:`imopen <imageio.v3.imopen>`
+context:
+
+.. autosummary::
+    :toctree:
+
+    TifffilePlugin.iter_pages
+
+"""
+
+from io import BytesIO
+from typing import Any, Dict, Optional, cast
 
 import numpy as np
 import tifffile
-from io import BytesIO
 
-from ..core.request import Request, URI_BYTES, InitializationError
-from ..core.v3_plugin_api import PluginV3, ImageProperties
+from ..core.request import URI_BYTES, InitializationError, Request
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 
 
 class SERIES_DEFAULT:
@@ -13,14 +50,6 @@ class SERIES_DEFAULT:
 
 
 class TifffilePlugin(PluginV3):
-    """Read/Write TIFF files.
-
-    Backend: `tifffile <https://github.com/cgohlke/tifffile>`_
-
-    Provides support for a wide range of TIFF images using the tifffile
-    backend.
-    """
-
     def __init__(self, request: Request, **kwargs) -> None:
         super().__init__(request)
         self._fh = None

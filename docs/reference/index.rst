@@ -99,3 +99,4 @@ support.
     imageio.plugins.spe
     imageio.plugins.swf
     imageio.plugins.tifffile
+    imageio.plugins.tifffile_v3
