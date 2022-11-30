@@ -300,11 +300,6 @@ class TifffilePlugin(PluginV3):
                 }
             )
 
-            for flag in tifffile.TIFF.PAGE_FLAGS:
-                if hasattr(page, "is_" + flag):
-                    flag_value = getattr(page, "is_" + flag)
-                    metadata["is_" + flag] = flag_value
-
         return metadata
 
     def properties(self, *, index: int = 0, page: int = None) -> ImageProperties:
