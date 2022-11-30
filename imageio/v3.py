@@ -14,13 +14,7 @@ class UNSPECIFIED:
 
 
 def imread(
-    uri,
-    *,
-    index=UNSPECIFIED,
-    plugin=None,
-    extension=None,
-    format_hint=None,
-    **kwargs
+    uri, *, index=UNSPECIFIED, plugin=None, extension=None, format_hint=None, **kwargs
 ):
     """Read an ndimage from a URI.
 

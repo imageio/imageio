@@ -12,11 +12,11 @@ tifffile.
 
 The plugin treats individual TIFF series as ndimages. A series is a sequence of
 TIFF pages that, when combined describe a meaningful unit, e.g., a volumetric
-image (where each slice is stored on an individual page) or a multi-color stain
-(where each stain is stored on an individual page). Different TIFF
-flavors/variants use series in different ways and, as such, the resulting
-behavior may vary depending on the program used to create a particular TIFF
-file.
+image (where each slice is stored on an individual page) or a multi-color
+staining picture (where each stain is stored on an individual page). Different
+TIFF flavors/variants use series in different ways and, as such, the resulting
+reading behavior may vary depending on the program used while creating a
+particular TIFF file.
 
 Methods
 -------
@@ -51,6 +51,7 @@ import tifffile
 
 from ..core.request import URI_BYTES, InitializationError, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
+from ..typing import ArrayLike
 
 
 class TifffilePlugin(PluginV3):
@@ -81,9 +82,11 @@ class TifffilePlugin(PluginV3):
         else:
             self._fh = tifffile.TiffWriter(request.get_file(), **kwargs)
 
-    def read(
-        self, *, index: int = 0, page: int = None, **kwargs
-    ) -> np.ndarray:
+    # ---------------------
+    # Standard V3 Interface
+    # ---------------------
+
+    def read(self, *, index: int = 0, page: int = None, **kwargs) -> np.ndarray:
         """Read a ndimage or page.
 
         The ndimage returned depends on the value of both ``index`` and
@@ -105,7 +108,12 @@ class TifffilePlugin(PluginV3):
             If ``None`` return the full selected ndimage. If ``int``, read the
             page at the selected index and return it.
         kwargs : Any
-            Additional kwargs are forwarded to TiffFile's as_array method.
+            Additional kwargs are forwarded to TiffFile's ``as_array`` method.
+
+        Returns
+        -------
+        ndarray : np.ndarray
+            The decoded ndimage or page.
         """
 
         if "key" not in kwargs:
@@ -124,11 +132,53 @@ class TifffilePlugin(PluginV3):
 
         return ndimage
 
-    def iter(self, **kwargs):
+    def iter(self, **kwargs) -> np.ndarray:
+        """Yield ndimages from the TIFF.
+
+        Parameters
+        ----------
+        kwargs : Any
+            Additional kwargs are forwarded to the TiffPageSeries' ``as_array``
+            method.
+
+        Yields
+        ------
+        ndimage : np.ndarray
+            A decoded ndimage.
+        """
+
         for sequence in self._fh.series:
             yield sequence.asarray(**kwargs)
 
-    def write(self, ndimage, is_batch=False, **kwargs) -> Optional[bytes]:
+    def write(
+        self, ndimage: ArrayLike, *, is_batch: bool = False, **kwargs
+    ) -> Optional[bytes]:
+        """Save a ndimage as TIFF.
+
+        Parameters
+        ----------
+        ndimage : ArrayLike
+            The ndimage to encode and write to the ImageResource.
+        is_batch : bool
+            If True, the first dimension of the given ndimage is treated as a
+            batch dimension and each element will create a new series.
+        kwargs : Any
+            Additional kwargs are forwarded to TiffWriter's ``write`` method.
+
+        Returns
+        -------
+        encoded_image : bytes
+            If the ImageResource is ``"<bytes>"``, return the encoded bytes.
+            Otherwise write returns None.
+
+        Notes
+        -----
+        Incremental writing is supported. Subsequent calls to ``write`` will
+        create new series unless ``contiguous=True`` is used, in which case the
+        call to write will append to the current series.
+
+        """
+
         if not is_batch:
             ndimage = np.asarray(ndimage)[None, :]
 
@@ -141,8 +191,26 @@ class TifffilePlugin(PluginV3):
             return file.getvalue()
 
     def metadata(
-        self, index: int = None, exclude_applied: bool = True
+        self, *, index: int = None, exclude_applied: bool = True
     ) -> Dict[str, Any]:
+        """Format-Specific TIFF metadata.
+
+        Parameters
+        ----------
+        index : int
+            If None, read the global (file-level) metadata. Otherwise, read the
+            metadata of the page stored at the given (flat) index inside the
+            file.
+        exclude_applied : bool
+            For API compatibility. Currently ignored.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary with information regarding the tiff flavor (file-level)
+            or tiff tags (page-level).
+        """
+
         metadata = {}
         if index is None:
             # return file-level metadata
@@ -186,8 +254,36 @@ class TifffilePlugin(PluginV3):
 
         return metadata
 
-    def properties(self, index: int = None, series: int = 0) -> ImageProperties:
-        if index is None and series is None:
+    def properties(self, *, index: int = 0, page: int = None) -> ImageProperties:
+        """Standardized metadata.
+
+        The metadata returned depends on the value of both ``index`` and
+        ``page``. ``index`` selects a series and ``page`` allows selecting a
+        single page from the selected series. If ``index=None``, ``page`` is
+        understood as a flat index, i.e., the selection ignores individual
+        series inside the file. If both ``index`` and ``page`` are ``None``,
+        then the result is a batch of all series.
+
+        Parameters
+        ----------
+        index : int
+            If ``int``, select the ndimage (series) located at that index inside
+            the file. If ``None`` and ``page`` is ``int`` extract the metadata
+            of the page located at that (flat) index inside the file. If
+            ``None`` and ``page=None``, return the metadata for the batch of all
+            ndimages in the file.
+        page : int
+            If ``None`` return the metadata of the full ndimage. If ``int``,
+            return the metadata of the page at the selected index only.
+
+        Returns
+        -------
+        image_properties : ImageProperties
+            The standardized metadata of the selected ndimage or series.
+
+        """
+
+        if page is None and index is None:
             n_series = len(self._fh.series)
             props = ImageProperties(
                 shape=(n_series, *self._fh.series[0].shape),
@@ -195,8 +291,8 @@ class TifffilePlugin(PluginV3):
                 is_batch=True,
                 spacing=self._fh.pages[0].resolution,
             )
-        elif index is None:
-            target_series = self._fh.series[series]
+        elif page is None:
+            target_series = self._fh.series[index]
             props = ImageProperties(
                 shape=target_series.shape,
                 dtype=target_series.dtype,
@@ -204,7 +300,7 @@ class TifffilePlugin(PluginV3):
                 spacing=target_series.pages[0].resolution,
             )
         else:
-            target_page = self._fh.pages[index]
+            target_page = self._fh.pages[page]
             props = ImageProperties(
                 shape=target_page.shape,
                 dtype=target_page.dtype,
@@ -220,7 +316,28 @@ class TifffilePlugin(PluginV3):
 
         super().close()
 
+    # ------------------------------
+    # Add-on Interface inside imopen
+    # ------------------------------
+
     def iter_pages(self, **kwargs):
+        """Yield pages from a TIFF file.
+
+        This generator walks over the flat index of the pages inside an
+        ImageResource and yields them in order.
+
+        Parameters
+        ----------
+        kwargs : Any
+            Additional kwargs are passed to TiffPage's ``as_array`` method.
+
+        Yields
+        ------
+        page : np.ndarray
+            A page stored inside the TIFF file.
+
+        """
+
         for sequence in self._fh.series:
             for page in sequence.pages:
                 yield page.asarray(**kwargs)
