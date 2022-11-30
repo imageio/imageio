@@ -46,6 +46,7 @@ context:
 from io import BytesIO
 from typing import Any, Dict, Optional, cast
 import warnings
+import datetime
 
 import numpy as np
 import tifffile
@@ -82,6 +83,24 @@ def _get_resolution(page):
                 resolution_x[0] / resolution_x[1],
                 resolution_y[0] / resolution_y[1],
             )
+
+    return metadata
+
+
+def _get_datatime(page):
+    """Get the datetime in a python 3.7 compatible way"""
+
+    metadata = {
+        # uncomment once python 3.7 is EoL
+        # "datetime": page.datetime,
+    }
+
+    try:
+        metadata["datetime"] = datetime.datetime.strptime(
+            page.tags[306].value, "%Y:%m:%d %H:%M:%S"
+        )
+    except KeyError:
+        pass
 
     return metadata
 
@@ -275,9 +294,9 @@ class TifffilePlugin(PluginV3):
                     "description1": page.description1,
                     "description": page.description,
                     "software": page.software,
-                    "datetime": page.datetime,
                     # update once python 3.7 reached EoL
                     **_get_resolution(page),
+                    **_get_datatime(page),
                 }
             )
 
