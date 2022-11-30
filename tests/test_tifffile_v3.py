@@ -55,13 +55,13 @@ def test_multiple_images_roundtrip(tmp_path):
 
     iio.imwrite(filename, [expected] * 3, is_batch=True)
 
-    # read all series as batch
-    actual = iio.imread(filename, series=None)
-    assert actual.shape == (3, 10, 10, 3)
+    # # read all series as batch
+    # actual = iio.imread(filename, index=None)
+    # assert actual.shape == (3, 10, 10, 3)
 
     # read each series individually
     for idx in range(3):
-        actual = iio.imread(filename, series=idx)
+        actual = iio.imread(filename, index=idx)
         np.testing.assert_allclose(actual, expected)
 
 
@@ -268,17 +268,17 @@ def test_multiple_ndimages(tmp_path):
         file.write(different_shape)
 
     # imread will read the respective series when using series kwarg
-    assert iio.imread(filename, series=0).shape == (4, 255, 255, 3)
-    assert iio.imread(filename, series=1).shape == (255, 255, 3)
-    assert iio.imread(filename, series=2).shape == (120, 73, 3)
+    assert iio.imread(filename, index=0).shape == (4, 255, 255, 3)
+    assert iio.imread(filename, index=1).shape == (255, 255, 3)
+    assert iio.imread(filename, index=2).shape == (120, 73, 3)
 
     # imread will read the respective plane when using index kwarg
-    assert iio.imread(filename, index=0).shape == (255, 255, 3)
-    assert iio.imread(filename, index=1).shape == (255, 255, 3)
-    assert iio.imread(filename, index=2).shape == (255, 255, 3)
-    assert iio.imread(filename, index=3).shape == (255, 255, 3)
-    assert iio.imread(filename, index=4).shape == (255, 255, 3)
-    assert iio.imread(filename, index=5).shape == (120, 73, 3)
+    assert iio.imread(filename, index=None, page=0).shape == (255, 255, 3)
+    assert iio.imread(filename, index=None, page=1).shape == (255, 255, 3)
+    assert iio.imread(filename, index=None, page=2).shape == (255, 255, 3)
+    assert iio.imread(filename, index=None, page=3).shape == (255, 255, 3)
+    assert iio.imread(filename, index=None, page=4).shape == (255, 255, 3)
+    assert iio.imread(filename, index=None, page=5).shape == (120, 73, 3)
 
     # imiter will yield the three images in order
     shapes = [(4, 255, 255, 3), (255, 255, 3), (120, 73, 3)]
