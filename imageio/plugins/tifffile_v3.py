@@ -245,16 +245,26 @@ class TifffilePlugin(PluginV3):
             return file.getvalue()
 
     def metadata(
-        self, *, index: int = None, exclude_applied: bool = True
+        self, *, index: int = Ellipsis, page: int = None, exclude_applied: bool = True
     ) -> Dict[str, Any]:
         """Format-Specific TIFF metadata.
+
+        The metadata returned depends on the value of both ``index`` and
+        ``page``. ``index`` selects a series and ``page`` allows selecting a
+        single page from the selected series. If ``index=Ellipsis``, ``page`` is
+        understood as a flat index, i.e., the selection ignores individual
+        series inside the file. If ``index=Ellipsis`` and ``page=None`` then
+        global (file-level) metadata is returned.
 
         Parameters
         ----------
         index : int
-            If None, read the global (file-level) metadata. Otherwise, read the
-            metadata of the page stored at the given (flat) index inside the
-            file.
+            Select the series of which to extract metadata from. If Ellipsis, treat
+            page as a flat index into the file's pages.
+        page : int
+            If not None, select the page of which to extract metadata from. If
+            None, read series-level metadata or, if ``index=...`` global,
+            file-level metadata.
         exclude_applied : bool
             For API compatibility. Currently ignored.
 
@@ -265,8 +275,19 @@ class TifffilePlugin(PluginV3):
             or tiff tags (page-level).
         """
 
+        if index is not Ellipsis and page is not None:
+            target = self._fh.series[index].pages[page]
+        elif index is not Ellipsis and page is None:
+            # This is based on my understanding that series-level metadata is
+            # stored in the first TIFF page.
+            target = self._fh.series[index].pages[0]
+        elif index is Ellipsis and page is not None:
+            target = self._fh.pages[page]
+        else:
+            target = None
+
         metadata = {}
-        if index is None:
+        if target is None:
             # return file-level metadata
             metadata["byteorder"] = self._fh.byteorder
 
@@ -281,22 +302,20 @@ class TifffilePlugin(PluginV3):
                             metadata.update(flavor_metadata[0])
                         else:
                             metadata.update(flavor_metadata)
-
         else:
-            page = self._fh.pages[index]
-            metadata.update({tag.name: tag.value for tag in page.tags})
+            metadata.update({tag.name: tag.value for tag in target.tags})
             metadata.update(
                 {
-                    "planar_configuration": page.planarconfig,
-                    "compression": page.compression,
-                    "predictor": page.predictor,
+                    "planar_configuration": target.planarconfig,
+                    "compression": target.compression,
+                    "predictor": target.predictor,
                     "orientation": None,  # TODO
-                    "description1": page.description1,
-                    "description": page.description,
-                    "software": page.software,
+                    "description1": target.description1,
+                    "description": target.description,
+                    "software": target.software,
                     # update once python 3.7 reached EoL
-                    **_get_resolution(page),
-                    **_get_datatime(page),
+                    **_get_resolution(target),
+                    **_get_datatime(target),
                 }
             )
 
