@@ -158,8 +158,13 @@ def test_resolution_metadata(tmp_path, dpi, expected_resolution):
     iio.imwrite(filename, data, resolution=dpi)
     page_metadata = iio.immeta(filename, index=0)
 
-    assert page_metadata["resolution"] == expected_resolution
-    assert page_metadata["resolution_unit"] == 2
+    if tuple(int(x) for x in tifffile.__version__.split(".")) <= (2021, 11, 2):
+        # v2021.11.2 is the latest supported version on python 3.7
+        # this can be removed once py3.7 is EoL
+        assert page_metadata["resolution"] == (*expected_resolution, "INCH")
+    else:
+        assert page_metadata["resolution"] == expected_resolution
+        assert page_metadata["resolution_unit"] == 2
 
 
 @pytest.mark.parametrize("resolution", [(1, 0), (0, 0)])
