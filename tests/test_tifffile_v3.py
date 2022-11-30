@@ -55,9 +55,9 @@ def test_multiple_images_roundtrip(tmp_path):
 
     iio.imwrite(filename, [expected] * 3, is_batch=True)
 
-    # # read all series as batch
-    # actual = iio.imread(filename, index=None)
-    # assert actual.shape == (3, 10, 10, 3)
+    # read all series as batch
+    actual = iio.imread(filename, index=None)
+    assert actual.shape == (3, 10, 10, 3)
 
     # read each series individually
     for idx in range(3):

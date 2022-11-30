@@ -10,6 +10,14 @@ This plugin wraps tifffile, a powerfull library to manipulate TIFF files. It
 superseeds our previous tifffile plugin and aims to expose all the features of
 tifffile.
 
+The plugin treats individual TIFF series as ndimages. A series is a sequence of
+TIFF pages that, when combined describe a meaningful unit, e.g., a volumetric
+image (where each slice is stored on an individual page) or a multi-color stain
+(where each stain is stored on an individual page). Different TIFF
+flavors/variants use series in different ways and, as such, the resulting
+behavior may vary depending on the program used to create a particular TIFF
+file.
+
 Methods
 -------
 .. note::
@@ -45,11 +53,22 @@ from ..core.request import URI_BYTES, InitializationError, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
 
 
-class SERIES_DEFAULT:
-    pass
-
-
 class TifffilePlugin(PluginV3):
+    """Support for tifffile as backend.
+
+    Parameters
+    ----------
+    request : iio.Request
+        A request object that represents the users intent. It provides a
+        standard interface to access various the various ImageResources and
+        serves them to the plugin as a file object (or file). Check the docs for
+        details.
+    kwargs : Any
+        Additional kwargs are forwarded to tifffile's constructor, i.e.
+        ``TiffFile`` or ``TiffWriter``.
+
+    """
+
     def __init__(self, request: Request, **kwargs) -> None:
         super().__init__(request)
         self._fh = None
@@ -62,20 +81,46 @@ class TifffilePlugin(PluginV3):
         else:
             self._fh = tifffile.TiffWriter(request.get_file(), **kwargs)
 
-    def read(self, *, index=None, series=SERIES_DEFAULT, **kwargs):
-        if "key" not in kwargs:
-            kwargs["key"] = index
-        elif index is not None:
-            raise ValueError("Can't use `index` and `key` at the same time.")
+    def read(
+        self, *, index: int = 0, page: int = None, **kwargs
+    ) -> np.ndarray:
+        """Read a ndimage or page.
 
-        if series is None and index is None:
+        The ndimage returned depends on the value of both ``index`` and
+        ``page``. ``index`` selects the series to read and ``page`` allows
+        selecting a single page from the selected series. If ``index=None``,
+        ``page`` is understood as a flat index, i.e., the selection ignores
+        individual series inside the file. If both ``index`` and ``page`` are
+        ``None``, then all the series are read and returned as a batch.
+
+        Parameters
+        ----------
+        index : int
+            If ``int``, select the ndimage (series) located at that index inside
+            the file and return ``page`` from it. If ``None`` and ``page`` is
+            ``int`` read the page located at that (flat) index inside the file.
+            If ``None`` and ``page=None``, read all ndimages from the file and
+            return them as a batch.
+        page : int
+            If ``None`` return the full selected ndimage. If ``int``, read the
+            page at the selected index and return it.
+        kwargs : Any
+            Additional kwargs are forwarded to TiffFile's as_array method.
+        """
+
+        if "key" not in kwargs:
+            kwargs["key"] = page
+        elif page is not None:
+            raise ValueError("Can't use `page` and `key` at the same time.")
+
+        if "series" in kwargs:
+            raise ValueError("Can't use tiffile's `series` kwarg. Use `index` instead.")
+
+        if index is None and page is None:
+            # read all series in the file and return them as a batch
             ndimage = np.stack([x for x in self.iter(**kwargs)])
-        elif series is SERIES_DEFAULT and index is None:
-            ndimage = self._fh.asarray(series=0, **kwargs)
-        elif series is SERIES_DEFAULT and index is not None:
-            ndimage = self._fh.asarray(series=None, **kwargs)
         else:
-            ndimage = self._fh.asarray(series=series, **kwargs)
+            ndimage = self._fh.asarray(series=index, **kwargs)
 
         return ndimage
 
