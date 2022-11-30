@@ -45,6 +45,7 @@ context:
 
 from io import BytesIO
 from typing import Any, Dict, Optional, cast
+import warnings
 
 import numpy as np
 import tifffile
@@ -53,6 +54,37 @@ from ..core.request import URI_BYTES, InitializationError, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
 
+
+def _get_resolution(page):
+    """ Get the resolution in a py3.7 compatible way
+    """
+    
+    metadata = {
+        # uncomment once py 3.7 reached EoL - in fact, refactor this
+        # function :)
+        # "resolution_unit": page.resolutionunit,
+        # "resolution": page.resolution,
+    }
+
+    if 296 in page.tags:
+        metadata["resolution_unit"] = page.tags[296].value.value
+
+    if 282 in page.tags and 283 in page.tags and 296 in page.tags:
+        resolution_x = page.tags[282].value
+        resolution_y = page.tags[283].value
+        if resolution_x[1] == 0 or resolution_y[1] == 0:
+            warnings.warn(
+                "Ignoring resulution metadata, "
+                "because at least one direction has a 0 denominator.",
+                RuntimeWarning,
+            )
+        else:
+            metadata["resolution"] = (
+                resolution_x[0] / resolution_x[1],
+                resolution_y[0] / resolution_y[1],
+            )
+
+    return metadata
 
 class TifffilePlugin(PluginV3):
     """Support for tifffile as backend.
@@ -236,10 +268,7 @@ class TifffilePlugin(PluginV3):
             metadata.update({tag.name: tag.value for tag in page.tags})
             metadata.update(
                 {
-                    # backwards compatibility with old plugin
                     "planar_configuration": page.planarconfig,
-                    "resolution_unit": page.resolutionunit,
-                    "resolution": page.resolution,
                     "compression": page.compression,
                     "predictor": page.predictor,
                     "orientation": None,  # TODO
@@ -247,6 +276,9 @@ class TifffilePlugin(PluginV3):
                     "description": page.description,
                     "software": page.software,
                     "datetime": page.datetime,
+                    
+                    # update once python 3.7 reached EoL
+                    **_get_resolution(page),
                 }
             )
 
@@ -299,14 +331,14 @@ class TifffilePlugin(PluginV3):
                 shape=target_series.shape,
                 dtype=target_series.dtype,
                 is_batch=False,
-                spacing=target_series.pages[0].resolution,
+                spacing=_get_resolution(pages[0])["resolution"],
             )
         elif page is not None:
             props = ImageProperties(
                 shape=pages[page].shape,
                 dtype=pages[page].dtype,
                 is_batch=False,
-                spacing=pages[page].resolution,
+                spacing=_get_resolution(pages[page])["resolution"],
             )
         else:
             n_series = len(self._fh.series)
@@ -314,7 +346,7 @@ class TifffilePlugin(PluginV3):
                 shape=(n_series, *self._fh.series[0].shape),
                 dtype=self._fh.series[0].dtype,
                 is_batch=True,
-                spacing=pages[0].resolution,
+                spacing=_get_resolution(pages[0])["resolution"],
             )
 
         return props
