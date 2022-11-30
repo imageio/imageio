@@ -3,18 +3,8 @@ import numpy as np
 from .core.imopen import imopen
 
 
-class UNSPECIFIED:
-    """Unspecified Sentinel.
-
-    A Sentinel to indicate that no value was provided by the user. Useful if
-    ``None`` has a meaning, e.g. for the ``index`` kwarg.
-    """
-
-    pass
-
-
 def imread(
-    uri, *, index=UNSPECIFIED, plugin=None, extension=None, format_hint=None, **kwargs
+    uri, *, index=None, plugin=None, extension=None, format_hint=None, **kwargs
 ):
     """Read an ndimage from a URI.
 
@@ -59,7 +49,7 @@ def imread(
     }
 
     call_kwargs = kwargs
-    if index is not UNSPECIFIED:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
@@ -161,7 +151,7 @@ def imwrite(uri, image, *, plugin=None, extension=None, format_hint=None, **kwar
     return encoded
 
 
-def improps(uri, *, index=UNSPECIFIED, plugin=None, extension=None, **kwargs):
+def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     """Read standardized metadata.
 
     Opens the given URI and reads the properties of an ndimage from it. The
@@ -203,7 +193,7 @@ def improps(uri, *, index=UNSPECIFIED, plugin=None, extension=None, **kwargs):
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "extension": extension}
 
     call_kwargs = kwargs
-    if index is not UNSPECIFIED:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:
@@ -215,7 +205,7 @@ def improps(uri, *, index=UNSPECIFIED, plugin=None, extension=None, **kwargs):
 def immeta(
     uri,
     *,
-    index=UNSPECIFIED,
+    index=None,
     plugin=None,
     extension=None,
     exclude_applied=True,
@@ -261,7 +251,7 @@ def immeta(
 
     call_kwargs = kwargs
     call_kwargs["exclude_applied"] = exclude_applied
-    if index is not UNSPECIFIED:
+    if index is not None:
         call_kwargs["index"] = index
 
     with imopen(uri, "r", **plugin_kwargs) as img_file:

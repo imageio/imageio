@@ -56,7 +56,7 @@ def test_multiple_images_roundtrip(tmp_path):
     iio.imwrite(filename, [expected] * 3, is_batch=True)
 
     # read all series as batch
-    actual = iio.imread(filename, index=None)
+    actual = iio.imread(filename, index=...)
     assert actual.shape == (3, 10, 10, 3)
 
     # read each series individually
@@ -273,12 +273,12 @@ def test_multiple_ndimages(tmp_path):
     assert iio.imread(filename, index=2).shape == (120, 73, 3)
 
     # imread will read the respective plane when using index kwarg
-    assert iio.imread(filename, index=None, page=0).shape == (255, 255, 3)
-    assert iio.imread(filename, index=None, page=1).shape == (255, 255, 3)
-    assert iio.imread(filename, index=None, page=2).shape == (255, 255, 3)
-    assert iio.imread(filename, index=None, page=3).shape == (255, 255, 3)
-    assert iio.imread(filename, index=None, page=4).shape == (255, 255, 3)
-    assert iio.imread(filename, index=None, page=5).shape == (120, 73, 3)
+    assert iio.imread(filename, index=..., page=0).shape == (255, 255, 3)
+    assert iio.imread(filename, index=..., page=1).shape == (255, 255, 3)
+    assert iio.imread(filename, index=..., page=2).shape == (255, 255, 3)
+    assert iio.imread(filename, index=..., page=3).shape == (255, 255, 3)
+    assert iio.imread(filename, index=..., page=4).shape == (255, 255, 3)
+    assert iio.imread(filename, index=..., page=5).shape == (120, 73, 3)
 
     # imiter will yield the three images in order
     shapes = [(4, 255, 255, 3), (255, 255, 3), (120, 73, 3)]

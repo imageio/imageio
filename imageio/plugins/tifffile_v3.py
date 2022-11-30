@@ -124,6 +124,9 @@ class TifffilePlugin(PluginV3):
         if "series" in kwargs:
             raise ValueError("Can't use tiffile's `series` kwarg. Use `index` instead.")
 
+        if index is Ellipsis:
+            index = None
+
         if index is None and page is None:
             # read all series in the file and return them as a batch
             ndimage = np.stack([x for x in self.iter(**kwargs)])
@@ -283,15 +286,14 @@ class TifffilePlugin(PluginV3):
 
         """
 
-        if page is None and index is None:
-            n_series = len(self._fh.series)
-            props = ImageProperties(
-                shape=(n_series, *self._fh.series[0].shape),
-                dtype=self._fh.series[0].dtype,
-                is_batch=True,
-                spacing=self._fh.pages[0].resolution,
-            )
-        elif page is None:
+        if index is Ellipsis:
+            series = None
+            pages = self._fh.pages
+        else:
+            series = self._fh.series[index]
+            pages = series.pages
+
+        if series is not None:
             target_series = self._fh.series[index]
             props = ImageProperties(
                 shape=target_series.shape,
@@ -299,13 +301,20 @@ class TifffilePlugin(PluginV3):
                 is_batch=False,
                 spacing=target_series.pages[0].resolution,
             )
-        else:
-            target_page = self._fh.pages[page]
+        elif page is not None:
             props = ImageProperties(
-                shape=target_page.shape,
-                dtype=target_page.dtype,
+                shape=pages[page].shape,
+                dtype=pages[page].dtype,
                 is_batch=False,
-                spacing=target_page.resolution,
+                spacing=pages[page].resolution,
+            )
+        else:
+            n_series = len(self._fh.series)
+            props = ImageProperties(
+                shape=(n_series, *self._fh.series[0].shape),
+                dtype=self._fh.series[0].dtype,
+                is_batch=True,
+                spacing=pages[0].resolution,
             )
 
         return props
