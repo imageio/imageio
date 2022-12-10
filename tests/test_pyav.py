@@ -3,6 +3,7 @@ from pathlib import Path
 import imageio.v3 as iio
 import numpy as np
 import io
+import warnings
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
@@ -449,9 +450,15 @@ def test_rotation_flag_metadata(test_images, tmp_path):
             for frame in iio.imiter(test_images / "newtonscradle.gif"):
                 file.write_frame(frame)
 
-    meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
-    assert meta["comment"] == "This video has a rotation flag."
-    assert meta["rotate"] == "90"
+    if tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0):
+        with warnings.catch_warnings(record=True) as warns:
+            meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
+            assert len(warns) == 1
+        pytest.xfail("PyAV 10.0.0 doesn't extract the rotation flag.")
+    else:
+        meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
+        assert meta["comment"] == "This video has a rotation flag."
+        assert meta["rotate"] == "90"
 
 
 def test_read_filter(test_images):

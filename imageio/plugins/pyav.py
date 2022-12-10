@@ -178,6 +178,7 @@ examples to better understand how to use them.
 from fractions import Fraction
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union, Generator
+import warnings
 
 import av
 import av.filter
@@ -693,6 +694,13 @@ class PyAVPlugin(PluginV3):
             values.
 
         """
+
+        if tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0):
+            warnings.warn(
+                "PyAV 10.0.0 has known issues reading metadata."
+                " If you need video metadata consider using v9.2.0 instead.",
+                UserWarning,
+            )
 
         metadata = dict()
 
