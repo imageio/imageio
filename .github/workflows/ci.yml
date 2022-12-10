@@ -21,8 +21,8 @@ jobs:
     name: Build Docs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.10'
     - name: Install Dependencies
@@ -35,8 +35,10 @@ jobs:
     name: "Linting"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
       - uses: psf/black@20.8b1
         with:
           args: ". --check"
@@ -54,14 +56,14 @@ jobs:
     name: "No-Internet Install"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
       - name: Install Dependenceis
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q -U numpy pillow
+            pip install -q --upgrade numpy pillow
             python setup.py sdist
             pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
@@ -77,19 +79,22 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.7", "3.8", "3.9", "3.10"]
+        pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         include:
           - name: Linux py37 full
             os: ubuntu-latest
             pyversion: '3.7'
             TEST_UNIT: 1
             TEST_FULL: 1
+          - name: Use PyAV 10.0.0
+            pyversion: '3.11'
+            PYAV_10_0_0: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 2
       - name: Set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.pyversion }}
       - name: Install dependencies for tests
@@ -99,7 +104,13 @@ jobs:
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
-            pip install -q -U simpleitk astropy
+            pip install -q --upgrade simpleitk astropy
+      - name: Downgrade PyAV
+        # PyAV 10.0.0 is needed on py3.11 but has issues, so we only use it on
+        # py3.11 for now
+        if: matrix.PYAV_10_0_0 != 1
+        run: |
+            pip install --upgrade av!=10.0.0
       - name: Run All Unit tests
         run: |
             coverage run -m pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
@@ -117,9 +128,9 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
         pyversion: ["pypy-3.7", "pypy-3.8", "pypy-3.9"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up pypy
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.pyversion }}"
       - name: MacOS Numpy Fix
