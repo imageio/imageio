@@ -63,7 +63,7 @@ jobs:
       - name: Install Dependenceis
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q -U numpy pillow
+            pip install -q --upgrade numpy pillow
             python setup.py sdist
             pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
@@ -104,12 +104,13 @@ jobs:
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |
-            pip install -q -U simpleitk astropy
+            pip install -q --upgrade simpleitk astropy
       - name: Downgrade PyAV
         # PyAV 10.0.0 is needed on py3.11 but has issues, so we only use it on
         # py3.11 for now
         if: matrix.PYAV_10_0_0 != 1
-        run: pip install -U av<10.0.0
+        run: |
+            pip install --upgrade av!=10.0.0
       - name: Run All Unit tests
         run: |
             coverage run -m pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
