@@ -189,7 +189,7 @@ plugins = {
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
-    "pyav": ["av!=10.0.0"],
+    "pyav": ["av"],
 }
 
 cpython_only_plugins = {

@@ -3,11 +3,15 @@ from pathlib import Path
 import imageio.v3 as iio
 import numpy as np
 import io
+import warnings
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
 from av.video.format import names as video_format_names  # type: ignore # noqa: E402
 from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
+
+
+IS_AV_10_0_0 = tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0)
 
 
 def test_mp4_read(test_images: Path):
@@ -61,14 +65,24 @@ def test_mp4_writing(tmp_path, test_images):
 
 def test_metadata(test_images: Path):
     with iio.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
-        meta = plugin.metadata()
+        if IS_AV_10_0_0:
+            with warnings.catch_warnings(record=True):
+                meta = plugin.metadata()
+        else:
+            meta = plugin.metadata()
+
         assert meta["profile"] == "High 4:4:4 Predictive"
         assert meta["codec"] == "h264"
         assert meta["encoder"] == "Lavf56.4.101"
         assert meta["duration"] == 14
         assert meta["fps"] == 20.0
 
-        meta = plugin.metadata(index=4)
+        if IS_AV_10_0_0:
+            with warnings.catch_warnings(record=True):
+                meta = plugin.metadata(index=4)
+        else:
+            meta = plugin.metadata(index=4)
+
         assert meta["time"] == 0.2
         assert meta["key_frame"] is False
 
@@ -449,9 +463,15 @@ def test_rotation_flag_metadata(test_images, tmp_path):
             for frame in iio.imiter(test_images / "newtonscradle.gif"):
                 file.write_frame(frame)
 
-    meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
-    assert meta["comment"] == "This video has a rotation flag."
-    assert meta["rotate"] == "90"
+    if IS_AV_10_0_0:
+        with warnings.catch_warnings(record=True) as warns:
+            meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
+            assert len(warns) == 1
+        pytest.xfail("PyAV 10.0.0 doesn't extract the rotation flag.")
+    else:
+        meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
+        assert meta["comment"] == "This video has a rotation flag."
+        assert meta["rotate"] == "90"
 
 
 def test_read_filter(test_images):
