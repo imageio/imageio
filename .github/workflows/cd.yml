@@ -29,10 +29,10 @@ jobs:
     outputs:
       should_release: ${{ steps.skippy.outputs.release }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Install Dependencies
@@ -56,8 +56,8 @@ jobs:
     if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
     - name: Install Dependencies
@@ -83,11 +83,11 @@ jobs:
             TEST_UNIT: 1
             TEST_FULL: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 2
       - name: Set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.pyversion }}
       - name: Install dependencies for tests
@@ -112,9 +112,9 @@ jobs:
         os: ["ubuntu-latest", "macos-latest"]
         pyversion: ["pypy-3.7", "pypy-3.8", "pypy-3.9"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up pypy
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "${{ matrix.pyversion }}"
       - name: MacOS Numpy Fix
@@ -136,8 +136,8 @@ jobs:
     if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.9
       - name: Install dependencies for tests
@@ -152,7 +152,7 @@ jobs:
     needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Python Semantic Release
