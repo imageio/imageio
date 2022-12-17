@@ -82,6 +82,9 @@ jobs:
             pyversion: '3.7'
             TEST_UNIT: 1
             TEST_FULL: 1
+          - name: Use PyAV 10.0.0
+            pyversion: '3.11'
+            PYAV_10_0_0: 1
     steps:
       - uses: actions/checkout@v3
         with:
@@ -98,6 +101,12 @@ jobs:
         if: matrix.TEST_FULL == 1
         run: |
             pip install -q -U simpleitk astropy
+      - name: Downgrade PyAV
+        # PyAV 10.0.0 is needed on py3.11 but has issues, so we only use it on
+        # py3.11 for now
+        if: matrix.PYAV_10_0_0 != 1
+        run: |
+            pip install --upgrade av!=10.0.0
       - name: Run All Unit tests
         run: pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
 
