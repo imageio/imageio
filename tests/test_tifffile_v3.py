@@ -144,7 +144,7 @@ def test_imagej_hyperstack(tmp_path):
     assert img.shape == (15, 2, 180, 183)
 
     metadata = iio.immeta(filename)
-    assert metadata["is_imagej"] == True
+    assert metadata["is_imagej"] is True
 
 
 @pytest.mark.parametrize(
