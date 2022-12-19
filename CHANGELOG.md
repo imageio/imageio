@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.23.0 (2022-12-19)
+### Feature
+* Add support for Python 3.11 ([#920](https://github.com/imageio/imageio/issues/920)) ([`e4146a1`](https://github.com/imageio/imageio/commit/e4146a1dab2322960e908eb2b3c5fc6f385ceb9d))
+
+### Other
+* Exclude py3.11 on windows ([#917](https://github.com/imageio/imageio/issues/917)) ([`c57e31c`](https://github.com/imageio/imageio/commit/c57e31c90f17d32d1b0b1fe8d45a3f274776094d))
+* GitHub Actions add Python 3.11 to the testing ([#916](https://github.com/imageio/imageio/issues/916)) ([`8d49551`](https://github.com/imageio/imageio/commit/8d49551660773f3f095207b3c70a32a3bdee1a85))
+* Add migration instructions for as_gray in new pillow plugin. ([#913](https://github.com/imageio/imageio/issues/913)) ([`b3b040a`](https://github.com/imageio/imageio/commit/b3b040a79b96718cef89fcfa9149cda151763309))
+
 ## v2.22.4 (2022-11-07)
 ### Fix
 * Fix silent failure when writing gray images with explicit color channel using pillow ([#906](https://github.com/imageio/imageio/issues/906)) ([`a075c17`](https://github.com/imageio/imageio/commit/a075c1797821ea07fbc4c95ae4113abc820bbe1c))
