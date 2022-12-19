@@ -143,6 +143,9 @@ def test_imagej_hyperstack(tmp_path):
     img = iio.imread(filename)
     assert img.shape == (15, 2, 180, 183)
 
+    metadata = iio.immeta(filename)
+    assert metadata["is_imagej"] == True
+
 
 @pytest.mark.parametrize(
     "dpi,expected_resolution",
@@ -319,7 +322,17 @@ def test_properties(tmp_path):
     data = np.full((255, 255, 3), 42, dtype=np.uint8)
     iio.imwrite(filename, data)
 
-    iio.improps(filename)
+    props = iio.improps(filename)
+    assert props.shape == (255, 255, 3)
+
+    props = iio.improps(filename, index=...)
+    assert props.shape == (1, 255, 255, 3)
+
+    data = np.full((6, 255, 255, 3), 42, dtype=np.uint8)
+    iio.imwrite(filename, data)
+
+    props = iio.improps(filename, page=3)
+    assert props.shape == (255, 255, 3)
 
 
 def test_contigous_writing(tmp_path):
@@ -335,3 +348,52 @@ def test_contigous_writing(tmp_path):
     metadata = iio.immeta(filename)
     assert metadata["is_shaped"] is True
     assert metadata["shape"] == [4, 128, 128, 3]
+
+
+def test_unreadable_file():
+    garbage = b"awdadbj30993urfj"
+
+    with pytest.raises(OSError):
+        iio.imread(garbage)
+
+
+def test_touch_invalid_kwargs(tmp_path):
+    filename = tmp_path / "test.tiff"
+    data = np.full((5, 128, 128, 3), 42, np.uint8)
+    iio.imwrite(filename, data)
+
+    with pytest.raises(ValueError):
+        iio.imread(filename, key=0, page=0)
+
+    with pytest.raises(ValueError):
+        iio.imread(filename, series=0, index=0)
+
+
+def test_tiffile_native_arguments(tmp_path):
+    filename = tmp_path / "test.tiff"
+    data = np.full((5, 128, 128, 3), 42, np.uint8)
+    data[0, 2, 3, :] = 7
+    iio.imwrite(filename, data)
+
+    page = iio.imread(filename, key=0)
+    np.testing.assert_allclose(page, data[0])
+
+    img = iio.imread(filename, series=0)
+    np.testing.assert_allclose(img, data)
+
+
+def test_various_metadata_reading(tmp_path):
+    filename = tmp_path / "nightmare.tiff"
+    flat = np.full((255, 255, 3), 114, dtype=np.uint8)
+    volumetric = np.full((4, 255, 255, 3), 114, dtype=np.uint8)
+    different_shape = np.full((120, 73, 3), 114, dtype=np.uint8)
+    with iio.imopen(filename, "w") as file:
+        file.write(flat)
+        file.write(volumetric, compression="zlib")
+        file.write(different_shape)
+
+    metadata = iio.immeta(filename, index=1, page=2)
+    assert metadata["compression"] == 8  # (ADOBE_DEFLATE)
+
+    metadata = iio.immeta(filename, index=..., page=2)
+    assert metadata["compression"] == 8  # (ADOBE_DEFLATE)

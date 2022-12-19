@@ -137,7 +137,7 @@ class TifffilePlugin(PluginV3):
     # Standard V3 Interface
     # ---------------------
 
-    def read(self, *, index: int = 0, page: int = None, **kwargs) -> np.ndarray:
+    def read(self, *, index: int = None, page: int = None, **kwargs) -> np.ndarray:
         """Read a ndimage or page.
 
         The ndimage returned depends on the value of both ``index`` and
@@ -172,16 +172,21 @@ class TifffilePlugin(PluginV3):
         elif page is not None:
             raise ValueError("Can't use `page` and `key` at the same time.")
 
-        if "series" in kwargs:
-            raise ValueError("Can't use tiffile's `series` kwarg. Use `index` instead.")
+        # set plugin default for ``index``
+        if index is not None and "series" in kwargs:
+            raise ValueError("Can't use `series` and `index` at the same time.")
+        elif "series" in kwargs:
+            index = kwargs.pop("series")
+        elif index is not None:
+            pass
+        else:
+            index = 0
 
-        if index is Ellipsis:
-            index = None
-
-        if index is None and page is None:
+        if index is Ellipsis and page is None:
             # read all series in the file and return them as a batch
             ndimage = np.stack([x for x in self.iter(**kwargs)])
         else:
+            index = None if index is Ellipsis else index
             ndimage = self._fh.asarray(series=index, **kwargs)
 
         return ndimage
@@ -292,17 +297,19 @@ class TifffilePlugin(PluginV3):
             metadata["byteorder"] = self._fh.byteorder
 
             for flag in tifffile.TIFF.FILE_FLAGS:
-                if hasattr(self._fh, "is_" + flag):
-                    flag_value = getattr(self._fh, "is_" + flag)
-                    metadata["is_" + flag] = flag_value
+                flag_value = getattr(self._fh, "is_" + flag)
+                metadata["is_" + flag] = flag_value
 
-                    if flag_value and hasattr(self._fh, flag + "_metadata"):
-                        flavor_metadata = getattr(self._fh, flag + "_metadata")
-                        if isinstance(flavor_metadata, tuple):
-                            metadata.update(flavor_metadata[0])
-                        else:
-                            metadata.update(flavor_metadata)
+                if flag_value and hasattr(self._fh, flag + "_metadata"):
+                    flavor_metadata = getattr(self._fh, flag + "_metadata")
+                    if isinstance(flavor_metadata, tuple):
+                        metadata.update(flavor_metadata[0])
+                    else:
+                        metadata.update(flavor_metadata)
         else:
+            # tifffile may return a TiffFrame instead of a page
+            target = target.keyframe
+
             metadata.update({tag.name: tag.value for tag in target.tags})
             metadata.update(
                 {
@@ -321,7 +328,7 @@ class TifffilePlugin(PluginV3):
 
         return metadata
 
-    def properties(self, *, index: int = 0, page: int = None) -> ImageProperties:
+    def properties(self, *, index: int = None, page: int = None) -> ImageProperties:
         """Standardized metadata.
 
         The metadata returned depends on the value of both ``index`` and
@@ -349,36 +356,28 @@ class TifffilePlugin(PluginV3):
             The standardized metadata of the selected ndimage or series.
 
         """
+        index = index or 0
+        page_idx = page or 0
 
         if index is Ellipsis:
-            series = None
-            pages = self._fh.pages
+            target_page = self._fh.pages[page_idx]
         else:
-            series = self._fh.series[index]
-            pages = series.pages
+            target_page = self._fh.series[index].pages[page_idx]
 
-        if series is not None:
-            target_series = self._fh.series[index]
-            props = ImageProperties(
-                shape=target_series.shape,
-                dtype=target_series.dtype,
-                is_batch=False,
-                spacing=_get_resolution(pages[0])["resolution"],
-            )
-        elif page is not None:
-            props = ImageProperties(
-                shape=pages[page].shape,
-                dtype=pages[page].dtype,
-                is_batch=False,
-                spacing=_get_resolution(pages[page])["resolution"],
-            )
-        else:
+        if index is Ellipsis and page is None:
             n_series = len(self._fh.series)
             props = ImageProperties(
-                shape=(n_series, *self._fh.series[0].shape),
-                dtype=self._fh.series[0].dtype,
+                shape=(n_series, *target_page.shape),
+                dtype=target_page.dtype,
                 is_batch=True,
-                spacing=_get_resolution(pages[0])["resolution"],
+                spacing=_get_resolution(target_page)["resolution"],
+            )
+        else:
+            props = ImageProperties(
+                shape=target_page.shape,
+                dtype=target_page.dtype,
+                is_batch=False,
+                spacing=_get_resolution(target_page)["resolution"],
             )
 
         return props
