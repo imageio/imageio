@@ -397,3 +397,18 @@ def test_various_metadata_reading(tmp_path):
 
     metadata = iio.immeta(filename, index=..., page=2)
     assert metadata["compression"] == 8  # (ADOBE_DEFLATE)
+
+
+def test_iter_pages(tmp_path):
+    filename = tmp_path / "nightmare.tiff"
+    flat = np.full((255, 255, 3), 114, dtype=np.uint8)
+    volumetric = np.full((4, 255, 255, 3), 114, dtype=np.uint8)
+    different_shape = np.full((120, 73, 3), 114, dtype=np.uint8)
+    with iio.imopen(filename, "w") as file:
+        file.write(flat)
+        file.write(volumetric, compression="zlib")
+        file.write(different_shape)
+
+    with iio.imopen(filename, "r") as file:
+        for idx, page in enumerate(file.iter_pages(index=1)):
+            np.testing.assert_allclose(page, volumetric[idx])

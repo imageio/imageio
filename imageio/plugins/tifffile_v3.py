@@ -112,12 +112,11 @@ class TifffilePlugin(PluginV3):
     ----------
     request : iio.Request
         A request object that represents the users intent. It provides a
-        standard interface to access various the various ImageResources and
-        serves them to the plugin as a file object (or file). Check the docs for
-        details.
+        standard interface for a plugin to access the various ImageResources.
+        Check the docs for details.
     kwargs : Any
         Additional kwargs are forwarded to tifffile's constructor, i.e.
-        ``TiffFile`` or ``TiffWriter``.
+        to ``TiffFile`` for reading or ``TiffWriter`` for writing.
 
     """
 
@@ -331,29 +330,29 @@ class TifffilePlugin(PluginV3):
     def properties(self, *, index: int = None, page: int = None) -> ImageProperties:
         """Standardized metadata.
 
-        The metadata returned depends on the value of both ``index`` and
+        The properties returned depend on the value of both ``index`` and
         ``page``. ``index`` selects a series and ``page`` allows selecting a
-        single page from the selected series. If ``index=None``, ``page`` is
+        single page from the selected series. If ``index=Ellipsis``, ``page`` is
         understood as a flat index, i.e., the selection ignores individual
-        series inside the file. If both ``index`` and ``page`` are ``None``,
-        then the result is a batch of all series.
+        series inside the file. If ``index=Ellipsis`` and ``page=None`` then
+        global (file-level) properties is returned.
 
         Parameters
         ----------
         index : int
             If ``int``, select the ndimage (series) located at that index inside
-            the file. If ``None`` and ``page`` is ``int`` extract the metadata
-            of the page located at that (flat) index inside the file. If
-            ``None`` and ``page=None``, return the metadata for the batch of all
-            ndimages in the file.
+            the file. If ``Ellipsis`` and ``page`` is ``int`` extract the
+            properties of the page located at that (flat) index inside the file.
+            If ``Ellipsis`` and ``page=None``, return the properties for the
+            batch of all ndimages in the file.
         page : int
-            If ``None`` return the metadata of the full ndimage. If ``int``,
-            return the metadata of the page at the selected index only.
+            If ``None`` return the properties of the full ndimage. If ``int``,
+            return the properties of the page at the selected index only.
 
         Returns
         -------
         image_properties : ImageProperties
-            The standardized metadata of the selected ndimage or series.
+            The standardized metadata (properties) of the selected ndimage or series.
 
         """
         index = index or 0
@@ -392,7 +391,7 @@ class TifffilePlugin(PluginV3):
     # Add-on Interface inside imopen
     # ------------------------------
 
-    def iter_pages(self, **kwargs):
+    def iter_pages(self, index=..., **kwargs):
         """Yield pages from a TIFF file.
 
         This generator walks over the flat index of the pages inside an
@@ -400,6 +399,9 @@ class TifffilePlugin(PluginV3):
 
         Parameters
         ----------
+        index : int
+            The index of the series to yield pages from. If Ellipsis, walk over
+            the file's flat index (and ignore individual series).
         kwargs : Any
             Additional kwargs are passed to TiffPage's ``as_array`` method.
 
@@ -410,6 +412,10 @@ class TifffilePlugin(PluginV3):
 
         """
 
-        for sequence in self._fh.series:
-            for page in sequence.pages:
-                yield page.asarray(**kwargs)
+        if index is Ellipsis:
+            pages = self._fh.pages
+        else:
+            pages = self._fh.series[index]
+
+        for page in pages:
+            yield page.asarray(**kwargs)
