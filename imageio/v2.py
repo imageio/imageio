@@ -130,7 +130,7 @@ def is_volume(ndimage):
 # Base functions that return a reader/writer
 
 
-def get_reader(uri, format=None, mode="?", **kwargs):
+def get_reader(uri, format=None, mode="?", legacy_mode=True, **kwargs):
     """get_reader(uri, format=None, mode='?', **kwargs)
 
     Returns a :class:`.Reader` object which can be used to read data
@@ -148,13 +148,18 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         Used to give the reader a hint on what the user expects (default "?"):
         "i" for an image, "I" for multiple images, "v" for a volume,
         "V" for multiple volumes, "?" for don't care.
+    legacy_mode : bool
+        If True, the reader will be opened in legacy mode, which means
+        that it will return a single image or volume, even if the file
+        contains multiple images or volumes. If False, the reader will
+        return a list of images or volumes. Default is True.
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
     """
 
     imopen_args = decypher_format_arg(format)
-    imopen_args["legacy_mode"] = True
+    imopen_args["legacy_mode"] = legacy_mode
 
     image_file = imopen(uri, "r" + mode, **imopen_args)
     return image_file.legacy_get_reader(**kwargs)
