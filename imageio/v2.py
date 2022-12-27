@@ -131,7 +131,7 @@ def is_volume(ndimage):
 
 
 def get_reader(uri, format=None, mode="?", legacy_mode=True, **kwargs):
-    """get_reader(uri, format=None, mode='?', **kwargs)
+    """get_reader(uri, format=None, mode='?', legacy_mode=True, **kwargs)
 
     Returns a :class:`.Reader` object which can be used to read data
     and meta data from the specified file.
