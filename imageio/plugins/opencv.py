@@ -162,7 +162,7 @@ class OpenCVPlugin(PluginV3):
             for details.
 
         Yields
-        -------
+        ------
         ndimage : np.ndarray
             The decoded image as a numpy array.
 
