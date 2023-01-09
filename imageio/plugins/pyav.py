@@ -594,7 +594,8 @@ class PyAVPlugin(PluginV3):
 
         if isinstance(ndimage, list):
             # frames shapes must agree for video
-            ndimage = np.stack(ndimage)
+            if any(f.shape != ndimage[0].shape for f in ndimage):
+                raise ValueError("All frames should have the same shape")
         elif not is_batch:
             ndimage = np.asarray(ndimage)[None, ...]
         else:
