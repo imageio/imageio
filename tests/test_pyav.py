@@ -265,8 +265,8 @@ def test_raises_exception_when_shapes_mismatch(test_images, tmp_path):
     )
 
     # touch the codepath that creates a video from a list of frames
-    frame_list = list(frames_expected)
-    frame_list[0].reshape(200, 150)
+    frame_list = list(frames_expected)    
+    frame_list[0] = frame_list[0].reshape(200, 150)
 
     with pytest.raises(ValueError, match="All frames should have the same shape"):
         iio.imwrite(
