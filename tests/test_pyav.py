@@ -259,6 +259,24 @@ def test_gif_write(test_images, tmp_path):
     # with iio.v3.imopen("test2.gif", "w", plugin="pyav", container_format="gif", legacy_mode=False) as file:
     #     file.write(frames, codec="gif", out_pixel_format="gray", in_pixel_format="gray")
 
+def test_raises_exception_when_shapes_mismatch(test_images, tmp_path):
+    frames_expected = iio.imread(
+        test_images / "newtonscradle.gif", plugin="pyav", format="gray"
+    )
+
+    # touch the codepath that creates a video from a list of frames
+    frame_list = list(frames_expected)
+    frame_list[0].reshape(200, 150)
+
+    with pytest.raises(ValueError, match="All frames should have the same shape"):
+        iio.imwrite(
+            tmp_path / "test.gif",
+            frame_list,
+            plugin="pyav",
+            codec="gif",
+            out_pixel_format="gray",
+            in_pixel_format="gray",
+        )
 
 def test_gif_gen(test_images, tmp_path):
     frames = iio.imread(
