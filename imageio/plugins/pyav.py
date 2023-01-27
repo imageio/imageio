@@ -706,17 +706,18 @@ class PyAVPlugin(PluginV3):
 
         if index is ...:
             # useful flags defined on the container and/or video stream
-            duration = float(self._video_stream.duration * self._video_stream.time_base)
             metadata.update(
                 {
                     "video_format": self._video_stream.codec_context.pix_fmt,
                     "codec": self._video_stream.codec.name,
                     "long_codec": self._video_stream.codec.long_name,
                     "profile": self._video_stream.profile,
-                    "duration": duration,
                     "fps": float(self._video_stream.guessed_rate),
                 }
             )
+            if self._video_stream.duration is not None:
+                duration = float(self._video_stream.duration * self._video_stream.time_base)
+                metadata.update({"duration": duration})
 
             metadata.update(self.container_metadata)
             metadata.update(self.video_stream_metadata)
