@@ -421,6 +421,7 @@ class PyAVPlugin(PluginV3):
 
         if index is ...:
             self._container.seek(0)
+            # self.metadata(constant_framerate=constant_framerate)
 
             frames = np.stack(
                 [
@@ -665,7 +666,7 @@ class PyAVPlugin(PluginV3):
         self,
         index: int = ...,
         exclude_applied: bool = True,
-        constant_framerate: bool = True,
+        constant_framerate: bool = None,
     ) -> Dict[str, Any]:
         """Format-specific metadata.
 
@@ -721,6 +722,9 @@ class PyAVPlugin(PluginV3):
             metadata.update(self.container_metadata)
             metadata.update(self.video_stream_metadata)
             return metadata
+
+        if constant_framerate is None:
+            constant_framerate = self._container.format.variable_fps
 
         decoder = self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(decoder)
@@ -782,7 +786,7 @@ class PyAVPlugin(PluginV3):
         """
 
         stream = self._container.add_stream(codec, fps)
-        stream.time_base = Fraction(1/fps).limit_denominator(int(2**16-1))
+        stream.time_base = Fraction(1 / fps).limit_denominator(int(2**16 - 1))
         if pixel_format is not None:
             stream.pix_fmt = pixel_format
 

@@ -303,6 +303,11 @@ def test_variable_fps_seek(test_images):
 
     assert np.allclose(actual, expected)
 
+    meta = iio.immeta(
+        test_images / "cockatoo.mp4", index=3, plugin="pyav", constant_framerate=False
+    )
+    assert meta["interlaced_frame"] is False
+
 
 def test_multiple_writes(test_images):
     # Note: when opening videos via imopen prefer using the additional API for
@@ -488,6 +493,8 @@ def test_read_filter(test_images):
 def test_write_float_fps(test_images):
     fps = 3.5
     frames = iio.imread(test_images / "cockatoo.mp4", plugin="pyav")
-    buffer = iio.imwrite("<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5)
+    buffer = iio.imwrite(
+        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5
+    )
 
     assert iio.immeta(buffer, plugin="pyav")["fps"] == fps
