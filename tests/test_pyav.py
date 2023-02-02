@@ -483,3 +483,11 @@ def test_read_filter(test_images):
     )
 
     assert image.shape == (480, 640, 3)
+
+
+def test_write_float_fps(test_images):
+    fps = 3.5
+    frames = iio.imread(test_images / "cockatoo.mp4", plugin="pyav")
+    buffer = iio.imwrite("<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5)
+
+    assert iio.immeta(buffer, plugin="pyav")["fps"] == fps

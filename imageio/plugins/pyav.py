@@ -761,7 +761,7 @@ class PyAVPlugin(PluginV3):
         self,
         codec: str,
         *,
-        fps: int = 24,
+        fps: float = 24,
         pixel_format: str = None,
     ) -> None:
         """Initialize a new video stream.
@@ -773,7 +773,7 @@ class PyAVPlugin(PluginV3):
         ----------
         codec : str
             The codec to use, e.g. ``"x264"`` or ``"vp9"``.
-        fps : str
+        fps : float
             The desired framerate of the video stream (frames per second).
         pixel_format : str
             The pixel format to use while encoding frames. If None (default) use
@@ -782,7 +782,7 @@ class PyAVPlugin(PluginV3):
         """
 
         stream = self._container.add_stream(codec, fps)
-        stream.time_base = Fraction(1, int(fps))
+        stream.time_base = Fraction(1/fps).limit_denominator(int(2**16-1))
         if pixel_format is not None:
             stream.pix_fmt = pixel_format
 
