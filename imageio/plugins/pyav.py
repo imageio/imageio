@@ -421,20 +421,38 @@ class PyAVPlugin(PluginV3):
 
         if index is ...:
             self._container.seek(0)
-            # self.metadata(constant_framerate=constant_framerate)
+            props = self.properties(format=format)
+            uses_filter = (
+                self._video_filter is not None
+                or filter_graph is not None
+                or filter_sequence is not None
+            )
 
-            frames = np.stack(
-                [
-                    x
-                    for x in self.iter(
+            if not uses_filter and props.shape[0] not in [0, -1]:
+                frames = np.empty(props.shape, dtype=props.dtype)
+                for idx, frame in enumerate(
+                    self.iter(
                         format=format,
                         filter_sequence=filter_sequence,
                         filter_graph=filter_graph,
                         thread_count=thread_count,
                         thread_type=thread_type or "FRAME",
                     )
-                ]
-            )
+                ):
+                    frames[idx] = frame
+            else:
+                frames = np.stack(
+                    [
+                        x
+                        for x in self.iter(
+                            format=format,
+                            filter_sequence=filter_sequence,
+                            filter_graph=filter_graph,
+                            thread_count=thread_count,
+                            thread_type=thread_type or "FRAME",
+                        )
+                    ]
+                )
 
             # reset stream container, because threading model can't change after
             # first access
