@@ -861,7 +861,6 @@ class PyAVPlugin(PluginV3):
             if av_frame is None:
                 return
 
-        av_frame = av_frame.reformat(format=stream.codec_context.pix_fmt)
         if stream.frames == 0:
             stream.width = av_frame.width
             stream.height = av_frame.height
