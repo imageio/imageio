@@ -428,7 +428,7 @@ class PyAVPlugin(PluginV3):
                 or filter_sequence is not None
             )
 
-            if not uses_filter and props.shape[0] not in [0, -1]:
+            if not uses_filter and props.shape[0] != 0:
                 frames = np.empty(props.shape, dtype=props.dtype)
                 for idx, frame in enumerate(
                     self.iter(
