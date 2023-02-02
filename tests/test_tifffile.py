@@ -2,16 +2,45 @@
 """
 
 import datetime
-import numpy as np
-import pytest
 import io
 import warnings
+from copy import deepcopy
+
+import numpy as np
+import pytest
+from conftest import deprecated_test
 
 import imageio.v2 as iio
 import imageio.v3 as iio3
-from conftest import deprecated_test
+from imageio.config import known_extensions, known_plugins
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
+
+
+@pytest.fixture(scope="module", autouse=True)
+def use_tifffile_v3():
+    plugin_name = "TIFF"
+    all_plugins = known_plugins.copy()
+    all_extensions = known_extensions.copy()
+
+    known_plugins.clear()
+    known_extensions.clear()
+
+    known_plugins[plugin_name] = all_plugins[plugin_name]
+
+    for extension, configs in all_extensions.items():
+        for config in configs:
+            for plugin in config.priority:
+                if plugin == plugin_name:
+                    copied_config = deepcopy(config)
+                    copied_config.priority = [plugin_name]
+                    copied_config.default_priority = [plugin_name]
+                    known_extensions[extension] = [copied_config]
+
+    yield
+
+    known_plugins.update(all_plugins)
+    known_extensions.update(all_extensions)
 
 
 @deprecated_test

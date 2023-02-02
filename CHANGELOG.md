@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.25.0 (2023-01-23)
+### Feature
+* Add audio support for ffmpeg writer ([#882](https://github.com/imageio/imageio/issues/882)) ([`7f411d2`](https://github.com/imageio/imageio/commit/7f411d268cd8fab5537854814904c41465a48b9f))
+
+## v2.24.0 (2023-01-09)
+### Feature
+* Tifffile v3 ([#914](https://github.com/imageio/imageio/issues/914)) ([`4658049`](https://github.com/imageio/imageio/commit/4658049bc37b6e89796233306df393d8a51b68bd))
+
+### Other
+* Pin sphinx below v6 ([#928](https://github.com/imageio/imageio/issues/928)) ([`0336e58`](https://github.com/imageio/imageio/commit/0336e585236ea4eadc37122c86141fc7d51ac624))
+
 ## v2.23.0 (2022-12-19)
 ### Feature
 * Add support for Python 3.11 ([#920](https://github.com/imageio/imageio/issues/920)) ([`e4146a1`](https://github.com/imageio/imageio/commit/e4146a1dab2322960e908eb2b3c5fc6f385ceb9d))
