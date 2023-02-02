@@ -472,7 +472,7 @@ class PyAVPlugin(PluginV3):
             self._video_stream.codec_context.thread_count = thread_count
 
         if constant_framerate is None:
-            constant_framerate = self._container.format.variable_fps
+            constant_framerate = not self._container.format.variable_fps
         decoder = self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(decoder)
 
@@ -742,7 +742,7 @@ class PyAVPlugin(PluginV3):
             return metadata
 
         if constant_framerate is None:
-            constant_framerate = self._container.format.variable_fps
+            constant_framerate = not self._container.format.variable_fps
 
         decoder = self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(decoder)
