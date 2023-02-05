@@ -1044,7 +1044,7 @@ def test_format_hint(test_images):
 
     assert np.allclose(im_new, im_old)
 
-    req = iio.core.Request("https://sample.com/my/resource", "r", format_hint=".jpg")
+    req = iio.core.Request(test_images / "bricks.jpg", "r", format_hint=".jpg")
     filename = req.get_local_filename()
 
     assert Path(filename).suffix == ".jpg"
