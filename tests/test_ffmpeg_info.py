@@ -48,7 +48,6 @@ def test_webcam_parse_device_names():
 
 @pytest.mark.skipif("__pypy__" in sys.builtin_module_names, reason="Skipping on PYPI")
 def test_overload_fps(test_images):
-
     # Native
     r = imageio.get_reader(test_images / "cockatoo.mp4")
     assert r.count_frames() == 280  # native
