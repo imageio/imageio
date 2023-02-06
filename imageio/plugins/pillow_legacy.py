@@ -225,7 +225,6 @@ class PillowFormat(Format):
     _description = ""
 
     def __init__(self, *args, plugin_id: str = None, **kwargs):
-
         super(PillowFormat, self).__init__(*args, **kwargs)
         # Used to synchronize _init_pillow(), see #244
         self._lock = threading.RLock()
@@ -412,7 +411,6 @@ class PNGFormat(PillowFormat):
 
     class Writer(PillowFormat.Writer):
         def _open(self, compression=None, quantize=None, interlaced=False, **kwargs):
-
             # Better default for compression
             kwargs["compress_level"] = kwargs.get("compress_level", 9)
 
@@ -518,7 +516,6 @@ class JPEGFormat(PillowFormat):
 
     class Writer(PillowFormat.Writer):
         def _open(self, quality=75, progressive=False, optimize=False, **kwargs):
-
             # The JPEG quality can be between 0 (worst) and 100 (best)
             quality = int(quality)
             if quality < 0 or quality > 100:
@@ -599,7 +596,6 @@ class JPEG2000Format(PillowFormat):
 
     class Writer(PillowFormat.Writer):
         def _open(self, quality_mode="rates", quality=5, **kwargs):
-
             # Check quality - in Pillow it should be no higher than 95
             if quality_mode not in {"rates", "dB"}:
                 raise ValueError("Quality mode should be either 'rates' or 'dB'")
@@ -784,7 +780,6 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
 
 
 def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
-
     from PIL import Image
 
     if arr.ndim == 3:

@@ -34,7 +34,6 @@ def normal_plugin_order():
 
 @deprecated_test
 def test_fits_format(test_images):
-
     # Test selection
     for name in ["fits", ".fits"]:
         format = iio.formats["fits"]

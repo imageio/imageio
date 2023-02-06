@@ -82,7 +82,6 @@ def test_get_exe_env():
 
 @deprecated_test
 def test_select(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     F = iio.formats["ffmpeg"]
@@ -108,7 +107,6 @@ def test_integer_reader_length(test_images):
 
 
 def test_read_and_write(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
@@ -185,7 +183,6 @@ def test_v3_read(test_images):
 
 
 def test_write_not_contiguous(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
@@ -260,7 +257,6 @@ def test_write_audio_default_codec(test_images, tmp_path):
 
 
 def test_reader_more(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     fname3 = fname1.with_suffix(".stub.mp4")
@@ -340,7 +336,6 @@ def test_reader_more(test_images):
 
 
 def test_writer_more(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
     fname2 = fname1.with_suffix(".out.mp4")
 
@@ -561,7 +556,6 @@ def test_webcam_get_next_data():
 
 
 def test_process_termination(test_images):
-
     pids0 = get_ffmpeg_pids()
 
     r1 = iio.get_reader(test_images / "cockatoo.mp4")
