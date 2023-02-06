@@ -37,7 +37,6 @@ class GIFFormat(PillowFormat):
             quantizer=0,
             subrectangles=False,
         ):
-
             # Check palettesize
             palettesize = int(palettesize)
             if palettesize < 2 or palettesize > 256:
@@ -120,7 +119,6 @@ class GifWriter:
         self.getdata = getdata
 
     def add_image(self, im, duration, dispose):
-
         # Prepare image
         im_rect, rect = im, (0, 0)
         if self.opt_subrectangle:
@@ -158,7 +156,6 @@ class GifWriter:
         self.fp.write(";".encode("utf-8"))  # end gif
 
     def write_image(self, im, palette, rect, duration, dispose):
-
         fp = self.fp
 
         # Gather local image header and data, using PIL's getdata. That

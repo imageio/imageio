@@ -127,7 +127,6 @@ def image_files(test_images, tmp_path):
 
 @pytest.fixture()
 def clear_plugins():
-
     old_extensions = iio.config.known_extensions.copy()
     old_plugins = iio.config.known_plugins.copy()
 
@@ -154,7 +153,6 @@ def invalid_file(tmp_path, request):
 
 @pytest.fixture()
 def tmp_userdir(tmp_path):
-
     ud = tmp_path / "userdir"
     ud.mkdir(exist_ok=True)
 
