@@ -421,9 +421,15 @@ def test_uri_reading(test_images):
 
 
 def test_seek_last(test_images):
-    frame = iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=145)
-    frame = iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=279)
-    assert frame.shape == (720, 1280, 3)
+    with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as file:
+        for idx, expected in enumerate(
+            iio.imiter(test_images / "cockatoo.mp4", plugin="pyav", thread_type="FRAME")
+        ):
+            if idx == 264:
+                print("")
+            frame = file.read(index=idx, thread_type="FRAME")
+            if not np.allclose(frame, expected):
+                assert False, f"Missmatch at {idx}"
 
 
 def test_procedual_writing(test_images):

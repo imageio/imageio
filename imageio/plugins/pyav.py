@@ -176,7 +176,7 @@ examples to better understand how to use them.
 """
 
 from fractions import Fraction
-from math import ceil
+from math import ceil, isnan
 from typing import Any, Dict, List, Optional, Tuple, Union, Generator
 import warnings
 
@@ -479,8 +479,8 @@ class PyAVPlugin(PluginV3):
         # note: cheap for contigous incremental reads
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
+        self._next_idx += 1
 
-        self._next_idx = index
         if self._next_idx > self._next_keyframe_idx:
             self._next_keyframe_idx = float("nan")
 
@@ -726,7 +726,8 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        if tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0):
+        av_version = tuple(int(x) for x in av.__version__.split("."))
+        if av_version == (10, 0, 0):
             warnings.warn(
                 "PyAV 10.0.0 has known issues reading metadata."
                 " If you need video metadata consider using v9.2.0 instead.",
@@ -758,6 +759,7 @@ class PyAVPlugin(PluginV3):
 
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
+        self._next_idx += 1
 
         # useful flags defined on the frame
         metadata.update(
@@ -765,11 +767,12 @@ class PyAVPlugin(PluginV3):
                 "key_frame": bool(desired_frame.key_frame),
                 "time": desired_frame.time,
                 "interlaced_frame": bool(desired_frame.interlaced_frame),
+                "frame_type": desired_frame.pict_type.name,
             }
         )
 
         # side data
-        metadata.update({key: value for key, value in desired_frame.side_data.items()})
+        metadata.update({item.type.name:item.to_bytes() for item in desired_frame.side_data})
 
         return metadata
 
@@ -797,6 +800,8 @@ class PyAVPlugin(PluginV3):
         *,
         fps: float = 24,
         pixel_format: str = None,
+        max_keyframe_interval: int = None,
+        force_keyframes:bool = None,
     ) -> None:
         """Initialize a new video stream.
 
@@ -812,6 +817,24 @@ class PyAVPlugin(PluginV3):
         pixel_format : str
             The pixel format to use while encoding frames. If None (default) use
             the codec's default.
+        max_keyframe_interval : int
+            The maximum distance between two intra frames (I-frames). Also known
+            as GOP size. If unspecified use the codec's default. Note that not
+            every I-frame is a keyframe; see the notes for details.
+        force_keyframes : bool
+            If True, limit inter frames dependency to frames within the current
+            keyframe interval (GOP), i.e., force every I-frame to be a keyframe.
+            If unspecified, use the codec's default.
+
+        Notes
+        -----
+        You can usually leave ``max_keyframe_interval`` and ``force_keyframes``
+        at their default values, unless you try to generate seek-optimized video
+        or have a similar specialist use-case. In this case, ``force_keyframes``
+        controls the ability to seek to _every_ I-frame, and
+        ``max_keyframe_interval`` controls how close to a random frame you can
+        seek. Low values allow more fine-grained seek at the expense of
+        file-size (and thus I/O performance).
 
         """
 
@@ -819,6 +842,10 @@ class PyAVPlugin(PluginV3):
         stream.time_base = Fraction(1 / fps).limit_denominator(int(2**16 - 1))
         if pixel_format is not None:
             stream.pix_fmt = pixel_format
+        if max_keyframe_interval is not None:
+            stream.gop_size = max_keyframe_interval
+        if force_keyframes is not None:
+            stream.closed_gop = force_keyframes
 
         self._video_stream = stream
 
@@ -1081,6 +1108,9 @@ class PyAVPlugin(PluginV3):
         return out
 
     def _find_next_keyframe(self):
+        self._next_keyframe_idx = float("nan")
+        return
+
         packets = self._container.demux(video=0)
         idx = 0
 
@@ -1097,6 +1127,9 @@ class PyAVPlugin(PluginV3):
 
     def _seek(self, index, *, constant_framerate: bool = True) -> Generator:
         """Seeks to the frame at the given index."""
+
+        # if isnan(self._next_keyframe_idx):
+        #     self._find_next_keyframe()
 
         if index == self._next_idx:
             return  # fast path :)
@@ -1123,6 +1156,7 @@ class PyAVPlugin(PluginV3):
 
             # this only seeks to the closed (preceeding) keyframe
             self._container.seek(index_pts, stream=self._video_stream)
+            self._decoder = self._container.decode(video=0)
 
             # this may be made faster if we could get the keyframe's time without
             # decoding it
@@ -1132,11 +1166,13 @@ class PyAVPlugin(PluginV3):
             keyframe_index = keyframe_pts // pts_delta
 
             self._container.seek(index_pts, stream=self._video_stream)
+            self._next_idx = keyframe_index
 
             frames_to_yield = index - keyframe_index
 
         for _ in range(frames_to_yield):
             next(self._decoder)
+            self._next_idx += 1
 
     def _flush_writer(self):
         """Flush the filter and encoder
