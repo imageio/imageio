@@ -434,7 +434,7 @@ def test_seek_vs_iter(test_images):
 
             actual = file.read(index=idx, thread_type="FRAME")
             assert np.allclose(actual, expected)
-            
+
             actual = iio.imread(img_path, plugin="pyav", index=idx)
             assert np.allclose(actual, expected)
 

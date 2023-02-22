@@ -766,7 +766,9 @@ class PyAVPlugin(PluginV3):
         )
 
         # side data
-        metadata.update({item.type.name:item.to_bytes() for item in desired_frame.side_data})
+        metadata.update(
+            {item.type.name: item.to_bytes() for item in desired_frame.side_data}
+        )
 
         return metadata
 
@@ -795,7 +797,7 @@ class PyAVPlugin(PluginV3):
         fps: float = 24,
         pixel_format: str = None,
         max_keyframe_interval: int = None,
-        force_keyframes:bool = None,
+        force_keyframes: bool = None,
     ) -> None:
         """Initialize a new video stream.
 
