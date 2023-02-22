@@ -176,7 +176,7 @@ examples to better understand how to use them.
 """
 
 from fractions import Fraction
-from math import ceil, isnan
+from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union, Generator
 import warnings
 
@@ -298,7 +298,6 @@ class PyAVPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             self._next_idx = 0
-            self._next_keyframe_idx = float("nan")
             try:
                 if request._uri_type == 5:  # 5 is the value of URI_HTTP
                     # pyav should read from HTTP by itself. This enables reading
@@ -481,9 +480,6 @@ class PyAVPlugin(PluginV3):
         desired_frame = next(self._decoder)
         self._next_idx += 1
 
-        if self._next_idx > self._next_keyframe_idx:
-            self._next_keyframe_idx = float("nan")
-
         self.set_video_filter(filter_sequence, filter_graph)
         if self._video_filter is not None:
             desired_frame = self._video_filter.send(desired_frame)
@@ -547,8 +543,6 @@ class PyAVPlugin(PluginV3):
 
         for frame in self._decoder:
             self._next_idx += 1
-            if self._next_idx >= self._next_keyframe_idx:
-                self._next_keyframe_idx = float("nan")
 
             if self._video_filter is not None:
                 frame = self._video_filter.send(frame)
@@ -1107,42 +1101,35 @@ class PyAVPlugin(PluginV3):
 
         return out
 
-    def _find_next_keyframe(self):
-        self._next_keyframe_idx = float("nan")
-        return
-
-        packets = self._container.demux(video=0)
-        idx = 0
-
-        try:
-            next(packets)  # looking for keyframe after next frame
-        except StopIteration:
-            pass  # no frame after this frame
-        else:
-            for idx, packet in enumerate(packets):
-                if packet.is_keyframe:
-                    break
-
-        self._next_keyframe_idx = idx + self._next_idx
-
     def _seek(self, index, *, constant_framerate: bool = True) -> Generator:
         """Seeks to the frame at the given index."""
-
-        # if isnan(self._next_keyframe_idx):
-        #     self._find_next_keyframe()
 
         if index == self._next_idx:
             return  # fast path :)
 
-        if self._next_idx < index and index < self._next_keyframe_idx:
-            frames_to_yield = index - self._next_idx
-        elif not constant_framerate and index > self._next_idx:
+        # we must decode at least once before we seek otherwise the
+        # returned frames become corrupt.
+        if self._next_idx == 0:
+            next(self._decoder)
+            self._next_idx += 1
+
+            if index == self._next_idx:
+                return  # fast path :)
+
+        # remove this branch until I find a way to efficiently find the next
+        # keyframe. keeping this as a reminder
+        # if self._next_idx < index and index < self._next_keyframe_idx:
+        #     frames_to_yield = index - self._next_idx
+        if not constant_framerate and index > self._next_idx:
             frames_to_yield = index - self._next_idx
         # in all other cases we have to seek or can optimize by seeking
         elif not constant_framerate:
             # can't link idx and pts, hence we can't find the idx of
             # a keyframe
             self._container.seek(0)
+            self._decoder = self._container.decode(video=0)
+            self._next_idx = 0
+
             frames_to_yield = index
         else:
             # we know that the time between consecutive frames is constant
