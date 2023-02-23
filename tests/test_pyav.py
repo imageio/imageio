@@ -4,6 +4,7 @@ import imageio.v3 as iio
 import numpy as np
 import io
 import warnings
+from contextlib import ExitStack
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
@@ -296,12 +297,15 @@ def test_gif_gen(test_images, tmp_path):
 
 
 def test_variable_fps_seek(test_images):
-    expected = iio.imread(test_images / "cockatoo.mp4", index=3, plugin="pyav")
-    actual = iio.imread(
-        test_images / "cockatoo.mp4", index=3, plugin="pyav", constant_framerate=False
-    )
+    with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as file:
+        expected = iio.imread(test_images / "cockatoo.mp4", index=15, plugin="pyav")
+        actual = file.read(index=15, constant_framerate=False)
+        assert np.allclose(actual, expected)
 
-    assert np.allclose(actual, expected)
+        expected = iio.imread(test_images / "cockatoo.mp4", index=3, plugin="pyav")
+        actual = file.read(index=3, constant_framerate=False)
+
+        assert np.allclose(actual, expected)
 
     meta = iio.immeta(
         test_images / "cockatoo.mp4", index=3, plugin="pyav", constant_framerate=False
@@ -512,3 +516,37 @@ def test_write_float_fps(test_images):
     )
 
     assert iio.immeta(buffer, plugin="pyav")["fps"] == fps
+
+
+def test_keyframe_intervals(test_images):
+    buffer = io.BytesIO()
+    with ExitStack() as ctx:
+        in_file = ctx.enter_context(
+            iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav")
+        )
+        out_file = ctx.enter_context(
+            iio.imopen(buffer, "w", plugin="pyav", extension=".mp4")
+        )
+
+        out_file.init_video_stream(
+            "libx264", max_keyframe_interval=5, force_keyframes=True
+        )
+
+        for idx in range(50):
+            frame = in_file.read(index=idx)
+            out_file.write_frame(frame)
+
+    buffer.seek(0)
+    key_dist = [0]
+    i_dist = [0]
+    with iio.imopen(buffer, "r", plugin="pyav") as file:
+        n_frames = file.properties().shape[0]
+        for idx in range(1, n_frames):
+            medatada = file.metadata(index=idx)
+            if medatada["frame_type"] == "I":
+                i_dist.append(idx)
+            if medatada["key_frame"]:
+                key_dist.append(idx)
+
+    assert np.max(np.diff(i_dist)) <= 5
+    assert np.max(np.diff(key_dist)) <= 5

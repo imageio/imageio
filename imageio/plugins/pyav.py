@@ -1124,10 +1124,8 @@ class PyAVPlugin(PluginV3):
         #     frames_to_yield = index - self._next_idx
         if not constant_framerate and index > self._next_idx:
             frames_to_yield = index - self._next_idx
-        # in all other cases we have to seek or can optimize by seeking
         elif not constant_framerate:
-            # can't link idx and pts, hence we can't find the idx of
-            # a keyframe
+            # seek backwards and can't link idx and pts
             self._container.seek(0)
             self._decoder = self._container.decode(video=0)
             self._next_idx = 0
