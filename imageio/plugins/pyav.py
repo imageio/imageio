@@ -297,6 +297,7 @@ class PyAVPlugin(PluginV3):
         self._video_filter = None
 
         if request.mode.io_mode == IOMode.read:
+            self._next_idx = 0
             try:
                 if request._uri_type == 5:  # 5 is the value of URI_HTTP
                     # pyav should read from HTTP by itself. This enables reading
@@ -420,20 +421,39 @@ class PyAVPlugin(PluginV3):
         """
 
         if index is ...:
-            self._container.seek(0)
+            props = self.properties(format=format)
+            uses_filter = (
+                self._video_filter is not None
+                or filter_graph is not None
+                or filter_sequence is not None
+            )
 
-            frames = np.stack(
-                [
-                    x
-                    for x in self.iter(
+            self._container.seek(0)
+            if not uses_filter and props.shape[0] != 0:
+                frames = np.empty(props.shape, dtype=props.dtype)
+                for idx, frame in enumerate(
+                    self.iter(
                         format=format,
                         filter_sequence=filter_sequence,
                         filter_graph=filter_graph,
                         thread_count=thread_count,
                         thread_type=thread_type or "FRAME",
                     )
-                ]
-            )
+                ):
+                    frames[idx] = frame
+            else:
+                frames = np.stack(
+                    [
+                        x
+                        for x in self.iter(
+                            format=format,
+                            filter_sequence=filter_sequence,
+                            filter_graph=filter_graph,
+                            thread_count=thread_count,
+                            thread_type=thread_type or "FRAME",
+                        )
+                    ]
+                )
 
             # reset stream container, because threading model can't change after
             # first access
@@ -453,9 +473,12 @@ class PyAVPlugin(PluginV3):
             self._video_stream.codec_context.thread_count = thread_count
 
         if constant_framerate is None:
-            constant_framerate = self._container.format.variable_fps
-        decoder = self._seek(index, constant_framerate=constant_framerate)
-        desired_frame = next(decoder)
+            constant_framerate = not self._container.format.variable_fps
+
+        # note: cheap for contigous incremental reads
+        self._seek(index, constant_framerate=constant_framerate)
+        desired_frame = next(self._decoder)
+        self._next_idx += 1
 
         self.set_video_filter(filter_sequence, filter_graph)
         if self._video_filter is not None:
@@ -518,7 +541,9 @@ class PyAVPlugin(PluginV3):
 
         self.set_video_filter(filter_sequence, filter_graph)
 
-        for frame in self._container.decode(video=0):
+        for frame in self._decoder:
+            self._next_idx += 1
+
             if self._video_filter is not None:
                 frame = self._video_filter.send(frame)
 
@@ -665,7 +690,7 @@ class PyAVPlugin(PluginV3):
         self,
         index: int = ...,
         exclude_applied: bool = True,
-        constant_framerate: bool = True,
+        constant_framerate: bool = None,
     ) -> Dict[str, Any]:
         """Format-specific metadata.
 
@@ -695,7 +720,8 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        if tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0):
+        av_version = tuple(int(x) for x in av.__version__.split("."))
+        if av_version == (10, 0, 0):
             warnings.warn(
                 "PyAV 10.0.0 has known issues reading metadata."
                 " If you need video metadata consider using v9.2.0 instead.",
@@ -722,8 +748,12 @@ class PyAVPlugin(PluginV3):
             metadata.update(self.video_stream_metadata)
             return metadata
 
-        decoder = self._seek(index, constant_framerate=constant_framerate)
-        desired_frame = next(decoder)
+        if constant_framerate is None:
+            constant_framerate = not self._container.format.variable_fps
+
+        self._seek(index, constant_framerate=constant_framerate)
+        desired_frame = next(self._decoder)
+        self._next_idx += 1
 
         # useful flags defined on the frame
         metadata.update(
@@ -731,11 +761,14 @@ class PyAVPlugin(PluginV3):
                 "key_frame": bool(desired_frame.key_frame),
                 "time": desired_frame.time,
                 "interlaced_frame": bool(desired_frame.interlaced_frame),
+                "frame_type": desired_frame.pict_type.name,
             }
         )
 
         # side data
-        metadata.update({key: value for key, value in desired_frame.side_data.items()})
+        metadata.update(
+            {item.type.name: item.to_bytes() for item in desired_frame.side_data}
+        )
 
         return metadata
 
@@ -761,8 +794,10 @@ class PyAVPlugin(PluginV3):
         self,
         codec: str,
         *,
-        fps: int = 24,
+        fps: float = 24,
         pixel_format: str = None,
+        max_keyframe_interval: int = None,
+        force_keyframes: bool = None,
     ) -> None:
         """Initialize a new video stream.
 
@@ -773,18 +808,40 @@ class PyAVPlugin(PluginV3):
         ----------
         codec : str
             The codec to use, e.g. ``"x264"`` or ``"vp9"``.
-        fps : str
+        fps : float
             The desired framerate of the video stream (frames per second).
         pixel_format : str
             The pixel format to use while encoding frames. If None (default) use
             the codec's default.
+        max_keyframe_interval : int
+            The maximum distance between two intra frames (I-frames). Also known
+            as GOP size. If unspecified use the codec's default. Note that not
+            every I-frame is a keyframe; see the notes for details.
+        force_keyframes : bool
+            If True, limit inter frames dependency to frames within the current
+            keyframe interval (GOP), i.e., force every I-frame to be a keyframe.
+            If unspecified, use the codec's default.
+
+        Notes
+        -----
+        You can usually leave ``max_keyframe_interval`` and ``force_keyframes``
+        at their default values, unless you try to generate seek-optimized video
+        or have a similar specialist use-case. In this case, ``force_keyframes``
+        controls the ability to seek to _every_ I-frame, and
+        ``max_keyframe_interval`` controls how close to a random frame you can
+        seek. Low values allow more fine-grained seek at the expense of
+        file-size (and thus I/O performance).
 
         """
 
         stream = self._container.add_stream(codec, fps)
-        stream.time_base = Fraction(1, int(fps))
+        stream.time_base = Fraction(1 / fps).limit_denominator(int(2**16 - 1))
         if pixel_format is not None:
             stream.pix_fmt = pixel_format
+        if max_keyframe_interval is not None:
+            stream.gop_size = max_keyframe_interval
+        if force_keyframes is not None:
+            stream.closed_gop = force_keyframes
 
         self._video_stream = stream
 
@@ -861,7 +918,6 @@ class PyAVPlugin(PluginV3):
             if av_frame is None:
                 return
 
-        av_frame = av_frame.reformat(format=stream.codec_context.pix_fmt)
         if stream.frames == 0:
             stream.width = av_frame.width
             stream.height = av_frame.height
@@ -1050,27 +1106,60 @@ class PyAVPlugin(PluginV3):
     def _seek(self, index, *, constant_framerate: bool = True) -> Generator:
         """Seeks to the frame at the given index."""
 
-        # this may be made faster for formats that have some kind
-        # of keyframe table in their header data.
-        if not constant_framerate:
+        if index == self._next_idx:
+            return  # fast path :)
+
+        # we must decode at least once before we seek otherwise the
+        # returned frames become corrupt.
+        if self._next_idx == 0:
+            next(self._decoder)
+            self._next_idx += 1
+
+            if index == self._next_idx:
+                return  # fast path :)
+
+        # remove this branch until I find a way to efficiently find the next
+        # keyframe. keeping this as a reminder
+        # if self._next_idx < index and index < self._next_keyframe_idx:
+        #     frames_to_yield = index - self._next_idx
+        if not constant_framerate and index > self._next_idx:
+            frames_to_yield = index - self._next_idx
+        elif not constant_framerate:
+            # seek backwards and can't link idx and pts
             self._container.seek(0)
+            self._decoder = self._container.decode(video=0)
+            self._next_idx = 0
+
             frames_to_yield = index
         else:
-            frame_delta = 1000 // self._video_stream.guessed_rate
-            requested_index = frame_delta * index
+            # we know that the time between consecutive frames is constant
+            # hence we can link index and pts
+
+            # how many pts lie between two frames
+            sec_delta = 1 / self._video_stream.guessed_rate
+            pts_delta = sec_delta / self._video_stream.time_base
+
+            index_pts = int(index * pts_delta)
 
             # this only seeks to the closed (preceeding) keyframe
-            self._container.seek(requested_index)
+            self._container.seek(index_pts, stream=self._video_stream)
+            self._decoder = self._container.decode(video=0)
 
-            keyframe = next(self._container.decode(video=0))
-            frames_to_yield = index - keyframe.pts // frame_delta
-            self._container.seek(requested_index)
+            # this may be made faster if we could get the keyframe's time without
+            # decoding it
+            keyframe = next(self._decoder)
+            keyframe_time = keyframe.pts * keyframe.time_base
+            keyframe_pts = int(keyframe_time / self._video_stream.time_base)
+            keyframe_index = keyframe_pts // pts_delta
 
-        frame_generator = self._container.decode(video=0)
+            self._container.seek(index_pts, stream=self._video_stream)
+            self._next_idx = keyframe_index
+
+            frames_to_yield = index - keyframe_index
+
         for _ in range(frames_to_yield):
-            next(frame_generator)
-
-        return frame_generator
+            next(self._decoder)
+            self._next_idx += 1
 
     def _flush_writer(self):
         """Flush the filter and encoder

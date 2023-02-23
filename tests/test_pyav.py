@@ -4,6 +4,7 @@ import imageio.v3 as iio
 import numpy as np
 import io
 import warnings
+from contextlib import ExitStack
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
@@ -296,12 +297,20 @@ def test_gif_gen(test_images, tmp_path):
 
 
 def test_variable_fps_seek(test_images):
-    expected = iio.imread(test_images / "cockatoo.mp4", index=3, plugin="pyav")
-    actual = iio.imread(
+    with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as file:
+        expected = iio.imread(test_images / "cockatoo.mp4", index=15, plugin="pyav")
+        actual = file.read(index=15, constant_framerate=False)
+        assert np.allclose(actual, expected)
+
+        expected = iio.imread(test_images / "cockatoo.mp4", index=3, plugin="pyav")
+        actual = file.read(index=3, constant_framerate=False)
+
+        assert np.allclose(actual, expected)
+
+    meta = iio.immeta(
         test_images / "cockatoo.mp4", index=3, plugin="pyav", constant_framerate=False
     )
-
-    assert np.allclose(actual, expected)
+    assert meta["interlaced_frame"] is False
 
 
 def test_multiple_writes(test_images):
@@ -415,9 +424,23 @@ def test_uri_reading(test_images):
     np.allclose(actual, expected)
 
 
-def test_seek_last(test_images):
-    frame = iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=279)
-    assert frame.shape == (720, 1280, 3)
+def test_seek_vs_iter(test_images):
+    img_path = test_images / "cockatoo.mp4"
+    n_frames = iio.improps(img_path, plugin="pyav").shape[0]
+    test_indices = [30, 31, 32, 76, 158, n_frames - 1]
+
+    with iio.imopen(img_path, "r", plugin="pyav") as file:
+        for idx, expected in enumerate(
+            iio.imiter(img_path, plugin="pyav", thread_type="FRAME")
+        ):
+            if idx not in test_indices:
+                continue
+
+            actual = file.read(index=idx, thread_type="FRAME")
+            assert np.allclose(actual, expected)
+
+            actual = iio.imread(img_path, plugin="pyav", index=idx)
+            assert np.allclose(actual, expected)
 
 
 def test_procedual_writing(test_images):
@@ -483,3 +506,47 @@ def test_read_filter(test_images):
     )
 
     assert image.shape == (480, 640, 3)
+
+
+def test_write_float_fps(test_images):
+    fps = 3.5
+    frames = iio.imread(test_images / "cockatoo.mp4", plugin="pyav")
+    buffer = iio.imwrite(
+        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5
+    )
+
+    assert iio.immeta(buffer, plugin="pyav")["fps"] == fps
+
+
+def test_keyframe_intervals(test_images):
+    buffer = io.BytesIO()
+    with ExitStack() as ctx:
+        in_file = ctx.enter_context(
+            iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav")
+        )
+        out_file = ctx.enter_context(
+            iio.imopen(buffer, "w", plugin="pyav", extension=".mp4")
+        )
+
+        out_file.init_video_stream(
+            "libx264", max_keyframe_interval=5, force_keyframes=True
+        )
+
+        for idx in range(50):
+            frame = in_file.read(index=idx)
+            out_file.write_frame(frame)
+
+    buffer.seek(0)
+    key_dist = [0]
+    i_dist = [0]
+    with iio.imopen(buffer, "r", plugin="pyav") as file:
+        n_frames = file.properties().shape[0]
+        for idx in range(1, n_frames):
+            medatada = file.metadata(index=idx)
+            if medatada["frame_type"] == "I":
+                i_dist.append(idx)
+            if medatada["key_frame"]:
+                key_dist.append(idx)
+
+    assert np.max(np.diff(i_dist)) <= 5
+    assert np.max(np.diff(key_dist)) <= 5
