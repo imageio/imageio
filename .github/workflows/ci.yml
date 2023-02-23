@@ -97,6 +97,8 @@ jobs:
           # access violation found in CI
           - os: windows-latest
             pyversion: '3.11'
+          - os: macos-latest
+            pyversion: '3.11'
     steps:
       - uses: actions/checkout@v3
         with:
