@@ -110,7 +110,7 @@ jobs:
         run: |
             pip install .[test,all-plugins]
       - name: OpenCV on python 3.7
-        if: matrix.os != "macos-latest"
+        if: matrix.os != 'macos-latest'
         run: |
             pip install opencv-python
       - name: Install optional dependencies for tests
