@@ -550,3 +550,34 @@ def test_keyframe_intervals(test_images):
 
     assert np.max(np.diff(i_dist)) <= 5
     assert np.max(np.diff(key_dist)) <= 5
+
+
+def test_iter_audio(test_images: Path):
+    video_path = str(test_images / "realshort.mp4")
+
+    with av.open(video_path, "r") as container:
+        expected = [frame.to_ndarray() for frame in container.decode(audio=0)]
+
+    with iio.imopen(video_path, "r", plugin="pyav") as file:
+        actual = [frame for frame in file.iter_audio()]
+
+    assert len(expected) == len(actual)
+    for exp, act in zip(expected, actual):
+        assert exp.shape == act.shape
+        assert np.allclose(exp, act)
+
+
+def test_read_audio(test_images: Path):
+    video_path = str(test_images / "realshort.mp4")
+
+    expected = []
+    with av.open(video_path, "r") as container:
+        for frame in container.decode(audio=0):
+            expected.append(frame.to_ndarray())
+    expected = np.concatenate(expected, axis=-1)
+
+    with iio.imopen(video_path, "r", plugin="pyav") as file:
+        actual = file.read_audio()
+
+    assert expected.shape == actual.shape
+    assert np.allclose(expected, actual)

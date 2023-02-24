@@ -1047,6 +1047,60 @@ class PyAVPlugin(PluginV3):
         """
         return self._video_stream.metadata
 
+    # ---------------
+    # Audio interface
+    # ---------------
+
+    def iter_audio(
+        self,
+        *,
+        stream_index: int = 0,
+    ) -> np.ndarray:
+        """Yield audio frames from the video's audio stream.
+
+        Parameters
+        ----------
+        stream_index : int
+            Select which audio stream to read, in case there are several present (e.g., stereo vs. 5.1). Defaults to 0.
+
+        Returns
+        -------
+        audio_frame: np.ndarray
+            A numpy array with shape ``(channels, samples)`` containing one audio frame.
+        """
+
+        for audio_frame in self._container.decode(audio=stream_index):
+            yield audio_frame.to_ndarray()
+
+    def read_audio(
+        self,
+        *,
+        stream_index: int = 0,
+    ) -> np.ndarray:
+        """Read audio data from the video.
+
+        Reads the entirety of the video's audio stream (defaults to the first stream if several are present).
+
+        Parameters
+        ----------
+        stream_index : int
+            Select which audio stream to read, in case there are several present (e.g., stereo vs. 5.1). Defaults to 0.
+
+        Returns
+        -------
+        audio: np.ndarray
+            A numpy array with shape ``(channels, samples)`` containing the whole audio stream.
+        """
+
+        # NOTE: Unclear if we should `self._container.seek(0)` first. PyAV docs not clear on this point.
+
+        audio_frames = [frame for frame in self.iter_audio(stream_index=stream_index)]
+        audio_frames = np.concatenate(
+            audio_frames, axis=-1
+        )  # Each frame shaped (channels, samples).
+
+        return audio_frames
+
     # -------------------------------
     # Internals and private functions
     # -------------------------------
