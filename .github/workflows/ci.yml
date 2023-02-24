@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
             pip install .[test,all-plugins]
-      - name: OpenCV on python 3.7
+      - name: Install OpenCV on non-MacOS
         if: matrix.os != 'macos-latest'
         run: |
             pip install opencv-python
