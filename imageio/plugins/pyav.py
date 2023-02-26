@@ -1076,30 +1076,39 @@ class PyAVPlugin(PluginV3):
         self,
         *,
         stream_index: int = 0,
+        frame_index: int = None,
     ) -> np.ndarray:
         """Read audio data from the video.
 
-        Reads the entirety of the video's audio stream (defaults to the first stream if several are present).
+        Defaults to reading the entirety of the video's audio stream (defaults to the first stream if several are present).
+        If ``stream_index`` is provided, the corresponding stream is read.
+        If ``frame_index`` is provided, only the selected audio frame is returned.
 
         Parameters
         ----------
         stream_index : int
             Select which audio stream to read, in case there are several present (e.g., stereo vs. 5.1). Defaults to 0.
+        frame_index : int
+            Select which audio frame to read. If None (default), read all audio frames.
+            Each audio frame is a batch of contiguous samples.
 
         Returns
         -------
         audio: np.ndarray
-            A numpy array with shape ``(channels, samples)`` containing the whole audio stream.
+            A numpy array with shape ``(channels, samples)`` containing the requested audio data.
         """
 
-        # NOTE: Unclear if we should `self._container.seek(0)` first. PyAV docs not clear on this point.
+        self._container.seek(0)
+        audio_iterator = self.iter_audio(stream_index=stream_index)
 
-        audio_frames = [frame for frame in self.iter_audio(stream_index=stream_index)]
-        audio_frames = np.concatenate(
-            audio_frames, axis=-1
-        )  # Each frame shaped (channels, samples).
+        if frame_index is None:
+            audio_frame = np.concatenate([frame for frame in audio_iterator], axis=-1)
+        else:
+            for _ in range(frame_index):
+                next(audio_iterator)
+            audio_frame = next(audio_iterator)
 
-        return audio_frames
+        return audio_frame
 
     # -------------------------------
     # Internals and private functions

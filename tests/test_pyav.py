@@ -568,16 +568,31 @@ def test_iter_audio(test_images: Path):
 
 
 def test_read_audio(test_images: Path):
-    video_path = str(test_images / "realshort.mp4")
+    TARGET_IDX = 12
 
-    expected = []
-    with av.open(video_path, "r") as container:
-        for frame in container.decode(audio=0):
-            expected.append(frame.to_ndarray())
-    expected = np.concatenate(expected, axis=-1)
+    # Video file already used in other tests. Contains mono stream.
+    realshort_path = str(test_images / "realshort.mp4")
 
-    with iio.imopen(video_path, "r", plugin="pyav") as file:
-        actual = file.read_audio()
+    # Public domain audio file. Contains stereo stream.
+    # https://archive.org/details/HowtheEy1941
+    eye_anatomy_path = str(test_images / "eye-anatomy.mp4")
 
-    assert expected.shape == actual.shape
-    assert np.allclose(expected, actual)
+    for path in [realshort_path, eye_anatomy_path]:
+        expected_full = []
+        with av.open(path, "r") as container:
+            for idx, frame in enumerate(container.decode(audio=0)):
+                frame = frame.to_ndarray()
+                expected_full.append(frame)
+                if idx == TARGET_IDX:
+                    expected_frame = frame
+        expected_full = np.concatenate(expected_full, axis=-1)
+
+        with iio.imopen(path, "r", plugin="pyav") as file:
+            actual_full = file.read_audio()
+            actual_frame = file.read_audio(frame_index=TARGET_IDX)
+
+        assert expected_full.shape == actual_full.shape
+        assert np.allclose(expected_full, actual_full)
+
+        assert expected_frame.shape == actual_frame.shape
+        assert np.allclose(expected_frame, actual_frame)
