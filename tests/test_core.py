@@ -111,7 +111,6 @@ def test_fetching(tmp_path):
 
 
 def test_findlib2():
-
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
 
@@ -216,7 +215,6 @@ def test_request(test_images, tmp_userdir):
 
 @pytest.mark.needs_internet
 def test_request_read_sources(test_images, tmp_userdir):
-
     # Make an image available in many ways
     fname = "chelsea.png"
     filename = test_images / fname
@@ -231,7 +229,6 @@ def test_request_read_sources(test_images, tmp_userdir):
     # and from local file (the two main plugin-facing functions)
     for file_or_filename in range(2):
         for check_first_bytes in range(2):
-
             # Define uris to test. Define inside loop, since we need fresh files
             uris = [
                 filename,
@@ -259,7 +256,6 @@ def test_request_read_sources(test_images, tmp_userdir):
 
 
 def test_request_save_sources(test_images, tmp_path):
-
     # Get test data
     filename = test_images / "chelsea.png"
     with open(filename, "rb") as f:
@@ -581,7 +577,6 @@ def test_util_image_as_uint():
 
 
 def test_util_has_has_module():
-
     assert not core.has_module("this_module_does_not_exist")
     assert core.has_module("sys")
 
@@ -1044,7 +1039,7 @@ def test_format_hint(test_images):
 
     assert np.allclose(im_new, im_old)
 
-    req = iio.core.Request("https://sample.com/my/resource", "r", format_hint=".jpg")
+    req = iio.core.Request(test_images / "bricks.jpg", "r", format_hint=".jpg")
     filename = req.get_local_filename()
 
     assert Path(filename).suffix == ".jpg"

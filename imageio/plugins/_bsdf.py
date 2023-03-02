@@ -161,7 +161,6 @@ class BsdfSerializer(object):
         load_streaming=False,
         lazy_blob=False,
     ):
-
         # Validate compression
         if isinstance(compression, string_types):
             m = {"no": 0, "zlib": 1, "bz2": 2}
@@ -871,7 +870,6 @@ class Extension(object):
 
 
 class ComplexExtension(Extension):
-
     name = "c"
     cls = complex
 
@@ -883,7 +881,6 @@ class ComplexExtension(Extension):
 
 
 class NDArrayExtension(Extension):
-
     name = "ndarray"
 
     def __init__(self):

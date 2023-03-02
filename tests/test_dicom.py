@@ -56,7 +56,6 @@ def test_dcmtk():
 
 @deprecated_test
 def test_selection(test_images, tmp_path, examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     # Test that DICOM can examine file
@@ -100,7 +99,6 @@ def test_selection(test_images, tmp_path, examples):
 
 
 def test_progress(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     iio.imread(fname1, progress=True)
@@ -111,11 +109,9 @@ def test_progress(examples):
 
 
 def test_different_read_modes(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
-
         # Test imread()
         im = iio.imread(fname)
         assert isinstance(im, np.ndarray)
@@ -148,11 +144,9 @@ def test_different_read_modes(examples):
 
 
 def test_different_read_modes_with_readers(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
-
         # Test imread()
         R = iio.read(fname, "DICOM", "i")
         assert len(R) == 1

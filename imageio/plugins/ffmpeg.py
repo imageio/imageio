@@ -197,7 +197,6 @@ class FfmpegFormat(Format):
     # --
 
     class Reader(Format.Reader):
-
         _frame_catcher = None
         _read_gen = None
 
@@ -417,7 +416,6 @@ class FfmpegFormat(Format):
             return self._meta
 
         def _initialize(self, index=0):
-
             # Close the current generator, and thereby terminate its subprocess
             if self._read_gen is not None:
                 self._read_gen.close()
@@ -534,7 +532,6 @@ class FfmpegFormat(Format):
     # --
 
     class Writer(Format.Writer):
-
         _write_gen = None
 
         def _open(
@@ -564,7 +561,6 @@ class FfmpegFormat(Format):
                 self._write_gen = None
 
         def _append_data(self, im, meta):
-
             # Get props of image
             h, w = im.shape[:2]
             size = w, h
@@ -609,7 +605,6 @@ class FfmpegFormat(Format):
             )
 
         def _initialize(self):
-
             # Close existing generator
             if self._write_gen is not None:
                 self._write_gen.close()

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.26.0 (2023-02-27)
+### Feature
+* Collection of small improvements to pyav ([#939](https://github.com/imageio/imageio/issues/939)) ([`b0dc210`](https://github.com/imageio/imageio/commit/b0dc21074d77894d01ce50ab2a525f214b1e265d))
+
+## v2.25.1 (2023-02-13)
+### Fix
+* Format hint test doesn't need to establish a connection ([#941](https://github.com/imageio/imageio/issues/941)) ([`b7a0f35`](https://github.com/imageio/imageio/commit/b7a0f353a1c7798ddef5eb60927921e276289e25))
+
+### Other
+* Don't build pdfs on RTD ([#944](https://github.com/imageio/imageio/issues/944)) ([`d200673`](https://github.com/imageio/imageio/commit/d200673503e620ac9ec1584a04e358794416e28b))
+
 ## v2.25.0 (2023-01-23)
 ### Feature
 * Add audio support for ffmpeg writer ([#882](https://github.com/imageio/imageio/issues/882)) ([`7f411d2`](https://github.com/imageio/imageio/commit/7f411d268cd8fab5537854814904c41465a48b9f))

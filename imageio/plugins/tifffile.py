@@ -536,7 +536,7 @@ class TiffFormat(Format):
         @staticmethod
         def _sanitize_meta(meta):
             ret = {}
-            for (key, value) in meta.items():
+            for key, value in meta.items():
                 if key in WRITE_METADATA_KEYS:
                     # Special case of previously read `predictor` int value
                     # 1(=NONE) translation to False expected by TiffWriter.save

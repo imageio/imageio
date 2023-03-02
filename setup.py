@@ -193,7 +193,6 @@ plugins = {
 }
 
 cpython_only_plugins = {
-    "opencv": ["opencv-python"],
     "fits": ["astropy"],
 }
 

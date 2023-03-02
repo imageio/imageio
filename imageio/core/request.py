@@ -214,7 +214,6 @@ class Request(object):
     """
 
     def __init__(self, uri, mode, *, extension=None, format_hint: str = None, **kwargs):
-
         # General
         self.raw_uri = uri
         self._uri_type = None
@@ -545,7 +544,6 @@ class Request(object):
         """
 
         if self.mode.io_mode == IOMode.write:
-
             # See if we "own" the data and must put it somewhere
             bytes = None
             if self._filename_local:
@@ -666,7 +664,6 @@ class SeekableFileObject:
         self.closed = False
 
     def read(self, n=None):
-
         # Fix up n
         if n is None:
             pass
