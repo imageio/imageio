@@ -742,7 +742,9 @@ class PyAVPlugin(PluginV3):
                 }
             )
             if self._video_stream.duration is not None:
-                duration = float(self._video_stream.duration * self._video_stream.time_base)
+                duration = float(
+                    self._video_stream.duration * self._video_stream.time_base
+                )
                 metadata.update({"duration": duration})
 
             metadata.update(self.container_metadata)
