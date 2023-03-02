@@ -25,18 +25,18 @@ def test_mp4_read(test_images: Path):
     expected = frame.to_ndarray(format="rgb24")
 
     result = iio.imread(
-        test_images / "cockatoo.mp4", index=42, plugin="pyav", format="rgb24"
+        test_images / "cockatoo.mp4", index=4, plugin="pyav", format="rgb24"
     )
-    np.allclose(result, expected)
+    assert np.allclose(result, expected)
 
     result = iio.imread(
         test_images / "cockatoo.mp4",
-        index=42,
+        index=4,
         plugin="pyav",
         constant_framerate=False,
         format="rgb24",
     )
-    np.allclose(result, expected)
+    assert np.allclose(result, expected)
 
 
 def test_mp4_read_bytes(test_images):
@@ -45,7 +45,7 @@ def test_mp4_read_bytes(test_images):
     img_expected = iio.imread(encoded_video, index=5)
     img = iio.imread(encoded_video, plugin="pyav", index=5)
 
-    np.allclose(img, img_expected)
+    assert np.allclose(img, img_expected)
 
 
 def test_mp4_writing(tmp_path, test_images):
@@ -255,7 +255,7 @@ def test_gif_write(test_images, tmp_path):
         in_pixel_format="gray",
     )
     frames_actual = iio.imread(tmp_path / "test.gif", plugin="pyav", format="gray")
-    np.allclose(frames_actual, frames_expected)
+    assert np.allclose(frames_actual, frames_expected)
 
     # with iio.v3.imopen("test2.gif", "w", plugin="pyav", container_format="gif", legacy_mode=False) as file:
     #     file.write(frames, codec="gif", out_pixel_format="gray", in_pixel_format="gray")
@@ -405,7 +405,7 @@ def test_sequential_reading(test_images):
         second_read = img_file.read(index=5)
         actual_imgs = [first_read, second_read]
 
-    np.allclose(actual_imgs, expected_imgs)
+    assert np.allclose(actual_imgs, expected_imgs)
 
 
 def test_uri_reading(test_images):
@@ -421,7 +421,7 @@ def test_uri_reading(test_images):
 
     actual = iio.imread(uri, plugin="pyav", index=250)
 
-    np.allclose(actual, expected)
+    assert np.allclose(actual, expected)
 
 
 def test_seek_vs_iter(test_images):
