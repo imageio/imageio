@@ -550,3 +550,15 @@ def test_keyframe_intervals(test_images):
 
     assert np.max(np.diff(i_dist)) <= 5
     assert np.max(np.diff(key_dist)) <= 5
+
+
+def test_trim_filter(test_images):
+    # this is a regression test for:
+    # https://github.com/imageio/imageio/issues/951
+    frames = iio.imread(
+        "imageio:cockatoo.mp4",
+        plugin="pyav",
+        filter_sequence=[("trim", {"start": "00:00:01", "end": "00:00:02"})],
+    )
+
+    assert frames.shape == (20, 720, 1280, 3)
