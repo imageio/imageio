@@ -155,10 +155,13 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        If you open a GIF - or any other format using color pallets - you may
-        wish to manually set the `mode` parameter. Otherwise, the numbers in
-        the returned image will refer to the entries in the color pallet, which
-        is discarded during conversion to ndarray.
+        If you read a paletted image (e.g. GIF) then the plugin will apply the
+        palette by default. Should you wish to read the palette indices of each
+        pixel use ``mode="P"``. The coresponding color pallete can be found in
+        the image's metadata using the ``palette`` key when metadata is
+        extracted using the ``exclude_applied=False`` kwarg. The latter is
+        needed, as palettes are applied by default and hence excluded by default
+        to keep metadata and pixel data consistent.
 
         """
 
