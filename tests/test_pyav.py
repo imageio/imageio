@@ -261,6 +261,23 @@ def test_gif_write(test_images, tmp_path):
     #     file.write(frames, codec="gif", out_pixel_format="gray", in_pixel_format="gray")
 
 
+def test_raises_exception_when_shapes_mismatch(test_images, tmp_path):
+    frame_list = [
+        np.ones((200, 150), dtype=np.uint8),
+        np.ones((256, 256), dtype=np.uint8),
+    ]
+
+    with pytest.raises(ValueError):
+        iio.imwrite(
+            tmp_path / "test.gif",
+            frame_list,
+            plugin="pyav",
+            codec="gif",
+            out_pixel_format="gray",
+            in_pixel_format="gray",
+        )
+
+
 def test_gif_gen(test_images, tmp_path):
     frames = iio.imread(
         test_images / "realshort.mp4",
