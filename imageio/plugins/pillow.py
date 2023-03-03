@@ -389,9 +389,7 @@ class PillowPlugin(PluginV3):
         metadata["shape"] = self._image.size
 
         if self._image.mode == "P" and not exclude_applied:
-            metadata["palette"] = np.asarray(
-                [list(x) for x in self._image.palette.colors.keys()]
-            )
+            metadata["palette"] = np.asarray(tuple(self._image.palette.colors.keys()))
 
         if self._image.getexif():
             exif_data = {

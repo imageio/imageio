@@ -551,6 +551,7 @@ def test_metadata(test_images):
     meta_all = iio.immeta(test_images / "newtonscradle.gif", exclude_applied=False)
     palette = meta_all["palette"]
     assert palette.shape == (102, 3)
+    assert palette.dtype == np.int32
 
 
 def test_apng_reading(tmp_path, test_images):
