@@ -106,7 +106,14 @@ macro_block_size: int
     automatic feature set it to None or 1, however be warned many players
     can't decode videos that are odd in size and some codecs will produce
     poor results or fail. See https://en.wikipedia.org/wiki/Macroblock.
-
+audio_path : str | None
+    Audio path of any audio that needs to be written. Defaults to nothing,
+    so no audio will be written. Please note, when writing shorter video
+    than the original, ffmpeg will not truncate the audio track; it
+    will maintain its original length and be longer than the video.
+audio_codec : str | None
+    The audio codec to use. Defaults to nothing, but if an audio_path has
+    been provided ffmpeg will attempt to set a default codec.
 
 Notes
 -----
@@ -190,7 +197,6 @@ class FfmpegFormat(Format):
     # --
 
     class Reader(Format.Reader):
-
         _frame_catcher = None
         _read_gen = None
 
@@ -410,7 +416,6 @@ class FfmpegFormat(Format):
             return self._meta
 
         def _initialize(self, index=0):
-
             # Close the current generator, and thereby terminate its subprocess
             if self._read_gen is not None:
                 self._read_gen.close()
@@ -527,7 +532,6 @@ class FfmpegFormat(Format):
     # --
 
     class Writer(Format.Writer):
-
         _write_gen = None
 
         def _open(
@@ -542,6 +546,8 @@ class FfmpegFormat(Format):
             ffmpeg_log_level="quiet",
             quality=5,
             macro_block_size=16,
+            audio_path=None,
+            audio_codec=None,
         ):
             self._ffmpeg_api = imageio_ffmpeg
             self._filename = self.request.get_local_filename()
@@ -555,7 +561,6 @@ class FfmpegFormat(Format):
                 self._write_gen = None
 
         def _append_data(self, im, meta):
-
             # Get props of image
             h, w = im.shape[:2]
             size = w, h
@@ -600,7 +605,6 @@ class FfmpegFormat(Format):
             )
 
         def _initialize(self):
-
             # Close existing generator
             if self._write_gen is not None:
                 self._write_gen.close()
@@ -617,6 +621,8 @@ class FfmpegFormat(Format):
             pixelformat = self.request.kwargs.get("pixelformat", None)
             macro_block_size = self.request.kwargs.get("macro_block_size", 16)
             ffmpeg_log_level = self.request.kwargs.get("ffmpeg_log_level", None)
+            audio_path = self.request.kwargs.get("audio_path", None)
+            audio_codec = self.request.kwargs.get("audio_codec", None)
 
             macro_block_size = macro_block_size or 1  # None -> 1
 
@@ -634,6 +640,8 @@ class FfmpegFormat(Format):
                 ffmpeg_log_level=ffmpeg_log_level,
                 input_params=input_params,
                 output_params=output_params,
+                audio_path=audio_path,
+                audio_codec=audio_codec,
             )
 
             # Seed the generator (this is where the ffmpeg subprocess starts)

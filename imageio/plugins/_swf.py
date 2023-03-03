@@ -83,7 +83,6 @@ class BitArray:
         return self
 
     def append(self, bits):
-
         # check input
         if isinstance(bits, BitArray):
             bits = str(bits)
@@ -320,7 +319,6 @@ class Tag:
         return twits2bits([xmin, xmax, ymin, ymax])
 
     def make_matrix_record(self, scale_xy=None, rot_xy=None, trans_xy=None):
-
         # empty matrix?
         if scale_xy is None and rot_xy is None and trans_xy is None:
             return "0" * 8
@@ -466,7 +464,6 @@ class BitmapTag(DefinitionTag):
         self.imshape = im.shape
 
     def process_tag(self):
-
         # build tag
         bb = bytes()
         bb += int2uint16(self.id)  # CharacterID
@@ -567,7 +564,6 @@ class ShapeTag(DefinitionTag):
         # self.bytes = bb
 
     def make_style_change_record(self, lineStyle=None, fillStyle=None, moveTo=None):
-
         # first 6 flags
         # Note that we use FillStyle1. If we don't flash (at least 8) does not
         # recognize the frames properly when importing to library.

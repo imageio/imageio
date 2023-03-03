@@ -24,7 +24,6 @@ from PIL import Image, ImageSequence  # type: ignore
     ],
 )
 def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio
@@ -53,7 +52,6 @@ def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
 )
 @pytest.mark.needs_internet
 def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio

@@ -154,7 +154,6 @@ def test_format(test_images, tmp_path):
 
 @deprecated_test
 def test_reader_and_writer(test_images, tmp_path):
-
     # Prepare
     filename1 = test_images / "chelsea.png"
     filename2 = tmp_path / "chelsea.out"
@@ -224,7 +223,6 @@ def test_reader_and_writer(test_images, tmp_path):
 
 @deprecated_test
 def test_default_can_read_and_can_write(tmp_path):
-
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
@@ -246,7 +244,6 @@ def test_default_can_read_and_can_write(tmp_path):
 
 @deprecated_test
 def test_format_selection(test_images, tmp_path):
-
     formats = imageio.formats
     fname1 = test_images / "chelsea.png"
     fname2 = tmp_path / "test.selectext1"
@@ -354,7 +351,6 @@ def test_format_manager(test_images):
 
 @deprecated_test
 def test_sorting_errors():
-
     with raises(TypeError):
         imageio.formats.sort(3)
     with raises(ValueError):
@@ -365,7 +361,6 @@ def test_sorting_errors():
 
 @deprecated_test
 def test_default_order():
-
     assert imageio.formats[".tiff"].name == "TIFF"
     assert imageio.formats[".png"].name == "PNG-PIL"
     assert imageio.formats[".pfm"].name == "PFM-FI"
@@ -373,7 +368,6 @@ def test_default_order():
 
 @deprecated_test
 def test_preferring_fi():
-
     # Prefer FI all the way
     imageio.formats.sort("-FI")
 
@@ -390,7 +384,6 @@ def test_preferring_fi():
 
 @deprecated_test
 def test_preferring_arbitrary():
-
     # Normally, these exotic formats are somewhere in the back
     imageio.formats.sort()
     names = [f.name for f in imageio.formats]

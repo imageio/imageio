@@ -205,7 +205,6 @@ class GifFormat(FreeimageMulti):
     # -- writer
 
     class Writer(FreeimageMulti.Writer):
-
         # todo: subrectangles
         # todo: global palette
 

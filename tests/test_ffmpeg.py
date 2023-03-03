@@ -82,7 +82,6 @@ def test_get_exe_env():
 
 @deprecated_test
 def test_select(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     F = iio.formats["ffmpeg"]
@@ -108,7 +107,6 @@ def test_integer_reader_length(test_images):
 
 
 def test_read_and_write(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
@@ -185,7 +183,6 @@ def test_v3_read(test_images):
 
 
 def test_write_not_contiguous(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
@@ -222,8 +219,44 @@ def test_write_not_contiguous(test_images):
             assert diff.mean() < 2.5
 
 
-def test_reader_more(test_images):
+def write_audio(test_images, tmp_path, codec=None) -> dict:
+    in_filename = test_images / "realshort.mp4"
+    out_filename = tmp_path / "realshort_audio.mp4"
 
+    in_file = []
+    with iio.read(in_filename, "ffmpeg") as R:
+        for i in range(5):
+            im = R.get_next_data()
+            in_file.append(im)
+
+    # Now write with audio to preserve the audio track
+    with iio.save(
+        out_filename,
+        format="ffmpeg",
+        audio_path=in_filename.as_posix(),
+        audio_codec=codec,
+    ) as W:
+        for im in in_file:
+            W.append_data(im)
+
+    R = iio.read(out_filename, "ffmpeg", loop=True)
+    meta = R.get_meta_data()
+    R.close()
+
+    return meta
+
+
+def test_write_audio_ac3(test_images, tmp_path):
+    meta = write_audio(test_images, tmp_path, "ac3")
+    assert "audio_codec" in meta and meta["audio_codec"] == "ac3"
+
+
+def test_write_audio_default_codec(test_images, tmp_path):
+    meta = write_audio(test_images, tmp_path)
+    assert "audio_codec" in meta
+
+
+def test_reader_more(test_images):
     fname1 = test_images / "cockatoo.mp4"
 
     fname3 = fname1.with_suffix(".stub.mp4")
@@ -303,7 +336,6 @@ def test_reader_more(test_images):
 
 
 def test_writer_more(test_images):
-
     fname1 = test_images / "cockatoo.mp4"
     fname2 = fname1.with_suffix(".out.mp4")
 
@@ -524,7 +556,6 @@ def test_webcam_get_next_data():
 
 
 def test_process_termination(test_images):
-
     pids0 = get_ffmpeg_pids()
 
     r1 = iio.get_reader(test_images / "cockatoo.mp4")

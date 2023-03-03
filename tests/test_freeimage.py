@@ -48,7 +48,6 @@ def vendored_lib(request, tmp_path_factory):
 # TODD: update fixture once we transition into v3
 @pytest.fixture(scope="module")
 def setup_library(tmp_path_factory, vendored_lib):
-
     # Checks if freeimage is installed by the system
     from imageio.plugins.freeimage import fi
 
@@ -59,7 +58,6 @@ def setup_library(tmp_path_factory, vendored_lib):
         iio.formats.sort("-FI")
 
     if use_imageio_binary:
-
         if sys.platform.startswith("win"):
             user_dir_env = "LOCALAPPDATA"
         else:
@@ -80,7 +78,6 @@ def setup_library(tmp_path_factory, vendored_lib):
     yield
 
     if use_imageio_binary:
-
         if old_user_dir is not None:
             os.environ[user_dir_env] = old_user_dir
         else:
@@ -179,7 +176,6 @@ def test_get_ref_im():
 
 
 def test_get_fi_lib(vendored_lib, tmp_userdir):
-
     from imageio.plugins._freeimage import get_freeimage_lib
 
     add = core.appdata_dir("imageio")
@@ -192,7 +188,6 @@ def test_get_fi_lib(vendored_lib, tmp_userdir):
 
 @deprecated_test
 def test_freeimage_format(setup_library, test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # Format
@@ -215,7 +210,6 @@ def test_freeimage_format(setup_library, test_images, tmp_path):
 
 
 def test_freeimage_lib(setup_library):
-
     fi = imageio.plugins.freeimage.fi
 
     # Error messages
@@ -231,7 +225,6 @@ def test_freeimage_lib(setup_library):
 
 
 def test_png(setup_library, test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -298,7 +291,6 @@ def test_png(setup_library, test_images, tmp_path):
 
 
 def test_png_dtypes(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # See issue #44
@@ -337,7 +329,6 @@ def test_png_dtypes(setup_library, tmp_path):
 
 
 def test_jpg(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -383,7 +374,6 @@ def test_jpg(setup_library, tmp_path):
 
 
 def test_jpg_more(setup_library, test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
@@ -416,7 +406,6 @@ def test_jpg_more(setup_library, test_images, tmp_path):
 
 
 def test_bmp(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -455,7 +444,6 @@ def test_bmp(setup_library, tmp_path):
 
 
 def test_gif(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # The not-animated gif
@@ -490,7 +478,6 @@ def test_gif(setup_library, tmp_path):
 
 
 def test_animated_gif(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     if sys.platform.startswith("darwin"):
@@ -570,7 +557,6 @@ def test_animated_gif(setup_library, tmp_path):
 
 
 def test_ico(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -615,7 +601,6 @@ def test_ico(setup_library, tmp_path):
     reason="Windows has a known issue with multi-icon files",
 )
 def test_multi_icon_ico(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     im = get_ref_im(4, 0, 0)[:32, :32]
@@ -633,7 +618,6 @@ def test_mng(setup_library, test_images):
 
 
 def test_pnm(setup_library, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for useAscii in (True, False):
@@ -674,7 +658,6 @@ def test_other(setup_library, tmp_path):
 
 
 def test_gamma_correction(setup_library, test_images):
-
     fname = test_images / "kodim03.png"
 
     # Load image three times
