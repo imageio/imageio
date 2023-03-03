@@ -212,7 +212,7 @@ class PillowPlugin(PluginV3):
     def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
-        elif image.format == "GIF":
+        elif image.mode == "P":
             # adjust for pillow9 changes
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
@@ -442,8 +442,8 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        if self._image.format == "GIF":
-            # GIF mode is determined by pallette
+        if self._image.mode == "P":
+            # mode of palette images is determined by their palette
             mode = self._image.palette.mode
         else:
             mode = self._image.mode
