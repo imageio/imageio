@@ -618,9 +618,7 @@ class PyAVPlugin(PluginV3):
         """
 
         if isinstance(ndimage, list):
-            # frames shapes must agree for video
-            if any(f.shape != ndimage[0].shape for f in ndimage):
-                raise ValueError("All frames should have the same shape")
+            pass
         elif not is_batch:
             ndimage = np.asarray(ndimage)[None, ...]
         else:
@@ -911,6 +909,18 @@ class PyAVPlugin(PluginV3):
 
         stream = self._video_stream
         av_frame.time_base = stream.codec_context.time_base
+
+        if stream.frames == 0:
+            stream.width = av_frame.width
+            stream.height = av_frame.height
+        elif stream.width != av_frame.width or stream.height != av_frame.height:
+            stream_shape = (stream.height, stream.width)
+            video_shape = (height, width)
+            raise ValueError(
+                f"Can't write a frame of shape `{video_shape}` to"
+                f" a video stream with shape `{stream_shape}`."
+            )
+
         av_frame.pts = self.frames_written
         self.frames_written += 1
 
@@ -919,9 +929,6 @@ class PyAVPlugin(PluginV3):
             if av_frame is None:
                 return
 
-        if stream.frames == 0:
-            stream.width = av_frame.width
-            stream.height = av_frame.height
         for packet in stream.encode(av_frame):
             self._container.mux(packet)
 
