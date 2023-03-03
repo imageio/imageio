@@ -368,6 +368,11 @@ class PillowPlugin(PluginV3):
             metadata. If index is None, this plugin reads metadata from the
             first image of the file (index=0) unless the image is a GIF or APNG,
             in which case global metadata is read (index=...).
+        exclude_applied : bool
+            If True, exclude metadata fields that are applied to the image while
+            reading. For example, if the binary data contains a rotation flag,
+            the image is rotated by default and the rotation flag is excluded
+            from the metadata to avoid confusion.
 
         Returns
         -------
