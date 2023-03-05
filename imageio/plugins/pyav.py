@@ -1,13 +1,14 @@
 """Read/Write Videos (and images) using PyAV.
 
 .. note::
-    To use this plugin you need to have `PyAV <https://pyav.org/docs/stable/>`_ installed::
+    To use this plugin you need to have `PyAV <https://pyav.org/docs/stable/>`_
+    installed::
 
         pip install av
 
-This plugin wraps pyAV, a pythonic binding for the FFMPEG library.
-It is similar to our FFMPEG plugin but offers a more performant and
-robut interface and aims to superseed the FFMPEG plugin in the future.
+This plugin wraps pyAV, a pythonic binding for the FFMPEG library. It is similar
+to our FFMPEG plugin, has improved performance, features a robust interface, and
+aims to supersede the FFMPEG plugin in the future.
 
 
 Methods
