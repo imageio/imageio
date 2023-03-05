@@ -159,9 +159,6 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     default (may be `None`) if the ImageResource does not declare a value in its
     metadata.
 
-    The result will be an instance of a :class:`ImageProperties
-    <imageio.core.v3_plugin_api.ImageProperties>` dataclass.
-
     Parameters
     ----------
     index : int
@@ -188,6 +185,10 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     Notes
     -----
     Where possible, this will avoid loading pixel data.
+
+    See Also
+    --------
+    :class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>`
 
     """
 
