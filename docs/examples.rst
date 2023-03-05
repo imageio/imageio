@@ -439,3 +439,29 @@ them with a simple script like the one below.
         for name in zf.namelist():
             im = iio.imread(name)
             images.append(im)
+
+Reading Metadata
+----------------
+
+ImageIO differentiates between two types of metadata: format-specific metadata
+and standardized metadata.
+
+Format-specific metadata comes in the form of a python dict and aims to expose
+all the metadata contained in the image using the containers/plugins key and
+format::
+
+    import imageio.v3 as iio
+
+    metadata = iio.immeta("imageio:chelsea.png")
+    print(metadata["mode"])  # "RGB"
+
+Standardized metadata, on the other hand, comes in the form of the
+:class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>` dataclass
+and aims to expose a curated set of metadata using a standardized name and
+format independent of the underlying container or plugin::
+
+    import imageio.v3 as iio
+
+    props = iio.improps("imageio:chelsea.png")
+    print(props.shape)  # (300, 451, 3)
+    print(props.dtype)  # dtype('uint8')
