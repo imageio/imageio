@@ -188,7 +188,7 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
 
     See Also
     --------
-    :class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>`
+    imageio.core.v3_plugin_api.ImageProperties
 
     """
 
