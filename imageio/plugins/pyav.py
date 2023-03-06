@@ -295,6 +295,7 @@ class PyAVPlugin(PluginV3):
         self._container = None
         self._video_stream = None
         self._video_filter = None
+        self._audio_stream = None
 
         if request.mode.io_mode == IOMode.read:
             self._next_idx = 0
@@ -636,7 +637,7 @@ class PyAVPlugin(PluginV3):
         if self.request._uri_type == URI_BYTES:
             # bytes are immutuable, so we have to flush immediately
             # and can't support appending
-            self._flush_writer()
+            self._flush_video_writer()
             self._container.close()
 
             return self.request.get_file().getvalue()
@@ -775,9 +776,11 @@ class PyAVPlugin(PluginV3):
     def close(self) -> None:
         """Close the Video."""
 
-        is_write = self.request.mode.io_mode == IOMode.write
-        if is_write and self._video_stream is not None:
-            self._flush_writer()
+        if self.request.mode.io_mode == IOMode.write:
+            if self._video_stream is not None:
+                self._flush_video_writer()
+            if self._audio_stream is not None:
+                self._flush_audio_writer()
 
         if self._container is not None:
             self._container.close()
@@ -1110,6 +1113,75 @@ class PyAVPlugin(PluginV3):
 
         return audio_frame
 
+    def init_audio_stream(
+        self,
+        codec: str,
+        *,
+        format: str = None,
+        layout: str = None,
+        rate: float = None,
+    ) -> None:
+        """Initialize a new audio stream.
+
+        Parameters
+        ----------
+        codec: str
+            The audio codec to use, e.g. ``"aac"`` or ``"mp3"``.
+        format: str
+            The numeric format used to encode audio samples.
+            If ``None``, let PyAV choose.
+        layout: str
+            The channel layout of the incoming ``frame`` (e.g. ``"mono"``, ``"stereo"``, ``"5.1"``).
+            If ``None``, let PyAV choose.
+        rate: float
+            The desired sample rate of the audio stream.
+            If ``None``, let PyAV choose.
+        """
+        stream = self._container.add_stream(codec, rate)
+
+        if format is not None:
+            stream.format = format
+
+        if layout is not None:
+            stream.layout = layout
+
+        self._audio_stream = stream
+
+    def write_audio_frame(
+        self,
+        frame: np.ndarray,
+        *,
+        format: str = None,
+        layout: str = None,
+    ) -> None:
+        """Add a frame to the audio stream.
+
+        Parameters
+        ----------
+        frame: np.ndarray
+            The samples to be added to the audio stream.
+        format: str
+            The numeric format used to encode audio samples.
+            If ``None``, use the audio stream's format.
+        layout: str
+            The channel layout of the incoming ``frame`` (e.g. ``"mono"``, ``"stereo"``, ``"5.1"``).
+            If ``None``, use the audio stream's format.
+        """
+
+        # NOTE: The current implementation will fail if the provided `frame` does not have the correct shape and dtype (e.g. if using the default float64).
+        #       We could use a resampler to convert the incoming `frame` to the desired type. This would also allow changing between planar and packed data.
+
+        if format is None:
+            format = self._audio_stream.format.name
+        if layout is None:
+            layout = self._audio_stream.layout.name
+
+        av_frame = av.AudioFrame.from_ndarray(frame, format, layout)
+        av_frame.sample_rate = self._audio_stream.sample_rate
+
+        for packet in self._audio_stream.encode(av_frame):
+            self._container.mux(packet)
+
     # -------------------------------
     # Internals and private functions
     # -------------------------------
@@ -1224,14 +1296,13 @@ class PyAVPlugin(PluginV3):
             next(self._decoder)
             self._next_idx += 1
 
-    def _flush_writer(self):
-        """Flush the filter and encoder
+    def _flush_video_writer(self) -> None:
+        """Flush the video filter and encoder.
 
         This will reset the filter to `None` and send EoF to the encoder,
         i.e., after calling, no more frames may be written.
 
         """
-
         stream = self._video_stream
 
         if self._video_filter is not None:
@@ -1248,3 +1319,10 @@ class PyAVPlugin(PluginV3):
         for packet in stream.encode():
             self._container.mux(packet)
         self._video_stream = None
+
+    def _flush_audio_writer(self) -> None:
+        """Flush the audio encoder."""
+
+        for packet in self._audio_stream.encode():
+            self._container.mux(packet)
+        self._audio_stream = None

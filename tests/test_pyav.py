@@ -596,3 +596,26 @@ def test_read_audio(test_images: Path):
 
         assert expected_frame.shape == actual_frame.shape
         assert np.allclose(expected_frame, actual_frame)
+
+
+def test_write_audio(test_images: Path):
+    in_path = str(test_images / "realshort.mp4")
+    out_path = str(test_images / "realshort.mp3")
+
+    with iio.imopen(in_path, "r", plugin="pyav") as in_file:
+        in_frames = [ frame for frame in in_file.iter_audio() ]
+
+    with iio.imopen(out_path, "w", plugin="pyav") as out_file:
+        out_file.init_audio_stream("mp3", format="fltp", layout="mono")
+        for frame in in_frames:
+            out_file.write_audio_frame(frame) # This would fail if the frame was float64.
+
+    with av.open(out_path, "r") as container:
+        out_frames = [ frame.to_ndarray() for frame in container.decode(audio=0) ]
+
+    # The number of frames is not preserved, so we need to merge them before comparing.
+    in_data = np.concatenate(in_frames, axis=1)
+    out_data = np.concatenate(out_frames, axis=1)
+
+    assert in_data.shape == out_data.shape
+    assert np.allclose(in_data, out_data, atol=0.005) # Lossy conversion.
