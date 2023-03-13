@@ -545,7 +545,10 @@ class PyAVPlugin(PluginV3):
             self._next_idx += 1
 
             if self._video_filter is not None:
-                frame = self._video_filter.send(frame)
+                try:
+                    frame = self._video_filter.send(frame)
+                except StopIteration:
+                    break
 
             if frame is None:
                 continue
@@ -1013,6 +1016,8 @@ class PyAVPlugin(PluginV3):
                 except av.error.BlockingIOError:
                     # filter has lag and needs more frames
                     frame = yield None
+                except av.error.EOFError:
+                    break
 
             try:
                 # send EOF in av>=9.0
