@@ -155,10 +155,13 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        If you open a GIF - or any other format using color pallets - you may
-        wish to manually set the `mode` parameter. Otherwise, the numbers in
-        the returned image will refer to the entries in the color pallet, which
-        is discarded during conversion to ndarray.
+        If you read a paletted image (e.g. GIF) then the plugin will apply the
+        palette by default. Should you wish to read the palette indices of each
+        pixel use ``mode="P"``. The coresponding color pallete can be found in
+        the image's metadata using the ``palette`` key when metadata is
+        extracted using the ``exclude_applied=False`` kwarg. The latter is
+        needed, as palettes are applied by default and hence excluded by default
+        to keep metadata and pixel data consistent.
 
         """
 
@@ -212,7 +215,7 @@ class PillowPlugin(PluginV3):
     def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
-        elif image.format == "GIF":
+        elif image.mode == "P":
             # adjust for pillow9 changes
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
@@ -365,6 +368,11 @@ class PillowPlugin(PluginV3):
             metadata. If index is None, this plugin reads metadata from the
             first image of the file (index=0) unless the image is a GIF or APNG,
             in which case global metadata is read (index=...).
+        exclude_applied : bool
+            If True, exclude metadata fields that are applied to the image while
+            reading. For example, if the binary data contains a rotation flag,
+            the image is rotated by default and the rotation flag is excluded
+            from the metadata to avoid confusion.
 
         Returns
         -------
@@ -388,8 +396,8 @@ class PillowPlugin(PluginV3):
         metadata["mode"] = self._image.mode
         metadata["shape"] = self._image.size
 
-        if self._image.mode == "P":
-            metadata["palette"] = self._image.palette
+        if self._image.mode == "P" and not exclude_applied:
+            metadata["palette"] = np.asarray(tuple(self._image.palette.colors.keys()))
 
         if self._image.getexif():
             exif_data = {
@@ -442,8 +450,8 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        if self._image.format == "GIF":
-            # GIF mode is determined by pallette
+        if self._image.mode == "P":
+            # mode of palette images is determined by their palette
             mode = self._image.palette.mode
         else:
             mode = self._image.mode

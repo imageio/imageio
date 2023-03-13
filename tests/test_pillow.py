@@ -546,6 +546,12 @@ def test_metadata(test_images):
         image_file.read(index=5)
         meta = image_file.metadata(index=0)
         assert "version" in meta and meta["version"] == b"GIF89a"
+        assert "palette" not in meta
+
+    meta_all = iio.immeta(test_images / "newtonscradle.gif", exclude_applied=False)
+    palette = meta_all["palette"]
+    assert palette.shape == (102, 3)
+    assert np.issubdtype(palette.dtype, np.number)
 
 
 def test_apng_reading(tmp_path, test_images):
