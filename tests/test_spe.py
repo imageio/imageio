@@ -3,48 +3,43 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-import imageio.v2 as iio
+import imageio.v3 as iio
 from imageio.plugins import spe
-from conftest import deprecated_test
 
 
-@deprecated_test
-def test_spe_format():
-    for name in ("spe", ".spe"):
-        fmt = iio.formats[name]
-        assert isinstance(fmt, spe.SpeFormat)
+frame0 = np.zeros((32, 32), np.uint16)
+frame1 = np.ones_like(frame0)
 
 
-def test_spe_reading(test_images):
+def test_imopen(test_images):
+    img = iio.imopen(test_images / "test_000_.SPE", "r")
+    assert isinstance(img, spe.SpePlugin)
+
+
+def test_read(test_images):
     fname = test_images / "test_000_.SPE"
 
-    fr1 = np.zeros((32, 32), np.uint16)
-    fr2 = np.ones_like(fr1)
+    im = iio.imread(fname, index=0)
+    np.testing.assert_equal(im, frame0)
 
-    # Test imread
-    im = iio.imread(fname)
-    ims = iio.mimread(fname)
+    ims = iio.imread(fname, index=...)
+    np.testing.assert_equal(ims, [frame0, frame1])
 
-    np.testing.assert_equal(im, fr1)
-    np.testing.assert_equal(ims, [fr1, fr2])
+    with pytest.raises(IndexError):
+        iio.imread(fname, index=-1)
+    with pytest.raises(IndexError):
+        iio.imread(fname, index=2)
 
-    # Test volread
-    vol = iio.volread(fname)
-    vols = iio.mvolread(fname)
 
-    np.testing.assert_equal(vol, [fr1, fr2])
-    np.testing.assert_equal(vols, [[fr1, fr2]])
+def test_iter(test_images):
+    for actual, desired in zip(iio.imiter(test_images / "test_000_.SPE"),
+                               (frame0, frame1)):
+        np.testing.assert_equal(actual, desired)
 
-    # Test get_reader
-    r = iio.get_reader(fname, sdt_meta=False)
 
-    np.testing.assert_equal(r.get_data(1), fr2)
-    np.testing.assert_equal(list(r), [fr1, fr2])
-    pytest.raises(IndexError, r.get_data, -1)
-    pytest.raises(IndexError, r.get_data, 2)
-
-    # check metadata
-    md = r.get_meta_data()
+def test_metadata(test_images):
+    fname = test_images / "test_000_.SPE"
+    md = iio.immeta(fname, sdt_control=False)
     assert md["ROIs"] == [
         {"top_left": [238, 187], "bottom_right": [269, 218], "bin": [1, 1]}
     ]
@@ -61,12 +56,8 @@ def test_spe_reading(test_images):
         "0218COMVER0500",
     ]
     assert md["comments"] == cmt
-    np.testing.assert_equal(md["frame_shape"], fr1.shape)
 
-    # Check reading SDT-control metadata
-    with iio.get_reader(fname) as r2:
-        sdt_meta = r2.get_meta_data()
-
+    sdt_meta = iio.immeta(fname, sdt_control=True)
     assert sdt_meta["delay_shutter"] == pytest.approx(0.001)
     assert sdt_meta["delay_macro"] == pytest.approx(0.048)
     assert sdt_meta["exposure_time"] == pytest.approx(0.002)
@@ -76,3 +67,16 @@ def test_spe_reading(test_images):
     assert sdt_meta["sdt_minor_version"] == 18
     assert isinstance(sdt_meta["modulation_script"], str)
     assert sdt_meta["sequence_type"] == "standard"
+
+
+def test_properties(test_images):
+    fname = test_images / "test_000_.SPE"
+    props0 = iio.improps(fname, index=0)
+    assert props0.shape == (32, 32)
+    assert props0.dtype == np.uint16
+    assert props0.is_batch == False
+
+    props = iio.improps(fname, index=...)
+    assert props.shape == (2, 32, 32)
+    assert props.dtype == np.uint16
+    assert props.is_batch == True
