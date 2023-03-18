@@ -1064,7 +1064,8 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         stream_index : int
-            Select which audio stream to read, in case there are several present (e.g., stereo vs. 5.1). Defaults to 0.
+            Select which audio stream to read, in case there are several present
+            (e.g., stereo vs. 5.1). Defaults to 0.
 
         Returns
         -------
@@ -1083,22 +1084,25 @@ class PyAVPlugin(PluginV3):
     ) -> np.ndarray:
         """Read audio data from the video.
 
-        Defaults to reading the entirety of the video's audio stream (defaults to the first stream if several are present).
-        If ``stream_index`` is provided, the corresponding stream is read.
-        If ``frame_index`` is provided, only the selected audio frame is returned.
+        Defaults to reading the entirety of the video's audio stream (defaults
+        to the first stream if several are present). If ``stream_index`` is
+        provided, the corresponding stream is read. If ``frame_index`` is
+        provided, only the selected audio frame is returned.
 
         Parameters
         ----------
         stream_index : int
-            Select which audio stream to read, in case there are several present (e.g., stereo vs. 5.1). Defaults to 0.
+            Select which audio stream to read, in case there are several present
+            (e.g., stereo vs. 5.1). Defaults to 0.
         frame_index : int
-            Select which audio frame to read. If None (default), read all audio frames.
-            Each audio frame is a batch of contiguous samples.
+            Select which audio frame to read. If None (default), read all audio
+            frames. Each audio frame is a batch of contiguous samples.
 
         Returns
         -------
         audio: np.ndarray
-            A numpy array with shape ``(channels, samples)`` containing the requested audio data.
+            A numpy array with shape ``(channels, samples)`` containing the
+            requested audio data.
         """
 
         self._container.seek(0)
@@ -1131,8 +1135,8 @@ class PyAVPlugin(PluginV3):
             The numeric format used to encode audio samples.
             If ``None``, let PyAV choose.
         layout: str
-            The channel layout of the incoming ``frame`` (e.g. ``"mono"``, ``"stereo"``, ``"5.1"``).
-            If ``None``, let PyAV choose.
+            The channel layout of the incoming ``frame`` (e.g. ``"mono"``,
+            ``"stereo"``, ``"5.1"``). If ``None``, let PyAV choose.
         rate: float
             The desired sample rate of the audio stream.
             If ``None``, let PyAV choose.
@@ -1164,8 +1168,9 @@ class PyAVPlugin(PluginV3):
             The numeric format used to encode audio samples.
             If ``None``, use the audio stream's format.
         layout: str
-            The channel layout of the incoming ``frame`` (e.g. ``"mono"``, ``"stereo"``, ``"5.1"``).
-            If ``None``, use the audio stream's format.
+            The channel layout of the incoming ``frame`` (e.g. ``"mono"``,
+            ``"stereo"``, ``"5.1"``). If ``None``, use the audio stream's
+            format.
         """
 
         # NOTE: The current implementation will fail if the provided `frame` does not have the correct shape and dtype (e.g. if using the default float64).
