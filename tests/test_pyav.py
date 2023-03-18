@@ -25,18 +25,18 @@ def test_mp4_read(test_images: Path):
     expected = frame.to_ndarray(format="rgb24")
 
     result = iio.imread(
-        test_images / "cockatoo.mp4", index=42, plugin="pyav", format="rgb24"
+        test_images / "cockatoo.mp4", index=4, plugin="pyav", format="rgb24"
     )
-    np.allclose(result, expected)
+    assert np.allclose(result, expected)
 
     result = iio.imread(
         test_images / "cockatoo.mp4",
-        index=42,
+        index=4,
         plugin="pyav",
         constant_framerate=False,
         format="rgb24",
     )
-    np.allclose(result, expected)
+    assert np.allclose(result, expected)
 
 
 def test_mp4_read_bytes(test_images):
@@ -45,7 +45,7 @@ def test_mp4_read_bytes(test_images):
     img_expected = iio.imread(encoded_video, index=5)
     img = iio.imread(encoded_video, plugin="pyav", index=5)
 
-    np.allclose(img, img_expected)
+    assert np.allclose(img, img_expected)
 
 
 def test_mp4_writing(tmp_path, test_images):
@@ -255,10 +255,27 @@ def test_gif_write(test_images, tmp_path):
         in_pixel_format="gray",
     )
     frames_actual = iio.imread(tmp_path / "test.gif", plugin="pyav", format="gray")
-    np.allclose(frames_actual, frames_expected)
+    assert np.allclose(frames_actual, frames_expected)
 
     # with iio.v3.imopen("test2.gif", "w", plugin="pyav", container_format="gif", legacy_mode=False) as file:
     #     file.write(frames, codec="gif", out_pixel_format="gray", in_pixel_format="gray")
+
+
+def test_raises_exception_when_shapes_mismatch(test_images, tmp_path):
+    frame_list = [
+        np.ones((200, 150), dtype=np.uint8),
+        np.ones((256, 256), dtype=np.uint8),
+    ]
+
+    with pytest.raises(ValueError):
+        iio.imwrite(
+            tmp_path / "test.gif",
+            frame_list,
+            plugin="pyav",
+            codec="gif",
+            out_pixel_format="gray",
+            in_pixel_format="gray",
+        )
 
 
 def test_gif_gen(test_images, tmp_path):
@@ -405,7 +422,7 @@ def test_sequential_reading(test_images):
         second_read = img_file.read(index=5)
         actual_imgs = [first_read, second_read]
 
-    np.allclose(actual_imgs, expected_imgs)
+    assert np.allclose(actual_imgs, expected_imgs)
 
 
 def test_uri_reading(test_images):
@@ -421,7 +438,7 @@ def test_uri_reading(test_images):
 
     actual = iio.imread(uri, plugin="pyav", index=250)
 
-    np.allclose(actual, expected)
+    assert np.allclose(actual, expected)
 
 
 def test_seek_vs_iter(test_images):
@@ -620,3 +637,15 @@ def test_write_audio(test_images: Path):
 
     assert in_data.shape == out_data.shape
     assert np.allclose(in_data, out_data, atol=0.005)  # Lossy conversion.
+
+
+def test_trim_filter(test_images):
+    # this is a regression test for:
+    # https://github.com/imageio/imageio/issues/951
+    frames = iio.imread(
+        "imageio:cockatoo.mp4",
+        plugin="pyav",
+        filter_sequence=[("trim", {"start": "00:00:01", "end": "00:00:02"})],
+    )
+
+    assert frames.shape == (20, 720, 1280, 3)

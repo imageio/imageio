@@ -1,13 +1,14 @@
 """Read/Write Videos (and images) using PyAV.
 
 .. note::
-    To use this plugin you need to have `PyAV <https://pyav.org/docs/stable/>`_ installed::
+    To use this plugin you need to have `PyAV <https://pyav.org/docs/stable/>`_
+    installed::
 
         pip install av
 
-This plugin wraps pyAV, a pythonic binding for the FFMPEG library.
-It is similar to our FFMPEG plugin but offers a more performant and
-robut interface and aims to superseed the FFMPEG plugin in the future.
+This plugin wraps pyAV, a pythonic binding for the FFMPEG library. It is similar
+to our FFMPEG plugin, has improved performance, features a robust interface, and
+aims to supersede the FFMPEG plugin in the future.
 
 
 Methods
@@ -546,7 +547,10 @@ class PyAVPlugin(PluginV3):
             self._next_idx += 1
 
             if self._video_filter is not None:
-                frame = self._video_filter.send(frame)
+                try:
+                    frame = self._video_filter.send(frame)
+                except StopIteration:
+                    break
 
             if frame is None:
                 continue
@@ -620,7 +624,8 @@ class PyAVPlugin(PluginV3):
 
         if isinstance(ndimage, list):
             # frames shapes must agree for video
-            ndimage = np.stack(ndimage)
+            if any(f.shape != ndimage[0].shape for f in ndimage):
+                raise ValueError("All frames should have the same shape")
         elif not is_batch:
             ndimage = np.asarray(ndimage)[None, ...]
         else:
@@ -733,17 +738,20 @@ class PyAVPlugin(PluginV3):
 
         if index is ...:
             # useful flags defined on the container and/or video stream
-            duration = float(self._video_stream.duration * self._video_stream.time_base)
             metadata.update(
                 {
                     "video_format": self._video_stream.codec_context.pix_fmt,
                     "codec": self._video_stream.codec.name,
                     "long_codec": self._video_stream.codec.long_name,
                     "profile": self._video_stream.profile,
-                    "duration": duration,
                     "fps": float(self._video_stream.guessed_rate),
                 }
             )
+            if self._video_stream.duration is not None:
+                duration = float(
+                    self._video_stream.duration * self._video_stream.time_base
+                )
+                metadata.update({"duration": duration})
 
             metadata.update(self.container_metadata)
             metadata.update(self.video_stream_metadata)
@@ -924,6 +932,7 @@ class PyAVPlugin(PluginV3):
         if stream.frames == 0:
             stream.width = av_frame.width
             stream.height = av_frame.height
+
         for packet in stream.encode(av_frame):
             self._container.mux(packet)
 
@@ -1011,6 +1020,8 @@ class PyAVPlugin(PluginV3):
                 except av.error.BlockingIOError:
                     # filter has lag and needs more frames
                     frame = yield None
+                except av.error.EOFError:
+                    break
 
             try:
                 # send EOF in av>=9.0

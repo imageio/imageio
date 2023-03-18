@@ -101,8 +101,8 @@ the migration by explicitly importing the v2 API::
 This will give you access to most of the old API. However, calls will still rely
 on the new (v3) plugins and backends, which may cause behavioral changes. As
 such, you should prefer a full migration to v3 and should avoid using the v2 API
-in new code. This is primarily as a quick way for you to postpone a full
-migration until it is convenient for you to do so.
+in new code. This is meant as a quick way for you to postpone a full migration
+until it is convenient for you to do so.
   
 
 Reading Images 
@@ -216,3 +216,10 @@ while you are migrating your own code.
   images to grayscale before returning them. This is redundant and has been
   deprecated in favor of using ``mode="L"``, which matches pillow's native
   kwarg.
+- The old pillow plugin used to make an internal copy when reading 16-bit
+  grayscale images from PNG. Pillow itself only offers limited support for
+  16-bit arrays and typicalls uses 32-bit arrays to handle 16-bit images. In v2
+  we changed the datatype internally and returned a 16-bit array. In v3 we avoid
+  this copy, due to its performance implications (see `#931
+  <https://github.com/imageio/imageio/issues/931>`_).
+
