@@ -32,8 +32,9 @@ def test_read(test_images):
 
 
 def test_iter(test_images):
-    for actual, desired in zip(iio.imiter(test_images / "test_000_.SPE"),
-                               (frame0, frame1)):
+    for actual, desired in zip(
+        iio.imiter(test_images / "test_000_.SPE"), (frame0, frame1)
+    ):
         np.testing.assert_equal(actual, desired)
 
 
@@ -74,9 +75,9 @@ def test_properties(test_images):
     props0 = iio.improps(fname, index=0)
     assert props0.shape == (32, 32)
     assert props0.dtype == np.uint16
-    assert props0.is_batch == False
+    assert not props0.is_batch
 
     props = iio.improps(fname, index=...)
     assert props.shape == (2, 32, 32)
     assert props.dtype == np.uint16
-    assert props.is_batch == True
+    assert props.is_batch

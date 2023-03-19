@@ -33,8 +33,18 @@ Methods
 from datetime import datetime
 import logging
 import os
-from typing import (Any, Callable, Dict, Iterator, List, Mapping, Optional,
-                    Sequence, Tuple, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 
@@ -292,8 +302,7 @@ class SDTControlSpec:
                     v *= spec.scale
             except Exception as e:
                 logger.debug(
-                    "Failed to decode SDT-control metadata "
-                    f'field "{name}": {e}'
+                    f'Failed to decode SDT-control metadata field "{name}": {e}'
                 )
             sdt_md[name] = v
         comment = comments[0] + comments[2]
@@ -424,9 +433,7 @@ class SpePlugin(PluginV3):
                     )
                     self._len = min(line, self._len)
         except Exception:
-            raise InitializationError(
-                "SPE plugin cannot read the provided file"
-            )
+            raise InitializationError("SPE plugin cannot read the provided file")
 
     def read(self, *, index: int = ...) -> np.ndarray:
         """Read a frame or all frames from the file
@@ -475,9 +482,13 @@ class SpePlugin(PluginV3):
 
         return (self.read(index=i) for i in range(self._len))
 
-    def metadata(self, index: int = ..., exclude_applied: bool = True,
-                 char_encoding: str = "latin1", sdt_control: bool = True
-                 ) -> Dict[str, Any]:
+    def metadata(
+        self,
+        index: int = ...,
+        exclude_applied: bool = True,
+        char_encoding: str = "latin1",
+        sdt_control: bool = True,
+    ) -> Dict[str, Any]:
         """Get metadata
 
         Parameters
@@ -671,8 +682,7 @@ class SpePlugin(PluginV3):
             return self._metadata_pre_v3(char_encoding, sdt_control)
         return self._metadata_post_v3()
 
-    def _metadata_pre_v3(self, char_encoding: str, sdt_control: bool
-                         ) -> Dict[str, Any]:
+    def _metadata_pre_v3(self, char_encoding: str, sdt_control: bool) -> Dict[str, Any]:
         """Extract metadata from SPE v2 files
 
         Parameters
@@ -695,14 +705,10 @@ class SpePlugin(PluginV3):
         m["ROIs"] = roi_array_to_dict(m["ROIs"][:nr])
 
         # chip sizes
-        m["chip_size"] = [m.pop(k, None)
-                          for k in ("xDimDet", "yDimDet")]
-        m["virt_chip_size"] = [m.pop(k, None)
-                               for k in ("VChipXdim", "VChipYdim")]
-        m["pre_pixels"] = [m.pop(k, None)
-                           for k in ("XPrePixels", "YPrePixels")]
-        m["post_pixels"] = [m.pop(k, None)
-                            for k in ("XPostPixels", "YPostPixels")]
+        m["chip_size"] = [m.pop(k, None) for k in ("xDimDet", "yDimDet")]
+        m["virt_chip_size"] = [m.pop(k, None) for k in ("VChipXdim", "VChipYdim")]
+        m["pre_pixels"] = [m.pop(k, None) for k in ("XPrePixels", "YPrePixels")]
+        m["post_pixels"] = [m.pop(k, None) for k in ("XPostPixels", "YPostPixels")]
 
         # convert comments from numpy.str_ to str
         m["comments"] = [str(c) for c in m["comments"]]
@@ -777,18 +783,13 @@ class SpePlugin(PluginV3):
 
         if index is Ellipsis:
             return ImageProperties(
-                shape=(self._len, *self._shape),
-                dtype=self._dtype,
-                is_batch=True
+                shape=(self._len, *self._shape), dtype=self._dtype, is_batch=True
             )
-        return ImageProperties(
-            shape=self._shape,
-            dtype=self._dtype,
-            is_batch=False
-        )
+        return ImageProperties(shape=self._shape, dtype=self._dtype, is_batch=False)
 
-    def _parse_header(self, spec: Mapping[str, Tuple],
-                      char_encoding: str ) -> Dict[str, Any]:
+    def _parse_header(
+        self, spec: Mapping[str, Tuple], char_encoding: str
+    ) -> Dict[str, Any]:
         """Get information from SPE file header
 
         Parameters
