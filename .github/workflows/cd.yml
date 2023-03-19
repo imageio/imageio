@@ -54,17 +54,7 @@ jobs:
     name: Build Docs
     needs: initial_check
     if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    - name: Install Dependencies
-      run: |
-        pip install -e .[docs]
-    - name: Build Docs
-      run: sphinx-build -W ./docs ./build
+    uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
     needs: initial_check
