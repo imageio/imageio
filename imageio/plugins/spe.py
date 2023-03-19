@@ -406,11 +406,11 @@ class SpePlugin(PluginV3):
             # To determine the number of frames, check the size of the data
             # segment -- until the end of the file for SPE<3, until the
             # xml footer for SPE>=3.
-            data_end = (
-                info["xml_footer_offset"]
-                if info["file_header_ver"] >= 3
-                else os.path.getsize(self.request.get_local_filename())
-            )
+            if info["file_header_ver"] >= 3:
+                data_end = info["xml_footer_offset"]
+            else:
+                self._file.seek(0, os.SEEK_END)
+                data_end = self._file.tell()
             line = data_end - Spec.data_start
             line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
             if line != self._len:
