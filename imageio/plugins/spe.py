@@ -393,35 +393,40 @@ class SpePlugin(PluginV3):
 
         self._file = self.request.get_file()
 
-        # Spec.basic contains no string, no need to worry about character
-        # encoding.
-        info = self._parse_header(Spec.basic, "latin1")
-        self._file_header_ver = info["file_header_ver"]
-        self._dtype = Spec.dtypes[info["datatype"]]
-        self._shape = (info["ydim"], info["xdim"])
-        self._len = info["NumFrames"]
+        try:
+            # Spec.basic contains no string, no need to worry about character
+            # encoding.
+            info = self._parse_header(Spec.basic, "latin1")
+            self._file_header_ver = info["file_header_ver"]
+            self._dtype = Spec.dtypes[info["datatype"]]
+            self._shape = (info["ydim"], info["xdim"])
+            self._len = info["NumFrames"]
 
-        if check_filesize:
-            # Some software writes incorrect `NumFrames` metadata.
-            # To determine the number of frames, check the size of the data
-            # segment -- until the end of the file for SPE<3, until the
-            # xml footer for SPE>=3.
-            if info["file_header_ver"] >= 3:
-                data_end = info["xml_footer_offset"]
-            else:
-                self._file.seek(0, os.SEEK_END)
-                data_end = self._file.tell()
-            line = data_end - Spec.data_start
-            line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
-            if line != self._len:
-                logger.warning(
-                    "The file header of %s claims there are %s frames, "
-                    "but there are actually %s frames.",
-                    self.request.filename,
-                    self._len,
-                    line,
-                )
-                self._len = min(line, self._len)
+            if check_filesize:
+                # Some software writes incorrect `NumFrames` metadata.
+                # To determine the number of frames, check the size of the data
+                # segment -- until the end of the file for SPE<3, until the
+                # xml footer for SPE>=3.
+                if info["file_header_ver"] >= 3:
+                    data_end = info["xml_footer_offset"]
+                else:
+                    self._file.seek(0, os.SEEK_END)
+                    data_end = self._file.tell()
+                line = data_end - Spec.data_start
+                line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
+                if line != self._len:
+                    logger.warning(
+                        "The file header of %s claims there are %s frames, "
+                        "but there are actually %s frames.",
+                        self.request.filename,
+                        self._len,
+                        line,
+                    )
+                    self._len = min(line, self._len)
+        except Exception:
+            raise InitializationError(
+                "SPE plugin cannot read the provided file"
+            )
 
     def read(self, *, index: int = ...) -> np.ndarray:
         """Read a frame or all frames from the file
