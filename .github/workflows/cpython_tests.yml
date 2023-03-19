@@ -1,6 +1,7 @@
 name: CPython Test Suite
 
-on: workflow_call
+on: 
+  workflow_call:
 
 jobs:
   cpython:

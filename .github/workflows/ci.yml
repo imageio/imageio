@@ -76,7 +76,7 @@ jobs:
             invoke test --installed
 
   cpython:
-    uses: imageio/imageio/.github/workflows/cpython_tests.yml@fix_ci_fail
+    uses: FirefoxMetzger/imageio/.github/workflows/cpython_tests.yml@fix_ci_fail
 
   pypy:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
