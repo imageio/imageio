@@ -529,7 +529,7 @@ def test_write_float_fps(test_images):
     fps = 3.5
     frames = iio.imread(test_images / "cockatoo.mp4", plugin="pyav")
     buffer = iio.imwrite(
-        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5
+        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=fps
     )
 
     assert iio.immeta(buffer, plugin="pyav")["fps"] == fps
