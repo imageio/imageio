@@ -76,31 +76,9 @@ jobs:
             invoke test --installed
 
   cpython:
-    uses: FirefoxMetzger/imageio/.github/workflows/cpython_tests.yml@fix_ci_fail
+    name: CPython Test Suite
+    uses: ./.github/workflows/cpython_tests.yml
 
   pypy:
-    name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        pyversion: ["pypy-3.8", "pypy-3.9"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up pypy
-        uses: actions/setup-python@v4
-        with:
-          python-version: "${{ matrix.pyversion }}"
-      - name: MacOS Numpy Fix
-        if: runner.os == 'macOS'
-        run: |
-            brew install openblas
-            OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
-      - name: Install dependencies
-        shell: bash
-        run: |
-            pypy3 -m pip install .[test,all-plugins-pypy]
-      - name: Run Unit tests
-        run: |
-            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+    name: PyPy Test Suite
+    uses: ./.github/workflows/pypy_tests.yml
