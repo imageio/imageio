@@ -1,0 +1,61 @@
+name: CPython Test Suite
+
+on: 
+  workflow_call:
+
+jobs:
+  cpython:
+    name: "${{ matrix.os }} / CPython ${{ matrix.pyversion }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        include:
+          - name: Linux py37 full
+            os: ubuntu-latest
+            pyversion: '3.7'
+            TEST_UNIT: 1
+            TEST_FULL: 1
+          - name: Use PyAV 10.0.0
+            pyversion: '3.11'
+            PYAV_10_0_0: 1
+        exclude:
+          # exclude 3.11 on windows until we can replicate the
+          # access violation found in CI
+          - os: windows-latest
+            pyversion: '3.11'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Set up Python ${{ matrix.pyversion }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.pyversion }}
+      - name: Install dependencies for tests
+        shell: bash
+        run: |
+            pip install .[test,all-plugins]
+      - name: Install OpenCV on non-MacOS
+        if: matrix.os != 'macos-latest'
+        run: |
+            pip install opencv-python
+      - name: Install optional dependencies for tests
+        if: matrix.TEST_FULL == 1
+        run: |
+            pip install -q --upgrade simpleitk astropy
+      - name: Downgrade PyAV
+        # PyAV 10.0.0 is needed on py3.11 but has issues, so we only use it on
+        # py3.11 for now
+        if: matrix.PYAV_10_0_0 != 1
+        run: |
+            pip install --upgrade av!=10.0.0
+      - name: Run All Unit tests
+        run: |
+            coverage run -m pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload coverage to Codecov
+        run: |
+          curl -s https://codecov.io/bash | bash
+        shell: bash
