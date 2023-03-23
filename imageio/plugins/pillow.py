@@ -473,5 +473,5 @@ class PillowPlugin(PluginV3):
             shape=shape,
             dtype=dummy.dtype,
             n_images=n_frames if index is Ellipsis else None,
-            is_batch=index is Ellipsis
+            is_batch=index is Ellipsis,
         )
