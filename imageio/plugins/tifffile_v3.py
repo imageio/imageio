@@ -359,7 +359,7 @@ class TifffilePlugin(PluginV3):
 
         """
         index = index or 0
-        page_idx = page or 0
+        page_idx = 0 if page in (None, Ellipsis) else page
 
         if index is Ellipsis:
             target_page = self._fh.pages[page_idx]

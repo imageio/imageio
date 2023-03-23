@@ -338,7 +338,7 @@ def test_properties(tmp_path):
     assert props.n_images is None
 
     props = iio.improps(filename, index=...)
-    assert props.shape == (1, 6, 255, 255, 3)
+    assert props.shape == (1, 255, 255, 3)
     assert props.n_images == 1
 
     props = iio.improps(filename, index=..., page=...)
