@@ -296,7 +296,8 @@ class LegacyPlugin(PluginV3):
         return ImageProperties(
             shape=image.shape,
             dtype=image.dtype,
-            is_batch=True if index is None else False,
+            n_images=image.shape[0] if index is Ellipsis else None,
+            is_batch=index is Ellipsis,
         )
 
     def get_meta(self, *, index=None):

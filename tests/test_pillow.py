@@ -522,11 +522,13 @@ def test_properties(image_files: Path):
 
     assert properties.shape == (300, 451, 3)
     assert properties.dtype == np.uint8
+    assert properties.n_images is None
 
     # test a ndimage (GIF)
     properties = iio.improps(image_files / "newtonscradle.gif", plugin="pillow")
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
+    assert properties.n_images == 36
     assert properties.is_batch is True
 
     # test a flat gray image
@@ -534,6 +536,7 @@ def test_properties(image_files: Path):
 
     assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8
+    assert properties.n_images is None
 
 
 def test_metadata(test_images):

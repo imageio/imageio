@@ -20,6 +20,8 @@ class ImageProperties:
         The shape of the loaded ndimage.
     dtype : np.dtype
         The dtype of the loaded ndimage.
+    n_images : int or None
+        Number of images in the file if ``index=...``, `None` for single images
     is_batch : bool
         If True, the first dimension of the ndimage represents a batch dimension
         along which several images are stacked.
@@ -35,6 +37,7 @@ class ImageProperties:
 
     shape: Tuple[int, ...]
     dtype: np.dtype
+    n_images: Optional[int]
     is_batch: bool = False
     spacing: Optional[tuple] = None
 

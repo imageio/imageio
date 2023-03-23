@@ -270,13 +270,22 @@ class OpenCVPlugin(PluginV3):
 
         """
 
+        if index is None:
+            n_images = cv2.imcount(self.file_handle, flags)
+            is_batch = n_images > 1
+        elif index is ...:
+            is_batch = True
+        else:
+            is_batch = False
+
         # unfortunately, OpenCV doesn't allow reading shape without reading pixel data
         img = self.read(index=index, flags=flags, colorspace=colorspace)
 
         return ImageProperties(
             shape=img.shape,
             dtype=img.dtype,
-            is_batch=(index is ...),
+            n_images = img.shape[0] if is_batch else None,
+            is_batch=is_batch,
         )
 
     def metadata(

@@ -50,3 +50,15 @@ def test_list_writing(test_images, tmp_path):
     actual = iio.v3.imread(tmp_path / "test.gif", index=...)
 
     assert np.allclose(actual, expected)
+
+
+def test_properties(test_images):
+    p = iio.v3.improps(test_images / "newtonscradle.gif", plugin="GIF-PIL", index=...)
+    assert p.shape == (36, 150, 200, 4)
+    assert p.n_images == 36
+    assert p.is_batch
+
+    p = iio.v3.improps(test_images / "newtonscradle.gif", plugin="GIF-PIL", index=0)
+    assert p.shape == (150, 200, 4)
+    assert p.n_images is None
+    assert not p.is_batch
