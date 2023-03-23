@@ -230,7 +230,7 @@ class OpenCVPlugin(PluginV3):
 
     def properties(
         self,
-        index: int = 0,
+        index: int = None,
         colorspace: Union[int, str] = None,
         flags: int = cv2.IMREAD_COLOR,
     ) -> ImageProperties:
