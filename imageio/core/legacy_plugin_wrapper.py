@@ -305,7 +305,6 @@ class LegacyPlugin(PluginV3):
         return ImageProperties(
             shape=image.shape,
             dtype=image.dtype,
-            n_images=None,
             is_batch=False,
         )
 

@@ -388,7 +388,6 @@ class TifffilePlugin(PluginV3):
             props = ImageProperties(
                 shape=target_page.shape,
                 dtype=target_page.dtype,
-                n_images=None,
                 is_batch=False,
                 spacing=_get_resolution(target_page)["resolution"],
             )

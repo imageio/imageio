@@ -290,9 +290,7 @@ class OpenCVPlugin(PluginV3):
             )
 
         img = self.read(index=index, flags=flags, colorspace=colorspace)
-        return ImageProperties(
-            shape=img.shape, dtype=img.dtype, n_images=None, is_batch=False
-        )
+        return ImageProperties(shape=img.shape, dtype=img.dtype, is_batch=False)
 
     def metadata(
         self, index: int = None, exclude_applied: bool = True
