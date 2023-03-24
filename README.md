@@ -22,7 +22,7 @@ Python 3.7+, and is easy to install.
 </p>
 
 <p>
-    Professional support is available via <a href='https://tidelift.com/funding/github/pypi/imageio'>Tidelift</a> and <a href='https://xscode.com/almarklein/imageio'>xs:code</a>.
+    Professional support is available via <a href='https://tidelift.com/funding/github/pypi/imageio'>Tidelift</a>.
 </p>
 
 <h2>Example</h2>
@@ -33,7 +33,7 @@ Here's a minimal example of how to use imageio. See the docs for
 import imageio.v3 as iio
 im = iio.imread('imageio:chelsea.png')  # read a standard image
 im.shape  # im is a NumPy array of shape (300, 451, 3)
-imageio.imwrite('chelsea.jpg', im)  # convert to jpg
+iio.imwrite('chelsea.jpg', im)  # convert to jpg
 ```
 
 <h2>API in a nutshell</h2>
@@ -69,7 +69,7 @@ See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>
 Minimal requirements:
 <ul>
     <li>Python 3.7+</li>
-    <li>NumPy >=1.20.0</li>
+    <li>NumPy</li>
     <li>Pillow >= 8.3.2</li>
 </ul>
 

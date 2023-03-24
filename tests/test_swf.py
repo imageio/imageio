@@ -18,7 +18,6 @@ def mean(x):
 
 @deprecated_test
 def test_format_selection(test_images):
-
     fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out.swf")
 
@@ -31,7 +30,6 @@ def test_format_selection(test_images):
 
 
 def test_reading_saving(test_images, tmp_path):
-
     fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out.swf")
     fname3 = fname1.with_suffix(".compressed.swf")
@@ -130,7 +128,6 @@ def test_reading_saving(test_images, tmp_path):
 
 @pytest.mark.needs_internet
 def test_read_from_url():
-
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
     url = burl + "images/stent.swf"
 
@@ -140,7 +137,6 @@ def test_read_from_url():
 
 @deprecated_test
 def test_invalid(test_images):
-
     fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".invalid.swf")
 
@@ -161,7 +157,6 @@ def test_invalid(test_images):
 
 @pytest.mark.needs_internet
 def test_lowlevel():
-
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
     _swf = imageio.plugins.swf.load_lib()
@@ -186,7 +181,6 @@ def test_lowlevel():
 
 
 def test_types(test_images):
-
     fname1 = test_images / "stent.swf"
     fname2 = fname1.with_suffix(".out3.swf")
 

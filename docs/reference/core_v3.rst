@@ -80,7 +80,7 @@ ImageIO serves two types of metadata: ImageProperties and format-specific metada
 
 :class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>` are a
 collection of standardized metadata fields and are supported by all plugins and
-for all supported formats. If a file doesn't carray the relevat field or if a
+for all supported formats. If a file doesn't carry the relevant field or if a
 format doesn't support it, its value is set to a sensible default. You can
 access the properties of an image by calling :func:`improps
 <imageio.v3.improps>`::
@@ -110,7 +110,7 @@ plugin. Further, it accepts a kwarg called ``exclude_applied``. If set to True,
 this will remove any items from the dictionary that would be consumed by a read
 call to the plugin. For example, if the metadata sets a rotation flag (the raw
 pixel data should be rotated before displaying it) and the plugin's read call
-will rotate the image because if it, then setting ``expluce_applied=True`` will
+will rotate the image because if it, then setting ``exclude_applied=True`` will
 remove the rotation field from the returned metadata. This can be useful to keep
 an image and it's metadata in sync.
 
@@ -172,7 +172,7 @@ because:
 
 For these cases the v3 API offers :func:`iio.v3.imopen
 <imageio.core.imopen.imopen>`. It provides a context manager that initializes
-the plugin and openes the file for reading (``"r"``) or writing (``"w"``),
+the plugin and opens the file for reading (``"r"``) or writing (``"w"``),
 similar to the Python built-in function ``open``::
 
     import imageio.v3 as iio

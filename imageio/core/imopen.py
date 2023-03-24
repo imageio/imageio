@@ -60,12 +60,7 @@ def imopen(
         extension. This affects the order in which backends are considered, and
         when writing this may also influence the format used when encoding.
     format_hint : str
-        A format hint to help optimize plugin selection given as the format's
-        extension, e.g. ".png". This can speed up the selection process for
-        ImageResources that don't have an explicit extension, e.g. streams, or
-        for ImageResources where the extension does not match the resource's
-        content. If the ImageResource lacks an explicit extension, it will be
-        set to this format.
+        Deprecated. Use `extension` instead.
     legacy_mode : bool
         If true (default) use the v2 behavior when searching for a suitable
         plugin. This will ignore v3 plugins and will check ``plugin``

@@ -111,7 +111,6 @@ def test_fetching(tmp_path):
 
 
 def test_findlib2():
-
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
 
@@ -178,10 +177,8 @@ def test_request(test_images, tmp_userdir):
     raises(ValueError, Request, "/some/file", None)  # mode must be str
     raises(ValueError, Request, "/some/file", 3)  # mode must be str
     raises(ValueError, Request, "/some/file", "")  # mode must be len 2
-    # raises(ValueError, Request, "/some/file", "r")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "rii")  # mode must be len 2
     raises(ValueError, Request, "/some/file", "xi")  # mode[0] must be in rw
-    raises(ValueError, Request, "/some/file", "rx")  # mode[1] must be in iIvV?
     #
     raises(IOError, Request, ["invalid", "uri"] * 10, "ri")  # invalid uri
     raises(IOError, Request, 4, "ri")  # invalid uri
@@ -218,7 +215,6 @@ def test_request(test_images, tmp_userdir):
 
 @pytest.mark.needs_internet
 def test_request_read_sources(test_images, tmp_userdir):
-
     # Make an image available in many ways
     fname = "chelsea.png"
     filename = test_images / fname
@@ -233,7 +229,6 @@ def test_request_read_sources(test_images, tmp_userdir):
     # and from local file (the two main plugin-facing functions)
     for file_or_filename in range(2):
         for check_first_bytes in range(2):
-
             # Define uris to test. Define inside loop, since we need fresh files
             uris = [
                 filename,
@@ -261,7 +256,6 @@ def test_request_read_sources(test_images, tmp_userdir):
 
 
 def test_request_save_sources(test_images, tmp_path):
-
     # Get test data
     filename = test_images / "chelsea.png"
     with open(filename, "rb") as f:
@@ -583,7 +577,6 @@ def test_util_image_as_uint():
 
 
 def test_util_has_has_module():
-
     assert not core.has_module("this_module_does_not_exist")
     assert core.has_module("sys")
 
@@ -700,13 +693,10 @@ def test_functions(test_images, tmp_path):
     assert os.path.isfile(fname6)
 
     # Fail for save functions
-    raises(ValueError, iio.imsave, fname2, np.zeros((100, 100, 5)))
     raises(ValueError, iio.imsave, fname2, 42)
-    raises(ValueError, iio.mimsave, fname5, [np.zeros((100, 100, 5))])
     raises(ValueError, iio.mimsave, fname5, [42])
     raises(ValueError, iio.volsave, fname6, np.zeros((100, 100, 100, 40)))
     raises(ValueError, iio.volsave, fname6, 42)
-    raises(ValueError, iio.mvolsave, fname6, [np.zeros((90, 90, 90, 40))])
     raises(ValueError, iio.mvolsave, fname6, [42])
 
 
@@ -921,7 +911,6 @@ def test_request_mode_backwards_compatibility():
     mode = Mode("ri")
     assert mode == "ri"
     assert mode[0] == "r"
-    assert mode[1] == "i"
 
 
 def test_faulty_legacy_mode_access():
@@ -970,11 +959,6 @@ def test_memory_size(test_images):
 
     im = iio.mimread(test_images / "newtonscradle.gif", memtest=None)
     assert len(im) == 36
-
-
-def test_legacy_write_empty(tmp_path):
-    with pytest.raises(RuntimeError):
-        iio.v3.imwrite(tmp_path / "foo.tiff", np.ones((0, 10, 10)))
 
 
 def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
@@ -1052,7 +1036,7 @@ def test_format_hint(test_images):
 
     assert np.allclose(im_new, im_old)
 
-    req = iio.core.Request("https://sample.com/my/resource", "r", format_hint=".jpg")
+    req = iio.core.Request(test_images / "bricks.jpg", "r", format_hint=".jpg")
     filename = req.get_local_filename()
 
     assert Path(filename).suffix == ".jpg"

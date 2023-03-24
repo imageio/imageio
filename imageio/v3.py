@@ -29,11 +29,7 @@ def imread(uri, *, index=None, plugin=None, extension=None, format_hint=None, **
         If not None, treat the provided ImageResource as if it had the given
         extension. This affects the order in which backends are considered.
     format_hint : str
-        A format hint to help optimize plugin selection given as the format's
-        extension, e.g. ".png". This can speed up the selection process for
-        ImageResources that don't have an explicit extension, e.g. streams, or
-        for ImageResources where the extension does not match the resource's
-        content.
+        Deprecated. Use `extension` instead.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's read call.
 
@@ -79,12 +75,7 @@ def imiter(uri, *, plugin=None, extension=None, format_hint=None, **kwargs):
         If not None, treat the provided ImageResource as if it had the given
         extension. This affects the order in which backends are considered.
     format_hint : str
-        A format hint to help optimize plugin selection given as the format's
-        extension, e.g. ".png". This can speed up the selection process for
-        ImageResources that don't have an explicit extension, e.g. streams, or
-        for ImageResources where the extension does not match the resource's
-        content. If the ImageResource lacks an explicit extension, it will be
-        set to this format.
+        Deprecated. Use `extension` instead.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's ``iter``
         call.
@@ -132,12 +123,7 @@ def imwrite(uri, image, *, plugin=None, extension=None, format_hint=None, **kwar
         extension. This affects the order in which backends are considered, and
         may also influence the format used when encoding.
     format_hint : str
-        A format hint to help optimize plugin selection given as the format's
-        extension, e.g. ".png". This can speed up the selection process for
-        ImageResources that don't have an explicit extension, e.g. streams, or
-        for ImageResources where the extension does not match the resource's
-        content. If the ImageResource lacks an explicit extension, it will be
-        set to this format.
+        Deprecated. Use `extension` instead.
     **kwargs :
         Additional keyword arguments will be passed to the plugin's ``write``
         call.
@@ -199,6 +185,10 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     Notes
     -----
     Where possible, this will avoid loading pixel data.
+
+    See Also
+    --------
+    imageio.core.v3_plugin_api.ImageProperties
 
     """
 

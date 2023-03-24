@@ -1,9 +1,9 @@
-from typing import Any, Dict, Iterator, Literal, Optional, overload
+from typing import Any, Dict, Iterator, List, Literal, Optional, Union, overload
 
 import numpy as np
 
-from .core.v3_plugin_api import ImageProperties
 from .core.imopen import imopen as imopen
+from .core.v3_plugin_api import ImageProperties
 from .typing import ArrayLike, ImageResource
 
 def imread(
@@ -26,7 +26,7 @@ def imiter(
 @overload
 def imwrite(
     uri: Literal["<bytes>"],
-    image: ArrayLike,
+    image: Union[ArrayLike, List[ArrayLike]],
     *,
     plugin: str = None,
     extension: str = None,
@@ -36,7 +36,7 @@ def imwrite(
 @overload
 def imwrite(
     uri: ImageResource,
-    image: ArrayLike,
+    image: Union[ArrayLike, List[ArrayLike]],
     *,
     plugin: str = None,
     extension: str = None,

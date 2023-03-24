@@ -21,7 +21,6 @@ xfail_big_endian = pytest.mark.xfail(
 
 @deprecated_test
 def test_select(test_images):
-
     F = iio.formats["BSDF"]
     assert F.name == "BSDF"
 
@@ -40,7 +39,6 @@ def test_select(test_images):
 
 
 def test_not_an_image(tmp_path):
-
     fname = str(tmp_path / "notanimage.bsdf")
 
     # Not an image not a list
@@ -62,7 +60,6 @@ def test_not_an_image(tmp_path):
 
 @xfail_big_endian
 def test_singleton(test_images, tmp_path):
-
     im1 = iio.imread(test_images / "chelsea.png")
 
     fname = str(tmp_path / "chelsea.bsdf")
@@ -93,7 +90,6 @@ def test_singleton(test_images, tmp_path):
 
 @xfail_big_endian
 def test_series(test_images, tmp_path):
-
     im1 = iio.imread(test_images / "chelsea.png")
 
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
@@ -157,7 +153,6 @@ def test_series_unclosed(test_images, tmp_path):
 
 @xfail_big_endian
 def test_random_access(test_images, tmp_path):
-
     im1 = iio.imread(test_images / "chelsea.png")
     ims1 = [im1, im1 * 0.8, im1 * 0.5]
 
@@ -174,9 +169,8 @@ def test_random_access(test_images, tmp_path):
 
 @xfail_big_endian
 def test_volume(test_images, tmp_path):
-
     fname1 = test_images / "stent.npz"
-    vol1 = iio.imread(fname1)
+    vol1 = iio.volread(fname1)
     assert vol1.shape == (256, 128, 128)
 
     fname = tmp_path / "stent.bsdf"
@@ -189,7 +183,6 @@ def test_volume(test_images, tmp_path):
 
 @pytest.mark.needs_internet
 def test_from_url(test_images):
-
     im = iio.imread(
         "https://raw.githubusercontent.com/imageio/"
         + "imageio-binaries/master/images/chelsea.bsdf"

@@ -121,6 +121,11 @@ known_plugins["pyav"] = PluginConfig(
 known_plugins["opencv"] = PluginConfig(
     name="opencv", class_name="OpenCVPlugin", module_name="imageio.plugins.opencv"
 )
+known_plugins["tifffile"] = PluginConfig(
+    name="tifffile",
+    class_name="TifffilePlugin",
+    module_name="imageio.plugins.tifffile_v3",
+)
 
 # Legacy plugins
 # ==============
@@ -224,7 +229,7 @@ known_plugins["FFMPEG"] = PluginConfig(
     install_name="ffmpeg",
     legacy_args={
         "description": "Many video formats and cameras (via ffmpeg)",
-        "extensions": ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv",
+        "extensions": ".mov .avi .mpg .mpeg .mp4 .mkv .webm .wmv .h264",
         "modes": "I",
     },
 )

@@ -1,8 +1,10 @@
-import numpy as np
 from pathlib import Path
 
-from .request import IOMode, InitializationError
-from .v3_plugin_api import PluginV3, ImageProperties
+import numpy as np
+
+from ..config import known_extensions
+from .request import InitializationError, IOMode
+from .v3_plugin_api import ImageProperties, PluginV3
 
 
 def _legacy_default_index(format):
@@ -162,7 +164,7 @@ class LegacyPlugin(PluginV3):
         self._request._kwargs = kwargs
         return self._format.get_writer(self._request)
 
-    def write(self, ndimage, **kwargs):
+    def write(self, ndimage, *, is_batch=None, metadata=None, **kwargs):
         """
         Write an ndimage to the URI specified in path.
 
@@ -172,48 +174,83 @@ class LegacyPlugin(PluginV3):
 
         Parameters
         ----------
-        image : numpy.ndarray
+        ndimage : numpy.ndarray
             The ndimage or list of ndimages to write.
+        is_batch : bool
+            If True, treat the supplied ndimage as a batch of images. If False,
+            treat the supplied ndimage as a single image. If None, try to
+            determine ``is_batch`` from the ndimage's shape and ndim.
+        metadata : dict
+            The metadata passed to write alongside the image.
         kwargs : ...
             Further keyword arguments are passed to the writer. See
             :func:`.help` to see what arguments are available for a
             particular format.
-        """
-        with self.legacy_get_writer(**kwargs) as writer:
-            if self._request.mode.image_mode in "iv":
-                writer.append_data(ndimage)
-            else:
-                if len(ndimage) == 0:
-                    raise RuntimeError("Zero images were written.")
-                for written, ndimage in enumerate(ndimage):
-                    # Test image
-                    imt = type(ndimage)
-                    ndimage = np.asanyarray(ndimage)
-                    if not np.issubdtype(ndimage.dtype, np.number):
-                        raise ValueError(
-                            "Image is not numeric, but {}.".format(imt.__name__)
-                        )
-                    elif self._request.mode.image_mode == "I":
-                        if ndimage.ndim == 2:
-                            pass
-                        elif ndimage.ndim == 3 and ndimage.shape[2] in [1, 3, 4]:
-                            pass
-                        else:
-                            raise ValueError(
-                                "Image must be 2D " "(grayscale, RGB, or RGBA)."
-                            )
-                    elif self._request.mode.image_mode == "V":
-                        if ndimage.ndim == 3:
-                            pass
-                        elif ndimage.ndim == 4 and ndimage.shape[3] < 32:
-                            pass
-                        else:
-                            raise ValueError(
-                                "Image must be 3D," " or 4D if each voxel is a tuple."
-                            )
 
-                    # Add image
-                    writer.append_data(ndimage)
+
+        Returns
+        -------
+        buffer : bytes
+            When writing to the special target "<bytes>", this function will
+            return the encoded image data as a bytes string. Otherwise it
+            returns None.
+
+        Notes
+        -----
+        Automatically determining ``is_batch`` may fail for some images due to
+        shape aliasing. For example, it may classify a channel-first color image
+        as a batch of gray images. In most cases this automatic deduction works
+        fine (it has for almost a decade), but if you do have one of those edge
+        cases (or are worried that you might) consider explicitly setting
+        ``is_batch``.
+
+        """
+
+        if is_batch or isinstance(ndimage, (list, tuple)):
+            pass  # ndimage is list of images
+        elif is_batch is False:
+            ndimage = [ndimage]
+        else:
+            # Write the largest possible block by guessing the meaning of each
+            # dimension from the shape/ndim and then checking if any batch
+            # dimensions are left.
+            ndimage = np.asanyarray(ndimage)
+            batch_dims = ndimage.ndim
+
+            # two spatial dimensions
+            batch_dims = max(batch_dims - 2, 0)
+
+            # packed (channel-last) image
+            if ndimage.ndim >= 3 and ndimage.shape[-1] < 5:
+                batch_dims = max(batch_dims - 1, 0)
+
+            # format supports volumetric images
+            ext_infos = known_extensions.get(self._request.extension, list())
+            for ext_info in ext_infos:
+                if self._format.name in ext_info.priority and ext_info.volume_support:
+                    batch_dims = max(batch_dims - 1, 0)
+                    break
+
+            if batch_dims == 0:
+                ndimage = [ndimage]
+
+        with self.legacy_get_writer(**kwargs) as writer:
+            for image in ndimage:
+                image = np.asanyarray(image)
+
+                if image.ndim < 2:
+                    raise ValueError(
+                        "The image must have at least two spatial dimensions."
+                    )
+
+                if not np.issubdtype(image.dtype, np.number) and not np.issubdtype(
+                    image.dtype, bool
+                ):
+                    raise ValueError(
+                        f"All images have to be numeric, and not `{image.dtype}`."
+                    )
+
+                writer.append_data(image, metadata)
 
         return writer.request.get_result()
 
@@ -293,8 +330,8 @@ class LegacyPlugin(PluginV3):
             The index of the ndimage to read. If the index is out of bounds a
             ``ValueError`` is raised. If ``None``, global metadata is returned.
         exclude_applied : bool
-            If True (default), do not report metadata fields that the plugin
-            would apply/consume while reading the image.
+            This parameter exists for compatibility and has no effect. Legacy
+            plugins always report all metadata they find.
 
         Returns
         -------
@@ -303,11 +340,6 @@ class LegacyPlugin(PluginV3):
             values.
 
         """
-
-        if exclude_applied:
-            raise ValueError(
-                "Legacy plugins don't support excluding applied metadata fields."
-            )
 
         if index is None:
             index = _legacy_default_index(self._format)

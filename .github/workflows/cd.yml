@@ -29,10 +29,10 @@ jobs:
     outputs:
       should_release: ${{ steps.skippy.outputs.release }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
     - name: Install Dependencies
@@ -49,92 +49,24 @@ jobs:
           echo "::set-output name=release::true"
           echo "Releasing v$(semantic-release print-version)"
         fi
-    - name: Skipping Release
-      if: ${{ steps.skippy.outputs.release == 'false' }}
-      run: echo ${{ steps.skippy.outputs.release }}
-    - name: Releasing New Version
-      if: ${{ steps.skippy.outputs.release == 'true' }}
-      run: echo ${{ steps.skippy.outputs.release }}
   
   docs:
     name: Build Docs
     needs: initial_check
     if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
-    - name: Install Dependencies
-      run: |
-        pip install -e .[docs]
-    - name: Build Docs
-      run: sphinx-build -W ./docs ./build
+    uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
-    name: "${{ matrix.os }} / CPython ${{ matrix.pyversion }}"
     needs: initial_check
     if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.7", "3.8", "3.9", "3.10"]
-        include:
-          - name: Linux py37 full
-            os: ubuntu-latest
-            pyversion: '3.7'
-            TEST_UNIT: 1
-            TEST_FULL: 1
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - name: Set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.pyversion }}
-      - name: Install dependencies for tests
-        shell: bash
-        run: |
-            pip install .[test,ffmpeg,tifffile]
-      - name: Install optional dependencies for tests
-        if: matrix.TEST_FULL == 1
-        run: |
-            pip install -q -U simpleitk astropy
-      - name: Run All Unit tests
-        run: pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+    name: CPython Test Suite
+    uses: ./.github/workflows/cpython_tests.yml
 
   pypy_tests:
-    name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
+    name: PyPy Test Suite
     needs: initial_check
     if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        pyversion: ["pypy-3.7", "pypy-3.8"]
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up pypy
-        uses: actions/setup-python@v2
-        with:
-          python-version: "${{ matrix.pyversion }}"
-      - name: MacOS Numpy Fix
-        if: runner.os == 'macOS'
-        run: |
-            brew install openblas
-            OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
-      - name: Install dependencies
-        shell: bash
-        run: |
-            pypy3 -m pip install .[test,all-plugins-pypy]
-      - name: Run Unit tests
-        run: |
-            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/pypy_tests.yml
   
   build_test:
     name: Wheel Building Test
@@ -142,8 +74,8 @@ jobs:
     if: needs.initial_check.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: 3.9
       - name: Install dependencies for tests
@@ -158,7 +90,7 @@ jobs:
     needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Python Semantic Release

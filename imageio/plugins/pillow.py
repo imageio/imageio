@@ -120,14 +120,14 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False
+        self, *, index=None, mode=None, rotate=False, apply_gamma=False, as_gray=None
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
 
         Parameters
         ----------
-        index : {integer}
+        index : int
             If the ImageResource contains multiple ndimages, and index is an
             integer, select the index-th ndimage from among them and return it.
             If index is an ellipsis (...), read all ndimages in the file and
@@ -135,16 +135,18 @@ class PillowPlugin(PluginV3):
             None, this plugin reads the first image of the file (index=0) unless
             the image is a GIF or APNG, in which case all images are read
             (index=...).
-        mode : {str, None}
+        mode : str
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
-        rotate : {bool}
+        rotate : bool
             If set to ``True`` and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
-        apply_gamma : {bool}
+        apply_gamma : bool
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
+        as_gray : bool
+            Deprecated. Exists to raise a constructive error message.
 
         Returns
         -------
@@ -153,12 +155,21 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        If you open a GIF - or any other format using color pallets - you may
-        wish to manually set the `mode` parameter. Otherwise, the numbers in
-        the returned image will refer to the entries in the color pallet, which
-        is discarded during conversion to ndarray.
+        If you read a paletted image (e.g. GIF) then the plugin will apply the
+        palette by default. Should you wish to read the palette indices of each
+        pixel use ``mode="P"``. The coresponding color pallete can be found in
+        the image's metadata using the ``palette`` key when metadata is
+        extracted using the ``exclude_applied=False`` kwarg. The latter is
+        needed, as palettes are applied by default and hence excluded by default
+        to keep metadata and pixel data consistent.
 
         """
+
+        if as_gray is not None:
+            raise TypeError(
+                "The keyword `as_gray` is no longer supported."
+                "Use `mode='L'` instead."
+            )
 
         if index is None:
             if self._image.format == "GIF":
@@ -204,7 +215,7 @@ class PillowPlugin(PluginV3):
     def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
-        elif image.format == "GIF":
+        elif image.mode == "P":
             # adjust for pillow9 changes
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
@@ -232,6 +243,7 @@ class PillowPlugin(PluginV3):
         *,
         mode: str = None,
         format: str = None,
+        is_batch: bool = None,
         **kwargs,
     ) -> Optional[bytes]:
         """
@@ -247,17 +259,24 @@ class PillowPlugin(PluginV3):
 
         Parameters
         ----------
-        image : ndarray
-            The ndimage to write.
-        mode : {str, None}
+        image : ndarray or list
+            The ndimage to write. If a list is given each element is expected to
+            be an ndimage.
+        mode : str
             Specify the image's color format. If None (default), the mode is
             inferred from the array's shape and dtype. Possible modes can be
             found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
-        format : {str, None}
-            Optional format override.  If omitted, the format to use is
+        format : str
+            Optional format override. If omitted, the format to use is
             determined from the filename extension. If a file object was used
             instead of a filename, this parameter must always be used.
+        is_batch : bool
+            Explicitly tell the writer that ``image`` is a batch of images
+            (True) or not (False). If None, the writer will guess this from the
+            provided ``mode`` or ``image.shape``. While the latter often works,
+            it may cause problems for small images due to aliasing of spatial
+            and color-channel axes.
         kwargs : ...
             Extra arguments to pass to pillow. If a writer doesn't recognise an
             option, it is silently ignored. The available options are described
@@ -272,6 +291,11 @@ class PillowPlugin(PluginV3):
         image.
 
         """
+        if "fps" in kwargs:
+            raise TypeError(
+                "The keyword `fps` is no longer supported. Use `duration`"
+                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
+            )
 
         extension = self.request.extension or self.request.format_hint
 
@@ -284,21 +308,21 @@ class PillowPlugin(PluginV3):
             is_batch = True
         else:
             ndimage = np.asarray(ndimage)
-            is_batch = None
 
         # check if ndimage is a batch of frames/pages (e.g. for writing GIF)
         # if mode is given, use it; otherwise fall back to image.ndim only
-        if is_batch is True:
-            pass  # ndimage was list; we know it is a batch
-        if mode is not None:
+        if is_batch is not None:
+            pass
+        elif mode is not None:
             is_batch = (
                 ndimage.ndim > 3 if Image.getmodebands(mode) > 1 else ndimage.ndim > 2
             )
         elif ndimage.ndim == 2:
             is_batch = False
+        elif ndimage.ndim == 3 and ndimage.shape[-1] == 1:
+            raise ValueError("Can't write images with one color channel.")
         elif ndimage.ndim == 3 and ndimage.shape[-1] in [2, 3, 4]:
             # Note: this makes a channel-last assumption
-            # (pillow seems to make it as well)
             is_batch = False
         else:
             is_batch = True
@@ -344,6 +368,11 @@ class PillowPlugin(PluginV3):
             metadata. If index is None, this plugin reads metadata from the
             first image of the file (index=0) unless the image is a GIF or APNG,
             in which case global metadata is read (index=...).
+        exclude_applied : bool
+            If True, exclude metadata fields that are applied to the image while
+            reading. For example, if the binary data contains a rotation flag,
+            the image is rotated by default and the rotation flag is excluded
+            from the metadata to avoid confusion.
 
         Returns
         -------
@@ -367,8 +396,8 @@ class PillowPlugin(PluginV3):
         metadata["mode"] = self._image.mode
         metadata["shape"] = self._image.size
 
-        if self._image.mode == "P":
-            metadata["palette"] = self._image.palette
+        if self._image.mode == "P" and not exclude_applied:
+            metadata["palette"] = np.asarray(tuple(self._image.palette.colors.keys()))
 
         if self._image.getexif():
             exif_data = {
@@ -421,8 +450,8 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        if self._image.format == "GIF":
-            # GIF mode is determined by pallette
+        if self._image.mode == "P":
+            # mode of palette images is determined by their palette
             mode = self._image.palette.mode
         else:
             mode = self._image.mode

@@ -84,18 +84,6 @@ Read all Images in a Folder
 Note, however, that ``Path().iterdir()`` does not guarantees the order in which
 files are read.
 
-
-Iterate over frames in a movie
-------------------------------
-
-.. code-block:: python
-
-    import imageio.v3 as iio
-
-    for i, frame in enumerate(iio.imiter("imageio:cockatoo.mp4")):
-        print("Mean of frame %i is %1.1f" % (i, frame.mean()))
-
-
 Grab screenshot or image from the clipboard
 -------------------------------------------
 
@@ -154,6 +142,58 @@ Convert a short movie to grayscale
 
     # write the video
     iio.imwrite("cockatoo_gray.mp4", gray_frames_as_rgb, fps=metadata["fps"])
+
+Read or iterate frames in a video
+---------------------------------
+
+.. note::
+    For this to work, you need to install the pyav backend::
+
+        pip install av
+
+.. code-block:: python
+
+    import imageio.v3 as iio
+
+    # read a single frame
+    frame = iio.imread(
+        "imageio:cockatoo.mp4", 
+        index=42, 
+        plugin="pyav", 
+    )
+
+    # bulk read all frames
+    # Warning: large videos will consume a lot of memory (RAM)
+    frames = iio.imread("imageio:cockatoo.mp4", plugin="pyav")
+
+    # iterate over large videos
+    for frame in iio.imiter("imageio:cockatoo.mp4", plugin="pyav"):
+        print(frame.shape, frame.dtype)
+
+
+Re-encode a (large) video
+-------------------------
+
+.. note::
+    For this to work, you need to install the pyav backend::
+
+        pip install av
+
+.. code-block:: python
+
+    import imageio.v3 as iio
+
+    # assume this is too large to keep all frames in memory
+    source = "imageio:cockatoo.mp4"
+    dest = "reencoded_cockatoo.mkv"
+
+    fps = iio.immeta(source, plugin="pyav")["fps"]
+
+    with iio.imopen(dest, "w", plugin="pyav") as out_file:
+        out_file.init_video_stream("vp9", fps=fps)
+
+        for frame in iio.imiter(source, plugin="pyav"):
+            out_file.write_frame(frame)
 
 
 Read medical data (DICOM)
@@ -307,26 +347,23 @@ Now, let's start by creating a gif using imageio:
 
     import imageio.v3 as iio
     import matplotlib.pyplot as plt
-    
+    import numpy as np
+
     n = 100
     gif_path = "test.gif"
-    frames_path = "{i}.jpg"
-    
+
     n = 100
-    plt.figure(figsize=(4,4))
+    plt.figure(figsize=(4, 4))
     for x in range(n):
-        plt.scatter(x/n, x/n)
+        plt.scatter(x / n, x / n)
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.savefig(f"{x}.jpg")
 
-    frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
-        axis=0
-    )
-    
-    iio.imwrite(gif_path, frames, mode="I")
-            
+    frames = np.stack([iio.imread(f"{x}.jpg") for x in range(n)], axis=0)
+
+    iio.imwrite(gif_path, frames)
+
 This way we obtain a 2.5MB gif.
 
 We now want to compress the created GIF.
@@ -348,27 +385,23 @@ Putting everything together:
 
     import imageio.v3 as iio
     import matplotlib.pyplot as plt
+    import numpy as np
     from pygifsicle import optimize
-    
+
     n = 100
     gif_path = "test.gif"
-    frames_path = "{i}.jpg"
-    
+
     n = 100
-    plt.figure(figsize=(4,4))
+    plt.figure(figsize=(4, 4))
     for x in range(n):
-        plt.scatter(x/n, x/n)
+        plt.scatter(x / n, x / n)
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.savefig(f"{x}.jpg")
 
-    frames = np.stack(
-        [iio.imread("{i}.jpg") for i in range(n)],
-        axis=0
-    )
-    
-    iio.imwrite(gif_path, frames, mode="I")
-            
+    frames = np.stack([iio.imread(f"{x}.jpg") for x in range(n)], axis=0)
+
+    iio.imwrite(gif_path, frames)
     optimize(gif_path)
 
 Reading Images from ZIP archives
@@ -406,3 +439,29 @@ them with a simple script like the one below.
         for name in zf.namelist():
             im = iio.imread(name)
             images.append(im)
+
+Reading Metadata
+----------------
+
+ImageIO differentiates between two types of metadata: format-specific metadata
+and standardized metadata.
+
+Format-specific metadata comes in the form of a python dict and aims to expose
+all the metadata contained in the image using the containers/plugins key and
+format::
+
+    import imageio.v3 as iio
+
+    metadata = iio.immeta("imageio:chelsea.png")
+    print(metadata["mode"])  # "RGB"
+
+Standardized metadata, on the other hand, comes in the form of the
+:class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>` dataclass
+and aims to expose a curated set of metadata using a standardized name and
+format independent of the underlying container or plugin::
+
+    import imageio.v3 as iio
+
+    props = iio.improps("imageio:chelsea.png")
+    print(props.shape)  # (300, 451, 3)
+    print(props.dtype)  # dtype('uint8')

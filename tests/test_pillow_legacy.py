@@ -74,7 +74,6 @@ def assert_close(im1, im2, tol=0.0):
 
 @deprecated_test
 def test_pillow_format(test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # Format - Pillow is the default!
@@ -103,7 +102,6 @@ def test_pillow_format(test_images, tmp_path):
 
 @deprecated_test
 def test_png(test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -183,15 +181,13 @@ def test_png(test_images, tmp_path):
 def test_png_remote():
     # issue #202
     im = imageio.imread(
-        "https://raw.githubusercontent.com/imageio/"
-        + "imageio-binaries/master/images/astronaut.png"
+        "https://raw.githubusercontent.com/imageio/test_images/main/astronaut.png"
     )
     assert im.shape == (512, 512, 3)
 
 
 @deprecated_test
 def test_jpg(tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     for isfloat in (False, True):
@@ -235,7 +231,6 @@ def test_jpg(tmp_path):
 
 @deprecated_test
 def test_jpg_more(test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # Test broken JPEG
@@ -300,7 +295,6 @@ def test_gif(tmp_path):
 
 @deprecated_test
 def test_animated_gif(test_images, tmp_path):
-
     fnamebase = str(tmp_path / "test")
 
     # Read newton's cradle
@@ -412,7 +406,6 @@ def test_images_with_transparency(test_images):
 
 @deprecated_test
 def test_gamma_correction(test_images):
-
     fname = test_images / "kodim03.png"
 
     # Load image three times
@@ -435,7 +428,6 @@ def test_gamma_correction(test_images):
 
 @deprecated_test
 def test_inside_zipfile(test_images, tmp_path):
-
     fname = str(tmp_path / "pillowtest.zip")
     with ZipFile(fname, "w") as z:
         z.writestr(

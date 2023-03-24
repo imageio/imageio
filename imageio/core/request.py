@@ -214,7 +214,6 @@ class Request(object):
     """
 
     def __init__(self, uri, mode, *, extension=None, format_hint: str = None, **kwargs):
-
         # General
         self.raw_uri = uri
         self._uri_type = None
@@ -265,8 +264,9 @@ class Request(object):
 
         if format_hint is not None:
             warnings.warn(
-                "The usage of `format_hint` is deprecated and will be removed in ImageIO v3."
-                " Use `extension` instead."
+                "The usage of `format_hint` is deprecated and will be removed "
+                "in ImageIO v3. Use `extension` instead.",
+                DeprecationWarning,
             )
 
         if format_hint is not None and format_hint[0] != ".":
@@ -544,7 +544,6 @@ class Request(object):
         """
 
         if self.mode.io_mode == IOMode.write:
-
             # See if we "own" the data and must put it somewhere
             bytes = None
             if self._filename_local:
@@ -665,7 +664,6 @@ class SeekableFileObject:
         self.closed = False
 
     def read(self, n=None):
-
         # Fix up n
         if n is None:
             pass

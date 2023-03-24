@@ -1,19 +1,17 @@
 """ Tests for imageio's pillow plugin
 """
 
+import io
+import os
 from pathlib import Path
 
-from imageio.core.request import Request
-import os
-import io
-import pytest
+import imageio.v3 as iio
 import numpy as np
-from PIL import Image, ImageSequence  # type: ignore
-
-import imageio as iio
+import pytest
+from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from imageio.core.request import InitializationError
+from PIL import Image, ImageSequence  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -26,12 +24,11 @@ from imageio.core.request import InitializationError
     ],
 )
 def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio
     iio_file = tmp_path / im_out
-    iio.v3.imwrite(iio_file, im, plugin="pillow")
+    iio.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = tmp_path / im_comp
@@ -55,12 +52,11 @@ def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
 )
 @pytest.mark.needs_internet
 def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio
     iio_file = tmp_path / im_out
-    iio.v3.imwrite(iio_file, im, plugin="pillow")
+    iio.imwrite(iio_file, im, plugin="pillow")
 
     # written with pillow directly
     pil_file = tmp_path / im_comp
@@ -79,8 +75,8 @@ def test_png_compression(test_images, tmp_path):
 
     im = np.load(test_images / "chelsea.npy")
 
-    iio.v3.imwrite(tmp_path / "1.png", im, plugin="pillow", compress_level=0)
-    iio.v3.imwrite(tmp_path / "2.png", im, plugin="pillow", compress_level=9)
+    iio.imwrite(tmp_path / "1.png", im, plugin="pillow", compress_level=0)
+    iio.imwrite(tmp_path / "2.png", im, plugin="pillow", compress_level=9)
 
     size_1 = os.stat(tmp_path / "1.png").st_size
     size_2 = os.stat(tmp_path / "2.png").st_size
@@ -92,8 +88,8 @@ def test_png_quantization(test_images, tmp_path):
 
     im = np.load(test_images / "chelsea.npy")
 
-    iio.v3.imwrite(tmp_path / "1.png", im, plugin="pillow", bits=8)
-    iio.v3.imwrite(tmp_path / "2.png", im, plugin="pillow", bits=2)
+    iio.imwrite(tmp_path / "1.png", im, plugin="pillow", bits=8)
+    iio.imwrite(tmp_path / "2.png", im, plugin="pillow", bits=2)
 
     size_1 = os.stat(tmp_path / "1.png").st_size
     size_2 = os.stat(tmp_path / "2.png").st_size
@@ -104,22 +100,22 @@ def test_png_16bit(test_images, tmp_path):
     # 16b bit images
     im = np.load(test_images / "chelsea.npy")[..., 0]
 
-    iio.v3.imwrite(
+    iio.imwrite(
         tmp_path / "1.png",
         2 * im.astype(np.uint16),
         plugin="pillow",
         mode="I;16",
     )
-    iio.v3.imwrite(tmp_path / "2.png", im, plugin="pillow", mode="L")
+    iio.imwrite(tmp_path / "2.png", im, plugin="pillow", mode="L")
 
     size_1 = os.stat(tmp_path / "1.png").st_size
     size_2 = os.stat(tmp_path / "2.png").st_size
     assert size_2 < size_1
 
-    im2 = iio.v3.imread(tmp_path / "2.png", plugin="pillow")
+    im2 = iio.imread(tmp_path / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    im3 = iio.v3.imread(tmp_path / "1.png", plugin="pillow")
+    im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
     assert im3.dtype == np.int32
 
 
@@ -134,14 +130,14 @@ def test_png_16bit(test_images, tmp_path):
 def test_png_remote():
     # issue #202
 
-    url = "https://github.com/imageio/imageio-binaries/blob/master/test-images/chelsea.png?raw=true"
-    im = iio.v3.imread(url, plugin="pillow")
+    url = "https://raw.githubusercontent.com/imageio/test_images/main/chelsea.png"
+    im = iio.imread(url, plugin="pillow")
     assert im.shape == (300, 451, 3)
 
 
 def test_png_transparent_pixel(test_images):
     # see issue #245
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "imageio_issue246.png",
         plugin="pillow",
         mode="RGBA",
@@ -151,12 +147,12 @@ def test_png_transparent_pixel(test_images):
 
 def test_png_gamma_correction(test_images: Path):
     # opens the file twice, but touches more parts of the API
-    im1 = iio.v3.imread(test_images / "kodim03.png", plugin="pillow")
-    im1_meta = iio.v3.immeta(
+    im1 = iio.imread(test_images / "kodim03.png", plugin="pillow")
+    im1_meta = iio.immeta(
         test_images / "kodim03.png", plugin="pillow", exclude_applied=False
     )
 
-    im2 = iio.v3.imread(
+    im2 = iio.imread(
         test_images / "kodim03.png",
         plugin="pillow",
         apply_gamma=True,
@@ -177,8 +173,8 @@ def test_jpg_compression(test_images, tmp_path):
 
     im = np.load(test_images / "chelsea.npy")
 
-    iio.v3.imwrite(tmp_path / "1.jpg", im, plugin="pillow", quality=90)
-    iio.v3.imwrite(tmp_path / "2.jpg", im, plugin="pillow", quality=10)
+    iio.imwrite(tmp_path / "1.jpg", im, plugin="pillow", quality=90)
+    iio.imwrite(tmp_path / "2.jpg", im, plugin="pillow", quality=10)
 
     size_1 = os.stat(tmp_path / "1.jpg").st_size
     size_2 = os.stat(tmp_path / "2.jpg").st_size
@@ -197,14 +193,14 @@ def test_exif_orientation(test_images, tmp_path):
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
-    iio.v3.imwrite(
+    iio.imwrite(
         tmp_path / "chelsea_tagged.png",
         im_flipped,
         plugin="pillow",
         exif=exif_tag,
     )
 
-    with iio.v3.imopen(
+    with iio.imopen(
         tmp_path / "chelsea_tagged.png",
         "r",
         plugin="pillow",
@@ -217,7 +213,7 @@ def test_exif_orientation(test_images, tmp_path):
     # ensure that the Exif tag is set in the file
     assert "Orientation" in im_meta and im_meta["Orientation"] == 6
 
-    im_reloaded = iio.v3.imread(
+    im_reloaded = iio.imread(
         tmp_path / "chelsea_tagged.png", plugin="pillow", rotate=True
     )
 
@@ -226,12 +222,12 @@ def test_exif_orientation(test_images, tmp_path):
 
 def test_gif_rgb_vs_rgba(test_images):
     # Note: I don't understand the point of this test
-    im_rgb = iio.v3.imread(
+    im_rgb = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGB",
     )
-    im_rgba = iio.v3.imread(
+    im_rgba = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGBA",
@@ -242,13 +238,13 @@ def test_gif_rgb_vs_rgba(test_images):
 
 def test_gif_gray(test_images, tmp_path):
     # Note: There was no assert here; we test that it doesn't crash?
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="L",
     )
 
-    iio.v3.imwrite(
+    iio.imwrite(
         tmp_path / "test.gif",
         im[..., 0],
         plugin="pillow",
@@ -257,15 +253,32 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
+def test_gif_fps_error(test_images, tmp_path):
+    im = iio.imread(
+        test_images / "newtonscradle.gif",
+        plugin="pillow",
+        mode="L",
+    )
+
+    with pytest.raises(TypeError):
+        iio.imwrite(
+            tmp_path / "test.gif",
+            im[..., 0],
+            plugin="pillow",
+            fps=60,
+            mode="L",
+        )
+
+
 def test_gif_irregular_duration(test_images, tmp_path):
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGBA",
     )
     duration = [0.5 if idx in [2, 5, 7] else 0.1 for idx in range(im.shape[0])]
 
-    with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
         for frame, duration in zip(im, duration):
             file.write(frame, duration=duration)
 
@@ -273,29 +286,29 @@ def test_gif_irregular_duration(test_images, tmp_path):
 
 
 def test_gif_palletsize(test_images, tmp_path):
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGBA",
     )
 
-    iio.v3.imwrite(tmp_path / "test.gif", im, plugin="pillow", palletsize=100)
+    iio.imwrite(tmp_path / "test.gif", im, plugin="pillow", palletsize=100)
     # TODO: assert pallet size is 128
 
 
-def test_gif_loop_and_fps(test_images, tmp_path):
+def test_gif_loop_and_duration(test_images, tmp_path):
     # Note: I think this test tests pillow kwargs, not imageio functionality
     # maybe we should drop it?
 
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="RGBA",
     )
 
-    with iio.v3.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
         for frame in im:
-            file.write(frame, palettesize=100, fps=20, loop=2)
+            file.write(frame, palettesize=100, duration=0.00005, loop=2)
 
     # This test had no assert; how to assert fps and loop count?
 
@@ -304,7 +317,7 @@ def test_gif_indexed_read(test_images):
     idx = 0
     numpy_im = np.load(test_images / "newtonscradle_rgb.npy")[idx, ...]
 
-    with iio.v3.imopen(test_images / "newtonscradle.gif", "r", plugin="pillow") as file:
+    with iio.imopen(test_images / "newtonscradle.gif", "r", plugin="pillow") as file:
         # exists to touch branch, would be better two write an explicit test
         meta = file.get_meta(index=idx)
         assert "version" in meta
@@ -325,17 +338,17 @@ def test_unknown_image(tmp_path):
 
 def test_gif_transparent_pixel(test_images):
     # see issue #245
-    im = iio.v3.imread(
+    im = iio.imread(
         test_images / "imageio_issue245.gif", plugin="pillow", mode="RGBA", index=0
     )
     assert im.shape == (24, 30, 4)
 
 
 def test_gif_list_write(test_images, tmp_path):
-    im = iio.v3.imread(test_images / "imageio_issue245.gif", plugin="pillow")
+    im = iio.imread(test_images / "imageio_issue245.gif", plugin="pillow")
     im_list = [x for x in im]
-    iio.v3.imwrite(tmp_path / "test.gif", im_list, plugin="pillow")
-    im2 = iio.v3.imread(test_images / "imageio_issue245.gif", plugin="pillow", index=0)
+    iio.imwrite(tmp_path / "test.gif", im_list, plugin="pillow")
+    im2 = iio.imread(test_images / "imageio_issue245.gif", plugin="pillow", index=0)
 
     assert im2.shape == (24, 30, 3)
 
@@ -352,14 +365,14 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
-    iio.v3.imwrite(
+    iio.imwrite(
         tmp_path / "chelsea_tagged.png",
         im_flipped,
         plugin="pillow",
         exif=exif_tag,
     )
 
-    with iio.v3.imopen(
+    with iio.imopen(
         tmp_path / "chelsea_tagged.png",
         "r",
         legacy_mode=True,
@@ -373,7 +386,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     # ensure that the Exif tag is set in the file
     assert "exif" in im_meta
 
-    im_reloaded = iio.v3.imread(
+    im_reloaded = iio.imread(
         tmp_path / "chelsea_tagged.png", plugin="pillow", rotate=True
     )
 
@@ -382,7 +395,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
 
 def test_incomatible_write_format(tmp_path):
     with pytest.raises(IOError):
-        iio.v3.imopen(tmp_path / "foo.mp3", "w", plugin="pillow", legacy_mode=False)
+        iio.imopen(tmp_path / "foo.mp3", "w", plugin="pillow", legacy_mode=False)
 
 
 def test_write_to_bytes():
@@ -395,7 +408,7 @@ def test_write_to_bytes():
 
     # writing to bytes with imageIO
     with io.BytesIO() as output:
-        iio.v3.imwrite(output, image, plugin="pillow", extension=".png")
+        iio.imwrite(output, image, plugin="pillow", extension=".png")
         iio_contents = output.getvalue()
 
     assert iio_contents == contents
@@ -411,7 +424,7 @@ def test_write_to_bytes_rgba():
 
     # writing to bytes with imageIO
     with io.BytesIO() as output:
-        iio.v3.imwrite(output, image, plugin="pillow", extension=".png", mode="RGBA")
+        iio.imwrite(output, image, plugin="pillow", extension=".png", mode="RGBA")
         iio_contents = output.getvalue()
 
     assert iio_contents == contents
@@ -426,7 +439,7 @@ def test_write_to_bytes_imwrite():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", extension=".png")
+    bytes_string = iio.imwrite("<bytes>", image, plugin="pillow", extension=".png")
 
     assert contents == bytes_string
 
@@ -440,7 +453,7 @@ def test_write_to_bytes_jpg():
         contents = output.getvalue()
 
     # write with ImageIO
-    bytes_string = iio.v3.imwrite("<bytes>", image, plugin="pillow", extension=".jpeg")
+    bytes_string = iio.imwrite("<bytes>", image, plugin="pillow", extension=".jpeg")
 
     assert contents == bytes_string
 
@@ -451,10 +464,10 @@ def test_write_jpg_to_bytes_io():
 
     image = np.zeros((200, 200), dtype=np.uint8)
     bytes_io = io.BytesIO()
-    iio.v3.imwrite(bytes_io, image, plugin="pillow", extension=".jpeg", mode="L")
+    iio.imwrite(bytes_io, image, plugin="pillow", extension=".jpeg", mode="L")
     bytes_io.seek(0)
 
-    image_from_file = iio.v3.imread(bytes_io, plugin="pillow")
+    image_from_file = iio.imread(bytes_io, plugin="pillow")
     assert np.allclose(image_from_file, image)
 
 
@@ -462,11 +475,11 @@ def test_initialization_failure(test_images):
     test_image = b"this is not an image and will break things."
 
     with pytest.raises(OSError):
-        iio.v3.imread(test_image, plugin="pillow")
+        iio.imread(test_image, plugin="pillow")
 
     with pytest.raises(OSError):
         # pillow can not handle npy
-        iio.v3.imread(test_images / "chelsea_jpg.npy", plugin="pillow")
+        iio.imread(test_images / "chelsea_jpg.npy", plugin="pillow")
 
 
 def test_boolean_reading(tmp_path):
@@ -475,7 +488,7 @@ def test_boolean_reading(tmp_path):
 
     Image.fromarray(expected).save(tmp_path / "iio.png")
 
-    actual = iio.v3.imread(tmp_path / "iio.png")
+    actual = iio.imread(tmp_path / "iio.png")
     assert np.allclose(actual, expected)
 
 
@@ -483,18 +496,18 @@ def test_boolean_writing(tmp_path):
     # Bugfix: https://github.com/imageio/imageio/issues/721
     expected = np.arange(256 * 256).reshape((256, 256)) % 2 == 0
 
-    iio.v3.imwrite(tmp_path / "iio.png", expected)
+    iio.imwrite(tmp_path / "iio.png", expected)
 
     actual = np.asarray(Image.open(tmp_path / "iio.png"))
-    # actual = iio.v3.imread(tmp_path / "iio.png")
+    # actual = iio.imread(tmp_path / "iio.png")
     assert np.allclose(actual, expected)
 
 
 def test_quantized_gif(test_images, tmp_path):
-    original = iio.v3.imread(test_images / "newtonscradle.gif")
+    original = iio.imread(test_images / "newtonscradle.gif")
 
-    iio.v3.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
-    quantized = iio.v3.imread(tmp_path / "quantized.gif")
+    iio.imwrite(tmp_path / "quantized.gif", original, plugin="pillow", bits=4)
+    quantized = iio.imread(tmp_path / "quantized.gif")
 
     for original_frame, quantized_frame in zip(original, quantized):
         assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))
@@ -504,43 +517,49 @@ def test_properties(image_files: Path):
     file: PluginV3
 
     # test a flat image (RGB PNG)
-    with iio.v3.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
+    with iio.imopen(image_files / "chelsea.png", "r", plugin="pillow") as file:
         properties = file.properties()
 
     assert properties.shape == (300, 451, 3)
     assert properties.dtype == np.uint8
 
     # test a ndimage (GIF)
-    properties = iio.v3.improps(image_files / "newtonscradle.gif", plugin="pillow")
+    properties = iio.improps(image_files / "newtonscradle.gif", plugin="pillow")
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
     assert properties.is_batch is True
 
     # test a flat gray image
-    properties = iio.v3.improps(image_files / "text.png", plugin="pillow", index=0)
+    properties = iio.improps(image_files / "text.png", plugin="pillow", index=0)
 
     assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8
 
 
 def test_metadata(test_images):
-    meta = iio.v3.immeta(test_images / "newtonscradle.gif")
+    meta = iio.immeta(test_images / "newtonscradle.gif")
     assert "version" in meta and meta["version"] == b"GIF89a"
 
-    with iio.v3.imopen(
+    with iio.imopen(
         test_images / "newtonscradle.gif", "r", plugin="pillow"
     ) as image_file:
         image_file.read(index=5)
         meta = image_file.metadata(index=0)
         assert "version" in meta and meta["version"] == b"GIF89a"
+        assert "palette" not in meta
+
+    meta_all = iio.immeta(test_images / "newtonscradle.gif", exclude_applied=False)
+    palette = meta_all["palette"]
+    assert palette.shape == (102, 3)
+    assert np.issubdtype(palette.dtype, np.number)
 
 
 def test_apng_reading(tmp_path, test_images):
     # create a APNG
-    img = iio.v3.imread(test_images / "newtonscradle.gif")
-    iio.v3.imwrite(tmp_path / "test.apng", img)
+    img = iio.imread(test_images / "newtonscradle.gif")
+    iio.imwrite(tmp_path / "test.apng", img)
 
-    props = iio.v3.improps(tmp_path / "test.apng")
+    props = iio.improps(tmp_path / "test.apng")
     assert props.shape == (36, 150, 200, 3)
     assert props.is_batch is True
 
@@ -548,11 +567,11 @@ def test_apng_reading(tmp_path, test_images):
     with Image.open(tmp_path / "test.apng") as im:
         im.seek(8)
         expected = np.asarray(im)
-    actual = iio.v3.imread(tmp_path / "test.apng", index=8)
+    actual = iio.imread(tmp_path / "test.apng", index=8)
     assert np.allclose(actual, expected)
 
     # test reading all frames
-    all_frames = iio.v3.imread(tmp_path / "test.apng")
+    all_frames = iio.imread(tmp_path / "test.apng")
     with Image.open(tmp_path / "test.apng") as im:
         for idx, frame in enumerate(ImageSequence.Iterator(im)):
             expected = np.asarray(frame)
@@ -562,23 +581,49 @@ def test_apng_reading(tmp_path, test_images):
 
 def test_apng_metadata(tmp_path, test_images):
     # create a APNG
-    img = iio.v3.imread(test_images / "newtonscradle.gif")
-    iio.v3.imwrite(tmp_path / "test.apng", img)
+    img = iio.imread(test_images / "newtonscradle.gif")
+    iio.imwrite(tmp_path / "test.apng", img)
 
-    metadata = iio.v3.immeta(tmp_path / "test.apng")
+    metadata = iio.immeta(tmp_path / "test.apng")
     assert metadata["shape"] == (200, 150)
     assert metadata["loop"] == 0
 
     # set default index explicitly
-    metadata2 = iio.v3.immeta(tmp_path / "test.apng", index=...)
+    metadata2 = iio.immeta(tmp_path / "test.apng", index=...)
     assert metadata == metadata2
 
 
 def test_write_format_warning():
-    frames = iio.v3.imread("imageio:chelsea.png")
-    bytes_image = iio.v3.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
+    frames = iio.imread("imageio:chelsea.png")
+    bytes_image = iio.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
 
     with pytest.warns(UserWarning):
-        old_bytes = iio.v3.imwrite("<bytes>", frames, plugin="pillow", format="PNG")
+        old_bytes = iio.imwrite("<bytes>", frames, plugin="pillow", format="PNG")
 
     assert bytes_image == old_bytes
+
+
+def test_8bit_with_16bit_depth():
+    rng = np.random.default_rng()
+
+    img16 = rng.integers(2**0, 2**8, (128, 128), dtype=np.uint16)
+    img16_bytes = iio.imwrite("<bytes>", img16, extension=".png", plugin="pillow")
+    img16_read = iio.imread(img16_bytes)
+
+    assert img16_read.dtype != np.uint8
+    assert np.allclose(img16_read, img16)
+
+
+def test_deprecated_as_gray(test_images):
+    with pytest.raises(TypeError):
+        iio.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
+
+
+def test_png_batch_fail():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/904
+
+    img = np.ones((128, 128, 1), dtype=np.uint8)
+
+    with pytest.raises(ValueError):
+        iio.imwrite("<bytes>", img, extension=".png", plugin="pillow")

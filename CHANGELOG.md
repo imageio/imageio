@@ -7,6 +7,132 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.26.0 (2023-02-27)
+### Feature
+* Collection of small improvements to pyav ([#939](https://github.com/imageio/imageio/issues/939)) ([`b0dc210`](https://github.com/imageio/imageio/commit/b0dc21074d77894d01ce50ab2a525f214b1e265d))
+
+## v2.25.1 (2023-02-13)
+### Fix
+* Format hint test doesn't need to establish a connection ([#941](https://github.com/imageio/imageio/issues/941)) ([`b7a0f35`](https://github.com/imageio/imageio/commit/b7a0f353a1c7798ddef5eb60927921e276289e25))
+
+### Other
+* Don't build pdfs on RTD ([#944](https://github.com/imageio/imageio/issues/944)) ([`d200673`](https://github.com/imageio/imageio/commit/d200673503e620ac9ec1584a04e358794416e28b))
+
+## v2.25.0 (2023-01-23)
+### Feature
+* Add audio support for ffmpeg writer ([#882](https://github.com/imageio/imageio/issues/882)) ([`7f411d2`](https://github.com/imageio/imageio/commit/7f411d268cd8fab5537854814904c41465a48b9f))
+
+## v2.24.0 (2023-01-09)
+### Feature
+* Tifffile v3 ([#914](https://github.com/imageio/imageio/issues/914)) ([`4658049`](https://github.com/imageio/imageio/commit/4658049bc37b6e89796233306df393d8a51b68bd))
+
+### Other
+* Pin sphinx below v6 ([#928](https://github.com/imageio/imageio/issues/928)) ([`0336e58`](https://github.com/imageio/imageio/commit/0336e585236ea4eadc37122c86141fc7d51ac624))
+
+## v2.23.0 (2022-12-19)
+### Feature
+* Add support for Python 3.11 ([#920](https://github.com/imageio/imageio/issues/920)) ([`e4146a1`](https://github.com/imageio/imageio/commit/e4146a1dab2322960e908eb2b3c5fc6f385ceb9d))
+
+### Other
+* Exclude py3.11 on windows ([#917](https://github.com/imageio/imageio/issues/917)) ([`c57e31c`](https://github.com/imageio/imageio/commit/c57e31c90f17d32d1b0b1fe8d45a3f274776094d))
+* GitHub Actions add Python 3.11 to the testing ([#916](https://github.com/imageio/imageio/issues/916)) ([`8d49551`](https://github.com/imageio/imageio/commit/8d49551660773f3f095207b3c70a32a3bdee1a85))
+* Add migration instructions for as_gray in new pillow plugin. ([#913](https://github.com/imageio/imageio/issues/913)) ([`b3b040a`](https://github.com/imageio/imageio/commit/b3b040a79b96718cef89fcfa9149cda151763309))
+
+## v2.22.4 (2022-11-07)
+### Fix
+* Fix silent failure when writing gray images with explicit color channel using pillow ([#906](https://github.com/imageio/imageio/issues/906)) ([`a075c17`](https://github.com/imageio/imageio/commit/a075c1797821ea07fbc4c95ae4113abc820bbe1c))
+* Ffmpeg supports .h264 extension ([#901](https://github.com/imageio/imageio/issues/901)) ([`7571ea9`](https://github.com/imageio/imageio/commit/7571ea96cab2d726e0d2083126b459fe59ba8728))
+* Avoid webcam hang on MacOS ([#899](https://github.com/imageio/imageio/issues/899)) ([`019069f`](https://github.com/imageio/imageio/commit/019069f01761c46f89642928dd2a649bc9714c70))
+
+### Other
+* Fix typo ([#905](https://github.com/imageio/imageio/issues/905)) ([`5355f93`](https://github.com/imageio/imageio/commit/5355f934b2505f1326f6410412c7ecdb95d5b198))
+* Document deprecated format_hint ([#902](https://github.com/imageio/imageio/issues/902)) ([`88b7784`](https://github.com/imageio/imageio/commit/88b77849ed44da48b9fa0c2c7ae28775982cae19))
+
+## v2.22.3 (2022-10-31)
+### Fix
+* Support `compression` and `compressionargs` in tifffile plugin ([#894](https://github.com/imageio/imageio/issues/894)) ([`3773da4`](https://github.com/imageio/imageio/commit/3773da4a9594db16a97a7ac84cf3eb261b2e3292))
+
+## v2.22.2 (2022-10-16)
+### Fix
+* Make legacy FormatManager skip uninstalled plugins ([#888](https://github.com/imageio/imageio/issues/888)) ([`76a87c1`](https://github.com/imageio/imageio/commit/76a87c19d060abd12b0f9d0a35413d204fc29c74))
+
+### Other
+* Remove unneeded image_mode references ([#816](https://github.com/imageio/imageio/issues/816)) ([`eeafb8d`](https://github.com/imageio/imageio/commit/eeafb8d5e6b4ec351afa13a9ca05297cd7c8728a))
+* Remove xcode reference (dead link) ([`d1c3e5e`](https://github.com/imageio/imageio/commit/d1c3e5e02f3b2cc2fbf5988ddc8e1c3419b87ceb))
+
+## v2.22.1 (2022-10-03)
+### Fix
+* Raise ImportError when iio-ffmpeg is missing ([#880](https://github.com/imageio/imageio/issues/880)) ([`e6e7ff4`](https://github.com/imageio/imageio/commit/e6e7ff4383da40c46000c6e8f227aa05983e2d15))
+
+### Other
+* EXR spec ([#885](https://github.com/imageio/imageio/issues/885)) ([`1b6159b`](https://github.com/imageio/imageio/commit/1b6159b063b3b86cbb1322162f97e42127bcb7b2))
+* Remove stale funding platform ([`f428953`](https://github.com/imageio/imageio/commit/f42895310c85f584ed5278f0f36b63c786878d56))
+
+## v2.22.0 (2022-09-19)
+### Feature
+* Pyav API for procedural video writing ([#853](https://github.com/imageio/imageio/issues/853)) ([`acbcb64`](https://github.com/imageio/imageio/commit/acbcb645d9fab72e2f73e4ce61fd9af2007c8891))
+
+## v2.21.3 (2022-09-12)
+### Fix
+* Raise error if fps is specified ([#871](https://github.com/imageio/imageio/issues/871)) ([`1f8d37a`](https://github.com/imageio/imageio/commit/1f8d37ad8e06963a0cd5aaae270eae11fd3e82f2))
+
+### Other
+* Fix small typo ([#873](https://github.com/imageio/imageio/issues/873)) ([`f59e16d`](https://github.com/imageio/imageio/commit/f59e16d40351d12f2539a3d62af1a2bc07af5294))
+* Examples for Pyav ([#865](https://github.com/imageio/imageio/issues/865)) ([`810a7a9`](https://github.com/imageio/imageio/commit/810a7a9ebf7c6fbd8f0e00b3def93f60525967b4))
+
+## v2.21.2 (2022-08-29)
+### Fix
+* Allow v3.imread to read dicom ([#868](https://github.com/imageio/imageio/issues/868)) ([`22c98c2`](https://github.com/imageio/imageio/commit/22c98c201a5289c5ad32c5dc3739de7d7fe08862))
+* Revert to asanyarray ([#863](https://github.com/imageio/imageio/issues/863)) ([`fdaba04`](https://github.com/imageio/imageio/commit/fdaba04a346e5a11c8d7d79cf37f0cc35f5ef4ce))
+
+### Other
+* Add missing numpy import in example ([#866](https://github.com/imageio/imageio/issues/866)) ([`d85bfba`](https://github.com/imageio/imageio/commit/d85bfbaa7957f35e8c68caf610b0193849deb5d2))
+
+## v2.21.1 (2022-08-08)
+### Fix
+* Seeking to last frame caused EoF in pyav ([#855](https://github.com/imageio/imageio/issues/855)) ([`7ff7f02`](https://github.com/imageio/imageio/commit/7ff7f023d4b24a8349c867a50c46cfe52ce724bb))
+
+## v2.21.0 (2022-08-01)
+### Fix
+* Write single TIFF page for single RGB image ([#851](https://github.com/imageio/imageio/issues/851)) ([`0f04bc9`](https://github.com/imageio/imageio/commit/0f04bc9cb7f03c964cc978f6c1049879e5a90100))
+
+### Feature
+* Add is_batch kwarg to pillow ([#845](https://github.com/imageio/imageio/issues/845)) ([`21d5c73`](https://github.com/imageio/imageio/commit/21d5c73f3f19ba2093495dfd13a276acb56412e6))
+
+### Other
+* Add a migration note about pillow squeezing ([#850](https://github.com/imageio/imageio/issues/850)) ([`7c55a55`](https://github.com/imageio/imageio/commit/7c55a557c0feb1426bf8fff5a8f61b6f05d305d9))
+* Add missin option to imwrite type hints ([#848](https://github.com/imageio/imageio/issues/848)) ([`6da4a42`](https://github.com/imageio/imageio/commit/6da4a426a1bd3e11e679f0fb4fec5201a4fffa88))
+* Ignore exclude_applied on legacy plugins ([#844](https://github.com/imageio/imageio/issues/844)) ([`f082dde`](https://github.com/imageio/imageio/commit/f082dde8259865804698d8558f36e9fdeb1bfcb9))
+* Remove unneeded CD steps ([#847](https://github.com/imageio/imageio/issues/847)) ([`0d99c51`](https://github.com/imageio/imageio/commit/0d99c51e44d13b49668ef07ae9a8af93084e38a8))
+
+## v2.20.0 (2022-07-25)
+### Fix
+* Expose frame-level metadata and duration in pyav ([#839](https://github.com/imageio/imageio/issues/839)) ([`05fcf2c`](https://github.com/imageio/imageio/commit/05fcf2c443edf78e1807670ba304f51a43c74808))
+
+### Feature
+* Enable HTTP based streams in pyav ([#838](https://github.com/imageio/imageio/issues/838)) ([`fb1150d`](https://github.com/imageio/imageio/commit/fb1150d3fd5a00db036ffb4c603cedeed3a1634f))
+
+### Other
+* Fix typo in test_pyav ([#846](https://github.com/imageio/imageio/issues/846)) ([`f89abf1`](https://github.com/imageio/imageio/commit/f89abf18cd56ba5d8da1939b807c0f3f1e593e0b))
+
+## v2.19.5 (2022-07-18)
+### Fix
+* Allow multiple reads from imopen ([#830](https://github.com/imageio/imageio/issues/830)) ([`18e3cb6`](https://github.com/imageio/imageio/commit/18e3cb6d3228ac1ca27160d0e6c91e720213dd9f))
+
+### Other
+* Fix typos in v3 narrative docs. ([#835](https://github.com/imageio/imageio/issues/835)) ([`d68f16b`](https://github.com/imageio/imageio/commit/d68f16baaf2f6fcfe8523dec4227203e8b22797a))
+* Point source links to github ([#834](https://github.com/imageio/imageio/issues/834)) ([`20eef2a`](https://github.com/imageio/imageio/commit/20eef2a3ead7e892b18e7726260b9bf652217527))
+* Remove outdated numpy minimum version ([#833](https://github.com/imageio/imageio/issues/833)) ([`39947a7`](https://github.com/imageio/imageio/commit/39947a7506d4d7a28b6402ddcce9211e6ccfbe84))
+
+## v2.19.4 (2022-07-11)
+### Fix
+* Resolve infinite recursion in python 3.11 (and add CI for pypy-3.9) ([#826](https://github.com/imageio/imageio/issues/826)) ([`301f941`](https://github.com/imageio/imageio/commit/301f941d334e1b3a8c0aa9cebd3d2ea883645fc1))
+* Include PYI files in package ([#825](https://github.com/imageio/imageio/issues/825)) ([`fff16fb`](https://github.com/imageio/imageio/commit/fff16fb915b75beb7a6f8f3dd118d8ab02051dc4))
+
+### Other
+* Fix typo in readme ([#828](https://github.com/imageio/imageio/issues/828)) ([`67dac41`](https://github.com/imageio/imageio/commit/67dac41184c230fb3158100080dbec68bc61c98d))
+* Add quotes to "I" in GIF optimization example ([#823](https://github.com/imageio/imageio/issues/823)) ([`9fd2b35`](https://github.com/imageio/imageio/commit/9fd2b3504ee7dd55bb7f717fafdf5ae6fe0a294f))
+
 ## v2.19.3 (2022-05-30)
 ### Fix
 * Correctly read STK volumes in v3 ([#805](https://github.com/imageio/imageio/issues/805)) ([`9b739ab`](https://github.com/imageio/imageio/commit/9b739abebcab6b7364863bc4f25bcdc5b8c8c1a7))

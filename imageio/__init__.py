@@ -16,7 +16,7 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.19.3"
+__version__ = "2.26.0"
 
 import warnings
 
@@ -88,7 +88,7 @@ def imread(uri, format=None, **kwargs):
 
     warnings.warn(
         "Starting with ImageIO v3 the behavior of this function will switch to that of"
-        " iio.v3.imread. To keep the current behavior (and make this warning dissapear)"
+        " iio.v3.imread. To keep the current behavior (and make this warning disappear)"
         " use `import imageio.v2 as imageio` or call `imageio.v2.imread` directly.",
         DeprecationWarning,
         stacklevel=2,

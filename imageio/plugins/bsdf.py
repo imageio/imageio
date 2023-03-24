@@ -71,12 +71,10 @@ def get_bsdf_serializer(options):
             return Image(v["array"], v["meta"])
 
     class Image2DExtension(ImageExtension):
-
         name = "image2d"
         cls = Image2D
 
     class Image3DExtension(ImageExtension):
-
         name = "image3d"
         cls = Image3D
 

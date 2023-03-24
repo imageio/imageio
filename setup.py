@@ -92,6 +92,8 @@ package_data = [
     "resources/images/*.*",
     "resources/freeimage/*.*",
     "py.typed",
+    "**/*.pyi",
+    "*.pyi",
 ]
 
 
@@ -191,7 +193,6 @@ plugins = {
 }
 
 cpython_only_plugins = {
-    "opencv": ["opencv-python"],
     "fits": ["astropy"],
 }
 
@@ -199,7 +200,7 @@ extras_require = {
     "build": ["wheel"],
     "linting": ["black", "flake8"],
     "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
-    "docs": ["sphinx", "numpydoc", "pydata-sphinx-theme"],
+    "docs": ["sphinx<6", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
     **cpython_only_plugins,
     "gdal": ["gdal"],  # gdal currently fails to install :(
@@ -263,5 +264,6 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 )

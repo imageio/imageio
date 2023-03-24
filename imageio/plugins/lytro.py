@@ -111,9 +111,8 @@ class LytroIllumRawFormat(LytroFormat):
 
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in (".raw",):
-                return True
+        if request.extension in (".raw",):
+            return True
 
     @staticmethod
     def rearrange_bits(array):
@@ -231,9 +230,8 @@ class LytroLfrFormat(LytroFormat):
 
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in (".lfr",):
-                return True
+        if request.extension in (".lfr",):
+            return True
 
     # -- reader
 
@@ -438,9 +436,8 @@ class LytroF01RawFormat(LytroFormat):
 
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in (".raw",):
-                return True
+        if request.extension in (".raw",):
+            return True
 
     @staticmethod
     def rearrange_bits(array):
@@ -547,9 +544,8 @@ class LytroLfpFormat(LytroFormat):
 
     def _can_read(self, request):
         # Check if mode and extensions are supported by the format
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in (".lfp",):
-                return True
+        if request.extension in (".lfp",):
+            return True
 
     # -- reader
 

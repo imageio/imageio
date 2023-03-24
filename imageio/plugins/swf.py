@@ -68,15 +68,13 @@ class SWFFormat(Format):
     """See :mod:`imageio.plugins.swf`"""
 
     def _can_read(self, request):
-        if request.mode[1] in (self.modes + "?"):
-            tmp = request.firstbytes[0:3].decode("ascii", "ignore")
-            if tmp in ("FWS", "CWS"):
-                return True
+        tmp = request.firstbytes[0:3].decode("ascii", "ignore")
+        if tmp in ("FWS", "CWS"):
+            return True
 
     def _can_write(self, request):
-        if request.mode[1] in (self.modes + "?"):
-            if request.extension in self.extensions:
-                return True
+        if request.extension in self.extensions:
+            return True
 
     # -- reader
 

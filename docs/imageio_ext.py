@@ -7,47 +7,7 @@ import imageio
 
 
 def setup(app):
-    init()
     app.connect("source-read", rstjinja)
-
-
-def init():
-
-    print("Special preparations for imageio docs:")
-
-    for func in [
-        prepare_reader_and_witer,
-    ]:
-        print("  " + func.__doc__.strip())
-        func()
-
-
-def prepare_reader_and_witer():
-    """Prepare Format.Reader and Format.Writer for doc generation."""
-
-    # Create Reader and Writer subclasses that are going to be placed
-    # in the format module so that autoclass can find them. They need
-    # to be new classes, otherwise sphinx considers them aliases.
-    # We create the class using type() so that we can copy the __doc__.
-    Reader = type(
-        "Reader",
-        (imageio.core.format.Format.Reader,),
-        {"__doc__": imageio.core.format.Format.Reader.__doc__},
-    )
-    Writer = type(
-        "Writer",
-        (imageio.core.format.Format.Writer,),
-        {"__doc__": imageio.core.format.Format.Writer.__doc__},
-    )
-
-    imageio.core.format.Reader = Reader
-    imageio.core.format.Writer = Writer
-
-    # We set the docs of the original classes, and remove the original
-    # classes so that Reader and Writer do not show up in the docs of
-    # the Format class.
-    imageio.core.format.Format.Reader = None  # .__doc__ = ''
-    imageio.core.format.Format.Writer = None  # .__doc__ = ''
 
 
 def rstjinja(app, docname, source):
