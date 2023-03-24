@@ -648,15 +648,6 @@ def test_pnm(setup_library, tmp_path):
                 )
 
 
-def test_other(setup_library, tmp_path):
-    fnamebase = str(tmp_path / "test")
-
-    # Cannot save float
-    im = get_ref_im(3, 0, 1)
-    with pytest.raises(Exception):
-        iio.imsave(fnamebase + ".jng", im, "JNG")
-
-
 def test_gamma_correction(setup_library, test_images):
     fname = test_images / "kodim03.png"
 

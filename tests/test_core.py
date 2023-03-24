@@ -883,7 +883,10 @@ def test_imopen_installable_plugin(clear_plugins):
 
 def test_legacy_object_image_writing(tmp_path):
     with pytest.raises(TypeError):
-        iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
+        # dtype=object should fail with type error
+        iio.mimwrite(
+            tmp_path / "foo.gif", np.array([[[0] * 6, [0] * 6]] * 4, dtype=object)
+        )
 
 
 def test_imiter(test_images):

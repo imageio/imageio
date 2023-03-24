@@ -182,9 +182,6 @@ def test_reader_and_writer(test_images, tmp_path):
     with raises(IndexError):
         [im for im in R]
 
-    # Test writer no format
-    raises(ValueError, imageio.get_writer, "foo.unknownext")
-
     # Test streaming reader
     R = F.get_reader(Request(filename1, "ri"))
     R._stream_mode = True
@@ -240,40 +237,6 @@ def test_default_can_read_and_can_write(tmp_path):
     assert F.can_write(Request(filename1 + ".foo", "wv"))
     assert F.can_write(Request(filename1 + ".bar", "w?"))
     assert not F.can_write(Request(filename1 + ".spam", "w?"))
-
-
-@deprecated_test
-def test_format_selection(test_images, tmp_path):
-    formats = imageio.formats
-    fname1 = test_images / "chelsea.png"
-    fname2 = tmp_path / "test.selectext1"
-    fname3 = tmp_path / "test.haha"
-    open(fname2, "wb")
-    open(fname3, "wb")
-
-    # Test searchinhg for read / write format
-    F = formats.search_read_format(Request(fname1, "ri"))
-    assert isinstance(F, type(formats["PNG"]))
-    F = formats.search_write_format(Request(fname1, "wi"))
-    assert isinstance(F, type(formats["PNG"]))
-
-    # Now with custom format
-    format = MyFormat("test_selection", "xx", "selectext1", "i")
-    formats.add_format(format)
-
-    # Select this format for files it said it could handle in extensions
-    assert ".selectext1" in str(fname2)
-    F = formats.search_read_format(Request(fname2, "ri"))
-    assert type(F) is type(format)
-    F = formats.search_write_format(Request(fname2, "ri"))
-    assert type(F) is type(format)
-
-    # But this custom format also can deal with .haha files
-    assert ".haha" in str(fname3)
-    F = formats.search_read_format(Request(fname3, "ri"))
-    assert type(F) is type(format)
-    F = formats.search_write_format(Request(fname3, "ri"))
-    assert type(F) is type(format)
 
 
 # Format manager

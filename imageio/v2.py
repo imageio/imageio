@@ -4,6 +4,7 @@
 from numbers import Number
 import re
 from pathlib import Path
+from typing import Dict
 
 import numpy as np
 
@@ -76,7 +77,7 @@ def help(name=None):
         print(formats[name])
 
 
-def decypher_format_arg(format_name):
+def decypher_format_arg(format_name: str) -> Dict[str, str]:
     """Split format into plugin and format
 
     The V2 API aliases plugins and supported formats. This function
@@ -225,6 +226,8 @@ class LegacyWriter:
 
     def set_meta_data(self, meta):
         pass  # TODO: write metadata
+
+
 def is_batch(ndimage):
     if isinstance(ndimage, (list, tuple)):
         return True
