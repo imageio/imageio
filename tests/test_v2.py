@@ -49,3 +49,12 @@ def test_get_writer_format(tmp_path):
     file = iio.get_writer(tmp_path / "test.png")
     with pytest.raises(ValueError):
         file.format  # v3 Pillow Plugin
+
+
+def test_warnings(tmp_path, test_images):
+    img = iio.imread(test_images / "chelsea.png")
+
+    writer = iio.get_writer(tmp_path / "test.png")
+
+    with pytest.warns(UserWarning):
+        writer.append_data(img, meta={"meta_key": "meta_value"})
