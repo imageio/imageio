@@ -413,3 +413,11 @@ def test_missing_format(missing_ffmpeg):
 
     for format in imageio.formats:
         assert format.name != "FFMPEG"
+
+
+def test_touch_warnings(test_images, tmp_path):
+    with pytest.deprecated_call():
+        imageio.formats.search_read_format(Request(test_images / "chelsea.png", "r"))
+
+    with pytest.deprecated_call():
+        imageio.formats.search_write_format(Request(tmp_path / "chelsea.png", "w"))
