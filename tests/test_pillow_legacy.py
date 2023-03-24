@@ -246,7 +246,7 @@ def test_jpg_more(test_images, tmp_path):
         f.write(b" ")
         f.write(bb[400:])
     with pytest.raises(Exception):
-        imageio.imread(fname)
+        imageio.imread(fname, format="JPEG-PIL")
 
     # Test EXIF stuff
     fname = test_images / "rommel.jpg"
