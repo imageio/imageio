@@ -1,22 +1,22 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-from numbers import Number
 import re
+import warnings
+from numbers import Number
 from pathlib import Path
 from typing import Dict
 
 import numpy as np
 
-from imageio.core.v3_plugin_api import PluginV3
-from imageio.core.util import Array
 from imageio.core.legacy_plugin_wrapper import LegacyPlugin
+from imageio.core.util import Array
+from imageio.core.v3_plugin_api import PluginV3
 
 from . import formats
-from .core.imopen import imopen
 from .config import known_extensions, known_plugins
 from .core import RETURN_BYTES
-
+from .core.imopen import imopen
 
 MEMTEST_DEFAULT_MIM = "256MB"
 MEMTEST_DEFAULT_MVOL = "1GB"
@@ -112,9 +112,6 @@ class LegacyReader:
         self.last_index = 0
         self.closed = False
 
-    def open(self):
-        pass
-
     def close(self):
         if not self.closed:
             self.instance.close()
@@ -135,10 +132,7 @@ class LegacyReader:
 
     @property
     def format(self):
-        if isinstance(self.instance, LegacyPlugin):
-            return self.instance._format
-        else:
-            raise ValueError("V3 Plugins don't have a format.")
+        raise ValueError("V3 Plugins don't have a format.")
 
     def get_length(self):
         props = self.instance.properties()
@@ -185,9 +179,6 @@ class LegacyWriter:
         self.last_index = 0
         self.closed = False
 
-    def open(self):
-        pass
-
     def close(self):
         if not self.closed:
             self.instance.close()
@@ -208,24 +199,31 @@ class LegacyWriter:
 
     @property
     def format(self):
-        if isinstance(self.instance, LegacyPlugin):
-            return self.instance._format
-        else:
-            raise ValueError("V3 Plugins don't have a format.")
+        raise ValueError("V3 Plugins don't have a format.")
 
     def append_data(self, im, meta=None):
-        if not isinstance(im, np.ndarray):
-            raise ValueError("append_data requires ndarray as first arg")
+        # TODO: write metadata in the future; there is currently no
+        # generic way to do this with v3 plugins :(
+        if meta is not None:
+            warnings.warn(
+                "V3 Plugins currently don't have a uniform way to"
+                " write metadata, so any metadata is ignored."
+            )
 
-        total_meta = dict()
-        if hasattr(im, "meta") and isinstance(im.meta, dict):
-            total_meta.update(im.meta)
-        total_meta.update(meta)
+        # total_meta = dict()
+        # if meta is None:
+        #     meta = {}
+        # if hasattr(im, "meta") and isinstance(im.meta, dict):
+        #     total_meta.update(im.meta)
+        # total_meta.update(meta)
 
-        return self.instance.write(im)  # TODO: write metadata
+        return self.instance.write(im)
 
     def set_meta_data(self, meta):
-        pass  # TODO: write metadata
+        # TODO: write metadata
+        raise NotImplementedError(
+            "V3 Plugins don't have a uniform way to write matadata (yet)."
+        )
 
 
 def is_batch(ndimage):
