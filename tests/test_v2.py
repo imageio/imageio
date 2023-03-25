@@ -50,6 +50,7 @@ def test_get_writer_format(tmp_path):
         with pytest.raises(ValueError):
             file.format  # v3 Pillow Plugin
 
+
 def test_warnings(tmp_path, test_images):
     img = iio.imread(test_images / "chelsea.png")
 
