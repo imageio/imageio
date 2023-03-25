@@ -18,15 +18,15 @@ def test_reader(test_images):
 
 
 def test_get_reader_format(test_images):
-    file = iio.get_reader(test_images / "chelsea.png")
-    with pytest.raises(ValueError):
-        file.format  # v3 Pillow Plugin
+    with iio.get_reader(test_images / "chelsea.png") as file:
+        with pytest.raises(ValueError):
+            file.format  # v3 Pillow Plugin
 
 
 def test_get_length(test_images):
-    file = iio.get_reader(test_images / "chelsea.png")
-    v3_count = file.instance.properties(index=...).shape[0]
-    assert len(file) == v3_count
+    with iio.get_reader(test_images / "chelsea.png") as file:
+        v3_count = file.instance.properties(index=...).shape[0]
+        assert len(file) == v3_count
 
 
 def test_iterating(test_images):
@@ -46,15 +46,13 @@ def test_writer(test_images, tmp_path):
 
 
 def test_get_writer_format(tmp_path):
-    file = iio.get_writer(tmp_path / "test.png")
-    with pytest.raises(ValueError):
-        file.format  # v3 Pillow Plugin
-
+    with iio.get_writer(tmp_path / "test.png") as file:
+        with pytest.raises(ValueError):
+            file.format  # v3 Pillow Plugin
 
 def test_warnings(tmp_path, test_images):
     img = iio.imread(test_images / "chelsea.png")
 
-    writer = iio.get_writer(tmp_path / "test.png")
-
-    with pytest.warns(UserWarning):
-        writer.append_data(img, meta={"meta_key": "meta_value"})
+    with iio.get_writer(tmp_path / "test.png") as writer:
+        with pytest.warns(UserWarning):
+            writer.append_data(img, meta={"meta_key": "meta_value"})
