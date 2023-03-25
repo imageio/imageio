@@ -324,15 +324,26 @@ def test_properties(tmp_path):
 
     props = iio.improps(filename)
     assert props.shape == (255, 255, 3)
+    assert props.n_images is None
 
     props = iio.improps(filename, index=...)
     assert props.shape == (1, 255, 255, 3)
+    assert props.n_images == 1
 
     data = np.full((6, 255, 255, 3), 42, dtype=np.uint8)
     iio.imwrite(filename, data)
 
     props = iio.improps(filename, page=3)
     assert props.shape == (255, 255, 3)
+    assert props.n_images is None
+
+    props = iio.improps(filename, index=...)
+    assert props.shape == (1, 255, 255, 3)
+    assert props.n_images == 1
+
+    props = iio.improps(filename, index=..., page=...)
+    assert props.shape == (6, 255, 255, 3)
+    assert props.n_images == 6
 
 
 def test_contigous_writing(tmp_path):

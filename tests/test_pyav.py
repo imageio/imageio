@@ -101,16 +101,19 @@ def test_properties(test_images: Path):
         props = plugin.properties()
         assert props.shape == (280, 720, 1280, 3)
         assert props.dtype == np.uint8
+        assert props.n_images == 280
         assert props.is_batch is True
 
         props = plugin.properties(index=4, format="rgb48")
         assert props.shape == (720, 1280, 3)
         assert props.dtype == np.uint16
+        assert props.n_images is None
         assert props.is_batch is False
 
         props = plugin.properties(index=5)
         assert props.shape == (720, 1280, 3)
         assert props.dtype == np.uint8
+        assert props.n_images is None
         assert props.is_batch is False
 
 
@@ -529,7 +532,7 @@ def test_write_float_fps(test_images):
     fps = 3.5
     frames = iio.imread(test_images / "cockatoo.mp4", plugin="pyav")
     buffer = iio.imwrite(
-        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=3.5
+        "<bytes>", frames, extension=".mp4", codec="h264", plugin="pyav", fps=fps
     )
 
     assert iio.immeta(buffer, plugin="pyav")["fps"] == fps

@@ -230,7 +230,7 @@ class OpenCVPlugin(PluginV3):
 
     def properties(
         self,
-        index: int = 0,
+        index: int = None,
         colorspace: Union[int, str] = None,
         flags: int = cv2.IMREAD_COLOR,
     ) -> ImageProperties:
@@ -270,14 +270,27 @@ class OpenCVPlugin(PluginV3):
 
         """
 
-        # unfortunately, OpenCV doesn't allow reading shape without reading pixel data
-        img = self.read(index=index, flags=flags, colorspace=colorspace)
+        if index is None:
+            n_images = cv2.imcount(self.file_handle, flags)
+            is_batch = n_images > 1
+        elif index is Ellipsis:
+            n_images = cv2.imcount(self.file_handle, flags)
+            is_batch = True
+        else:
+            is_batch = False
 
-        return ImageProperties(
-            shape=img.shape,
-            dtype=img.dtype,
-            is_batch=(index is ...),
-        )
+        # unfortunately, OpenCV doesn't allow reading shape without reading pixel data
+        if is_batch:
+            img = self.read(index=0, flags=flags, colorspace=colorspace)
+            return ImageProperties(
+                shape=(n_images, *img.shape),
+                dtype=img.dtype,
+                n_images=n_images,
+                is_batch=True,
+            )
+
+        img = self.read(index=index, flags=flags, colorspace=colorspace)
+        return ImageProperties(shape=img.shape, dtype=img.dtype, is_batch=False)
 
     def metadata(
         self, index: int = None, exclude_applied: bool = True

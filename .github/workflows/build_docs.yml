@@ -1,0 +1,19 @@
+name: Documentation
+
+on:
+  workflow_call:
+
+jobs:
+  docs-GH:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install Dependencies
+      run: |
+        pip install -e .[docs]
+    - name: Build Docs
+      run: sphinx-build -W ./docs ./build
