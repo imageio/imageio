@@ -21,7 +21,7 @@ class ImageProperties:
     dtype : np.dtype
         The dtype of the loaded ndimage.
     n_images : int
-        Number of images in the file if ``index=...``, `None` for single images
+        Number of images in the file if ``index=...``, `None` for single images.
     is_batch : bool
         If True, the first dimension of the ndimage represents a batch dimension
         along which several images are stacked.
