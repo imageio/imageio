@@ -1,4 +1,7 @@
 from datetime import datetime
+import os
+import shutil
+import struct
 
 import numpy as np
 import pytest
@@ -11,9 +14,12 @@ frame0 = np.zeros((32, 32), np.uint16)
 frame1 = np.ones_like(frame0)
 
 
-def test_imopen(test_images):
-    img = iio.imopen(test_images / "test_000_.SPE", "r")
-    assert isinstance(img, spe.SpePlugin)
+def test_imopen(test_images, tmp_path):
+    with iio.imopen(test_images / "test_000_.SPE", "r") as img:
+        assert isinstance(img, spe.SpePlugin)
+
+    with iio.imopen(tmp_path / "test.spe", "w") as img:
+        assert not isinstance(img, spe.SpePlugin)
 
 
 def test_read(test_images):
@@ -38,10 +44,10 @@ def test_iter(test_images):
         np.testing.assert_equal(actual, desired)
 
 
-def test_metadata(test_images):
+def test_metadata(test_images, tmp_path):
     fname = test_images / "test_000_.SPE"
     md = iio.immeta(fname, sdt_control=False)
-    assert md["ROIs"] == [
+    assert md.get("ROIs") == [
         {"top_left": [238, 187], "bottom_right": [269, 218], "bin": [1, 1]}
     ]
     cmt = [
@@ -56,21 +62,93 @@ def test_metadata(test_images):
         "ACCI2xSEQU-1---10000010001600300EA                              SW"
         "0218COMVER0500",
     ]
-    assert md["comments"] == cmt
+    assert md.get("comments") == cmt
+    assert md.get("geometric") == []
+    assert md.get("type", "") is None
+    assert md.get("readout_mode", "") is None
 
     sdt_meta = iio.immeta(fname, sdt_control=True)
-    assert sdt_meta["delay_shutter"] == pytest.approx(0.001)
-    assert sdt_meta["delay_macro"] == pytest.approx(0.048)
-    assert sdt_meta["exposure_time"] == pytest.approx(0.002)
-    assert sdt_meta["comment"] == "OD 1.0 in r, g"
-    assert sdt_meta["datetime"] == datetime(2018, 7, 2, 9, 46, 15)
-    assert sdt_meta["sdt_major_version"] == 2
-    assert sdt_meta["sdt_minor_version"] == 18
-    assert isinstance(sdt_meta["modulation_script"], str)
-    assert sdt_meta["sequence_type"] == "standard"
+    assert sdt_meta.get("delay_shutter") == pytest.approx(0.001)
+    assert sdt_meta.get("delay_macro") == pytest.approx(0.048)
+    assert sdt_meta.get("exposure_time") == pytest.approx(0.002)
+    assert sdt_meta.get("comment") == "OD 1.0 in r, g"
+    assert sdt_meta.get("datetime") == datetime(2018, 7, 2, 9, 46, 15)
+    assert sdt_meta.get("sdt_major_version") == 2
+    assert sdt_meta.get("sdt_minor_version") == 18
+    assert isinstance(sdt_meta.get("modulation_script"), str)
+    assert sdt_meta.get("sequence_type") == "standard"
+
+    patched = tmp_path / fname.name
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
+        # Set SDT-control comment version to 0400. In this case, comments
+        # should not be parsed.
+        f.seek(597)
+        f.write(b"4")
+        # Add something to `geometric`
+        f.seek(600)
+        f.write(struct.pack("<H", 7))
+        # Set `type`
+        f.seek(704)
+        f.write(struct.pack("<h", 1))
+        # Set `readout_mode`
+        f.seek(1480)
+        f.write(struct.pack("<H", 2))
+
+    patched_cmt = cmt.copy()
+    patched_cmt[4] = patched_cmt[4].replace("COMVER0500", "COMVER0400")
+
+    patched_meta = iio.immeta(patched, sdt_control=True)
+    # Parsing any SDT-control metadata should fail
+    assert patched_meta.get("comments") == patched_cmt
+    assert "delay_shutter" not in patched_meta
+    assert patched_meta.get("geometric") == ["rotate", "reverse", "flip"]
+    assert patched_meta.get("type", "") == "new120 (Type II)"
+    assert patched_meta.get("readout_mode", "") == "frame transfer"
+
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
+        # Set SDT-control sequence type to something invalid.
+        f.seek(526)
+        f.write(b"INVA")
+        # Change date to something invalid.
+        f.seek(20)
+        f.write(b"02Inv2018")
+        # Add non-ASCII character to laser modulation script
+        f.seek(745)
+        f.write(b"\xff")
+        # Add non-ASCII character to `sw_version`
+        f.seek(690)
+        f.write(b"\xff")
+
+    patched_meta = iio.immeta(patched, sdt_control=True, char_encoding="ascii")
+    # Decoding `sequence_type` should fail
+    assert patched_meta.get("sequence_type", "") is None
+    # Decoding `date` and `time_local` into `datetime` should fail
+    assert patched_meta.get("date") == "02Inv2018"
+    assert "datetime" not in patched_meta
+    # Decoding `spare_4` into `modulation_script` should fail
+    assert "modulation_script" not in patched_meta
+    assert isinstance(patched_meta.get("spare_4"), bytes)
+    # Decoding `sw_version` should fail
+    assert isinstance(patched_meta.get("sw_version"), bytes)
+
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
+        # Create a fake SPE v3 file
+        f.seek(1992)
+        f.write(struct.pack("<f", 3.0))
+        f.seek(0, os.SEEK_END)
+        sz = f.tell()
+        f.write(b"Here could be your XML.")
+        f.seek(678)
+        f.write(struct.pack("<Q", sz))
+
+    patched_meta = iio.immeta(patched)
+    assert patched_meta == {"__xml": b"Here could be your XML."}
 
 
-def test_properties(test_images):
+def test_properties(test_images, tmp_path):
     fname = test_images / "test_000_.SPE"
     props0 = iio.improps(fname, index=0)
     assert props0.shape == (32, 32)
@@ -83,3 +161,26 @@ def test_properties(test_images):
     assert props.dtype == np.uint16
     assert props.n_images == 2
     assert props.is_batch
+
+    patched = tmp_path / fname.name
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
+        # Set incorrect number of images
+        f.seek(1446)
+        f.write(struct.pack("<i", 3))
+
+    # Test `check_filesize`
+    with iio.imopen(patched, "r", check_filesize=False) as img:
+        assert (
+            img.properties(
+                index=...,
+            ).n_images
+            == 3
+        )
+    with iio.imopen(patched, "r", check_filesize=True) as img:
+        assert (
+            img.properties(
+                index=...,
+            ).n_images
+            == 2
+        )

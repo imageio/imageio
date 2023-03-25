@@ -300,11 +300,12 @@ class SDTControlSpec:
                 v = spec.cvt(comments[spec.n][spec.slice])
                 if spec.scale is not None:
                     v *= spec.scale
+                sdt_md[name] = v
             except Exception as e:
                 logger.debug(
                     f'Failed to decode SDT-control metadata field "{name}": {e}'
                 )
-            sdt_md[name] = v
+                sdt_md[name] = None
         comment = comments[0] + comments[2]
         sdt_md["comment"] = comment.strip()
         return sdt_md
@@ -729,12 +730,12 @@ class SpePlugin(PluginV3):
         if 1 <= t <= len(Spec.controllers):
             m["type"] = Spec.controllers[t - 1]
         else:
-            m["type"] = ""
+            m["type"] = None
         r = m["readout_mode"]
         if 1 <= r <= len(Spec.readout_modes):
             m["readout_mode"] = Spec.readout_modes[r - 1]
         else:
-            m["readout_mode"] = ""
+            m["readout_mode"] = None
 
         # bools
         for k in (
