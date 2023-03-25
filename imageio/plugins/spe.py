@@ -783,7 +783,10 @@ class SpePlugin(PluginV3):
 
         if index is Ellipsis:
             return ImageProperties(
-                shape=(self._len, *self._shape), dtype=self._dtype, is_batch=True
+                shape=(self._len, *self._shape),
+                dtype=self._dtype,
+                n_images=self._len,
+                is_batch=True,
             )
         return ImageProperties(shape=self._shape, dtype=self._dtype, is_batch=False)
 

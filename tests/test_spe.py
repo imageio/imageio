@@ -75,9 +75,11 @@ def test_properties(test_images):
     props0 = iio.improps(fname, index=0)
     assert props0.shape == (32, 32)
     assert props0.dtype == np.uint16
+    assert props0.n_images is None
     assert not props0.is_batch
 
     props = iio.improps(fname, index=...)
     assert props.shape == (2, 32, 32)
     assert props.dtype == np.uint16
+    assert props.n_images == 2
     assert props.is_batch
