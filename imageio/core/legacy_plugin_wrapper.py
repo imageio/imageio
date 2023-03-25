@@ -291,12 +291,21 @@ class LegacyPlugin(PluginV3):
             index = _legacy_default_index(self._format)
 
         # for backwards compatibility ... actually reads pixel data :(
-        image = self.read(index=index)
+        if index is Ellipsis:
+            image = self.read(index=0)
+            n_images = self.legacy_get_reader().get_length()
+            return ImageProperties(
+                shape=(n_images, *image.shape),
+                dtype=image.dtype,
+                n_images=n_images,
+                is_batch=True,
+            )
 
+        image = self.read(index=index)
         return ImageProperties(
             shape=image.shape,
             dtype=image.dtype,
-            is_batch=True if index is None else False,
+            is_batch=False,
         )
 
     def get_meta(self, *, index=None):
