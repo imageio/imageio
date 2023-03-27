@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.27.0 (2023-03-27)
+### Fix
+* Update FreeImage backend to v3.18.0 on Windows ([#960](https://github.com/imageio/imageio/issues/960)) ([`08d3bda`](https://github.com/imageio/imageio/commit/08d3bda3a3c913f172add740d141fdf4a5e2035f))
+
+### Feature
+* Add `n_images` to `ImageProperties` ([#966](https://github.com/imageio/imageio/issues/966)) ([`76d9aed`](https://github.com/imageio/imageio/commit/76d9aed22db5f10e3924f453e320b5ad7d33387a))
+
 ## v2.26.1 (2023-03-20)
 ### Fix
 * Consistently apply color palettes by default ([#955](https://github.com/imageio/imageio/issues/955)) ([`938de2d`](https://github.com/imageio/imageio/commit/938de2dd17707440f76963c98cc52d28f70961f4))
