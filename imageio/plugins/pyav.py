@@ -688,7 +688,8 @@ class PyAVPlugin(PluginV3):
         return ImageProperties(
             shape=tuple(shape),
             dtype=_format_to_dtype(frame_template.format),
-            is_batch=True if index is ... else False,
+            n_images=shape[0] if index is ... else None,
+            is_batch=index is ...,
         )
 
     def metadata(

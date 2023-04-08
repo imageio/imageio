@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.27.0 (2023-03-27)
+### Fix
+* Update FreeImage backend to v3.18.0 on Windows ([#960](https://github.com/imageio/imageio/issues/960)) ([`08d3bda`](https://github.com/imageio/imageio/commit/08d3bda3a3c913f172add740d141fdf4a5e2035f))
+
+### Feature
+* Add `n_images` to `ImageProperties` ([#966](https://github.com/imageio/imageio/issues/966)) ([`76d9aed`](https://github.com/imageio/imageio/commit/76d9aed22db5f10e3924f453e320b5ad7d33387a))
+
+## v2.26.1 (2023-03-20)
+### Fix
+* Consistently apply color palettes by default ([#955](https://github.com/imageio/imageio/issues/955)) ([`938de2d`](https://github.com/imageio/imageio/commit/938de2dd17707440f76963c98cc52d28f70961f4))
+* Allow ffmpeg filters to terminate iter ([#954](https://github.com/imageio/imageio/issues/954)) ([`a463899`](https://github.com/imageio/imageio/commit/a46389977bc2ee7b32e25a310d97ebabb6dfcaec))
+* Handle unknown video duration in pyav metadata ([#937](https://github.com/imageio/imageio/issues/937)) ([`06a1c0d`](https://github.com/imageio/imageio/commit/06a1c0d454985afa7c66152c16867943c6796bd8))
+
+### Other
+* Remove pypy 3.7 testing and improve CI/CD scripts ([#964](https://github.com/imageio/imageio/issues/964)) ([`b439803`](https://github.com/imageio/imageio/commit/b439803d187fac99a28cbbba632c60c43970dcd3))
+* Several doc improvements ([#959](https://github.com/imageio/imageio/issues/959)) ([`ecb6773`](https://github.com/imageio/imageio/commit/ecb677377beb98dbeeaac7c39b9b32f88443eb53))
+* Add GH Sponsors link ([`0e13f64`](https://github.com/imageio/imageio/commit/0e13f64c5a4b156a58932e733e7b8c3609a872b1))
+
 ## v2.26.0 (2023-02-27)
 ### Feature
 * Collection of small improvements to pyav ([#939](https://github.com/imageio/imageio/issues/939)) ([`b0dc210`](https://github.com/imageio/imageio/commit/b0dc21074d77894d01ce50ab2a525f214b1e265d))

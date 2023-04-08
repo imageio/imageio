@@ -433,7 +433,7 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        This does not decode pixel data and is 394fast for large images.
+        This does not decode pixel data and is fast for large images.
 
         """
 
@@ -472,5 +472,6 @@ class PillowPlugin(PluginV3):
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
-            is_batch=True if index is Ellipsis else False,
+            n_images=n_frames if index is Ellipsis else None,
+            is_batch=index is Ellipsis,
         )

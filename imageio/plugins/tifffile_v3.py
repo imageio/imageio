@@ -335,7 +335,9 @@ class TifffilePlugin(PluginV3):
         single page from the selected series. If ``index=Ellipsis``, ``page`` is
         understood as a flat index, i.e., the selection ignores individual
         series inside the file. If ``index=Ellipsis`` and ``page=None`` then
-        global (file-level) properties is returned.
+        global (file-level) properties are returned. If ``index=Ellipsis``
+        and ``page=...``, file-level properties for the flattened index are
+        returned.
 
         Parameters
         ----------
@@ -346,7 +348,8 @@ class TifffilePlugin(PluginV3):
             If ``Ellipsis`` and ``page=None``, return the properties for the
             batch of all ndimages in the file.
         page : int
-            If ``None`` return the properties of the full ndimage. If ``int``,
+            If ``None`` return the properties of the full ndimage. If ``...``
+            return the properties of the flattened index. If ``int``,
             return the properties of the page at the selected index only.
 
         Returns
@@ -356,7 +359,7 @@ class TifffilePlugin(PluginV3):
 
         """
         index = index or 0
-        page_idx = page or 0
+        page_idx = 0 if page in (None, Ellipsis) else page
 
         if index is Ellipsis:
             target_page = self._fh.pages[page_idx]
@@ -368,6 +371,16 @@ class TifffilePlugin(PluginV3):
             props = ImageProperties(
                 shape=(n_series, *target_page.shape),
                 dtype=target_page.dtype,
+                n_images=n_series,
+                is_batch=True,
+                spacing=_get_resolution(target_page)["resolution"],
+            )
+        elif index is Ellipsis and page is Ellipsis:
+            n_pages = len(self._fh.pages)
+            props = ImageProperties(
+                shape=(n_pages, *target_page.shape),
+                dtype=target_page.dtype,
+                n_images=n_pages,
                 is_batch=True,
                 spacing=_get_resolution(target_page)["resolution"],
             )
