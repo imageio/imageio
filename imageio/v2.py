@@ -135,7 +135,7 @@ class LegacyReader:
         raise TypeError("V3 Plugins don't have a format.")
 
     def get_length(self):
-        return self.instance.properties().n_images
+        return self.instance.properties(index=...).n_images
 
     def get_data(self, index):
         self.last_index = index
