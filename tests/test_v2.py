@@ -19,7 +19,7 @@ def test_reader(test_images):
 
 def test_get_reader_format(test_images):
     with iio.get_reader(test_images / "chelsea.png") as file:
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             file.format  # v3 Pillow Plugin
 
 
@@ -47,7 +47,7 @@ def test_writer(test_images, tmp_path):
 
 def test_get_writer_format(tmp_path):
     with iio.get_writer(tmp_path / "test.png") as file:
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             file.format  # v3 Pillow Plugin
 
 
@@ -57,3 +57,10 @@ def test_warnings(tmp_path, test_images):
     with iio.get_writer(tmp_path / "test.png") as writer:
         with pytest.warns(UserWarning):
             writer.append_data(img, meta={"meta_key": "meta_value"})
+
+
+def test_mimwrite_exception(tmp_path):
+    img = np.zeros((4, 4), dtype=np.uint8)
+
+    with pytest.raises(ValueError):
+        iio.mimwrite(tmp_path / "test.png", img)

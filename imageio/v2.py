@@ -132,11 +132,10 @@ class LegacyReader:
 
     @property
     def format(self):
-        raise ValueError("V3 Plugins don't have a format.")
+        raise TypeError("V3 Plugins don't have a format.")
 
     def get_length(self):
-        props = self.instance.properties()
-        return props.shape[0] if props.is_batch else 1
+        return self.instance.properties().n_images
 
     def get_data(self, index):
         self.last_index = index
@@ -154,12 +153,6 @@ class LegacyReader:
         return self.instance.metadata(index=index, exclude_applied=False)
 
     def iter_data(self):
-        """iter_data()
-
-        Iterate over all images in the series. (Note: you can also
-        iterate over the reader object.)
-
-        """
         for idx, img in enumerate(self.instance.iter()):
             metadata = self.instance.metadata(index=idx, exclude_applied=False)
             yield Array(img, metadata)
@@ -169,8 +162,6 @@ class LegacyReader:
 
     def __len__(self):
         return self.get_length()
-
-    # -----
 
 
 class LegacyWriter:
@@ -199,7 +190,7 @@ class LegacyWriter:
 
     @property
     def format(self):
-        raise ValueError("V3 Plugins don't have a format.")
+        raise TypeError("V3 Plugins don't have a format.")
 
     def append_data(self, im, meta=None):
         # TODO: write metadata in the future; there is currently no
@@ -222,7 +213,7 @@ class LegacyWriter:
     def set_meta_data(self, meta):
         # TODO: write metadata
         raise NotImplementedError(
-            "V3 Plugins don't have a uniform way to write matadata (yet)."
+            "V3 Plugins don't have a uniform way to write metadata (yet)."
         )
 
 

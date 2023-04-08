@@ -830,7 +830,8 @@ class FormatManager(object):
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
         except AttributeError:
             warnings.warn(
-                "ImageIO now uses a v3 plugin when writing this format.",
+                "ImageIO now uses a v3 plugin when reading this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -852,7 +853,8 @@ class FormatManager(object):
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
         except AttributeError:
             warnings.warn(
-                "ImageIO now uses a v3 plugin when writing this format.",
+                "ImageIO now uses a v3 plugin when writing this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
                 DeprecationWarning,
                 stacklevel=2,
             )
