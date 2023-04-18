@@ -120,7 +120,15 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False, as_gray=None
+        self,
+        *,
+        index=None,
+        mode=None,
+        pilmode=None,
+        rotate=False,
+        exifrotate=None,
+        apply_gamma=False,
+        as_gray=None,
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -139,9 +147,13 @@ class PillowPlugin(PluginV3):
             Convert the image to the given mode before returning it. If None,
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
+        pilmode : str
+            Deprecated, use `mode` instead.
         rotate : bool
             If set to ``True`` and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
+        exifrotate : bool
+            Deprecated, use `rotate` instead.
         apply_gamma : bool
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
@@ -164,6 +176,18 @@ class PillowPlugin(PluginV3):
         to keep metadata and pixel data consistent.
 
         """
+
+        if pilmode is not None:
+            warnings.warn(
+                "`pilmode` is deprecated. Use `mode` instead.", DeprecationWarning
+            )
+            mode = pilmode
+
+        if exifrotate is not None:
+            warnings.warn(
+                "`exifrotate` is deprecated. Use `rotate` instead.", DeprecationWarning
+            )
+            rotate = exifrotate
 
         if as_gray is not None:
             raise TypeError(
