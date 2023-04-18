@@ -828,6 +828,14 @@ class FormatManager(object):
         try:
             # in legacy_mode imopen returns a LegacyPlugin
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except AttributeError:
+            warnings.warn(
+                "ImageIO now uses a v3 plugin when reading this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return None
         except ValueError:
             # no plugin can read this request
             # but the legacy API doesn't raise
@@ -843,6 +851,14 @@ class FormatManager(object):
         try:
             # in legacy_mode imopen returns a LegacyPlugin
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except AttributeError:
+            warnings.warn(
+                "ImageIO now uses a v3 plugin when writing this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return None
         except ValueError:
             # no plugin can write this request
             # but the legacy API doesn't raise

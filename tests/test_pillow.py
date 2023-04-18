@@ -617,9 +617,16 @@ def test_8bit_with_16bit_depth():
     assert np.allclose(img16_read, img16)
 
 
-def test_deprecated_as_gray(test_images):
+def test_deprecated_kwargs(test_images):
     with pytest.raises(TypeError):
         iio.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
+
+    with pytest.warns(DeprecationWarning):
+        img = iio.imread(test_images / "chelsea.png", plugin="pillow", pilmode="I")
+        assert img.shape == (300, 451)
+
+    with pytest.warns(DeprecationWarning):
+        iio.imread(test_images / "chelsea.png", plugin="pillow", exifrotate=True)
 
 
 def test_png_batch_fail():

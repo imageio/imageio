@@ -783,7 +783,7 @@ def test_imwrite_not_subclass(tmpdir):
             pass
 
         def __array__(self, dtype=None):
-            return np.zeros((4, 4), dtype=dtype)
+            return np.zeros((4, 4), dtype=np.uint8)
 
     filename = os.path.join(str(tmpdir), "foo.bmp")
     iio.v2.imwrite(filename, Foo())
@@ -882,8 +882,11 @@ def test_imopen_installable_plugin(clear_plugins):
 
 
 def test_legacy_object_image_writing(tmp_path):
-    with pytest.raises(ValueError):
-        iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
+    with pytest.raises(TypeError):
+        # dtype=object should fail with type error
+        iio.mimwrite(
+            tmp_path / "foo.gif", np.array([[[0] * 6, [0] * 6]] * 4, dtype=object)
+        )
 
 
 def test_imiter(test_images):
@@ -971,9 +974,6 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         tmp_path / "foo.tiff", "w", legacy_mode=False, plugin=PillowPlugin
     ) as f:
         assert isinstance(f, PillowPlugin)
-
-    with pytest.raises(ValueError):
-        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
 
 
 @deprecated_test
