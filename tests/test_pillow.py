@@ -628,6 +628,7 @@ def test_deprecated_kwargs(test_images):
     with pytest.warns(DeprecationWarning):
         iio.imread(test_images / "chelsea.png", plugin="pillow", exifrotate=True)
 
+
 def test_png_batch_fail():
     # this is a regression test for
     # https://github.com/imageio/imageio/issues/904
