@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.28.0 (2023-04-24)
+### Feature
+* Expose v3 plugins via v2 API ([#824](https://github.com/imageio/imageio/issues/824)) ([`f3156b7`](https://github.com/imageio/imageio/commit/f3156b777dca535e80826adbb8504a5161110cff))
+
 ## v2.27.0 (2023-03-27)
 ### Fix
 * Update FreeImage backend to v3.18.0 on Windows ([#960](https://github.com/imageio/imageio/issues/960)) ([`08d3bda`](https://github.com/imageio/imageio/commit/08d3bda3a3c913f172add740d141fdf4a5e2035f))
