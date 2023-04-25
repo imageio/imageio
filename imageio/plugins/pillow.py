@@ -127,6 +127,8 @@ class PillowPlugin(PluginV3):
         rotate: bool = False,
         apply_gamma: bool = False,
         writeable_output: bool = True,
+        pilmode:str=None,
+        exifrotate:bool=None,
         as_gray: bool = None,
     ) -> np.ndarray:
         """
@@ -157,6 +159,10 @@ class PillowPlugin(PluginV3):
             the user. This incurs a full copy of the pixel data if the data
             served by pillow is read-only. Consequentially, setting this flag to
             False improves performance for some images.
+        pilmode : str
+            Deprecated, use `mode` instead.
+        exifrotate : bool
+            Deprecated, use `rotate` instead.
         as_gray : bool
             Deprecated. Exists to raise a constructive error message.
 
@@ -176,6 +182,18 @@ class PillowPlugin(PluginV3):
         to keep metadata and pixel data consistent.
 
         """
+
+        if pilmode is not None:
+            warnings.warn(
+                "`pilmode` is deprecated. Use `mode` instead.", DeprecationWarning
+            )
+            mode = pilmode
+
+        if exifrotate is not None:
+            warnings.warn(
+                "`exifrotate` is deprecated. Use `rotate` instead.", DeprecationWarning
+            )
+            rotate = exifrotate
 
         if as_gray is not None:
             raise TypeError(
