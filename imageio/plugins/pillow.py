@@ -127,8 +127,8 @@ class PillowPlugin(PluginV3):
         rotate: bool = False,
         apply_gamma: bool = False,
         writeable_output: bool = True,
-        pilmode:str=None,
-        exifrotate:bool=None,
+        pilmode: str = None,
+        exifrotate: bool = None,
         as_gray: bool = None,
     ) -> np.ndarray:
         """
