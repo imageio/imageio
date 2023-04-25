@@ -120,7 +120,14 @@ class PillowPlugin(PluginV3):
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False, as_gray=None
+        self,
+        *,
+        index: int = None,
+        mode: str = None,
+        rotate: bool = False,
+        apply_gamma: bool = False,
+        writeable_output: bool = True,
+        as_gray: bool = None,
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -140,11 +147,16 @@ class PillowPlugin(PluginV3):
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         rotate : bool
-            If set to ``True`` and the image contains an EXIF orientation tag,
+            If True and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
         apply_gamma : bool
-            If ``True`` and the image contains metadata about gamma, apply gamma
+            If True and the image contains metadata about gamma, apply gamma
             correction to the image.
+        writable_output : bool
+            If True, ensure that the image is writable before returning it to
+            the user. This incurs a full copy of the pixel data if the data
+            served by pillow is read-only. Consequentially, setting this flag to
+            False improves performance for some images.
         as_gray : bool
             Deprecated. Exists to raise a constructive error message.
 
@@ -182,15 +194,27 @@ class PillowPlugin(PluginV3):
         if isinstance(index, int):
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-            image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
-            return image
+            image = self._apply_transforms(
+                self._image, mode, rotate, apply_gamma, writeable_output
+            )
         else:
-            iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
+            iterator = self.iter(
+                mode=mode,
+                rotate=rotate,
+                apply_gamma=apply_gamma,
+                writeable_output=writeable_output,
+            )
             image = np.stack([im for im in iterator], axis=0)
-            return image
+
+        return image
 
     def iter(
-        self, *, mode: str = None, rotate: bool = False, apply_gamma: bool = False
+        self,
+        *,
+        mode: str = None,
+        rotate: bool = False,
+        apply_gamma: bool = False,
+        writeable_output: bool = True,
     ) -> Iterator[np.ndarray]:
         """
         Iterate over all ndimages/frames in the URI
@@ -207,12 +231,21 @@ class PillowPlugin(PluginV3):
         apply_gamma : {bool}
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
+        writable_output : bool
+            If True, ensure that the image is writable before returning it to
+            the user. This incurs a full copy of the pixel data if the data
+            served by pillow is read-only. Consequentially, setting this flag to
+            False improves performance for some images.
         """
 
         for im in ImageSequence.Iterator(self._image):
-            yield self._apply_transforms(im, mode, rotate, apply_gamma)
+            yield self._apply_transforms(
+                im, mode, rotate, apply_gamma, writeable_output
+            )
 
-    def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
+    def _apply_transforms(
+        self, image, mode, rotate, apply_gamma, writeable_output
+    ) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
         elif image.mode == "P":
@@ -234,6 +267,9 @@ class PillowPlugin(PluginV3):
             gain = 1.0
             image = ((image / scale) ** gamma) * scale * gain + 0.4999
             image = np.round(image).astype(np.uint8)
+
+        if writeable_output and not image.flags["WRITEABLE"]:
+            image = np.array(image)
 
         return image
 
