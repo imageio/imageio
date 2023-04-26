@@ -327,11 +327,14 @@ class PillowPlugin(PluginV3):
                 "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
             )
 
-        extension = self.request.extension or self.request.format_hint
+        if "format" not in self.save_args:
+            extension = self.request.extension or self.request.format_hint
+            self.save_args["format"] = format or Image.registered_extensions()[extension]
+        elif format is None or format == self.save_args["format"]:
+            pass
+        else:
+            raise ValueError("Can't change `format` after the first image was written.")
 
-        save_args = {
-            "format": format or Image.registered_extensions()[extension],
-        }
 
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
