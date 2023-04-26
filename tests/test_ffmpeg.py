@@ -106,13 +106,13 @@ def test_integer_reader_length(test_images):
     assert True if r else False
 
 
-def test_read_and_write(test_images):
+def test_read_and_write(test_images, tmp_path):
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
     assert isinstance(R, imageio.plugins.ffmpeg.FfmpegFormat.Reader)
 
-    fname2 = fname1.with_suffix(".out.mp4")
+    fname2 = tmp_path / "cockatoo.out.mp4"
 
     frame1, frame2, frame3 = 41, 131, 227
 
@@ -182,13 +182,13 @@ def test_v3_read(test_images):
     assert frames.shape == (280, 720, 1280, 3)
 
 
-def test_write_not_contiguous(test_images):
+def test_write_not_contiguous(test_images, tmp_path):
     fname1 = test_images / "cockatoo.mp4"
 
     R = iio.read(fname1, "ffmpeg")
     assert isinstance(R, imageio.plugins.ffmpeg.FfmpegFormat.Reader)
 
-    fname2 = fname1.with_suffix(".out.mp4")
+    fname2 = tmp_path / "cockatoo.out.mp4"
 
     # Read
     ims1 = []
@@ -256,10 +256,10 @@ def test_write_audio_default_codec(test_images, tmp_path):
     assert "audio_codec" in meta
 
 
-def test_reader_more(test_images):
+def test_reader_more(test_images, tmp_path):
     fname1 = test_images / "cockatoo.mp4"
 
-    fname3 = fname1.with_suffix(".stub.mp4")
+    fname3 = tmp_path / "cockatoo.stub.mp4"
 
     # Get meta data
     R = iio.read(fname1, "ffmpeg", loop=True)
@@ -335,9 +335,9 @@ def test_reader_more(test_images):
     iio.read(fname1, "ffmpeg", print_info=True)
 
 
-def test_writer_more(test_images):
+def test_writer_more(test_images, tmp_path):
     fname1 = test_images / "cockatoo.mp4"
-    fname2 = fname1.with_suffix(".out.mp4")
+    fname2 = tmp_path / "cockatoo.out.mp4"
 
     W = iio.save(fname2, "ffmpeg")
     with pytest.raises(ValueError):  # Invalid shape
