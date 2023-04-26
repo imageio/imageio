@@ -137,7 +137,6 @@ def test_read_from_url():
 
 @deprecated_test
 def test_invalid(test_images, tmp_path):
-    fname1 = test_images / "stent.swf"
     fname2 = tmp_path / "stent.invalid.swf"
 
     # Empty file
@@ -181,7 +180,6 @@ def test_lowlevel():
 
 
 def test_types(test_images, tmp_path):
-    fname1 = test_images / "stent.swf"
     fname2 = tmp_path / "stent.out3.swf"
 
     for dtype in [

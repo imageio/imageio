@@ -336,7 +336,6 @@ def test_reader_more(test_images, tmp_path):
 
 
 def test_writer_more(test_images, tmp_path):
-    fname1 = test_images / "cockatoo.mp4"
     fname2 = tmp_path / "cockatoo.out.mp4"
 
     W = iio.save(fname2, "ffmpeg")
