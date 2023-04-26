@@ -73,6 +73,7 @@ class PillowPlugin(PluginV3):
         super().__init__(request)
 
         self._image: Image = None
+        self.images_to_write = []
 
         if request.mode.io_mode == IOMode.read:
             try:
@@ -93,6 +94,8 @@ class PillowPlugin(PluginV3):
 
             self._image = Image.open(self._request.get_file())
         else:
+            self.save_args = {}
+
             extension = self.request.extension or self.request.format_hint
             if extension is None:
                 warnings.warn(
@@ -114,6 +117,9 @@ class PillowPlugin(PluginV3):
             ) from None
 
     def close(self) -> None:
+        if len(self.images_to_write) > 0:
+            self._flush_writer()       
+
         if self._image:
             self._image.close()
 
@@ -354,26 +360,34 @@ class PillowPlugin(PluginV3):
         if not is_batch:
             ndimage = ndimage[None, ...]
 
-        pil_frames = list()
         for frame in ndimage:
             pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
-            pil_frames.append(pil_frame)
-        primary_image, other_images = pil_frames[0], pil_frames[1:]
+            self.images_to_write.append(pil_frame)
 
-        if is_batch:
-            save_args["save_all"] = True
-            save_args["append_images"] = other_images
-
-        save_args.update(kwargs)
-        primary_image.save(self._request.get_file(), **save_args)
+        self.save_args.update(kwargs)
 
         if self._request._uri_type == URI_BYTES:
+            self._flush_writer()
             file = cast(BytesIO, self._request.get_file())
             return file.getvalue()
 
         return None
+
+    def _flush_writer(self):
+        if len(self.images_to_write) == 0:
+            return
+        
+        primary_image = self.images_to_write.pop(0)
+
+        if len(self.images_to_write) > 0:
+            self.save_args["save_all"] = True
+            self.save_args["append_images"] = self.images_to_write
+
+        primary_image.save(self._request.get_file(), **self.save_args)
+        self.images_to_write.clear()
+        self.save_args = {}
 
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
