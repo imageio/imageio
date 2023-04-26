@@ -243,7 +243,7 @@ def test_default_can_read_and_can_write(tmp_path):
 
 
 @deprecated_test
-def test_format_manager(test_images):
+def test_format_manager(test_images, tmp_path):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -266,7 +266,7 @@ def test_format_manager(test_images):
         # assert format.name in fulldocs
 
     fname = test_images / "chelsea.png"
-    fname2 = fname.with_suffix(".noext")
+    fname2 = tmp_path / "chelsea.noext"
     shutil.copy(fname, fname2)
 
     # Check getting
