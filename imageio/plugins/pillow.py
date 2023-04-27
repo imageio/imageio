@@ -117,8 +117,7 @@ class PillowPlugin(PluginV3):
             ) from None
 
     def close(self) -> None:
-        if len(self.images_to_write) > 0:
-            self._flush_writer()
+        self._flush_writer()
 
         if self._image:
             self._image.close()
@@ -369,7 +368,8 @@ class PillowPlugin(PluginV3):
             warnings.warn(
                 "Changing the output format during incremental"
                 " writes is strongly discouraged."
-                f" Was `{old_format}`, is now `{format}`."
+                f" Was `{old_format}`, is now `{format}`.",
+                UserWarning,
             )
 
         extension = self.request.extension or self.request.format_hint
