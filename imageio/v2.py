@@ -107,7 +107,7 @@ def decypher_format_arg(format_name: str) -> Dict[str, str]:
 
 
 class LegacyReader:
-    def __init__(self, plugin_instance: PluginV3, /, **kwargs):
+    def __init__(self, plugin_instance: PluginV3, **kwargs):
         self.instance = plugin_instance
         self.last_index = 0
         self.closed = False
@@ -167,7 +167,7 @@ class LegacyReader:
 
 
 class LegacyWriter:
-    def __init__(self, plugin_instance: PluginV3, /, **kwargs):
+    def __init__(self, plugin_instance: PluginV3, **kwargs):
         self.instance = plugin_instance
         self.last_index = 0
         self.closed = False
