@@ -118,7 +118,7 @@ class PillowPlugin(PluginV3):
 
     def close(self) -> None:
         if len(self.images_to_write) > 0:
-            self._flush_writer()       
+            self._flush_writer()
 
         if self._image:
             self._image.close()
@@ -327,15 +327,6 @@ class PillowPlugin(PluginV3):
                 "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
             )
 
-        if "format" not in self.save_args:
-            extension = self.request.extension or self.request.format_hint
-            self.save_args["format"] = format or Image.registered_extensions()[extension]
-        elif format is None or format == self.save_args["format"]:
-            pass
-        else:
-            raise ValueError("Can't change `format` after the first image was written.")
-
-
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
             is_batch = True
@@ -369,19 +360,37 @@ class PillowPlugin(PluginV3):
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
             self.images_to_write.append(pil_frame)
 
+        if (
+            format is not None
+            and "format" in self.save_args
+            and self.save_args["format"] != format
+        ):
+            old_format = self.save_args["format"]
+            warnings.warn(
+                "Changing the output format during incremental"
+                " writes is strongly discouraged."
+                f" Was `{old_format}`, is now `{format}`."
+            )
+
+        extension = self.request.extension or self.request.format_hint
+        self.save_args["format"] = (
+            format or Image.registered_extensions()[extension]
+        )
         self.save_args.update(kwargs)
 
+        # when writing to `bytes` we flush instantly
+        result = None
         if self._request._uri_type == URI_BYTES:
             self._flush_writer()
             file = cast(BytesIO, self._request.get_file())
-            return file.getvalue()
+            result = file.getvalue()
 
-        return None
+        return result
 
     def _flush_writer(self):
         if len(self.images_to_write) == 0:
             return
-        
+
         primary_image = self.images_to_write.pop(0)
 
         if len(self.images_to_write) > 0:
@@ -390,7 +399,7 @@ class PillowPlugin(PluginV3):
 
         primary_image.save(self._request.get_file(), **self.save_args)
         self.images_to_write.clear()
-        self.save_args = {}
+        self.save_args.clear()
 
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
