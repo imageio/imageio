@@ -107,10 +107,12 @@ def decypher_format_arg(format_name: str) -> Dict[str, str]:
 
 
 class LegacyReader:
-    def __init__(self, plugin_instance: PluginV3):
+    def __init__(self, plugin_instance: PluginV3, /, **kwargs):
         self.instance = plugin_instance
         self.last_index = 0
         self.closed = False
+
+        self.read_args = kwargs
 
     def close(self):
         if not self.closed:
@@ -139,7 +141,7 @@ class LegacyReader:
 
     def get_data(self, index):
         self.last_index = index
-        img = self.instance.read(index=index)
+        img = self.instance.read(index=index, **self.read_args)
         metadata = self.instance.metadata(index=index, exclude_applied=False)
         return Array(img, metadata)
 
@@ -165,10 +167,12 @@ class LegacyReader:
 
 
 class LegacyWriter:
-    def __init__(self, plugin_instance: PluginV3):
+    def __init__(self, plugin_instance: PluginV3, /, **kwargs):
         self.instance = plugin_instance
         self.last_index = 0
         self.closed = False
+
+        self.write_args = kwargs
 
     def close(self):
         if not self.closed:
@@ -208,7 +212,7 @@ class LegacyWriter:
         #     total_meta.update(im.meta)
         # total_meta.update(meta)
 
-        return self.instance.write(im)
+        return self.instance.write(im, **self.write_args)
 
     def set_meta_data(self, meta):
         # TODO: write metadata
@@ -310,7 +314,7 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     if isinstance(image_file, LegacyPlugin):
         return image_file.legacy_get_writer(**kwargs)
     else:
-        return LegacyWriter(image_file)
+        return LegacyWriter(image_file, **kwargs)
 
 
 # Images
