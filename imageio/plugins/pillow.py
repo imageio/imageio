@@ -373,9 +373,7 @@ class PillowPlugin(PluginV3):
             )
 
         extension = self.request.extension or self.request.format_hint
-        self.save_args["format"] = (
-            format or Image.registered_extensions()[extension]
-        )
+        self.save_args["format"] = format or Image.registered_extensions()[extension]
         self.save_args.update(kwargs)
 
         # when writing to `bytes` we flush instantly
