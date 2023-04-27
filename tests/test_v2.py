@@ -75,9 +75,13 @@ def test_kwarg_forwarding(tmp_path):
             frame = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
             writer.append_data(frame)
 
-    imgs = iio.mimread(tmp_path / "tmp.gif")
-    
-    img = np.stack(imgs)
-    assert img.shape == (10, 100, 100, 3)
+    imgs = np.stack(iio.mimread(tmp_path / "tmp.gif"))
+    assert imgs.shape == (10, 100, 100, 3)
 
-    print(img.shape)
+    with iio.get_reader(tmp_path / "tmp.gif", pilmode="L") as file:
+        with pytest.warns(DeprecationWarning):
+            img = file.get_next_data()
+
+        assert img.shape == (100, 100)
+        assert img.meta["duration"] == 1000
+        assert img.meta["loop"] == 0

@@ -281,7 +281,7 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     if isinstance(image_file, LegacyPlugin):
         return image_file.legacy_get_reader(**kwargs)
     else:
-        return LegacyReader(image_file)
+        return LegacyReader(image_file, **kwargs)
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
