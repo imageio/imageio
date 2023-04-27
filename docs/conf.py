@@ -184,7 +184,7 @@ html_theme_options = {
             "icon": "fab fa-github-square",
         },
         {
-            "name": "Pipy",
+            "name": "PyPI",
             "url": "https://pypi.org/project/imageio/",
             "icon": "fas fa-box",
         },
