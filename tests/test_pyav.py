@@ -1,18 +1,23 @@
-import pytest
-from pathlib import Path
-import imageio.v3 as iio
-import numpy as np
 import io
+import platform
 import warnings
 from contextlib import ExitStack
+from pathlib import Path
+
+import numpy as np
+import pytest
+from conftest import IS_PYPY
+
+import imageio.v3 as iio
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
 from av.video.format import names as video_format_names  # type: ignore # noqa: E402
+
 from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
 
-
 IS_AV_10_0_0 = tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0)
+IS_MACOS = platform.system() == "Darwin"
 
 
 def test_mp4_read(test_images: Path):
@@ -572,6 +577,12 @@ def test_keyframe_intervals(test_images):
     assert np.max(np.diff(key_dist)) <= 5
 
 
+# the maintainer of pyAV hasn't responded to my bug reports in over 4 months so
+# I am disabling this test on pypy to stay sane.
+@pytest.mark.skipif(
+    IS_PYPY and IS_MACOS,
+    reason="Using filters in pyAV sometimes causes segfaults when run on Pypy.",
+)
 def test_trim_filter(test_images):
     # this is a regression test for:
     # https://github.com/imageio/imageio/issues/951

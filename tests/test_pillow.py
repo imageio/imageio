@@ -662,3 +662,15 @@ def test_format_change_warning(tmp_path):
 
         with pytest.warns(UserWarning):
             file.write(img, format="GIF")
+
+
+def test_writable_output():
+    rng = np.random.default_rng()
+    img = rng.integers(0, 255, (128, 128), dtype=np.uint8)
+    buffer = iio.imwrite("<bytes>", img, extension=".png")
+
+    frame = iio.imread(buffer, plugin="pillow")
+    assert frame.flags["WRITEABLE"]
+
+    frame = iio.imread(buffer, writeable_output=False, plugin="pillow")
+    assert not frame.flags["WRITEABLE"]
