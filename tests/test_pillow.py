@@ -639,6 +639,31 @@ def test_png_batch_fail():
         iio.imwrite("<bytes>", img, extension=".png", plugin="pillow")
 
 
+def test_incremental_gif_write(tmp_path):
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/974
+
+    rng = np.random.default_rng()
+
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+        for _ in range(10):
+            img = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
+            file.write(img)
+
+    final_gif = iio.imread(tmp_path / "test.gif")
+    assert final_gif.shape == (10, 100, 100, 3)
+
+
+def test_format_change_warning(tmp_path):
+    img = np.full((100, 100, 3), 42, dtype=np.uint8)
+
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+        file.write(img, format="PNG")
+
+        with pytest.warns(UserWarning):
+            file.write(img, format="GIF")
+
+
 def test_writable_output():
     rng = np.random.default_rng()
     img = rng.integers(0, 255, (128, 128), dtype=np.uint8)
