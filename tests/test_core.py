@@ -651,8 +651,7 @@ def test_functions(test_images, tmp_path):
         return  # no support for npz format :(
 
     # Test mimsave()
-    fname5 = str(fname3.with_suffix(""))
-    fname5 += "2.npz"
+    fname5 = tmp_path / "newtonscradle2.npz"
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)
