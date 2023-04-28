@@ -49,10 +49,10 @@ def imopen(
             ``I`` for multiple images,
             ``v`` for a single volume,
             ``V`` for multiple volumes,
-            ``?`` for don't care (default)
+            ``?`` for don't care
 
     plugin : str, Plugin, or None
-        The plugin to use. If set to None (default) imopen will perform a
+        The plugin to use. If set to None imopen will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint.
     extension : str
@@ -62,7 +62,7 @@ def imopen(
     format_hint : str
         Deprecated. Use `extension` instead.
     legacy_mode : bool
-        If true (default) use the v2 behavior when searching for a suitable
+        If true use the v2 behavior when searching for a suitable
         plugin. This will ignore v3 plugins and will check ``plugin``
         against known extensions if no plugin with the given name can be found.
     **kwargs : Any
