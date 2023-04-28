@@ -1,13 +1,16 @@
-import os
-import sys
-import shutil
-from pathlib import Path
-from functools import wraps
 import contextlib
+import os
+import shutil
+import sys
 import warnings
+from functools import wraps
+from pathlib import Path
+
 import pytest
 
 import imageio as iio
+
+IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 
 def pytest_configure(config):
