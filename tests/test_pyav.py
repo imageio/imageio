@@ -580,7 +580,8 @@ def test_keyframe_intervals(test_images):
 # the maintainer of pyAV hasn't responded to my bug reports in over 4 months so
 # I am disabling this test on pypy to stay sane.
 @pytest.mark.skipif(
-    IS_PYPY and IS_MACOS, reason="Using filters in pyAV sometimes causes segfaults when run on Pypy."
+    IS_PYPY and IS_MACOS,
+    reason="Using filters in pyAV sometimes causes segfaults when run on Pypy.",
 )
 def test_trim_filter(test_images):
     # this is a regression test for:
