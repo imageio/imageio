@@ -11,7 +11,7 @@ import pytest
 from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from PIL import Image, ImageSequence  # type: ignore
+from PIL import Image, ImageSequence, ImageOps  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -189,7 +189,7 @@ def test_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -218,6 +218,12 @@ def test_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_gif_rgb_vs_rgba(test_images):
@@ -361,7 +367,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -391,6 +397,12 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_incomatible_write_format(tmp_path):

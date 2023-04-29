@@ -51,9 +51,9 @@ def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
         3: lambda x: np.rot90(x, k=2),
         4: lambda x: np.flip(x, axis=axis - 1),
         5: lambda x: np.flip(np.rot90(x, k=3), axis=axis),
-        6: lambda x: np.rot90(x, k=1),
+        6: lambda x: np.rot90(x, k=3),
         7: lambda x: np.flip(np.rot90(x, k=1), axis=axis),
-        8: lambda x: np.rot90(x, k=3),
+        8: lambda x: np.rot90(x, k=1),
     }
 
     return EXIF_ORIENTATION[orientation]
