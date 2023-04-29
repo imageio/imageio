@@ -538,6 +538,13 @@ def test_properties(image_files: Path):
     assert properties.dtype == np.uint8
     assert properties.n_images is None
 
+    # test an image format that doesn't have n_frames
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow")
+    assert properties.n_images is None
+
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow", index=...)
+    assert properties.n_images == 1
+
 
 def test_metadata(test_images):
     meta = iio.immeta(test_images / "newtonscradle.gif")
