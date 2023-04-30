@@ -14,7 +14,7 @@ warnings.warn(
     " have been superseeded by CI scripts and there is currently no plan to"
     " keep invoke. If you want to keep them, please open a new issue so"
     " that we can discuss.",
-    DeprecationWarning
+    DeprecationWarning,
 )
 
 # Get root directory of the package
