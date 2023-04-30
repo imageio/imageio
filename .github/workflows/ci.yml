@@ -63,7 +63,7 @@ jobs:
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
         run: |
-            pytest -v -m not needs_internet --cov imageio --cov-config .coveragerc --cov-report
+            pytest -v -m not needs_internet
         env:
           IMAGEIO_NO_INTERNET: 1
 
