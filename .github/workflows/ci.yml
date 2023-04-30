@@ -63,7 +63,9 @@ jobs:
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
         run: |
-            invoke test --installed
+            pytest -v -m "not needs_internet"
+        env:
+          IMAGEIO_NO_INTERNET: 1
 
   cpython:
     name: CPython Test Suite
