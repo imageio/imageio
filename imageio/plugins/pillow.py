@@ -275,6 +275,10 @@ class PillowPlugin(PluginV3):
             # adjust for pillow9 changes
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
+        elif image.format == "PNG" and image.mode == "I":
+            # grayscale PNG is big-endian 16-bit, not 32-bit we can unpack
+            # as 16 bit directly and save a copy.
+            image.mode = "I;16B"
         image = np.asarray(image)
 
         meta = self.metadata(index=self._image.tell(), exclude_applied=False)
