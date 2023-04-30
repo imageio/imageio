@@ -199,7 +199,7 @@ cpython_only_plugins = {
 extras_require = {
     "build": ["wheel"],
     "linting": ["black", "flake8"],
-    "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
+    "test": ["pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx<6", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
     **cpython_only_plugins,

@@ -6,6 +6,16 @@ one can simply add tasks by adding files.
 import os
 
 from invoke import Collection, Task
+import warnings
+
+
+warnings.warn(
+    "Invoke scripts are deprecated and will be removed in ImageIO v3. They"
+    " have been superseeded by CI scripts and there is currently no plan to"
+    " keep invoke. If you want to keep them, please open a new issue so"
+    " that we can discuss.",
+    DeprecationWarning
+)
 
 # Get root directory of the package
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
