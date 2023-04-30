@@ -28,14 +28,20 @@ Methods
 
 """
 
-from io import BytesIO
-from typing import Callable, Optional, Dict, Any, Tuple, cast, Iterator, Union, List
-import numpy as np
-from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags  # type: ignore
-from ..core.request import Request, IOMode, InitializationError, URI_BYTES
-from ..core.v3_plugin_api import PluginV3, ImageProperties
+import sys
 import warnings
+from io import BytesIO
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
+
+import numpy as np
+from PIL import ExifTags, Image, ImageSequence, UnidentifiedImageError  # type: ignore
+
+from ..core.request import URI_BYTES, InitializationError, IOMode, Request
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
+
+
+PILLOW_VERSION = tuple(int(x) for x in Image.__version__.split("."))
 
 
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
@@ -276,9 +282,31 @@ class PillowPlugin(PluginV3):
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
         elif image.format == "PNG" and image.mode == "I":
-            # grayscale PNG is big-endian 16-bit, not 32-bit we can unpack
-            # as 16 bit directly and save a copy.
-            image.mode = "I;16B"
+            # By default, pillows unpacks 16-bit grayscale PNG into 32-bit
+            # integers due to limited 16-bit support in pillow itself. However,
+            # recent versions can directly unpack into a 16-bit buffer, which is
+            # more correct (and more efficient) in our scenario.
+
+            if sys.byteorder == "little":
+                desired_mode = "I;16"
+            else:
+                desired_mode = "I;16B"
+
+            try:
+                Image._getdecoder(desired_mode, "raw", "I;16B")
+            except ValueError:
+                # pillow can't decode into 16-bit yet, use its 32-bit default
+                # instead and warn the user (has caused confusion in the past)
+                warnings.warn(
+                    "Loading 16-bit (uint16) PNG as int32 due to limitations "
+                    "in pillow's PNG decoder. This will be fixed in a future "
+                    "version of pillow which will make this warning dissapear.",
+                    UserWarning,
+                )
+            else:
+                # Let pillow know that it is okay to return 16-bit
+                image.mode = desired_mode
+
         image = np.asarray(image)
 
         meta = self.metadata(index=self._image.tell(), exclude_applied=False)

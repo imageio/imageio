@@ -115,7 +115,9 @@ def test_png_16bit(test_images, tmp_path):
     im2 = iio.imread(tmp_path / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
+    with pytest.warns(UserWarning):
+        im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
+
     assert im3.dtype == np.int32
 
 
