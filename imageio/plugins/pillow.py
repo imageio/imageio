@@ -41,9 +41,6 @@ from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
 
 
-PILLOW_VERSION = tuple(int(x) for x in Image.__version__.split("."))
-
-
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
     # get transformation that transforms an image from a
     # given EXIF orientation into the standard orientation
