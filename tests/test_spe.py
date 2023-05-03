@@ -46,37 +46,43 @@ def test_iter(test_images):
 
 def test_metadata(test_images, tmp_path):
     fname = test_images / "test_000_.SPE"
-    md = iio.immeta(fname, sdt_control=False)
-    assert md.get("ROIs") == [
-        {"top_left": [238, 187], "bottom_right": [269, 218], "bin": [1, 1]}
-    ]
-    cmt = [
-        "OD 1.0 in r, g                                                    "
-        "              ",
-        "000200000000000004800000000000000000000000000000000000000000000000"
-        "0002000001000X",
-        "                                                                  "
-        "              ",
-        "                                                                  "
-        "              ",
-        "ACCI2xSEQU-1---10000010001600300EA                              SW"
-        "0218COMVER0500",
-    ]
-    assert md.get("comments") == cmt
-    assert md.get("geometric") == []
-    assert md.get("type", "") is None
-    assert md.get("readout_mode", "") is None
+    meta = iio.immeta(fname, sdt_control=False)
+    with pytest.deprecated_call():
+        meta2 = iio.imopen(fname, "r", sdt_meta=False).metadata()
+    for md in (meta, meta2):
+        assert md.get("ROIs") == [
+            {"top_left": [238, 187], "bottom_right": [269, 218], "bin": [1, 1]}
+        ]
+        cmt = [
+            "OD 1.0 in r, g                                                    "
+            "              ",
+            "000200000000000004800000000000000000000000000000000000000000000000"
+            "0002000001000X",
+            "                                                                  "
+            "              ",
+            "                                                                  "
+            "              ",
+            "ACCI2xSEQU-1---10000010001600300EA                              SW"
+            "0218COMVER0500",
+        ]
+        assert md.get("comments") == cmt
+        assert md.get("geometric") == []
+        assert md.get("type", "") is None
+        assert md.get("readout_mode", "") is None
 
     sdt_meta = iio.immeta(fname, sdt_control=True)
-    assert sdt_meta.get("delay_shutter") == pytest.approx(0.001)
-    assert sdt_meta.get("delay_macro") == pytest.approx(0.048)
-    assert sdt_meta.get("exposure_time") == pytest.approx(0.002)
-    assert sdt_meta.get("comment") == "OD 1.0 in r, g"
-    assert sdt_meta.get("datetime") == datetime(2018, 7, 2, 9, 46, 15)
-    assert sdt_meta.get("sdt_major_version") == 2
-    assert sdt_meta.get("sdt_minor_version") == 18
-    assert isinstance(sdt_meta.get("modulation_script"), str)
-    assert sdt_meta.get("sequence_type") == "standard"
+    with pytest.deprecated_call():
+        sdt_meta2 = iio.imopen(fname, "r", sdt_meta=True).metadata()
+    for md in (sdt_meta, sdt_meta2):
+        assert md.get("delay_shutter") == pytest.approx(0.001)
+        assert md.get("delay_macro") == pytest.approx(0.048)
+        assert md.get("exposure_time") == pytest.approx(0.002)
+        assert md.get("comment") == "OD 1.0 in r, g"
+        assert md.get("datetime") == datetime(2018, 7, 2, 9, 46, 15)
+        assert md.get("sdt_major_version") == 2
+        assert md.get("sdt_minor_version") == 18
+        assert isinstance(md.get("modulation_script"), str)
+        assert md.get("sequence_type") == "standard"
 
     patched = tmp_path / fname.name
     shutil.copy(fname, patched)
@@ -132,6 +138,12 @@ def test_metadata(test_images, tmp_path):
     assert isinstance(patched_meta.get("spare_4"), bytes)
     # Decoding `sw_version` should fail
     assert isinstance(patched_meta.get("sw_version"), bytes)
+
+    with pytest.deprecated_call():
+        patched_meta2 = iio.imopen(
+            patched, "r", sdt_meta=True, char_encoding="ascii"
+        ).metadata()
+    assert patched_meta2.get("sequence_type", "") is None
 
     shutil.copy(fname, patched)
     with patched.open("r+b") as f:

@@ -45,6 +45,7 @@ from typing import (
     Tuple,
     Union,
 )
+import warnings
 
 import numpy as np
 
@@ -382,7 +383,13 @@ class SDTControlSpec:
 
 
 class SpePlugin(PluginV3):
-    def __init__(self, request: Request, check_filesize: bool = True) -> None:
+    def __init__(
+        self,
+        request: Request,
+        check_filesize: bool = True,
+        char_encoding: Optional[str] = None,
+        sdt_meta: Optional[bool] = None,
+    ) -> None:
         """Instantiate a new SPE file plugin object
 
         Parameters
@@ -400,6 +407,23 @@ class SpePlugin(PluginV3):
         super().__init__(request)
         if request.mode.io_mode == IOMode.write:
             raise InitializationError("cannot write SPE files")
+
+        if char_encoding is not None:
+            warnings.warn(
+                "Passing `char_encoding` to the constructor is deprecated. "
+                "Use `char_encoding` parameter of the `metadata()` method "
+                "instead.",
+                DeprecationWarning,
+            )
+        self._char_encoding = char_encoding
+        if sdt_meta is not None:
+            warnings.warn(
+                "Passing `sdt_meta` to the constructor is deprecated. "
+                "Use `sdt_control` parameter of the `metadata()` method "
+                "instead.",
+                DeprecationWarning,
+            )
+        self._sdt_meta = sdt_meta
 
         self._file = self.request.get_file()
 
@@ -504,8 +528,6 @@ class SpePlugin(PluginV3):
             If `True`, decode special metadata written by the
             SDT-control software if present.
 
-        Returns
-        -------
         Returns
         -------
         metadata : dict
@@ -687,6 +709,10 @@ class SpePlugin(PluginV3):
         """
 
         if self._file_header_ver < 3:
+            if self._char_encoding is not None:
+                char_encoding = self._char_encoding
+            if self._sdt_meta is not None:
+                sdt_control = self._sdt_meta
             return self._metadata_pre_v3(char_encoding, sdt_control)
         return self._metadata_post_v3()
 
