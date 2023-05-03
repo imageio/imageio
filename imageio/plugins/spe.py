@@ -303,7 +303,7 @@ class SDTControlSpec:
                 sdt_md[name] = v
             except Exception as e:
                 logger.debug(
-                    f'Failed to decode SDT-control metadata field "{name}": {e}'
+                    f"Failed to decode SDT-control metadata field `{name}`: {e}"
                 )
                 sdt_md[name] = None
         comment = comments[0] + comments[2]
@@ -387,13 +387,13 @@ class SpePlugin(PluginV3):
 
         Parameters
         ----------
-        request
+        request : Request
             A request object representing the resource to be operated on.
-        check_filesize
-            The number of frames in the file is stored in the file header.
-            However, this number may be wrong for certain software. If this is
-            `True` (default), derive the number of frames also from the file
-            size and raise a warning if the two values do not match.
+        check_filesize : bool
+            If True, compute the number of frames from the filesize, compare it
+            to the frame count in the file header, and raise a warning if the
+            counts don't match. (Certain software may create files with
+            incorrect counts in the header.)
 
         """
 
@@ -434,44 +434,44 @@ class SpePlugin(PluginV3):
                     )
                     self._len = min(line, self._len)
         except Exception:
-            raise InitializationError("SPE plugin cannot read the provided file")
+            raise InitializationError("SPE plugin cannot read the provided file.")
 
     def read(self, *, index: int = ...) -> np.ndarray:
         """Read a frame or all frames from the file
 
         Parameters
         ----------
-        index
+        index : int
             Select the index-th frame from the file. If index is `...`,
             select all frames and stack them along a new axis.
 
         Returns
         -------
         A Numpy array of pixel values.
+
         """
 
-        if index in (None, Ellipsis):
-            self._file.seek(Spec.data_start)
-            data = np.fromfile(
-                self._file,
-                dtype=self._dtype,
-                count=self._shape[0] * self._shape[1] * self._len,
+        if index is Ellipsis:
+            read_offset = Spec.data_start
+            count = self._shape[0] * self._shape[1] * self._len
+            out_shape = (self._len, *self._shape)
+        elif index < 0:
+            raise IndexError(f"Index `{index}` is smaller than 0.")
+        elif index >= self._len:
+            raise IndexError(
+                f"Index `{index}` exceeds the number of frames stored in this file (`{self._len}`)."
             )
-            return data.reshape((self._len,) + self._shape)
+        else:
+            read_offset = (
+                Spec.data_start
+                + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
+            )
+            count = self._shape[0] * self._shape[1]
+            out_shape = self._shape
 
-        if index < 0:
-            raise IndexError(f"image index {index} < 0")
-        if index >= self._len:
-            raise IndexError(f"image index {index} >= {self._len}")
-
-        self._file.seek(
-            Spec.data_start
-            + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
-        )
-        data = np.fromfile(
-            self._file, dtype=self._dtype, count=self._shape[0] * self._shape[1]
-        )
-        return data.reshape(self._shape)
+        self._file.seek(read_offset)
+        data = np.fromfile(self._file, dtype=self._dtype, count=count)
+        return data.reshape(out_shape)
 
     def iter(self) -> Iterator[np.ndarray]:
         """Iterate over the frames in the file
@@ -490,25 +490,32 @@ class SpePlugin(PluginV3):
         char_encoding: str = "latin1",
         sdt_control: bool = True,
     ) -> Dict[str, Any]:
-        """Get metadata
+        """SPE specific metadata.
 
         Parameters
         ----------
-        index
-            Ignored as SPE files only store global metadata
-        exclude_applied
-            Ignored
-        char_encoding
-            String character encoding
-        sdt_control
-            If `True`, try to decode special metadata written by the
-            SDT-control software.
+        index : int
+            Ignored as SPE files only store global metadata.
+        exclude_applied : bool
+            Ignored. Exists for API compatibility.
+        char_encoding : str
+            The encoding to use when parsing strings.
+        sdt_control : bool
+            If `True`, decode special metadata written by the
+            SDT-control software if present.
 
         Returns
         -------
-        dict mapping metadata names to values. For SPE v3 files, this is the
-        metadata stored in XML format. For SPE v2 files, metadata fields
-        include
+        Returns
+        -------
+        metadata : dict
+            Key-value pairs of metadata.
+
+        Notes
+        -----
+        SPE v3 stores metadata as XML, whereas SPE v2 uses a binary format.
+
+        .. rubric:: Supported SPE v2 Metadata fields
 
         ROIs : list of dict
             Regions of interest used for recording images. Each dict has the
@@ -697,6 +704,7 @@ class SpePlugin(PluginV3):
         Returns
         -------
         dict mapping metadata names to values.
+
         """
 
         m = self._parse_header(Spec.metadata, char_encoding)
@@ -766,19 +774,19 @@ class SpePlugin(PluginV3):
         return {"__xml": xml}
 
     def properties(self, index: int = ...) -> ImageProperties:
-        """Standardized ndimage metadata
+        """Standardized ndimage metadata.
 
         Parameters
         ----------
-        index
+        index : int
             If the index is an integer, select the index-th frame and return
-            its properties. If index is an ellipsis (...), return the
+            its properties. If index is an Ellipsis (...), return the
             properties of all frames in the file stacked along a new batch
             dimension.
 
         Returns
         -------
-        properties
+        properties : ImageProperties
             A dataclass filled with standardized image metadata.
         """
 

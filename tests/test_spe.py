@@ -18,8 +18,8 @@ def test_imopen(test_images, tmp_path):
     with iio.imopen(test_images / "test_000_.SPE", "r") as img:
         assert isinstance(img, spe.SpePlugin)
 
-    with iio.imopen(tmp_path / "test.spe", "w") as img:
-        assert not isinstance(img, spe.SpePlugin)
+    with pytest.raises(OSError):
+        iio.imopen(tmp_path / "test.spe", "w", plugin="SPE")
 
 
 def test_read(test_images):
