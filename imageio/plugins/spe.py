@@ -457,6 +457,7 @@ class SpePlugin(PluginV3):
                         line,
                     )
                     self._len = min(line, self._len)
+            self._file.seek(Spec.data_start)
         except Exception:
             raise InitializationError("SPE plugin cannot read the provided file.")
 
