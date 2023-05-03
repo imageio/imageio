@@ -21,6 +21,11 @@ def test_imopen(test_images, tmp_path):
     with pytest.raises(OSError):
         iio.imopen(tmp_path / "test.spe", "w", plugin="SPE")
 
+    with open(tmp_path / "stub.spe", "wb") as f:
+        f.write(b"\x00\x01\x02\x03")
+    with pytest.raises(OSError):
+        iio.imopen(tmp_path / "stub.spe", "r", plugin="SPE")
+
 
 def test_read(test_images):
     fname = test_images / "test_000_.SPE"
