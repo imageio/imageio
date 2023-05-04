@@ -13,6 +13,12 @@ check_filesize : bool
     this number may be wrong for certain software. If this is `True`
     (default), derive the number of frames also from the file size and
     raise a warning if the two values do not match.
+char_encoding : str
+    Deprecated. Exists for backwards compatibility; use ``char_encoding`` of
+    ``metadata`` instead.
+sdt_meta : bool
+    Deprecated. Exists for backwards compatibility; use ``sdt_control`` of
+    ``metadata`` instead.
 
 Methods
 -------
@@ -400,7 +406,12 @@ class SpePlugin(PluginV3):
             If True, compute the number of frames from the filesize, compare it
             to the frame count in the file header, and raise a warning if the
             counts don't match. (Certain software may create files with
-            incorrect counts in the header.)
+        char_encoding : str
+            Deprecated. Exists for backwards compatibility; use ``char_encoding`` of
+            ``metadata`` instead.
+        sdt_meta : bool
+            Deprecated. Exists for backwards compatibility; use ``sdt_control`` of
+            ``metadata`` instead.
 
         """
 
