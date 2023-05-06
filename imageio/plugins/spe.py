@@ -3,206 +3,60 @@
 
 """ Read SPE files.
 
-Backend: internal
-
 This plugin supports reading files saved in the Princeton Instruments
 SPE file format.
 
-Parameters for reading
-----------------------
-char_encoding : str
-    Character encoding used to decode strings in the metadata. Defaults
-    to "latin1".
+Parameters
+----------
 check_filesize : bool
     The number of frames in the file is stored in the file header. However,
     this number may be wrong for certain software. If this is `True`
     (default), derive the number of frames also from the file size and
     raise a warning if the two values do not match.
+char_encoding : str
+    Deprecated. Exists for backwards compatibility; use ``char_encoding`` of
+    ``metadata`` instead.
 sdt_meta : bool
-    If set to `True` (default), check for special metadata written by the
-    `SDT-control` software. Does not have an effect for files written by
-    other software.
+    Deprecated. Exists for backwards compatibility; use ``sdt_control`` of
+    ``metadata`` instead.
 
-Metadata for reading
---------------------
-ROIs : list of dict
-    Regions of interest used for recording images. Each dict has the
-    "top_left" key containing x and y coordinates of the top left corner,
-    the "bottom_right" key with x and y coordinates of the bottom right
-    corner, and the "bin" key with number of binned pixels in x and y
-    directions.
-comments : list of str
-    The SPE format allows for 5 comment strings of 80 characters each.
-controller_version : int
-    Hardware version
-logic_output : int
-    Definition of output BNC
-amp_hi_cap_low_noise : int
-    Amp switching mode
-mode : int
-    Timing mode
-exp_sec : float
-    Alternative exposure in seconds
-date : str
-    Date string
-detector_temp : float
-    Detector temperature
-detector_type : int
-    CCD / diode array type
-st_diode : int
-    Trigger diode
-delay_time : float
-    Used with async mode
-shutter_control : int
-    Normal, disabled open, or disabled closed
-absorb_live : bool
-    on / off
-absorb_mode : int
-    Reference strip or file
-can_do_virtual_chip : bool
-    True or False whether chip can do virtual chip
-threshold_min_live : bool
-    on / off
-threshold_min_val : float
-    Threshold minimum value
-threshold_max_live : bool
-    on / off
-threshold_max_val : float
-    Threshold maximum value
-time_local : str
-    Experiment local time
-time_utc : str
-    Experiment UTC time
-adc_offset : int
-    ADC offset
-adc_rate : int
-    ADC rate
-adc_type : int
-    ADC type
-adc_resolution : int
-    ADC resolution
-adc_bit_adjust : int
-    ADC bit adjust
-gain : int
-    gain
-sw_version : str
-    Version of software which created this file
-spare_4 : bytes
-    Reserved space
-readout_time : float
-    Experiment readout time
-type : str
-    Controller type
-clockspeed_us : float
-    Vertical clock speed in microseconds
-readout_mode : ["full frame", "frame transfer", "kinetics", ""]
-    Readout mode. Empty string means that this was not set by the
-    Software.
-window_size : int
-    Window size for Kinetics mode
-file_header_ver : float
-    File header version
-chip_size : [int, int]
-    x and y dimensions of the camera chip
-virt_chip_size : [int, int]
-    Virtual chip x and y dimensions
-pre_pixels : [int, int]
-    Pre pixels in x and y dimensions
-post_pixels : [int, int],
-    Post pixels in x and y dimensions
-geometric : list of {"rotate", "reverse", "flip"}
-    Geometric operations
-sdt_major_version : int
-    (only for files created by SDT-control)
-    Major version of SDT-control software
-sdt_minor_version : int
-    (only for files created by SDT-control)
-    Minor version of SDT-control software
-sdt_controller_name : str
-    (only for files created by SDT-control)
-    Controller name
-exposure_time : float
-    (only for files created by SDT-control)
-    Exposure time in seconds
-color_code : str
-    (only for files created by SDT-control)
-    Color channels used
-detection_channels : int
-    (only for files created by SDT-control)
-    Number of channels
-background_subtraction : bool
-    (only for files created by SDT-control)
-    Whether background subtraction war turned on
-em_active : bool
-    (only for files created by SDT-control)
-    Whether EM was turned on
-em_gain : int
-    (only for files created by SDT-control)
-    EM gain
-modulation_active : bool
-    (only for files created by SDT-control)
-    Whether laser modulation (“attenuate”) was turned on
-pixel_size : float
-    (only for files created by SDT-control)
-    Camera pixel size
-sequence_type : str
-    (only for files created by SDT-control)
-    Type of sequnce (standard, TOCCSL, arbitrary, …)
-grid : float
-    (only for files created by SDT-control)
-    Sequence time unit (“grid size”) in seconds
-n_macro : int
-    (only for files created by SDT-control)
-    Number of macro loops
-delay_macro : float
-    (only for files created by SDT-control)
-    Time between macro loops in seconds
-n_mini : int
-    (only for files created by SDT-control)
-    Number of mini loops
-delay_mini : float
-    (only for files created by SDT-control)
-    Time between mini loops in seconds
-n_micro : int (only for files created by SDT-control)
-    Number of micro loops
-delay_micro : float (only for files created by SDT-control)
-    Time between micro loops in seconds
-n_subpics : int
-    (only for files created by SDT-control)
-    Number of sub-pictures
-delay_shutter : float
-    (only for files created by SDT-control)
-    Camera shutter delay in seconds
-delay_prebleach : float
-    (only for files created by SDT-control)
-    Pre-bleach delay in seconds
-bleach_time : float
-    (only for files created by SDT-control)
-    Bleaching time in seconds
-recovery_time : float
-    (only for files created by SDT-control)
-    Recovery time in seconds
-comment : str
-    (only for files created by SDT-control)
-    User-entered comment. This replaces the "comments" field.
-datetime : datetime.datetime
-    (only for files created by SDT-control)
-    Combines the "date" and "time_local" keys. The latter two plus
-    "time_utc" are removed.
-modulation_script : str
-    (only for files created by SDT-control)
-    Laser modulation script. Replaces the "spare_4" key.
+Methods
+-------
+.. note::
+    Check the respective function for a list of supported kwargs and detailed
+    documentation.
+
+.. autosummary::
+    :toctree:
+
+    SpePlugin.read
+    SpePlugin.iter
+    SpePlugin.properties
+    SpePlugin.metadata
 
 """
 
 from datetime import datetime
 import logging
 import os
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
+import warnings
 
 import numpy as np
 
-from ..core import Format
+from ..core.request import Request, IOMode, InitializationError
+from ..core.v3_plugin_api import PluginV3, ImageProperties
 
 
 logger = logging.getLogger(__name__)
@@ -453,11 +307,12 @@ class SDTControlSpec:
                 v = spec.cvt(comments[spec.n][spec.slice])
                 if spec.scale is not None:
                     v *= spec.scale
+                sdt_md[name] = v
             except Exception as e:
                 logger.debug(
-                    "Failed to decode SDT-control metadata " f'field "{name}": {e}'
+                    f"Failed to decode SDT-control metadata field `{name}`: {e}"
                 )
-            sdt_md[name] = v
+                sdt_md[name] = None
         comment = comments[0] + comments[2]
         sdt_md["comment"] = comment.strip()
         return sdt_md
@@ -533,37 +388,75 @@ class SDTControlSpec:
         meta.pop("exposure_sec")
 
 
-class SpeFormat(Format):
-    """See :mod:`imageio.plugins.spe`"""
+class SpePlugin(PluginV3):
+    def __init__(
+        self,
+        request: Request,
+        check_filesize: bool = True,
+        char_encoding: Optional[str] = None,
+        sdt_meta: Optional[bool] = None,
+    ) -> None:
+        """Instantiate a new SPE file plugin object
 
-    def _can_read(self, request):
-        return request.extension in self.extensions
+        Parameters
+        ----------
+        request : Request
+            A request object representing the resource to be operated on.
+        check_filesize : bool
+            If True, compute the number of frames from the filesize, compare it
+            to the frame count in the file header, and raise a warning if the
+            counts don't match. (Certain software may create files with
+        char_encoding : str
+            Deprecated. Exists for backwards compatibility; use ``char_encoding`` of
+            ``metadata`` instead.
+        sdt_meta : bool
+            Deprecated. Exists for backwards compatibility; use ``sdt_control`` of
+            ``metadata`` instead.
 
-    def _can_write(self, request):
-        return False
+        """
 
-    class Reader(Format.Reader):
-        def _open(self, char_encoding="latin1", check_filesize=True, sdt_meta=True):
-            self._file = self.request.get_file()
-            self._char_encoding = char_encoding
+        super().__init__(request)
+        if request.mode.io_mode == IOMode.write:
+            raise InitializationError("cannot write SPE files")
 
-            info = self._parse_header(Spec.basic)
+        if char_encoding is not None:
+            warnings.warn(
+                "Passing `char_encoding` to the constructor is deprecated. "
+                "Use `char_encoding` parameter of the `metadata()` method "
+                "instead.",
+                DeprecationWarning,
+            )
+        self._char_encoding = char_encoding
+        if sdt_meta is not None:
+            warnings.warn(
+                "Passing `sdt_meta` to the constructor is deprecated. "
+                "Use `sdt_control` parameter of the `metadata()` method "
+                "instead.",
+                DeprecationWarning,
+            )
+        self._sdt_meta = sdt_meta
+
+        self._file = self.request.get_file()
+
+        try:
+            # Spec.basic contains no string, no need to worry about character
+            # encoding.
+            info = self._parse_header(Spec.basic, "latin1")
             self._file_header_ver = info["file_header_ver"]
             self._dtype = Spec.dtypes[info["datatype"]]
             self._shape = (info["ydim"], info["xdim"])
             self._len = info["NumFrames"]
-            self._sdt_meta = sdt_meta
 
             if check_filesize:
                 # Some software writes incorrect `NumFrames` metadata.
                 # To determine the number of frames, check the size of the data
                 # segment -- until the end of the file for SPE<3, until the
                 # xml footer for SPE>=3.
-                data_end = (
-                    info["xml_footer_offset"]
-                    if info["file_header_ver"] >= 3
-                    else os.path.getsize(self.request.get_local_filename())
-                )
+                if info["file_header_ver"] >= 3:
+                    data_end = info["xml_footer_offset"]
+                else:
+                    self._file.seek(0, os.SEEK_END)
+                    data_end = self._file.tell()
                 line = data_end - Spec.data_start
                 line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if line != self._len:
@@ -575,172 +468,437 @@ class SpeFormat(Format):
                         line,
                     )
                     self._len = min(line, self._len)
+            self._file.seek(Spec.data_start)
+        except Exception:
+            raise InitializationError("SPE plugin cannot read the provided file.")
 
-            self._meta = None
+    def read(self, *, index: int = ...) -> np.ndarray:
+        """Read a frame or all frames from the file
 
-        def _get_meta_data(self, index):
-            if self._meta is None:
-                if self._file_header_ver < 3:
-                    self._init_meta_data_pre_v3()
-                else:
-                    self._init_meta_data_post_v3()
-            return self._meta
+        Parameters
+        ----------
+        index : int
+            Select the index-th frame from the file. If index is `...`,
+            select all frames and stack them along a new axis.
 
-        def _close(self):
-            # The file should be closed by `self.request`
-            pass
+        Returns
+        -------
+        A Numpy array of pixel values.
 
-        def _init_meta_data_pre_v3(self):
-            self._meta = self._parse_header(Spec.metadata)
+        """
 
-            nr = self._meta.pop("NumROI", None)
-            nr = 1 if nr < 1 else nr
-            self._meta["ROIs"] = roi_array_to_dict(self._meta["ROIs"][:nr])
+        if index is Ellipsis:
+            read_offset = Spec.data_start
+            count = self._shape[0] * self._shape[1] * self._len
+            out_shape = (self._len, *self._shape)
+        elif index < 0:
+            raise IndexError(f"Index `{index}` is smaller than 0.")
+        elif index >= self._len:
+            raise IndexError(
+                f"Index `{index}` exceeds the number of frames stored in this file (`{self._len}`)."
+            )
+        else:
+            read_offset = (
+                Spec.data_start
+                + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
+            )
+            count = self._shape[0] * self._shape[1]
+            out_shape = self._shape
 
-            # chip sizes
-            self._meta["chip_size"] = [
-                self._meta.pop("xDimDet", None),
-                self._meta.pop("yDimDet", None),
-            ]
-            self._meta["virt_chip_size"] = [
-                self._meta.pop("VChipXdim", None),
-                self._meta.pop("VChipYdim", None),
-            ]
-            self._meta["pre_pixels"] = [
-                self._meta.pop("XPrePixels", None),
-                self._meta.pop("YPrePixels", None),
-            ]
-            self._meta["post_pixels"] = [
-                self._meta.pop("XPostPixels", None),
-                self._meta.pop("YPostPixels", None),
-            ]
+        self._file.seek(read_offset)
+        data = np.fromfile(self._file, dtype=self._dtype, count=count)
+        return data.reshape(out_shape)
 
-            # comments
-            self._meta["comments"] = [str(c) for c in self._meta["comments"]]
+    def iter(self) -> Iterator[np.ndarray]:
+        """Iterate over the frames in the file
 
-            # geometric operations
-            g = []
-            f = self._meta.pop("geometric", 0)
-            if f & 1:
-                g.append("rotate")
-            if f & 2:
-                g.append("reverse")
-            if f & 4:
-                g.append("flip")
-            self._meta["geometric"] = g
+        Yields
+        ------
+        A Numpy array of pixel values.
+        """
 
-            # Make some additional information more human-readable
-            t = self._meta["type"]
-            if 1 <= t <= len(Spec.controllers):
-                self._meta["type"] = Spec.controllers[t - 1]
-            else:
-                self._meta["type"] = ""
-            m = self._meta["readout_mode"]
-            if 1 <= m <= len(Spec.readout_modes):
-                self._meta["readout_mode"] = Spec.readout_modes[m - 1]
-            else:
-                self._meta["readout_mode"] = ""
+        return (self.read(index=i) for i in range(self._len))
 
-            # bools
-            for k in (
-                "absorb_live",
-                "can_do_virtual_chip",
-                "threshold_min_live",
-                "threshold_max_live",
-            ):
-                self._meta[k] = bool(self._meta[k])
+    def metadata(
+        self,
+        index: int = ...,
+        exclude_applied: bool = True,
+        char_encoding: str = "latin1",
+        sdt_control: bool = True,
+    ) -> Dict[str, Any]:
+        """SPE specific metadata.
 
-            # frame shape
-            self._meta["frame_shape"] = self._shape
+        Parameters
+        ----------
+        index : int
+            Ignored as SPE files only store global metadata.
+        exclude_applied : bool
+            Ignored. Exists for API compatibility.
+        char_encoding : str
+            The encoding to use when parsing strings.
+        sdt_control : bool
+            If `True`, decode special metadata written by the
+            SDT-control software if present.
 
-            # Extract SDT-control metadata if desired
-            if self._sdt_meta:
-                SDTControlSpec.extract_metadata(self._meta, self._char_encoding)
+        Returns
+        -------
+        metadata : dict
+            Key-value pairs of metadata.
 
-        def _parse_header(self, spec):
-            ret = {}
-            # Decode each string from the numpy array read by np.fromfile
-            decode = np.vectorize(lambda x: x.decode(self._char_encoding))
+        Notes
+        -----
+        SPE v3 stores metadata as XML, whereas SPE v2 uses a binary format.
 
-            for name, sp in spec.items():
-                self._file.seek(sp[0])
-                cnt = 1 if len(sp) < 3 else sp[2]
-                v = np.fromfile(self._file, dtype=sp[1], count=cnt)
-                if v.dtype.kind == "S" and name not in Spec.no_decode:
-                    # Silently ignore string decoding failures
-                    try:
-                        v = decode(v)
-                    except Exception:
-                        logger.warning(
-                            'Failed to decode "{}" metadata '
-                            "string. Check `char_encoding` "
-                            "parameter.".format(name)
-                        )
+        .. rubric:: Supported SPE v2 Metadata fields
 
+        ROIs : list of dict
+            Regions of interest used for recording images. Each dict has the
+            "top_left" key containing x and y coordinates of the top left corner,
+            the "bottom_right" key with x and y coordinates of the bottom right
+            corner, and the "bin" key with number of binned pixels in x and y
+            directions.
+        comments : list of str
+            The SPE format allows for 5 comment strings of 80 characters each.
+        controller_version : int
+            Hardware version
+        logic_output : int
+            Definition of output BNC
+        amp_hi_cap_low_noise : int
+            Amp switching mode
+        mode : int
+            Timing mode
+        exp_sec : float
+            Alternative exposure in seconds
+        date : str
+            Date string
+        detector_temp : float
+            Detector temperature
+        detector_type : int
+            CCD / diode array type
+        st_diode : int
+            Trigger diode
+        delay_time : float
+            Used with async mode
+        shutter_control : int
+            Normal, disabled open, or disabled closed
+        absorb_live : bool
+            on / off
+        absorb_mode : int
+            Reference strip or file
+        can_do_virtual_chip : bool
+            True or False whether chip can do virtual chip
+        threshold_min_live : bool
+            on / off
+        threshold_min_val : float
+            Threshold minimum value
+        threshold_max_live : bool
+            on / off
+        threshold_max_val : float
+            Threshold maximum value
+        time_local : str
+            Experiment local time
+        time_utc : str
+            Experiment UTC time
+        adc_offset : int
+            ADC offset
+        adc_rate : int
+            ADC rate
+        adc_type : int
+            ADC type
+        adc_resolution : int
+            ADC resolution
+        adc_bit_adjust : int
+            ADC bit adjust
+        gain : int
+            gain
+        sw_version : str
+            Version of software which created this file
+        spare_4 : bytes
+            Reserved space
+        readout_time : float
+            Experiment readout time
+        type : str
+            Controller type
+        clockspeed_us : float
+            Vertical clock speed in microseconds
+        readout_mode : ["full frame", "frame transfer", "kinetics", ""]
+            Readout mode. Empty string means that this was not set by the
+            Software.
+        window_size : int
+            Window size for Kinetics mode
+        file_header_ver : float
+            File header version
+        chip_size : [int, int]
+            x and y dimensions of the camera chip
+        virt_chip_size : [int, int]
+            Virtual chip x and y dimensions
+        pre_pixels : [int, int]
+            Pre pixels in x and y dimensions
+        post_pixels : [int, int],
+            Post pixels in x and y dimensions
+        geometric : list of {"rotate", "reverse", "flip"}
+            Geometric operations
+        sdt_major_version : int
+            (only for files created by SDT-control)
+            Major version of SDT-control software
+        sdt_minor_version : int
+            (only for files created by SDT-control)
+            Minor version of SDT-control software
+        sdt_controller_name : str
+            (only for files created by SDT-control)
+            Controller name
+        exposure_time : float
+            (only for files created by SDT-control)
+            Exposure time in seconds
+        color_code : str
+            (only for files created by SDT-control)
+            Color channels used
+        detection_channels : int
+            (only for files created by SDT-control)
+            Number of channels
+        background_subtraction : bool
+            (only for files created by SDT-control)
+            Whether background subtraction war turned on
+        em_active : bool
+            (only for files created by SDT-control)
+            Whether EM was turned on
+        em_gain : int
+            (only for files created by SDT-control)
+            EM gain
+        modulation_active : bool
+            (only for files created by SDT-control)
+            Whether laser modulation (“attenuate”) was turned on
+        pixel_size : float
+            (only for files created by SDT-control)
+            Camera pixel size
+        sequence_type : str
+            (only for files created by SDT-control)
+            Type of sequnce (standard, TOCCSL, arbitrary, …)
+        grid : float
+            (only for files created by SDT-control)
+            Sequence time unit (“grid size”) in seconds
+        n_macro : int
+            (only for files created by SDT-control)
+            Number of macro loops
+        delay_macro : float
+            (only for files created by SDT-control)
+            Time between macro loops in seconds
+        n_mini : int
+            (only for files created by SDT-control)
+            Number of mini loops
+        delay_mini : float
+            (only for files created by SDT-control)
+            Time between mini loops in seconds
+        n_micro : int (only for files created by SDT-control)
+            Number of micro loops
+        delay_micro : float (only for files created by SDT-control)
+            Time between micro loops in seconds
+        n_subpics : int
+            (only for files created by SDT-control)
+            Number of sub-pictures
+        delay_shutter : float
+            (only for files created by SDT-control)
+            Camera shutter delay in seconds
+        delay_prebleach : float
+            (only for files created by SDT-control)
+            Pre-bleach delay in seconds
+        bleach_time : float
+            (only for files created by SDT-control)
+            Bleaching time in seconds
+        recovery_time : float
+            (only for files created by SDT-control)
+            Recovery time in seconds
+        comment : str
+            (only for files created by SDT-control)
+            User-entered comment. This replaces the "comments" field.
+        datetime : datetime.datetime
+            (only for files created by SDT-control)
+            Combines the "date" and "time_local" keys. The latter two plus
+            "time_utc" are removed.
+        modulation_script : str
+            (only for files created by SDT-control)
+            Laser modulation script. Replaces the "spare_4" key.
+        """
+
+        if self._file_header_ver < 3:
+            if self._char_encoding is not None:
+                char_encoding = self._char_encoding
+            if self._sdt_meta is not None:
+                sdt_control = self._sdt_meta
+            return self._metadata_pre_v3(char_encoding, sdt_control)
+        return self._metadata_post_v3()
+
+    def _metadata_pre_v3(self, char_encoding: str, sdt_control: bool) -> Dict[str, Any]:
+        """Extract metadata from SPE v2 files
+
+        Parameters
+        ----------
+        char_encoding
+            String character encoding
+        sdt_control
+            If `True`, try to decode special metadata written by the
+            SDT-control software.
+
+        Returns
+        -------
+        dict mapping metadata names to values.
+
+        """
+
+        m = self._parse_header(Spec.metadata, char_encoding)
+
+        nr = m.pop("NumROI", None)
+        nr = 1 if nr < 1 else nr
+        m["ROIs"] = roi_array_to_dict(m["ROIs"][:nr])
+
+        # chip sizes
+        m["chip_size"] = [m.pop(k, None) for k in ("xDimDet", "yDimDet")]
+        m["virt_chip_size"] = [m.pop(k, None) for k in ("VChipXdim", "VChipYdim")]
+        m["pre_pixels"] = [m.pop(k, None) for k in ("XPrePixels", "YPrePixels")]
+        m["post_pixels"] = [m.pop(k, None) for k in ("XPostPixels", "YPostPixels")]
+
+        # convert comments from numpy.str_ to str
+        m["comments"] = [str(c) for c in m["comments"]]
+
+        # geometric operations
+        g = []
+        f = m.pop("geometric", 0)
+        if f & 1:
+            g.append("rotate")
+        if f & 2:
+            g.append("reverse")
+        if f & 4:
+            g.append("flip")
+        m["geometric"] = g
+
+        # Make some additional information more human-readable
+        t = m["type"]
+        if 1 <= t <= len(Spec.controllers):
+            m["type"] = Spec.controllers[t - 1]
+        else:
+            m["type"] = None
+        r = m["readout_mode"]
+        if 1 <= r <= len(Spec.readout_modes):
+            m["readout_mode"] = Spec.readout_modes[r - 1]
+        else:
+            m["readout_mode"] = None
+
+        # bools
+        for k in (
+            "absorb_live",
+            "can_do_virtual_chip",
+            "threshold_min_live",
+            "threshold_max_live",
+        ):
+            m[k] = bool(m[k])
+
+        # Extract SDT-control metadata if desired
+        if sdt_control:
+            SDTControlSpec.extract_metadata(m, char_encoding)
+
+        return m
+
+    def _metadata_post_v3(self) -> Dict[str, Any]:
+        """Extract XML metadata from SPE v3 files
+
+        Returns
+        -------
+        dict with key `"__xml"`, whose value is the XML metadata
+        """
+
+        info = self._parse_header(Spec.basic, "latin1")
+        self._file.seek(info["xml_footer_offset"])
+        xml = self._file.read()
+        return {"__xml": xml}
+
+    def properties(self, index: int = ...) -> ImageProperties:
+        """Standardized ndimage metadata.
+
+        Parameters
+        ----------
+        index : int
+            If the index is an integer, select the index-th frame and return
+            its properties. If index is an Ellipsis (...), return the
+            properties of all frames in the file stacked along a new batch
+            dimension.
+
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+        """
+
+        if index is Ellipsis:
+            return ImageProperties(
+                shape=(self._len, *self._shape),
+                dtype=self._dtype,
+                n_images=self._len,
+                is_batch=True,
+            )
+        return ImageProperties(shape=self._shape, dtype=self._dtype, is_batch=False)
+
+    def _parse_header(
+        self, spec: Mapping[str, Tuple], char_encoding: str
+    ) -> Dict[str, Any]:
+        """Get information from SPE file header
+
+        Parameters
+        ----------
+        spec
+            Maps header entry name to its location, data type description and
+            optionally number of entries. See :py:attr:`Spec.basic` and
+            :py:attr:`Spec.metadata`.
+        char_encoding
+            String character encoding
+
+        Returns
+        -------
+        Dict mapping header entry name to its value
+        """
+
+        ret = {}
+        # Decode each string from the numpy array read by np.fromfile
+        decode = np.vectorize(lambda x: x.decode(char_encoding))
+
+        for name, sp in spec.items():
+            self._file.seek(sp[0])
+            cnt = 1 if len(sp) < 3 else sp[2]
+            v = np.fromfile(self._file, dtype=sp[1], count=cnt)
+            if v.dtype.kind == "S" and name not in Spec.no_decode:
+                # Silently ignore string decoding failures
                 try:
-                    # For convenience, if the array contains only one single
-                    # entry, return this entry itself.
-                    v = v.item()
-                except ValueError:
-                    v = np.squeeze(v)
-                ret[name] = v
-            return ret
+                    v = decode(v)
+                except Exception:
+                    logger.warning(
+                        f'Failed to decode "{name}" metadata '
+                        "string. Check `char_encoding` parameter."
+                    )
 
-        def _init_meta_data_post_v3(self):
-            info = self._parse_header(Spec.basic)
-            self._file.seek(info["xml_footer_offset"])
-            xml = self._file.read()
-            self._meta = {"__xml": xml}
-
-        def _get_length(self):
-            if self.request.mode[1] in "vV":
-                return 1
-            else:
-                return self._len
-
-        def _get_data(self, index):
-            if index < 0:
-                raise IndexError("Image index %i < 0" % index)
-            if index >= self._len:
-                raise IndexError("Image index %i > %i" % (index, self._len))
-
-            if self.request.mode[1] in "vV":
-                if index != 0:
-                    raise IndexError("Index has to be 0 in v and V modes")
-                self._file.seek(Spec.data_start)
-                data = np.fromfile(
-                    self._file,
-                    dtype=self._dtype,
-                    count=self._shape[0] * self._shape[1] * self._len,
-                )
-                data = data.reshape((self._len,) + self._shape)
-            else:
-                self._file.seek(
-                    Spec.data_start
-                    + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
-                )
-                data = np.fromfile(
-                    self._file, dtype=self._dtype, count=self._shape[0] * self._shape[1]
-                )
-                data = data.reshape(self._shape)
-            return data, self._get_meta_data(index)
+            try:
+                # For convenience, if the array contains only one single
+                # entry, return this entry itself.
+                v = v.item()
+            except ValueError:
+                v = np.squeeze(v)
+            ret[name] = v
+        return ret
 
 
-def roi_array_to_dict(a):
+def roi_array_to_dict(a: np.ndarray) -> List[Dict[str, List[int]]]:
     """Convert the `ROIs` structured arrays to :py:class:`dict`
 
     Parameters
     ----------
-    a : numpy.ndarray:
+    a
         Structured array containing ROI data
 
     Returns
     -------
-    list of dict
-        One dict per ROI. Keys are "top_left", "bottom_right", and "bin",
-        values are tuples whose first element is the x axis value and the
-        second element is the y axis value.
+    One dict per ROI. Keys are "top_left", "bottom_right", and "bin",
+    values are tuples whose first element is the x axis value and the
+    second element is the y axis value.
     """
+
     dict_list = []
     a = a[["startx", "starty", "endx", "endy", "groupx", "groupy"]]
     for sx, sy, ex, ey, gx, gy in a:
