@@ -88,14 +88,15 @@ def test_metadata(test_images, tmp_path):
         assert md.get("sdt_minor_version") == 18
         assert isinstance(md.get("modulation_script"), str)
         assert md.get("sequence_type") == "standard"
+        assert "bleach_piezo_active" not in md
 
     patched = tmp_path / fname.name
     shutil.copy(fname, patched)
     with patched.open("r+b") as f:
-        # Set SDT-control comment version to 0400. In this case, comments
-        # should not be parsed.
-        f.seek(597)
-        f.write(b"4")
+        # Scramble "COMVER" in the comments. In this case, SDT-control metadata
+        # should not be extracted.
+        f.seek(595)
+        f.write(b"x")
         # Add something to `geometric`
         f.seek(600)
         f.write(struct.pack("<H", 7))
@@ -107,7 +108,7 @@ def test_metadata(test_images, tmp_path):
         f.write(struct.pack("<H", 2))
 
     patched_cmt = cmt.copy()
-    patched_cmt[4] = patched_cmt[4].replace("COMVER0500", "COMVER0400")
+    patched_cmt[4] = patched_cmt[4].replace("COMVER0500", "COMVEx0500")
 
     patched_meta = iio.immeta(patched, sdt_control=True)
     # Parsing any SDT-control metadata should fail
@@ -152,6 +153,21 @@ def test_metadata(test_images, tmp_path):
 
     shutil.copy(fname, patched)
     with patched.open("r+b") as f:
+        # Scramble version numbers following "COMVER" in the comments. In this
+        # case, SDT-control metadata should not be extracted.
+        f.seek(597)
+        f.write(b"x")
+
+    patched_cmt = cmt.copy()
+    patched_cmt[4] = patched_cmt[4].replace("COMVER0500", "COMVER0x00")
+
+    patched_meta = iio.immeta(patched, sdt_control=True)
+    # Parsing any SDT-control metadata should fail
+    assert patched_meta.get("comments") == patched_cmt
+    assert "delay_shutter" not in patched_meta
+
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
         # Create a fake SPE v3 file
         f.seek(1992)
         f.write(struct.pack("<f", 3.0))
@@ -163,6 +179,14 @@ def test_metadata(test_images, tmp_path):
 
     patched_meta = iio.immeta(patched)
     assert patched_meta == {"__xml": b"Here could be your XML."}
+
+
+def test_sdtcontrol_v0501(test_images):
+    md = iio.immeta(test_images / "test_v0501_000_.SPE")
+    assert md.get("bleach_piezo_active") is False
+    assert md.get("sdt_major_version") == 3
+    assert md.get("sdt_minor_version") == 4
+    assert md.get("datetime") == datetime(2023, 5, 3, 15, 13, 16)
 
 
 def test_properties(test_images, tmp_path):

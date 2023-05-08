@@ -253,38 +253,43 @@ class SDTControlSpec:
             self.cvt = cvt
             self.scale = scale
 
-    comments = {
-        "sdt_major_version": CommentDesc(4, slice(66, 68), int),
-        "sdt_minor_version": CommentDesc(4, slice(68, 70), int),
-        "sdt_controller_name": CommentDesc(4, slice(0, 6), str),
-        "exposure_time": CommentDesc(1, slice(64, 73), float, 10**-6),
-        "color_code": CommentDesc(4, slice(10, 14), str),
-        "detection_channels": CommentDesc(4, slice(15, 16), int),
-        "background_subtraction": CommentDesc(4, 14, lambda x: x == "B"),
-        "em_active": CommentDesc(4, 32, lambda x: x == "E"),
-        "em_gain": CommentDesc(4, slice(28, 32), int),
-        "modulation_active": CommentDesc(4, 33, lambda x: x == "A"),
-        "pixel_size": CommentDesc(4, slice(25, 28), float, 0.1),
-        "sequence_type": CommentDesc(
-            4, slice(6, 10), lambda x: __class__.sequence_types[x]
-        ),
-        "grid": CommentDesc(4, slice(16, 25), float, 10**-6),
-        "n_macro": CommentDesc(1, slice(0, 4), int),
-        "delay_macro": CommentDesc(1, slice(10, 19), float, 10**-3),
-        "n_mini": CommentDesc(1, slice(4, 7), int),
-        "delay_mini": CommentDesc(1, slice(19, 28), float, 10**-6),
-        "n_micro": CommentDesc(1, slice(7, 10), int),
-        "delay_micro": CommentDesc(1, slice(28, 37), float, 10**-6),
-        "n_subpics": CommentDesc(1, slice(7, 10), int),
-        "delay_shutter": CommentDesc(1, slice(73, 79), float, 10**-6),
-        "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10**-6),
-        "bleach_time": CommentDesc(1, slice(46, 55), float, 10**-6),
-        "recovery_time": CommentDesc(1, slice(55, 64), float, 10**-6),
+    comment_fields = {
+        (5, 0): {
+            "sdt_major_version": CommentDesc(4, slice(66, 68), int),
+            "sdt_minor_version": CommentDesc(4, slice(68, 70), int),
+            "sdt_controller_name": CommentDesc(4, slice(0, 6), str),
+            "exposure_time": CommentDesc(1, slice(64, 73), float, 10**-6),
+            "color_code": CommentDesc(4, slice(10, 14), str),
+            "detection_channels": CommentDesc(4, slice(15, 16), int),
+            "background_subtraction": CommentDesc(4, 14, lambda x: x == "B"),
+            "em_active": CommentDesc(4, 32, lambda x: x == "E"),
+            "em_gain": CommentDesc(4, slice(28, 32), int),
+            "modulation_active": CommentDesc(4, 33, lambda x: x == "A"),
+            "pixel_size": CommentDesc(4, slice(25, 28), float, 0.1),
+            "sequence_type": CommentDesc(
+                4, slice(6, 10), lambda x: __class__.sequence_types[x]
+            ),
+            "grid": CommentDesc(4, slice(16, 25), float, 10**-6),
+            "n_macro": CommentDesc(1, slice(0, 4), int),
+            "delay_macro": CommentDesc(1, slice(10, 19), float, 10**-3),
+            "n_mini": CommentDesc(1, slice(4, 7), int),
+            "delay_mini": CommentDesc(1, slice(19, 28), float, 10**-6),
+            "n_micro": CommentDesc(1, slice(7, 10), int),
+            "delay_micro": CommentDesc(1, slice(28, 37), float, 10**-6),
+            "n_subpics": CommentDesc(1, slice(7, 10), int),
+            "delay_shutter": CommentDesc(1, slice(73, 79), float, 10**-6),
+            "delay_prebleach": CommentDesc(1, slice(37, 46), float, 10**-6),
+            "bleach_time": CommentDesc(1, slice(46, 55), float, 10**-6),
+            "recovery_time": CommentDesc(1, slice(55, 64), float, 10**-6),
+        },
+        (5, 1): {
+            "bleach_piezo_active": CommentDesc(4, slice(34, 35), lambda x: x == "z")
+        },
     }
 
     @staticmethod
-    def parse_comments(comments: Sequence[str]) -> Union[Dict, None]:
-        """Extract SDT-control metadata from comments
+    def get_comment_version(comments: Sequence[str]) -> Tuple[int, int]:
+        """Get the version of SDT-control metadata encoded in the comments
 
         Parameters
         ----------
@@ -293,26 +298,47 @@ class SDTControlSpec:
 
         Returns
         -------
-        If SDT-control comments were detected, return a dict of metadata, else
-        `None`.
+        Major and minor version. ``-1, -1`` if detection failed.
+        """
+        if comments[4][70:76] != "COMVER":
+            return -1, -1
+        try:
+            return int(comments[4][76:78]), int(comments[4][78:80])
+        except ValueError:
+            return -1, -1
+
+    @staticmethod
+    def parse_comments(
+        comments: Sequence[str], version: Tuple[int, int]
+    ) -> Dict[str, Any]:
+        """Extract SDT-control metadata from comments
+
+        Parameters
+        ----------
+        comments
+            List of SPE file comments, typically ``metadata["comments"]``.
+        version
+            Major and minor version of SDT-control metadata format
+
+        Returns
+        -------
+        Dict of metadata
         """
         sdt_md = {}
-        if comments[4][70:] != "COMVER0500":
-            logger.debug("SDT-control comments not found.")
-            return None
-
-        sdt_md = {}
-        for name, spec in SDTControlSpec.comments.items():
-            try:
-                v = spec.cvt(comments[spec.n][spec.slice])
-                if spec.scale is not None:
-                    v *= spec.scale
-                sdt_md[name] = v
-            except Exception as e:
-                logger.debug(
-                    f"Failed to decode SDT-control metadata field `{name}`: {e}"
-                )
-                sdt_md[name] = None
+        for (major, minor), cmt in __class__.comment_fields.items():
+            if major != version[0] or minor > version[1]:
+                continue
+            for name, spec in cmt.items():
+                try:
+                    v = spec.cvt(comments[spec.n][spec.slice])
+                    if spec.scale is not None:
+                        v *= spec.scale
+                    sdt_md[name] = v
+                except Exception as e:
+                    logger.debug(
+                        f"Failed to decode SDT-control metadata field `{name}`: {e}"
+                    )
+                    sdt_md[name] = None
         comment = comments[0] + comments[2]
         sdt_md["comment"] = comment.strip()
         return sdt_md
@@ -359,10 +385,12 @@ class SDTControlSpec:
         char_encoding
             Character encoding used to decode strings in the metadata.
         """
-        sdt_meta = __class__.parse_comments(meta["comments"])
-        if not sdt_meta:
+        comver = __class__.get_comment_version(meta["comments"])
+        if any(c < 0 for c in comver):
+            logger.debug("SDT-control comments not found.")
             return
-        # This file has SDT-control metadata
+
+        sdt_meta = __class__.parse_comments(meta["comments"], comver)
         meta.pop("comments")
         meta.update(sdt_meta)
 
@@ -718,6 +746,9 @@ class SpePlugin(PluginV3):
         modulation_script : str
             (only for files created by SDT-control)
             Laser modulation script. Replaces the "spare_4" key.
+        bleach_piezo_active : bool
+            (only for files created by SDT-control)
+            Whether piezo for bleaching was enabled
         """
 
         if self._file_header_ver < 3:
