@@ -79,8 +79,7 @@ def test_kwarg_forwarding(tmp_path):
     assert imgs.shape == (10, 100, 100, 3)
 
     with iio.get_reader(tmp_path / "tmp.gif", pilmode="L") as file:
-        with pytest.warns(DeprecationWarning):
-            img = file.get_next_data()
+        img = file.get_next_data()
 
         assert img.shape == (100, 100)
         assert img.meta["duration"] == 1000

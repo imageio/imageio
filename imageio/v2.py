@@ -250,7 +250,7 @@ def is_volume(ndimage):
 # Base functions that return a reader/writer
 
 
-def get_reader(uri, format=None, mode="?", **kwargs):
+def get_reader(uri, format=None, mode="?", pilmode=None, **kwargs):
     """get_reader(uri, format=None, mode='?', **kwargs)
 
     Returns a :class:`.Reader` object which can be used to read data
@@ -268,6 +268,8 @@ def get_reader(uri, format=None, mode="?", **kwargs):
         Used to give the reader a hint on what the user expects (default "?"):
         "i" for an image, "I" for multiple images, "v" for a volume,
         "V" for multiple volumes, "?" for don't care.
+    pilmode : str
+        Used to provide mode parameter that need to be passed to the reader
     kwargs : ...
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
@@ -277,6 +279,9 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     imopen_args["legacy_mode"] = True
 
     image_file = imopen(uri, "r" + mode, **imopen_args)
+
+    if pilmode is not None:
+        kwargs["mode"] = pilmode
 
     if isinstance(image_file, LegacyPlugin):
         return image_file.legacy_get_reader(**kwargs)
