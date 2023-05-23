@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.29.0 (2023-05-23)
+### Feature
+* New SPE v3 plugin (see #963) ([#990](https://github.com/imageio/imageio/issues/990)) ([`6703b2c`](https://github.com/imageio/imageio/commit/6703b2c526e72cf39a2be76038bc47b7527155d5))
+
 ## v2.28.1 (2023-05-01)
 ### Fix
 * Avoid exception when n_frames is not set by Pillow ([`d03db0f`](https://github.com/imageio/imageio/commit/d03db0f86016fedfe3f225d468609babcc0a81cb))
