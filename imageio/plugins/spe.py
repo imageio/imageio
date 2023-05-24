@@ -325,8 +325,14 @@ class SDTControlSpec:
         Dict of metadata
         """
         sdt_md = {}
-        for (major, minor), cmt in __class__.comment_fields.items():
-            if major != version[0] or minor > version[1]:
+        for minor in range(version[1] + 1):
+            # Metadata with same major version is backwards compatible.
+            # Fields are specified incrementally in `comment_fields`.
+            # E.g. if the file has version 5.01, `comment_fields[5, 0]` and
+            # `comment_fields[5, 1]` need to be decoded.
+            try:
+                cmt = __class__.comment_fields[version[0], minor]
+            except KeyError:
                 continue
             for name, spec in cmt.items():
                 try:
