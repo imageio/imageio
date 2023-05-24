@@ -341,10 +341,19 @@ class SDTControlSpec:
                         v *= spec.scale
                     sdt_md[name] = v
                 except Exception as e:
-                    logger.debug(
+                    warnings.warn(
                         f"Failed to decode SDT-control metadata field `{name}`: {e}"
                     )
                     sdt_md[name] = None
+        if version not in __class__.comment_fields:
+            supported_ver = ", ".join(
+                map(lambda x: f"{x[0]}.{x[1]:02}", __class__.comment_fields)
+            )
+            warnings.warn(
+                f"Unsupported SDT-control metadata version {version[0]}.{version[1]:02}. "
+                f"Only versions {supported_ver} are supported. "
+                "Some or all SDT-control metadata may be missing."
+            )
         comment = comments[0] + comments[2]
         sdt_md["comment"] = comment.strip()
         return sdt_md
@@ -393,6 +402,7 @@ class SDTControlSpec:
         """
         comver = __class__.get_comment_version(meta["comments"])
         if any(c < 0 for c in comver):
+            # This file most likely was not created by SDT-control
             logger.debug("SDT-control comments not found.")
             return
 
@@ -412,7 +422,7 @@ class SDTControlSpec:
             meta["modulation_script"] = sp4.decode(char_encoding)
             meta.pop("spare_4")
         except UnicodeDecodeError:
-            logger.warning(
+            warnings.warn(
                 "Failed to decode SDT-control laser "
                 "modulation script. Bad char_encoding?"
             )
@@ -494,12 +504,9 @@ class SpePlugin(PluginV3):
                 line = data_end - Spec.data_start
                 line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
                 if line != self._len:
-                    logger.warning(
-                        "The file header of %s claims there are %s frames, "
-                        "but there are actually %s frames.",
-                        self.request.filename,
-                        self._len,
-                        line,
+                    warnings.warn(
+                        f"The file header of {self.request.filename} claims there are "
+                        f"{self._len} frames, but there are actually {line} frames."
                     )
                     self._len = min(line, self._len)
             self._file.seek(Spec.data_start)
@@ -906,7 +913,7 @@ class SpePlugin(PluginV3):
                 try:
                     v = decode(v)
                 except Exception:
-                    logger.warning(
+                    warnings.warn(
                         f'Failed to decode "{name}" metadata '
                         "string. Check `char_encoding` parameter."
                     )

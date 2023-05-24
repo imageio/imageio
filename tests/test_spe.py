@@ -133,7 +133,8 @@ def test_metadata(test_images, tmp_path):
         f.seek(690)
         f.write(b"\xff")
 
-    patched_meta = iio.immeta(patched, sdt_control=True, char_encoding="ascii")
+    with pytest.warns(UserWarning):
+        patched_meta = iio.immeta(patched, sdt_control=True, char_encoding="ascii")
     # Decoding `sequence_type` should fail
     assert patched_meta.get("sequence_type", "") is None
     # Decoding `date` and `time_local` into `datetime` should fail
@@ -168,6 +169,33 @@ def test_metadata(test_images, tmp_path):
 
     shutil.copy(fname, patched)
     with patched.open("r+b") as f:
+        # Set SDT-control metadata version to 6.00. No metadata should be
+        # extracted and there should be a warning.
+        f.seek(597)
+        f.write(b"6")
+
+    with pytest.warns(UserWarning):
+        patched_meta = iio.immeta(patched, sdt_control=True)
+    # Parsing any SDT-control metadata should fail, only comment should be there
+    assert patched_meta.get("comment") == "OD 1.0 in r, g"
+    assert "delay_shutter" not in patched_meta
+
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
+        # Set SDT-control metadata version to 5.99. Metadata should still be
+        # extracted, but there should be a warning
+        f.seek(599)
+        f.write(b"99")
+
+    with pytest.warns(UserWarning):
+        patched_meta = iio.immeta(patched, sdt_control=True)
+    assert patched_meta.get("delay_shutter") == pytest.approx(0.001)
+    assert patched_meta.get("delay_macro") == pytest.approx(0.048)
+    assert patched_meta.get("exposure_time") == pytest.approx(0.002)
+    assert patched_meta.get("comment") == "OD 1.0 in r, g"
+
+    shutil.copy(fname, patched)
+    with patched.open("r+b") as f:
         # Create a fake SPE v3 file
         f.seek(1992)
         f.write(struct.pack("<f", 3.0))
@@ -182,7 +210,8 @@ def test_metadata(test_images, tmp_path):
 
 
 def test_sdtcontrol_v0501(test_images):
-    md = iio.immeta(test_images / "test_v0501_000_.SPE")
+    fname = test_images / "test_v0501_000_.SPE"
+    md = iio.immeta(fname)
     assert md.get("bleach_piezo_active") is False
     assert md.get("sdt_major_version") == 3
     assert md.get("sdt_minor_version") == 4
@@ -218,10 +247,11 @@ def test_properties(test_images, tmp_path):
             ).n_images
             == 3
         )
-    with iio.imopen(patched, "r", check_filesize=True) as img:
-        assert (
-            img.properties(
-                index=...,
-            ).n_images
-            == 2
-        )
+    with pytest.warns():
+        with iio.imopen(patched, "r", check_filesize=True) as img:
+            assert (
+                img.properties(
+                    index=...,
+                ).n_images
+                == 2
+            )
