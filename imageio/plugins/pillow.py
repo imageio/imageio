@@ -286,22 +286,21 @@ class PillowPlugin(PluginV3):
 
             if sys.byteorder == "little":
                 desired_mode = "I;16"
-            else:
+            else: # pragma: no cover
+                # can't test big-endian in GH-Actions
                 desired_mode = "I;16B"
 
             try:
                 Image._getdecoder(desired_mode, "raw", "I;16B")
             except ValueError:
-                # pillow can't decode into 16-bit yet, use its 32-bit default
-                # instead and warn the user (has caused confusion in the past)
                 warnings.warn(
                     "Loading 16-bit (uint16) PNG as int32 due to limitations "
                     "in pillow's PNG decoder. This will be fixed in a future "
                     "version of pillow which will make this warning dissapear.",
                     UserWarning,
                 )
-            else:
-                # Let pillow know that it is okay to return 16-bit
+            else: # pragma: no cover
+                # Let pillow know that it is okay to return 16-bit 
                 image.mode = desired_mode
 
         image = np.asarray(image)
