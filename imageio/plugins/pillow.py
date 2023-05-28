@@ -286,7 +286,7 @@ class PillowPlugin(PluginV3):
 
             if sys.byteorder == "little":
                 desired_mode = "I;16"
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 # can't test big-endian in GH-Actions
                 desired_mode = "I;16B"
 
@@ -299,8 +299,8 @@ class PillowPlugin(PluginV3):
                     "version of pillow which will make this warning dissapear.",
                     UserWarning,
                 )
-            else: # pragma: no cover
-                # Let pillow know that it is okay to return 16-bit 
+            else:  # pragma: no cover
+                # Let pillow know that it is okay to return 16-bit
                 image.mode = desired_mode
 
         image = np.asarray(image)
