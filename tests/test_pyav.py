@@ -1,5 +1,4 @@
 import io
-import platform
 import warnings
 from contextlib import ExitStack
 from pathlib import Path
