@@ -20,7 +20,7 @@ IS_AV_10_0_0 = tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0)
 # the maintainer of pyAV hasn't responded to my bug reports in over 4 months so
 # I am disabling test on pypy to stay sane.
 if IS_PYPY:
-    pytest.skip("pyAV sometimes causes segfaults on Pypy.")
+    pytest.skip("pyAV sometimes causes segfaults on Pypy.", allow_module_level=True)
 
 
 def test_mp4_read(test_images: Path):
