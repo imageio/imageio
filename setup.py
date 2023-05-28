@@ -19,24 +19,12 @@ Release:
 """
 
 import os
-import os.path as op
-import sys
-import shutil
-from distutils.core import Command
-from distutils.command.sdist import sdist
-from distutils.command.build_py import build_py
 from itertools import chain
 
 try:
     from setuptools import setup  # Supports wheels
 except ImportError:
     from distutils.core import setup  # Supports anything else
-
-
-try:
-    from wheel.bdist_wheel import bdist_wheel
-except ImportError:
-    bdist_wheel = object
 
 
 name = "imageio"
@@ -87,89 +75,10 @@ for more information.
 
 # Prepare resources dir
 package_data = [
-    "resources/shipped_resources_go_here",
-    "resources/*.*",
-    "resources/images/*.*",
-    "resources/freeimage/*.*",
     "py.typed",
     "**/*.pyi",
     "*.pyi",
 ]
-
-
-def _set_crossplatform_resources(resource_dir):
-    import imageio
-
-    # Clear now
-    if op.isdir(resource_dir):
-        shutil.rmtree(resource_dir)
-    os.mkdir(resource_dir)
-    open(op.join(resource_dir, "shipped_resources_go_here"), "wb")
-
-    # Load images
-    for fname in [
-        "images/chelsea.png",
-        "images/chelsea.zip",
-        "images/astronaut.png",
-        "images/newtonscradle.gif",
-        "images/cockatoo.mp4",
-        "images/realshort.mp4",
-        "images/stent.npz",
-    ]:
-        imageio.core.get_remote_file(fname, resource_dir, force_download=True)
-
-
-def _set_platform_resources(resource_dir, platform):
-    import imageio
-
-    # Create file to show platform
-    assert platform
-    open(op.join(resource_dir, "platform_%s" % platform), "wb")
-
-    # Load freeimage
-    fname = imageio.plugins.freeimage.FNAME_PER_PLATFORM[platform]
-    imageio.core.get_remote_file(
-        "freeimage/" + fname, resource_dir, force_download=True
-    )
-
-
-class test_command(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        from imageio import testing
-
-        os.environ["IMAGEIO_NO_INTERNET"] = "1"  # run tests without inet
-        sys.exit(testing.test_unit())
-
-
-class build_with_fi(build_py):
-    def run(self):
-        # Download images and libs
-        import imageio
-
-        resource_dir = imageio.core.resource_dirs()[0]
-        _set_crossplatform_resources(resource_dir)
-        _set_platform_resources(resource_dir, imageio.core.get_platform())
-        # Build as  normal
-        build_py.run(self)
-
-
-class build_with_images(sdist):
-    def run(self):
-        # Download images
-        import imageio
-
-        resource_dir = imageio.core.resource_dirs()[0]
-        _set_crossplatform_resources(resource_dir)
-        # Build as  normal
-        sdist.run(self)
 
 
 # pinned to > 8.3.2 due to security vulnerability
@@ -199,7 +108,7 @@ cpython_only_plugins = {
 extras_require = {
     "build": ["wheel"],
     "linting": ["black", "flake8"],
-    "test": ["invoke", "pytest", "pytest-cov", "fsspec[github]"],
+    "test": ["pytest", "pytest-cov", "fsspec[github]"],
     "docs": ["sphinx<6", "numpydoc", "pydata-sphinx-theme"],
     **plugins,
     **cpython_only_plugins,
@@ -216,14 +125,6 @@ extras_require["all-plugins-pypy"] = sorted(set(chain(*plugins.values())))
 
 
 setup(
-    cmdclass={
-        # 'bdist_wheel_all': bdist_wheel_all,
-        # 'sdist_all': sdist_all,
-        "build_with_images": build_with_images,
-        "build_with_fi": build_with_fi,
-        "sdist": build_with_images,
-        "test": test_command,
-    },
     name=name,
     version=__version__,
     author="imageio contributors",

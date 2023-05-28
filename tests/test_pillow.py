@@ -540,6 +540,13 @@ def test_properties(image_files: Path):
     assert properties.dtype == np.uint8
     assert properties.n_images is None
 
+    # test an image format that doesn't have n_frames
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow")
+    assert properties.n_images is None
+
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow", index=...)
+    assert properties.n_images == 1
+
 
 def test_metadata(test_images):
     meta = iio.immeta(test_images / "newtonscradle.gif")
@@ -598,8 +605,8 @@ def test_apng_metadata(tmp_path, test_images):
     assert metadata == metadata2
 
 
-def test_write_format_warning():
-    frames = iio.imread("imageio:chelsea.png")
+def test_write_format_warning(test_images):
+    frames = iio.imread(test_images / "chelsea.png")
     bytes_image = iio.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
 
     with pytest.warns(UserWarning):

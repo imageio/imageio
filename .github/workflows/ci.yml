@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-      - name: Install Dependenceis
+      - name: Install Dependencies
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
             pip install -q --upgrade numpy pillow
@@ -63,7 +63,9 @@ jobs:
             rm -rf ./imageio ./build ./egg-info
       - name: Unit tests
         run: |
-            invoke test --installed
+            pytest -v -m "not needs_internet"
+        env:
+          IMAGEIO_NO_INTERNET: 1
 
   cpython:
     name: CPython Test Suite

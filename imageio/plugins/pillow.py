@@ -566,8 +566,9 @@ class PillowPlugin(PluginV3):
         height: int = self._image.height
         shape: Tuple[int, ...] = (height, width)
 
-        n_frames: int = self._image.n_frames
+        n_frames: Optional[int] = None
         if index is ...:
+            n_frames = getattr(self._image, "n_frames", 1)
             shape = (n_frames, *shape)
 
         dummy = np.asarray(Image.new(mode, (1, 1)))
@@ -578,6 +579,6 @@ class PillowPlugin(PluginV3):
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
-            n_images=n_frames if index is Ellipsis else None,
+            n_images=n_frames,
             is_batch=index is Ellipsis,
         )
