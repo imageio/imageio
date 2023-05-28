@@ -603,8 +603,8 @@ def test_apng_metadata(tmp_path, test_images):
     assert metadata == metadata2
 
 
-def test_write_format_warning():
-    frames = iio.imread("imageio:chelsea.png")
+def test_write_format_warning(test_images):
+    frames = iio.imread(test_images / "chelsea.png")
     bytes_image = iio.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
 
     with pytest.warns(UserWarning):
