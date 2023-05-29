@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.30.0 (2023-05-29)
+### Feature
+
+* SPE plugin: Support new SDT-control metadata ([#989](https://github.com/imageio/imageio/issues/989)) ([`c93536c`](https://github.com/imageio/imageio/commit/c93536ca403863db3270990911ff438b7cf1e047))
+
+### Other
+
+* Remove standard images from built package ([#988](https://github.com/imageio/imageio/issues/988)) ([`6288f19`](https://github.com/imageio/imageio/commit/6288f190103838b95203359eda2bce61afb7a958))
+
 ## v2.29.0 (2023-05-23)
 ### Feature
 * New SPE v3 plugin (see #963) ([#990](https://github.com/imageio/imageio/issues/990)) ([`6703b2c`](https://github.com/imageio/imageio/commit/6703b2c526e72cf39a2be76038bc47b7527155d5))
