@@ -181,7 +181,7 @@ class LegacyWriter:
 
         if (
             type(self.instance).__name__ == "PillowPlugin"
-            and kwargs.get("pilmode") is not None
+            and "pilmode" in kwargs
         ):
             kwargs["mode"] = kwargs["pilmode"]
             del kwargs["pilmode"]
