@@ -203,7 +203,7 @@ class PillowPlugin(PluginV3):
         if as_gray is not None:
             raise TypeError(
                 "The keyword `as_gray` is no longer supported."
-                "Use `mode='F'` fo a backwards-compatible result, or "
+                "Use `mode='F'` for a backward-compatible result, or "
                 " `mode='L'` for an integer-valued result."
             )
 
