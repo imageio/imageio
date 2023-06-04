@@ -112,6 +112,13 @@ class LegacyReader:
         self.last_index = 0
         self.closed = False
 
+        if (
+            type(self.instance).__name__ == "PillowPlugin"
+            and kwargs.get("pilmode") is not None
+        ):
+            kwargs["mode"] = kwargs["pilmode"]
+            del kwargs["pilmode"]
+
         self.read_args = kwargs
 
     def close(self):
@@ -171,6 +178,10 @@ class LegacyWriter:
         self.instance = plugin_instance
         self.last_index = 0
         self.closed = False
+
+        if type(self.instance).__name__ == "PillowPlugin" and "pilmode" in kwargs:
+            kwargs["mode"] = kwargs["pilmode"]
+            del kwargs["pilmode"]
 
         self.write_args = kwargs
 
