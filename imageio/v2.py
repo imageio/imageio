@@ -179,10 +179,7 @@ class LegacyWriter:
         self.last_index = 0
         self.closed = False
 
-        if (
-            type(self.instance).__name__ == "PillowPlugin"
-            and "pilmode" in kwargs
-        ):
+        if type(self.instance).__name__ == "PillowPlugin" and "pilmode" in kwargs:
             kwargs["mode"] = kwargs["pilmode"]
             del kwargs["pilmode"]
 
