@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.0 (2023-06-05)
+
+### Fix
+
+* Fix pilmode kwarg for get_reader/get_writer ([#994](https://github.com/imageio/imageio/issues/994)) ([`21039b2`](https://github.com/imageio/imageio/commit/21039b2b32e4d163b0a346d1953023757ef3c678))
+
+### Feature
+
+* Decode gray 16-bit PNG as uint16 (not int32) if pillow allows ([#987](https://github.com/imageio/imageio/issues/987)) ([`95bb89d`](https://github.com/imageio/imageio/commit/95bb89d2e8204fc0a970f15458644139a7ba89ac))
+
 ## v2.30.0 (2023-05-29)
 ### Feature
 
