@@ -383,7 +383,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (64, 64)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now check that macroblock size gets turned off if requested
     W = iio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
@@ -393,7 +393,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (106, 100)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now double check values different than default work
     W = iio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
@@ -403,7 +403,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (68, 64)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now check that the macroblock works as expected for the default of 16
     W = iio.get_writer(str(tmpf), ffmpeg_log_level="debug")
@@ -414,7 +414,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert W.count_frames() == nframes
     # Check for warning message with macroblock
     assert W._meta["size"] == (144, 112)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
 
 def test_writer_ffmpeg_params(tmpdir):
