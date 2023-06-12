@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.1 (2023-06-12)
+
+### Fix
+
+* Match ExIf orientation tag behavior to ExIf spec in pillow(#983) ([`953029b`](https://github.com/imageio/imageio/commit/953029bc3b434742263c82efb070046bcc2294aa))
+
 ## v2.31.0 (2023-06-05)
 
 ### Fix
