@@ -26,20 +26,20 @@ def test_exception_message_bytes():
 
 
 def test_ellipsis_index(test_images):
-    img = iio.v3.imread(test_images / "chelsea.png", plugin="pillow", index=...)
+    img = iio.v3.imread(test_images / "chelsea.png", plugin="PNG-PIL", index=...)
     assert img.shape == (1, 300, 451, 3)
 
     props = iio.v3.improps(
         test_images / "chelsea.png",
-        plugin="pillow",
+        plugin="PNG-PIL",
         index=...,
     )
     assert props.shape == (1, 300, 451, 3)
 
     metadata = iio.v3.immeta(
-        test_images / "chelsea.png", plugin="pillow", index=0, exclude_applied=False
+        test_images / "chelsea.png", plugin="PNG-PIL", index=0, exclude_applied=False
     )
-    assert metadata == {"mode": "RGB", "shape": (451, 300)}
+    assert metadata == {}
 
 
 def test_list_writing(test_images, tmp_path):
