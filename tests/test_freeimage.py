@@ -680,7 +680,8 @@ def test_gamma_correction(setup_library, test_images):
         assert im.shape == (512, 768, 3) and im.dtype == "uint8"
 
 
-def test_improps(test_images):
+@pytest.mark.needs_internet
+def test_improps(setup_library, test_images):
     props = iio3.improps(test_images / "kodim03.png", plugin="PNG-FI")
 
     assert props.shape == (512, 768, 3)
@@ -688,7 +689,8 @@ def test_improps(test_images):
     assert props.is_batch is False
 
 
-def test_exr_write():
+@pytest.mark.needs_internet
+def test_exr_write(setup_library):
     expected = np.full((128, 128, 3), 0.42, dtype=np.float32)
     buffer = iio3.imwrite("<bytes>", expected, extension=".exr")
 
