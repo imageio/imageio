@@ -11,8 +11,10 @@ import pytest
 from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from PIL import Image, ImageSequence, ImageOps  # type: ignore
+from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
 
+
+PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
 
 @pytest.mark.parametrize(
     "im_npy,im_out,im_comp",
@@ -97,9 +99,7 @@ def test_png_quantization(test_images, tmp_path):
 
 
 def test_png_16bit(test_images, tmp_path):
-    # 16b bit images
     im = np.load(test_images / "chelsea.npy")[..., 0]
-
     iio.imwrite(
         tmp_path / "1.png",
         2 * im.astype(np.uint16),
@@ -115,17 +115,15 @@ def test_png_16bit(test_images, tmp_path):
     im2 = iio.imread(tmp_path / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    with pytest.warns(UserWarning):
+    if PILLOW_VERSION >= (10, 0, 0):
         im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
+        assert im3.dtype == np.uint16
+    else:
+        # legacy behavior for pillow < v10.0.0
+        with pytest.warns(UserWarning):
+            im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
 
-    assert im3.dtype == np.int32
-
-
-# Note: There was a test here referring to issue #352 and a `prefer_uint8`
-# argument that was introduced as a consequence This argument was default=true
-# (for backwards compatibility) in the legacy plugin with the recommendation to
-# set it to False. In the new API, we literally just wrap Pillow, so we match
-# their behavior. Consequentially this test was removed.
+        assert im3.dtype == np.int32
 
 
 @pytest.mark.needs_internet
