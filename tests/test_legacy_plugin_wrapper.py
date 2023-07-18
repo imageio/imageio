@@ -39,7 +39,7 @@ def test_ellipsis_index(test_images):
     metadata = iio.v3.immeta(
         test_images / "chelsea.png", plugin="pillow", index=0, exclude_applied=False
     )
-    assert metadata == {'mode': 'RGB', 'shape': (451, 300)}
+    assert metadata == {"mode": "RGB", "shape": (451, 300)}
 
 
 def test_list_writing(test_images, tmp_path):

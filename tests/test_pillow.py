@@ -16,6 +16,7 @@ from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
 
 PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
 
+
 @pytest.mark.parametrize(
     "im_npy,im_out,im_comp",
     [
