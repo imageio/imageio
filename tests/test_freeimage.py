@@ -175,6 +175,7 @@ def test_get_ref_im():
             assert rim.shape[:2] == (41, 31)
 
 
+@pytest.mark.needs_internet
 def test_get_fi_lib(vendored_lib, tmp_userdir):
     from imageio.plugins._freeimage import get_freeimage_lib
 
@@ -209,6 +210,7 @@ def test_freeimage_format(setup_library, test_images, tmp_path):
     raises(RuntimeError, W.append_data, im0)
 
 
+@pytest.mark.needs_internet
 def test_freeimage_lib(setup_library):
     fi = imageio.plugins.freeimage.fi
 
@@ -290,6 +292,7 @@ def test_png(setup_library, test_images, tmp_path):
     raises(ValueError, iio.imsave, fname, im[:, :, 0], quantize=100)
 
 
+@pytest.mark.needs_internet
 def test_png_dtypes(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -328,6 +331,7 @@ def test_png_dtypes(setup_library, tmp_path):
     assert_close(im1, iio.imread(fname))  # scaled
 
 
+@pytest.mark.needs_internet
 def test_jpg(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -405,6 +409,7 @@ def test_jpg_more(setup_library, test_images, tmp_path):
     assert im.meta.EXIF_MAIN
 
 
+@pytest.mark.needs_internet
 def test_bmp(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -443,6 +448,7 @@ def test_bmp(setup_library, tmp_path):
     )
 
 
+@pytest.mark.needs_internet
 def test_gif(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -481,6 +487,7 @@ def test_gif(setup_library, tmp_path):
     sys.platform.startswith("darwin"),
     reason="On OSX quantization of freeimage is unstable",
 )
+@pytest.mark.needs_internet
 def test_animated_gif(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -556,6 +563,7 @@ def test_animated_gif(setup_library, tmp_path):
     assert isinstance(iio.read(fname).get_meta_data(), dict)
 
 
+@pytest.mark.needs_internet
 def test_ico(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -600,6 +608,7 @@ def test_ico(setup_library, tmp_path):
     platform.system() == "Windows",
     reason="Windows has a known issue with multi-icon files",
 )
+@pytest.mark.needs_internet
 def test_multi_icon_ico(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
@@ -617,6 +626,7 @@ def test_mng(setup_library, test_images):
     iio.imread(test_images / "mngexample.mng")
 
 
+@pytest.mark.needs_internet
 def test_pnm(setup_library, tmp_path):
     fnamebase = str(tmp_path / "test")
 
