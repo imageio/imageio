@@ -208,18 +208,21 @@ This section is a collection of notes and feedback that we got from other
 developers that were migrating to ImageIO V3, which might be useful to know
 while you are migrating your own code.
 
+- The old ``format`` kwarg has been deprecated in favor of ``plugin`` and
+  ``extension`` respectively. Use ``plugin`` to select the pluign/backend to use
+  and ``extension`` to select the file extension (aka. format).
 - The old pillow plugin used to ``np.squeeze`` the image before writing it. This
   has been removed in V3 to match pillows native behavior. A trailing axis with
   dimension 1, e.g., ``(256, 256, 1)`` will now raise an exception. (see `#842
   <https://github.com/imageio/imageio/issues/842>`_)
 - The old pillow plugin featured a kwarg called ``as_gray`` which would convert
   images to grayscale before returning them. This is redundant and has been
-  deprecated in favor of using ``mode="L"``, which matches pillow's native
-  kwarg.
-- The old pillow plugin used to make an internal copy when reading 16-bit
-  grayscale images from PNG. Pillow itself only offers limited support for
-  16-bit arrays and typicalls uses 32-bit arrays to handle 16-bit images. In v2
-  we changed the datatype internally and returned a 16-bit array. In v3 we avoid
-  this copy, due to its performance implications (see `#931
-  <https://github.com/imageio/imageio/issues/931>`_).
+  deprecated in favor of using ``mode="F"``(backwards compatible) or
+  ``mode="L"`` (integer result), which is pillow's native kwarg for controlling
+  the returned color space.
+- When reading 16-bit grayscale PNGs using pillow, the v2 pillow plugin used a
+  hardcoded copy to convert pillow's 32-bit result to 16-bit. We removed this
+  copy in v3, which means that you get a 32-bit result when using an older
+  version of pillow (pre v10). Starting with pillow v10, pillow can directly
+  decode into a 16-bit array resulting in a 16-bit result from ImageIO.
 
