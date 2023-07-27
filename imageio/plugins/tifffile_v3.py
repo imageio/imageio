@@ -6,7 +6,7 @@
 
         pip install tifffile
 
-This plugin wraps tifffile, a powerfull library to manipulate TIFF files. It
+This plugin wraps tifffile, a powerful library to manipulate TIFF files. It
 superseeds our previous tifffile plugin and aims to expose all the features of
 tifffile.
 
@@ -74,7 +74,7 @@ def _get_resolution(page):
         resolution_y = page.tags[283].value
         if resolution_x[1] == 0 or resolution_y[1] == 0:
             warnings.warn(
-                "Ignoring resulution metadata, "
+                "Ignoring resolution metadata, "
                 "because at least one direction has a 0 denominator.",
                 RuntimeWarning,
             )

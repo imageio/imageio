@@ -14,7 +14,7 @@ in pillows official docs (see the Backend Library link).
 Parameters for Reading
 ----------------------
 pilmode : str
-    (Available for all formates except GIF-PIL)
+    (Available for all formats except GIF-PIL)
     From the Pillow documentation:
 
     * 'L' (8-bit pixels, grayscale)
@@ -35,7 +35,7 @@ pilmode : str
 
         L = R * 299/1000 + G * 587/1000 + B * 114/1000
 as_gray : bool
-    (Available for all formates except GIF-PIL)
+    (Available for all formats except GIF-PIL)
     If True, the image is converted using mode 'F'. When `mode` is
     not None and `as_gray` is True, the image is first converted
     according to `mode`, and the result is then "flattened" using
@@ -693,7 +693,7 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         if mode != im.mode:
             frame = im.convert(mode)
     elif as_gray:
-        pass  # don't do any auto-conversions (but do the explit one above)
+        pass  # don't do any auto-conversions (but do the explicit one above)
     elif im.mode == "P" and is_gray:
         # Paletted images that are already gray by their palette
         # are converted so that the resulting numpy array is 2D.

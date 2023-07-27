@@ -2991,7 +2991,7 @@ class TiffPages(object):
 
     @property
     def cache(self):
-        """Return if pages/frames are currenly being cached."""
+        """Return if pages/frames are currently being cached."""
         return self._cache
 
     @cache.setter
@@ -3505,7 +3505,7 @@ class TiffPage(object):
             If False, the shape of the returned array might be different from
             the page.shape.
         lock : {RLock, NullContext}
-            A reentrant lock used to syncronize reads from file.
+            A reentrant lock used to synchronize reads from file.
             If None (default), the lock of the parent's filehandle is used.
         reopen : bool
             If True (default) and the parent file handle is closed, the file
@@ -5230,7 +5230,7 @@ class OpenFileCache(object):
                 self.past.append(filehandle)
 
     def close(self, filehandle):
-        """Close openend file if no longer used."""
+        """Close opened file if no longer used."""
         with self.lock:
             if filehandle in self.files:
                 self.files[filehandle] -= 1
@@ -8355,7 +8355,7 @@ def json_description(shape, **metadata):
 
 
 def json_description_metadata(description):
-    """Return metatata from JSON formated image description as dict.
+    """Return metatata from JSON formatted image description as dict.
 
     Raise ValuError if description is of unknown format.
 
@@ -9154,7 +9154,7 @@ def reshape_axes(axes, shape, newshape, unknown="Q"):
 def stack_pages(pages, out=None, maxworkers=1, *args, **kwargs):
     """Read data from sequence of TiffPage and stack them vertically.
 
-    Additional parameters are passsed to the TiffPage.asarray function.
+    Additional parameters are passed to the TiffPage.asarray function.
 
     """
     npages = len(pages)

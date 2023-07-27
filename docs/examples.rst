@@ -258,7 +258,7 @@ A little bit of explanation:
 
   * ``output_params``
   
-    * ``vaapi_device`` speficifies the encoding device that will be used.
+    * ``vaapi_device`` specifies the encoding device that will be used.
     * ``vf`` and ``format`` tell ffmpeg that it must upload to the dedicated
       hardware. Since vaapi only supports a subset of color formats, we ensure
       that the video is in either gray or nv12 before uploading it. The ``or``

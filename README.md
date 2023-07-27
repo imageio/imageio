@@ -60,7 +60,7 @@ See the <a href='https://imageio.readthedocs.io/en/stable/reference/index.html'>
     <li>Cross platform, runs on Windows, Linux, macOS</li>
     <li>More than 295 supported <a href='https://imageio.readthedocs.io/en/stable/formats/index.html'>formats</a></li>
     <li>Read/Write support for various <a href='https://imageio.readthedocs.io/en/stable/getting_started/requests.html'>resources</a> (files, URLs, bytes, FileLike objects, ...)</li>
-    <li>Code quality is maintained via continuous integration and continous deployment</li>
+    <li>Code quality is maintained via continuous integration and continuous deployment</li>
 </ul>
 
 
@@ -107,7 +107,7 @@ The maintainers of imageio and thousands of other packages are working with Tide
 
 <h2>Details</h2>
 <p>
-    The core of ImageIO is a set of user-facing APIs combined with a plugin manager. API calls choose sensible defaults and then call the plugin manager, which deduces the correct plugin/backend to use for the given resource and file format. The plugin manager then adds sensible backend-specific defaults and then calles one of ImageIOs many backends to perform the actual loading. This allows ImageIO to take care of most of the gory details of loading images for you, while still allowing you to customize the behavior when and where you need to. You can find a more detailed explanation of this process in <a href='https://imageio.readthedocs.io/en/stable/getting_started/overview.htmle'>our documentation</a>.
+    The core of ImageIO is a set of user-facing APIs combined with a plugin manager. API calls choose sensible defaults and then call the plugin manager, which deduces the correct plugin/backend to use for the given resource and file format. The plugin manager then adds sensible backend-specific defaults and then calls one of ImageIOs many backends to perform the actual loading. This allows ImageIO to take care of most of the gory details of loading images for you, while still allowing you to customize the behavior when and where you need to. You can find a more detailed explanation of this process in <a href='https://imageio.readthedocs.io/en/stable/getting_started/overview.htmle'>our documentation</a>.
 
 <h2>Contributing</h2>
 

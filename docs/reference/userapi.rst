@@ -109,7 +109,7 @@ Reading Images
 --------------
 
 `iio.imread` can now return a ndimage instead of being limited to flat images.
-As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarily,
+As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarly,
 `iio.mimread` and `iio.mvolread` have merged into a new function called
 `iio.imiter`, which returns a generator that yields ndimages from a file in the
 order in which they appear. Further, the default behavior of `iio.imread` has
@@ -135,7 +135,7 @@ Writing Images
 
 Similar to reading images, the new `iio.imwrite` can handle ndimages and lists
 of images, like ``iio.mimwrite`` and consorts. ``iio.mimwrite``,
-``iio.volwrite``, and ``iio.mvolwrite`` have all dissapeared. The same goes for
+``iio.volwrite``, and ``iio.mvolwrite`` have all disappeared. The same goes for
 their aliases ``iio.mimsave``, ``iio.volsave``, ``iio.mvolsave``, and
 ``iio.imsave``. They are now all covered by ``iio.imwrite``.
 
@@ -209,7 +209,7 @@ developers that were migrating to ImageIO V3, which might be useful to know
 while you are migrating your own code.
 
 - The old ``format`` kwarg has been deprecated in favor of ``plugin`` and
-  ``extension`` respectively. Use ``plugin`` to select the pluign/backend to use
+  ``extension`` respectively. Use ``plugin`` to select the plugin/backend to use
   and ``extension`` to select the file extension (aka. format).
 - The old pillow plugin used to ``np.squeeze`` the image before writing it. This
   has been removed in V3 to match pillows native behavior. A trailing axis with

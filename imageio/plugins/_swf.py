@@ -414,7 +414,7 @@ class DoActionTag(Tag):
             elif action == "play":  # pragma: no cover - not used
                 bb += "\x06".encode("ascii")
             else:  # pragma: no cover
-                logger.warning("unkown action: %s" % action)
+                logger.warning("unknown action: %s" % action)
 
         bb += int2uint8(0)
         self.bytes = bb

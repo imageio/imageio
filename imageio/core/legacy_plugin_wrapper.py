@@ -278,7 +278,7 @@ class LegacyPlugin(PluginV3):
             The index of the ndimage for which to return properties. If the
             index is out of bounds a ``ValueError`` is raised. If ``None``,
             return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            e.g., due to shape mismatch, an exception will be raised.
 
         Returns
         -------

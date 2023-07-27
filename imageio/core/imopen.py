@@ -150,7 +150,7 @@ def imopen(
         except Exception as generic_error:
             err_from = generic_error
             err_type = IOError
-            err_msg = f"An unknown error occured while initializing plugin `{plugin}`."
+            err_msg = f"An unknown error occurred while initializing plugin `{plugin}`."
 
         request.finish()
         raise err_type(err_msg) from err_from
