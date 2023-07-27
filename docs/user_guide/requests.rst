@@ -66,7 +66,7 @@ Web Servers (http/https)
 ------------------------
 
 .. note::
-    This is primarily intended for publically available ImageResources. If your
+    This is primarily intended for publicly available ImageResources. If your
     server requires authentication, you will have to download the ImageResource
     yourself before handing it over to ImageIO.
 
@@ -86,7 +86,7 @@ File Servers (ftp/ftps)
 -----------------------
 
 .. note::
-    This is primarily intended for publically available ImageResources. If your
+    This is primarily intended for publicly available ImageResources. If your
     server requires authentication, you will have to download the ImageResource
     yourself before handing it over to ImageIO.
 

@@ -39,7 +39,7 @@ A small doc PR is very quick and doesn't require any local setup on your end.
 All you need is a GitHub account. Here are the steps involved:
 
 1. Navigate to the page you wish to improve.
-2. Click on the "Edit this Page" button on the right side pannel.
+2. Click on the "Edit this Page" button on the right side panel.
 3. Make your changes to the file that opens.
 4. At the bottom of the page under "Commit Changes" choose a descriptive commit
    message (e.g., "fixed typo in examples").
@@ -253,15 +253,15 @@ a local setup will perform better in most situations::
 Do your changes, and remember to commit frequently. If you want to test your
 changes against our CI/CD provider (GH Actions), you can submit a draft PR,
 which we will review and run. Alternatively, you configure your local fork to
-execute actions and develop against it. You can find our worflows in the
+execute actions and develop against it. You can find our workflows in the
 ``.github`` folder.
 
-*Continous Integration (CI)*: The core of our CI is a matrix test across all
+*Continuous Integration (CI)*: The core of our CI is a matrix test across all
 major OSes and supported python versions running a testsuite based on
 ``pytest``. Additionally, we track linting errors (black + flake8), coverage
 (codecov), and have readthedocs build a preview of the documentation.
 
-*Continous Deployment (CD)*: Our continous deployment pipeline checks weekly
+*Continuous Deployment (CD)*: Our continuous deployment pipeline checks weekly
 (Monday night, EU time) for any changes to the repository. If there are any, it
 uses python-semantic-release to figure out if the version should bump and a new
 release should be made. If so, all tests are run against the master branch, the

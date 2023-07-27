@@ -27,7 +27,7 @@ ImageIO Core
 Plugin
     A backend-facing adapter/wrapper that responds to a request from
     iio.core. It can convert a request that comes from iio.core into a sequence of
-    instructions for the backend that fullfill the request (eg., read/write/iter). A
+    instructions for the backend that fulfill the request (eg., read/write/iter). A
     plugin is also aware if its backend is or isn't installed and handles this case
     appropriately, e.g., it deactivates itself if the backend isn't present.
 

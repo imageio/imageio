@@ -345,7 +345,7 @@ class Request(object):
 
         # Check if a zipfile
         if self._uri_type == URI_FILENAME:
-            # Search for zip extension followed by a path separater
+            # Search for zip extension followed by a path separator
             for needle in [".zip/", ".zip\\"]:
                 zip_i = self._filename.lower().find(needle)
                 if zip_i > 0:

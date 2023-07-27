@@ -79,7 +79,7 @@ bitrate : int | None
     Set a constant bitrate for the video encoding. Default is None causing
     'quality' parameter to be used instead.  Better quality videos with
     smaller file sizes will result from using the 'quality'  variable
-    bitrate parameter rather than specifiying a fixed bitrate with this
+    bitrate parameter rather than specifying a fixed bitrate with this
     parameter.
 pixelformat: str
     The output video pixel format. Default is 'yuv420p' which most widely

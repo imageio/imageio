@@ -230,7 +230,7 @@ class Dict(OrderedDict):
 class BaseProgressIndicator(object):
     """BaseProgressIndicator(name)
 
-    A progress indicator helps display the progres of a task to the
+    A progress indicator helps display the progress of a task to the
     user. Progress can be pending, running, finished or failed.
 
     Each task has:
@@ -257,7 +257,7 @@ class BaseProgressIndicator(object):
         """start(action='', unit='', max=0)
 
         Start the progress. Optionally specify an action, a unit,
-        and a maxium progress value.
+        and a maximum progress value.
         """
         if self._status == 1:
             self.finish()
