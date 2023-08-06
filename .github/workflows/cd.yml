@@ -48,16 +48,16 @@ jobs:
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "release=false" >> $GITHUB_STATE
+          echo "run_release=false" >> "$GITHUB_ENV"
           echo "action_state=yellow" >> "$GITHUB_ENV"
           echo "No changes to the API detected."
         else
-          echo "{release}={true}" >> $GITHUB_STATE
+          echo "run_release=true" >> "$GITHUB_ENV"
           echo "Releasing v$(semantic-release print-version)"
         fi
     - name: log
       run: |
-        echo "${{ github.release }}"
+        echo "${{ github.run_release }}"
         echo "${{ env.action_state }}"
 
   docs:
