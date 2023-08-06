@@ -61,7 +61,7 @@ jobs:
   docs:
     name: Build Docs
     needs: initial_check
-    if: env.make_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
