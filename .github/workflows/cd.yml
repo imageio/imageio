@@ -54,22 +54,11 @@ jobs:
           echo "make_release=true" >> "$GITHUB_ENV"
           echo "Releasing v$(semantic-release print-version)"
         fi
-    - name: log
-      run: |
-        echo "${{ env.make_release }}"
-
-  test_cd:
-    name: Test Variable
-    needs: initial_check
-    if: needs.initial_check.outputs.make_release == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{ needs.initial_check.outputs.make_release }}
 
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.make_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'false'
     uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
