@@ -55,7 +55,7 @@ jobs:
           echo "Releasing v$(semantic-release print-version)"
         fi
     - name: log
-      run: echo "${{ github.release }}""
+      run: echo "${{ github.release }}"
 
   docs:
     name: Build Docs
