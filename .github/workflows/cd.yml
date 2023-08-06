@@ -48,22 +48,20 @@ jobs:
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "run_release=false" >> "$GITHUB_ENV"
-          echo "action_state=yellow" >> "$GITHUB_ENV"
+          echo "should_release=false" >> "$GITHUB_ENV"
           echo "No changes to the API detected."
         else
-          echo "run_release=true" >> "$GITHUB_ENV"
+          echo "should_release=true" >> "$GITHUB_ENV"
           echo "Releasing v$(semantic-release print-version)"
         fi
     - name: log
       run: |
-        echo "${{ env.run_release }}"
-        echo "${{ env.action_state }}"
+        echo "${{ env.should_release }}"
 
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: env.should_release == 'true'
     uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
