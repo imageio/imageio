@@ -32,8 +32,7 @@ jobs:
     if: github.repository_owner == 'imageio'
     runs-on: ubuntu-latest
     outputs:
-      make_release: ${{ steps.skippy.outputs.make_release }}
-      test: ${{ env.action_state }}
+      make_release: ${{ env.make_release }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -49,25 +48,22 @@ jobs:
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "make_release=false" >> "$GITHUB_OUTPUT"
-          echo "SELECTED_COLOR=green" >> "$GITHUB_OUTPUT"
-          echo "action_state=yellow" >> "$GITHUB_ENV"
+          echo "make_release=false" >> "$GITHUB_ENV"
           echo "No changes to the API detected."
         else
-          echo "make_release=true" >> "$GITHUB_OUTPUT"
+          echo "make_release=true" >> "$GITHUB_ENV"
           echo "Releasing v$(semantic-release print-version)"
         fi
     - name: log
       run: |
         echo "${{ env.make_release }}"
-        echo "${{ steps.initial_check.outputs.SELECTED_COLOR }}"
 
   test_cd:
     name: Test Variable
     needs: initial_check
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{ needs.initial_check.outputs.test }}
+      - run: echo ${{ needs.initial_check.outputs.make_release }}
 
   docs:
     name: Build Docs
