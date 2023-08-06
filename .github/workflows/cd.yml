@@ -20,7 +20,7 @@ on:
   schedule:
     - cron: '42 1 * * 1' # weekly on Monday at 1:42am (UTC)
   workflow_dispatch:
-  pull-request:
+  pull_request:
 
 concurrency:
   group: cd-${{ github.ref }}
