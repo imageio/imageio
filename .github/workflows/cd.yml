@@ -43,18 +43,20 @@ jobs:
     - name: Install Dependencies
       run: |
         pip install python-semantic-release
-    - name: skippy
+    - name: Detect API changes
       id: skippy
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "::set-output name=release::false"
+          echo "{release}={false}" >> $GITHUB_STATE
           echo "No changes to the API detected."
         else
-          echo "::set-output name=release::true"
+          echo "{release}={true}" >> $GITHUB_STATE
           echo "Releasing v$(semantic-release print-version)"
         fi
-  
+    - name: log
+      run: echo "${{ github.release }}""
+
   docs:
     name: Build Docs
     needs: initial_check
