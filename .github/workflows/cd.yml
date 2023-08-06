@@ -31,8 +31,6 @@ jobs:
     name: Should release?
     if: github.repository_owner == 'imageio'
     runs-on: ubuntu-latest
-    outputs:
-      should_release: ${{ steps.skippy.outputs.release }}
     steps:
     - uses: actions/checkout@v3
       with:
