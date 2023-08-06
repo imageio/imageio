@@ -61,6 +61,7 @@ jobs:
   test_cd:
     name: Test Variable
     needs: initial_check
+    if: needs.initial_check.outputs.make_release == 'false'
     runs-on: ubuntu-latest
     steps:
       - run: echo ${{ needs.initial_check.outputs.make_release }}
