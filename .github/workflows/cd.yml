@@ -57,7 +57,7 @@ jobs:
         fi
     - name: log
       run: |
-        echo "${{ github.run_release }}"
+        echo "${{ env.run_release }}"
         echo "${{ env.action_state }}"
 
   docs:
