@@ -444,8 +444,8 @@ def test_util_asarray():
     im1 = core.asarray([[1, 2, 3], [4, 5, 6]])
     im2 = im1.view(type=core.Image)
     im3 = core.asarray(im2)
-    assert type(im2) != np.ndarray
-    assert type(im3) == np.ndarray
+    assert type(im2) is not np.ndarray
+    assert type(im3) is np.ndarray
     if not IS_PYPY:
         for i in (1, 2, 3):
             im1[0, 0] = i
