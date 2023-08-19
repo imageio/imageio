@@ -317,7 +317,7 @@ def test_compression(tmp_path):
     assert page_meta["compression"] == 1
 
 
-def test_properties(tmp_path):
+def test_properties(tmp_path, test_images):
     filename = tmp_path / "test.tiff"
     data = np.full((255, 255, 3), 42, dtype=np.uint8)
     iio.imwrite(filename, data)
@@ -344,6 +344,10 @@ def test_properties(tmp_path):
     props = iio.improps(filename, index=..., page=...)
     assert props.shape == (6, 255, 255, 3)
     assert props.n_images == 6
+
+    # read file without resolution tags
+    props = iio.improps(test_images / "multipage_rgb.tif")
+    assert props.spacing == (1.0, 1.0)
 
 
 def test_contigous_writing(tmp_path):
