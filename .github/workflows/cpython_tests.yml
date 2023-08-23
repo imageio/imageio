@@ -1,6 +1,6 @@
 name: CPython Test Suite
 
-on: 
+on:
   workflow_call:
 
 jobs:
@@ -11,11 +11,11 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        pyversion: ["3.8", "3.9", "3.10", "3.11"]
         include:
-          - name: Linux py37 full
+          - name: Linux py310 full
             os: ubuntu-latest
-            pyversion: '3.7'
+            pyversion: '3.10'
             TEST_UNIT: 1
             TEST_FULL: 1
           - name: Use PyAV 10.0.0
