@@ -20,11 +20,9 @@ on:
   schedule:
     - cron: '42 1 * * 1' # weekly on Monday at 1:42am (UTC)
   workflow_dispatch:
-  pull_request:
 
 concurrency:
-  group: cd-${{ github.ref }}
-  cancel-in-progress: true
+  group: deployment
 
 jobs:
   initial_check:
@@ -93,7 +91,6 @@ jobs:
   release:
     name: Release new Version
     needs: [cpython_tests, pypy_tests, build_test, docs]
-    if: needs.initial_check.outputs.make_release == 'falsey'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
