@@ -21,13 +21,16 @@ on:
     - cron: '42 1 * * 1' # weekly on Monday at 1:42am (UTC)
   workflow_dispatch:
 
+concurrency:
+  group: deployment
+
 jobs:
   initial_check:
     name: Should release?
     if: github.repository_owner == 'imageio'
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{ steps.skippy.outputs.release }}
+      make_release: ${{ env.make_release }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -37,41 +40,41 @@ jobs:
         python-version: '3.9'
     - name: Install Dependencies
       run: |
-        pip install python-semantic-release
-    - name: skippy
+        pip install python-semantic-release==7.34.6
+    - name: Detect API changes
       id: skippy
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
         if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "::set-output name=release::false"
+          echo "make_release=false" >> "$GITHUB_ENV"
           echo "No changes to the API detected."
         else
-          echo "::set-output name=release::true"
+          echo "make_release=true" >> "$GITHUB_ENV"
           echo "Releasing v$(semantic-release print-version)"
         fi
-  
+
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     name: CPython Test Suite
     uses: ./.github/workflows/cpython_tests.yml
 
   pypy_tests:
     name: PyPy Test Suite
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     uses: ./.github/workflows/pypy_tests.yml
   
   build_test:
     name: Wheel Building Test
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -94,7 +97,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Python Semantic Release
-      uses: relekang/python-semantic-release@master
+      uses: python-semantic-release/python-semantic-release@v7.34.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         pypi_token: ${{ secrets.PYPI_API_TOKEN }}
