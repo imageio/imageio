@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.2 (2023-08-26)
+
+### Fix
+
+* Add bytes to ImageResource typehints ([#1026](https://github.com/imageio/imageio/issues/1026)) ([`cc35f33`](https://github.com/imageio/imageio/commit/cc35f33d813d340f2532414253171f16fff7a44c))
+
+### Other
+
+* Remove deprecations in CD ([#1027](https://github.com/imageio/imageio/issues/1027)) ([`d632ea9`](https://github.com/imageio/imageio/commit/d632ea93f306f77fee79fd50f0db0b919168e5c4))
+* Fix typo in README.md ([#1029](https://github.com/imageio/imageio/issues/1029)) ([`86dcba9`](https://github.com/imageio/imageio/commit/86dcba90d23ba858a6fafb1c26f9f6b6eff19210))
+* Fix several typos in the docs and source code comments ([#1023](https://github.com/imageio/imageio/issues/1023)) ([`2cdf563`](https://github.com/imageio/imageio/commit/2cdf5632622e00adc8edfadb27dda0b4880e50ba))
+* Add migration note for format kwarg ([#1019](https://github.com/imageio/imageio/issues/1019)) ([`3dd6574`](https://github.com/imageio/imageio/commit/3dd6574f1a5e52c8a73419d29bbccf6f9e180c23))
+
 ## v2.31.1 (2023-06-12)
 
 ### Fix
