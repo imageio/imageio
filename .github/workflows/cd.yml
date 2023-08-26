@@ -58,25 +58,25 @@ jobs:
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.make_release == 'false'
+    if: needs.initial_check.outputs.make_release == 'true'
     uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     name: CPython Test Suite
     uses: ./.github/workflows/cpython_tests.yml
 
   pypy_tests:
     name: PyPy Test Suite
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     uses: ./.github/workflows/pypy_tests.yml
   
   build_test:
     name: Wheel Building Test
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -93,6 +93,7 @@ jobs:
   release:
     name: Release new Version
     needs: [cpython_tests, pypy_tests, build_test, docs]
+    if: needs.initial_check.outputs.make_release == 'falsey'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
