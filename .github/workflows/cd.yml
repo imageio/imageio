@@ -42,7 +42,7 @@ jobs:
         python-version: '3.9'
     - name: Install Dependencies
       run: |
-        pip install python-semantic-release
+        pip install python-semantic-release==7.34.6
     - name: Detect API changes
       id: skippy
       run: |
@@ -99,7 +99,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release
+      uses: python-semantic-release/python-semantic-release@v7.34.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         pypi_token: ${{ secrets.PYPI_API_TOKEN }}
