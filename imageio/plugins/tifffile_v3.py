@@ -373,7 +373,7 @@ class TifffilePlugin(PluginV3):
                 dtype=target_page.dtype,
                 n_images=n_series,
                 is_batch=True,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
         elif index is Ellipsis and page is Ellipsis:
             n_pages = len(self._fh.pages)
@@ -382,14 +382,14 @@ class TifffilePlugin(PluginV3):
                 dtype=target_page.dtype,
                 n_images=n_pages,
                 is_batch=True,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
         else:
             props = ImageProperties(
                 shape=target_page.shape,
                 dtype=target_page.dtype,
                 is_batch=False,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
 
         return props
