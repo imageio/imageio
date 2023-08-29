@@ -4,8 +4,12 @@ sphinx:
    configuration: docs/conf.py
    fail_on_warning: true
 
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+
 python:
-   version: "3.8"
    install:
     - method: pip
       path: .
