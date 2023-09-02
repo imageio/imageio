@@ -46,7 +46,6 @@ context:
 from io import BytesIO
 from typing import Any, Dict, Optional, cast
 import warnings
-import datetime
 
 import numpy as np
 import tifffile
@@ -56,51 +55,32 @@ from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
 
 
-def _get_resolution(page):
-    """Get the resolution in a py3.7 compatible way"""
-
-    metadata = {
-        # uncomment once py 3.7 reached EoL - in fact, refactor this
-        # function :)
-        # "resolution_unit": page.resolutionunit,
-        # "resolution": page.resolution,
-    }
-
-    if 296 in page.tags:
-        metadata["resolution_unit"] = page.tags[296].value.value
-
-    if 282 in page.tags and 283 in page.tags and 296 in page.tags:
-        resolution_x = page.tags[282].value
-        resolution_y = page.tags[283].value
-        if resolution_x[1] == 0 or resolution_y[1] == 0:
-            warnings.warn(
-                "Ignoring resolution metadata, "
-                "because at least one direction has a 0 denominator.",
-                RuntimeWarning,
-            )
-        else:
-            metadata["resolution"] = (
-                resolution_x[0] / resolution_x[1],
-                resolution_y[0] / resolution_y[1],
-            )
-
-    return metadata
-
-
-def _get_datatime(page):
-    """Get the datetime in a python 3.7 compatible way"""
-
-    metadata = {
-        # uncomment once python 3.7 is EoL
-        # "datetime": page.datetime,
-    }
+def _get_resolution(page: tifffile.TiffPage) -> Dict[str, Any]:
+    metadata = {}
 
     try:
-        metadata["datetime"] = datetime.datetime.strptime(
-            page.tags[306].value, "%Y:%m:%d %H:%M:%S"
+        metadata["resolution_unit"] = page.tags[296].value.value
+    except KeyError:
+        # tag 296 missing
+        return metadata
+
+    try:
+        resolution_x = page.tags[282].value
+        resolution_y = page.tags[283].value
+
+        metadata["resolution"] = (
+            resolution_x[0] / resolution_x[1],
+            resolution_y[0] / resolution_y[1],
         )
     except KeyError:
+        # tag 282 or 283 missing
         pass
+    except ZeroDivisionError:
+        warnings.warn(
+            "Ignoring resolution metadata because at least one direction has a 0 "
+            "denominator.",
+            RuntimeWarning,
+        )
 
     return metadata
 
@@ -319,9 +299,8 @@ class TifffilePlugin(PluginV3):
                     "description1": target.description1,
                     "description": target.description,
                     "software": target.software,
-                    # update once python 3.7 reached EoL
                     **_get_resolution(target),
-                    **_get_datatime(target),
+                    "datetime": target.datetime,
                 }
             )
 
@@ -373,7 +352,7 @@ class TifffilePlugin(PluginV3):
                 dtype=target_page.dtype,
                 n_images=n_series,
                 is_batch=True,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
         elif index is Ellipsis and page is Ellipsis:
             n_pages = len(self._fh.pages)
@@ -382,14 +361,14 @@ class TifffilePlugin(PluginV3):
                 dtype=target_page.dtype,
                 n_images=n_pages,
                 is_batch=True,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
         else:
             props = ImageProperties(
                 shape=target_page.shape,
                 dtype=target_page.dtype,
                 is_batch=False,
-                spacing=_get_resolution(target_page)["resolution"],
+                spacing=_get_resolution(target_page).get("resolution"),
             )
 
         return props

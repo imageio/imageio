@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import io
 from copy import deepcopy
+import struct
 
 import imageio.v3 as iio
 from imageio.config import known_plugins, known_extensions
@@ -179,9 +180,51 @@ def test_invalid_resolution_metadata(tmp_path, resolution):
         tags["XResolution"].overwrite(resolution)
         tags["YResolution"].overwrite(resolution)
 
-    read_image = iio.immeta(tmp_path / "test.tif", index=0)
+    with pytest.warns(RuntimeWarning):
+        read_image = iio.immeta(tmp_path / "test.tif", index=0)
     assert read_image["XResolution"] == resolution
     assert read_image["YResolution"] == resolution
+    assert "resolution" not in read_image
+
+
+def test_missing_resolution_metadata(tmp_path):
+    tif_path = tmp_path / "test.tif"
+    data = np.zeros((200, 100), dtype=np.uint8)
+    iio.imwrite(tif_path, data)
+
+    with tifffile.TiffFile(tif_path, mode="r+b") as tif:
+        tags = tif.pages[0].tags
+        xres = tags["XResolution"]
+        tags["YResolution"].overwrite((10, 11))
+
+    with tif_path.open("r+b") as f:
+        # give XResolution tag another ID so it won't be recognized
+        f.seek(xres.offset)
+        f.write(struct.pack("<H", 65000))
+
+    read_image = iio.immeta(tif_path, index=0)
+    assert "XResolution" not in read_image
+    assert read_image["YResolution"] == (10, 11)
+    assert "resolution" not in read_image
+    assert read_image["resolution_unit"] == 1
+
+    tif_path2 = tmp_path / "test2.tif"
+    data2 = np.zeros((200, 100), dtype=np.uint8)
+    iio.imwrite(tif_path2, data2)
+
+    with tifffile.TiffFile(tif_path2, mode="r+b") as tif:
+        tags = tif.pages[0].tags
+        res_u = tags["ResolutionUnit"]
+
+    with tif_path2.open("r+b") as f:
+        # give ResolutionUnit tag another ID so it won't be recognized
+        f.seek(res_u.offset)
+        f.write(struct.pack("<H", 65000))
+
+    read_image2 = iio.immeta(tif_path2, index=0)
+    assert "ResolutionUnit" not in read_image2
+    assert "resolution" not in read_image2
+    assert "resolution_unit" not in read_image2
 
 
 def test_read_bytes():
@@ -317,7 +360,7 @@ def test_compression(tmp_path):
     assert page_meta["compression"] == 1
 
 
-def test_properties(tmp_path):
+def test_properties(tmp_path, test_images):
     filename = tmp_path / "test.tiff"
     data = np.full((255, 255, 3), 42, dtype=np.uint8)
     iio.imwrite(filename, data)
@@ -344,6 +387,10 @@ def test_properties(tmp_path):
     props = iio.improps(filename, index=..., page=...)
     assert props.shape == (6, 255, 255, 3)
     assert props.n_images == 6
+
+    # read file without resolution tags
+    props = iio.improps(test_images / "multipage_rgb.tif")
+    assert props.spacing is None
 
 
 def test_contigous_writing(tmp_path):
