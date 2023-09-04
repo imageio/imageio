@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.3 (2023-09-04)
+
+### Fix
+
+* Refactor resolution metadata reading for TIFF and avoid failing on missing data ([#1031](https://github.com/imageio/imageio/issues/1031)) ([`6cd3a42`](https://github.com/imageio/imageio/commit/6cd3a42c7f4371aec61e835d0b3d82fb2e40159f))
+
+### Other
+
+* Update readthedocs.yaml ([#1035](https://github.com/imageio/imageio/issues/1035)) ([`b0baa1d`](https://github.com/imageio/imageio/commit/b0baa1da25452fd5335261e87e577fdde90f463a))
+* Deprecate Python 3.7 support ([#1033](https://github.com/imageio/imageio/issues/1033)) ([`61a1e15`](https://github.com/imageio/imageio/commit/61a1e15b3b98cb418b5093c1dafdfc7c0d675d79))
+
 ## v2.31.2 (2023-08-26)
 
 ### Fix
