@@ -34,7 +34,7 @@ from io import BytesIO
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 
 import numpy as np
-from PIL import ExifTags, GifImagePlugin, Image, LoadingStrategy, ImageSequence, UnidentifiedImageError  # type: ignore
+from PIL import ExifTags, GifImagePlugin, Image, ImageSequence, UnidentifiedImageError  # type: ignore
 
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
@@ -213,7 +213,7 @@ class PillowPlugin(PluginV3):
         if self._image.format == "GIF":
             # Converting GIF P frames to RGB
             # https://github.com/python-pillow/Pillow/pull/6150
-            GifImagePlugin.LOADING_STRATEGY = LoadingStrategy.RGB_AFTER_FIRST
+            GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_AFTER_FIRST
 
         if index is None:
             if self._image.format == "GIF":
