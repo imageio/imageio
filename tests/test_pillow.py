@@ -364,7 +364,9 @@ def test_gif_list_write(test_images, tmp_path):
 def test_gif_first_p_frame():
     # Bugfix: https://github.com/imageio/imageio/issues/1030
     im = iio.imread(
-        "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif", plugin="pillow", index=None
+        "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif",
+        plugin="pillow",
+        index=None
     )
     assert im.shape == (36, 360, 480, 3)
 
