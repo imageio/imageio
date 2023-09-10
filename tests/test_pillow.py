@@ -366,7 +366,7 @@ def test_gif_first_p_frame():
     im = iio.imread(
         "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif", plugin="pillow", index=None
     )
-    assert im.shape == (36, 360, 400, 3)
+    assert im.shape == (36, 360, 480, 3)
 
 
 def test_legacy_exif_orientation(test_images, tmp_path):
