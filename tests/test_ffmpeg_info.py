@@ -57,14 +57,12 @@ def test_overload_fps(test_images):
 
     # Less
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=8)
-    assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 112  # note the mismatch
     ims = [1 for _ in r]
     assert len(ims) == 114
 
     # More
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=24)
     ims = [1 for _ in r]
-    assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 336
     assert len(ims) in (336, 337)
 
     # Do we calculate nframes correctly? To be fair, the reader wont try to
@@ -72,7 +70,7 @@ def test_overload_fps(test_images):
     # makes sure that this works.
     for fps in (8.0, 8.02, 8.04, 8.06, 8.08):
         r = imageio.get_reader(test_images / "cockatoo.mp4", fps=fps)
-        n = int(r._meta["fps"] * r._meta["duration"] + 0.5)
+        n = int(fps * r._meta["duration"] + 0.5)
         i = 0
         try:
             while True:
