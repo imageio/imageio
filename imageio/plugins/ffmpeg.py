@@ -26,8 +26,8 @@ webcams and USB cameras. It is based on ffmpeg and is inspired by/based `moviepy
 Parameters for reading
 ----------------------
 fps : scalar
-    The number of frames per second to read the data at. Default None (i.e.
-    read at the file's own fps). One can use this for files with a
+    The number of frames per second of the input stream. Default None (i.e.
+    read at the file's native fps). One can use this for files with a
     variable fps, or in cases where imageio is unable to correctly detect
     the fps. In case of trouble opening camera streams, it may help to set an
     explicit fps value matching a framerate supported by the camera.
