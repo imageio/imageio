@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.4 (2023-09-25)
+
+### Fix
+
+* Consistently load GIF frames using the same pixel format ([#1036](https://github.com/imageio/imageio/issues/1036)) ([`f4fc7f5`](https://github.com/imageio/imageio/commit/f4fc7f5c49c10cc6da809acc470a70e69ca35248))
+
 ## v2.31.3 (2023-09-04)
 
 ### Fix
