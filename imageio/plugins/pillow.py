@@ -387,10 +387,11 @@ class PillowPlugin(PluginV3):
 
         """
         if "fps" in kwargs:
-            raise TypeError(
+            warnings.warn(
                 "The keyword `fps` is no longer supported. Use `duration`"
                 "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
             )
+            kwargs['duration'] = 1000 * 1/kwargs.get('fps')
 
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
