@@ -260,6 +260,23 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
+def test_gif_fps_warning(test_images, tmp_path):
+    im = iio.imread(
+        test_images / "newtonscradle.gif",
+        plugin="pillow",
+        mode="L",
+    )
+
+    with pytest.warns(DeprecationWarning):
+        iio.imwrite(
+            tmp_path / "test.gif",
+            im[..., 0],
+            plugin="pillow",
+            fps=60,
+            mode="L",
+        )
+
+
 def test_gif_irregular_duration(test_images, tmp_path):
     im = iio.imread(
         test_images / "newtonscradle.gif",
