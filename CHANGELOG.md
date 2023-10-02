@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.31.5 (2023-10-02)
+
+### Fix
+
+* Raise warning instead of error when using `fps` in pillow ([#1039](https://github.com/imageio/imageio/issues/1039)) ([`520fe62`](https://github.com/imageio/imageio/commit/520fe62f02f3c566bb46ab3121eed38b379dc1b9))
+
 ## v2.31.4 (2023-09-25)
 
 ### Fix
