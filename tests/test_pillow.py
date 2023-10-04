@@ -260,14 +260,14 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
-def test_gif_fps_error(test_images, tmp_path):
+def test_gif_fps_warning(test_images, tmp_path):
     im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="L",
     )
 
-    with pytest.raises(TypeError):
+    with pytest.warns(DeprecationWarning):
         iio.imwrite(
             tmp_path / "test.gif",
             im[..., 0],
