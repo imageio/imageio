@@ -709,6 +709,6 @@ def test_writable_output():
 
 @pytest.mark.needs_internet
 def test_heif_remote():
-    url = "https://nokiatech.github.io/heif/content/images/surfer_1440x960.heic"
+    url = "http://github.com/tigranbs/test-heic-images/raw/master/image4.heic"
     im = iio.imread(url, plugin="pillow")
-    assert im.shape == (960, 1440, 3)
+    assert im.shape == (476, 700, 4)
