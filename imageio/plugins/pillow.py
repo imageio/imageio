@@ -35,7 +35,6 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, 
 
 import numpy as np
 from PIL import ExifTags, GifImagePlugin, Image, ImageSequence, UnidentifiedImageError  # type: ignore
-from pillow_heif import register_heif_opener
 
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
@@ -77,7 +76,12 @@ class PillowPlugin(PluginV3):
         super().__init__(request)
 
         # Register HEIF opener for Pillow
-        register_heif_opener()
+        try:
+            from pillow_heif import register_heif_opener
+        except ImportError:
+            pass
+        else:
+            register_heif_opener()
 
         self._image: Image = None
         self.images_to_write = []
