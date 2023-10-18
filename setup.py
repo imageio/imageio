@@ -83,7 +83,7 @@ package_data = [
 
 # pinned to > 8.3.2 due to security vulnerability
 # See: https://github.com/advisories/GHSA-98vv-pw6r-q6q4
-install_requires = ["numpy", "pillow>= 8.3.2,<=10.0.0"]
+install_requires = ["numpy", "pillow>= 8.3.2,<10.1.0"]
 
 plugins = {
     "bsdf": [],
