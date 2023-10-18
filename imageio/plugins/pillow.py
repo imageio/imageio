@@ -309,7 +309,7 @@ class PillowPlugin(PluginV3):
                 )
             else:  # pragma: no cover
                 # Let pillow know that it is okay to return 16-bit
-                image.mode = desired_mode
+                image._mode = desired_mode
 
         image = np.asarray(image)
 
