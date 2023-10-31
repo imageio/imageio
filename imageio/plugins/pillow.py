@@ -75,6 +75,14 @@ class PillowPlugin(PluginV3):
 
         super().__init__(request)
 
+        # Register HEIF opener for Pillow
+        try:
+            from pillow_heif import register_heif_opener
+        except ImportError:
+            pass
+        else:
+            register_heif_opener()
+
         self._image: Image = None
         self.images_to_write = []
 
