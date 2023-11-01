@@ -1858,6 +1858,11 @@ extension_list = [
     FileExtension(
         name="High Efficiency Image File Format", extension=".heic", priority=["pillow"]
     ),
+    FileExtension(
+        name="AV1 Image File Format",
+        extension=".avif",
+        priorty=["pillow"],
+    )
 ]
 extension_list.sort(key=lambda x: x.extension)
 
