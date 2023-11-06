@@ -99,8 +99,7 @@ plugins = {
     "swf": [],
     "tifffile": ["tifffile"],
     "pyav": ["av"],
-    "heif": ["pillow-heif"],
-    "avif": ["pillow-heif"],
+    "pillow-heif": ["pillow-heif"],
 }
 
 cpython_only_plugins = {
