@@ -37,6 +37,16 @@ class GIFFormat(PillowFormat):
             quantizer=0,
             subrectangles=False,
         ):
+            from PIL import __version__ as pillow_version
+
+            major, minor, patch = tuple(int(x) for x in pillow_version.split("."))
+            if major == 10 and minor >= 1:
+                raise ImportError(
+                    f"Pillow v{pillow_version} is not supported by ImageIO's legacy "
+                    "pillow plugin when writing GIF. Consider using to the new "
+                    "plugin or downgrade to `pillow<10.1.0`."
+                )
+
             # Check palettesize
             palettesize = int(palettesize)
             if palettesize < 2 or palettesize > 256:
