@@ -1856,7 +1856,9 @@ extension_list = [
         priority=["tifffile"],
     ),
     FileExtension(
-        name="High Efficiency Image File Format", extension=".heic", priority=["pillow"]
+        name="High Efficiency Image File Format", 
+        extension=".heic", 
+        priority=["pillow"],
     ),
     FileExtension(
         name="AV1 Image File Format",
