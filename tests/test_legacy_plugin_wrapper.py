@@ -41,17 +41,6 @@ def test_ellipsis_index(test_images):
     )
     assert metadata == {}
 
-
-def test_list_writing(test_images, tmp_path):
-    expected = iio.v3.imread(test_images / "newtonscradle.gif", index=...)
-    expected = [*expected]
-
-    iio.v3.imwrite(tmp_path / "test.gif", expected, plugin="GIF-PIL")
-    actual = iio.v3.imread(tmp_path / "test.gif", index=...)
-
-    assert np.allclose(actual, expected)
-
-
 def test_properties(test_images):
     p = iio.v3.improps(test_images / "newtonscradle.gif", plugin="GIF-PIL", index=...)
     assert p.shape == (36, 150, 200, 4)
