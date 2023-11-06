@@ -1855,6 +1855,16 @@ extension_list = [
         extension=".btf",
         priority=["tifffile"],
     ),
+    FileExtension(
+        name="High Efficiency Image File Format",
+        extension=".heic",
+        priority=["pillow"],
+    ),
+    FileExtension(
+        name="AV1 Image File Format",
+        extension=".avif",
+        priority=["pillow"],
+    ),
 ]
 extension_list.sort(key=lambda x: x.extension)
 

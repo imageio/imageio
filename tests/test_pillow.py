@@ -705,3 +705,17 @@ def test_writable_output():
 
     frame = iio.imread(buffer, writeable_output=False, plugin="pillow")
     assert not frame.flags["WRITEABLE"]
+
+
+@pytest.mark.needs_internet
+def test_heif_remote():
+    url = "http://github.com/tigranbs/test-heic-images/raw/master/image4.heic"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (476, 700, 4)
+
+
+@pytest.mark.needs_internet
+def test_avif_remote():
+    url = "https://github.com/link-u/avif-sample-images/raw/master/fox.profile0.10bpc.yuv420.avif"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (800, 1204, 3)
