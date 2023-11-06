@@ -1,6 +1,5 @@
 import imageio as iio
 import pytest
-import numpy as np
 
 
 def test_exception_message_bytes():
@@ -40,6 +39,7 @@ def test_ellipsis_index(test_images):
         test_images / "chelsea.png", plugin="PNG-PIL", index=0, exclude_applied=False
     )
     assert metadata == {}
+
 
 def test_properties(test_images):
     p = iio.v3.improps(test_images / "newtonscradle.gif", plugin="GIF-PIL", index=...)

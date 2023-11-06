@@ -282,7 +282,7 @@ def test_gif(tmp_path):
                     imageio.imsave(fname, rim, format="GIF-PIL")
                 except ImportError:
                     pytest.xfail("New pillow version is no longer supported.")
-                
+
                 im = imageio.imread(fname, format="GIF-PIL")
                 mul = 255 if isfloat else 1
                 if colors not in (0, 1):
