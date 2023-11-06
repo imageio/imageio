@@ -315,6 +315,7 @@ class PillowPlugin(PluginV3):
                 desired_mode = "I;16B"
 
             try:
+                # feature test for direct unpacking into 16-bit buffer
                 Image._getdecoder(desired_mode, "raw", "I;16B")
             except ValueError:
                 warnings.warn(
@@ -326,6 +327,7 @@ class PillowPlugin(PluginV3):
             else:  # pragma: no cover
                 # Let pillow know that it is okay to return 16-bit
                 image._mode = desired_mode
+                image = image.convert(desired_mode)
 
         image = np.asarray(image)
 
