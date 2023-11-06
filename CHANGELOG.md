@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.32.0 (2023-11-06)
+
+### Feature
+
+* Add support for HEIF format ([#1042](https://github.com/imageio/imageio/issues/1042)) ([`ab9653b`](https://github.com/imageio/imageio/commit/ab9653bd86b34002ce5526259dbfc6a860bfb843))
+
 ## v2.31.6 (2023-10-23)
 
 ### Fix
