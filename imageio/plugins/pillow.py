@@ -83,6 +83,14 @@ class PillowPlugin(PluginV3):
         else:
             register_heif_opener()
 
+        # Register AVIF opener for Pillow
+        try:
+            from pillow_heif import register_avif_opener
+        except ImportError:
+            pass
+        else:
+            register_avif_opener()
+
         self._image: Image = None
         self.images_to_write = []
 
