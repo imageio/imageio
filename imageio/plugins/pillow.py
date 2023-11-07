@@ -324,7 +324,7 @@ class PillowPlugin(PluginV3):
                     "version of pillow which will make this warning dissapear.",
                     UserWarning,
                 )
-            elif minor == 0 and patch == 0:  # pillow==10.0.0
+            elif minor < 1:  # pillow<10.1.0
                 # Pillow can directly decode into 16-bit grayscale in this
                 # version
                 image.mode = desired_mode
