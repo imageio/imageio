@@ -27,7 +27,7 @@ class GIFFormat(PillowFormat):
 
     # GIF reader needs no modifications compared to base pillow reader
 
-    class Writer(PillowFormat.Writer):
+    class Writer(PillowFormat.Writer):  # pragma: no cover
         def _open(
             self,
             loop=0,
@@ -99,7 +99,7 @@ def intToBin(i):
     return i.to_bytes(2, byteorder="little")
 
 
-class GifWriter:
+class GifWriter:  # pragma: no cover
     """Class that for helping write the animated GIF file. This is based on
     code from images2gif.py (part of visvis). The version here is modified
     to allow streamed writing.
