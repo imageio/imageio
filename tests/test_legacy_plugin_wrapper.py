@@ -1,6 +1,5 @@
 import imageio as iio
 import pytest
-import numpy as np
 
 
 def test_exception_message_bytes():
@@ -40,16 +39,6 @@ def test_ellipsis_index(test_images):
         test_images / "chelsea.png", plugin="PNG-PIL", index=0, exclude_applied=False
     )
     assert metadata == {}
-
-
-def test_list_writing(test_images, tmp_path):
-    expected = iio.v3.imread(test_images / "newtonscradle.gif", index=...)
-    expected = [*expected]
-
-    iio.v3.imwrite(tmp_path / "test.gif", expected, plugin="GIF-PIL")
-    actual = iio.v3.imread(tmp_path / "test.gif", index=...)
-
-    assert np.allclose(actual, expected)
 
 
 def test_properties(test_images):

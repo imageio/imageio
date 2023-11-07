@@ -6,8 +6,7 @@ import logging
 
 import numpy as np
 
-from .pillow_legacy import PillowFormat, ndarray_to_pil, image_as_uint
-
+from .pillow_legacy import PillowFormat, image_as_uint, ndarray_to_pil
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ class GIFFormat(PillowFormat):
 
     # GIF reader needs no modifications compared to base pillow reader
 
-    class Writer(PillowFormat.Writer):
+    class Writer(PillowFormat.Writer):  # pragma: no cover
         def _open(
             self,
             loop=0,
@@ -37,6 +36,16 @@ class GIFFormat(PillowFormat):
             quantizer=0,
             subrectangles=False,
         ):
+            from PIL import __version__ as pillow_version
+
+            major, minor, patch = tuple(int(x) for x in pillow_version.split("."))
+            if major == 10 and minor >= 1:
+                raise ImportError(
+                    f"Pillow v{pillow_version} is not supported by ImageIO's legacy "
+                    "pillow plugin when writing GIF. Consider using to the new "
+                    "plugin or downgrade to `pillow<10.1.0`."
+                )
+
             # Check palettesize
             palettesize = int(palettesize)
             if palettesize < 2 or palettesize > 256:
@@ -89,7 +98,7 @@ def intToBin(i):
     return i.to_bytes(2, byteorder="little")
 
 
-class GifWriter:
+class GifWriter:  # pragma: no cover
     """Class that for helping write the animated GIF file. This is based on
     code from images2gif.py (part of visvis). The version here is modified
     to allow streamed writing.

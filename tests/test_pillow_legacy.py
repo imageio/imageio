@@ -277,7 +277,12 @@ def test_gif(tmp_path):
                     continue  # quantize fails, see also png
                 fname = fnamebase + "%i.%i.%i.gif" % (isfloat, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim, format="GIF-PIL")
+
+                try:
+                    imageio.imsave(fname, rim, format="GIF-PIL")
+                except ImportError:
+                    pytest.xfail("New pillow version is no longer supported.")
+
                 im = imageio.imread(fname, format="GIF-PIL")
                 mul = 255 if isfloat else 1
                 if colors not in (0, 1):
@@ -321,7 +326,10 @@ def test_animated_gif(test_images, tmp_path):
                 ims1 = [x.astype(np.float32) / 256 for x in ims1]
             ims1 = [x[:, :, :colors] for x in ims1]
             fname = fnamebase + ".animated.%i.gif" % colors
-            imageio.mimsave(fname, ims1, duration=0.2, format="GIF-PIL")
+            try:
+                imageio.mimsave(fname, ims1, duration=0.2, format="GIF-PIL")
+            except ImportError:
+                pytest.xfail("Pillow version no longer supported.")
             # Retrieve
             print("fooo", fname, isfloat, colors)
             ims2 = imageio.mimread(fname, format="GIF-PIL")
