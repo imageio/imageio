@@ -31,12 +31,10 @@ Methods
 import sys
 import warnings
 from io import BytesIO
-from typing import (Any, Callable, Dict, Iterator, List, Optional, Tuple,
-                    Union, cast)
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 
 import numpy as np
-from PIL import (ExifTags, GifImagePlugin, Image, ImageSequence,
-                 UnidentifiedImageError)
+from PIL import ExifTags, GifImagePlugin, Image, ImageSequence, UnidentifiedImageError
 from PIL import __version__ as pil_version  # type: ignore
 
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
@@ -46,6 +44,7 @@ from ..typing import ArrayLike
 
 def pillow_version() -> Tuple[int]:
     return tuple(int(x) for x in pil_version.split("."))
+
 
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
     # get transformation that transforms an image from a
