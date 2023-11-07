@@ -316,18 +316,18 @@ class PillowPlugin(PluginV3):
                 # can't test big-endian in GH-Actions
                 desired_mode = "I;16B"
 
-            if major < 10:
+            if major < 10:  # pragma: no cover
                 warnings.warn(
                     "Loading 16-bit (uint16) PNG as int32 due to limitations "
                     "in pillow's PNG decoder. This will be fixed in a future "
                     "version of pillow which will make this warning dissapear.",
                     UserWarning,
                 )
-            elif minor < 1:  # pillow<10.1.0
-                # Pillow can directly decode into 16-bit grayscale in this
-                # version
+            elif minor < 1:  # pragma: no cover
+                # pillow<10.1.0 can directly decode into 16-bit grayscale
                 image.mode = desired_mode
-            else:  # pillow >= 10.1.0
+            else:
+                # pillow >= 10.1.0
                 image = image.convert(desired_mode)
 
         image = np.asarray(image)
