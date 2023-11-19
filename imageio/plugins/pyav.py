@@ -51,15 +51,14 @@ below you can find a usage example::
 
     with iio.imopen("test.mp4", "w", plugin="pyav") as file:
         file.init_video_stream("libx264")
-        file.container_metadata["comment"] = "This video has a rotation flag."
-        file.video_stream_metadata["rotate"] = "90"
+        file.container_metadata["comment"] = "This video was created using ImageIO."
 
         for _ in range(5):
             for frame in iio.imiter("imageio:newtonscradle.gif"):
                 file.write_frame(frame)
 
     meta = iio.immeta("test.mp4", plugin="pyav")
-    assert meta["comment"] == "This video has a rotation flag."
+    assert meta["comment"] == "This video was created using ImageIO."
 
 
 
@@ -179,7 +178,6 @@ examples to better understand how to use them.
 from fractions import Fraction
 from math import ceil
 from typing import Any, Dict, List, Optional, Tuple, Union, Generator
-import warnings
 
 import av
 import av.filter
@@ -725,14 +723,6 @@ class PyAVPlugin(PluginV3):
             values.
 
         """
-
-        av_version = tuple(int(x) for x in av.__version__.split("."))
-        if av_version == (10, 0, 0):
-            warnings.warn(
-                "PyAV 10.0.0 has known issues reading metadata."
-                " If you need video metadata consider using v9.2.0 instead.",
-                UserWarning,
-            )
 
         metadata = dict()
 
