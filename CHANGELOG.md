@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.33.0 (2023-11-20)
+
+### Fix
+
+* Update pyav plugin to reflect AV changes ([#1051](https://github.com/imageio/imageio/issues/1051)) ([`d87d7e0`](https://github.com/imageio/imageio/commit/d87d7e02c67f171eb61acc6f71137842df2cb109))
+* Unpin Pillow and allow versions  >=10.1.0 ([#1045](https://github.com/imageio/imageio/issues/1045)) ([`f58379c`](https://github.com/imageio/imageio/commit/f58379c1ae7fbd1da8689937b39e499e2d225740))
+
+### Feature
+
+* Support for AVIF image format ([#1048](https://github.com/imageio/imageio/issues/1048)) ([`d24944f`](https://github.com/imageio/imageio/commit/d24944f8b966173ed540385cda476daf0437aa33))
+
 ## v2.32.0 (2023-11-06)
 
 ### Feature
