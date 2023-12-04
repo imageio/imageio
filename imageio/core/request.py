@@ -529,7 +529,8 @@ class Request(object):
                 ext = self.extension
             else:
                 ext = os.path.splitext(self._filename)[1]
-            self._filename_local = tempfile.mktemp(ext, "imageio_")
+            fd, self._filename_local = tempfile.mkstemp(ext, "imageio_")
+            os.close(fd)
             # Write stuff to it?
             if self.mode.io_mode == IOMode.read:
                 with open(self._filename_local, "wb") as file:
