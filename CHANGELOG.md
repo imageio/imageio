@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.33.1 (2023-12-11)
+
+### Fix
+
+* Replace `mktemp` with `mkstemp` when caching to disk for legacy plugins ([#1055](https://github.com/imageio/imageio/issues/1055)) ([`12b1ad2`](https://github.com/imageio/imageio/commit/12b1ad24f9a613d42c282c6581207f6899ef7f45))
+
+### Other
+
+* Fix grammar in ImportError ([#1054](https://github.com/imageio/imageio/issues/1054)) ([`56cfd79`](https://github.com/imageio/imageio/commit/56cfd7905358d88e50ab43da6e864e13c88d2be5))
+
 ## v2.33.0 (2023-11-20)
 
 ### Fix
