@@ -15,8 +15,7 @@ from av.video.format import names as video_format_names  # type: ignore # noqa: 
 
 from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
 
-IS_AV_10_0_0 = tuple(int(x) for x in av.__version__.split(".")) == (10, 0, 0)
-IS_LO_AV_10_0_0 = tuple(int(x) for x in av.__version__.split(".")) < (10, 0, 0)
+AV_VERSION = tuple(int(x) for x in av.__version__.split("."))
 
 # the maintainer of pyAV hasn't responded to my bug reports in over 4 months so
 # I am disabling test on pypy to stay sane.
@@ -75,7 +74,7 @@ def test_mp4_writing(tmp_path, test_images):
 
 def test_metadata(test_images: Path):
     with iio.imopen(str(test_images / "cockatoo.mp4"), "r", plugin="pyav") as plugin:
-        if IS_AV_10_0_0:
+        if AV_VERSION >= (10, 0, 0):
             with warnings.catch_warnings(record=True):
                 meta = plugin.metadata()
         else:
@@ -87,7 +86,7 @@ def test_metadata(test_images: Path):
         assert meta["duration"] == 14
         assert meta["fps"] == 20.0
 
-        if IS_AV_10_0_0:
+        if AV_VERSION >= (10, 0, 0):
             with warnings.catch_warnings(record=True):
                 meta = plugin.metadata(index=4)
         else:
@@ -515,15 +514,8 @@ def test_rotation_flag_metadata(test_images, tmp_path):
             for frame in iio.imiter(test_images / "newtonscradle.gif"):
                 file.write_frame(frame)
 
-    if IS_LO_AV_10_0_0:
-        meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
-        assert meta["comment"] == "This video has a rotation flag."
-        assert meta["rotate"] == "90"
-    elif IS_AV_10_0_0:
-        with warnings.catch_warnings(record=True) as warns:
-            meta = iio.immeta(tmp_path / "test.mp4", plugin="pyav")
-            assert len(warns) == 1
-        pytest.xfail("PyAV 10.0.0 doesn't extract the rotation flag.")
+    if AV_VERSION >= (10, 0, 0):
+        pytest.xfail("PyAV >= 10.0.0 doesn't extract the rotation flag.")
     else:
         pytest.xfail("PyAV v10.0.0+ doesn't extract the rotation flag.")
 

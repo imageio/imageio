@@ -42,8 +42,8 @@ class GIFFormat(PillowFormat):
             if major == 10 and minor >= 1:
                 raise ImportError(
                     f"Pillow v{pillow_version} is not supported by ImageIO's legacy "
-                    "pillow plugin when writing GIF. Consider using to the new "
-                    "plugin or downgrade to `pillow<10.1.0`."
+                    "pillow plugin when writing GIFs. Consider switching to the new "
+                    "plugin or downgrading to `pillow<10.1.0`."
                 )
 
             # Check palettesize
