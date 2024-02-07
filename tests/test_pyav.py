@@ -519,6 +519,7 @@ def test_rotation_flag_metadata(test_images, tmp_path):
     else:
         pytest.xfail("PyAV v10.0.0+ doesn't extract the rotation flag.")
 
+
 def test_read_filter(test_images):
     image = iio.imread(
         test_images / "cockatoo.mp4",

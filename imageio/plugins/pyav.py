@@ -276,13 +276,7 @@ class PyAVPlugin(PluginV3):
 
     """
 
-    def __init__(
-        self,
-        request: Request,
-        *,
-        container: str = None,
-        **kwargs
-    ) -> None:
+    def __init__(self, request: Request, *, container: str = None, **kwargs) -> None:
         """Initialize a new Plugin Instance.
 
         See Plugin's docstring for detailed documentation.
@@ -336,7 +330,9 @@ class PyAVPlugin(PluginV3):
                 pass  # read-only, nothing we can do
 
             try:
-                self._container = av.open(file_handle, mode="w", format=container, **kwargs)
+                self._container = av.open(
+                    file_handle, mode="w", format=container, **kwargs
+                )
             except ValueError:
                 raise InitializationError(
                     f"PyAV can not write to `{self.request.raw_uri}`"
