@@ -2,6 +2,7 @@
 
 FEI TIFFs contain metadata as ASCII plaintext at the end of the file.
 """
+
 from __future__ import unicode_literals
 
 import pytest

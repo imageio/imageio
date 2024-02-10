@@ -1,5 +1,6 @@
 """ Test gdal plugin functionality.
 """
+
 import pytest
 import imageio
 
