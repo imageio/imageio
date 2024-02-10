@@ -460,9 +460,7 @@ def imread(files, **kwargs):
             return imseq.asarray(**kwargs)
 
 
-def imsave(
-    file, data=None, shape=None, dtype=None, bigsize=2**32 - 2**25, **kwargs
-):
+def imsave(file, data=None, shape=None, dtype=None, bigsize=2**32 - 2**25, **kwargs):
     """Write numpy array to TIFF file.
 
     Refer to the TiffWriter class and member functions for documentation.
@@ -3765,10 +3763,7 @@ class TiffPage(object):
 
         if photometric == PHOTOMETRIC.PALETTE:
             colormap = self.colormap
-            if (
-                colormap.shape[1] < 2**self.bitspersample
-                or self.dtype.char not in "BH"
-            ):
+            if colormap.shape[1] < 2**self.bitspersample or self.dtype.char not in "BH":
                 raise ValueError("cannot apply colormap")
             if uint8:
                 if colormap.max() > 255:

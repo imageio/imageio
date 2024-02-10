@@ -1,7 +1,6 @@
 """ Test BSDF plugin.
 """
 
-
 import numpy as np
 
 from pytest import raises

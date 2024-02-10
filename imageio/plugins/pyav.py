@@ -268,15 +268,15 @@ class PyAVPlugin(PluginV3):
         standard interface to access various the various ImageResources and
         serves them to the plugin as a file object (or file). Check the docs for
         details.
+    container : str
+        Only used during `iio_mode="w"`! If not None, overwrite the default container
+        format chosen by pyav.
+    kwargs : Any
+        Additional kwargs are forwarded to PyAV's constructor.
 
     """
 
-    def __init__(
-        self,
-        request: Request,
-        *,
-        container: str = None,
-    ) -> None:
+    def __init__(self, request: Request, *, container: str = None, **kwargs) -> None:
         """Initialize a new Plugin Instance.
 
         See Plugin's docstring for detailed documentation.
@@ -303,9 +303,9 @@ class PyAVPlugin(PluginV3):
                     # HTTP-based streams like DASH. Note that solving streams
                     # like this is temporary until the new request object gets
                     # implemented.
-                    self._container = av.open(request.raw_uri)
+                    self._container = av.open(request.raw_uri, **kwargs)
                 else:
-                    self._container = av.open(request.get_file())
+                    self._container = av.open(request.get_file(), **kwargs)
                 self._video_stream = self._container.streams.video[0]
                 self._decoder = self._container.decode(video=0)
             except av.AVError:
@@ -330,7 +330,9 @@ class PyAVPlugin(PluginV3):
                 pass  # read-only, nothing we can do
 
             try:
-                self._container = av.open(file_handle, mode="w", format=container)
+                self._container = av.open(
+                    file_handle, mode="w", format=container, **kwargs
+                )
             except ValueError:
                 raise InitializationError(
                     f"PyAV can not write to `{self.request.raw_uri}`"
