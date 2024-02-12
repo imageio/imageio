@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.34.0 (2024-02-12)
+
+### Feature
+
+* Forward constructor kwargs to PyAV ([#1061](https://github.com/imageio/imageio/issues/1061)) ([`85fe311`](https://github.com/imageio/imageio/commit/85fe311062600f5f545577979eb108b38ae71348))
+
 ## v2.33.1 (2023-12-11)
 
 ### Fix
