@@ -40,7 +40,7 @@ class RawPyPlugin(PluginV3):
         self._image: rawpy = None
         self._image_file = request.get_file()
 
-    def read(self, *, index: int = 0) -> np.ndarray:
+    def read(self, *, index: int = 0, **kwargs) -> np.ndarray:
         """Read Raw Image.
 
         Returns
@@ -49,11 +49,14 @@ class RawPyPlugin(PluginV3):
             The image data
         """
 
+        nd_image = None
+
         if self._request.mode.io_mode == IOMode.read:
             try:
                 with rawpy.imread(self._image_file) as raw_image:
-                    self._image = raw_image.raw_image
-            except (AttributeError, TypeError, rawpy.LibRawIOError) as ex:
+                    self._image = raw_image.postprocess(**kwargs)
+                nd_image = self._image
+            except (AttributeError, TypeError) as ex:
                 print(ex)
             except (rawpy.NotSupportedError, rawpy.LibRawError, rawpy.LibRawFatalError, rawpy.LibRawNonFatalError) as ex:
                 print(ex)
@@ -62,5 +65,6 @@ class RawPyPlugin(PluginV3):
         else:
             print("Read is not supported!")
 
-        return np.asarray(self._image)
+        return nd_image
+    
     
