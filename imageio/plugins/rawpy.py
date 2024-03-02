@@ -7,8 +7,10 @@ It also contains some extra functionality for finding and repairing hot/dead pix
 import rawpy
 import numpy as np
 
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import PluginV3
+from ..typing import ArrayLike
 
 
 class RawPyPlugin(PluginV3):
@@ -33,32 +35,60 @@ class RawPyPlugin(PluginV3):
 
         super().__init__(request)
 
-        self._image: rawpy = None
-        self._image_file = request.get_file()
+        self._image_file = None
 
+        if request.mode.io_mode == IOMode.read:
+            try:
+                with rawpy.RawPy.open_buffer(request.get_file()):
+                    self._image_file = request.get_file()
+            except rawpy.NotSupportedError as ex:
+                raise InitializationError(
+                    f"RawPy can not read {request.raw_uri}."
+                ) from None
+            finally:
+                rawpy.RawPy.close()
+            
     def read(self, *, index: int = 0, **kwargs) -> np.ndarray:
         """Read Raw Image.
 
         Returns
         -------
-        image: ndimage
+        nd_image: ndarray
             The image data
         """
 
-        nd_image = None
-
+        nd_image: np.ndarray
         
         try:
             with rawpy.imread(self._image_file) as raw_image:
-                self._image = raw_image.postprocess(**kwargs)
-            nd_image = self._image
-        except (AttributeError, TypeError) as ex:
-            print(ex)
-        except (rawpy.NotSupportedError, rawpy.LibRawError, rawpy.LibRawFatalError, rawpy.LibRawNonFatalError) as ex:
-            print(ex)
+                nd_image = raw_image.postprocess(**kwargs)
         except Exception as ex:
             print(ex)
 
         return nd_image
     
-    
+    def write(
+        self, 
+        ndimage: Union[ArrayLike, List[ArrayLike]]
+    ) -> bytes | None:
+        """RawPy implementation not found.
+        """
+        raise NotImplementedError()
+
+    def iter(self) -> Iterator[np.ndarray]:
+        """Load the image.
+
+        Returns
+        -------
+        nd_image: ndarray
+            The image data
+        """
+        nd_image: np.ndarray
+        
+        try:
+            with rawpy.imread(self._image_file) as raw_image:
+                nd_image = raw_image.raw_image
+        except Exception as ex:
+            print(ex)
+
+        return iter(nd_image)
