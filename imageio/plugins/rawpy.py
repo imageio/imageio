@@ -39,15 +39,28 @@ class RawPyPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             try:
-                with rawpy.RawPy.open_buffer(request.get_file()):
-                    self._image_file = request.get_file()
-            except rawpy.NotSupportedError as ex:
-                raise InitializationError(
-                    f"RawPy can not read {request.raw_uri}."
-                ) from None
-            finally:
-                rawpy.RawPy.close()
-            
+                self._image_file = rawpy.imread(request.get_file())
+            except rawpy.NotSupportedError:
+                if request._uri_type == URI_BYTES:
+                    raise InitializationError(
+                        "RawPy can not read the provided bytes."
+                    ) from None
+                else:
+                    raise InitializationError(
+                        f"RawPy can not read {request.raw_uri}."
+                    ) from None
+        elif request.mode.io_mode == IOMode.write:
+            raise InitializationError(
+                "RawPy does not support writing."
+            ) from None
+
+    def close(self) -> None:
+
+        if self._image_file:
+            self._image_file.close()
+
+        self._request.finish()
+
     def read(self, *, index: int = 0, **kwargs) -> np.ndarray:
         """Read Raw Image.
 
@@ -60,10 +73,9 @@ class RawPyPlugin(PluginV3):
         nd_image: np.ndarray
         
         try:
-            with rawpy.imread(self._image_file) as raw_image:
-                nd_image = raw_image.postprocess(**kwargs)
+            nd_image = self._image_file.postprocess(**kwargs)
         except Exception as ex:
-            print(ex)
+            raise ex
 
         return nd_image
     
@@ -71,7 +83,7 @@ class RawPyPlugin(PluginV3):
         self, 
         ndimage: Union[ArrayLike, List[ArrayLike]]
     ) -> bytes | None:
-        """RawPy implementation not found.
+        """RawPy does not support writing.
         """
         raise NotImplementedError()
 
@@ -83,12 +95,8 @@ class RawPyPlugin(PluginV3):
         nd_image: ndarray
             The image data
         """
-        nd_image: np.ndarray
-        
-        try:
-            with rawpy.imread(self._image_file) as raw_image:
-                nd_image = raw_image.raw_image
-        except Exception as ex:
-            print(ex)
 
-        return iter(nd_image)
+        try:
+            yield self.read()
+        except Exception as ex:
+            raise ex
