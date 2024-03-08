@@ -9,7 +9,7 @@ import numpy as np
 
 from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
-from ..core.v3_plugin_api import PluginV3
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
 
 
@@ -71,14 +71,14 @@ class RawPyPlugin(PluginV3):
         """
 
         nd_image: np.ndarray
-        
+
         try:
             nd_image = self._image_file.postprocess(**kwargs)
         except Exception as ex:
             raise ex
 
         return nd_image
-    
+
     def write(
         self, 
         ndimage: Union[ArrayLike, List[ArrayLike]]
@@ -100,3 +100,88 @@ class RawPyPlugin(PluginV3):
             yield self.read()
         except Exception as ex:
             raise ex
+
+    def metadata(
+        self, index: int = None, exclude_applied: bool = True
+    ) -> Dict[str, Any]:
+        """Read ndimage metadata.
+
+        Parameters
+        ----------
+        exclude_applied : bool
+            If True, exclude metadata fields that are applied to the image while
+            reading. For example, if the binary data contains a rotation flag,
+            the image is rotated by default and the rotation flag is excluded
+            from the metadata to avoid confusion.
+
+        Returns
+        -------
+        metadata : dict
+            A dictionary of format-specific metadata.
+
+        """
+
+        metadata = {}
+
+        ImageSize = self._image_file.sizes
+
+        # TO DO: Find out what information needs to be included below and refine accordingly.
+        metadata["black_level_per_channel"] = self._image_file.black_level_per_channel
+        metadata["camera_white_level_per_channel"] = self._image_file.camera_white_level_per_channel
+        metadata["color_desc"] = self._image_file.color_desc
+        #metadata["color_matrix"] = self._image_file.color_matrix
+        metadata["daylight_whitebalance"] = self._image_file.daylight_whitebalance
+        metadata["dtype"] = self._image_file.raw_image.dtype.type
+        metadata["flip"] = ImageSize.flip
+        metadata["num_colors"] = self._image_file.num_colors
+        #metadata["raw_colors"] = self._image_file.raw_colors
+        #metadata["raw_colors_visible"] = self._image_file.raw_colors_visible
+        #metadata["raw_image"] = self._image_file.raw_image
+        #metadata["raw_image_visible"] = self._image_file.raw_image_visible
+        #metadata["raw_pattern"] = self._image_file.raw_pattern
+        metadata["raw_type"] = self._image_file.raw_type.name
+        #metadata["rgb_xyz_matrix"] = self._image_file.rgb_xyz_matrix
+        #metadata["tone_curve"] = self._image_file.tone_curve
+        metadata["width"] = ImageSize.width
+        metadata["height"] = ImageSize.height
+        metadata["shape"] = (ImageSize.width, ImageSize.height)
+        metadata["raw_width"] = ImageSize.raw_width
+        metadata["raw_height"] = ImageSize.raw_height
+        metadata["raw_shape"] = self._image_file.raw_image.shape
+        metadata["iwidth"] = ImageSize.iwidth
+        metadata["iheight"] = ImageSize.iheight
+        metadata["pixel_aspect"] = ImageSize.pixel_aspect
+        metadata["white_level"] = self._image_file.white_level
+
+        #TO DO: Find out what information needs to be excluded below and refine accordingly.
+        if exclude_applied:
+            metadata.pop("flip", None)
+
+        return metadata
+    
+    def properties(self, index: int = None) -> ImageProperties:
+        """Standardized ndimage metadata
+
+        Returns
+        -------
+        properties : ImageProperties
+            A dataclass filled with standardized image metadata.
+
+        Notes
+        -----
+        This does not decode pixel data and is fast for large images.
+
+        """
+
+        ImageSize = self._image_file.sizes
+
+        width: int = ImageSize.width
+        height: int = ImageSize.height
+        shape: Tuple[int, ...] = (height, width)
+
+        dtype = self._image_file.raw_image.dtype.type
+
+        return ImageProperties(
+            shape=shape,
+            dtype=dtype
+        )
