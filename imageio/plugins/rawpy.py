@@ -75,7 +75,8 @@ class RawPyPlugin(PluginV3):
             nd_image = self._image_file.postprocess(**kwargs)
         except Exception:
             pass
-
+        
+        nd_image = nd_image[None, ...]
         return nd_image
 
     def write(

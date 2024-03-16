@@ -13,7 +13,7 @@ def test_nef_local(test_images):
     im_path = test_images / "infrared.nef"
 
     # Test if plugin's content mathces rawpy content
-    actual = iio.imread(im_path, plugin="rawpy")
+    actual = iio.imread(im_path, index=..., plugin="rawpy")
     expected = rawpy.imread(im_path).postprocess()
     assert np.allclose(actual, expected)
 
