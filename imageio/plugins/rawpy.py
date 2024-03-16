@@ -130,7 +130,7 @@ class RawPyPlugin(PluginV3):
         metadata["color_desc"] = self._image_file.color_desc
         #metadata["color_matrix"] = self._image_file.color_matrix
         metadata["daylight_whitebalance"] = self._image_file.daylight_whitebalance
-        metadata["dtype"] = self._image_file.raw_image.dtype.type
+        metadata["dtype"] = self._image_file.raw_image.dtype
         metadata["flip"] = ImageSize.flip
         metadata["num_colors"] = self._image_file.num_colors
         #metadata["raw_colors"] = self._image_file.raw_colors
@@ -178,7 +178,7 @@ class RawPyPlugin(PluginV3):
         height: int = ImageSize.height
         shape: Tuple[int, ...] = (height, width)
 
-        dtype = self._image_file.raw_image.dtype.type
+        dtype = self._image_file.raw_image.dtype
 
         return ImageProperties(
             shape=shape,
