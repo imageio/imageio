@@ -55,7 +55,6 @@ class RawPyPlugin(PluginV3):
             ) from None
 
     def close(self) -> None:
-
         if self._image_file:
             self._image_file.close()
 
