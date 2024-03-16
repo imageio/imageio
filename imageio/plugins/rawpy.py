@@ -81,7 +81,7 @@ class RawPyPlugin(PluginV3):
     def write(
         self, 
         ndimage: Union[ArrayLike, List[ArrayLike]]
-    ) -> bytes | None:
+    ) -> Optional[bytes]:
         """RawPy does not support writing.
         """
         raise NotImplementedError()
