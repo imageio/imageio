@@ -10,7 +10,7 @@ def test_nef_local(test_images):
     """Test for reading .nef file from .test_images dir.
     """
     # Construct image path
-    im_path = "e:/Explorations/imageio-tahseen-new/.test_images/infrared.nef" #test_images / "infrared.nef"
+    im_path = test_images / "infrared.nef"
 
     # Test if plugin's content mathces rawpy content
     actual = iio.imread(im_path, plugin="rawpy")
@@ -22,7 +22,7 @@ def test_properties(test_images):
     """Test for reading properties of a raw image from .test_images dir.
     """
     # Construct image path
-    im_path = "e:/Explorations/imageio-tahseen-new/.test_images/infrared.nef" #test_images / "infrared.nef"
+    im_path = test_images / "infrared.nef"
 
     # Test properties of a .nef image
     properties = iio.improps(im_path, plugin="rawpy")
@@ -34,7 +34,7 @@ def test_metadata(test_images):
     """Test for reading metadata of a raw image from .test_images dir.
     """
     # Construct image path
-    im_path = "e:/Explorations/imageio-tahseen-new/.test_images/infrared.nef" #test_images / "infrared.nef"
+    im_path = test_images / "infrared.nef"
 
     # Test metadata of a .nef image
     metadata = iio.immeta(im_path, plugin="rawpy")
