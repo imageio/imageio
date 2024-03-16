@@ -29,7 +29,7 @@ class RawPyPlugin(PluginV3):
 
         Parameters
         ----------
-        request: {Request}
+        request: Request
             A request object representing the resource to be operated on.
         """
 
