@@ -74,8 +74,8 @@ class RawPyPlugin(PluginV3):
 
         try:
             nd_image = self._image_file.postprocess(**kwargs)
-        except Exception as ex:
-            raise ex
+        except Exception:
+            pass
 
         return nd_image
 
@@ -98,8 +98,8 @@ class RawPyPlugin(PluginV3):
 
         try:
             yield self.read()
-        except Exception as ex:
-            raise ex
+        except Exception:
+            pass
 
     def metadata(
         self, index: int = None, exclude_applied: bool = True
