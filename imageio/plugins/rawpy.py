@@ -40,7 +40,7 @@ class RawPyPlugin(PluginV3):
         if request.mode.io_mode == IOMode.read:
             try:
                 self._image_file = rawpy.imread(request.get_file())
-            except rawpy.NotSupportedError:
+            except (rawpy.NotSupportedError, rawpy.LibRawFileUnsupportedError):
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
                         "RawPy can not read the provided bytes."
