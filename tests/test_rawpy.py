@@ -40,7 +40,6 @@ def test_metadata(test_images):
     metadata = iio.immeta(im_path, plugin="rawpy")
     assert metadata["width"] == 3039
     assert metadata["height"] == 2014
-    assert metadata["shape"] == (3039, 2014)
     assert metadata["dtype"] == np.uint16
     assert metadata["raw_width"] == 3040
     assert metadata["raw_height"] == 2014

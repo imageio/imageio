@@ -143,7 +143,6 @@ class RawPyPlugin(PluginV3):
         #metadata["tone_curve"] = self._image_file.tone_curve
         metadata["width"] = ImageSize.width
         metadata["height"] = ImageSize.height
-        metadata["shape"] = (ImageSize.width, ImageSize.height)
         metadata["raw_width"] = ImageSize.raw_width
         metadata["raw_height"] = ImageSize.raw_height
         metadata["raw_shape"] = self._image_file.raw_image.shape
