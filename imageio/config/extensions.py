@@ -596,7 +596,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".nef",
-        priority=["RAW-FI"],
+        priority=["RAW-FI", "rawpy"],
     ),
     FileExtension(
         extension=".nhdr",
@@ -762,7 +762,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".raw",
-        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW"],
+        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW", "rawpy"],
     ),
     FileExtension(
         extension=".rdc",

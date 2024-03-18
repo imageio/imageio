@@ -100,6 +100,7 @@ plugins = {
     "tifffile": ["tifffile"],
     "pyav": ["av"],
     "pillow-heif": ["pillow-heif"],
+    "rawpy": ["rawpy"]
 }
 
 cpython_only_plugins = {
