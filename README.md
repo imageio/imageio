@@ -118,3 +118,7 @@ We welcome contributions of any kind. Here are some suggestions on how you are a
 - report/fix any bugs you encounter while using ImageIO
 
 To assist you in getting started with contributing code, take a look at the [development section](https://imageio.readthedocs.io/en/stable/development/index.html) of the docs. You will find instructions on setting up the dev environment as well as examples on how to contribute code.
+
+<h2>Code of Conduct</h2>
+
+ImageIO is a community-driven open-source project developed by a diverse group of contributors. We want to create an open, inclusive, and positive community. Please read the Code of Conduct for guidance on how to interact with others in a way that makes this community thrive.
