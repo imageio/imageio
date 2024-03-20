@@ -808,7 +808,7 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         codec : str
-            The codec to use, e.g. ``"x264"`` or ``"vp9"``.
+            The codec to use, e.g. ``"libx264"`` or ``"vp9"``.
         fps : float
             The desired framerate of the video stream (frames per second).
         pixel_format : str
