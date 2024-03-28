@@ -14,7 +14,7 @@ def test_nef_local(test_images):
 
     # Test if plugin's content mathces rawpy content
     actual = iio.imread(im_path, index=..., plugin="rawpy")
-    expected = rawpy.imread(im_path).postprocess()
+    expected = rawpy.imread(str(im_path)).postprocess()
     assert np.allclose(actual, expected)
 
 
