@@ -6,7 +6,7 @@ Supported Formats
     you can search this page using ``Ctrl+F`` and then type the name of
     the extension or format.
 
-ImageIO reads and writes images by deligating your request to one of many
+ImageIO reads and writes images by delegating your request to one of many
 backends. Example backends are pillow, ffmpeg, tifffile among others. Each
 backend supports its own set of formats, which is how ImageIO manages to support
 so many of them.
