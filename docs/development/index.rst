@@ -304,7 +304,7 @@ class to API calls using the plugin kwarg. For example::
 
 **Installation**
 
-To develop a new plugin, you can start off with a simple def install::
+To develop a new plugin, you can start off with a simple dev install::
     
     # 1. Fork the ImageIO repository
 
@@ -449,7 +449,7 @@ the file, define functions that have their name begin with ``test_`` (example:
 ``def test_png_reading():``) and fill them with code that uses your plugin.
 
 Our main requirement for tests of new plugins is that they cover the full
-plugin. Ideally, they also test readiing and writing of all supported formats,
+plugin. Ideally, they also test reading and writing of all supported formats,
 but this is not strictly necessary. Check the commands above for how to run
 tests and check test coverage of your plugin.
 
