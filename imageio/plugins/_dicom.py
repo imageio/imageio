@@ -706,7 +706,11 @@ class DicomSeries(object):
         self._entries.sort(
             key=lambda k: (
                 k.InstanceNumber,
-                getattr(k, "ImagePositionPatient[2]", None),
+                (
+                    k.ImagePositionPatient[2]
+                    if hasattr(k, "ImagePositionPatient")
+                    else None
+                ),
             )
         )
 
