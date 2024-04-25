@@ -4,10 +4,10 @@ rawpy is an easy-to-use Python wrapper for the LibRaw library.
 It also contains some extra functionality for finding and repairing hot/dead pixels.
 """
 
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 import rawpy
 import numpy as np
 
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
@@ -40,7 +40,7 @@ class RawPyPlugin(PluginV3):
         if request.mode.io_mode == IOMode.read:
             try:
                 self._image_file = rawpy.imread(request.get_file())
-            except (rawpy.NotSupportedError, rawpy.LibRawFileUnsupportedError):
+            except (rawpy.NotSupportedError, rawpy.LibRawFileUnsupportedError, rawpy.LibRawIOError):
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
                         "RawPy can not read the provided bytes."
@@ -49,10 +49,11 @@ class RawPyPlugin(PluginV3):
                     raise InitializationError(
                         f"RawPy can not read {request.raw_uri}."
                     ) from None
-        elif request.mode.io_mode == IOMode.write:
-            raise InitializationError(
-                "RawPy does not support writing."
-            ) from None
+        # Why do we need this when we are raising NotImplementedError in the write method ?
+        #elif request.mode.io_mode == IOMode.write:
+        #    raise InitializationError(
+        #        "RawPy does not support writing."
+        #    ) from None
 
     def close(self) -> None:
         if self._image_file:
