@@ -59,3 +59,4 @@ def test_metadata(test_images):
     metadata = iio.immeta(im_path, plugin="rawpy")
     assert metadata["width"] == 869
     assert metadata["height"] == 593
+    assert metadata["pixel_aspect"] == 1.0
