@@ -76,7 +76,9 @@ class RawPyPlugin(PluginV3):
         except Exception:
             pass
         
-        nd_image = nd_image[None, ...]
+        if index is Ellipsis:
+            nd_image = nd_image[None, ...]
+
         return nd_image
 
     def write(

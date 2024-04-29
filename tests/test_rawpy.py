@@ -12,10 +12,12 @@ import numpy as np
     "im_in",
     [
        ("Nikon_uncompressed.nef"),
-       ("Blackmagic.dng"), 
+       ("Blackmagic.dng"),
+       ("Canon_Powershot.CRW"),
+       ("Pentax_compressed.PEF"), 
     ],
 )
-def test_im_remote(test_images, im_in):
+def test_read(test_images, im_in):
     """Test for reading .nef file from .test_images dir.
     """
     # Construct image path
@@ -23,6 +25,27 @@ def test_im_remote(test_images, im_in):
 
     # Test if plugin's content mathces rawpy content
     actual = iio.imread(im_path, index=..., plugin="rawpy")
+    expected = rawpy.imread(str(im_path)).postprocess()
+    assert np.allclose(actual, expected)
+
+
+@pytest.mark.parametrize(
+    "im_in",
+    [
+       ("Nikon_uncompressed.nef"),
+       ("Blackmagic.dng"),
+       ("Canon_Powershot.CRW"),
+       ("Pentax_compressed.PEF"), 
+    ],
+)
+def test_read_with_default_index(test_images, im_in):
+    """Test for reading .nef file from .test_images dir.
+    """
+    # Construct image path
+    im_path = test_images / im_in
+
+    # Test if plugin's content mathces rawpy content
+    actual = iio.imread(im_path, plugin="rawpy")
     expected = rawpy.imread(str(im_path)).postprocess()
     assert np.allclose(actual, expected)
 
