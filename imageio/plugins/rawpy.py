@@ -49,11 +49,10 @@ class RawPyPlugin(PluginV3):
                     raise InitializationError(
                         f"RawPy can not read {request.raw_uri}."
                     ) from None
-        # Why do we need this when we are raising NotImplementedError in the write method ?
-        #elif request.mode.io_mode == IOMode.write:
-        #    raise InitializationError(
-        #        "RawPy does not support writing."
-        #    ) from None
+        elif request.mode.io_mode == IOMode.write:
+            raise InitializationError(
+               "RawPy does not support writing."
+           ) from None
 
     def close(self) -> None:
         if self._image_file:
@@ -124,38 +123,49 @@ class RawPyPlugin(PluginV3):
 
         metadata = {}
 
-        ImageSize = self._image_file.sizes
+        image_size = self._image_file.sizes
 
-        # TO DO: Find out what information needs to be included below and refine accordingly.
         metadata["black_level_per_channel"] = self._image_file.black_level_per_channel
         metadata["camera_white_level_per_channel"] = self._image_file.camera_white_level_per_channel
         metadata["color_desc"] = self._image_file.color_desc
-        #metadata["color_matrix"] = self._image_file.color_matrix
+        metadata["color_matrix"] = self._image_file.color_matrix
         metadata["daylight_whitebalance"] = self._image_file.daylight_whitebalance
         metadata["dtype"] = self._image_file.raw_image.dtype
-        metadata["flip"] = ImageSize.flip
+        metadata["flip"] = image_size.flip
         metadata["num_colors"] = self._image_file.num_colors
-        #metadata["raw_colors"] = self._image_file.raw_colors
-        #metadata["raw_colors_visible"] = self._image_file.raw_colors_visible
-        #metadata["raw_image"] = self._image_file.raw_image
-        #metadata["raw_image_visible"] = self._image_file.raw_image_visible
-        #metadata["raw_pattern"] = self._image_file.raw_pattern
+        metadata["raw_pattern"] = self._image_file.raw_pattern
         metadata["raw_type"] = self._image_file.raw_type.name
-        #metadata["rgb_xyz_matrix"] = self._image_file.rgb_xyz_matrix
-        #metadata["tone_curve"] = self._image_file.tone_curve
-        metadata["width"] = ImageSize.width
-        metadata["height"] = ImageSize.height
-        metadata["raw_width"] = ImageSize.raw_width
-        metadata["raw_height"] = ImageSize.raw_height
+        metadata["rgb_xyz_matrix"] = self._image_file.rgb_xyz_matrix
+        metadata["tone_curve"] = self._image_file.tone_curve
+        metadata["width"] = image_size.width
+        metadata["height"] = image_size.height
+        metadata["raw_width"] = image_size.raw_width
+        metadata["raw_height"] = image_size.raw_height
         metadata["raw_shape"] = self._image_file.raw_image.shape
-        metadata["iwidth"] = ImageSize.iwidth
-        metadata["iheight"] = ImageSize.iheight
-        metadata["pixel_aspect"] = ImageSize.pixel_aspect
+        metadata["iwidth"] = image_size.iwidth
+        metadata["iheight"] = image_size.iheight
+        metadata["pixel_aspect"] = image_size.pixel_aspect
         metadata["white_level"] = self._image_file.white_level
 
-        #TO DO: Find out what information needs to be excluded below and refine accordingly.
         if exclude_applied:
+            metadata.pop("black_level_per_channel", None)
+            metadata.pop("camera_white_level_per_channel", None)
+            metadata.pop("color_desc", None)
+            metadata.pop("color_matrix", None)
+            metadata.pop("daylight_whitebalance", None)
+            metadata.pop("dtype", None)
             metadata.pop("flip", None)
+            metadata.pop("num_colors", None)
+            metadata.pop("raw_pattern", None)
+            metadata.pop("raw_type", None)
+            metadata.pop("rgb_xyz_matrix", None)
+            metadata.pop("tone_curve", None)
+            metadata.pop("raw_width", None)
+            metadata.pop("raw_height", None)
+            metadata.pop("raw_shape", None)
+            metadata.pop("iwidth", None)
+            metadata.pop("iheight", None)
+            metadata.pop("white_level", None)
 
         return metadata
     
