@@ -8,7 +8,7 @@ jobs:
     name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
         pyversion: ["pypy-3.9", "pypy-3.10"]
