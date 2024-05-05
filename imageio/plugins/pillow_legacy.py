@@ -137,10 +137,8 @@ loop : int
     The number of iterations. Default 0 (meaning loop indefinitely).
 duration : {float, list}
     (Only available in GIF-PIL)
-    The duration (in seconds) of each frame. Either specify one value
+    The duration (in milliseconds) of each frame. Either specify one value
     that is used for all frames, or one value for each frame.
-    Note that in the GIF format the duration/delay is expressed in
-    hundredths of a second, which limits the precision of the duration.
 fps : float
     (Only available in GIF-PIL)
     The number of frames per second. If duration is not given, the
