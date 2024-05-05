@@ -73,7 +73,9 @@ def setup_library(tmp_path_factory, vendored_lib):
         os.makedirs(add, exist_ok=True)
         shutil.copytree(vendored_lib, os.path.join(add, "freeimage"))
         fi.load_freeimage()
-        assert fi.has_lib(), "imageio-binaries' version of libfreeimage was not found"
+    
+        if not fi.has_lib():
+            pytest.skip("Could not find a compatible FreeImage version for this OS.")
 
     yield
 
