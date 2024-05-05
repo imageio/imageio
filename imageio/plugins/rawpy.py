@@ -135,9 +135,6 @@ class RawPyPlugin(PluginV3):
         metadata["dtype"] = self._image_file.raw_image.dtype
         metadata["flip"] = image_size.flip
         metadata["num_colors"] = self._image_file.num_colors
-        metadata["raw_pattern"] = self._image_file.raw_pattern
-        metadata["raw_type"] = self._image_file.raw_type.name
-        metadata["rgb_xyz_matrix"] = self._image_file.rgb_xyz_matrix
         metadata["tone_curve"] = self._image_file.tone_curve
         metadata["width"] = image_size.width
         metadata["height"] = image_size.height
@@ -158,9 +155,6 @@ class RawPyPlugin(PluginV3):
             metadata.pop("dtype", None)
             metadata.pop("flip", None)
             metadata.pop("num_colors", None)
-            metadata.pop("raw_pattern", None)
-            metadata.pop("raw_type", None)
-            metadata.pop("rgb_xyz_matrix", None)
             metadata.pop("tone_curve", None)
             metadata.pop("raw_width", None)
             metadata.pop("raw_height", None)
