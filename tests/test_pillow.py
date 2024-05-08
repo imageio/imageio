@@ -719,3 +719,10 @@ def test_avif_remote():
     url = "https://github.com/link-u/avif-sample-images/raw/master/fox.profile0.10bpc.yuv420.avif"
     im = iio.imread(url, plugin="pillow")
     assert im.shape == (800, 1204, 3)
+
+
+@pytest.mark.needs_internet
+def test_jpeg_of_issue_1065():
+    url = "https://imagenes.20minutos.es/files/image_1920_1080/uploads/imagenes/2022/09/09/fotografia-a-coruna.jpeg"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (1080, 1920, 3)
