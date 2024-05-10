@@ -5,13 +5,13 @@
 import pytest
 import imageio
 import sys
-import platform
 
+imageio_ffmpeg = pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
 
-pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
-
-if platform.system() == "darwin" and platform.machine() == "arm":
-    pytest.skip("M1 is not yet supported by imageio-ffmpeg")
+try:
+    imageio_ffmpeg.get_ffmpeg_version()
+except RuntimeError:
+    pytest.skip("No compatible FFMPEG binary could be found.")
 
 
 def dedent(text, dedent=8):
