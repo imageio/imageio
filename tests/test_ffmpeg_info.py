@@ -6,7 +6,9 @@ import pytest
 import imageio
 import sys
 
-imageio_ffmpeg = pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+imageio_ffmpeg = pytest.importorskip(
+    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
+)
 
 try:
     imageio_ffmpeg.get_ffmpeg_version()
