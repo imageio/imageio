@@ -33,7 +33,7 @@ imageio_ffmpeg = pytest.importorskip(
 try:
     imageio_ffmpeg.get_ffmpeg_version()
 except RuntimeError:
-    pytest.skip("No compatible FFMPEG binary could be found.")
+    pytest.skip("No compatible FFMPEG binary could be found.", allow_module_level=True)
 
 
 def get_ffmpeg_pids():
