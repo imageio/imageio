@@ -424,8 +424,8 @@ def test_bayer_write():
 
 def test_sequential_reading(test_images):
     expected_imgs = [
-        iio.imread(test_images / "cockatoo.mp4", index=1),
-        iio.imread(test_images / "cockatoo.mp4", index=5),
+        iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=1),
+        iio.imread(test_images / "cockatoo.mp4", plugin="pyav", index=5),
     ]
 
     with iio.imopen(test_images / "cockatoo.mp4", "r", plugin="pyav") as img_file:
