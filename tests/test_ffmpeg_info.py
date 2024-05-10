@@ -5,9 +5,13 @@
 import pytest
 import imageio
 import sys
+import platform
 
 
 pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+
+if platform.system() == "darwin" and platform.machine() == "arm64":
+    pytest.skip("M1 is not yet supported by imageio-ffmpeg")
 
 
 def dedent(text, dedent=8):

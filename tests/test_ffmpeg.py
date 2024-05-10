@@ -30,6 +30,9 @@ imageio_ffmpeg = pytest.importorskip(
     "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
 )
 
+if platform.system() == "darwin" and platform.machine() == "arm64":
+    pytest.skip("M1 is not yet supported by imageio-ffmpeg")
+
 
 def get_ffmpeg_pids():
     pids = set()
