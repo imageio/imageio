@@ -92,7 +92,7 @@ def test_images(request, pytestconfig):
         checkout_dir = Path(__file__).parents[1] / ".test_images"
 
         if not checkout_dir.exists() and not use_internet:
-            pytest.skip("Internet use disabled and `.test_images` not found")
+            pytest.skip("Internet use disabled and `.test_images` not found.")
         try:
             checkout_dir.mkdir()
         except FileExistsError:
