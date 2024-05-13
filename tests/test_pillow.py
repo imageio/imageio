@@ -722,7 +722,10 @@ def test_avif_remote():
 
 
 @pytest.mark.needs_internet
-def test_jpeg_of_issue_1065():
-    url = "https://imagenes.20minutos.es/files/image_1920_1080/uploads/imagenes/2022/09/09/fotografia-a-coruna.jpeg"
+def test_webp_remote():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/1065
+    # the image in the issue is actually a webp image
+    url = "https://github.com/python-pillow/Pillow/raw/main/Tests/images/hopper_orientation_2.webp"
     im = iio.imread(url, plugin="pillow")
-    assert im.shape == (1080, 1920, 3)
+    assert im.shape == (128, 128, 3)
