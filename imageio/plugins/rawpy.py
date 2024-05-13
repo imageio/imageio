@@ -24,6 +24,7 @@ class RawPyPlugin(PluginV3):
 
     RawPyPlugin.read
     """
+
     def __init__(self, request: Request) -> None:
         """Instantiates a new rawpy plugin object
 
@@ -40,19 +41,19 @@ class RawPyPlugin(PluginV3):
         if request.mode.io_mode == IOMode.read:
             try:
                 self._image_file = rawpy.imread(request.get_file())
-            except (rawpy.NotSupportedError, rawpy.LibRawFileUnsupportedError, rawpy.LibRawIOError):
+            except (
+                rawpy.NotSupportedError,
+                rawpy.LibRawFileUnsupportedError,
+                rawpy.LibRawIOError,
+            ):
                 if request._uri_type == URI_BYTES:
-                    raise InitializationError(
-                        "RawPy can not read the provided bytes."
-                    ) from None
+                    raise InitializationError("RawPy can not read the provided bytes.") from None
                 else:
                     raise InitializationError(
                         f"RawPy can not read {request.raw_uri}."
                     ) from None
         elif request.mode.io_mode == IOMode.write:
-            raise InitializationError(
-               "RawPy does not support writing."
-           ) from None
+            raise InitializationError("RawPy does not support writing.") from None
 
     def close(self) -> None:
         if self._image_file:
@@ -75,18 +76,14 @@ class RawPyPlugin(PluginV3):
             nd_image = self._image_file.postprocess(**kwargs)
         except Exception:
             pass
-        
+
         if index is Ellipsis:
             nd_image = nd_image[None, ...]
 
         return nd_image
 
-    def write(
-        self, 
-        ndimage: Union[ArrayLike, List[ArrayLike]]
-    ) -> Optional[bytes]:
-        """RawPy does not support writing.
-        """
+    def write(self, ndimage: Union[ArrayLike, List[ArrayLike]]) -> Optional[bytes]:
+        """RawPy does not support writing."""
         raise NotImplementedError()
 
     def iter(self) -> Iterator[np.ndarray]:
@@ -164,7 +161,7 @@ class RawPyPlugin(PluginV3):
             metadata.pop("white_level", None)
 
         return metadata
-    
+
     def properties(self, index: int = None) -> ImageProperties:
         """Standardized ndimage metadata
 
@@ -187,7 +184,4 @@ class RawPyPlugin(PluginV3):
 
         dtype = self._image_file.raw_image.dtype
 
-        return ImageProperties(
-            shape=shape,
-            dtype=dtype
-        )
+        return ImageProperties(shape=shape, dtype=dtype)

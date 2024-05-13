@@ -11,15 +11,14 @@ import numpy as np
 @pytest.mark.parametrize(
     "im_in",
     [
-       ("Nikon_uncompressed.nef"),
-       ("Blackmagic.dng"),
-       ("Canon_Powershot.CRW"),
-       ("Pentax_compressed.PEF"), 
+        ("Nikon_uncompressed.nef"),
+        ("Blackmagic.dng"),
+        ("Canon_Powershot.CRW"),
+        ("Pentax_compressed.PEF"), 
     ],
 )
 def test_read(test_images, im_in):
-    """Test for reading .nef file from .test_images dir.
-    """
+    """Test for reading .nef file from .test_images dir."""
     # Construct image path
     im_path = test_images / im_in
 
@@ -32,15 +31,14 @@ def test_read(test_images, im_in):
 @pytest.mark.parametrize(
     "im_in",
     [
-       ("Nikon_uncompressed.nef"),
-       ("Blackmagic.dng"),
-       ("Canon_Powershot.CRW"),
-       ("Pentax_compressed.PEF"), 
+        ("Nikon_uncompressed.nef"),
+        ("Blackmagic.dng"),
+        ("Canon_Powershot.CRW"),
+        ("Pentax_compressed.PEF"), 
     ],
 )
 def test_read_with_default_index(test_images, im_in):
-    """Test for reading .nef file from .test_images dir.
-    """
+    """Test for reading .nef file from .test_images dir."""
     # Construct image path
     im_path = test_images / im_in
 
@@ -51,8 +49,7 @@ def test_read_with_default_index(test_images, im_in):
 
 
 def test_iter(test_images):
-    """Test for the iter function of rawpy plugin.
-    """
+    """Test for the iter function of rawpy plugin."""
 
     # Construct image path
     im_path = test_images / "Blackmagic.dng"
@@ -61,8 +58,7 @@ def test_iter(test_images):
 
 
 def test_properties(test_images):
-    """Test for reading properties of a raw image from .test_images dir.
-    """
+    """Test for reading properties of a raw image from .test_images dir."""
     # Construct image path
     im_path = test_images / "Nikon_uncompressed.nef"
 
@@ -73,8 +69,7 @@ def test_properties(test_images):
 
 
 def test_metadata(test_images):
-    """Test for reading metadata of a raw image from .test_images dir.
-    """
+    """Test for reading metadata of a raw image from .test_images dir."""
     # Construct image path
     im_path = test_images / "Nikon_uncompressed.nef"
 
