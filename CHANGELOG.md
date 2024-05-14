@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.34.1 (2024-04-22)
+
+### Fix
+
+* Fix bug of #1068 that `getattr` cannot get attribute with index directly ([#1069](https://github.com/imageio/imageio/issues/1069)) ([`05f0b37`](https://github.com/imageio/imageio/commit/05f0b372a7010debb39d2e8a65aed40bf2840f90))
+
+### Other
+
+* Update pyav.py ([#1070](https://github.com/imageio/imageio/issues/1070)) ([`0bc584e`](https://github.com/imageio/imageio/commit/0bc584ea79eb008be141b4b03bcf088194e219ba))
+* Trivial typo fixes ([#1072](https://github.com/imageio/imageio/issues/1072)) ([`9d1bced`](https://github.com/imageio/imageio/commit/9d1bced7703fc198f60b1d891cf85a10686822a7))
+
 ## v2.34.0 (2024-02-12)
 
 ### Feature

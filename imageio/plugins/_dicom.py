@@ -703,7 +703,16 @@ class DicomSeries(object):
         self._entries.append(dcm)
 
     def _sort(self):
-        self._entries.sort(key=lambda k: k.InstanceNumber)
+        self._entries.sort(
+            key=lambda k: (
+                k.InstanceNumber,
+                (
+                    k.ImagePositionPatient[2]
+                    if hasattr(k, "ImagePositionPatient")
+                    else None
+                ),
+            )
+        )
 
     def _finish(self):
         """
