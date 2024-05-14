@@ -14,7 +14,7 @@ import numpy as np
         ("Nikon_uncompressed.nef"),
         ("Blackmagic.dng"),
         ("Canon_Powershot.CRW"),
-        ("Pentax_compressed.PEF"), 
+        ("Pentax_compressed.PEF"),
     ],
 )
 def test_read(test_images, im_in):
@@ -34,7 +34,7 @@ def test_read(test_images, im_in):
         ("Nikon_uncompressed.nef"),
         ("Blackmagic.dng"),
         ("Canon_Powershot.CRW"),
-        ("Pentax_compressed.PEF"), 
+        ("Pentax_compressed.PEF"),
     ],
 )
 def test_read_with_default_index(test_images, im_in):

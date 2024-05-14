@@ -47,7 +47,9 @@ class RawPyPlugin(PluginV3):
                 rawpy.LibRawIOError,
             ):
                 if request._uri_type == URI_BYTES:
-                    raise InitializationError("RawPy can not read the provided bytes.") from None
+                    raise InitializationError(
+                        "RawPy can not read the provided bytes."
+                    ) from None
                 else:
                     raise InitializationError(
                         f"RawPy can not read {request.raw_uri}."
@@ -125,7 +127,9 @@ class RawPyPlugin(PluginV3):
         image_size = self._image_file.sizes
 
         metadata["black_level_per_channel"] = self._image_file.black_level_per_channel
-        metadata["camera_white_level_per_channel"] = self._image_file.camera_white_level_per_channel
+        metadata["camera_white_level_per_channel"] = (
+            self._image_file.camera_white_level_per_channel
+        )
         metadata["color_desc"] = self._image_file.color_desc
         metadata["color_matrix"] = self._image_file.color_matrix
         metadata["daylight_whitebalance"] = self._image_file.daylight_whitebalance

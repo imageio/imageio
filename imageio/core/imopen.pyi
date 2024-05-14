@@ -55,7 +55,7 @@ def imopen(
     *,
     plugin: Literal["rawpy"],
     extension: str = None,
-    format_hint: str = None, 
+    format_hint: str = None,
 ) -> RawPyPlugin: ...
 @overload
 def imopen(
