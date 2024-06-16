@@ -11,14 +11,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
-import os
-import imageio
-import inspect
 import importlib
+import inspect
+import os
+import sys
 from pathlib import Path
 
-
+import imageio
 # import/load the plugins so that they can be documented
 import imageio.plugins.bsdf
 import imageio.plugins.dicom
@@ -29,10 +28,10 @@ import imageio.plugins.gdal
 import imageio.plugins.lytro
 import imageio.plugins.npz
 import imageio.plugins.pillow_legacy
+import imageio.plugins.rawpy
 import imageio.plugins.simpleitk
 import imageio.plugins.spe
 import imageio.plugins.swf
-
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
