@@ -697,6 +697,9 @@ class SeekableFileObject:
 
         return res
 
+    def readline(self):
+        yield from self._file.readline()
+
     def tell(self):
         return self._i
 
