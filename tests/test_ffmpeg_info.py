@@ -6,8 +6,14 @@ import pytest
 import imageio
 import sys
 
+imageio_ffmpeg = pytest.importorskip(
+    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
+)
 
-pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+try:
+    imageio_ffmpeg.get_ffmpeg_version()
+except RuntimeError:
+    pytest.skip("No compatible FFMPEG binary could be found.", allow_module_level=True)
 
 
 def dedent(text, dedent=8):
