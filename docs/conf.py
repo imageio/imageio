@@ -18,6 +18,7 @@ import sys
 from pathlib import Path
 
 import imageio
+
 # import/load the plugins so that they can be documented
 import imageio.plugins.bsdf
 import imageio.plugins.dicom
