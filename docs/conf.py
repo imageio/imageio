@@ -29,7 +29,6 @@ import imageio.plugins.gdal
 import imageio.plugins.lytro
 import imageio.plugins.npz
 import imageio.plugins.pillow_legacy
-import imageio.plugins.rawpy
 import imageio.plugins.simpleitk
 import imageio.plugins.spe
 import imageio.plugins.swf
@@ -75,7 +74,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "imageio"
-copyright = "2014-2021, imageio contributors"
+copyright = "2014-2024, imageio contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
