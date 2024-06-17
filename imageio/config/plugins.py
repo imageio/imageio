@@ -51,15 +51,15 @@ class PluginConfig:
     """
 
     def __init__(
-        self,
-        name,
-        class_name,
-        module_name,
-        *,
-        is_legacy=False,
-        package_name=None,
-        install_name=None,
-        legacy_args=None,
+            self,
+            name,
+            class_name,
+            module_name,
+            *,
+            is_legacy=False,
+            package_name=None,
+            install_name=None,
+            legacy_args=None,
     ):
         legacy_args = legacy_args or dict()
 
@@ -122,14 +122,14 @@ known_plugins["opencv"] = PluginConfig(
     name="opencv", class_name="OpenCVPlugin", module_name="imageio.plugins.opencv"
 )
 known_plugins["tifffile"] = PluginConfig(
-    name="tifffile",
-    class_name="TifffilePlugin",
-    module_name="imageio.plugins.tifffile_v3",
+    name="tifffile", class_name="TifffilePlugin", module_name="imageio.plugins.tifffile_v3",
 )
 known_plugins["SPE"] = PluginConfig(
     name="spe", class_name="SpePlugin", module_name="imageio.plugins.spe"
 )
-
+known_plugins["freeimage"] = PluginConfig(
+    name="freeimage", class_name="FreeimagePlugin", module_name="imageio.plugins.freeimage_v3"
+)
 
 # Legacy plugins
 # ==============
