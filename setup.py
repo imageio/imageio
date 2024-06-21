@@ -100,11 +100,11 @@ plugins = {
     "tifffile": ["tifffile"],
     "pyav": ["av"],
     "pillow-heif": ["pillow-heif"],
-    "rawpy": ["rawpy"],
 }
 
 cpython_only_plugins = {
     "fits": ["astropy"],
+    "rawpy": ["rawpy"],
 }
 
 extras_require = {
