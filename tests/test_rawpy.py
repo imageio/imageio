@@ -4,8 +4,9 @@
 import imageio.v3 as iio
 
 import pytest
-import rawpy
 import numpy as np
+
+rawpy = pytest.importorskip("rawpy")
 
 
 @pytest.mark.parametrize(
