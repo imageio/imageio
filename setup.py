@@ -115,9 +115,11 @@ extras_require = {
     **cpython_only_plugins,
     "gdal": ["gdal"],  # gdal currently fails to install :(
     "itk": ["itk"],  # itk builds from source (expensive on CI).
-    
     # TODO: move this to cpython_only_plugins when python 3.8 support is dropped
-    "rawpy": ["rawpy", "numpy>2"],  # rawpy doesn't support python 3.8 (due to numpy > 2 requirement)
+    "rawpy": [
+        "rawpy",
+        "numpy>2",
+    ],  # rawpy doesn't support python 3.8 (due to numpy > 2 requirement)
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
