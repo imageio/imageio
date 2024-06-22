@@ -531,7 +531,7 @@ class SimpleDicomReader(object):
                 data = data.astype(np.float32)
             else:
                 # Determine required range
-                minReq, maxReq = data.min(), data.max()
+                minReq, maxReq = data.min().item(), data.max().item()
                 minReq = min([minReq, minReq * slope + offset, maxReq * slope + offset])
                 maxReq = max([maxReq, minReq * slope + offset, maxReq * slope + offset])
 

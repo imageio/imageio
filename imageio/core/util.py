@@ -163,6 +163,8 @@ class Array(np.ndarray):
             return out.dtype.type(out)  # Scalar
         elif out.shape != self.shape:
             return out.view(type=np.ndarray)
+        elif not isinstance(out, Array):
+            return Array(out, self.meta)
         else:
             return out  # Type Array
 
