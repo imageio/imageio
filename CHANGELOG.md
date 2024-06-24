@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.34.2 (2024-06-24)
+
+### Fix
+
+* Add support for numpy 2.0 ([#1089](https://github.com/imageio/imageio/issues/1089)) ([`9d954b1`](https://github.com/imageio/imageio/commit/9d954b128f397b041ceb3bd76cb2c9602e7e778b))
+
+### Other
+
+* Update actions/checkout and actions/setup-python ([#1085](https://github.com/imageio/imageio/issues/1085)) ([`a4f4c05`](https://github.com/imageio/imageio/commit/a4f4c05704065d4ad96e16d1d84467fb4c538613))
+* Start testing pypy-3.10 and update pypy test runners ([#1082](https://github.com/imageio/imageio/issues/1082)) ([`ac86393`](https://github.com/imageio/imageio/commit/ac863934d590ffc64155475a0fc365c1c82a8267))
+* Fix duration description in pillow legacy ([#1080](https://github.com/imageio/imageio/issues/1080)) ([`cdf86ef`](https://github.com/imageio/imageio/commit/cdf86efb4ec5799ff328cd5dfe3ec976d504f04d))
+
 ## v2.34.1 (2024-04-22)
 
 ### Fix
