@@ -42,6 +42,10 @@ jobs:
         if: matrix.os != 'macos-latest'
         run: |
             pip install opencv-python
+      - name: Install RawPy on python > 3.8
+        if: matrix.pyversion != '3.8'
+        run: |
+            pip install rawpy
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |

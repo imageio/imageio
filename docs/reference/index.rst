@@ -95,6 +95,7 @@ support.
     imageio.plugins.pillow
     imageio.plugins.pillow_legacy
     imageio.plugins.pyav
+    imageio.plugins.rawpy
     imageio.plugins.simpleitk
     imageio.plugins.spe
     imageio.plugins.swf

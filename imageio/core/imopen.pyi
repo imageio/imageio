@@ -3,6 +3,7 @@ from typing import Literal, Type, TypeVar, overload
 from ..plugins.opencv import OpenCVPlugin
 from ..plugins.pillow import PillowPlugin
 from ..plugins.pyav import PyAVPlugin
+from ..plugins.rawpy import RawPyPlugin
 from ..plugins.tifffile_v3 import TifffilePlugin
 from ..typing import ImageResource
 from .legacy_plugin_wrapper import LegacyPlugin
@@ -47,6 +48,15 @@ def imopen(
     extension: str = None,
     format_hint: str = None,
 ) -> PillowPlugin: ...
+@overload
+def imopen(
+    uri: ImageResource,
+    io_mode: Literal["r", "w"],
+    *,
+    plugin: Literal["rawpy"],
+    extension: str = None,
+    format_hint: str = None,
+) -> RawPyPlugin: ...
 @overload
 def imopen(
     uri: ImageResource,
