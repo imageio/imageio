@@ -13,8 +13,7 @@ import imageio.v3 as iio
 
 av = pytest.importorskip("av", reason="pyAV is not installed.")
 
-from av.video.format import \
-    names as video_format_names  # type: ignore # noqa: E402
+from av.video.format import names as video_format_names  # type: ignore # noqa: E402
 
 from imageio.plugins.pyav import _format_to_dtype  # noqa: E402
 
