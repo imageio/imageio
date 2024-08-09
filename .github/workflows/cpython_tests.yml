@@ -47,7 +47,7 @@ jobs:
         run: |
             pip install rawpy
       - name: Install pillow-heif
-        if: matrix.pyversion != '3.8' or matrix.os != 'macos-latest'
+        if: matrix.pyversion != '3.8' || matrix.os != 'macos-latest'
         run: |
             pip install pillow-heif 
       - name: Install optional dependencies for tests
