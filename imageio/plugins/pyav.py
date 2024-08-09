@@ -780,8 +780,8 @@ class PyAVPlugin(PluginV3):
         if is_write and self._video_stream is not None:
             self._flush_writer()
 
-        if self._video_stream is not None:
-            self._video_stream.close()
+        # if self._video_stream is not None:
+        #     self._video_stream.close()
 
         if self._container is not None:
             self._container.close()
