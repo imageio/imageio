@@ -602,7 +602,7 @@ def test_lagging_video_stream(test_images):
     # see: https://github.com/imageio/imageio/issues/1095
 
     with iio.imopen(
-        test_images / "imageio:cockatoo.mp4",
+        test_images / "cockatoo.mp4",
         "r",
         plugin="pyav",
     ) as img_file:
