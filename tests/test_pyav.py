@@ -1,4 +1,6 @@
+import gc
 import io
+import multiprocessing
 import warnings
 from contextlib import ExitStack
 from pathlib import Path
@@ -585,3 +587,32 @@ def test_trim_filter(test_images):
     )
 
     assert frames.shape == (20, 720, 1280, 3)
+
+
+def subprocess(func, conn):
+    try:
+        result = func()
+        conn.send(result)
+    except BaseException as e:
+        conn.send(e)
+
+
+def test_lagging_video_stream(test_images):
+    # this is a regression test
+    # see: https://github.com/imageio/imageio/issues/1095
+
+    with iio.imopen(
+        test_images / "cockatoo.mp4",
+        "r",
+        plugin="pyav",
+    ) as img_file:
+        for idx in range(50):
+            img_file.read(index=idx)
+
+    output, input = multiprocessing.Pipe()
+    proc = multiprocessing.Process(target=subprocess, args=(gc.collect, input))
+
+    proc.start()
+    if not output.poll(timeout=5):
+        proc.kill()
+        raise TimeoutError("Test Subprocess failed to respond in time.")

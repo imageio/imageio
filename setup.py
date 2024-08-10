@@ -99,7 +99,6 @@ plugins = {
     "swf": [],
     "tifffile": ["tifffile"],
     "pyav": ["av"],
-    "pillow-heif": ["pillow-heif"],
 }
 
 cpython_only_plugins = {
@@ -120,6 +119,7 @@ extras_require = {
         "rawpy",
         "numpy>2",
     ],  # rawpy doesn't support python 3.8 (due to numpy > 2 requirement)
+    "pillow-heif": ["pillow-heif"],  # pillow-heif doesn#t support py3.8 on MacOS ARM
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))

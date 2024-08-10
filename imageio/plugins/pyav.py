@@ -780,8 +780,15 @@ class PyAVPlugin(PluginV3):
         if is_write and self._video_stream is not None:
             self._flush_writer()
 
+        if self._video_stream is not None:
+            try:
+                self._video_stream.close()
+            except ValueError:
+                pass  # stream already closed
+
         if self._container is not None:
             self._container.close()
+
         self.request.finish()
 
     def __enter__(self) -> "PyAVPlugin":
