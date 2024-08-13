@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.35.0 (2024-08-13)
+
+### Fix
+
+* Ensure video stream is closed when closing the pyAV plugin ([#1096](https://github.com/imageio/imageio/issues/1096)) ([`688e9de`](https://github.com/imageio/imageio/commit/688e9de5a0a42d2a63bf2af704ee20d6ac64c7dd))
+
+### Feature
+
+* Rawpy plugin (#1063) ([#1094](https://github.com/imageio/imageio/issues/1094)) ([`9b3a12a`](https://github.com/imageio/imageio/commit/9b3a12a7f8bc9b33a66ab4bc6ec4b345ce683582))
+
 ## v2.34.2 (2024-06-24)
 
 ### Fix
