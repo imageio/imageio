@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.35.1 (2024-08-19)
+
+### Fix
+
+* Remove pinned numpy regression ([#1098](https://github.com/imageio/imageio/issues/1098)) ([`81eb3f6`](https://github.com/imageio/imageio/commit/81eb3f60b95921315f69268fd74b3b55e544b6b3))
+
 ## v2.35.0 (2024-08-13)
 
 ### Fix
