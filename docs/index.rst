@@ -14,3 +14,5 @@ Contents:
   Supported Formats <formats/index>
   API Reference <reference/index>
   Contributing <development/index>
+  Code of Conduct <code_of_conduct>
+  Code of Conduct Reporting Guidelines <code_of_conduct_reporting>
