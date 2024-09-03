@@ -768,7 +768,7 @@ class PyAVPlugin(PluginV3):
 
         # side data
         metadata.update(
-            {item.type.name: item.to_bytes() for item in desired_frame.side_data}
+            {item.type.name: bytes(item) for item in desired_frame.side_data}
         )
 
         return metadata
