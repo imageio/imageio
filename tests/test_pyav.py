@@ -144,6 +144,7 @@ def test_video_format_to_dtype():
         "vaapi_vld",
         "d3d11",
         "d3d11va_vld",
+        "d3d12",
         "videotoolbox_vld",
         "vaapi",
         "vaapi_idct",
