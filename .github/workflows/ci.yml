@@ -4,7 +4,7 @@ name: CI
 # performs the following checks:
 # 
 # - Linting/Style (Black)
-# - Invokes the unit tests in no-internet mode on python 3.8
+# - Invokes the unit tests in no-internet mode on python 3.12
 # - runs unit test on cypthon in matrix mode (python 3.X) x (3 major OS)
 # - runs unit tests on pypy in matrix mode (pypy 3.X) x (3 major OS)
 
@@ -52,11 +52,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
       - name: Install Dependencies
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q --upgrade numpy pillow
+            pip install -q --upgrade numpy pillow setuptools
             python setup.py sdist
             pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
