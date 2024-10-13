@@ -570,7 +570,7 @@ def test_process_termination(test_images):
     r2.close()
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 0
-    
+
     pids0 = get_ffmpeg_pids()
     r1 = iio.get_reader(test_images / "cockatoo.mp4")
     r2 = iio.get_reader(test_images / "cockatoo.mp4")
