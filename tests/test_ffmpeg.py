@@ -12,15 +12,14 @@ import warnings
 from io import BytesIO
 from pathlib import Path
 
+import numpy as np
+import pytest
+from conftest import IS_PYPY, deprecated_test
+
 import imageio.plugins
 import imageio.v2 as iio
 import imageio.v3 as iio3
-import numpy as np
-import pytest
 from imageio import core
-from imageio.core import IS_PYPY
-
-from conftest import deprecated_test
 
 psutil = pytest.importorskip(
     "psutil", reason="ffmpeg support cannot be tested without psutil"
@@ -559,6 +558,7 @@ def test_webcam_get_next_data():
     reader.close()
 
 
+@pytest.mark.skipif(IS_PYPY, reason="This test is flakey on Pypy.")
 def test_process_termination(test_images):
     pids0 = get_ffmpeg_pids()
     r1 = iio.get_reader(test_images / "cockatoo.mp4")
