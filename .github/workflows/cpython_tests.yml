@@ -11,7 +11,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        pyversion: ["3.9", "3.10", "3.11", "3.12"]
         include:
           - name: Linux py310 full
             os: ubuntu-latest
@@ -42,14 +42,6 @@ jobs:
         if: matrix.os != 'macos-latest'
         run: |
             pip install opencv-python
-      - name: Install RawPy
-        if: matrix.pyversion != '3.8'
-        run: |
-            pip install rawpy
-      - name: Install pillow-heif
-        if: matrix.pyversion != '3.8' || matrix.os != 'macos-latest'
-        run: |
-            pip install pillow-heif 
       - name: Install optional dependencies for tests
         if: matrix.TEST_FULL == 1
         run: |

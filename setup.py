@@ -93,16 +93,18 @@ plugins = {
     "freeimage": [],
     "lytro": [],
     "numpy": [],
+    "pillow-heif": ["pillow-heif"],
     "pillow": [],
+    "pyav": ["av"],
     "simpleitk": [],
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
-    "pyav": ["av"],
 }
 
 cpython_only_plugins = {
     "fits": ["astropy"],
+    "rawpy": ["rawpy", "numpy>2"],
 }
 
 extras_require = {
@@ -114,12 +116,6 @@ extras_require = {
     **cpython_only_plugins,
     "gdal": ["gdal"],  # gdal currently fails to install :(
     "itk": ["itk"],  # itk builds from source (expensive on CI).
-    # TODO: move this to cpython_only_plugins when python 3.8 support is dropped
-    "rawpy": [
-        "rawpy",
-        "numpy>2",
-    ],  # rawpy doesn't support python 3.8 (due to numpy > 2 requirement)
-    "pillow-heif": ["pillow-heif"],  # pillow-heif doesn#t support py3.8 on MacOS ARM
 }
 
 extras_require["full"] = sorted(set(chain.from_iterable(extras_require.values())))
