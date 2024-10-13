@@ -56,7 +56,7 @@ jobs:
       - name: Install Dependencies
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q --upgrade numpy pillow
+            pip install -q --upgrade numpy pillow setuptools
             python setup.py sdist
             pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
