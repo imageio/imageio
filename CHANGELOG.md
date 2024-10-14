@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.36.0 (2024-10-14)
+
+### Fix
+
+* Use bytes instead of to_bytes in pyav metadata call ([#1100](https://github.com/imageio/imageio/issues/1100)) ([`4a5c4b5`](https://github.com/imageio/imageio/commit/4a5c4b5ca4c18672332695828ff4db2e66a0252c))
+
+### Feature
+
+* Remove support for Python 3.8 ([#1102](https://github.com/imageio/imageio/issues/1102)) ([`f017778`](https://github.com/imageio/imageio/commit/f017778434614b1f03c5df75f0e5f0b5560f86a5))
+
 ## v2.35.1 (2024-08-19)
 
 ### Fix
