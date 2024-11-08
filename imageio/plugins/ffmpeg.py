@@ -566,8 +566,17 @@ class FfmpegFormat(Format):
             size = w, h
             depth = 1 if im.ndim == 2 else im.shape[2]
 
-            # Ensure that image is in uint8
-            im = image_as_uint(im, bitdepth=8)
+            # Resolve issue #1107
+            # Determine `bitdepth` of the image
+            if im.dtype == np.uint8:
+                bitdepth = 8
+            elif im.dtype == np.uint16:
+                bitdepth = 16
+            else:
+                # `image_as_uint` returns uint8 image if `bitdepth` is not provided
+                bitdepth = None
+
+            im = image_as_uint(im, bitdepth=bitdepth)
             # To be written efficiently, ie. without creating an immutable
             # buffer, by calling im.tobytes() the array must be contiguous.
             if not im.flags.c_contiguous:
