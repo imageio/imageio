@@ -283,7 +283,11 @@ def test_gif(tmp_path):
                 except ImportError:
                     pytest.xfail("New pillow version is no longer supported.")
 
-                im = imageio.imread(fname, format="GIF-PIL")
+                try:
+                    im = imageio.imread(fname, format="GIF-PIL")
+                except SyntaxError:
+                    pytest.xfail("New pillow version is no longer supported.")
+
                 mul = 255 if isfloat else 1
                 if colors not in (0, 1):
                     im = im[:, :, :3]
@@ -331,8 +335,10 @@ def test_animated_gif(test_images, tmp_path):
             except ImportError:
                 pytest.xfail("Pillow version no longer supported.")
             # Retrieve
-            print("fooo", fname, isfloat, colors)
-            ims2 = imageio.mimread(fname, format="GIF-PIL")
+            try:
+                ims2 = imageio.mimread(fname, format="GIF-PIL")
+            except SyntaxError:
+                pytest.xfail("New pillow version is no longer supported.")
             ims1 = [x[:, :, :3] for x in ims]  # fresh ref
             ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
             for im1, im2 in zip(ims1, ims2):
