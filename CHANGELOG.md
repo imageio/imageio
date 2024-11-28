@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.36.1 (2024-11-28)
+
+### Fix
+
+* Fix failing pillow test ([#1110](https://github.com/imageio/imageio/issues/1110)) ([`9a9d9f1`](https://github.com/imageio/imageio/commit/9a9d9f15d10eee89a8b7f4b0d50d2c21c2e5af91))
+
 ## v2.36.0 (2024-10-14)
 
 ### Fix
