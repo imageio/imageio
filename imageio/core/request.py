@@ -180,6 +180,7 @@ EXAMPLE_IMAGES = {
     "chelsea.bsdf": "The chelsea.png in a BSDF file(for testing)",
     "newtonscradle.gif": "Animated GIF of a newton's cradle",
     "cockatoo.mp4": "Video file of a cockatoo",
+    "cockatoo_yuv420.mp4": "Video file of a cockatoo with yuv420 pixel format",
     "stent.npz": "Volumetric image showing a stented abdominal aorta",
     "meadow_cube.jpg": "A cubemap image of a meadow, e.g. to render a skybox.",
 }
