@@ -578,6 +578,76 @@ def test_keyframe_intervals(test_images):
     assert np.max(np.diff(key_dist)) <= 5
 
 
+def test_iter_audio(test_images: Path):
+    video_path = str(test_images / "realshort.mp4")
+
+    with av.open(video_path, "r") as container:
+        expected = [frame.to_ndarray() for frame in container.decode(audio=0)]
+
+    with iio.imopen(video_path, "r", plugin="pyav") as file:
+        actual = [frame for frame in file.iter_audio()]
+
+    assert len(expected) == len(actual)
+    for exp, act in zip(expected, actual):
+        assert exp.shape == act.shape
+        assert np.allclose(exp, act)
+
+
+def test_read_audio(test_images: Path):
+    TARGET_IDX = 12
+
+    # Video file already used in other tests. Contains mono stream.
+    realshort_path = str(test_images / "realshort.mp4")
+
+    # Public domain audio file. Contains stereo stream.
+    # https://archive.org/details/HowtheEy1941
+    eye_anatomy_path = str(test_images / "eye-anatomy.mp4")
+
+    for path in [realshort_path, eye_anatomy_path]:
+        expected_full = []
+        with av.open(path, "r") as container:
+            for idx, frame in enumerate(container.decode(audio=0)):
+                frame = frame.to_ndarray()
+                expected_full.append(frame)
+                if idx == TARGET_IDX:
+                    expected_frame = frame
+        expected_full = np.concatenate(expected_full, axis=-1)
+
+        with iio.imopen(path, "r", plugin="pyav") as file:
+            actual_full = file.read_audio()
+            actual_frame = file.read_audio(frame_index=TARGET_IDX)
+
+        assert expected_full.shape == actual_full.shape
+        assert np.allclose(expected_full, actual_full)
+
+        assert expected_frame.shape == actual_frame.shape
+        assert np.allclose(expected_frame, actual_frame)
+
+
+def test_write_audio(test_images: Path):
+    in_path = str(test_images / "realshort.mp4")
+    out_path = str(test_images / "realshort.mp3")
+
+    with iio.imopen(in_path, "r", plugin="pyav") as in_file:
+        in_frames = [frame for frame in in_file.iter_audio()]
+
+    with iio.imopen(out_path, "w", plugin="pyav") as out_file:
+        out_file.init_audio_stream("mp3", format="fltp", layout="mono")
+        for frame in in_frames:
+            # This would fail if the frame was float64.
+            out_file.write_audio_frame(frame)
+
+    with av.open(out_path, "r") as container:
+        out_frames = [frame.to_ndarray() for frame in container.decode(audio=0)]
+
+    # The number of frames is not preserved, so we need to merge them before comparing.
+    in_data = np.concatenate(in_frames, axis=1)
+    out_data = np.concatenate(out_frames, axis=1)
+
+    assert in_data.shape == out_data.shape
+    assert np.allclose(in_data, out_data, atol=0.005)  # Lossy conversion.
+
+
 def test_trim_filter(test_images):
     # this is a regression test for:
     # https://github.com/imageio/imageio/issues/951
