@@ -458,10 +458,7 @@ class PyAVPlugin(PluginV3):
 
             # reset stream container, because threading model can't change after
             # first access
-            try:
-                self._video_stream.close()
-            except AttributeError:
-                pass  # close() was removed in newer versions
+            self._video_stream.close()
             self._video_stream = self._container.streams.video[0]
 
             return frames
@@ -788,8 +785,6 @@ class PyAVPlugin(PluginV3):
                 self._video_stream.close()
             except ValueError:
                 pass  # stream already closed
-            except AttributeError:
-                pass  # close() was removed in newer versions
 
         if self._container is not None:
             self._container.close()
