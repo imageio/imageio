@@ -95,7 +95,7 @@ plugins = {
     "numpy": [],
     "pillow-heif": ["pillow-heif"],
     "pillow": [],
-    "pyav": ["av"],
+    "pyav": ["av<14"],
     "simpleitk": [],
     "spe": [],
     "swf": [],
