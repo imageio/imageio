@@ -96,6 +96,12 @@ class PillowPlugin(PluginV3):
         else:
             register_avif_opener()
 
+        # Initialize JXL plugin for Pillow
+        try:
+            import pillow_jxl as _
+        except ImportError:
+            pass
+
         self._image: Image = None
         self.images_to_write = []
 
