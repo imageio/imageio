@@ -732,3 +732,18 @@ def test_webp_remote():
     url = "https://github.com/python-pillow/Pillow/raw/main/Tests/images/hopper_orientation_2.webp"
     im = iio.imread(url, plugin="pillow")
     assert im.shape == (128, 128, 3)
+
+
+@pytest.mark.needs_internet
+def test_jxl_read_remote():
+    url = "https://github.com/libjxl/conformance/raw/refs/heads/master/testcases/cafe/input.jxl"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (1600, 1280, 3)
+
+
+def test_jxl_write(test_images, tmp_path):
+    actual = iio.imread(test_images / "chelsea.png")
+    iio.imwrite(tmp_path / "chelsea.jxl", actual, lossless=True)
+
+    target = iio.imread(tmp_path / "chelsea.jxl")
+    assert np.allclose(actual, target)
