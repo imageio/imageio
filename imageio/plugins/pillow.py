@@ -98,7 +98,7 @@ class PillowPlugin(PluginV3):
 
         # Initialize JXL plugin for Pillow
         try:
-            import pillow_jxl as _
+            import pillow_jxl  # noqa: F401
         except ImportError:
             pass
 
