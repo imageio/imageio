@@ -3601,7 +3601,7 @@ class TiffPage(object):
             if out is None and not result.dtype.isnative:
                 # swap byte order and dtype without copy
                 result.byteswap(True)
-                result = result.newbyteorder()
+                result = result.view(result.dtype.newbyteorder())
             if lsb2msb:
                 reverse_bitorder(result)
         else:
@@ -5074,7 +5074,7 @@ class FileHandle(object):
             if native and not result.dtype.isnative:
                 # swap byte order and dtype without copy
                 result.byteswap(True)
-                result = result.newbyteorder()
+                result = result.view(result.dtype.newbyteorder())
             return result
 
         # Read data from file in chunks and copy to output array
@@ -7968,7 +7968,7 @@ def read_cz_sem(fh, byteorder, dtype, count, offsetsize):
 def read_nih_image_header(fh, byteorder, dtype, count, offsetsize):
     """Read NIH_IMAGE_HEADER tag from file and return as dict."""
     a = fh.read_record(TIFF.NIH_IMAGE_HEADER, byteorder=byteorder)
-    a = a.newbyteorder(byteorder)
+    a = a.view(a.dtype.newbyteorder(byteorder))
     a = recarray2dict(a)
     a["XUnit"] = a["XUnit"][: a["XUnitSize"]]
     a["UM"] = a["UM"][: a["UMsize"]]
