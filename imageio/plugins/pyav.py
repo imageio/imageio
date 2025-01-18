@@ -341,7 +341,7 @@ class PyAVPlugin(PluginV3):
                     self._container = av.open(request.get_file(), **kwargs)
                 self._video_stream = self._container.streams.video[0]
                 self._decoder = self._container.decode(video=0)
-            except av.AVError:
+            except av.FFmpegError:
                 if isinstance(request.raw_uri, bytes):
                     msg = "PyAV does not support these `<bytes>`"
                 else:
