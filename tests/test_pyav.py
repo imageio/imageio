@@ -66,10 +66,10 @@ def test_mp4_writing(tmp_path, test_images):
         frames,
         extension=".mp4",
         plugin="pyav",
-        codec="libx264",
+        codec="h264",
     )
 
-    # libx264 writing is not deterministic and RGB -> YUV is lossy
+    # h264 writing is not deterministic and RGB -> YUV is lossy
     # so I have no good ideas how to do serious assertions on the file
     assert mp4_bytes is not None
 
@@ -224,7 +224,7 @@ def test_write_bytes(test_images):
         img,
         extension=".mp4",
         plugin="pyav",
-        codec="libx264",
+        codec="h264",
     )
 
     assert img_bytes is not None
@@ -354,7 +354,7 @@ def test_multiple_writes(test_images):
             plugin="pyav",
             format="rgba",
         ):
-            file.write(frame, is_batch=False, codec="libx264", in_pixel_format="rgba")
+            file.write(frame, is_batch=False, codec="h264", in_pixel_format="rgba")
 
     actual = out_buffer.getvalue()
     assert actual is not None
@@ -509,7 +509,7 @@ def test_procedual_writing_with_filter(test_images):
 
 def test_rotation_flag_metadata(test_images, tmp_path):
     with iio.imopen(tmp_path / "test.mp4", "w", plugin="pyav") as file:
-        file.init_video_stream("libx264")
+        file.init_video_stream("h264")
         file.container_metadata["comment"] = "This video has a rotation flag."
         file.video_stream_metadata["rotate"] = "90"
 
@@ -555,7 +555,7 @@ def test_keyframe_intervals(test_images):
         )
 
         out_file.init_video_stream(
-            "libx264", max_keyframe_interval=5, force_keyframes=True
+            "h264", max_keyframe_interval=5, force_keyframes=True
         )
 
         for idx in range(50):
@@ -568,10 +568,10 @@ def test_keyframe_intervals(test_images):
     with iio.imopen(buffer, "r", plugin="pyav") as file:
         n_frames = file.properties().shape[0]
         for idx in range(1, n_frames):
-            medatada = file.metadata(index=idx)
-            if medatada["frame_type"] == "I":
+            metatada = file.metadata(index=idx)
+            if metatada["frame_type"] == "I":
                 i_dist.append(idx)
-            if medatada["key_frame"]:
+            if metatada["key_frame"]:
                 key_dist.append(idx)
 
     assert np.max(np.diff(i_dist)) <= 5
