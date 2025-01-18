@@ -495,12 +495,9 @@ class PyAVPlugin(PluginV3):
 
             return frames
 
-        if (
-            thread_type is not None
-            and not (
-                self._video_stream.thread_type == thread_type
-                or self._video_stream.thread_type.name == thread_type  
-            )
+        if thread_type is not None and not (
+            self._video_stream.thread_type == thread_type
+            or self._video_stream.thread_type.name == thread_type
         ):
             self._video_stream.thread_type = thread_type
 
@@ -892,7 +889,7 @@ class PyAVPlugin(PluginV3):
         if max_keyframe_interval is not None:
             stream.gop_size = max_keyframe_interval
         if force_keyframes is not None:
-            # this needs explanation: 
+            # this needs explanation:
             # The code sets the cgop (CLOSED_GOP) flag for the codec.
             # Unfortunately, the current version of pyAV interprets the flags
             # (and flags2) fields as type "long" not "ulong", as such the
