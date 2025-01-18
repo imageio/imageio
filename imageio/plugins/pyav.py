@@ -177,11 +177,12 @@ examples to better understand how to use them.
 
 from fractions import Fraction
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, Union, Generator
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import av
 import av.filter
 import numpy as np
+from av.codec.context import Flags
 from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
@@ -889,16 +890,10 @@ class PyAVPlugin(PluginV3):
         if max_keyframe_interval is not None:
             stream.gop_size = max_keyframe_interval
         if force_keyframes is not None:
-            # this needs explanation:
-            # The code sets the cgop (CLOSED_GOP) flag for the codec.
-            # Unfortunately, the current version of pyAV interprets the flags
-            # (and flags2) fields as type "long" not "ulong", as such the
-            # otherwise neat flag value of 0x80000000 converts to the (signed)
-            # value of -2147483648
             if force_keyframes:
-                stream.codec_context.flags |= -2147483648
+                stream.codec_context.flags |= Flags.closed_gop
             else:
-                stream.codec_context.flags &= ~-2147483648
+                stream.codec_context.flags &= ~Flags.closed_gop
 
         self._video_stream = stream
 
