@@ -272,8 +272,13 @@ def _get_frame_type(picture_type: int) -> str:
         A human readable name of the picture type
 
     """
+
+    if not isinstance(picture_type, int):
+        # old pyAV versions send an enum, not an int
+        return picture_type.name
+
     picture_types = [
-        "None",
+        "NONE",
         "I",
         "P",
         "B",
