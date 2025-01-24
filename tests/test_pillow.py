@@ -734,11 +734,9 @@ def test_webp_remote():
     assert im.shape == (128, 128, 3)
 
 
-@pytest.mark.needs_internet
-def test_jxl_read_remote():
-    url = "https://github.com/libjxl/conformance/raw/refs/heads/master/testcases/cafe/input.jxl"
-    im = iio.imread(url, plugin="pillow")
-    assert im.shape == (1600, 1280, 3)
+def test_jxl_read(test_images):
+    im = iio.imread(test_images / "chelsea.jxl", plugin="pillow")
+    assert im.shape == (300, 451, 3)
 
 
 def test_jxl_write(test_images, tmp_path):
