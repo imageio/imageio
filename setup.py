@@ -100,7 +100,7 @@ plugins = {
     "spe": [],
     "swf": [],
     "tifffile": ["tifffile"],
-    "pillow-jxl": ["pillow-jxl-plugin"],
+    "pillow-jxl": ["pillow-jxl-plugin>=1.3.2"],
 }
 
 cpython_only_plugins = {
