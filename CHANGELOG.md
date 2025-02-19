@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.37.0 (2025-01-20)
+
+### Fix
+
+* Arr.newbyteorder deprecation in numpy>2.0 ([#1116](https://github.com/imageio/imageio/issues/1116)) ([`727c3f8`](https://github.com/imageio/imageio/commit/727c3f8079c60a68dd631d959453c6f99ad366ca))
+* Upgrade pyav plugin to support av v14 ([#1112](https://github.com/imageio/imageio/issues/1112)) ([`08d2cc1`](https://github.com/imageio/imageio/commit/08d2cc1454955ba31f6fe53e3a639f807c5adb31))
+
+### Feature
+
+* Expose bacterial colony standard image ([#1115](https://github.com/imageio/imageio/issues/1115)) ([`37404a0`](https://github.com/imageio/imageio/commit/37404a09051e1202c1eaa1e590a55c3860f82576))
+
 ## v2.36.1 (2024-11-28)
 
 ### Fix
