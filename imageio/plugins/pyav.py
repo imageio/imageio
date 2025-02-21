@@ -177,11 +177,12 @@ examples to better understand how to use them.
 
 from fractions import Fraction
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, Union, Generator
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import av
 import av.filter
 import numpy as np
+from av.codec.context import Flags
 from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
@@ -258,6 +259,39 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     return tuple(shape)
 
 
+def _get_frame_type(picture_type: int) -> str:
+    """Return a human-readable name for provided picture type
+
+    Parameters
+    ----------
+    picture_type : int
+        The picture type extracted from Frame.pict_type
+
+    Returns
+    -------
+    picture_name : str
+        A human readable name of the picture type
+
+    """
+
+    if not isinstance(picture_type, int):
+        # old pyAV versions send an enum, not an int
+        return picture_type.name
+
+    picture_types = [
+        "NONE",
+        "I",
+        "P",
+        "B",
+        "S",
+        "SI",
+        "SP",
+        "BI",
+    ]
+
+    return picture_types[picture_type]
+
+
 class PyAVPlugin(PluginV3):
     """Support for pyAV as backend.
 
@@ -308,7 +342,7 @@ class PyAVPlugin(PluginV3):
                     self._container = av.open(request.get_file(), **kwargs)
                 self._video_stream = self._container.streams.video[0]
                 self._decoder = self._container.decode(video=0)
-            except av.AVError:
+            except av.FFmpegError:
                 if isinstance(request.raw_uri, bytes):
                     msg = "PyAV does not support these `<bytes>`"
                 else:
@@ -458,13 +492,16 @@ class PyAVPlugin(PluginV3):
 
             # reset stream container, because threading model can't change after
             # first access
-            self._video_stream.close()
             self._video_stream = self._container.streams.video[0]
 
             return frames
 
-        if thread_type is not None and thread_type != self._video_stream.thread_type:
+        if thread_type is not None and not (
+            self._video_stream.thread_type == thread_type
+            or self._video_stream.thread_type.name == thread_type
+        ):
             self._video_stream.thread_type = thread_type
+
         if (
             thread_count != 0
             and thread_count != self._video_stream.codec_context.thread_count
@@ -474,7 +511,10 @@ class PyAVPlugin(PluginV3):
             self._video_stream.codec_context.thread_count = thread_count
 
         if constant_framerate is None:
-            constant_framerate = not self._container.format.variable_fps
+            # "variable_fps" is now a flag (handle got removed). Full list at
+            # https://pyav.org/docs/stable/api/container.html#module-av.format
+            variable_fps = bool(self._container.format.flags & 0x400)
+            constant_framerate = not variable_fps
 
         # note: cheap for contigous incremental reads
         self._seek(index, constant_framerate=constant_framerate)
@@ -750,7 +790,10 @@ class PyAVPlugin(PluginV3):
             return metadata
 
         if constant_framerate is None:
-            constant_framerate = not self._container.format.variable_fps
+            # "variable_fps" is now a flag (handle got removed). Full list at
+            # https://pyav.org/docs/stable/api/container.html#module-av.format
+            variable_fps = bool(self._container.format.flags & 0x400)
+            constant_framerate = not variable_fps
 
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
@@ -762,7 +805,7 @@ class PyAVPlugin(PluginV3):
                 "key_frame": bool(desired_frame.key_frame),
                 "time": desired_frame.time,
                 "interlaced_frame": bool(desired_frame.interlaced_frame),
-                "frame_type": desired_frame.pict_type.name,
+                "frame_type": _get_frame_type(desired_frame.pict_type),
             }
         )
 
@@ -781,10 +824,7 @@ class PyAVPlugin(PluginV3):
             self._flush_writer()
 
         if self._video_stream is not None:
-            try:
-                self._video_stream.close()
-            except ValueError:
-                pass  # stream already closed
+            self._video_stream = None
 
         if self._container is not None:
             self._container.close()
@@ -815,7 +855,7 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         codec : str
-            The codec to use, e.g. ``"libx264"`` or ``"vp9"``.
+            The codec to use, e.g. ``"h264"`` or ``"vp9"``.
         fps : float
             The desired framerate of the video stream (frames per second).
         pixel_format : str
@@ -850,7 +890,10 @@ class PyAVPlugin(PluginV3):
         if max_keyframe_interval is not None:
             stream.gop_size = max_keyframe_interval
         if force_keyframes is not None:
-            stream.closed_gop = force_keyframes
+            if force_keyframes:
+                stream.codec_context.flags |= Flags.closed_gop
+            else:
+                stream.codec_context.flags &= ~Flags.closed_gop
 
         self._video_stream = stream
 
