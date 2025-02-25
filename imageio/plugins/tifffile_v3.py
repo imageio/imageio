@@ -282,9 +282,12 @@ class TifffilePlugin(PluginV3):
                 if flag_value and hasattr(self._fh, flag + "_metadata"):
                     flavor_metadata = getattr(self._fh, flag + "_metadata")
                     if isinstance(flavor_metadata, tuple):
-                        metadata.update(flavor_metadata[0])
-                    else:
+                        flavor_metadata = flavor_metadata[0]
+                    if isinstance(flavor_metadata, dict):
                         metadata.update(flavor_metadata)
+                    else:
+                        # ome only?
+                        metadata.update({flag: flavor_metadata})
         else:
             # tifffile may return a TiffFrame instead of a page
             target = target.keyframe
