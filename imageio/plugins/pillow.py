@@ -28,6 +28,7 @@ Methods
 
 """
 
+import packaging.version
 import sys
 import warnings
 from io import BytesIO
@@ -43,7 +44,7 @@ from ..typing import ArrayLike
 
 
 def pillow_version() -> Tuple[int]:
-    return tuple(int(x) for x in pil_version.split("."))
+    return packaging.version.parse(pil_version).release
 
 
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
