@@ -53,7 +53,7 @@ See the [API docs](https://imageio.readthedocs.io/en/stable/reference/index.html
 - Easy to
   [install](https://imageio.readthedocs.io/en/stable/getting_started/installation.html)
   using Conda or pip
-- Few core dependencies (only NumPy and Pillow)
+- Few core dependencies (only NumPy, Pillow, and Packaging)
 - Pure Python, runs on Python 3.9+, and PyPy
 - Cross platform, runs on Windows, Linux, macOS
 - More than 295 supported
@@ -71,6 +71,7 @@ Minimal requirements:
 - Python 3.9+
 - NumPy
 - Pillow >= 8.3.2
+- Packaging
 
 Optional Python packages:
 
