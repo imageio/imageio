@@ -707,6 +707,7 @@ def test_h264_reading(test_images, tmp_path):
 
     imageio.get_reader(tmp_path / "cockatoo.h264", "ffmpeg")
 
+
 def test_read_path_with_caret(test_images, tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/1133
