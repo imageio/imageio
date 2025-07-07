@@ -32,6 +32,9 @@ def imwrite(
 def imwrite(
     uri: ImageResource, im: ArrayLike, format: str | None = ..., **kwargs
 ) -> None: ...
+def imwrite(
+    uri: ImageResource | Literal["<bytes>"], im: ArrayLike, format: str | None = ..., **kwargs
+) -> bytes | None: ...
 def mimread(
     uri: ImageResource, format: str | None = ..., memtest=MEMTEST_DEFAULT_MIM, **kwargs
 ) -> List[Array]: ...
@@ -43,6 +46,9 @@ def mimwrite(
 def mimwrite(
     uri: ImageResource, ims: Sequence[ArrayLike], format: str | None = ..., **kwargs
 ) -> None: ...
+def mimwrite(
+    uri: ImageResource | Literal["bytes"], ims: Sequence[ArrayLike], format: str | None = ..., **kwargs
+) -> bytes | None: ...
 def volread(uri: ImageResource, format: str | None = ..., **kwargs) -> Array: ...
 @overload
 def volwrite(
@@ -52,6 +58,9 @@ def volwrite(
 def volwrite(
     uri: ImageResource, im: ArrayLike, format: str | None = ..., **kwargs
 ) -> None: ...
+def volwrite(
+    uri: ImageResource | Literal["<bytes>"], im: ArrayLike, format: str | None = ..., **kwargs
+) -> bytes | None: ...
 def mvolread(
     uri: ImageResource,
     format: str | None = ...,
@@ -66,6 +75,9 @@ def mvolwrite(
 def mvolwrite(
     uri: ImageResource, ims: Sequence[ArrayLike], format: str | None = None, **kwargs
 ) -> None: ...
+def mvolwrite(
+    uri: ImageResource | Literal["<bytes>"], ims: Sequence[ArrayLike], format: str | None = ..., **kwargs
+) -> bytes | None: ...
 
 # aliases
 read = get_reader
