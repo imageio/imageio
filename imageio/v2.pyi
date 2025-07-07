@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
+from collections.abc import Sequence
 from typing import Dict, Literal, Union, List, overload
 
 import numpy as np
@@ -36,11 +37,11 @@ def mimread(
 ) -> List[Array]: ...
 @overload
 def mimwrite(
-    uri: Literal["<bytes>"], ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: Literal["<bytes>"], ims: Sequence[ArrayLike], format: Format = None, **kwargs
 ) -> bytes: ...
 @overload
 def mimwrite(
-    uri: ImageResource, ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: ImageResource, ims: Sequence[ArrayLike], format: Format = None, **kwargs
 ) -> None: ...
 def volread(uri: ImageResource, format: Format = None, **kwargs) -> Array: ...
 @overload
@@ -59,11 +60,11 @@ def mvolread(
 ) -> List[Array]: ...
 @overload
 def mvolwrite(
-    uri: Literal["<bytes>"], ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: Literal["<bytes>"], ims: Sequence[ArrayLike], format: Format = None, **kwargs
 ) -> bytes: ...
 @overload
 def mvolwrite(
-    uri: ImageResource, ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: ImageResource, ims: Sequence[ArrayLike], format: Format = None, **kwargs
 ) -> None: ...
 
 # aliases
