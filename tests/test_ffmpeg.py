@@ -678,6 +678,7 @@ def test_reverse_read(tmpdir):
     W.close()
 
 
+@pytest.mark.needs_internet
 def test_read_stream(test_images):
     """Test stream reading workaround"""
 
