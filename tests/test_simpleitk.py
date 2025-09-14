@@ -1,5 +1,4 @@
-""" Test simpleitk plugin functionality.
-"""
+"""Test simpleitk plugin functionality."""
 
 import numpy as np
 

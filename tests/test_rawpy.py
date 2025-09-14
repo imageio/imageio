@@ -1,5 +1,4 @@
-"""Tests for rawpy plugin
-"""
+"""Tests for rawpy plugin"""
 
 import imageio.v3 as iio
 

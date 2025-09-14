@@ -1,5 +1,4 @@
-""" Test npz plugin functionality.
-"""
+"""Test npz plugin functionality."""
 
 from __future__ import division
 import numpy as np

@@ -1,5 +1,4 @@
-""" Test BSDF plugin.
-"""
+"""Test BSDF plugin."""
 
 import numpy as np
 

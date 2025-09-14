@@ -1,5 +1,4 @@
-""" Tests for imageio's pillow plugin
-"""
+"""Tests for imageio's pillow plugin"""
 
 import io
 import os
