@@ -90,7 +90,7 @@ plugins = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "freeimage": ["fsspec[https]"],
+    "freeimage": ["fsspec[http]"],
     "lytro": [],
     "numpy": [],
     "pillow-heif": ["pillow-heif"],
