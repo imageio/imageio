@@ -961,7 +961,8 @@ class PyAVPlugin(PluginV3):
             plane_array[...] = frame
 
         stream = self._video_stream
-        av_frame.time_base = stream.codec_context.time_base
+        if stream.codec_context.time_base:
+            av_frame.time_base = stream.codec_context.time_base
         av_frame.pts = self.frames_written
         self.frames_written += 1
 

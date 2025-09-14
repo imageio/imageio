@@ -1,6 +1,4 @@
-""" Test ffmpeg
-
-"""
+"""Test ffmpeg"""
 
 import gc
 import os

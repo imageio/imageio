@@ -1,5 +1,4 @@
-""" Tests for imageio's freeimage plugin
-"""
+"""Tests for imageio's freeimage plugin"""
 
 import os
 import shutil

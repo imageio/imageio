@@ -1,5 +1,4 @@
-""" Test fits plugin functionality.
-"""
+"""Test fits plugin functionality."""
 
 import pytest
 
