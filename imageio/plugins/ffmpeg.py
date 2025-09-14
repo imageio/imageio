@@ -173,6 +173,11 @@ def get_exe():  # pragma: no cover
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
+def get_version():
+    """Return the version of imageio-ffmpeg in tuple."""
+    return tuple(map(int, imageio_ffmpeg.__version__.split(".")))
+
+
 class FfmpegFormat(Format):
     """Read/Write ImageResources using FFMPEG.
 
@@ -299,8 +304,9 @@ class FfmpegFormat(Format):
                 self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
-                # When passed to ffmpeg on command line, carets need to be escaped.
-                self._filename = self._filename.replace("^", "^^")
+                # When passed to imageio-ffmpeg (<0.4.2) on command line, carets need to be escaped.
+                if get_version() < (0, 4, 2):
+                    self._filename = self._filename.replace("^", "^^")
             # Determine pixel format and depth
             self._depth = 3
             if self._dtype.name == "uint8":

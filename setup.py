@@ -90,12 +90,11 @@ plugins = {
     "dicom": [],
     "feisem": [],
     "ffmpeg": ["imageio-ffmpeg", "psutil"],
-    "freeimage": [],
+    "freeimage": ["fsspec[http]"],
     "lytro": [],
     "numpy": [],
     "pillow-heif": ["pillow-heif"],
     "pillow": [],
-    "pyav": ["av"],
     "simpleitk": [],
     "spe": [],
     "swf": [],
@@ -103,6 +102,7 @@ plugins = {
 }
 
 cpython_only_plugins = {
+    "pyav": ["av"],
     "fits": ["astropy"],
     "rawpy": ["rawpy", "numpy>2"],
 }

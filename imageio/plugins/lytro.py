@@ -3,7 +3,7 @@
 # imageio is distributed under the terms of the (new) BSD License.
 #
 
-""" Read LFR files (Lytro Illum).
+"""Read LFR files (Lytro Illum).
 
 Backend: internal
 
@@ -315,7 +315,7 @@ class LytroLfrFormat(LytroFormat):
             """
             Checks if file has correct header and skip it.
             """
-            file_header = b"\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01"
+            file_header = b"\x89LFP\x0d\x0a\x1a\x0a\x00\x00\x00\x01"
             # Read and check header of file
             header = self._file.read(HEADER_LENGTH)
             if header != file_header:
@@ -328,7 +328,7 @@ class LytroLfrFormat(LytroFormat):
             """
             Gets start position and size of data chunks in file.
             """
-            chunk_header = b"\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00"
+            chunk_header = b"\x89LFC\x0d\x0a\x1a\x0a\x00\x00\x00\x00"
 
             for i in range(0, DATA_CHUNKS_ILLUM):
                 data_pos, size, sha1 = self._get_chunk(chunk_header)
@@ -339,7 +339,7 @@ class LytroLfrFormat(LytroFormat):
             Gets a data chunk that contains information over content
             of other data chunks.
             """
-            meta_header = b"\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00"
+            meta_header = b"\x89LFM\x0d\x0a\x1a\x0a\x00\x00\x00\x00"
             data_pos, size, sha1 = self._get_chunk(meta_header)
 
             # Get content
@@ -607,7 +607,7 @@ class LytroLfpFormat(LytroFormat):
             """
             Checks if file has correct header and skip it.
             """
-            file_header = b"\x89LFP\x0D\x0A\x1A\x0A\x00\x00\x00\x01"
+            file_header = b"\x89LFP\x0d\x0a\x1a\x0a\x00\x00\x00\x01"
 
             # Read and check header of file
             header = self._file.read(HEADER_LENGTH)
@@ -621,7 +621,7 @@ class LytroLfpFormat(LytroFormat):
             """
             Gets start position and size of data chunks in file.
             """
-            chunk_header = b"\x89LFC\x0D\x0A\x1A\x0A\x00\x00\x00\x00"
+            chunk_header = b"\x89LFC\x0d\x0a\x1a\x0a\x00\x00\x00\x00"
 
             for i in range(0, DATA_CHUNKS_F01):
                 data_pos, size, sha1 = self._get_chunk(chunk_header)
@@ -632,7 +632,7 @@ class LytroLfpFormat(LytroFormat):
             Gets a data chunk that contains information over content
             of other data chunks.
             """
-            meta_header = b"\x89LFM\x0D\x0A\x1A\x0A\x00\x00\x00\x00"
+            meta_header = b"\x89LFM\x0d\x0a\x1a\x0a\x00\x00\x00\x00"
 
             data_pos, size, sha1 = self._get_chunk(meta_header)
 
