@@ -439,6 +439,10 @@ def test_sequential_reading(test_images):
     assert np.allclose(actual_imgs, expected_imgs)
 
 
+@pytest.mark.skip(
+    reason="PyAV no longer supports DASH natively. This needs separate investigation."
+)
+@pytest.mark.needs_internet
 def test_uri_reading(test_images):
     uri = "https://dash.akamaized.net/dash264/TestCases/2c/qualcomm/1/MultiResMPEG2.mpd"
 
@@ -578,6 +582,7 @@ def test_keyframe_intervals(test_images):
     assert np.max(np.diff(key_dist)) <= 5
 
 
+@pytest.mark.needs_internet
 def test_trim_filter(test_images):
     # this is a regression test for:
     # https://github.com/imageio/imageio/issues/951

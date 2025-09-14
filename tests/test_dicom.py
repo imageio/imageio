@@ -1,5 +1,4 @@
-""" Test DICOM functionality.
-"""
+"""Test DICOM functionality."""
 
 from zipfile import ZipFile
 

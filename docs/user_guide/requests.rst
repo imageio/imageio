@@ -103,7 +103,7 @@ Webcam
 .. note::
     To access your webcam you will need to have the ffmpeg backend installed::
 
-        pip install imageio[ffmpeg]
+        pip install "imageio[ffmpeg]"
 
 With ImageIO you can directly read images (frame-by-frame) from a webcam that is
 connected to the computer. To do this, you can use the special target::

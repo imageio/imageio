@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write images using Pillow/PIL.
+"""Read/Write images using Pillow/PIL.
 
 Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
 

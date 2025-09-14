@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read SPE files.
+"""Read SPE files.
 
 This plugin supports reading files saved in the Princeton Instruments
 SPE file format.
