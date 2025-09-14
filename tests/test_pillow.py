@@ -364,11 +364,11 @@ def test_gif_list_write(test_images, tmp_path):
 def test_gif_first_p_frame():
     # Bugfix: https://github.com/imageio/imageio/issues/1030
     im = iio.imread(
-        "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif",
+        "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif",
         plugin="pillow",
         index=None,
     )
-    assert im.shape == (36, 360, 480, 3)
+    assert im.shape == (36, 150, 200, 3)
 
 
 def test_legacy_exif_orientation(test_images, tmp_path):
