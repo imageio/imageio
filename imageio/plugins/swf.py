@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write SWF files.
+"""Read/Write SWF files.
 
 Backend: internal
 

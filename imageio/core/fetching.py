@@ -2,8 +2,7 @@
 # Based on code from the vispy project
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-"""Data downloading and reading functions
-"""
+"""Data downloading and reading functions"""
 
 from math import log
 import os

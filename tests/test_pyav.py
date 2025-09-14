@@ -439,6 +439,9 @@ def test_sequential_reading(test_images):
     assert np.allclose(actual_imgs, expected_imgs)
 
 
+@pytest.mark.skip(
+    reason="PyAV no longer supports DASH natively. This needs separate investigation."
+)
 def test_uri_reading(test_images):
     uri = "https://dash.akamaized.net/dash264/TestCases/2c/qualcomm/1/MultiResMPEG2.mpd"
 
