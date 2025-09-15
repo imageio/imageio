@@ -1,6 +1,4 @@
-""" Test ffmpeg
-
-"""
+"""Test ffmpeg"""
 
 import gc
 import os
@@ -11,7 +9,7 @@ import time
 import warnings
 from io import BytesIO
 from pathlib import Path
-
+import shutil
 import numpy as np
 import pytest
 from conftest import IS_PYPY, deprecated_test
@@ -678,6 +676,7 @@ def test_reverse_read(tmpdir):
     W.close()
 
 
+@pytest.mark.needs_internet
 def test_read_stream(test_images):
     """Test stream reading workaround"""
 
@@ -706,3 +705,11 @@ def test_h264_reading(test_images, tmp_path):
     iio3.imwrite(tmp_path / "cockatoo.h264", frames, plugin="FFMPEG")
 
     imageio.get_reader(tmp_path / "cockatoo.h264", "ffmpeg")
+
+
+def test_read_path_with_caret(test_images, tmp_path):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/1133
+    shutil.copy(test_images / "cockatoo.mp4", tmp_path / "^cockatoo.mp4")
+    video = iio3.imopen(tmp_path / "^cockatoo.mp4", "r", plugin="FFMPEG")
+    assert video.metadata() is not None

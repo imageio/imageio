@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-""" This subpackage provides the core functionality of imageio
+"""This subpackage provides the core functionality of imageio
 (everything but the plugins).
 """
 

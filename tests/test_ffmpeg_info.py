@@ -1,6 +1,5 @@
 # styletest: ignore E501
-""" Tests specific to parsing ffmpeg info.
-"""
+"""Tests specific to parsing ffmpeg info."""
 
 import pytest
 import imageio

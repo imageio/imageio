@@ -45,7 +45,7 @@ Imageio can read from filenames, file objects.
 
 
     # from HTTPS
-    web_image = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif"
+    web_image = "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif"
     frames = iio.imread(web_image, index=None)
 
     # from bytes
