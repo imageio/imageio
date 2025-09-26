@@ -6,6 +6,7 @@ from pathlib import Path
 
 import imageio.v3 as iio
 import numpy as np
+import packaging.version
 import pytest
 from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
@@ -13,7 +14,7 @@ from imageio.plugins.pillow import PillowPlugin
 from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
 
 
-PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
+PILLOW_VERSION = packaging.version.parse(__version__).release
 
 
 @pytest.mark.parametrize(
