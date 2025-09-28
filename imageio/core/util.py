@@ -501,22 +501,9 @@ def resource_package_dir():
     This is a convenience method that is used by `resource_dirs` and
     imageio entry point scripts.
     """
-    # Make pkg_resources optional if setuptools is not available
-    try:
-        # Avoid importing pkg_resources in the top level due to how slow it is
-        # https://github.com/pypa/setuptools/issues/510
-        import pkg_resources
-    except ImportError:
-        pkg_resources = None
+    import importlib.resources
 
-    if pkg_resources:
-        # The directory returned by `pkg_resources.resource_filename`
-        # also works with eggs.
-        pdir = pkg_resources.resource_filename("imageio", "resources")
-    else:
-        # If setuptools is not available, use fallback
-        pdir = os.path.abspath(os.path.join(THIS_DIR, "..", "resources"))
-    return pdir
+    return str(importlib.resources.files("imageio") / "resources")
 
 
 def get_platform():

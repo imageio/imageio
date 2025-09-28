@@ -44,11 +44,9 @@ def download_bin(plugin_names=["all"], package_dir=False):
     print("Ascertaining binaries for: {}.".format(", ".join(plugin_names)))
 
     if package_dir:
-        # Download the binaries to the `resources` directory
-        # of imageio. If imageio comes as an .egg, then a cache
-        # directory will be created by pkg_resources (requires setuptools).
+        # Download the binaries to the `resources` directory of imageio.
         # see `imageio.core.util.resource_dirs`
-        # and `imageio.core.utilresource_package_dir`
+        # and `imageio.core.util.resource_package_dir`
         directory = util.resource_package_dir()
     else:
         directory = None
