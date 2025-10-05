@@ -106,7 +106,6 @@ class PillowPlugin(PluginV3):
                 # compatible pillow plugin (ref: the pillow docs).
                 image = Image.open(request.get_file())
             except UnidentifiedImageError:
-                image.close()
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
                         "Pillow can not read the provided bytes."
