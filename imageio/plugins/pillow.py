@@ -101,12 +101,12 @@ class PillowPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             try:
-                with Image.open(request.get_file()):
-                    # Check if it is generally possible to read the image.
-                    # This will not read any data and merely try to find a
-                    # compatible pillow plugin (ref: the pillow docs).
-                    pass
+                # Check if it is generally possible to read the image.
+                # This will not read any data and merely try to find a
+                # compatible pillow plugin (ref: the pillow docs).
+                image = Image.open(request.get_file())
             except UnidentifiedImageError:
+                image.close()
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
                         "Pillow can not read the provided bytes."
@@ -116,7 +116,7 @@ class PillowPlugin(PluginV3):
                         f"Pillow can not read {request.raw_uri}."
                     ) from None
 
-            self._image = Image.open(self._request.get_file())
+            self._image = image
         else:
             self.save_args = {}
 
