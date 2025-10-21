@@ -142,6 +142,7 @@ def test_video_format_to_dtype():
         "dxva2_vld",
         "mediacodec",
         "mmal",
+        "ohcodec",
         "opencl",
         "qsv",
         "vaapi_idct",
