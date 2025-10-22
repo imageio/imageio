@@ -169,10 +169,6 @@ commit_message = "REL: Release imageio v{version}"
 build_command = "python -m build"
 remove_dist = false
 
-[tool.semantic_release.branches.main]
-match = "(main|fix-cd)"
-prerelease = false
-
 [tool.semantic_release.commit_parser_options]
 allowed_tags = ["API", "BUG", "FIX", "DOC", "MAINT", "REL", "FEAT", "TEST"]
 minor_tags = ["FEAT"]

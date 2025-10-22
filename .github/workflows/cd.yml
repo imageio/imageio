@@ -50,7 +50,7 @@ jobs:
           echo "No changes to the API detected."
         else
           echo "make_release=true" >> "$GITHUB_ENV"
-          echo "Releasing v$(semantic-release print-version)"
+          echo "Releasing $(semantic-release version --print-tag 2>/dev/null)"
         fi
 
   docs:
@@ -88,16 +88,16 @@ jobs:
       - name: Build the wheel
         run: python -m build
 
-  # release:
-  #   name: Release new Version
-  #   needs: [cpython_tests, pypy_tests, build_test, docs]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #   - name: Python Semantic Release
-  #     uses: python-semantic-release/python-semantic-release@v9
-  #     with:
-  #       github_token: ${{ secrets.GITHUB_TOKEN }}
-  #       pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+  release:
+    name: Release new Version
+    needs: [cpython_tests, pypy_tests, build_test, docs]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Python Semantic Release
+      uses: python-semantic-release/python-semantic-release@v10.4.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
