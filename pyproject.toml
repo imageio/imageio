@@ -16,7 +16,7 @@ description = "Read and write images and video across all major formats. Support
 
 license = "BSD-2-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "numpy",
     "pillow>=8.3.2",  # pinned to > 8.3.2 due to security vulnerability (GHSA-98vv-pw6r-q6q4)
