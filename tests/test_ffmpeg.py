@@ -36,8 +36,13 @@ except RuntimeError:
 def get_ffmpeg_pids():
     pids = set()
     for p in psutil.process_iter():
-        if "ffmpeg" in p.name().lower():
-            pids.add(p.pid)
+        try:
+            if "ffmpeg" in p.name().lower():
+                pids.add(p.pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            # Process may die between being listed and being checked.
+            # If that happens, skip that process instead of crashing :)
+            pass
     return pids
 
 
