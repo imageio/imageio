@@ -86,7 +86,7 @@ jobs:
         run: |
             pip install build
       - name: Build the wheel
-        run: python builld
+        run: python -m build
 
   # release:
   #   name: Release new Version
