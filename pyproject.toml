@@ -94,7 +94,6 @@ gdal = ["gdal"]  # gdal currently fails to install :(
 itk = ["itk"]  # itk builds from source (expensive on CI).
 
 # Development and testing
-build = ["wheel"]
 linting = ["black", "flake8"]
 test = ["pytest", "pytest-cov", "fsspec[github]"]
 docs = ["sphinx<6", "numpydoc", "pydata-sphinx-theme"]
@@ -142,7 +141,6 @@ full = [
     "rawpy",
     "sphinx<6",
     "tifffile",
-    "wheel",
 ]
 
 [tool.setuptools]

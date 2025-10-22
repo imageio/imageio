@@ -84,9 +84,9 @@ jobs:
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[build]
+            pip install build
       - name: Build the wheel
-        run: python setup.py sdist bdist_wheel
+        run: python builld
 
   # release:
   #   name: Release new Version
