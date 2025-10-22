@@ -16,7 +16,10 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.37.0"
+from importlib.metadata import version as get_version
+
+__version__ = get_version("imageio")
+
 
 import warnings
 
