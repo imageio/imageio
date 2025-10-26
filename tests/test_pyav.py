@@ -133,6 +133,7 @@ def test_video_format_to_dtype():
     # they have no components. Therefore we can't deduce an appropriate dtype
     # from these so we have to raise instead.
     fake_formats = [
+        "amf",
         "cuda",
         "d3d11",
         "d3d11va_vld",
@@ -141,6 +142,7 @@ def test_video_format_to_dtype():
         "dxva2_vld",
         "mediacodec",
         "mmal",
+        "ohcodec",
         "opencl",
         "qsv",
         "vaapi_idct",

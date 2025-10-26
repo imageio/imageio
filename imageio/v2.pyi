@@ -65,7 +65,7 @@ def mvolread(
     uri: ImageResource,
     format: str | None = ...,
     memtest: float = MEMTEST_DEFAULT_MVOL,
-    **kwargs
+    **kwargs,
 ) -> List[Array]: ...
 @overload
 def mvolwrite(
