@@ -64,7 +64,9 @@ def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
         8: lambda x: np.rot90(x, k=1),
     }
 
-    return EXIF_ORIENTATION[orientation]
+    # Some buggy/legacy software may not write the correct orientation (i.e. 0)
+    # No transformation if orientation is unknown or missing
+    return EXIF_ORIENTATION.get(orientation, lambda x: x)
 
 
 class PillowPlugin(PluginV3):
