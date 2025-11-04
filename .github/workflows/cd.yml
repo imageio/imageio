@@ -108,7 +108,3 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Upload to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        packages-dir: dist
-        print-hash: true
-        verbose: true
