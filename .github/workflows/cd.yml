@@ -37,20 +37,20 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: 3.x
     - name: Install Dependencies
       run: |
-        pip install python-semantic-release==7.34.6
+        pip install "python-semantic-release>=10.4.1,<11.0.0"
     - name: Detect API changes
       id: skippy
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
-        if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
+        if [[ $(semantic-release version --print 2>/dev/null) = "" ]]; then
           echo "make_release=false" >> "$GITHUB_ENV"
           echo "No changes to the API detected."
         else
           echo "make_release=true" >> "$GITHUB_ENV"
-          echo "Releasing v$(semantic-release print-version)"
+          echo "Releasing $(semantic-release version --print-tag 2>/dev/null)"
         fi
 
   docs:
@@ -80,24 +80,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[build]
+            pip install build
       - name: Build the wheel
-        run: python setup.py sdist bdist_wheel
+        run: python -m build
 
   release:
     name: Release new Version
     needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Python Semantic Release
-      uses: python-semantic-release/python-semantic-release@v7.34.6
+      uses: python-semantic-release/python-semantic-release@v10.4.1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+    - name: Upload to GitHub Release
+      uses: python-semantic-release/publish-action@v10.4.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

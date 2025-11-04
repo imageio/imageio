@@ -1306,7 +1306,7 @@ class TiffWriter(object):
                 input_shape,
                 shape[-1] in (3, 4),
                 self._colormap is not None,
-                **self._metadata
+                **self._metadata,
             )
         elif metadata or metadata == {}:
             if self._truncate:
@@ -1777,7 +1777,7 @@ class TiffFile(object):
         size=None,
         multifile=True,
         movie=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize instance from file.
 
@@ -3749,7 +3749,7 @@ class TiffPage(object):
         dmin=None,
         dmax=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Return image data as RGB(A).
 
@@ -8262,7 +8262,7 @@ def imagej_description(
     hyperstack=None,
     mode=None,
     loop=None,
-    **kwargs
+    **kwargs,
 ):
     """Return ImageJ image description from data shape.
 
@@ -10132,7 +10132,7 @@ def imshow(
     figure=None,
     subplot=111,
     maxdim=32768,
-    **kwargs
+    **kwargs,
 ):
     """Plot n-dimensional images using matplotlib.pyplot.
 
@@ -10294,7 +10294,7 @@ def imshow(
         vmax=vmax,
         cmap=cmap,
         interpolation=interpolation,
-        **kwargs
+        **kwargs,
     )
 
     if not isrgb:
