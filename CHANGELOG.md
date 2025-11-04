@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.37.2 (2025-11-04)
+
+### Bug
+
+- Gracefully handle reading of invalid EXIF orientation in Pillow plugin
+  ([#1159](https://github.com/imageio/imageio/pull/1159),
+  [`8b9d78d`](https://github.com/imageio/imageio/commit/8b9d78df7533d00c9d3d30b3dd5c32178eaea594))
+
+- Prevent OverflowError for FPS in pyav plugin
+  ([#1121](https://github.com/imageio/imageio/pull/1121),
+  [`e03963c`](https://github.com/imageio/imageio/commit/e03963c5b9c8ad5bdbbe9233ee27cdfaa24a9328))
+
+### Maint
+
+- Allow github actions to push to master in CD
+  ([#1163](https://github.com/imageio/imageio/pull/1163),
+  [`0d20b85`](https://github.com/imageio/imageio/commit/0d20b85f209920efbc1d8206fcb31a96ad76013f))
+
+- Fix publishing to GH and PyPI in CD ([#1161](https://github.com/imageio/imageio/pull/1161),
+  [`0b93c57`](https://github.com/imageio/imageio/commit/0b93c57779846b9c4ab8e0192def90c5f59efa69))
+
+- Remove obsolete code for Python <= 3.4 ([#1156](https://github.com/imageio/imageio/pull/1156),
+  [`4fc3034`](https://github.com/imageio/imageio/commit/4fc303427bc441e533cee2d214a47c7a52614e8a))
+
+
 ## v2.37.1 (2025-10-22)
 
 ### Bug
