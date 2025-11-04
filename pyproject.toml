@@ -170,7 +170,7 @@ build_command = "pip install build &&python -m build"
 remove_dist = false
 
 [tool.semantic_release.branches.main]
-match = "(main|cd-release)"
+match = "master"
 prerelease = false
 
 [tool.semantic_release.commit_parser_options]
