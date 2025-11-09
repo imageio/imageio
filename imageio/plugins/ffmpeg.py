@@ -568,9 +568,15 @@ class FfmpegFormat(Format):
 
         def _append_data(self, im, meta):
             # Get props of image
-            h, w = im.shape[:2]
+            if im.ndim == 4:
+                h, w = im.shape[1:3]
+            else:
+                h, w = im.shape[:2]
             size = w, h
-            depth = 1 if im.ndim == 2 else im.shape[2]
+            if im.ndim == 4:
+                depth = im.shape[3]
+            else:
+                depth = 1 if im.ndim == 2 else im.shape[2]
 
             # Ensure that image is in uint8
             im = image_as_uint(im, bitdepth=8)
