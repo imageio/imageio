@@ -445,6 +445,8 @@ class PillowPlugin(PluginV3):
             pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
+            if "colors" in kwargs:
+                pil_frame = pil_frame.quantize(colors=kwargs["colors"])
             self.images_to_write.append(pil_frame)
 
         if (
