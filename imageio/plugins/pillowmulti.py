@@ -220,7 +220,7 @@ class GifWriter:  # pragma: no cover
             xy = (0, 0)
 
         # Image separator,
-        bb = b"\x2C"
+        bb = b"\x2c"
 
         # Image position and size
         bb += intToBin(xy[0])  # Left position
@@ -245,7 +245,7 @@ class GifWriter:  # pragma: no cover
             loop = 2**16 - 1
         bb = b""
         if loop != 0:  # omit the extension if we would like a nonlooping gif
-            bb = b"\x21\xFF\x0B"  # application extension
+            bb = b"\x21\xff\x0b"  # application extension
             bb += b"NETSCAPE2.0"
             bb += b"\x03\x01"
             bb += intToBin(loop)
@@ -268,7 +268,7 @@ class GifWriter:  # pragma: no cover
           * 4-7 -To be defined.
         """
 
-        bb = b"\x21\xF9\x04"
+        bb = b"\x21\xf9\x04"
         bb += chr((dispose & 3) << 2).encode("utf-8")
         # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,

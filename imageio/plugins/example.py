@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Example plugin. You can use this as a template for your own plugin.
-"""
+"""Example plugin. You can use this as a template for your own plugin."""
 
 import numpy as np
 

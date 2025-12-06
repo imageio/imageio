@@ -133,6 +133,7 @@ def test_video_format_to_dtype():
     # they have no components. Therefore we can't deduce an appropriate dtype
     # from these so we have to raise instead.
     fake_formats = [
+        "amf",
         "cuda",
         "d3d11",
         "d3d11va_vld",
@@ -141,6 +142,7 @@ def test_video_format_to_dtype():
         "dxva2_vld",
         "mediacodec",
         "mmal",
+        "ohcodec",
         "opencl",
         "qsv",
         "vaapi_idct",
@@ -439,6 +441,10 @@ def test_sequential_reading(test_images):
     assert np.allclose(actual_imgs, expected_imgs)
 
 
+@pytest.mark.skip(
+    reason="PyAV no longer supports DASH natively. This needs separate investigation."
+)
+@pytest.mark.needs_internet
 def test_uri_reading(test_images):
     uri = "https://dash.akamaized.net/dash264/TestCases/2c/qualcomm/1/MultiResMPEG2.mpd"
 
@@ -578,6 +584,7 @@ def test_keyframe_intervals(test_images):
     assert np.max(np.diff(key_dist)) <= 5
 
 
+@pytest.mark.needs_internet
 def test_trim_filter(test_images):
     # this is a regression test for:
     # https://github.com/imageio/imageio/issues/951

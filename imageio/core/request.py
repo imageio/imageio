@@ -177,6 +177,7 @@ EXAMPLE_IMAGES = {
     "page.png": "A scanned page of text",
     "text.png": "A photograph of handdrawn text",
     "bacterial_colony.tif": "Multi-page TIFF image of a bacterial colony",
+    "calcium_imaging.tif": "Neuronal calcium imaging video",
     "chelsea.zip": "The chelsea.png in a zipfile (for testing)",
     "chelsea.bsdf": "The chelsea.png in a BSDF file(for testing)",
     "newtonscradle.gif": "Animated GIF of a newton's cradle",

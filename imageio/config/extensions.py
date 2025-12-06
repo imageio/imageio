@@ -57,7 +57,7 @@ class FileExtension:
         name=None,
         description=None,
         external_link=None,
-        volume_support=False
+        volume_support=False,
     ):
         self.extension = extension
         self.priority = priority

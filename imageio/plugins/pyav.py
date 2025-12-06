@@ -881,8 +881,9 @@ class PyAVPlugin(PluginV3):
         file-size (and thus I/O performance).
 
         """
-
-        fps = Fraction.from_float(fps)
+        # It may introduce `OverflowError` if `fps` is float
+        # which is a legacy issue of `pyav`: https://github.com/PyAV-Org/PyAV/issues/242
+        fps = Fraction.from_float(fps).limit_denominator(65535)
         stream = self._container.add_stream(codec, fps)
         stream.time_base = Fraction(1 / fps).limit_denominator(int(2**16 - 1))
         if pixel_format is not None:
@@ -961,7 +962,8 @@ class PyAVPlugin(PluginV3):
             plane_array[...] = frame
 
         stream = self._video_stream
-        av_frame.time_base = stream.codec_context.time_base
+        if stream.codec_context.time_base:
+            av_frame.time_base = stream.codec_context.time_base
         av_frame.pts = self.frames_written
         self.frames_written += 1
 

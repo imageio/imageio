@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.37.2 (2025-11-04)
+
+### Bug
+
+- Gracefully handle reading of invalid EXIF orientation in Pillow plugin
+  ([#1159](https://github.com/imageio/imageio/pull/1159),
+  [`8b9d78d`](https://github.com/imageio/imageio/commit/8b9d78df7533d00c9d3d30b3dd5c32178eaea594))
+
+- Prevent OverflowError for FPS in pyav plugin
+  ([#1121](https://github.com/imageio/imageio/pull/1121),
+  [`e03963c`](https://github.com/imageio/imageio/commit/e03963c5b9c8ad5bdbbe9233ee27cdfaa24a9328))
+
+### Maint
+
+- Allow github actions to push to master in CD
+  ([#1163](https://github.com/imageio/imageio/pull/1163),
+  [`0d20b85`](https://github.com/imageio/imageio/commit/0d20b85f209920efbc1d8206fcb31a96ad76013f))
+
+- Fix publishing to GH and PyPI in CD ([#1161](https://github.com/imageio/imageio/pull/1161),
+  [`0b93c57`](https://github.com/imageio/imageio/commit/0b93c57779846b9c4ab8e0192def90c5f59efa69))
+
+- Remove obsolete code for Python <= 3.4 ([#1156](https://github.com/imageio/imageio/pull/1156),
+  [`4fc3034`](https://github.com/imageio/imageio/commit/4fc303427bc441e533cee2d214a47c7a52614e8a))
+
+
+## v2.37.1 (2025-10-22)
+
+### Bug
+
+- Add fsspec as freeimage dependency ([#1145](https://github.com/imageio/imageio/pull/1145),
+  [`0f9692e`](https://github.com/imageio/imageio/commit/0f9692e9c5a5fd523db6aa98860b385272d48e31))
+
+- Fix plugin `ffmpeg` cannot load file with carets
+  ([#1135](https://github.com/imageio/imageio/pull/1135),
+  [`3009a96`](https://github.com/imageio/imageio/commit/3009a9651aae9e008065c68155160969f369c583))
+
+- Fix the error when `time_base` is set to null
+  ([#1144](https://github.com/imageio/imageio/pull/1144),
+  [`eadfc59`](https://github.com/imageio/imageio/commit/eadfc5906f5c2c3731f56a582536dbc763c3a7a9))
+
+### Doc
+
+- 'imageio[ffmpeg]' argument needs quoting ([#1140](https://github.com/imageio/imageio/pull/1140),
+  [`013582a`](https://github.com/imageio/imageio/commit/013582acfce692428d8100bb54f407dc8b43ccbb))
+
+- It's "Deprecating" without an "i" ([#1141](https://github.com/imageio/imageio/pull/1141),
+  [`ffc0539`](https://github.com/imageio/imageio/commit/ffc053963e1ce1f42e90a939cb46dd8b7dc69e47))
+
+- Pin python version to build docs ([#1122](https://github.com/imageio/imageio/pull/1122),
+  [`3e2a165`](https://github.com/imageio/imageio/commit/3e2a165e484135d4d627c8f1fed5cb3bf13438c6))
+
+### Maint
+
+- Avoid calling PIL.Image twice to open a file
+  ([#1149](https://github.com/imageio/imageio/pull/1149),
+  [`6a45d8a`](https://github.com/imageio/imageio/commit/6a45d8a30ca067f3719dfb35b313fdf7fab0548e))
+
+- Fix CD failure ([#1154](https://github.com/imageio/imageio/pull/1154),
+  [`7919501`](https://github.com/imageio/imageio/commit/7919501eacb93795ce2bdaf2f166681ab4eef7dc))
+
+### Test
+
+- Don't test pyav on pypy ([#1146](https://github.com/imageio/imageio/pull/1146),
+  [`570a114`](https://github.com/imageio/imageio/commit/570a11438e2e1379defe61df03451c678b77787a))
+
+- Fix race condition in ffmpeg plugin test ([#1153](https://github.com/imageio/imageio/pull/1153),
+  [`57a43c4`](https://github.com/imageio/imageio/commit/57a43c417863aa6128e71f114cdbca92caa6529d))
+
+- Handle `amf` and `ohcodec` in pyav tests and update pypy to 3.11 due to current pillow support
+  ([#1152](https://github.com/imageio/imageio/pull/1152),
+  [`a223fb3`](https://github.com/imageio/imageio/commit/a223fb32674bb86f5d8ed41bd0e2c1059d85aecc))
+
+- Mark more tests as needing the internet ([#1142](https://github.com/imageio/imageio/pull/1142),
+  [`ab7c836`](https://github.com/imageio/imageio/commit/ab7c836271e95b03839cf862598692775863f731))
+
+
 ## v2.37.0 (2025-01-20)
 
 ### Fix
