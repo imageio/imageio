@@ -6,6 +6,7 @@ Definition of the Request object, which acts as a kind of bridge between
 what the user wants and what the plugins can.
 """
 
+import errno
 import os
 from io import BytesIO
 import zipfile
@@ -407,12 +408,14 @@ class Request(object):
             if is_read_request:
                 # Reading: check that the file exists (but is allowed a dir)
                 if not os.path.exists(fn):
-                    raise FileNotFoundError("No such file: '%s'" % fn)
+                    raise FileNotFoundError(errno.ENOENT, "No such file: '%s'" % fn, fn)
             else:
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
-                    raise FileNotFoundError("The directory %r does not exist" % dn)
+                    raise FileNotFoundError(
+                        errno.ENOENT, "The directory %r does not exist" % dn, dn
+                    )
 
     @property
     def filename(self):
