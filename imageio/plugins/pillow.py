@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write images using Pillow/PIL.
+"""Read/Write images using Pillow/PIL.
 
 Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
 
@@ -64,7 +64,9 @@ def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
         8: lambda x: np.rot90(x, k=1),
     }
 
-    return EXIF_ORIENTATION[orientation]
+    # Some buggy/legacy software may not write the correct orientation (i.e. 0)
+    # No transformation if orientation is unknown or missing
+    return EXIF_ORIENTATION.get(orientation, lambda x: x)
 
 
 class PillowPlugin(PluginV3):
@@ -101,11 +103,10 @@ class PillowPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             try:
-                with Image.open(request.get_file()):
-                    # Check if it is generally possible to read the image.
-                    # This will not read any data and merely try to find a
-                    # compatible pillow plugin (ref: the pillow docs).
-                    pass
+                # Check if it is generally possible to read the image.
+                # This will not read any data and merely try to find a
+                # compatible pillow plugin (ref: the pillow docs).
+                image = Image.open(request.get_file())
             except UnidentifiedImageError:
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
@@ -116,7 +117,7 @@ class PillowPlugin(PluginV3):
                         f"Pillow can not read {request.raw_uri}."
                     ) from None
 
-            self._image = Image.open(self._request.get_file())
+            self._image = image
         else:
             self.save_args = {}
 

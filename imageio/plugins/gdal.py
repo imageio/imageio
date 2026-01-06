@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read GDAL files.
+"""Read GDAL files.
 
 Backend: `GDAL <https://gdal.org/>`_
 

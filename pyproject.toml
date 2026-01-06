@@ -1,0 +1,188 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ImageIO"
+version = "2.37.2"
+authors = [
+    {name = "ImageIO contributors"}
+]
+maintainers = [
+    {name = "Sebastian Wallkotter", email = "sebastian@wallkoetter.net"},
+    {name = "Almar Klein", email = "almar.klein@gmail.com"},
+]
+dynamic = ["readme"]
+description = "Read and write images and video across all major formats. Supports scientific and volumetric data."
+
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "pillow>=8.3.2",  # pinned to > 8.3.2 due to security vulnerability (GHSA-98vv-pw6r-q6q4)
+]
+keywords = [
+    "image", 
+    "video", 
+    "imread", 
+    "imwrite", 
+    "io", 
+    "animation", 
+    "ffmpeg",
+    "image processing",
+    "numpy",
+    "format conversion",
+    "scientific imaging",
+    "medical imaging",
+    "volumetric",
+    "video encoding",
+    "multimedia",
+    "gif",
+    "tiff",
+    "png",
+    "jpeg"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+homepage = "https://github.com/imageio/imageio"
+download = "http://pypi.python.org/pypi/imageio"
+source = "https://github.com/imageio/imageio"
+documentation = "https://imageio.readthedocs.io"
+
+[project.scripts]
+imageio_download_bin = "imageio.__main__:download_bin_main"
+imageio_remove_bin = "imageio.__main__:remove_bin_main"
+
+[project.optional-dependencies]
+# Plugin dependencies
+bsdf = []
+dicom = []
+feisem = []
+ffmpeg = ["imageio-ffmpeg", "psutil"]
+freeimage = ["fsspec[http]"]
+lytro = []
+numpy = []
+pillow-heif = ["pillow-heif"]
+pillow = []
+simpleitk = []
+spe = []
+swf = []
+tifffile = ["tifffile"]
+
+# CPython-only plugins
+pyav = ["av"]
+fits = ["astropy"]
+rawpy = ["rawpy", "numpy>2"]
+
+# Other extras
+gdal = ["gdal"]  # gdal currently fails to install :(
+itk = ["itk"]  # itk builds from source (expensive on CI).
+
+# Development and testing
+linting = ["black", "flake8"]
+test = ["pytest", "pytest-cov", "fsspec[github]"]
+docs = ["sphinx<6", "numpydoc", "pydata-sphinx-theme"]
+
+# Combined extras
+dev = [
+    "pytest",
+    "pytest-cov",
+    "fsspec[github]",
+    "black",
+    "flake8",
+]
+all-plugins = [
+    "av",
+    "astropy",
+    "fsspec[http]",
+    "imageio-ffmpeg",
+    "numpy>2",
+    "pillow-heif",
+    "psutil",
+    "rawpy",
+    "tifffile",
+]
+all-plugins-pypy = [
+    "fsspec[http]",
+    "imageio-ffmpeg",
+    "pillow-heif",
+    "psutil",
+    "tifffile",
+]
+full = [
+    "astropy",
+    "av",
+    "black",
+    "flake8",
+    "fsspec[github,http]",
+    "imageio-ffmpeg",
+    "numpydoc",
+    "numpy>2",
+    "pillow-heif",
+    "psutil",
+    "pydata-sphinx-theme",
+    "pytest",
+    "pytest-cov",
+    "rawpy",
+    "sphinx<6",
+    "tifffile",
+]
+
+[tool.setuptools]
+zip-safe = false
+packages = ["imageio", "imageio.core", "imageio.plugins", "imageio.config"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"]}
+
+[tool.setuptools.package-data]
+imageio = ["py.typed", "**/*.pyi", "*.pyi"]
+
+[tool.flake8]
+# Note: flake8 doesn't natively support pyproject.toml
+# This section is here for documentation; you may need to keep setup.cfg
+# or use a tool like flake8-pyproject or switch to ruff
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E501"]
+exclude = [".venv/"]
+
+[tool.semantic_release]
+commit_parser = "conventional"
+version_toml = [ "pyproject.toml:project.version" ]
+commit_message = "REL: Release imageio v{version}"
+build_command = "pip install build &&python -m build"
+remove_dist = false
+
+[tool.semantic_release.branches.main]
+match = "master"
+prerelease = false
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["API", "BUG", "FIX", "DOC", "MAINT", "REL", "FEAT", "TEST"]
+minor_tags = ["FEAT"]
+patch_tags = ["BUG", "FIX"]
+other_allowed_tags = ["DOC", "MAINT", "TEST"]
+parse_squash_commits = false
+
+[tool.semantic_release.changelog]
+insertion_flag = "<!--next-version-placeholder-->"
+
+[tool.semantic_release.commit_author]
+env = "GIT_COMMIT_AUTHOR"
+default = "Sebastian Wallkotter <sebastian@wallkoetter.net>"

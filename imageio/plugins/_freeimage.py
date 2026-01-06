@@ -3,7 +3,7 @@
 
 # styletest: ignore E261
 
-""" Module imageio/freeimage.py
+"""Module imageio/freeimage.py
 
 This module contains the wrapper code for the freeimage library.
 The functions defined in this module are relatively thin; just thin

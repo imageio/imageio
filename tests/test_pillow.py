@@ -1,5 +1,4 @@
-""" Tests for imageio's pillow plugin
-"""
+"""Tests for imageio's pillow plugin"""
 
 import io
 import os
@@ -227,6 +226,46 @@ def test_exif_orientation(test_images, tmp_path):
     assert np.array_equal(im, im_pillow)
 
 
+@pytest.mark.parametrize("orientation", [0, 9])
+def test_exif_invalid_orientation(test_images, tmp_path, orientation):
+    from PIL.Image import Exif  # type: ignore
+
+    im = np.load(test_images / "chelsea.npy")
+
+    exif_tag = Exif()
+    exif_tag[274] = orientation  # Set Orientation to 0, which is invalid
+
+    iio.imwrite(
+        tmp_path / "chelsea_tagged.png",
+        im,
+        plugin="pillow",
+        exif=exif_tag,
+    )
+
+    with iio.imopen(
+        tmp_path / "chelsea_tagged.png",
+        "r",
+        plugin="pillow",
+    ) as f:
+        im_reloaded = f.read()
+        im_meta = f.get_meta()
+
+    # ensure that the Exif tag is set in the file
+    assert "Orientation" in im_meta and im_meta["Orientation"] == orientation
+
+    im_reloaded = iio.imread(
+        tmp_path / "chelsea_tagged.png", plugin="pillow", rotate=True
+    )
+
+    assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
+
+
 def test_gif_rgb_vs_rgba(test_images):
     # Note: I don't understand the point of this test
     im_rgb = iio.imread(
@@ -364,11 +403,11 @@ def test_gif_list_write(test_images, tmp_path):
 def test_gif_first_p_frame():
     # Bugfix: https://github.com/imageio/imageio/issues/1030
     im = iio.imread(
-        "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif",
+        "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif",
         plugin="pillow",
         index=None,
     )
-    assert im.shape == (36, 360, 480, 3)
+    assert im.shape == (36, 150, 200, 3)
 
 
 def test_legacy_exif_orientation(test_images, tmp_path):

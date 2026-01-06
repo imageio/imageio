@@ -1,5 +1,4 @@
-""" Test imageio core functionality.
-"""
+"""Test imageio core functionality."""
 
 import os
 import sys
