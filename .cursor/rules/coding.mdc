@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+- Inline logic where possible instead of creating helper functions.
+- Use list comprehensions and other python-native syntax.
+- new code should target the v3 API. 
+- when changing code make sure to update the docs alongside.
+
+- Docstrings: Use NumPy-style docstrings with sections like Parameters, Returns, Raises, Notes, Examples. Module-level docstrings are always present.
+
+- Type hints: Used in function signatures via the typing module (Optional, Dict, Tuple, Union, etc.). from __future__ import annotations is not used. Type hints are present in newer/v3 code but may be absent in older v2 code.
+
+- Naming conventions: snake_case for functions, methods, and variables; PascalCase for classes; UPPER_CASE for module-level constants (e.g., URI_BYTES = 1).
+
+
+## v2 API
+- v2 is considered fully deprecated and will be removed.
+- when fixing critical bugs in old v2 code, do not add type hints or modernize it.

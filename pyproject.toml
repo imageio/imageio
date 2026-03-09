@@ -154,6 +154,9 @@ readme = {file = ["README.md"]}
 [tool.setuptools.package-data]
 imageio = ["py.typed", "**/*.pyi", "*.pyi"]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [tool.flake8]
 # Note: flake8 doesn't natively support pyproject.toml
 # This section is here for documentation; you may need to keep setup.cfg
