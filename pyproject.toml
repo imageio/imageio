@@ -17,7 +17,7 @@ description = "Read and write images and video across all major formats. Support
 
 license = "BSD-2-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "pillow>=8.3.2",  # pinned to > 8.3.2 due to security vulnerability (GHSA-98vv-pw6r-q6q4)
@@ -153,6 +153,9 @@ readme = {file = ["README.md"]}
 
 [tool.setuptools.package-data]
 imageio = ["py.typed", "**/*.pyi", "*.pyi"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [tool.flake8]
 # Note: flake8 doesn't natively support pyproject.toml

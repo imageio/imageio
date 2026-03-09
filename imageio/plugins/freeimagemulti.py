@@ -306,8 +306,8 @@ class GifFormat(FreeimageMulti):
             Y = np.argwhere(diff.sum(1))
             # Get rect coordinates
             if X.size and Y.size:
-                x0, x1 = int(X[0]), int(X[-1]) + 1
-                y0, y1 = int(Y[0]), int(Y[-1]) + 1
+                x0, x1 = X[0].item(), X[-1].item() + 1
+                y0, y1 = Y[0].item(), Y[-1].item() + 1
             else:  # No change ... make it minimal
                 x0, x1 = 0, 2
                 y0, y1 = 0, 2
