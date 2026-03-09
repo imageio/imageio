@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.37.3 (2026-03-09)
+
+### Bug
+
+- Update dependencies ([#1172](https://github.com/imageio/imageio/pull/1172),
+  [`971b83e`](https://github.com/imageio/imageio/commit/971b83e048b90ffcd2fa5107bdbf270e9879afaf))
+
+### Maint
+
+- Bump psf/black (dev dependency) to fix security vulnerability
+  ([#1171](https://github.com/imageio/imageio/pull/1171),
+  [`30a8bab`](https://github.com/imageio/imageio/commit/30a8bab9b1c06f2b6fca30c6cb24bf8886484fd2))
+
+
 ## v2.37.2 (2025-11-04)
 
 ### Bug
