@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018, imageio contributors
+# Copyright (c) 2018-2026, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 #
 
