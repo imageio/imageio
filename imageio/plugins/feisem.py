@@ -23,7 +23,6 @@ See Also
 
 """
 
-
 from .tifffile import TiffFormat
 
 

@@ -12,7 +12,6 @@ from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
 from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
 
-
 PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
 
 

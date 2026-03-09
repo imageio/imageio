@@ -20,6 +20,7 @@ include_thumbnail : bool
     Whether to include an image thumbnail in the metadata.
 
 """
+
 #
 #
 # This code is based on work by
@@ -41,7 +42,6 @@ import numpy as np
 
 from ..core import Format
 from ..v2 import imread
-
 
 logger = logging.getLogger(__name__)
 
