@@ -24,8 +24,7 @@ def dedent(text, dedent=8):
 def test_webcam_parse_device_names():
     # Ensure that the device list parser returns all video devices (issue #283)
 
-    sample = dedent(
-        r"""
+    sample = dedent(r"""
         ffmpeg version 3.2.4 Copyright (c) 2000-2017 the FFmpeg developers
         built with gcc 6.3.0 (GCC)
         configuration: --enable-gpl --enable-version3 --enable-d3d11va --enable-dxva2 --enable-libmfx --enable-nvenc --enable-avisynthlibswresample   2.  3.100 /  2.  3.100
@@ -41,8 +40,7 @@ def test_webcam_parse_device_names():
         [dshow @ 039a7e20]  "SPDIF Interface (Multimedia Audio Device)"
         [dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{617B63FB-CFC0-4D10-AE30-42A66CAF6A4E}"
         dummy: Immediate exit requested
-        """
-    )
+        """)
 
     # Parse the sample
     device_names = imageio.plugins.ffmpeg.parse_device_names(sample)

@@ -173,7 +173,6 @@ import numpy as np
 from ..core import Format, image_as_uint
 from ..core.request import URI_FILE, URI_BYTES
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -8,7 +8,6 @@ import os
 from invoke import Collection, Task
 import warnings
 
-
 warnings.warn(
     "Invoke scripts are deprecated and will be removed in ImageIO v3. They"
     " have been superseeded by CI scripts and there is currently no plan to"

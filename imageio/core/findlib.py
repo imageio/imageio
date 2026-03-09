@@ -8,7 +8,6 @@ import os
 import sys
 import ctypes
 
-
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Flag that can be patched / set to True to disable loading non-system libs

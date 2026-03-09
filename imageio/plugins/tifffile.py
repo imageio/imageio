@@ -182,7 +182,6 @@ from ..core.request import URI_BYTES, URI_FILE
 import numpy as np
 import warnings
 
-
 try:
     import tifffile as _tifffile
 except ImportError:
