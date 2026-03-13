@@ -149,7 +149,7 @@ zip-safe = false
 packages = ["imageio", "imageio.core", "imageio.plugins", "imageio.config"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.md"]}
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [tool.setuptools.package-data]
 imageio = ["py.typed", "**/*.pyi", "*.pyi"]
