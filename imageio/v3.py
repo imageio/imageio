@@ -161,6 +161,9 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
 
     Parameters
     ----------
+    uri : {str, pathlib.Path, bytes, file}
+        The resource to load the image from, e.g. a filename, pathlib.Path,
+        http address or file object, see the docs for more info.
     index : int
         If the ImageResource contains multiple ndimages, and index is an
         integer, select the index-th ndimage from among them and return its
@@ -238,8 +241,9 @@ def immeta(
 
     Returns
     -------
-    image : ndimage
-        The ndimage located at the given URI.
+    metadata : dict
+        A dictionary containing format-specific metadata for the ndimage
+        located at the given URI.
 
     """
 
