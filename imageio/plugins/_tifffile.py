@@ -4734,8 +4734,7 @@ class TiffSequence(object):
 
     """
 
-    _patterns = {
-        "axes": r"""
+    _patterns = {"axes": r"""
             # matches Olympus OIF and Leica TIFF series
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
@@ -4744,8 +4743,7 @@ class TiffSequence(object):
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
-            """
-    }
+            """}
 
     class ParseError(Exception):
         pass
@@ -7809,7 +7807,7 @@ def read_lsm_channelcolors(fh):
     """Read LSM ChannelColors structure from file and return as dict."""
     result = {"Mono": False, "Colors": [], "ColorNames": []}
     pos = fh.tell()
-    (size, ncolors, nnames, coffset, noffset, mono) = struct.unpack(
+    size, ncolors, nnames, coffset, noffset, mono = struct.unpack(
         "<IIIIII", fh.read(24)
     )
     if ncolors != nnames:
