@@ -42,7 +42,6 @@ import logging
 
 import numpy as np
 
-
 logger = logging.getLogger(__name__)
 
 # todo: use Pillow to support reading JPEG images from SWF?

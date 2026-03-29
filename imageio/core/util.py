@@ -5,7 +5,6 @@
 Various utilities for imageio
 """
 
-
 from collections import OrderedDict
 import numpy as np
 import os
@@ -14,7 +13,6 @@ import struct
 import sys
 import time
 import logging
-
 
 logger = logging.getLogger("imageio")
 

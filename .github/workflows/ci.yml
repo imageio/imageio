@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - uses: psf/black@24.1.1
+      - uses: psf/black@26.3.0
         with:
           args: ". --check"
       - name: Install Dependencies

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ImageIO"
-version = "2.37.2"
+version = "2.37.3"
 authors = [
     {name = "ImageIO contributors"}
 ]
@@ -17,7 +17,7 @@ description = "Read and write images and video across all major formats. Support
 
 license = "BSD-2-Clause"
 license-files = ["LICENSE"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "pillow>=8.3.2",  # pinned to > 8.3.2 due to security vulnerability (GHSA-98vv-pw6r-q6q4)
@@ -152,10 +152,13 @@ zip-safe = false
 packages = ["imageio", "imageio.core", "imageio.plugins", "imageio.config"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.md"]}
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [tool.setuptools.package-data]
 imageio = ["py.typed", "**/*.pyi", "*.pyi"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [tool.flake8]
 # Note: flake8 doesn't natively support pyproject.toml

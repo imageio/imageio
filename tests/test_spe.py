@@ -9,7 +9,6 @@ import pytest
 import imageio.v3 as iio
 from imageio.plugins import spe
 
-
 frame0 = np.zeros((32, 32), np.uint16)
 frame1 = np.ones_like(frame0)
 

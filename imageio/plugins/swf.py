@@ -51,7 +51,6 @@ import numpy as np
 
 from ..core import Format, read_n_bytes, image_as_uint
 
-
 logger = logging.getLogger(__name__)
 
 _swf = None  # lazily loaded in lib()

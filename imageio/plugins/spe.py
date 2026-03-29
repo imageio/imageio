@@ -58,7 +58,6 @@ import numpy as np
 from ..core.request import Request, IOMode, InitializationError
 from ..core.v3_plugin_api import PluginV3, ImageProperties
 
-
 logger = logging.getLogger(__name__)
 
 

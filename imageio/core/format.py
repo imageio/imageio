@@ -42,7 +42,6 @@ from ..config import known_plugins, known_extensions, PluginConfig, FileExtensio
 from ..config.plugins import _original_order
 from .imopen import imopen
 
-
 # survived for backwards compatibility
 # I don't know if external plugin code depends on it existing
 # We no longer do

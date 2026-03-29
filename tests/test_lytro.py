@@ -9,7 +9,6 @@ import imageio.v2 as iio
 from imageio.core import Request
 from conftest import deprecated_test
 
-
 # Set file names for test images in imageio-binaries repo
 LFR_FILENAME = "Ankylosaurus_&_Stegosaurus.LFR"
 THUMB_FILENAME = "Ankylosaurus_&_Stegosaurus_Thumbnail.jpg"
