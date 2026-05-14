@@ -3,6 +3,7 @@
 
 import re
 import warnings
+from collections.abc import Iterator
 from numbers import Number
 from pathlib import Path
 from typing import Dict
@@ -234,6 +235,9 @@ class LegacyWriter:
 
 def is_batch(ndimage):
     if isinstance(ndimage, (list, tuple)):
+        return True
+
+    if isinstance(ndimage, Iterator):
         return True
 
     ndimage = np.asarray(ndimage)
