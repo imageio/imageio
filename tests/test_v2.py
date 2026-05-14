@@ -66,6 +66,34 @@ def test_mimwrite_exception(tmp_path):
         iio.mimwrite(tmp_path / "test.png", img)
 
 
+def test_mimwrite_accepts_generator(tmp_path):
+    def frames():
+        for value in range(3):
+            yield np.full((8, 8, 3), value, dtype=np.uint8)
+
+    iio.mimwrite(tmp_path / "test.gif", frames())
+
+    imgs = iio.mimread(tmp_path / "test.gif")
+    assert len(imgs) == 3
+    assert [img[0, 0, 0] for img in imgs] == [0, 1, 2]
+
+
+def test_mimwrite_accepts_iterator(tmp_path):
+    frames = iter(
+        [
+            np.full((8, 8, 3), 0, dtype=np.uint8),
+            np.full((8, 8, 3), 1, dtype=np.uint8),
+            np.full((8, 8, 3), 2, dtype=np.uint8),
+        ]
+    )
+
+    iio.mimwrite(tmp_path / "test.gif", frames)
+
+    imgs = iio.mimread(tmp_path / "test.gif")
+    assert len(imgs) == 3
+    assert [img[0, 0, 0] for img in imgs] == [0, 1, 2]
+
+
 def test_kwarg_forwarding(tmp_path):
     rng = np.random.default_rng()
 

@@ -414,7 +414,9 @@ class PillowPlugin(PluginV3):
             )
             kwargs["duration"] = 1000 * 1 / kwargs.get("fps")
 
-        if isinstance(ndimage, list):
+        if is_batch is True:
+            pass
+        elif isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
             is_batch = True
         else:
@@ -442,6 +444,7 @@ class PillowPlugin(PluginV3):
             ndimage = ndimage[None, ...]
 
         for frame in ndimage:
+            frame = np.asarray(frame)
             pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
