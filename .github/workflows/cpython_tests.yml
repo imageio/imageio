@@ -30,6 +30,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+      - name: Shorten temp & cargo dirs on Windows
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+            New-Item -ItemType Directory -Force -Path C:\\tmp
+            New-Item -ItemType Directory -Force -Path C:\\tmp\\cargo-target
+            Add-Content -Path $env:GITHUB_ENV -Value "TMP=C:\\tmp"
+            Add-Content -Path $env:GITHUB_ENV -Value "TEMP=C:\\tmp"
+            Add-Content -Path $env:GITHUB_ENV -Value "CARGO_TARGET_DIR=C:\\tmp\\cargo-target"
       - name: Set up Python ${{ matrix.pyversion }}
         uses: actions/setup-python@v5
         with:

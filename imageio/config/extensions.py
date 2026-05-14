@@ -1865,6 +1865,11 @@ extension_list = [
         extension=".avif",
         priority=["pillow"],
     ),
+    FileExtension(
+        name="JPEG XL Image File Format",
+        extension=".jxl",
+        priority=["pillow"],
+    ),
 ]
 extension_list.sort(key=lambda x: x.extension)
 

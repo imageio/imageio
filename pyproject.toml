@@ -84,6 +84,7 @@ simpleitk = []
 spe = []
 swf = []
 tifffile = ["tifffile"]
+pillow-jxl = ["pillow-jxl-plugin>=1.3.2"]
 
 # CPython-only plugins
 pyav = ["av"]
@@ -117,6 +118,7 @@ all-plugins = [
     "psutil",
     "rawpy",
     "tifffile",
+    "pillow-jxl-plugin>=1.3.2",
 ]
 all-plugins-pypy = [
     "fsspec[http]",
@@ -124,6 +126,7 @@ all-plugins-pypy = [
     "pillow-heif",
     "psutil",
     "tifffile",
+    "pillow-jxl-plugin>=1.3.2",
 ]
 full = [
     "astropy",
