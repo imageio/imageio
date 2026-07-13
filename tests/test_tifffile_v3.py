@@ -94,7 +94,11 @@ def test_planarconfig(tmp_path):
         if tuple(int(x) for x in tifffile.__version__.split(".")) <= (2021, 11, 2):
             assert tif.series[0].pages[0].tags[284].value == 2
         else:
-            assert tif.series[0].dims == ("sample", "height", "width")
+            # tifffile < 2026.6.1 used long dim names; later versions use axes codes
+            assert tif.series[0].dims in (
+                ("sample", "height", "width"),
+                ("S", "Y", "X"),
+            )
 
 
 def test_metadata_reading(test_images):
