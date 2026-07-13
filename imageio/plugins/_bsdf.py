@@ -901,7 +901,7 @@ class NDArrayExtension(Extension):
         except ImportError:  # pragma: no cover
             return v
         a = np.frombuffer(v["data"], dtype=v["dtype"])
-        a.shape = v["shape"]
+        a = a.reshape(v["shape"])
         return a
 
 
