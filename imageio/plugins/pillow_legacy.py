@@ -335,7 +335,7 @@ class PillowFormat(Format):
                     self._seek(i)
             if self._im.palette and self._im.palette.dirty:
                 self._im.palette.rawmode_saved = self._im.palette.rawmode
-            self._im.getdata()[0]
+            self._im.load()
             im = pil_get_frame(self._im, **self._kwargs)
             return im, self._im.info
 
@@ -642,7 +642,7 @@ def save_pillow_close(im):
 def pil_try_read(im):
     try:
         # this will raise an IOError if the file is not readable
-        im.getdata()[0]
+        im.load()
     except IOError as e:
         site = "http://pillow.readthedocs.io/en/latest/installation.html"
         site += "#external-libraries"
@@ -705,14 +705,18 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
             # We can do this ourselves. Pillow seems to sometimes screw
             # this up if a  multi-gif has a palette for each frame ...
             # Create palette array
-            p = np.frombuffer(im.palette.getdata()[1], np.uint8)
+            if hasattr(im.palette, "tobytes"):
+                palette_bytes = im.palette.tobytes()
+            else:  # pragma: no cover
+                palette_bytes = im.palette.getdata()[1]
+            p = np.frombuffer(palette_bytes, np.uint8)
             # Restore the raw mode that was saved to be used to parse the palette
             if hasattr(im.palette, "rawmode_saved"):
                 im.palette.rawmode = im.palette.rawmode_saved
             mode = im.palette.rawmode if im.palette.rawmode else im.palette.mode
             nchannels = len(mode)
             # Shape it.
-            p.shape = -1, nchannels
+            p = p.reshape(-1, nchannels)
             if p.shape[1] == 3 or (p.shape[1] == 4 and mode[-1] == "X"):
                 p = np.column_stack((p[:, :3], 255 * np.ones(p.shape[0], p.dtype)))
             # Swap the axes if the mode is in BGR and not RGB
@@ -766,7 +770,7 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         if "S" in im.mode:
             dtype = dtype.replace("u", "i")
         frame = np.frombuffer(frame.tobytes(), dtype).copy()
-        frame.shape = shape[::-1]
+        frame = frame.reshape(shape[::-1])
     else:
         # Use uint16 for PNG's in mode I
         if im.format == "PNG" and im.mode == "I" and dtype is None:
