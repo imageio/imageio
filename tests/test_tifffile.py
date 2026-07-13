@@ -7,13 +7,19 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-from conftest import deprecated_test
+from conftest import IS_PYPY, deprecated_test
 
 import imageio.v2 as iio
 import imageio.v3 as iio3
 from imageio.config import known_extensions, known_plugins
 
 tifffile = pytest.importorskip("tifffile", reason="tifffile is not installed")
+
+# tifffile's IFD packing uses BytesIO in a way that raises BufferError on PyPy.
+skip_pypy_tifffile_write = pytest.mark.skipif(
+    IS_PYPY,
+    reason="tifffile write raises BufferError on PyPy when packing IFDs",
+)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -50,6 +56,7 @@ def test_tifffile_format():
         assert format.name == "TIFF"
 
 
+@skip_pypy_tifffile_write
 def test_tifffile_reading_writing(test_images, tmp_path):
     """Test reading and saving tiff"""
 
@@ -159,6 +166,7 @@ def test_tifffile_reading_writing(test_images, tmp_path):
         assert md["description"] == "another desc"
 
 
+@skip_pypy_tifffile_write
 def test_imagej_hyperstack(tmp_path):
     # create artifical hyperstack
 
@@ -274,6 +282,7 @@ def test_bool_writing():
     assert np.allclose(actual, expected)
 
 
+@skip_pypy_tifffile_write
 def test_roundtrip(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/854
@@ -284,6 +293,7 @@ def test_roundtrip(tmp_path):
     assert actual.shape == (10, 64, 64)
 
 
+@skip_pypy_tifffile_write
 def test_volume_roudtrip(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/818
@@ -319,6 +329,7 @@ def test_multipage_read(tmp_path):
     assert idx == 1
 
 
+@skip_pypy_tifffile_write
 def test_multiple_ndimages(tmp_path):
     volumetric = np.full((4, 255, 255, 3), 114, dtype=np.uint8)
     flat = np.full((255, 255, 3), 114, dtype=np.uint8)

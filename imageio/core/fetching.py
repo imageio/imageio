@@ -112,7 +112,10 @@ def get_remote_file(fname, directory=None, force_download=False, auto=True):
     if not op.isdir(op.dirname(filename)):
         os.makedirs(op.abspath(op.dirname(filename)))
     # let's go get the file
-    if os.getenv("CONTINUOUS_INTEGRATION", False):  # pragma: no cover
+    on_ci = any(
+        os.getenv(name) for name in ("CI", "CONTINUOUS_INTEGRATION", "GITHUB_ACTIONS")
+    )
+    if on_ci:  # pragma: no cover
         # On CI, we retry a few times ...
         for i in range(2):
             try:

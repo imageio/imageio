@@ -9,8 +9,15 @@ import struct
 
 import imageio.v3 as iio
 from imageio.config import known_plugins, known_extensions
+from conftest import IS_PYPY
 
 tifffile = pytest.importorskip("tifffile", reason="TiffFile is not installed")
+
+# tifffile's IFD packing uses BytesIO in a way that raises BufferError on PyPy.
+skip_pypy_tifffile_write = pytest.mark.skipif(
+    IS_PYPY,
+    reason="tifffile write raises BufferError on PyPy when packing IFDs",
+)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -65,6 +72,7 @@ def test_multiple_images_roundtrip(tmp_path):
         np.testing.assert_allclose(actual, expected)
 
 
+@skip_pypy_tifffile_write
 def test_volume_roundtrip(tmp_path):
     filename = tmp_path / "test.tiff"
     expected = np.ones((3, 10, 10, 3), np.uint8) * 2
@@ -137,6 +145,7 @@ def test_metadata_writing(tmp_path):
     assert page2_md["description"] == "another desc"
 
 
+@skip_pypy_tifffile_write
 def test_imagej_hyperstack(tmp_path):
     filename = tmp_path / "hyperstack.tiff"
 
@@ -262,6 +271,7 @@ def test_bool_writing():
     assert np.allclose(actual, expected)
 
 
+@skip_pypy_tifffile_write
 def test_roundtrip(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/854
@@ -272,6 +282,7 @@ def test_roundtrip(tmp_path):
     assert actual.shape == (10, 64, 64)
 
 
+@skip_pypy_tifffile_write
 def test_volume_roudtrip(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/818
@@ -306,6 +317,7 @@ def test_multipage_read(tmp_path):
     assert idx == 1
 
 
+@skip_pypy_tifffile_write
 def test_multiple_ndimages(tmp_path):
     # regression test for
     # https://github.com/imageio/imageio/issues/81
@@ -363,6 +375,7 @@ def test_compression(tmp_path):
     assert page_meta["compression"] == 1
 
 
+@skip_pypy_tifffile_write
 def test_properties(tmp_path, test_images):
     filename = tmp_path / "test.tiff"
     data = np.full((255, 255, 3), 42, dtype=np.uint8)
@@ -396,6 +409,7 @@ def test_properties(tmp_path, test_images):
     assert props.spacing is None
 
 
+@skip_pypy_tifffile_write
 def test_contigous_writing(tmp_path):
     filename = tmp_path / "test.tiff"
     data = np.full((128, 128, 3), 42, np.uint8)
@@ -418,6 +432,7 @@ def test_unreadable_file():
         iio.imread(garbage)
 
 
+@skip_pypy_tifffile_write
 def test_touch_invalid_kwargs(tmp_path):
     filename = tmp_path / "test.tiff"
     data = np.full((5, 128, 128, 3), 42, np.uint8)
@@ -430,6 +445,7 @@ def test_touch_invalid_kwargs(tmp_path):
         iio.imread(filename, series=0, index=0)
 
 
+@skip_pypy_tifffile_write
 def test_tiffile_native_arguments(tmp_path):
     filename = tmp_path / "test.tiff"
     data = np.full((5, 128, 128, 3), 42, np.uint8)
@@ -443,6 +459,7 @@ def test_tiffile_native_arguments(tmp_path):
     np.testing.assert_allclose(img, data)
 
 
+@skip_pypy_tifffile_write
 def test_various_metadata_reading(tmp_path):
     filename = tmp_path / "nightmare.tiff"
     flat = np.full((255, 255, 3), 114, dtype=np.uint8)
@@ -460,6 +477,7 @@ def test_various_metadata_reading(tmp_path):
     assert metadata["compression"] == 8  # (ADOBE_DEFLATE)
 
 
+@skip_pypy_tifffile_write
 def test_iter_pages(tmp_path):
     filename = tmp_path / "nightmare.tiff"
     flat = np.full((255, 255, 3), 114, dtype=np.uint8)

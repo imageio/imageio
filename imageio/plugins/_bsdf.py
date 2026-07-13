@@ -900,8 +900,7 @@ class NDArrayExtension(Extension):
             import numpy as np
         except ImportError:  # pragma: no cover
             return v
-        a = np.frombuffer(v["data"], dtype=v["dtype"])
-        a.shape = v["shape"]
+        a = np.frombuffer(v["data"], dtype=v["dtype"]).reshape(v["shape"])
         return a
 
 

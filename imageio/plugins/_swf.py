@@ -652,13 +652,17 @@ def read_pixels(bb, i, tagType, L1):
         if tagType == 20:
             # DefineBitsLossless - RGB data
             try:
-                a.shape = height, width, 3
+                a = a.reshape(height, width, 3)
             except Exception:
                 # Byte align stuff might cause troubles
                 logger.warning("Cannot read image due to byte alignment")
         if tagType == 36:
             # DefineBitsLossless2 - ARGB data
-            a.shape = height, width, 4
+            try:
+                a = a.reshape(height, width, 4)
+            except Exception:
+                logger.warning("Cannot read image due to byte alignment")
+                return a
             # Swap alpha channel to make RGBA
             b = a
             a = np.zeros_like(a)

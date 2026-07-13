@@ -442,7 +442,10 @@ class PillowPlugin(PluginV3):
             ndimage = ndimage[None, ...]
 
         for frame in ndimage:
-            pil_frame = Image.fromarray(frame, mode=mode)
+            if mode is None:
+                pil_frame = Image.fromarray(frame)
+            else:
+                pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
             self.images_to_write.append(pil_frame)

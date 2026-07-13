@@ -215,13 +215,23 @@ class TifffilePlugin(PluginV3):
         create new series unless ``contiguous=True`` is used, in which case the
         call to write will append to the current series.
 
+        When neither ``photometric`` nor ``planarconfig`` is provided, ImageIO
+        sets defaults for common RGB layouts so tifffile does not emit
+        deprecation warnings about ambiguous channel-axis interpretation.
         """
 
         if not is_batch:
             ndimage = np.asarray(ndimage)[None, :]
 
         for image in ndimage:
-            self._fh.write(image, **kwargs)
+            write_kwargs = dict(kwargs)
+            arr = np.asarray(image)
+            if arr.ndim >= 3 and arr.shape[-1] in (3, 4):
+                write_kwargs.setdefault("photometric", "rgb")
+            elif arr.ndim >= 3 and arr.shape[-3] in (3, 4):
+                write_kwargs.setdefault("photometric", "rgb")
+                write_kwargs.setdefault("planarconfig", "separate")
+            self._fh.write(image, **write_kwargs)
 
         if self._request._uri_type == URI_BYTES:
             self._fh.close()
