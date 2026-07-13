@@ -616,7 +616,7 @@ def test_multi_icon_ico(setup_library, tmp_path):
 
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
-    ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
+    ims = im, np.column_stack((im, im)), np.vstack((im, im))  # error on win
     iio.mimsave(fnamebase + "I2.ico", ims, format="ICO-FI")
     ims2 = iio.mimread(fnamebase + "I2.ico", format="ICO-FI")
     for im1, im2 in zip(ims, ims2):
