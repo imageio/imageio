@@ -101,7 +101,7 @@ class Image:
             if not isinstance(blob, bytes):  # then it's a lazy bsdf.Blob
                 blob = blob.get_bytes()
             self.array = np.frombuffer(blob, dtype=v["dtype"])
-            self.array.shape = v["shape"]
+            self.array = self.array.reshape(v["shape"])
         return self.array
 
     def get_meta(self):
