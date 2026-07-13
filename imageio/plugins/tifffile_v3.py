@@ -215,9 +215,15 @@ class TifffilePlugin(PluginV3):
         create new series unless ``contiguous=True`` is used, in which case the
         call to write will append to the current series.
 
-        When neither ``photometric`` nor ``planarconfig`` is provided, ImageIO
-        sets defaults for common RGB layouts so tifffile does not emit
-        deprecation warnings about ambiguous channel-axis interpretation.
+        When ``photometric`` / ``planarconfig`` are omitted, ImageIO sets
+        defaults for common RGB layouts so tifffile does not emit deprecation
+        warnings about ambiguous channel-axis interpretation:
+
+        - channel-last arrays (shape ``(..., 3)`` or ``(..., 4)``):
+          ``photometric="rgb"``
+        - channel-first arrays (shape ``(3, ...)`` or ``(4, ...)`` on the
+          third-to-last axis): ``photometric="rgb"`` and
+          ``planarconfig="separate"``
         """
 
         if not is_batch:

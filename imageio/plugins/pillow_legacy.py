@@ -769,7 +769,8 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         dtype = ">u2" if im.mode.endswith("B") else "<u2"
         if "S" in im.mode:
             dtype = dtype.replace("u", "i")
-        frame = np.frombuffer(frame.tobytes(), dtype).copy().reshape(shape[::-1])
+        frame = np.frombuffer(frame.tobytes(), dtype).copy()
+        frame = frame.reshape(shape[::-1])
     else:
         # Use uint16 for PNG's in mode I
         if im.format == "PNG" and im.mode == "I" and dtype is None:

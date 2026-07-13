@@ -21,11 +21,7 @@ from conftest import deprecated_test
 
 @pytest.fixture(scope="module")
 def vendored_lib(tmp_path_factory):
-    """Download FreeImage binaries via raw.githubusercontent.com (with retries).
-
-    Prefer ``download()`` over the GitHub Contents API used by fsspec's github
-    filesystem, which is prone to transient 502 responses in CI.
-    """
+    """Download FreeImage binaries via raw.githubusercontent.com (with retries)."""
     plat = get_platform()
     if not plat or plat not in FNAME_PER_PLATFORM:
         pytest.skip("No FreeImage binary for this platform")

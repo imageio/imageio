@@ -658,11 +658,7 @@ def read_pixels(bb, i, tagType, L1):
                 logger.warning("Cannot read image due to byte alignment")
         if tagType == 36:
             # DefineBitsLossless2 - ARGB data
-            try:
-                a = a.reshape(height, width, 4)
-            except Exception:
-                logger.warning("Cannot read image due to byte alignment")
-                return a
+            a = a.reshape(height, width, 4)
             # Swap alpha channel to make RGBA
             b = a
             a = np.zeros_like(a)
