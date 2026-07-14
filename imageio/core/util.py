@@ -153,11 +153,11 @@ class Array(np.ndarray):
         else:
             self._copy_meta({})
 
-    def __array_wrap__(self, out, context=None):
+    def __array_wrap__(self, out, context=None, return_scalar=False):
         """So that we return a native numpy array (or scalar) when a
         reducting ufunc is applied (such as sum(), std(), etc.)
         """
-        if not out.shape:
+        if return_scalar or not out.shape:
             return out.dtype.type(out)  # Scalar
         elif out.shape != self.shape:
             return out.view(type=np.ndarray)
