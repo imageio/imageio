@@ -516,7 +516,7 @@ class PyAVPlugin(PluginV3):
             variable_fps = bool(self._container.format.flags & 0x400)
             constant_framerate = not variable_fps
 
-        # note: cheap for contigous incremental reads
+        # note: cheap for contiguous incremental reads
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
         self._next_idx += 1
@@ -1150,7 +1150,7 @@ class PyAVPlugin(PluginV3):
             planes.append(np_plane)
 
         if len(planes) > 1:
-            # Note: the planes *should* exist inside a contigous memory block
+            # Note: the planes *should* exist inside a contiguous memory block
             # somewhere inside av.Frame however pyAV does not appear to expose this,
             # so we are forced to copy the planes individually instead of wrapping
             # them :(
@@ -1198,7 +1198,7 @@ class PyAVPlugin(PluginV3):
 
             index_pts = int(index * pts_delta)
 
-            # this only seeks to the closed (preceeding) keyframe
+            # this only seeks to the closest (preceding) keyframe
             self._container.seek(index_pts, stream=self._video_stream)
             self._decoder = self._container.decode(video=0)
 
