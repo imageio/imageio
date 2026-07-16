@@ -145,7 +145,6 @@ class DicomFormat(Format):
     # --
 
     class Reader(Format.Reader):
-
         _compressed_warning_dirs = set()
 
         def _open(self, progress=True):

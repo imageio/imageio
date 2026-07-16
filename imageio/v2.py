@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-from numbers import Number
 import re
+import warnings
+from numbers import Number
 from pathlib import Path
+from typing import Dict
 
 import numpy as np
 
+from imageio.core.legacy_plugin_wrapper import LegacyPlugin
+from imageio.core.util import Array
+from imageio.core.v3_plugin_api import PluginV3
+
 from . import formats
-from .core.imopen import imopen
 from .config import known_extensions, known_plugins
 from .core import RETURN_BYTES
-
+from .core.imopen import imopen
 
 MEMTEST_DEFAULT_MIM = "256MB"
 MEMTEST_DEFAULT_MVOL = "1GB"
@@ -72,7 +77,7 @@ def help(name=None):
         print(formats[name])
 
 
-def decypher_format_arg(format_name):
+def decypher_format_arg(format_name: str) -> Dict[str, str]:
     """Split format into plugin and format
 
     The V2 API aliases plugins and supported formats. This function
@@ -99,6 +104,132 @@ def decypher_format_arg(format_name):
         raise IndexError(f"No format known by name `{plugin}`.")
 
     return {"plugin": plugin, "extension": extension}
+
+
+class LegacyReader:
+    def __init__(self, plugin_instance: PluginV3, **kwargs):
+        self.instance = plugin_instance
+        self.last_index = 0
+        self.closed = False
+
+        if (
+            type(self.instance).__name__ == "PillowPlugin"
+            and kwargs.get("pilmode") is not None
+        ):
+            kwargs["mode"] = kwargs["pilmode"]
+            del kwargs["pilmode"]
+
+        self.read_args = kwargs
+
+    def close(self):
+        if not self.closed:
+            self.instance.close()
+        self.closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    @property
+    def request(self):
+        return self.instance.request
+
+    @property
+    def format(self):
+        raise TypeError("V3 Plugins don't have a format.")
+
+    def get_length(self):
+        return self.instance.properties(index=...).n_images
+
+    def get_data(self, index):
+        self.last_index = index
+        img = self.instance.read(index=index, **self.read_args)
+        metadata = self.instance.metadata(index=index, exclude_applied=False)
+        return Array(img, metadata)
+
+    def get_next_data(self):
+        return self.get_data(self.last_index + 1)
+
+    def set_image_index(self, index):
+        self.last_index = index - 1
+
+    def get_meta_data(self, index=None):
+        return self.instance.metadata(index=index, exclude_applied=False)
+
+    def iter_data(self):
+        for idx, img in enumerate(self.instance.iter()):
+            metadata = self.instance.metadata(index=idx, exclude_applied=False)
+            yield Array(img, metadata)
+
+    def __iter__(self):
+        return self.iter_data()
+
+    def __len__(self):
+        return self.get_length()
+
+
+class LegacyWriter:
+    def __init__(self, plugin_instance: PluginV3, **kwargs):
+        self.instance = plugin_instance
+        self.last_index = 0
+        self.closed = False
+
+        if type(self.instance).__name__ == "PillowPlugin" and "pilmode" in kwargs:
+            kwargs["mode"] = kwargs["pilmode"]
+            del kwargs["pilmode"]
+
+        self.write_args = kwargs
+
+    def close(self):
+        if not self.closed:
+            self.instance.close()
+        self.closed = True
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
+    @property
+    def request(self):
+        return self.instance.request
+
+    @property
+    def format(self):
+        raise TypeError("V3 Plugins don't have a format.")
+
+    def append_data(self, im, meta=None):
+        # TODO: write metadata in the future; there is currently no
+        # generic way to do this with v3 plugins :(
+        if meta is not None:
+            warnings.warn(
+                "V3 Plugins currently don't have a uniform way to"
+                " write metadata, so any metadata is ignored."
+            )
+
+        # total_meta = dict()
+        # if meta is None:
+        #     meta = {}
+        # if hasattr(im, "meta") and isinstance(im.meta, dict):
+        #     total_meta.update(im.meta)
+        # total_meta.update(meta)
+
+        return self.instance.write(im, **self.write_args)
+
+    def set_meta_data(self, meta):
+        # TODO: write metadata
+        raise NotImplementedError(
+            "V3 Plugins don't have a uniform way to write metadata (yet)."
+        )
 
 
 def is_batch(ndimage):
@@ -157,7 +288,11 @@ def get_reader(uri, format=None, mode="?", **kwargs):
     imopen_args["legacy_mode"] = True
 
     image_file = imopen(uri, "r" + mode, **imopen_args)
-    return image_file.legacy_get_reader(**kwargs)
+
+    if isinstance(image_file, LegacyPlugin):
+        return image_file.legacy_get_reader(**kwargs)
+    else:
+        return LegacyReader(image_file, **kwargs)
 
 
 def get_writer(uri, format=None, mode="?", **kwargs):
@@ -187,7 +322,10 @@ def get_writer(uri, format=None, mode="?", **kwargs):
     imopen_args["legacy_mode"] = True
 
     image_file = imopen(uri, "w" + mode, **imopen_args)
-    return image_file.legacy_get_writer(**kwargs)
+    if isinstance(image_file, LegacyPlugin):
+        return image_file.legacy_get_writer(**kwargs)
+    else:
+        return LegacyWriter(image_file, **kwargs)
 
 
 # Images
@@ -214,11 +352,6 @@ def imread(uri, format=None, **kwargs):
         Further keyword arguments are passed to the reader. See :func:`.help`
         to see what arguments are available for a particular format.
     """
-
-    if "mode" in kwargs:
-        raise TypeError(
-            'Invalid keyword argument "mode", ' 'perhaps you mean "pilmode"?'
-        )
 
     imopen_args = decypher_format_arg(format)
     imopen_args["legacy_mode"] = True

@@ -15,7 +15,7 @@ class FileExtension:
         priority: List[str],
         name: str = None,
         description: str = None,
-        external_link: str = None
+        external_link: str = None,
     ) -> None: ...
     def reset(self) -> None: ...
 

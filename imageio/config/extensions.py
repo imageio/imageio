@@ -57,7 +57,7 @@ class FileExtension:
         name=None,
         description=None,
         external_link=None,
-        volume_support=False
+        volume_support=False,
     ):
         self.extension = extension
         self.priority = priority
@@ -499,7 +499,7 @@ extension_list = [
     FileExtension(
         name="ZEISS LSM",
         extension=".lsm",
-        priority=["ITK", "TIFF"],
+        priority=["tifffile", "ITK", "TIFF"],
     ),
     FileExtension(
         name="McIdas area file",
@@ -596,7 +596,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".nef",
-        priority=["RAW-FI"],
+        priority=["RAW-FI", "rawpy"],
     ),
     FileExtension(
         extension=".nhdr",
@@ -762,7 +762,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".raw",
-        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW"],
+        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW", "rawpy"],
     ),
     FileExtension(
         extension=".rdc",
@@ -822,7 +822,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".stk",
-        priority=["TIFF"],
+        priority=["tifffile", "TIFF"],
     ),
     FileExtension(
         name="ShockWave Flash",
@@ -843,6 +843,7 @@ extension_list = [
         name="Tagged Image File",
         extension=".tif",
         priority=[
+            "tifffile",
             "TIFF",
             "pillow",
             "TIFF-PIL",
@@ -859,6 +860,7 @@ extension_list = [
         name="Tagged Image File Format",
         extension=".tiff",
         priority=[
+            "tifffile",
             "TIFF",
             "pillow",
             "TIFF-PIL",
@@ -1719,7 +1721,7 @@ extension_list = [
     FileExtension(
         name="Square SVS",
         extension=".svs",
-        priority=["pyav"],
+        priority=["tifffile", "pyav"],
     ),
     FileExtension(
         name="TiVo TY Stream",
@@ -1795,6 +1797,73 @@ extension_list = [
         name="YUV4MPEG pipe",
         extension=".y4m",
         priority=["pyav"],
+    ),
+    FileExtension(
+        extension=".qpi",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="PCO Camera",
+        extension=".pcoraw",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="PCO Camera",
+        extension=".rec",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Perkin Elmer Vectra",
+        extension=".qptiff",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Pyramid Encoded TIFF",
+        extension=".ptiff",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Pyramid Encoded TIFF",
+        extension=".ptif",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Opticks Gel",
+        extension=".gel",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Zoomify Image Format",
+        extension=".zif",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Hamamatsu Slide Scanner",
+        extension=".ndpi",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="Roche Digital Pathology",
+        extension=".bif",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        extension=".tf8",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        extension=".btf",
+        priority=["tifffile"],
+    ),
+    FileExtension(
+        name="High Efficiency Image File Format",
+        extension=".heic",
+        priority=["pillow"],
+    ),
+    FileExtension(
+        name="AV1 Image File Format",
+        extension=".avif",
+        priority=["pillow"],
     ),
 ]
 extension_list.sort(key=lambda x: x.extension)

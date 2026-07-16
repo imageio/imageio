@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write images using Pillow/PIL.
+"""Read/Write images using Pillow/PIL.
 
 Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
 
@@ -28,14 +28,22 @@ Methods
 
 """
 
-from io import BytesIO
-from typing import Callable, Optional, Dict, Any, Tuple, cast, Iterator, Union, List
-import numpy as np
-from PIL import Image, UnidentifiedImageError, ImageSequence, ExifTags  # type: ignore
-from ..core.request import Request, IOMode, InitializationError, URI_BYTES
-from ..core.v3_plugin_api import PluginV3, ImageProperties
+import sys
 import warnings
+from io import BytesIO
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast
+
+import numpy as np
+from PIL import ExifTags, GifImagePlugin, Image, ImageSequence, UnidentifiedImageError
+from PIL import __version__ as pil_version  # type: ignore
+
+from ..core.request import URI_BYTES, InitializationError, IOMode, Request
+from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
+
+
+def pillow_version() -> Tuple[int]:
+    return tuple(int(x) for x in pil_version.split("."))
 
 
 def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
@@ -51,12 +59,14 @@ def _exif_orientation_transform(orientation: int, mode: str) -> Callable:
         3: lambda x: np.rot90(x, k=2),
         4: lambda x: np.flip(x, axis=axis - 1),
         5: lambda x: np.flip(np.rot90(x, k=3), axis=axis),
-        6: lambda x: np.rot90(x, k=1),
+        6: lambda x: np.rot90(x, k=3),
         7: lambda x: np.flip(np.rot90(x, k=1), axis=axis),
-        8: lambda x: np.rot90(x, k=3),
+        8: lambda x: np.rot90(x, k=1),
     }
 
-    return EXIF_ORIENTATION[orientation]
+    # Some buggy/legacy software may not write the correct orientation (i.e. 0)
+    # No transformation if orientation is unknown or missing
+    return EXIF_ORIENTATION.get(orientation, lambda x: x)
 
 
 class PillowPlugin(PluginV3):
@@ -72,15 +82,31 @@ class PillowPlugin(PluginV3):
 
         super().__init__(request)
 
+        # Register HEIF opener for Pillow
+        try:
+            from pillow_heif import register_heif_opener
+        except ImportError:
+            pass
+        else:
+            register_heif_opener()
+
+        # Register AVIF opener for Pillow
+        try:
+            from pillow_heif import register_avif_opener
+        except ImportError:
+            pass
+        else:
+            register_avif_opener()
+
         self._image: Image = None
+        self.images_to_write = []
 
         if request.mode.io_mode == IOMode.read:
             try:
-                with Image.open(request.get_file()):
-                    # Check if it is generally possible to read the image.
-                    # This will not read any data and merely try to find a
-                    # compatible pillow plugin (ref: the pillow docs).
-                    pass
+                # Check if it is generally possible to read the image.
+                # This will not read any data and merely try to find a
+                # compatible pillow plugin (ref: the pillow docs).
+                image = Image.open(request.get_file())
             except UnidentifiedImageError:
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
@@ -91,14 +117,16 @@ class PillowPlugin(PluginV3):
                         f"Pillow can not read {request.raw_uri}."
                     ) from None
 
-            self._image = Image.open(self._request.get_file())
+            self._image = image
         else:
+            self.save_args = {}
+
             extension = self.request.extension or self.request.format_hint
             if extension is None:
                 warnings.warn(
                     "Can't determine file format to write as. You _must_"
                     " set `format` during write or the call will fail. Use "
-                    "`extension` to supress this warning. ",
+                    "`extension` to suppress this warning. ",
                     UserWarning,
                 )
                 return
@@ -114,13 +142,24 @@ class PillowPlugin(PluginV3):
             ) from None
 
     def close(self) -> None:
+        self._flush_writer()
+
         if self._image:
             self._image.close()
 
         self._request.finish()
 
     def read(
-        self, *, index=None, mode=None, rotate=False, apply_gamma=False, as_gray=None
+        self,
+        *,
+        index: int = None,
+        mode: str = None,
+        rotate: bool = False,
+        apply_gamma: bool = False,
+        writeable_output: bool = True,
+        pilmode: str = None,
+        exifrotate: bool = None,
+        as_gray: bool = None,
     ) -> np.ndarray:
         """
         Parses the given URI and creates a ndarray from it.
@@ -140,11 +179,20 @@ class PillowPlugin(PluginV3):
             the mode will be left unchanged. Possible modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         rotate : bool
-            If set to ``True`` and the image contains an EXIF orientation tag,
+            If True and the image contains an EXIF orientation tag,
             apply the orientation before returning the ndimage.
         apply_gamma : bool
-            If ``True`` and the image contains metadata about gamma, apply gamma
+            If True and the image contains metadata about gamma, apply gamma
             correction to the image.
+        writable_output : bool
+            If True, ensure that the image is writable before returning it to
+            the user. This incurs a full copy of the pixel data if the data
+            served by pillow is read-only. Consequently, setting this flag to
+            False improves performance for some images.
+        pilmode : str
+            Deprecated, use `mode` instead.
+        exifrotate : bool
+            Deprecated, use `rotate` instead.
         as_gray : bool
             Deprecated. Exists to raise a constructive error message.
 
@@ -155,17 +203,40 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        If you open a GIF - or any other format using color pallets - you may
-        wish to manually set the `mode` parameter. Otherwise, the numbers in
-        the returned image will refer to the entries in the color pallet, which
-        is discarded during conversion to ndarray.
+        If you read a paletted image (e.g. GIF) then the plugin will apply the
+        palette by default. Should you wish to read the palette indices of each
+        pixel use ``mode="P"``. The corresponding color palette can be found in
+        the image's metadata using the ``palette`` key when metadata is
+        extracted using the ``exclude_applied=False`` kwarg. The latter is
+        needed, as palettes are applied by default and hence excluded by default
+        to keep metadata and pixel data consistent.
 
         """
+
+        if pilmode is not None:
+            warnings.warn(
+                "`pilmode` is deprecated. Use `mode` instead.", DeprecationWarning
+            )
+            mode = pilmode
+
+        if exifrotate is not None:
+            warnings.warn(
+                "`exifrotate` is deprecated. Use `rotate` instead.", DeprecationWarning
+            )
+            rotate = exifrotate
 
         if as_gray is not None:
             raise TypeError(
                 "The keyword `as_gray` is no longer supported."
-                "Use `mode='L'` instead."
+                "Use `mode='F'` for a backward-compatible result, or "
+                " `mode='L'` for an integer-valued result."
+            )
+
+        if self._image.format == "GIF":
+            # Converting GIF P frames to RGB
+            # https://github.com/python-pillow/Pillow/pull/6150
+            GifImagePlugin.LOADING_STRATEGY = (
+                GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
             )
 
         if index is None:
@@ -179,15 +250,27 @@ class PillowPlugin(PluginV3):
         if isinstance(index, int):
             # will raise IO error if index >= number of frames in image
             self._image.seek(index)
-            image = self._apply_transforms(self._image, mode, rotate, apply_gamma)
-            return image
+            image = self._apply_transforms(
+                self._image, mode, rotate, apply_gamma, writeable_output
+            )
         else:
-            iterator = self.iter(mode=mode, rotate=rotate, apply_gamma=apply_gamma)
+            iterator = self.iter(
+                mode=mode,
+                rotate=rotate,
+                apply_gamma=apply_gamma,
+                writeable_output=writeable_output,
+            )
             image = np.stack([im for im in iterator], axis=0)
-            return image
+
+        return image
 
     def iter(
-        self, *, mode: str = None, rotate: bool = False, apply_gamma: bool = False
+        self,
+        *,
+        mode: str = None,
+        rotate: bool = False,
+        apply_gamma: bool = False,
+        writeable_output: bool = True,
     ) -> Iterator[np.ndarray]:
         """
         Iterate over all ndimages/frames in the URI
@@ -204,18 +287,50 @@ class PillowPlugin(PluginV3):
         apply_gamma : {bool}
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
+        writable_output : bool
+            If True, ensure that the image is writable before returning it to
+            the user. This incurs a full copy of the pixel data if the data
+            served by pillow is read-only. Consequently, setting this flag to
+            False improves performance for some images.
         """
 
         for im in ImageSequence.Iterator(self._image):
-            yield self._apply_transforms(im, mode, rotate, apply_gamma)
+            yield self._apply_transforms(
+                im, mode, rotate, apply_gamma, writeable_output
+            )
 
-    def _apply_transforms(self, image, mode, rotate, apply_gamma) -> np.ndarray:
+    def _apply_transforms(
+        self, image, mode, rotate, apply_gamma, writeable_output
+    ) -> np.ndarray:
         if mode is not None:
             image = image.convert(mode)
-        elif image.format == "GIF":
+        elif image.mode == "P":
             # adjust for pillow9 changes
             # see: https://github.com/python-pillow/Pillow/issues/5929
             image = image.convert(image.palette.mode)
+        elif image.format == "PNG" and image.mode == "I":
+            major, minor, patch = pillow_version()
+
+            if sys.byteorder == "little":
+                desired_mode = "I;16"
+            else:  # pragma: no cover
+                # can't test big-endian in GH-Actions
+                desired_mode = "I;16B"
+
+            if major < 10:  # pragma: no cover
+                warnings.warn(
+                    "Loading 16-bit (uint16) PNG as int32 due to limitations "
+                    "in pillow's PNG decoder. This will be fixed in a future "
+                    "version of pillow which will make this warning disappear.",
+                    UserWarning,
+                )
+            elif minor < 1:  # pragma: no cover
+                # pillow<10.1.0 can directly decode into 16-bit grayscale
+                image.mode = desired_mode
+            else:
+                # pillow >= 10.1.0
+                image = image.convert(desired_mode)
+
         image = np.asarray(image)
 
         meta = self.metadata(index=self._image.tell(), exclude_applied=False)
@@ -231,6 +346,9 @@ class PillowPlugin(PluginV3):
             gain = 1.0
             image = ((image / scale) ** gamma) * scale * gain + 0.4999
             image = np.round(image).astype(np.uint8)
+
+        if writeable_output and not image.flags["WRITEABLE"]:
+            image = np.array(image)
 
         return image
 
@@ -289,16 +407,12 @@ class PillowPlugin(PluginV3):
 
         """
         if "fps" in kwargs:
-            raise TypeError(
+            warnings.warn(
                 "The keyword `fps` is no longer supported. Use `duration`"
-                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50)."
+                "(in ms) instead, e.g. `fps=50` == `duration=20` (1000 * 1/50).",
+                DeprecationWarning,
             )
-
-        extension = self.request.extension or self.request.format_hint
-
-        save_args = {
-            "format": format or Image.registered_extensions()[extension],
-        }
+            kwargs["duration"] = 1000 * 1 / kwargs.get("fps")
 
         if isinstance(ndimage, list):
             ndimage = np.stack(ndimage, axis=0)
@@ -327,26 +441,54 @@ class PillowPlugin(PluginV3):
         if not is_batch:
             ndimage = ndimage[None, ...]
 
-        pil_frames = list()
         for frame in ndimage:
-            pil_frame = Image.fromarray(frame, mode=mode)
+            if mode is None:
+                pil_frame = Image.fromarray(frame)
+            else:
+                pil_frame = Image.fromarray(frame, mode=mode)
             if "bits" in kwargs:
                 pil_frame = pil_frame.quantize(colors=2 ** kwargs["bits"])
-            pil_frames.append(pil_frame)
-        primary_image, other_images = pil_frames[0], pil_frames[1:]
+            self.images_to_write.append(pil_frame)
 
-        if is_batch:
-            save_args["save_all"] = True
-            save_args["append_images"] = other_images
+        if (
+            format is not None
+            and "format" in self.save_args
+            and self.save_args["format"] != format
+        ):
+            old_format = self.save_args["format"]
+            warnings.warn(
+                "Changing the output format during incremental"
+                " writes is strongly discouraged."
+                f" Was `{old_format}`, is now `{format}`.",
+                UserWarning,
+            )
 
-        save_args.update(kwargs)
-        primary_image.save(self._request.get_file(), **save_args)
+        extension = self.request.extension or self.request.format_hint
+        self.save_args["format"] = format or Image.registered_extensions()[extension]
+        self.save_args.update(kwargs)
 
+        # when writing to `bytes` we flush instantly
+        result = None
         if self._request._uri_type == URI_BYTES:
+            self._flush_writer()
             file = cast(BytesIO, self._request.get_file())
-            return file.getvalue()
+            result = file.getvalue()
 
-        return None
+        return result
+
+    def _flush_writer(self):
+        if len(self.images_to_write) == 0:
+            return
+
+        primary_image = self.images_to_write.pop(0)
+
+        if len(self.images_to_write) > 0:
+            self.save_args["save_all"] = True
+            self.save_args["append_images"] = self.images_to_write
+
+        primary_image.save(self._request.get_file(), **self.save_args)
+        self.images_to_write.clear()
+        self.save_args.clear()
 
     def get_meta(self, *, index=0) -> Dict[str, Any]:
         return self.metadata(index=index, exclude_applied=False)
@@ -365,6 +507,11 @@ class PillowPlugin(PluginV3):
             metadata. If index is None, this plugin reads metadata from the
             first image of the file (index=0) unless the image is a GIF or APNG,
             in which case global metadata is read (index=...).
+        exclude_applied : bool
+            If True, exclude metadata fields that are applied to the image while
+            reading. For example, if the binary data contains a rotation flag,
+            the image is rotated by default and the rotation flag is excluded
+            from the metadata to avoid confusion.
 
         Returns
         -------
@@ -388,8 +535,8 @@ class PillowPlugin(PluginV3):
         metadata["mode"] = self._image.mode
         metadata["shape"] = self._image.size
 
-        if self._image.mode == "P":
-            metadata["palette"] = self._image.palette
+        if self._image.mode == "P" and not exclude_applied:
+            metadata["palette"] = np.asarray(tuple(self._image.palette.colors.keys()))
 
         if self._image.getexif():
             exif_data = {
@@ -425,7 +572,7 @@ class PillowPlugin(PluginV3):
 
         Notes
         -----
-        This does not decode pixel data and is 394fast for large images.
+        This does not decode pixel data and is fast for large images.
 
         """
 
@@ -442,8 +589,8 @@ class PillowPlugin(PluginV3):
         else:
             self._image.seek(index)
 
-        if self._image.format == "GIF":
-            # GIF mode is determined by pallette
+        if self._image.mode == "P":
+            # mode of palette images is determined by their palette
             mode = self._image.palette.mode
         else:
             mode = self._image.mode
@@ -452,8 +599,9 @@ class PillowPlugin(PluginV3):
         height: int = self._image.height
         shape: Tuple[int, ...] = (height, width)
 
-        n_frames: int = self._image.n_frames
+        n_frames: Optional[int] = None
         if index is ...:
+            n_frames = getattr(self._image, "n_frames", 1)
             shape = (n_frames, *shape)
 
         dummy = np.asarray(Image.new(mode, (1, 1)))
@@ -464,5 +612,6 @@ class PillowPlugin(PluginV3):
         return ImageProperties(
             shape=shape,
             dtype=dummy.dtype,
-            is_batch=True if index is Ellipsis else False,
+            n_images=n_frames,
+            is_batch=index is Ellipsis,
         )

@@ -20,6 +20,8 @@ class ImageProperties:
         The shape of the loaded ndimage.
     dtype : np.dtype
         The dtype of the loaded ndimage.
+    n_images : int
+        Number of images in the file if ``index=...``, `None` for single images.
     is_batch : bool
         If True, the first dimension of the ndimage represents a batch dimension
         along which several images are stacked.
@@ -35,6 +37,7 @@ class ImageProperties:
 
     shape: Tuple[int, ...]
     dtype: np.dtype
+    n_images: Optional[int] = None
     is_batch: bool = False
     spacing: Optional[tuple] = None
 
@@ -45,7 +48,7 @@ class PluginV3:
     This is an abstract plugin that documents the v3 plugin API interface. A
     plugin is an adapter/wrapper around a backend that converts a request from
     iio.core (e.g., read an image from file) into a sequence of instructions for
-    the backend that fullfill the request.
+    the backend that fulfill the request.
 
     Plugin authors may choose to subclass this class when implementing a new
     plugin, but aren't obliged to do so. As long as the plugin class implements
@@ -74,7 +77,7 @@ class PluginV3:
         reason for failure. This reason may be reported to the user.
     ImportError
         Plugins will be imported dynamically when listed in
-        ``iio.config.known_plugins`` to fullfill requests. This way, users only
+        ``iio.config.known_plugins`` to fulfill requests. This way, users only
         have to load plugins/backends they actually use. If this plugin's backend
         is not installed, it should raise an ``ImportError`` either during
         module import or during class construction.
@@ -338,7 +341,7 @@ class PluginV3:
     def close(self) -> None:
         """Close the ImageResource.
 
-        This method allows a plugin to behave similar to the python build-in ``open``::
+        This method allows a plugin to behave similar to the python built-in ``open``::
 
             image_file = my_plugin(Request, "r")
             ...

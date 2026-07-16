@@ -3,7 +3,7 @@
 
 # styletest: ignore E261
 
-""" Module imageio/freeimage.py
+"""Module imageio/freeimage.py
 
 This module contains the wrapper code for the freeimage library.
 The functions defined in this module are relatively thin; just thin
@@ -37,8 +37,8 @@ TEST_NUMPY_NO_STRIDES = False  # To test pypy fallback
 FNAME_PER_PLATFORM = {
     "osx32": "libfreeimage-3.16.0-osx10.6.dylib",  # universal library
     "osx64": "libfreeimage-3.16.0-osx10.6.dylib",
-    "win32": "FreeImage-3.15.4-win32.dll",
-    "win64": "FreeImage-3.15.1-win64.dll",
+    "win32": "FreeImage-3.18.0-win32.dll",
+    "win64": "FreeImage-3.18.0-win64.dll",
     "linux32": "libfreeimage-3.16.0-linux32.so",
     "linux64": "libfreeimage-3.16.0-linux64.so",
 }
@@ -408,7 +408,6 @@ class Freeimage(object):
     }
 
     def __init__(self):
-
         # Initialize freeimage lib as None
         self._lib = None
 
@@ -481,7 +480,6 @@ class Freeimage(object):
         self.lib_version = self.lib.FreeImage_GetVersion().decode("utf-8")
 
     def _load_freeimage(self):
-
         # Define names
         lib_names = ["freeimage", "libfreeimage"]
         exact_lib_names = [
@@ -572,7 +570,6 @@ class Freeimage(object):
         This function also tests whether the format supports reading/writing.
         """
         with self as lib:
-
             # Init
             ftype = -1
             if mode not in "rw":
@@ -652,7 +649,6 @@ class FIBaseBitmap(object):
             self._close_funcs.append(close_func)
 
     def get_meta_data(self):
-
         # todo: there is also FreeImage_TagToString, is that useful?
         # and would that work well when reading and then saving?
 
@@ -668,17 +664,14 @@ class FIBaseBitmap(object):
         tag = ctypes.c_void_p()
 
         with self._fi as lib:
-
             # Iterate over all FreeImage meta models
             for model_name, number in models:
-
                 # Find beginning, get search handle
                 mdhandle = lib.FreeImage_FindFirstMetadata(
                     number, self._bitmap, ctypes.byref(tag)
                 )
                 mdhandle = ctypes.c_void_p(mdhandle)
                 if mdhandle:
-
                     # Iterate over all tags in this model
                     more = True
                     while more:
@@ -723,7 +716,6 @@ class FIBaseBitmap(object):
             return metadata
 
     def set_meta_data(self, metadata):
-
         # Create a dict mapping model_name to number
         models = {}
         for name, number in METADATA_MODELS.__dict__.items():
@@ -739,16 +731,13 @@ class FIBaseBitmap(object):
                 return None
 
         with self._fi as lib:
-
             for model_name, subdict in metadata.items():
-
                 # Get model number
                 number = models.get(model_name, None)
                 if number is None:
                     continue  # Unknown model, silent ignore
 
                 for tag_name, tag_val in subdict.items():
-
                     # Create new tag
                     tag = lib.FreeImage_CreateTag()
                     tag = ctypes.c_void_p(tag)
@@ -801,7 +790,6 @@ class FIBitmap(FIBaseBitmap):
     """Wrapper for the FI bitmap object."""
 
     def allocate(self, array):
-
         # Prepare array
         assert isinstance(array, numpy.ndarray)
         shape = array.shape
@@ -973,7 +961,6 @@ class FIBitmap(FIBaseBitmap):
         return a
 
     def set_image_data(self, array):
-
         # Prepare array
         assert isinstance(array, numpy.ndarray)
         shape = array.shape
@@ -1070,13 +1057,13 @@ class FIBitmap(FIBaseBitmap):
                 array = numpy.frombuffer(bb, dtype=dtype).copy()
                 # Deal with strides
                 if len(shape) == 3:
-                    array.shape = shape[2], strides[-1] // shape[0], shape[0]
+                    array = array.reshape(shape[2], strides[-1] // shape[0], shape[0])
                     array2 = array[: shape[2], : shape[1], : shape[0]]
                     array = numpy.zeros(shape, dtype=array.dtype)
                     for i in range(shape[0]):
                         array[i] = array2[:, :, i].T
                 else:
-                    array.shape = shape[1], strides[-1]
+                    array = array.reshape(shape[1], strides[-1])
                     array = array[: shape[1], : shape[0]].T
                 return array
 
@@ -1219,7 +1206,6 @@ class FIMultipageBitmap(FIBaseBitmap):
 
         # Try opening
         with self._fi as lib:
-
             # Create bitmap
             multibitmap = lib.FreeImage_OpenMultiBitmap(
                 self._ftype,
@@ -1299,7 +1285,6 @@ class FIMultipageBitmap(FIBaseBitmap):
         Please close the returned bitmap when done.
         """
         with self._fi as lib:
-
             # Create low-level bitmap in freeimage
             bitmap = lib.FreeImage_LockPage(self._bitmap, index)
             bitmap = ctypes.c_void_p(bitmap)

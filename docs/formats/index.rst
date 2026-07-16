@@ -6,7 +6,7 @@ Supported Formats
     you can search this page using ``Ctrl+F`` and then type the name of
     the extension or format.
 
-ImageIO reads and writes images by deligating your request to one of many
+ImageIO reads and writes images by delegating your request to one of many
 backends. Example backends are pillow, ffmpeg, tifffile among others. Each
 backend supports its own set of formats, which is how ImageIO manages to support
 so many of them.
@@ -27,7 +27,7 @@ All Formats
 Below you can find an alphabetically sorted list of *all*
 extensions/file-formats that ImageIO is aware of. If an extension is listed
 here, it is supported. If an extension is not listed here, it may still be
-supported if one of the backends supports the extension/format. If you encoutner
+supported if one of the backends supports the extension/format. If you encounter
 the latter, please `create a new issue
 <https://github.com/imageio/imageio/issues>`_ so that we can keep below list up
 to date and add support for any missing formats.

@@ -6,8 +6,7 @@ import logging
 
 import numpy as np
 
-from .pillow_legacy import PillowFormat, ndarray_to_pil, image_as_uint
-
+from .pillow_legacy import PillowFormat, image_as_uint, ndarray_to_pil
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ class GIFFormat(PillowFormat):
 
     # GIF reader needs no modifications compared to base pillow reader
 
-    class Writer(PillowFormat.Writer):
+    class Writer(PillowFormat.Writer):  # pragma: no cover
         def _open(
             self,
             loop=0,
@@ -37,6 +36,15 @@ class GIFFormat(PillowFormat):
             quantizer=0,
             subrectangles=False,
         ):
+            from PIL import __version__ as pillow_version
+
+            major, minor, patch = tuple(int(x) for x in pillow_version.split("."))
+            if major == 10 and minor >= 1:
+                raise ImportError(
+                    f"Pillow v{pillow_version} is not supported by ImageIO's legacy "
+                    "pillow plugin when writing GIFs. Consider switching to the new "
+                    "plugin or downgrading to `pillow<10.1.0`."
+                )
 
             # Check palettesize
             palettesize = int(palettesize)
@@ -90,7 +98,7 @@ def intToBin(i):
     return i.to_bytes(2, byteorder="little")
 
 
-class GifWriter:
+class GifWriter:  # pragma: no cover
     """Class that for helping write the animated GIF file. This is based on
     code from images2gif.py (part of visvis). The version here is modified
     to allow streamed writing.
@@ -120,14 +128,13 @@ class GifWriter:
         self.getdata = getdata
 
     def add_image(self, im, duration, dispose):
-
         # Prepare image
         im_rect, rect = im, (0, 0)
         if self.opt_subrectangle:
             im_rect, rect = self.getSubRectangle(im)
         im_pil = self.converToPIL(im_rect, self.opt_quantizer, self.opt_palette_size)
 
-        # Get pallette - apparently, this is the 3d element of the header
+        # Get palette - apparently, this is the 3d element of the header
         # (but it has not always been). Best we've got. Its not the same
         # as im_pil.palette.tobytes().
         from PIL.GifImagePlugin import getheader
@@ -158,7 +165,6 @@ class GifWriter:
         self.fp.write(";".encode("utf-8"))  # end gif
 
     def write_image(self, im, palette, rect, duration, dispose):
-
         fp = self.fp
 
         # Gather local image header and data, using PIL's getdata. That
@@ -209,12 +215,12 @@ class GifWriter:
         Modified by Alex Robinson in Janurari 2011 to implement subrectangles.
         """
 
-        # Defaule use full image and place at upper left
+        # Default: use full image and place at upper left
         if xy is None:
             xy = (0, 0)
 
         # Image separator,
-        bb = b"\x2C"
+        bb = b"\x2c"
 
         # Image position and size
         bb += intToBin(xy[0])  # Left position
@@ -226,7 +232,7 @@ class GifWriter:
         # reserved00, lct size111=7=2^(7 + 1)=256.
         bb += b"\x87"
 
-        # LZW minimum size code now comes later, begining of [imagedata] blocks
+        # LZW minimum size code now comes later, beginning of [imagedata] blocks
         return bb
 
     def getAppExt(self, loop):
@@ -239,7 +245,7 @@ class GifWriter:
             loop = 2**16 - 1
         bb = b""
         if loop != 0:  # omit the extension if we would like a nonlooping gif
-            bb = b"\x21\xFF\x0B"  # application extension
+            bb = b"\x21\xff\x0b"  # application extension
             bb += b"NETSCAPE2.0"
             bb += b"\x03\x01"
             bb += intToBin(loop)
@@ -248,7 +254,7 @@ class GifWriter:
 
     def getGraphicsControlExt(self, duration=0.1, dispose=2):
         """Graphics Control Extension. A sort of header at the start of
-        each image. Specifies duration and transparancy.
+        each image. Specifies duration and transparency.
 
         Dispose
         -------
@@ -262,13 +268,13 @@ class GifWriter:
           * 4-7 -To be defined.
         """
 
-        bb = b"\x21\xF9\x04"
+        bb = b"\x21\xf9\x04"
         bb += chr((dispose & 3) << 2).encode("utf-8")
         # low bit 1 == transparency,
         # 2nd bit 1 == user input , next 3 bits, the low two of which are used,
         # are dispose.
         bb += intToBin(int(duration * 100 + 0.5))  # in 100th of seconds
-        bb += b"\x00"  # no transparant color
+        bb += b"\x00"  # no transparent color
         bb += b"\x00"  # end
         return bb
 

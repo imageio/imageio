@@ -460,9 +460,7 @@ def imread(files, **kwargs):
             return imseq.asarray(**kwargs)
 
 
-def imsave(
-    file, data=None, shape=None, dtype=None, bigsize=2**32 - 2**25, **kwargs
-):
+def imsave(file, data=None, shape=None, dtype=None, bigsize=2**32 - 2**25, **kwargs):
     """Write numpy array to TIFF file.
 
     Refer to the TiffWriter class and member functions for documentation.
@@ -1308,7 +1306,7 @@ class TiffWriter(object):
                 input_shape,
                 shape[-1] in (3, 4),
                 self._colormap is not None,
-                **self._metadata
+                **self._metadata,
             )
         elif metadata or metadata == {}:
             if self._truncate:
@@ -1779,7 +1777,7 @@ class TiffFile(object):
         size=None,
         multifile=True,
         movie=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize instance from file.
 
@@ -2991,7 +2989,7 @@ class TiffPages(object):
 
     @property
     def cache(self):
-        """Return if pages/frames are currenly being cached."""
+        """Return if pages/frames are currently being cached."""
         return self._cache
 
     @cache.setter
@@ -3505,7 +3503,7 @@ class TiffPage(object):
             If False, the shape of the returned array might be different from
             the page.shape.
         lock : {RLock, NullContext}
-            A reentrant lock used to syncronize reads from file.
+            A reentrant lock used to synchronize reads from file.
             If None (default), the lock of the parent's filehandle is used.
         reopen : bool
             If True (default) and the parent file handle is closed, the file
@@ -3603,7 +3601,7 @@ class TiffPage(object):
             if out is None and not result.dtype.isnative:
                 # swap byte order and dtype without copy
                 result.byteswap(True)
-                result = result.newbyteorder()
+                result = result.view(result.dtype.newbyteorder())
             if lsb2msb:
                 reverse_bitorder(result)
         else:
@@ -3751,7 +3749,7 @@ class TiffPage(object):
         dmin=None,
         dmax=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """Return image data as RGB(A).
 
@@ -3765,10 +3763,7 @@ class TiffPage(object):
 
         if photometric == PHOTOMETRIC.PALETTE:
             colormap = self.colormap
-            if (
-                colormap.shape[1] < 2**self.bitspersample
-                or self.dtype.char not in "BH"
-            ):
+            if colormap.shape[1] < 2**self.bitspersample or self.dtype.char not in "BH":
                 raise ValueError("cannot apply colormap")
             if uint8:
                 if colormap.max() > 255:
@@ -4739,8 +4734,7 @@ class TiffSequence(object):
 
     """
 
-    _patterns = {
-        "axes": r"""
+    _patterns = {"axes": r"""
             # matches Olympus OIF and Leica TIFF series
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
@@ -4749,8 +4743,7 @@ class TiffSequence(object):
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
             _?(?:(q|l|p|a|c|t|x|y|z|ch|tp)(\d{1,4}))?
-            """
-    }
+            """}
 
     class ParseError(Exception):
         pass
@@ -5079,7 +5072,7 @@ class FileHandle(object):
             if native and not result.dtype.isnative:
                 # swap byte order and dtype without copy
                 result.byteswap(True)
-                result = result.newbyteorder()
+                result = result.view(result.dtype.newbyteorder())
             return result
 
         # Read data from file in chunks and copy to output array
@@ -5230,7 +5223,7 @@ class OpenFileCache(object):
                 self.past.append(filehandle)
 
     def close(self, filehandle):
-        """Close openend file if no longer used."""
+        """Close opened file if no longer used."""
         with self.lock:
             if filehandle in self.files:
                 self.files[filehandle] -= 1
@@ -7814,7 +7807,7 @@ def read_lsm_channelcolors(fh):
     """Read LSM ChannelColors structure from file and return as dict."""
     result = {"Mono": False, "Colors": [], "ColorNames": []}
     pos = fh.tell()
-    (size, ncolors, nnames, coffset, noffset, mono) = struct.unpack(
+    size, ncolors, nnames, coffset, noffset, mono = struct.unpack(
         "<IIIIII", fh.read(24)
     )
     if ncolors != nnames:
@@ -7973,7 +7966,7 @@ def read_cz_sem(fh, byteorder, dtype, count, offsetsize):
 def read_nih_image_header(fh, byteorder, dtype, count, offsetsize):
     """Read NIH_IMAGE_HEADER tag from file and return as dict."""
     a = fh.read_record(TIFF.NIH_IMAGE_HEADER, byteorder=byteorder)
-    a = a.newbyteorder(byteorder)
+    a = a.view(a.dtype.newbyteorder(byteorder))
     a = recarray2dict(a)
     a["XUnit"] = a["XUnit"][: a["XUnitSize"]]
     a["UM"] = a["UM"][: a["UMsize"]]
@@ -8267,7 +8260,7 @@ def imagej_description(
     hyperstack=None,
     mode=None,
     loop=None,
-    **kwargs
+    **kwargs,
 ):
     """Return ImageJ image description from data shape.
 
@@ -8355,7 +8348,7 @@ def json_description(shape, **metadata):
 
 
 def json_description_metadata(description):
-    """Return metatata from JSON formated image description as dict.
+    """Return metatata from JSON formatted image description as dict.
 
     Raise ValuError if description is of unknown format.
 
@@ -9154,7 +9147,7 @@ def reshape_axes(axes, shape, newshape, unknown="Q"):
 def stack_pages(pages, out=None, maxworkers=1, *args, **kwargs):
     """Read data from sequence of TiffPage and stack them vertically.
 
-    Additional parameters are passsed to the TiffPage.asarray function.
+    Additional parameters are passed to the TiffPage.asarray function.
 
     """
     npages = len(pages)
@@ -10137,7 +10130,7 @@ def imshow(
     figure=None,
     subplot=111,
     maxdim=32768,
-    **kwargs
+    **kwargs,
 ):
     """Plot n-dimensional images using matplotlib.pyplot.
 
@@ -10299,7 +10292,7 @@ def imshow(
         vmax=vmax,
         cmap=cmap,
         interpolation=interpolation,
-        **kwargs
+        **kwargs,
     )
 
     if not isrgb:

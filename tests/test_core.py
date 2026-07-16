@@ -1,5 +1,4 @@
-""" Test imageio core functionality.
-"""
+"""Test imageio core functionality."""
 
 import os
 import sys
@@ -111,7 +110,6 @@ def test_fetching(tmp_path):
 
 
 def test_findlib2():
-
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
 
@@ -216,7 +214,6 @@ def test_request(test_images, tmp_userdir):
 
 @pytest.mark.needs_internet
 def test_request_read_sources(test_images, tmp_userdir):
-
     # Make an image available in many ways
     fname = "chelsea.png"
     filename = test_images / fname
@@ -231,7 +228,6 @@ def test_request_read_sources(test_images, tmp_userdir):
     # and from local file (the two main plugin-facing functions)
     for file_or_filename in range(2):
         for check_first_bytes in range(2):
-
             # Define uris to test. Define inside loop, since we need fresh files
             uris = [
                 filename,
@@ -259,7 +255,6 @@ def test_request_read_sources(test_images, tmp_userdir):
 
 
 def test_request_save_sources(test_images, tmp_path):
-
     # Get test data
     filename = test_images / "chelsea.png"
     with open(filename, "rb") as f:
@@ -448,8 +443,8 @@ def test_util_asarray():
     im1 = core.asarray([[1, 2, 3], [4, 5, 6]])
     im2 = im1.view(type=core.Image)
     im3 = core.asarray(im2)
-    assert type(im2) != np.ndarray
-    assert type(im3) == np.ndarray
+    assert type(im2) is not np.ndarray
+    assert type(im3) is np.ndarray
     if not IS_PYPY:
         for i in (1, 2, 3):
             im1[0, 0] = i
@@ -581,7 +576,6 @@ def test_util_image_as_uint():
 
 
 def test_util_has_has_module():
-
     assert not core.has_module("this_module_does_not_exist")
     assert core.has_module("sys")
 
@@ -656,8 +650,7 @@ def test_functions(test_images, tmp_path):
         return  # no support for npz format :(
 
     # Test mimsave()
-    fname5 = str(fname3.with_suffix(""))
-    fname5 += "2.npz"
+    fname5 = tmp_path / "newtonscradle2.npz"
     if os.path.isfile(fname5):
         os.remove(fname5)
     assert not os.path.isfile(fname5)
@@ -788,7 +781,7 @@ def test_imwrite_not_subclass(tmpdir):
             pass
 
         def __array__(self, dtype=None):
-            return np.zeros((4, 4), dtype=dtype)
+            return np.zeros((4, 4), dtype=np.uint8)
 
     filename = os.path.join(str(tmpdir), "foo.bmp")
     iio.v2.imwrite(filename, Foo())
@@ -887,8 +880,11 @@ def test_imopen_installable_plugin(clear_plugins):
 
 
 def test_legacy_object_image_writing(tmp_path):
-    with pytest.raises(ValueError):
-        iio.mimwrite(tmp_path / "foo.gif", np.array([[0]], dtype=object))
+    with pytest.raises(TypeError):
+        # dtype=object should fail with type error
+        iio.mimwrite(
+            tmp_path / "foo.gif", np.array([[[0] * 6, [0] * 6]] * 4, dtype=object)
+        )
 
 
 def test_imiter(test_images):
@@ -928,7 +924,7 @@ def test_faulty_legacy_mode_access():
 def test_mvolread_out_of_bytes(test_images):
     with pytest.raises(RuntimeError):
         iio.mvolread(
-            "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
+            test_images / "multipage_rgb.tif",
             memtest="1B",
         )
 
@@ -976,9 +972,6 @@ def test_imopen_explicit_plugin_input(clear_plugins, tmp_path):
         tmp_path / "foo.tiff", "w", legacy_mode=False, plugin=PillowPlugin
     ) as f:
         assert isinstance(f, PillowPlugin)
-
-    with pytest.raises(ValueError):
-        iio.v3.imopen(tmp_path / "foo.tiff", "w", legacy_mode=True, plugin=PillowPlugin)
 
 
 @deprecated_test
@@ -1044,7 +1037,7 @@ def test_format_hint(test_images):
 
     assert np.allclose(im_new, im_old)
 
-    req = iio.core.Request("https://sample.com/my/resource", "r", format_hint=".jpg")
+    req = iio.core.Request(test_images / "bricks.jpg", "r", format_hint=".jpg")
     filename = req.get_local_filename()
 
     assert Path(filename).suffix == ".jpg"

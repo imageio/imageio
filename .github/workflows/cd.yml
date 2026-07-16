@@ -21,151 +21,93 @@ on:
     - cron: '42 1 * * 1' # weekly on Monday at 1:42am (UTC)
   workflow_dispatch:
 
+concurrency:
+  group: deployment
+
 jobs:
   initial_check:
     name: Should release?
     if: github.repository_owner == 'imageio'
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{ steps.skippy.outputs.release }}
+      make_release: ${{ steps.skippy.outputs.make_release }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: 3.x
     - name: Install Dependencies
       run: |
-        pip install python-semantic-release
-    - name: skippy
+        pip install "python-semantic-release>=10.4.1,<11.0.0"
+    - name: Detect API changes
       id: skippy
       run: |
         export PYTHONPATH=$PWD:$PYTHONPATH
-        if [[ $(semantic-release print-version 2>/dev/null) = "" ]]; then
-          echo "::set-output name=release::false"
+        NEXT=$(semantic-release version --print 2>/dev/null)
+        CURRENT=$(semantic-release version --print-last-released 2>/dev/null)
+        if [[ "$NEXT" = "$CURRENT" || -z "$NEXT" ]]; then
+          echo "make_release=false" >> "$GITHUB_OUTPUT"
           echo "No changes to the API detected."
         else
-          echo "::set-output name=release::true"
-          echo "Releasing v$(semantic-release print-version)"
+          echo "make_release=true" >> "$GITHUB_OUTPUT"
+          echo "Releasing $(semantic-release version --print-tag 2>/dev/null)"
         fi
-  
+
   docs:
     name: Build Docs
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-    - name: Install Dependencies
-      run: |
-        pip install -e .[docs]
-    - name: Build Docs
-      run: sphinx-build -W ./docs ./build
+    if: needs.initial_check.outputs.make_release == 'true'
+    uses: ./.github/workflows/build_docs.yml
   
   cpython_tests:
-    name: "${{ matrix.os }} / CPython ${{ matrix.pyversion }}"
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-        include:
-          - name: Linux py37 full
-            os: ubuntu-latest
-            pyversion: '3.7'
-            TEST_UNIT: 1
-            TEST_FULL: 1
-          - name: Use PyAV 10.0.0
-            pyversion: '3.11'
-            PYAV_10_0_0: 1
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
-      - name: Set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.pyversion }}
-      - name: Install dependencies for tests
-        shell: bash
-        run: |
-            pip install .[test,ffmpeg,tifffile]
-      - name: Install optional dependencies for tests
-        if: matrix.TEST_FULL == 1
-        run: |
-            pip install -q -U simpleitk astropy
-      - name: Downgrade PyAV
-        # PyAV 10.0.0 is needed on py3.11 but has issues, so we only use it on
-        # py3.11 for now
-        if: matrix.PYAV_10_0_0 != 1
-        run: |
-            pip install --upgrade av!=10.0.0
-      - name: Run All Unit tests
-        run: pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+    if: needs.initial_check.outputs.make_release == 'true'
+    name: CPython Test Suite
+    uses: ./.github/workflows/cpython_tests.yml
 
   pypy_tests:
-    name: "${{ matrix.os }} / ${{ matrix.pyversion }}"
+    name: PyPy Test Suite
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: true
-      matrix:
-        os: ["ubuntu-latest", "macos-latest"]
-        pyversion: ["pypy-3.7", "pypy-3.8", "pypy-3.9"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up pypy
-        uses: actions/setup-python@v4
-        with:
-          python-version: "${{ matrix.pyversion }}"
-      - name: MacOS Numpy Fix
-        if: runner.os == 'macOS'
-        run: |
-            brew install openblas
-            OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
-      - name: Install dependencies
-        shell: bash
-        run: |
-            pypy3 -m pip install .[test,all-plugins-pypy]
-      - name: Run Unit tests
-        run: |
-            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}
+    if: needs.initial_check.outputs.make_release == 'true'
+    uses: ./.github/workflows/pypy_tests.yml
   
   build_test:
     name: Wheel Building Test
     needs: initial_check
-    if: needs.initial_check.outputs.should_release == 'true'
+    if: needs.initial_check.outputs.make_release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: 3.x
       - name: Install dependencies for tests
         shell: bash
         run: |
-            pip install .[build]
+            pip install build
       - name: Build the wheel
-        run: python setup.py sdist bdist_wheel
+        run: python -m build
 
   release:
     name: Release new Version
     needs: [cpython_tests, pypy_tests, build_test, docs]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Python Semantic Release
-      uses: relekang/python-semantic-release@master
+      uses: python-semantic-release/python-semantic-release@v10.4.1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+    - name: Upload to GitHub Release
+      uses: python-semantic-release/publish-action@v10.4.1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

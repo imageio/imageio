@@ -42,7 +42,6 @@ from ..config import known_plugins, known_extensions, PluginConfig, FileExtensio
 from ..config.plugins import _original_order
 from .imopen import imopen
 
-
 # survived for backwards compatibility
 # I don't know if external plugin code depends on it existing
 # We no longer do
@@ -338,7 +337,7 @@ class Format(object):
             try:
                 self.close()
             except Exception:  # pragma: no cover
-                pass  # Supress noise when called during interpreter shutdown
+                pass  # Suppress noise when called during interpreter shutdown
 
         def close(self):
             """Flush and close the reader/writer.
@@ -464,7 +463,7 @@ class Format(object):
             index is omitted or None, return the file's (global) meta data.
 
             Note that ``get_data`` also provides the meta data for the returned
-            image as an atrribute of that image.
+            image as an attribute of that image.
 
             The meta data is a dict, which shape depends on the format.
             E.g. for JPEG, the dict maps group names to subdicts and each
@@ -519,7 +518,7 @@ class Format(object):
 
             Plugins must implement this.
 
-            The retured scalar specifies the number of images in the series.
+            The returned scalar specifies the number of images in the series.
             See Reader.get_length for more information.
             """
             raise NotImplementedError()
@@ -726,7 +725,7 @@ class FormatManager(object):
             stacklevel=2,
         )
 
-        # Check and sanitize imput
+        # Check and sanitize input
         for name in names:
             if not isinstance(name, str):
                 raise TypeError("formats.sort() accepts only string names.")
@@ -828,6 +827,14 @@ class FormatManager(object):
         try:
             # in legacy_mode imopen returns a LegacyPlugin
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except AttributeError:
+            warnings.warn(
+                "ImageIO now uses a v3 plugin when reading this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return None
         except ValueError:
             # no plugin can read this request
             # but the legacy API doesn't raise
@@ -843,6 +850,14 @@ class FormatManager(object):
         try:
             # in legacy_mode imopen returns a LegacyPlugin
             return imopen(request, request.mode.io_mode, legacy_mode=True)._format
+        except AttributeError:
+            warnings.warn(
+                "ImageIO now uses a v3 plugin when writing this format."
+                " Please migrate to the v3 API (preferred) or use imageio.v2.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return None
         except ValueError:
             # no plugin can write this request
             # but the legacy API doesn't raise

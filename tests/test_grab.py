@@ -15,7 +15,6 @@ def test_grab_plugin_load():
     sys.platform = "win32"
 
     try:
-
         reader = iio.get_reader("<screen>")
         assert reader.format.name == "SCREENGRAB"
 
@@ -34,7 +33,6 @@ def test_grab_plugin_load():
 
 
 class FakeImageGrab:
-
     has_clipboard = True
 
     @classmethod
@@ -59,7 +57,6 @@ def test_grab_simulated():
     sys.platform = "win32"
 
     try:
-
         im = iio.imread("<screen>")
         assert im.shape == (8, 8, 3)
 

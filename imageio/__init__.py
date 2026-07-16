@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2014-2020, imageio contributors
+# Copyright (c) 2014-2026, imageio contributors
 # imageio is distributed under the terms of the (new) BSD License.
 
 # This docstring is used at the index of the documentation pages, and
@@ -8,7 +8,7 @@
 """
 Imageio is a Python library that provides an easy interface to read and
 write a wide range of image data, including animated images, volumetric
-data, and scientific formats. It is cross-platform, runs on Python 3.5+,
+data, and scientific formats. It is cross-platform, runs on Python 3.10+,
 and is easy to install.
 
 Main website: https://imageio.readthedocs.io/
@@ -16,7 +16,10 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
-__version__ = "2.23.0"
+from importlib.metadata import version as get_version
+
+__version__ = get_version("imageio")
+
 
 import warnings
 

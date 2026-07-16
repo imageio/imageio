@@ -121,6 +121,17 @@ known_plugins["pyav"] = PluginConfig(
 known_plugins["opencv"] = PluginConfig(
     name="opencv", class_name="OpenCVPlugin", module_name="imageio.plugins.opencv"
 )
+known_plugins["tifffile"] = PluginConfig(
+    name="tifffile",
+    class_name="TifffilePlugin",
+    module_name="imageio.plugins.tifffile_v3",
+)
+known_plugins["SPE"] = PluginConfig(
+    name="spe", class_name="SpePlugin", module_name="imageio.plugins.spe"
+)
+known_plugins["rawpy"] = PluginConfig(
+    name="rawpy", class_name="RawPyPlugin", module_name="imageio.plugins.rawpy"
+)
 
 # Legacy plugins
 # ==============
@@ -348,19 +359,6 @@ known_plugins["NPZ"] = PluginConfig(
     legacy_args={
         "description": "Numpy's compressed array format",
         "extensions": ".npz",
-        "modes": "iIvV",
-    },
-)
-
-known_plugins["SPE"] = PluginConfig(
-    name="SPE",
-    class_name="SpeFormat",
-    module_name="imageio.plugins.spe",
-    is_legacy=True,
-    install_name="spe",
-    legacy_args={
-        "description": "SPE file format",
-        "extensions": ".spe",
         "modes": "iIvV",
     },
 )

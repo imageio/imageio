@@ -101,15 +101,15 @@ the migration by explicitly importing the v2 API::
 This will give you access to most of the old API. However, calls will still rely
 on the new (v3) plugins and backends, which may cause behavioral changes. As
 such, you should prefer a full migration to v3 and should avoid using the v2 API
-in new code. This is primarily as a quick way for you to postpone a full
-migration until it is convenient for you to do so.
+in new code. This is meant as a quick way for you to postpone a full migration
+until it is convenient for you to do so.
   
 
 Reading Images 
 --------------
 
 `iio.imread` can now return a ndimage instead of being limited to flat images.
-As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarily,
+As such, `iio.volread` has merged into `iio.imread` and is now gone. Similarly,
 `iio.mimread` and `iio.mvolread` have merged into a new function called
 `iio.imiter`, which returns a generator that yields ndimages from a file in the
 order in which they appear. Further, the default behavior of `iio.imread` has
@@ -135,7 +135,7 @@ Writing Images
 
 Similar to reading images, the new `iio.imwrite` can handle ndimages and lists
 of images, like ``iio.mimwrite`` and consorts. ``iio.mimwrite``,
-``iio.volwrite``, and ``iio.mvolwrite`` have all dissapeared. The same goes for
+``iio.volwrite``, and ``iio.mvolwrite`` have all disappeared. The same goes for
 their aliases ``iio.mimsave``, ``iio.volsave``, ``iio.mvolsave``, and
 ``iio.imsave``. They are now all covered by ``iio.imwrite``.
 
@@ -208,11 +208,21 @@ This section is a collection of notes and feedback that we got from other
 developers that were migrating to ImageIO V3, which might be useful to know
 while you are migrating your own code.
 
+- The old ``format`` kwarg has been deprecated in favor of ``plugin`` and
+  ``extension`` respectively. Use ``plugin`` to select the plugin/backend to use
+  and ``extension`` to select the file extension (aka. format).
 - The old pillow plugin used to ``np.squeeze`` the image before writing it. This
   has been removed in V3 to match pillows native behavior. A trailing axis with
   dimension 1, e.g., ``(256, 256, 1)`` will now raise an exception. (see `#842
   <https://github.com/imageio/imageio/issues/842>`_)
 - The old pillow plugin featured a kwarg called ``as_gray`` which would convert
   images to grayscale before returning them. This is redundant and has been
-  deprecated in favor of using ``mode="L"``, which matches pillow's native
-  kwarg.
+  deprecated in favor of using ``mode="F"``(backwards compatible) or
+  ``mode="L"`` (integer result), which is pillow's native kwarg for controlling
+  the returned color space.
+- When reading 16-bit grayscale PNGs using pillow, the v2 pillow plugin used a
+  hardcoded copy to convert pillow's 32-bit result to 16-bit. We removed this
+  copy in v3, which means that you get a 32-bit result when using an older
+  version of pillow (pre v10). Starting with pillow v10, pillow can directly
+  decode into a 16-bit array resulting in a 16-bit result from ImageIO.
+

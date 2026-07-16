@@ -124,6 +124,7 @@ def test_props(test_images, tmp_path):
     props = iio.improps(test_images / "astronaut.png", plugin="opencv")
     assert props.shape == (512, 512, 3)
     assert props.dtype == np.uint8
+    assert props.n_images is None
     assert props.is_batch is False
 
     img_expected = iio.imread(test_images / "newtonscradle.gif")
@@ -132,7 +133,14 @@ def test_props(test_images, tmp_path):
     props = iio.improps(tmp_path / "test.tiff", plugin="opencv", index=...)
     assert props.shape == (36, 150, 200, 3)
     assert props.dtype == np.uint8
+    assert props.n_images == 36
     assert props.is_batch is True
+
+    props = iio.improps(tmp_path / "test.tiff", plugin="opencv", index=0)
+    assert props.shape == (150, 200, 3)
+    assert props.dtype == np.uint8
+    assert props.n_images is None
+    assert props.is_batch is False
 
 
 def test_metadata(test_images):

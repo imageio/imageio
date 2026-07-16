@@ -1,13 +1,16 @@
-import os
-import sys
-import shutil
-from pathlib import Path
-from functools import wraps
 import contextlib
+import os
+import shutil
+import sys
 import warnings
+from functools import wraps
+from pathlib import Path
+
 import pytest
 
 import imageio as iio
+
+IS_PYPY = "__pypy__" in sys.builtin_module_names
 
 
 def pytest_configure(config):
@@ -67,7 +70,7 @@ def working_directory(path):
 
 
 @pytest.fixture(scope="session")
-def test_images(request):
+def test_images(request, pytestconfig):
     """A collection of test images.
 
     Note: The images are cached persistently (across test runs) in
@@ -78,6 +81,7 @@ def test_images(request):
     # downloaded once in the beginning
 
     checkout_dir = request.config.cache.get("imageio_test_binaries", None)
+    use_internet = "not needs_internet" not in pytestconfig.getoption("-m")
 
     if checkout_dir is not None and not Path(checkout_dir).exists():
         # cache value set, but cache is gone :( ... recreate
@@ -87,6 +91,8 @@ def test_images(request):
         # download test images and other binaries
         checkout_dir = Path(__file__).parents[1] / ".test_images"
 
+        if not checkout_dir.exists() and not use_internet:
+            pytest.skip("Internet use disabled and `.test_images` not found.")
         try:
             checkout_dir.mkdir()
         except FileExistsError:
@@ -100,14 +106,15 @@ def test_images(request):
 
     checkout_dir = Path(checkout_dir)
 
-    with working_directory(checkout_dir):
-        result = os.system("git pull")
+    if use_internet:
+        with working_directory(checkout_dir):
+            result = os.system("git pull")
 
-    if result != 0:
-        request.config.cache.set("imageio_test_binaries", None)
-        raise RuntimeError(
-            "Cache directory is corrupt. Delete `.test_images` at project root."
-        )
+        if result != 0:
+            request.config.cache.set("imageio_test_binaries", None)
+            raise RuntimeError(
+                "Cache directory is corrupt. Delete `.test_images` at project root."
+            )
 
     return checkout_dir
 
@@ -127,7 +134,6 @@ def image_files(test_images, tmp_path):
 
 @pytest.fixture()
 def clear_plugins():
-
     old_extensions = iio.config.known_extensions.copy()
     old_plugins = iio.config.known_plugins.copy()
 
@@ -154,7 +160,6 @@ def invalid_file(tmp_path, request):
 
 @pytest.fixture()
 def tmp_userdir(tmp_path):
-
     ud = tmp_path / "userdir"
     ud.mkdir(exist_ok=True)
 
@@ -172,12 +177,6 @@ def tmp_userdir(tmp_path):
         os.environ[user_dir_env] = old_user_dir
     else:
         del os.environ[user_dir_env]
-
-
-def pytest_collection_modifyitems(items):
-    for item in items:
-        if "test_images" in getattr(item, "fixturenames", ()):
-            item.add_marker("needs_internet")
 
 
 def deprecated_test(fn):

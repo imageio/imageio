@@ -1,5 +1,4 @@
-""" Test npz plugin functionality.
-"""
+"""Test npz plugin functionality."""
 
 import pytest
 
@@ -12,7 +11,6 @@ from conftest import deprecated_test
 
 @deprecated_test
 def test_npz_format(test_images):
-
     # Test selection
     for name in ["npz", ".npz"]:
         format = iio.formats["npz"]

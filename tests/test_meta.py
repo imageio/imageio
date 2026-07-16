@@ -1,5 +1,4 @@
-""" Test imageio meta stuff, like namespaces and spuriuos imports
-"""
+"""Test imageio meta stuff, like namespaces and spuriuos imports"""
 
 from __future__ import print_function
 

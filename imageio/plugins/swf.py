@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write SWF files.
+"""Read/Write SWF files.
 
 Backend: internal
 
@@ -50,7 +50,6 @@ from io import BytesIO
 import numpy as np
 
 from ..core import Format, read_n_bytes, image_as_uint
-
 
 logger = logging.getLogger(__name__)
 

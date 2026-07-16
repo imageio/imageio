@@ -186,6 +186,10 @@ def improps(uri, *, index=None, plugin=None, extension=None, **kwargs):
     -----
     Where possible, this will avoid loading pixel data.
 
+    See Also
+    --------
+    imageio.core.v3_plugin_api.ImageProperties
+
     """
 
     plugin_kwargs = {"legacy_mode": False, "plugin": plugin, "extension": extension}

@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015-1018, imageio contributors
+# Copyright (c) 2015-2026, imageio contributors
 # Copyright (C) 2013, Zach Pincus, Almar Klein and others
 
-""" This module contains generic code to find and load a dynamic library.
-"""
+"""This module contains generic code to find and load a dynamic library."""
 
 import os
 import sys
 import ctypes
-
 
 LOCALDIR = os.path.abspath(os.path.dirname(__file__))
 

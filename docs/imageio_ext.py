@@ -1,5 +1,4 @@
-""" Invoke various functionality for imageio docs.
-"""
+"""Invoke various functionality for imageio docs."""
 
 from pathlib import Path
 

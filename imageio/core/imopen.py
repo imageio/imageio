@@ -49,10 +49,10 @@ def imopen(
             ``I`` for multiple images,
             ``v`` for a single volume,
             ``V`` for multiple volumes,
-            ``?`` for don't care (default)
+            ``?`` for don't care
 
     plugin : str, Plugin, or None
-        The plugin to use. If set to None (default) imopen will perform a
+        The plugin to use. If set to None imopen will perform a
         search for a matching plugin. If not None, this takes priority over
         the provided format hint.
     extension : str
@@ -62,7 +62,7 @@ def imopen(
     format_hint : str
         Deprecated. Use `extension` instead.
     legacy_mode : bool
-        If true (default) use the v2 behavior when searching for a suitable
+        If true use the v2 behavior when searching for a suitable
         plugin. This will ignore v3 plugins and will check ``plugin``
         against known extensions if no plugin with the given name can be found.
     **kwargs : Any
@@ -129,14 +129,10 @@ def imopen(
             def loader(request, **kwargs):
                 return config.plugin_class(request, **kwargs)
 
-        elif not legacy_mode:
+        else:
 
             def loader(request, **kwargs):
                 return plugin(request, **kwargs)
-
-        else:
-            request.finish()
-            raise ValueError("The `plugin` argument must be a string.")
 
         try:
             return loader(request, **kwargs)
@@ -154,7 +150,7 @@ def imopen(
         except Exception as generic_error:
             err_from = generic_error
             err_type = IOError
-            err_msg = f"An unknown error occured while initializing plugin `{plugin}`."
+            err_msg = f"An unknown error occurred while initializing plugin `{plugin}`."
 
         request.finish()
         raise err_type(err_msg) from err_from
@@ -164,10 +160,6 @@ def imopen(
         for candidate_format in known_extensions[format_hint]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
-
-                # v2 compatibility; delete in v3
-                if legacy_mode and not config.is_legacy:
-                    continue
 
                 try:
                     candidate_plugin = config.plugin_class
@@ -193,10 +185,6 @@ def imopen(
         for candidate_format in known_extensions[request.extension]:
             for plugin_name in candidate_format.priority:
                 config = known_plugins[plugin_name]
-
-                # v2 compatibility; delete in v3
-                if legacy_mode and not config.is_legacy:
-                    continue
 
                 try:
                     candidate_plugin = config.plugin_class
@@ -242,11 +230,6 @@ def imopen(
 
     # fallback option: try all plugins
     for config in known_plugins.values():
-        # Note: for v2 compatibility
-        # this branch can be removed in ImageIO v3.0
-        if legacy_mode and not config.is_legacy:
-            continue
-
         # each plugin gets its own request
         request = Request(uri, io_mode, format_hint=format_hint)
 

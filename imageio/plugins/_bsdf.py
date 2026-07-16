@@ -161,7 +161,6 @@ class BsdfSerializer(object):
         load_streaming=False,
         lazy_blob=False,
     ):
-
         # Validate compression
         if isinstance(compression, string_types):
             m = {"no": 0, "zlib": 1, "bz2": 2}
@@ -836,7 +835,7 @@ class Extension(object):
     e.g. the NDArrayExtension exposes the ndarray class only when numpy
     is imported.
 
-    A extension instance must have two attributes. These can be attribiutes of
+    A extension instance must have two attributes. These can be attributes of
     the class, or of the instance set in ``__init__()``:
 
     * name (str): the name by which encoded values will be identified.
@@ -871,7 +870,6 @@ class Extension(object):
 
 
 class ComplexExtension(Extension):
-
     name = "c"
     cls = complex
 
@@ -883,7 +881,6 @@ class ComplexExtension(Extension):
 
 
 class NDArrayExtension(Extension):
-
     name = "ndarray"
 
     def __init__(self):
@@ -904,7 +901,7 @@ class NDArrayExtension(Extension):
         except ImportError:  # pragma: no cover
             return v
         a = np.frombuffer(v["data"], dtype=v["dtype"])
-        a.shape = v["shape"]
+        a = a.reshape(v["shape"])
         return a
 
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write images using SimpleITK.
+"""Read/Write images using SimpleITK.
 
 Backend: `Insight Toolkit <https://itk.org/>`_
 

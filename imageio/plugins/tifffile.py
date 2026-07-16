@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write TIFF files.
+"""Read/Write TIFF files.
 
 Backend: internal
 
@@ -181,7 +181,6 @@ from ..core.request import URI_BYTES, URI_FILE
 
 import numpy as np
 import warnings
-
 
 try:
     import tifffile as _tifffile
@@ -477,7 +476,7 @@ class TiffFormat(Format):
                 resolution_y = page.tags[283].value
                 if resolution_x[1] == 0 or resolution_y[1] == 0:
                     warnings.warn(
-                        "Ignoring resulution metadata, "
+                        "Ignoring resolution metadata, "
                         "because at least one direction has a 0 denominator.",
                         RuntimeWarning,
                     )
@@ -536,7 +535,7 @@ class TiffFormat(Format):
         @staticmethod
         def _sanitize_meta(meta):
             ret = {}
-            for (key, value) in meta.items():
+            for key, value in meta.items():
                 if key in WRITE_METADATA_KEYS:
                     # Special case of previously read `predictor` int value
                     # 1(=NONE) translation to False expected by TiffWriter.save

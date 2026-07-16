@@ -1,5 +1,4 @@
-""" Tests for imageio's pillow plugin
-"""
+"""Tests for imageio's pillow plugin"""
 
 import io
 import os
@@ -11,7 +10,9 @@ import pytest
 from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from PIL import Image, ImageSequence  # type: ignore
+from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
+
+PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
 
 
 @pytest.mark.parametrize(
@@ -24,7 +25,6 @@ from PIL import Image, ImageSequence  # type: ignore
     ],
 )
 def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio
@@ -53,7 +53,6 @@ def test_write_single_frame(test_images, tmp_path, im_npy, im_out, im_comp):
 )
 @pytest.mark.needs_internet
 def test_write_multiframe(test_images, tmp_path, im_npy, im_out, im_comp):
-
     # the base image as numpy array
     im = np.load(test_images / im_npy)
     # written with imageio
@@ -99,9 +98,7 @@ def test_png_quantization(test_images, tmp_path):
 
 
 def test_png_16bit(test_images, tmp_path):
-    # 16b bit images
     im = np.load(test_images / "chelsea.npy")[..., 0]
-
     iio.imwrite(
         tmp_path / "1.png",
         2 * im.astype(np.uint16),
@@ -117,15 +114,15 @@ def test_png_16bit(test_images, tmp_path):
     im2 = iio.imread(tmp_path / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
-    assert im3.dtype == np.int32
+    if PILLOW_VERSION >= (10, 0, 0):
+        im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
+        assert im3.dtype == np.uint16
+    else:
+        # legacy behavior for pillow < v10.0.0
+        with pytest.warns(UserWarning):
+            im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
 
-
-# Note: There was a test here referring to issue #352 and a `prefer_uint8`
-# argument that was introduced as a consequence This argument was default=true
-# (for backwards compatibility) in the legacy plugin with the recommendation to
-# set it to False. In the new API, we literally just wrap Pillow, so we match
-# their behavior. Consequentially this test was removed.
+        assert im3.dtype == np.int32
 
 
 @pytest.mark.needs_internet
@@ -191,7 +188,7 @@ def test_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -220,6 +217,52 @@ def test_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
+
+
+@pytest.mark.parametrize("orientation", [0, 9])
+def test_exif_invalid_orientation(test_images, tmp_path, orientation):
+    from PIL.Image import Exif  # type: ignore
+
+    im = np.load(test_images / "chelsea.npy")
+
+    exif_tag = Exif()
+    exif_tag[274] = orientation  # Set Orientation to 0, which is invalid
+
+    iio.imwrite(
+        tmp_path / "chelsea_tagged.png",
+        im,
+        plugin="pillow",
+        exif=exif_tag,
+    )
+
+    with iio.imopen(
+        tmp_path / "chelsea_tagged.png",
+        "r",
+        plugin="pillow",
+    ) as f:
+        im_reloaded = f.read()
+        im_meta = f.get_meta()
+
+    # ensure that the Exif tag is set in the file
+    assert "Orientation" in im_meta and im_meta["Orientation"] == orientation
+
+    im_reloaded = iio.imread(
+        tmp_path / "chelsea_tagged.png", plugin="pillow", rotate=True
+    )
+
+    assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_gif_rgb_vs_rgba(test_images):
@@ -255,14 +298,14 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
-def test_gif_fps_error(test_images, tmp_path):
+def test_gif_fps_warning(test_images, tmp_path):
     im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="L",
     )
 
-    with pytest.raises(TypeError):
+    with pytest.warns(DeprecationWarning):
         iio.imwrite(
             tmp_path / "test.gif",
             im[..., 0],
@@ -355,6 +398,17 @@ def test_gif_list_write(test_images, tmp_path):
     assert im2.shape == (24, 30, 3)
 
 
+@pytest.mark.needs_internet
+def test_gif_first_p_frame():
+    # Bugfix: https://github.com/imageio/imageio/issues/1030
+    im = iio.imread(
+        "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif",
+        plugin="pillow",
+        index=None,
+    )
+    assert im.shape == (36, 150, 200, 3)
+
+
 def test_legacy_exif_orientation(test_images, tmp_path):
     from PIL.Image import Exif
 
@@ -363,7 +417,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -393,6 +447,12 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_incomatible_write_format(tmp_path):
@@ -524,11 +584,13 @@ def test_properties(image_files: Path):
 
     assert properties.shape == (300, 451, 3)
     assert properties.dtype == np.uint8
+    assert properties.n_images is None
 
     # test a ndimage (GIF)
     properties = iio.improps(image_files / "newtonscradle.gif", plugin="pillow")
     assert properties.shape == (36, 150, 200, 3)
     assert properties.dtype == np.uint8
+    assert properties.n_images == 36
     assert properties.is_batch is True
 
     # test a flat gray image
@@ -536,6 +598,14 @@ def test_properties(image_files: Path):
 
     assert properties.shape == (172, 448)
     assert properties.dtype == np.uint8
+    assert properties.n_images is None
+
+    # test an image format that doesn't have n_frames
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow")
+    assert properties.n_images is None
+
+    properties = iio.improps(image_files / "rommel.jpg", plugin="pillow", index=...)
+    assert properties.n_images == 1
 
 
 def test_metadata(test_images):
@@ -548,6 +618,12 @@ def test_metadata(test_images):
         image_file.read(index=5)
         meta = image_file.metadata(index=0)
         assert "version" in meta and meta["version"] == b"GIF89a"
+        assert "palette" not in meta
+
+    meta_all = iio.immeta(test_images / "newtonscradle.gif", exclude_applied=False)
+    palette = meta_all["palette"]
+    assert palette.shape == (102, 3)
+    assert np.issubdtype(palette.dtype, np.number)
 
 
 def test_apng_reading(tmp_path, test_images):
@@ -589,8 +665,8 @@ def test_apng_metadata(tmp_path, test_images):
     assert metadata == metadata2
 
 
-def test_write_format_warning():
-    frames = iio.imread("imageio:chelsea.png")
+def test_write_format_warning(test_images):
+    frames = iio.imread(test_images / "chelsea.png")
     bytes_image = iio.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
 
     with pytest.warns(UserWarning):
@@ -610,9 +686,16 @@ def test_8bit_with_16bit_depth():
     assert np.allclose(img16_read, img16)
 
 
-def test_deprecated_as_gray(test_images):
+def test_deprecated_kwargs(test_images):
     with pytest.raises(TypeError):
         iio.imread(test_images / "chelsea.png", plugin="pillow", as_gray=True)
+
+    with pytest.warns(DeprecationWarning):
+        img = iio.imread(test_images / "chelsea.png", plugin="pillow", pilmode="I")
+        assert img.shape == (300, 451)
+
+    with pytest.warns(DeprecationWarning):
+        iio.imread(test_images / "chelsea.png", plugin="pillow", exifrotate=True)
 
 
 def test_png_batch_fail():
@@ -623,3 +706,67 @@ def test_png_batch_fail():
 
     with pytest.raises(ValueError):
         iio.imwrite("<bytes>", img, extension=".png", plugin="pillow")
+
+
+def test_incremental_gif_write(tmp_path):
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/974
+
+    rng = np.random.default_rng()
+
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+        for _ in range(10):
+            img = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
+            file.write(img)
+
+    final_gif = iio.imread(tmp_path / "test.gif")
+    assert final_gif.shape == (10, 100, 100, 3)
+
+
+def test_format_change_warning(tmp_path):
+    img = np.full((100, 100, 3), 42, dtype=np.uint8)
+
+    with iio.imopen(tmp_path / "test.gif", "w", plugin="pillow") as file:
+        file.write(img, format="PNG")
+
+        with pytest.warns(UserWarning):
+            file.write(img, format="GIF")
+
+
+def test_writable_output():
+    rng = np.random.default_rng()
+    img = rng.integers(0, 255, (128, 128), dtype=np.uint8)
+    buffer = iio.imwrite("<bytes>", img, extension=".png")
+
+    frame = iio.imread(buffer, plugin="pillow")
+    assert frame.flags["WRITEABLE"]
+
+    frame = iio.imread(buffer, writeable_output=False, plugin="pillow")
+    assert not frame.flags["WRITEABLE"]
+
+
+@pytest.mark.needs_internet
+def test_heif_remote():
+    pytest.importorskip("pillow_heif")
+    url = "http://github.com/tigranbs/test-heic-images/raw/master/image4.heic"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (476, 700, 4)
+
+
+@pytest.mark.needs_internet
+def test_avif_remote():
+    pytest.importorskip("pillow_heif")
+
+    url = "https://github.com/link-u/avif-sample-images/raw/master/fox.profile0.10bpc.yuv420.avif"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (800, 1204, 3)
+
+
+@pytest.mark.needs_internet
+def test_webp_remote():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/1065
+    # the image in the issue is actually a webp image
+    url = "https://github.com/python-pillow/Pillow/raw/main/Tests/images/hopper_orientation_2.webp"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (128, 128, 3)

@@ -45,7 +45,7 @@ Imageio can read from filenames, file objects.
 
 
     # from HTTPS
-    web_image = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Newtons_cradle_animation_book_2.gif"
+    web_image = "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif"
     frames = iio.imread(web_image, index=None)
 
     # from bytes
@@ -258,7 +258,7 @@ A little bit of explanation:
 
   * ``output_params``
   
-    * ``vaapi_device`` speficifies the encoding device that will be used.
+    * ``vaapi_device`` specifies the encoding device that will be used.
     * ``vf`` and ``format`` tell ffmpeg that it must upload to the dedicated
       hardware. Since vaapi only supports a subset of color formats, we ensure
       that the video is in either gray or nv12 before uploading it. The ``or``
@@ -439,3 +439,29 @@ them with a simple script like the one below.
         for name in zf.namelist():
             im = iio.imread(name)
             images.append(im)
+
+Reading Metadata
+----------------
+
+ImageIO differentiates between two types of metadata: format-specific metadata
+and standardized metadata.
+
+Format-specific metadata comes in the form of a python dict and aims to expose
+all the metadata contained in the image using the containers/plugins key and
+format::
+
+    import imageio.v3 as iio
+
+    metadata = iio.immeta("imageio:chelsea.png")
+    print(metadata["mode"])  # "RGB"
+
+Standardized metadata, on the other hand, comes in the form of the
+:class:`ImageProperties <imageio.core.v3_plugin_api.ImageProperties>` dataclass
+and aims to expose a curated set of metadata using a standardized name and
+format independent of the underlying container or plugin::
+
+    import imageio.v3 as iio
+
+    props = iio.improps("imageio:chelsea.png")
+    print(props.shape)  # (300, 451, 3)
+    print(props.dtype)  # dtype('uint8')

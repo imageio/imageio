@@ -154,7 +154,6 @@ def test_format(test_images, tmp_path):
 
 @deprecated_test
 def test_reader_and_writer(test_images, tmp_path):
-
     # Prepare
     filename1 = test_images / "chelsea.png"
     filename2 = tmp_path / "chelsea.out"
@@ -182,9 +181,6 @@ def test_reader_and_writer(test_images, tmp_path):
     R._failmode = 2
     with raises(IndexError):
         [im for im in R]
-
-    # Test writer no format
-    raises(ValueError, imageio.get_writer, "foo.unknownext")
 
     # Test streaming reader
     R = F.get_reader(Request(filename1, "ri"))
@@ -224,7 +220,6 @@ def test_reader_and_writer(test_images, tmp_path):
 
 @deprecated_test
 def test_default_can_read_and_can_write(tmp_path):
-
     F = imageio.plugins.example.DummyFormat("test", "", "foo bar", "v")
 
     # Prepare files
@@ -244,46 +239,11 @@ def test_default_can_read_and_can_write(tmp_path):
     assert not F.can_write(Request(filename1 + ".spam", "w?"))
 
 
-@deprecated_test
-def test_format_selection(test_images, tmp_path):
-
-    formats = imageio.formats
-    fname1 = test_images / "chelsea.png"
-    fname2 = tmp_path / "test.selectext1"
-    fname3 = tmp_path / "test.haha"
-    open(fname2, "wb")
-    open(fname3, "wb")
-
-    # Test searchinhg for read / write format
-    F = formats.search_read_format(Request(fname1, "ri"))
-    assert isinstance(F, type(formats["PNG"]))
-    F = formats.search_write_format(Request(fname1, "wi"))
-    assert isinstance(F, type(formats["PNG"]))
-
-    # Now with custom format
-    format = MyFormat("test_selection", "xx", "selectext1", "i")
-    formats.add_format(format)
-
-    # Select this format for files it said it could handle in extensions
-    assert ".selectext1" in str(fname2)
-    F = formats.search_read_format(Request(fname2, "ri"))
-    assert type(F) is type(format)
-    F = formats.search_write_format(Request(fname2, "ri"))
-    assert type(F) is type(format)
-
-    # But this custom format also can deal with .haha files
-    assert ".haha" in str(fname3)
-    F = formats.search_read_format(Request(fname3, "ri"))
-    assert type(F) is type(format)
-    F = formats.search_write_format(Request(fname3, "ri"))
-    assert type(F) is type(format)
-
-
 # Format manager
 
 
 @deprecated_test
-def test_format_manager(test_images):
+def test_format_manager(test_images, tmp_path):
     """Test working of the format manager"""
 
     formats = imageio.formats
@@ -306,7 +266,7 @@ def test_format_manager(test_images):
         # assert format.name in fulldocs
 
     fname = test_images / "chelsea.png"
-    fname2 = fname.with_suffix(".noext")
+    fname2 = tmp_path / "chelsea.noext"
     shutil.copy(fname, fname2)
 
     # Check getting
@@ -354,7 +314,6 @@ def test_format_manager(test_images):
 
 @deprecated_test
 def test_sorting_errors():
-
     with raises(TypeError):
         imageio.formats.sort(3)
     with raises(ValueError):
@@ -365,7 +324,6 @@ def test_sorting_errors():
 
 @deprecated_test
 def test_default_order():
-
     assert imageio.formats[".tiff"].name == "TIFF"
     assert imageio.formats[".png"].name == "PNG-PIL"
     assert imageio.formats[".pfm"].name == "PFM-FI"
@@ -373,7 +331,6 @@ def test_default_order():
 
 @deprecated_test
 def test_preferring_fi():
-
     # Prefer FI all the way
     imageio.formats.sort("-FI")
 
@@ -390,7 +347,6 @@ def test_preferring_fi():
 
 @deprecated_test
 def test_preferring_arbitrary():
-
     # Normally, these exotic formats are somewhere in the back
     imageio.formats.sort()
     names = [f.name for f in imageio.formats]
@@ -457,3 +413,11 @@ def test_missing_format(missing_ffmpeg):
 
     for format in imageio.formats:
         assert format.name != "FFMPEG"
+
+
+def test_touch_warnings(test_images, tmp_path):
+    with pytest.deprecated_call():
+        imageio.formats.search_read_format(Request(test_images / "chelsea.png", "r"))
+
+    with pytest.deprecated_call():
+        imageio.formats.search_write_format(Request(tmp_path / "chelsea.png", "w"))

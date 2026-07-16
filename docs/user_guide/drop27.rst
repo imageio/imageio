@@ -1,5 +1,5 @@
-Depreciating Python 2.7
-=======================
+Deprecating Python 2.7
+======================
 
 Python 2.7 is deprecated from 2020. For more information on the
 scientific Python ecosystem's transition to Python3 only, see the

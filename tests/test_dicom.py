@@ -1,5 +1,4 @@
-""" Test DICOM functionality.
-"""
+"""Test DICOM functionality."""
 
 from zipfile import ZipFile
 
@@ -56,7 +55,6 @@ def test_dcmtk():
 
 @deprecated_test
 def test_selection(test_images, tmp_path, examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     # Test that DICOM can examine file
@@ -100,7 +98,6 @@ def test_selection(test_images, tmp_path, examples):
 
 
 def test_progress(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     iio.imread(fname1, progress=True)
@@ -111,11 +108,9 @@ def test_progress(examples):
 
 
 def test_different_read_modes(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
-
         # Test imread()
         im = iio.imread(fname)
         assert isinstance(im, np.ndarray)
@@ -148,11 +143,9 @@ def test_different_read_modes(examples):
 
 
 def test_different_read_modes_with_readers(examples):
-
     dname1, dname2, fname1, fname2 = examples
 
     for fname, dname, n in [(fname1, dname1, 1), (fname2, dname2, 2)]:
-
         # Test imread()
         R = iio.read(fname, "DICOM", "i")
         assert len(R) == 1
@@ -197,3 +190,15 @@ def test_v3_reading(test_images):
     actual = iio3.imread(test_images / "dicom_file01.dcm")
 
     assert np.allclose(actual, expected)
+
+
+def test_contiguous_dicom_series(test_images, tmp_path):
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/1067
+    fname = test_images / "dicom_issue_1067.zip"
+    with ZipFile(fname) as zip_ref:
+        zip_ref.extractall(tmp_path)
+
+    dname = tmp_path / "modified_dicom_sample1"
+    ims = iio.volread(dname, "DICOM")
+    assert ims.shape == (25, 512, 512)

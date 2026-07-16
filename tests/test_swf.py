@@ -1,5 +1,4 @@
-""" Tests for the shockwave flash plugin
-"""
+"""Tests for the shockwave flash plugin"""
 
 import numpy as np
 
@@ -17,10 +16,9 @@ def mean(x):
 
 
 @deprecated_test
-def test_format_selection(test_images):
-
+def test_format_selection(test_images, tmp_path):
     fname1 = test_images / "stent.swf"
-    fname2 = fname1.with_suffix(".out.swf")
+    fname2 = tmp_path / "stent.out.swf"
 
     F = iio.formats["swf"]
     assert F.name == "SWF"
@@ -31,11 +29,10 @@ def test_format_selection(test_images):
 
 
 def test_reading_saving(test_images, tmp_path):
-
     fname1 = test_images / "stent.swf"
-    fname2 = fname1.with_suffix(".out.swf")
-    fname3 = fname1.with_suffix(".compressed.swf")
-    fname4 = fname1.with_suffix(".out2.swf")
+    fname2 = tmp_path / "stent.out.swf"
+    fname3 = tmp_path / "stent.compressed.swf"
+    fname4 = tmp_path / "stent.out2.swf"
 
     # Read
     R = iio.read(fname1)
@@ -130,7 +127,6 @@ def test_reading_saving(test_images, tmp_path):
 
 @pytest.mark.needs_internet
 def test_read_from_url():
-
     burl = "https://raw.githubusercontent.com/imageio/imageio-binaries/master/"
     url = burl + "images/stent.swf"
 
@@ -139,10 +135,8 @@ def test_read_from_url():
 
 
 @deprecated_test
-def test_invalid(test_images):
-
-    fname1 = test_images / "stent.swf"
-    fname2 = fname1.with_suffix(".invalid.swf")
+def test_invalid(test_images, tmp_path):
+    fname2 = tmp_path / "stent.invalid.swf"
 
     # Empty file
     with open(fname2, "wb"):
@@ -161,7 +155,6 @@ def test_invalid(test_images):
 
 @pytest.mark.needs_internet
 def test_lowlevel():
-
     # Some tests from low level implementation that is not covered
     # by using the plugin itself.
     _swf = imageio.plugins.swf.load_lib()
@@ -185,10 +178,8 @@ def test_lowlevel():
     )
 
 
-def test_types(test_images):
-
-    fname1 = test_images / "stent.swf"
-    fname2 = fname1.with_suffix(".out3.swf")
+def test_types(test_images, tmp_path):
+    fname2 = tmp_path / "stent.out3.swf"
 
     for dtype in [
         np.uint8,

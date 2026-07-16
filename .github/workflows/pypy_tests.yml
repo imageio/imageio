@@ -1,0 +1,31 @@
+name: PyPy Test Suite
+
+on:
+  workflow_call:
+
+jobs:
+  pypy:
+    name: "${{ matrix.os }} / pypy-3.11"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up pypy
+        uses: actions/setup-python@v5
+        with:
+          python-version: "pypy-3.11"
+      - name: MacOS Numpy Fix
+        if: runner.os == 'macOS'
+        run: |
+            brew install openblas
+            OPENBLAS="$(brew --prefix openblas)" pypy3 -m pip install numpy
+      - name: Install dependencies
+        shell: bash
+        run: |
+            pypy3 -m pip install .[test,all-plugins-pypy]
+      - name: Run Unit tests
+        run: |
+            pytest -v --github-username "anything" --github-token ${{ secrets.GITHUB_TOKEN }}

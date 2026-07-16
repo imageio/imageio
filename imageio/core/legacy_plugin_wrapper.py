@@ -90,7 +90,7 @@ class LegacyPlugin(PluginV3):
     def legacy_get_reader(self, **kwargs):
         """legacy_get_reader(**kwargs)
 
-        a utility method to provide support vor the V2.9 API
+        a utility method to provide support for the V2.9 API
 
         Parameters
         ----------
@@ -278,7 +278,7 @@ class LegacyPlugin(PluginV3):
             The index of the ndimage for which to return properties. If the
             index is out of bounds a ``ValueError`` is raised. If ``None``,
             return the properties for the ndimage stack. If this is impossible,
-            e.g., due to shape missmatch, an exception will be raised.
+            e.g., due to shape mismatch, an exception will be raised.
 
         Returns
         -------
@@ -291,12 +291,21 @@ class LegacyPlugin(PluginV3):
             index = _legacy_default_index(self._format)
 
         # for backwards compatibility ... actually reads pixel data :(
-        image = self.read(index=index)
+        if index is Ellipsis:
+            image = self.read(index=0)
+            n_images = self.legacy_get_reader().get_length()
+            return ImageProperties(
+                shape=(n_images, *image.shape),
+                dtype=image.dtype,
+                n_images=n_images,
+                is_batch=True,
+            )
 
+        image = self.read(index=index)
         return ImageProperties(
             shape=image.shape,
             dtype=image.dtype,
-            is_batch=True if index is None else False,
+            is_batch=False,
         )
 
     def get_meta(self, *, index=None):
