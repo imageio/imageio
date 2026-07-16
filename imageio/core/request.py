@@ -408,7 +408,9 @@ class Request(object):
             if is_read_request:
                 # Reading: check that the file exists (but is allowed a dir)
                 if not os.path.exists(fn):
-                    raise FileNotFoundError(errno.ENOENT, "No such file or directory", fn)
+                    raise FileNotFoundError(
+                        errno.ENOENT, "No such file or directory", fn
+                    )
             else:
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
