@@ -408,13 +408,13 @@ class Request(object):
             if is_read_request:
                 # Reading: check that the file exists (but is allowed a dir)
                 if not os.path.exists(fn):
-                    raise FileNotFoundError(errno.ENOENT, "No such file: '%s'" % fn, fn)
+                    raise FileNotFoundError(errno.ENOENT, "No such file or directory", fn)
             else:
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
                     raise FileNotFoundError(
-                        errno.ENOENT, "The directory %r does not exist" % dn, dn
+                        errno.ENOENT, "The directory does not exist", dn
                     )
 
     @property
