@@ -3,7 +3,7 @@ Installing imageio
 
 Imageio is written in pure Python, so installation is easy.
 Imageio works on Python 3.5+. It also works on Pypy.
-Imageio depends on Numpy and Pillow. For some formats, imageio needs
+Imageio depends on Numpy, Pillow, and Packaging. For some formats, imageio needs
 additional libraries/executables (e.g. ffmpeg), which imageio helps you
 to download/install.
 
