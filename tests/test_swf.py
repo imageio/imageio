@@ -1,5 +1,4 @@
-""" Tests for the shockwave flash plugin
-"""
+"""Tests for the shockwave flash plugin"""
 
 import numpy as np
 

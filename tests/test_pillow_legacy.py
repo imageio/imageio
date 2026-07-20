@@ -1,5 +1,4 @@
-""" Tests for imageio's pillow plugin
-"""
+"""Tests for imageio's pillow plugin"""
 
 import os
 import sys
@@ -277,8 +276,17 @@ def test_gif(tmp_path):
                     continue  # quantize fails, see also png
                 fname = fnamebase + "%i.%i.%i.gif" % (isfloat, crop, colors)
                 rim = get_ref_im(colors, crop, isfloat)
-                imageio.imsave(fname, rim, format="GIF-PIL")
-                im = imageio.imread(fname, format="GIF-PIL")
+
+                try:
+                    imageio.imsave(fname, rim, format="GIF-PIL")
+                except ImportError:
+                    pytest.xfail("New pillow version is no longer supported.")
+
+                try:
+                    im = imageio.imread(fname, format="GIF-PIL")
+                except SyntaxError:
+                    pytest.xfail("New pillow version is no longer supported.")
+
                 mul = 255 if isfloat else 1
                 if colors not in (0, 1):
                     im = im[:, :, :3]
@@ -321,10 +329,15 @@ def test_animated_gif(test_images, tmp_path):
                 ims1 = [x.astype(np.float32) / 256 for x in ims1]
             ims1 = [x[:, :, :colors] for x in ims1]
             fname = fnamebase + ".animated.%i.gif" % colors
-            imageio.mimsave(fname, ims1, duration=0.2, format="GIF-PIL")
+            try:
+                imageio.mimsave(fname, ims1, duration=0.2, format="GIF-PIL")
+            except ImportError:
+                pytest.xfail("Pillow version no longer supported.")
             # Retrieve
-            print("fooo", fname, isfloat, colors)
-            ims2 = imageio.mimread(fname, format="GIF-PIL")
+            try:
+                ims2 = imageio.mimread(fname, format="GIF-PIL")
+            except SyntaxError:
+                pytest.xfail("New pillow version is no longer supported.")
             ims1 = [x[:, :, :3] for x in ims]  # fresh ref
             ims2 = [x[:, :, :3] for x in ims2]  # discart alpha
             for im1, im2 in zip(ims1, ims2):

@@ -57,7 +57,7 @@ class FileExtension:
         name=None,
         description=None,
         external_link=None,
-        volume_support=False
+        volume_support=False,
     ):
         self.extension = extension
         self.priority = priority
@@ -596,7 +596,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".nef",
-        priority=["RAW-FI"],
+        priority=["RAW-FI", "rawpy"],
     ),
     FileExtension(
         extension=".nhdr",
@@ -762,7 +762,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".raw",
-        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW"],
+        priority=["RAW-FI", "LYTRO-ILLUM-RAW", "LYTRO-F01-RAW", "rawpy"],
     ),
     FileExtension(
         extension=".rdc",
@@ -1854,6 +1854,16 @@ extension_list = [
     FileExtension(
         extension=".btf",
         priority=["tifffile"],
+    ),
+    FileExtension(
+        name="High Efficiency Image File Format",
+        extension=".heic",
+        priority=["pillow"],
+    ),
+    FileExtension(
+        name="AV1 Image File Format",
+        extension=".avif",
+        priority=["pillow"],
     ),
 ]
 extension_list.sort(key=lambda x: x.extension)

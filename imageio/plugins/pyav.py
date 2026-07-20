@@ -51,15 +51,14 @@ below you can find a usage example::
 
     with iio.imopen("test.mp4", "w", plugin="pyav") as file:
         file.init_video_stream("libx264")
-        file.container_metadata["comment"] = "This video has a rotation flag."
-        file.video_stream_metadata["rotate"] = "90"
+        file.container_metadata["comment"] = "This video was created using ImageIO."
 
         for _ in range(5):
             for frame in iio.imiter("imageio:newtonscradle.gif"):
                 file.write_frame(frame)
 
     meta = iio.immeta("test.mp4", plugin="pyav")
-    assert meta["comment"] == "This video has a rotation flag."
+    assert meta["comment"] == "This video was created using ImageIO."
 
 
 
@@ -178,12 +177,12 @@ examples to better understand how to use them.
 
 from fractions import Fraction
 from math import ceil
-from typing import Any, Dict, List, Optional, Tuple, Union, Generator
-import warnings
+from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import av
 import av.filter
 import numpy as np
+from av.codec.context import Flags
 from numpy.lib.stride_tricks import as_strided
 
 from ..core import Request
@@ -260,6 +259,39 @@ def _get_frame_shape(frame: av.VideoFrame) -> Tuple[int, ...]:
     return tuple(shape)
 
 
+def _get_frame_type(picture_type: int) -> str:
+    """Return a human-readable name for provided picture type
+
+    Parameters
+    ----------
+    picture_type : int
+        The picture type extracted from Frame.pict_type
+
+    Returns
+    -------
+    picture_name : str
+        A human readable name of the picture type
+
+    """
+
+    if not isinstance(picture_type, int):
+        # old pyAV versions send an enum, not an int
+        return picture_type.name
+
+    picture_types = [
+        "NONE",
+        "I",
+        "P",
+        "B",
+        "S",
+        "SI",
+        "SP",
+        "BI",
+    ]
+
+    return picture_types[picture_type]
+
+
 class PyAVPlugin(PluginV3):
     """Support for pyAV as backend.
 
@@ -270,15 +302,15 @@ class PyAVPlugin(PluginV3):
         standard interface to access various the various ImageResources and
         serves them to the plugin as a file object (or file). Check the docs for
         details.
+    container : str
+        Only used during `iio_mode="w"`! If not None, overwrite the default container
+        format chosen by pyav.
+    kwargs : Any
+        Additional kwargs are forwarded to PyAV's constructor.
 
     """
 
-    def __init__(
-        self,
-        request: Request,
-        *,
-        container: str = None,
-    ) -> None:
+    def __init__(self, request: Request, *, container: str = None, **kwargs) -> None:
         """Initialize a new Plugin Instance.
 
         See Plugin's docstring for detailed documentation.
@@ -305,12 +337,12 @@ class PyAVPlugin(PluginV3):
                     # HTTP-based streams like DASH. Note that solving streams
                     # like this is temporary until the new request object gets
                     # implemented.
-                    self._container = av.open(request.raw_uri)
+                    self._container = av.open(request.raw_uri, **kwargs)
                 else:
-                    self._container = av.open(request.get_file())
+                    self._container = av.open(request.get_file(), **kwargs)
                 self._video_stream = self._container.streams.video[0]
                 self._decoder = self._container.decode(video=0)
-            except av.AVError:
+            except av.FFmpegError:
                 if isinstance(request.raw_uri, bytes):
                     msg = "PyAV does not support these `<bytes>`"
                 else:
@@ -332,7 +364,9 @@ class PyAVPlugin(PluginV3):
                 pass  # read-only, nothing we can do
 
             try:
-                self._container = av.open(file_handle, mode="w", format=container)
+                self._container = av.open(
+                    file_handle, mode="w", format=container, **kwargs
+                )
             except ValueError:
                 raise InitializationError(
                     f"PyAV can not write to `{self.request.raw_uri}`"
@@ -458,13 +492,16 @@ class PyAVPlugin(PluginV3):
 
             # reset stream container, because threading model can't change after
             # first access
-            self._video_stream.close()
             self._video_stream = self._container.streams.video[0]
 
             return frames
 
-        if thread_type is not None and thread_type != self._video_stream.thread_type:
+        if thread_type is not None and not (
+            self._video_stream.thread_type == thread_type
+            or self._video_stream.thread_type.name == thread_type
+        ):
             self._video_stream.thread_type = thread_type
+
         if (
             thread_count != 0
             and thread_count != self._video_stream.codec_context.thread_count
@@ -474,9 +511,12 @@ class PyAVPlugin(PluginV3):
             self._video_stream.codec_context.thread_count = thread_count
 
         if constant_framerate is None:
-            constant_framerate = not self._container.format.variable_fps
+            # "variable_fps" is now a flag (handle got removed). Full list at
+            # https://pyav.org/docs/stable/api/container.html#module-av.format
+            variable_fps = bool(self._container.format.flags & 0x400)
+            constant_framerate = not variable_fps
 
-        # note: cheap for contigous incremental reads
+        # note: cheap for contiguous incremental reads
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
         self._next_idx += 1
@@ -726,14 +766,6 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        av_version = tuple(int(x) for x in av.__version__.split("."))
-        if av_version == (10, 0, 0):
-            warnings.warn(
-                "PyAV 10.0.0 has known issues reading metadata."
-                " If you need video metadata consider using v9.2.0 instead.",
-                UserWarning,
-            )
-
         metadata = dict()
 
         if index is ...:
@@ -758,7 +790,10 @@ class PyAVPlugin(PluginV3):
             return metadata
 
         if constant_framerate is None:
-            constant_framerate = not self._container.format.variable_fps
+            # "variable_fps" is now a flag (handle got removed). Full list at
+            # https://pyav.org/docs/stable/api/container.html#module-av.format
+            variable_fps = bool(self._container.format.flags & 0x400)
+            constant_framerate = not variable_fps
 
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
@@ -770,13 +805,13 @@ class PyAVPlugin(PluginV3):
                 "key_frame": bool(desired_frame.key_frame),
                 "time": desired_frame.time,
                 "interlaced_frame": bool(desired_frame.interlaced_frame),
-                "frame_type": desired_frame.pict_type.name,
+                "frame_type": _get_frame_type(desired_frame.pict_type),
             }
         )
 
         # side data
         metadata.update(
-            {item.type.name: item.to_bytes() for item in desired_frame.side_data}
+            {item.type.name: bytes(item) for item in desired_frame.side_data}
         )
 
         return metadata
@@ -788,8 +823,12 @@ class PyAVPlugin(PluginV3):
         if is_write and self._video_stream is not None:
             self._flush_writer()
 
+        if self._video_stream is not None:
+            self._video_stream = None
+
         if self._container is not None:
             self._container.close()
+
         self.request.finish()
 
     def __enter__(self) -> "PyAVPlugin":
@@ -816,7 +855,7 @@ class PyAVPlugin(PluginV3):
         Parameters
         ----------
         codec : str
-            The codec to use, e.g. ``"x264"`` or ``"vp9"``.
+            The codec to use, e.g. ``"h264"`` or ``"vp9"``.
         fps : float
             The desired framerate of the video stream (frames per second).
         pixel_format : str
@@ -842,7 +881,9 @@ class PyAVPlugin(PluginV3):
         file-size (and thus I/O performance).
 
         """
-
+        # It may introduce `OverflowError` if `fps` is float
+        # which is a legacy issue of `pyav`: https://github.com/PyAV-Org/PyAV/issues/242
+        fps = Fraction.from_float(fps).limit_denominator(65535)
         stream = self._container.add_stream(codec, fps)
         stream.time_base = Fraction(1 / fps).limit_denominator(int(2**16 - 1))
         if pixel_format is not None:
@@ -850,7 +891,10 @@ class PyAVPlugin(PluginV3):
         if max_keyframe_interval is not None:
             stream.gop_size = max_keyframe_interval
         if force_keyframes is not None:
-            stream.closed_gop = force_keyframes
+            if force_keyframes:
+                stream.codec_context.flags |= Flags.closed_gop
+            else:
+                stream.codec_context.flags &= ~Flags.closed_gop
 
         self._video_stream = stream
 
@@ -918,7 +962,8 @@ class PyAVPlugin(PluginV3):
             plane_array[...] = frame
 
         stream = self._video_stream
-        av_frame.time_base = stream.codec_context.time_base
+        if stream.codec_context.time_base:
+            av_frame.time_base = stream.codec_context.time_base
         av_frame.pts = self.frames_written
         self.frames_written += 1
 
@@ -1105,7 +1150,7 @@ class PyAVPlugin(PluginV3):
             planes.append(np_plane)
 
         if len(planes) > 1:
-            # Note: the planes *should* exist inside a contigous memory block
+            # Note: the planes *should* exist inside a contiguous memory block
             # somewhere inside av.Frame however pyAV does not appear to expose this,
             # so we are forced to copy the planes individually instead of wrapping
             # them :(
@@ -1153,7 +1198,7 @@ class PyAVPlugin(PluginV3):
 
             index_pts = int(index * pts_delta)
 
-            # this only seeks to the closed (preceeding) keyframe
+            # this only seeks to the closest (preceding) keyframe
             self._container.seek(index_pts, stream=self._video_stream)
             self._decoder = self._container.decode(video=0)
 

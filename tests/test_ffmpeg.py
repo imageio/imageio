@@ -1,6 +1,4 @@
-""" Test ffmpeg
-
-"""
+"""Test ffmpeg"""
 
 import gc
 import os
@@ -11,16 +9,15 @@ import time
 import warnings
 from io import BytesIO
 from pathlib import Path
+import shutil
+import numpy as np
+import pytest
+from conftest import IS_PYPY, deprecated_test
 
 import imageio.plugins
 import imageio.v2 as iio
 import imageio.v3 as iio3
-import numpy as np
-import pytest
 from imageio import core
-from imageio.core import IS_PYPY
-
-from conftest import deprecated_test
 
 psutil = pytest.importorskip(
     "psutil", reason="ffmpeg support cannot be tested without psutil"
@@ -30,12 +27,22 @@ imageio_ffmpeg = pytest.importorskip(
     "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
 )
 
+try:
+    imageio_ffmpeg.get_ffmpeg_version()
+except RuntimeError:
+    pytest.skip("No compatible FFMPEG binary could be found.", allow_module_level=True)
+
 
 def get_ffmpeg_pids():
     pids = set()
     for p in psutil.process_iter():
-        if "ffmpeg" in p.name().lower():
-            pids.add(p.pid)
+        try:
+            if "ffmpeg" in p.name().lower():
+                pids.add(p.pid)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            # Process may die between being listed and being checked.
+            # If that happens, skip that process instead of crashing :)
+            pass
     return pids
 
 
@@ -383,7 +390,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (64, 64)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now check that macroblock size gets turned off if requested
     W = iio.get_writer(str(tmpf), macro_block_size=1, ffmpeg_log_level="warning")
@@ -393,7 +400,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (106, 100)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now double check values different than default work
     W = iio.get_writer(str(tmpf), macro_block_size=4, ffmpeg_log_level="warning")
@@ -403,7 +410,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     W = iio.get_reader(str(tmpf))
     assert W.count_frames() == nframes
     assert W._meta["size"] == (68, 64)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
     # Now check that the macroblock works as expected for the default of 16
     W = iio.get_writer(str(tmpf), ffmpeg_log_level="debug")
@@ -414,7 +421,7 @@ def test_writer_pixelformat_size_verbose(tmpdir):
     assert W.count_frames() == nframes
     # Check for warning message with macroblock
     assert W._meta["size"] == (144, 112)
-    assert "yuv420p" == W._meta["pix_fmt"]
+    assert W._meta["pix_fmt"] in ("yuv420p", "yuv420p(progressive)")
 
 
 def test_writer_ffmpeg_params(tmpdir):
@@ -554,9 +561,9 @@ def test_webcam_get_next_data():
     reader.close()
 
 
+@pytest.mark.skipif(IS_PYPY, reason="This test is flakey on Pypy.")
 def test_process_termination(test_images):
     pids0 = get_ffmpeg_pids()
-
     r1 = iio.get_reader(test_images / "cockatoo.mp4")
     r2 = iio.get_reader(test_images / "cockatoo.mp4")
 
@@ -567,6 +574,7 @@ def test_process_termination(test_images):
 
     assert len(get_ffmpeg_pids().difference(pids0)) == 0
 
+    pids0 = get_ffmpeg_pids()
     r1 = iio.get_reader(test_images / "cockatoo.mp4")
     r2 = iio.get_reader(test_images / "cockatoo.mp4")
 
@@ -673,6 +681,7 @@ def test_reverse_read(tmpdir):
     W.close()
 
 
+@pytest.mark.needs_internet
 def test_read_stream(test_images):
     """Test stream reading workaround"""
 
@@ -701,3 +710,11 @@ def test_h264_reading(test_images, tmp_path):
     iio3.imwrite(tmp_path / "cockatoo.h264", frames, plugin="FFMPEG")
 
     imageio.get_reader(tmp_path / "cockatoo.h264", "ffmpeg")
+
+
+def test_read_path_with_caret(test_images, tmp_path):
+    # regression test for
+    # https://github.com/imageio/imageio/issues/1133
+    shutil.copy(test_images / "cockatoo.mp4", tmp_path / "^cockatoo.mp4")
+    video = iio3.imopen(tmp_path / "^cockatoo.mp4", "r", plugin="FFMPEG")
+    assert video.metadata() is not None

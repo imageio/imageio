@@ -1,5 +1,4 @@
-""" Test tifffile plugin functionality.
-"""
+"""Test tifffile plugin functionality."""
 
 import datetime
 import io

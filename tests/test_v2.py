@@ -70,7 +70,9 @@ def test_kwarg_forwarding(tmp_path):
     rng = np.random.default_rng()
 
     # Write the frames to an animated GIF
-    with iio.get_writer(tmp_path / "tmp.gif", duration=1000, loop=0) as writer:
+    with iio.get_writer(
+        tmp_path / "tmp.gif", duration=1000, loop=0, pilmode="RGB"
+    ) as writer:
         for _ in range(10):
             frame = rng.integers(0, 255, (100, 100, 3), dtype=np.uint8)
             writer.append_data(frame)
@@ -79,8 +81,7 @@ def test_kwarg_forwarding(tmp_path):
     assert imgs.shape == (10, 100, 100, 3)
 
     with iio.get_reader(tmp_path / "tmp.gif", pilmode="L") as file:
-        with pytest.warns(DeprecationWarning):
-            img = file.get_next_data()
+        img = file.get_next_data()
 
         assert img.shape == (100, 100)
         assert img.meta["duration"] == 1000

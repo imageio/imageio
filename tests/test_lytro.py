@@ -1,5 +1,5 @@
-""" Test npz plugin functionality.
-"""
+"""Test npz plugin functionality."""
+
 from __future__ import division
 import numpy as np
 import json
@@ -8,7 +8,6 @@ import pytest
 import imageio.v2 as iio
 from imageio.core import Request
 from conftest import deprecated_test
-
 
 # Set file names for test images in imageio-binaries repo
 LFR_FILENAME = "Ankylosaurus_&_Stegosaurus.LFR"

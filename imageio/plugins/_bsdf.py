@@ -835,7 +835,7 @@ class Extension(object):
     e.g. the NDArrayExtension exposes the ndarray class only when numpy
     is imported.
 
-    A extension instance must have two attributes. These can be attribiutes of
+    A extension instance must have two attributes. These can be attributes of
     the class, or of the instance set in ``__init__()``:
 
     * name (str): the name by which encoded values will be identified.
@@ -901,7 +901,7 @@ class NDArrayExtension(Extension):
         except ImportError:  # pragma: no cover
             return v
         a = np.frombuffer(v["data"], dtype=v["dtype"])
-        a.shape = v["shape"]
+        a = a.reshape(v["shape"])
         return a
 
 

@@ -3,7 +3,7 @@
 
 # styletest: ignore E261
 
-""" Module imageio/freeimage.py
+"""Module imageio/freeimage.py
 
 This module contains the wrapper code for the freeimage library.
 The functions defined in this module are relatively thin; just thin
@@ -1057,13 +1057,13 @@ class FIBitmap(FIBaseBitmap):
                 array = numpy.frombuffer(bb, dtype=dtype).copy()
                 # Deal with strides
                 if len(shape) == 3:
-                    array.shape = shape[2], strides[-1] // shape[0], shape[0]
+                    array = array.reshape(shape[2], strides[-1] // shape[0], shape[0])
                     array2 = array[: shape[2], : shape[1], : shape[0]]
                     array = numpy.zeros(shape, dtype=array.dtype)
                     for i in range(shape[0]):
                         array[i] = array2[:, :, i].T
                 else:
-                    array.shape = shape[1], strides[-1]
+                    array = array.reshape(shape[1], strides[-1])
                     array = array[: shape[1], : shape[0]].T
                 return array
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read/Write images using pillow/PIL (legacy).
+"""Read/Write images using pillow/PIL (legacy).
 
 Backend Library: `Pillow <https://pillow.readthedocs.io/en/stable/>`_
 
@@ -14,7 +14,7 @@ in pillows official docs (see the Backend Library link).
 Parameters for Reading
 ----------------------
 pilmode : str
-    (Available for all formates except GIF-PIL)
+    (Available for all formats except GIF-PIL)
     From the Pillow documentation:
 
     * 'L' (8-bit pixels, grayscale)
@@ -35,7 +35,7 @@ pilmode : str
 
         L = R * 299/1000 + G * 587/1000 + B * 114/1000
 as_gray : bool
-    (Available for all formates except GIF-PIL)
+    (Available for all formats except GIF-PIL)
     If True, the image is converted using mode 'F'. When `mode` is
     not None and `as_gray` is True, the image is first converted
     according to `mode`, and the result is then "flattened" using
@@ -137,10 +137,8 @@ loop : int
     The number of iterations. Default 0 (meaning loop indefinitely).
 duration : {float, list}
     (Only available in GIF-PIL)
-    The duration (in seconds) of each frame. Either specify one value
+    The duration (in milliseconds) of each frame. Either specify one value
     that is used for all frames, or one value for each frame.
-    Note that in the GIF format the duration/delay is expressed in
-    hundredths of a second, which limits the precision of the duration.
 fps : float
     (Only available in GIF-PIL)
     The number of frames per second. If duration is not given, the
@@ -174,7 +172,6 @@ import numpy as np
 
 from ..core import Format, image_as_uint
 from ..core.request import URI_FILE, URI_BYTES
-
 
 logger = logging.getLogger(__name__)
 
@@ -338,7 +335,7 @@ class PillowFormat(Format):
                     self._seek(i)
             if self._im.palette and self._im.palette.dirty:
                 self._im.palette.rawmode_saved = self._im.palette.rawmode
-            self._im.getdata()[0]
+            self._im.load()
             im = pil_get_frame(self._im, **self._kwargs)
             return im, self._im.info
 
@@ -645,7 +642,7 @@ def save_pillow_close(im):
 def pil_try_read(im):
     try:
         # this will raise an IOError if the file is not readable
-        im.getdata()[0]
+        im.load()
     except IOError as e:
         site = "http://pillow.readthedocs.io/en/latest/installation.html"
         site += "#external-libraries"
@@ -693,7 +690,7 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         if mode != im.mode:
             frame = im.convert(mode)
     elif as_gray:
-        pass  # don't do any auto-conversions (but do the explit one above)
+        pass  # don't do any auto-conversions (but do the explicit one above)
     elif im.mode == "P" and is_gray:
         # Paletted images that are already gray by their palette
         # are converted so that the resulting numpy array is 2D.
@@ -708,14 +705,18 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
             # We can do this ourselves. Pillow seems to sometimes screw
             # this up if a  multi-gif has a palette for each frame ...
             # Create palette array
-            p = np.frombuffer(im.palette.getdata()[1], np.uint8)
+            if hasattr(im.palette, "tobytes"):
+                palette_bytes = im.palette.tobytes()
+            else:  # pragma: no cover
+                palette_bytes = im.palette.getdata()[1]
+            p = np.frombuffer(palette_bytes, np.uint8)
             # Restore the raw mode that was saved to be used to parse the palette
             if hasattr(im.palette, "rawmode_saved"):
                 im.palette.rawmode = im.palette.rawmode_saved
             mode = im.palette.rawmode if im.palette.rawmode else im.palette.mode
             nchannels = len(mode)
             # Shape it.
-            p.shape = -1, nchannels
+            p = p.reshape(-1, nchannels)
             if p.shape[1] == 3 or (p.shape[1] == 4 and mode[-1] == "X"):
                 p = np.column_stack((p[:, :3], 255 * np.ones(p.shape[0], p.dtype)))
             # Swap the axes if the mode is in BGR and not RGB
@@ -769,7 +770,7 @@ def pil_get_frame(im, is_gray=None, as_gray=None, mode=None, dtype=None):
         if "S" in im.mode:
             dtype = dtype.replace("u", "i")
         frame = np.frombuffer(frame.tobytes(), dtype).copy()
-        frame.shape = shape[::-1]
+        frame = frame.reshape(shape[::-1])
     else:
         # Use uint16 for PNG's in mode I
         if im.format == "PNG" and im.mode == "I" and dtype is None:

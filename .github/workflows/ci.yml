@@ -4,7 +4,7 @@ name: CI
 # performs the following checks:
 # 
 # - Linting/Style (Black)
-# - Invokes the unit tests in no-internet mode on python 3.8
+# - Invokes the unit tests in no-internet mode on python 3.12
 # - runs unit test on cypthon in matrix mode (python 3.X) x (3 major OS)
 # - runs unit tests on pypy in matrix mode (pypy 3.X) x (3 major OS)
 
@@ -16,7 +16,7 @@ on:
     branches: [ master ]
 
 concurrency:
-  group: ci-${{ github.ref }}-1
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -28,11 +28,11 @@ jobs:
     name: "Linting"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - uses: psf/black@22.12.0
+      - uses: psf/black@26.3.0
         with:
           args: ". --check"
       - name: Install Dependencies
@@ -49,15 +49,15 @@ jobs:
     name: "No-Internet Install"
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
       - name: Install Dependencies
         run: |
             # Build to force downloading images (but this step needs numpy and pillow)
-            pip install -q --upgrade numpy pillow
-            python setup.py sdist
+            pip install -q --upgrade numpy pillow build
+            python -m build
             pip install .[test,all-plugins]
             # Delete the local copy, so we're actually using the installed version
             rm -rf ./imageio ./build ./egg-info

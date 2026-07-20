@@ -5,7 +5,6 @@
 Various utilities for imageio
 """
 
-
 from collections import OrderedDict
 import numpy as np
 import os
@@ -14,7 +13,6 @@ import struct
 import sys
 import time
 import logging
-
 
 logger = logging.getLogger("imageio")
 
@@ -155,14 +153,16 @@ class Array(np.ndarray):
         else:
             self._copy_meta({})
 
-    def __array_wrap__(self, out, context=None):
+    def __array_wrap__(self, out, context=None, return_scalar=False):
         """So that we return a native numpy array (or scalar) when a
         reducting ufunc is applied (such as sum(), std(), etc.)
         """
-        if not out.shape:
+        if return_scalar or not out.shape:
             return out.dtype.type(out)  # Scalar
         elif out.shape != self.shape:
             return out.view(type=np.ndarray)
+        elif not isinstance(out, Array):
+            return Array(out, self.meta)
         else:
             return out  # Type Array
 
@@ -230,7 +230,7 @@ class Dict(OrderedDict):
 class BaseProgressIndicator(object):
     """BaseProgressIndicator(name)
 
-    A progress indicator helps display the progres of a task to the
+    A progress indicator helps display the progress of a task to the
     user. Progress can be pending, running, finished or failed.
 
     Each task has:
@@ -257,7 +257,7 @@ class BaseProgressIndicator(object):
         """start(action='', unit='', max=0)
 
         Start the progress. Optionally specify an action, a unit,
-        and a maxium progress value.
+        and a maximum progress value.
         """
         if self._status == 1:
             self.finish()
@@ -499,22 +499,9 @@ def resource_package_dir():
     This is a convenience method that is used by `resource_dirs` and
     imageio entry point scripts.
     """
-    # Make pkg_resources optional if setuptools is not available
-    try:
-        # Avoid importing pkg_resources in the top level due to how slow it is
-        # https://github.com/pypa/setuptools/issues/510
-        import pkg_resources
-    except ImportError:
-        pkg_resources = None
+    import importlib.resources
 
-    if pkg_resources:
-        # The directory returned by `pkg_resources.resource_filename`
-        # also works with eggs.
-        pdir = pkg_resources.resource_filename("imageio", "resources")
-    else:
-        # If setuptools is not available, use fallback
-        pdir = os.path.abspath(os.path.join(THIS_DIR, "..", "resources"))
-    return pdir
+    return str(importlib.resources.files("imageio") / "resources")
 
 
 def get_platform():
@@ -541,19 +528,10 @@ def get_platform():
 
 def has_module(module_name):
     """Check to see if a python module is available."""
-    if sys.version_info > (3, 4):
-        import importlib
+    import importlib
 
-        name_parts = module_name.split(".")
-        for i in range(len(name_parts)):
-            if importlib.util.find_spec(".".join(name_parts[: i + 1])) is None:
-                return False
-        return True
-    else:  # pragma: no cover
-        import imp
-
-        try:
-            imp.find_module(module_name)
-        except ImportError:
+    name_parts = module_name.split(".")
+    for i in range(len(name_parts)):
+        if importlib.util.find_spec(".".join(name_parts[: i + 1])) is None:
             return False
-        return True
+    return True

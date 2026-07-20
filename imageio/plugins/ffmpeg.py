@@ -26,8 +26,8 @@ webcams and USB cameras. It is based on ffmpeg and is inspired by/based `moviepy
 Parameters for reading
 ----------------------
 fps : scalar
-    The number of frames per second to read the data at. Default None (i.e.
-    read at the file's own fps). One can use this for files with a
+    The number of frames per second of the input stream. Default None (i.e.
+    read at the file's native fps). One can use this for files with a
     variable fps, or in cases where imageio is unable to correctly detect
     the fps. In case of trouble opening camera streams, it may help to set an
     explicit fps value matching a framerate supported by the camera.
@@ -79,7 +79,7 @@ bitrate : int | None
     Set a constant bitrate for the video encoding. Default is None causing
     'quality' parameter to be used instead.  Better quality videos with
     smaller file sizes will result from using the 'quality'  variable
-    bitrate parameter rather than specifiying a fixed bitrate with this
+    bitrate parameter rather than specifying a fixed bitrate with this
     parameter.
 pixelformat: str
     The output video pixel format. Default is 'yuv420p' which most widely
@@ -171,6 +171,11 @@ def get_exe():  # pragma: no cover
     """Wrapper for imageio_ffmpeg.get_ffmpeg_exe()"""
 
     return imageio_ffmpeg.get_ffmpeg_exe()
+
+
+def get_version():
+    """Return the version of imageio-ffmpeg in tuple."""
+    return tuple(map(int, imageio_ffmpeg.__version__.split(".")))
 
 
 class FfmpegFormat(Format):
@@ -299,8 +304,9 @@ class FfmpegFormat(Format):
                 self._filename = self._get_cam_inputname(index)
             else:
                 self._filename = self.request.get_local_filename()
-                # When passed to ffmpeg on command line, carets need to be escaped.
-                self._filename = self._filename.replace("^", "^^")
+                # When passed to imageio-ffmpeg (<0.4.2) on command line, carets need to be escaped.
+                if get_version() < (0, 4, 2):
+                    self._filename = self._filename.replace("^", "^^")
             # Determine pixel format and depth
             self._depth = 3
             if self._dtype.name == "uint8":

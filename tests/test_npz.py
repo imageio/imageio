@@ -1,5 +1,4 @@
-""" Test npz plugin functionality.
-"""
+"""Test npz plugin functionality."""
 
 import pytest
 

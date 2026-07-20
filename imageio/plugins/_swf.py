@@ -42,7 +42,6 @@ import logging
 
 import numpy as np
 
-
 logger = logging.getLogger(__name__)
 
 # todo: use Pillow to support reading JPEG images from SWF?
@@ -414,7 +413,7 @@ class DoActionTag(Tag):
             elif action == "play":  # pragma: no cover - not used
                 bb += "\x06".encode("ascii")
             else:  # pragma: no cover
-                logger.warning("unkown action: %s" % action)
+                logger.warning("unknown action: %s" % action)
 
         bb += int2uint8(0)
         self.bytes = bb
@@ -653,13 +652,13 @@ def read_pixels(bb, i, tagType, L1):
         if tagType == 20:
             # DefineBitsLossless - RGB data
             try:
-                a.shape = height, width, 3
+                a = a.reshape(height, width, 3)
             except Exception:
                 # Byte align stuff might cause troubles
                 logger.warning("Cannot read image due to byte alignment")
         if tagType == 36:
             # DefineBitsLossless2 - ARGB data
-            a.shape = height, width, 4
+            a = a.reshape(height, width, 4)
             # Swap alpha channel to make RGBA
             b = a
             a = np.zeros_like(a)

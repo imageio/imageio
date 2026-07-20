@@ -1,5 +1,4 @@
-""" Tests for imageio's pillow plugin
-"""
+"""Tests for imageio's pillow plugin"""
 
 import io
 import os
@@ -11,7 +10,9 @@ import pytest
 from imageio.core.request import InitializationError, Request
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
-from PIL import Image, ImageSequence  # type: ignore
+from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
+
+PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
 
 
 @pytest.mark.parametrize(
@@ -97,9 +98,7 @@ def test_png_quantization(test_images, tmp_path):
 
 
 def test_png_16bit(test_images, tmp_path):
-    # 16b bit images
     im = np.load(test_images / "chelsea.npy")[..., 0]
-
     iio.imwrite(
         tmp_path / "1.png",
         2 * im.astype(np.uint16),
@@ -115,15 +114,15 @@ def test_png_16bit(test_images, tmp_path):
     im2 = iio.imread(tmp_path / "2.png", plugin="pillow")
     assert im2.dtype == np.uint8
 
-    im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
-    assert im3.dtype == np.int32
+    if PILLOW_VERSION >= (10, 0, 0):
+        im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
+        assert im3.dtype == np.uint16
+    else:
+        # legacy behavior for pillow < v10.0.0
+        with pytest.warns(UserWarning):
+            im3 = iio.imread(tmp_path / "1.png", plugin="pillow")
 
-
-# Note: There was a test here referring to issue #352 and a `prefer_uint8`
-# argument that was introduced as a consequence This argument was default=true
-# (for backwards compatibility) in the legacy plugin with the recommendation to
-# set it to False. In the new API, we literally just wrap Pillow, so we match
-# their behavior. Consequentially this test was removed.
+        assert im3.dtype == np.int32
 
 
 @pytest.mark.needs_internet
@@ -189,7 +188,7 @@ def test_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -218,6 +217,52 @@ def test_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
+
+
+@pytest.mark.parametrize("orientation", [0, 9])
+def test_exif_invalid_orientation(test_images, tmp_path, orientation):
+    from PIL.Image import Exif  # type: ignore
+
+    im = np.load(test_images / "chelsea.npy")
+
+    exif_tag = Exif()
+    exif_tag[274] = orientation  # Set Orientation to 0, which is invalid
+
+    iio.imwrite(
+        tmp_path / "chelsea_tagged.png",
+        im,
+        plugin="pillow",
+        exif=exif_tag,
+    )
+
+    with iio.imopen(
+        tmp_path / "chelsea_tagged.png",
+        "r",
+        plugin="pillow",
+    ) as f:
+        im_reloaded = f.read()
+        im_meta = f.get_meta()
+
+    # ensure that the Exif tag is set in the file
+    assert "Orientation" in im_meta and im_meta["Orientation"] == orientation
+
+    im_reloaded = iio.imread(
+        tmp_path / "chelsea_tagged.png", plugin="pillow", rotate=True
+    )
+
+    assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_gif_rgb_vs_rgba(test_images):
@@ -253,14 +298,14 @@ def test_gif_gray(test_images, tmp_path):
     )
 
 
-def test_gif_fps_error(test_images, tmp_path):
+def test_gif_fps_warning(test_images, tmp_path):
     im = iio.imread(
         test_images / "newtonscradle.gif",
         plugin="pillow",
         mode="L",
     )
 
-    with pytest.raises(TypeError):
+    with pytest.warns(DeprecationWarning):
         iio.imwrite(
             tmp_path / "test.gif",
             im[..., 0],
@@ -353,6 +398,17 @@ def test_gif_list_write(test_images, tmp_path):
     assert im2.shape == (24, 30, 3)
 
 
+@pytest.mark.needs_internet
+def test_gif_first_p_frame():
+    # Bugfix: https://github.com/imageio/imageio/issues/1030
+    im = iio.imread(
+        "https://raw.githubusercontent.com/imageio/test_images/refs/heads/main/newtonscradle.gif",
+        plugin="pillow",
+        index=None,
+    )
+    assert im.shape == (36, 150, 200, 3)
+
+
 def test_legacy_exif_orientation(test_images, tmp_path):
     from PIL.Image import Exif
 
@@ -361,7 +417,7 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     # original image is has landscape format
     assert im.shape[0] < im.shape[1]
 
-    im_flipped = np.rot90(im, -1)
+    im_flipped = np.rot90(im, 1)
     exif_tag = Exif()
     exif_tag[274] = 6  # Set Orientation to 6
 
@@ -391,6 +447,12 @@ def test_legacy_exif_orientation(test_images, tmp_path):
     )
 
     assert np.array_equal(im, im_reloaded)
+
+    # apply the transform with Pillow's exif_transpose
+    with Image.open(tmp_path / "chelsea_tagged.png") as f:
+        im_pillow = np.asarray(ImageOps.exif_transpose(f))
+
+    assert np.array_equal(im, im_pillow)
 
 
 def test_incomatible_write_format(tmp_path):
@@ -681,3 +743,30 @@ def test_writable_output():
 
     frame = iio.imread(buffer, writeable_output=False, plugin="pillow")
     assert not frame.flags["WRITEABLE"]
+
+
+@pytest.mark.needs_internet
+def test_heif_remote():
+    pytest.importorskip("pillow_heif")
+    url = "http://github.com/tigranbs/test-heic-images/raw/master/image4.heic"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (476, 700, 4)
+
+
+@pytest.mark.needs_internet
+def test_avif_remote():
+    pytest.importorskip("pillow_heif")
+
+    url = "https://github.com/link-u/avif-sample-images/raw/master/fox.profile0.10bpc.yuv420.avif"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (800, 1204, 3)
+
+
+@pytest.mark.needs_internet
+def test_webp_remote():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/1065
+    # the image in the issue is actually a webp image
+    url = "https://github.com/python-pillow/Pillow/raw/main/Tests/images/hopper_orientation_2.webp"
+    im = iio.imread(url, plugin="pillow")
+    assert im.shape == (128, 128, 3)

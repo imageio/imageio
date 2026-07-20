@@ -30,7 +30,6 @@ images are converted to RGB, RGBA, or grayscale (where applicable) by default.
 
 """
 
-
 import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union

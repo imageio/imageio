@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # imageio is distributed under the terms of the (new) BSD License.
 
-""" Read SPE files.
+"""Read SPE files.
 
 This plugin supports reading files saved in the Princeton Instruments
 SPE file format.
@@ -57,7 +57,6 @@ import numpy as np
 
 from ..core.request import Request, IOMode, InitializationError
 from ..core.v3_plugin_api import PluginV3, ImageProperties
-
 
 logger = logging.getLogger(__name__)
 

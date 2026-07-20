@@ -6,6 +6,7 @@ Definition of the Request object, which acts as a kind of bridge between
 what the user wants and what the plugins can.
 """
 
+import errno
 import os
 from io import BytesIO
 import zipfile
@@ -52,12 +53,12 @@ class ImageMode(str, enum.Enum):
     ``Request.ImageMode`` and ``Request.IOMode``. The image mode that tells the
     plugin the desired (and expected) image shape. Available values are
 
-    - single_image ("i"): Return a single image extending in two spacial
+    - single_image ("i"): Return a single image extending in two spatial
       dimensions
-    - multi_image ("I"): Return a list of images extending in two spacial
+    - multi_image ("I"): Return a list of images extending in two spatial
       dimensions
     - single_volume ("v"): Return an image extending into multiple dimensions.
-      E.g. three spacial dimensions for image stacks, or two spatial and one
+      E.g. three spatial dimensions for image stacks, or two spatial and one
       time dimension for videos
     - multi_volume ("V"): Return a list of images extending into multiple
       dimensions.
@@ -162,7 +163,7 @@ RETURN_BYTES = "<bytes>"
 EXAMPLE_IMAGES = {
     "astronaut.png": "Image of the astronaut Eileen Collins",
     "camera.png": "A grayscale image of a photographer",
-    "checkerboard.png": "Black and white image of a chekerboard",
+    "checkerboard.png": "Black and white image of a checkerboard",
     "wood.jpg": "A (repeatable) texture of wooden planks",
     "bricks.jpg": "A (repeatable) texture of stone bricks",
     "clock.png": "Photo of a clock with motion blur (Stefan van der Walt)",
@@ -176,10 +177,13 @@ EXAMPLE_IMAGES = {
     "moon.png": "Image showing a portion of the surface of the moon",
     "page.png": "A scanned page of text",
     "text.png": "A photograph of handdrawn text",
+    "bacterial_colony.tif": "Multi-page TIFF image of a bacterial colony",
+    "calcium_imaging.tif": "Neuronal calcium imaging video",
     "chelsea.zip": "The chelsea.png in a zipfile (for testing)",
     "chelsea.bsdf": "The chelsea.png in a BSDF file(for testing)",
     "newtonscradle.gif": "Animated GIF of a newton's cradle",
     "cockatoo.mp4": "Video file of a cockatoo",
+    "cockatoo_yuv420.mp4": "Video file of a cockatoo with yuv420 pixel format",
     "stent.npz": "Volumetric image showing a stented abdominal aorta",
     "meadow_cube.jpg": "A cubemap image of a meadow, e.g. to render a skybox.",
 }
@@ -345,7 +349,7 @@ class Request(object):
 
         # Check if a zipfile
         if self._uri_type == URI_FILENAME:
-            # Search for zip extension followed by a path separater
+            # Search for zip extension followed by a path separator
             for needle in [".zip/", ".zip\\"]:
                 zip_i = self._filename.lower().find(needle)
                 if zip_i > 0:
@@ -404,12 +408,16 @@ class Request(object):
             if is_read_request:
                 # Reading: check that the file exists (but is allowed a dir)
                 if not os.path.exists(fn):
-                    raise FileNotFoundError("No such file: '%s'" % fn)
+                    raise FileNotFoundError(
+                        errno.ENOENT, "No such file or directory", fn
+                    )
             else:
                 # Writing: check that the directory to write to does exist
                 dn = os.path.dirname(fn)
                 if not os.path.exists(dn):
-                    raise FileNotFoundError("The directory %r does not exist" % dn)
+                    raise FileNotFoundError(
+                        errno.ENOENT, "The directory does not exist", dn
+                    )
 
     @property
     def filename(self):
@@ -529,7 +537,8 @@ class Request(object):
                 ext = self.extension
             else:
                 ext = os.path.splitext(self._filename)[1]
-            self._filename_local = tempfile.mktemp(ext, "imageio_")
+            fd, self._filename_local = tempfile.mkstemp(ext, "imageio_")
+            os.close(fd)
             # Write stuff to it?
             if self.mode.io_mode == IOMode.read:
                 with open(self._filename_local, "wb") as file:
@@ -695,6 +704,9 @@ class SeekableFileObject:
         self._i += len(res)
 
         return res
+
+    def readline(self):
+        yield from self._file.readline()
 
     def tell(self):
         return self._i

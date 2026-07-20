@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 
-""" Functionality used for testing. This code itself is not covered in tests.
-"""
+"""Functionality used for testing. This code itself is not covered in tests."""
 
 import os
 import sys

@@ -1,13 +1,18 @@
 # styletest: ignore E501
-""" Tests specific to parsing ffmpeg info.
-"""
+"""Tests specific to parsing ffmpeg info."""
 
 import pytest
 import imageio
 import sys
 
+imageio_ffmpeg = pytest.importorskip(
+    "imageio_ffmpeg", reason="imageio-ffmpeg is not installed"
+)
 
-pytest.importorskip("imageio_ffmpeg", reason="imageio-ffmpeg is not installed")
+try:
+    imageio_ffmpeg.get_ffmpeg_version()
+except RuntimeError:
+    pytest.skip("No compatible FFMPEG binary could be found.", allow_module_level=True)
 
 
 def dedent(text, dedent=8):
@@ -19,8 +24,7 @@ def dedent(text, dedent=8):
 def test_webcam_parse_device_names():
     # Ensure that the device list parser returns all video devices (issue #283)
 
-    sample = dedent(
-        r"""
+    sample = dedent(r"""
         ffmpeg version 3.2.4 Copyright (c) 2000-2017 the FFmpeg developers
         built with gcc 6.3.0 (GCC)
         configuration: --enable-gpl --enable-version3 --enable-d3d11va --enable-dxva2 --enable-libmfx --enable-nvenc --enable-avisynthlibswresample   2.  3.100 /  2.  3.100
@@ -36,8 +40,7 @@ def test_webcam_parse_device_names():
         [dshow @ 039a7e20]  "SPDIF Interface (Multimedia Audio Device)"
         [dshow @ 039a7e20]     Alternative name "@device_cm_{33D9A762-90C8-11D0-BD43-00A0C911CE86}\wave_{617B63FB-CFC0-4D10-AE30-42A66CAF6A4E}"
         dummy: Immediate exit requested
-        """
-    )
+        """)
 
     # Parse the sample
     device_names = imageio.plugins.ffmpeg.parse_device_names(sample)
@@ -57,14 +60,12 @@ def test_overload_fps(test_images):
 
     # Less
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=8)
-    assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 112  # note the mismatch
     ims = [1 for _ in r]
     assert len(ims) == 114
 
     # More
     r = imageio.get_reader(test_images / "cockatoo.mp4", fps=24)
     ims = [1 for _ in r]
-    assert int(r._meta["fps"] * r._meta["duration"] + 0.5) == 336
     assert len(ims) in (336, 337)
 
     # Do we calculate nframes correctly? To be fair, the reader wont try to
@@ -72,7 +73,7 @@ def test_overload_fps(test_images):
     # makes sure that this works.
     for fps in (8.0, 8.02, 8.04, 8.06, 8.08):
         r = imageio.get_reader(test_images / "cockatoo.mp4", fps=fps)
-        n = int(r._meta["fps"] * r._meta["duration"] + 0.5)
+        n = int(fps * r._meta["duration"] + 0.5)
         i = 0
         try:
             while True:

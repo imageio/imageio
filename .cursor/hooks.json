@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "hooks": {
+        "afterFileEdit": [
+            {
+                "command": ".cursor/hooks/blackify.sh"
+            }
+        ]
+    }
+}

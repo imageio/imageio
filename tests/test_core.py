@@ -1,5 +1,4 @@
-""" Test imageio core functionality.
-"""
+"""Test imageio core functionality."""
 
 import os
 import sys
@@ -444,8 +443,8 @@ def test_util_asarray():
     im1 = core.asarray([[1, 2, 3], [4, 5, 6]])
     im2 = im1.view(type=core.Image)
     im3 = core.asarray(im2)
-    assert type(im2) != np.ndarray
-    assert type(im3) == np.ndarray
+    assert type(im2) is not np.ndarray
+    assert type(im3) is np.ndarray
     if not IS_PYPY:
         for i in (1, 2, 3):
             im1[0, 0] = i
@@ -925,7 +924,7 @@ def test_faulty_legacy_mode_access():
 def test_mvolread_out_of_bytes(test_images):
     with pytest.raises(RuntimeError):
         iio.mvolread(
-            "https://github.com/imageio/imageio-binaries/blob/master/images/multipage_rgb.tif?raw=true",
+            test_images / "multipage_rgb.tif",
             memtest="1B",
         )
 
