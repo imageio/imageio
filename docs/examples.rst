@@ -212,21 +212,6 @@ pass ``raw=True`` for stored pixel values:
     meta = iio.immeta("scan.dcm", plugin="pydicom")
     iio.imwrite("out.dcm", img, plugin="pydicom", metadata={"Modality": "OT"})
 
-Legacy folder / series assembly still uses the deprecated ``plugin='DICOM'``
-until series support lands on pydicom:
-
-.. code-block:: python
-
-    import imageio.v3 as iio
-    dirname = 'path/to/dicom/files'
-
-    # Read multiple images of different shape
-    ims = [img for img in iio.imiter(dirname, plugin='DICOM')]
-    # Read as volume
-    vol = iio.imread(dirname, plugin='DICOM')
-    # Read multiple volumes of different shape
-    vols = [img for img in iio.imiter(dirname, plugin='DICOM')]
-
 
 Volume data
 -----------

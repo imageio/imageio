@@ -8,8 +8,8 @@ Backend Library: internal
 .. deprecated::
     The legacy ``DICOM`` plugin is deprecated and will be removed in a future
     ImageIO release. Prefer ``plugin='pydicom'`` for single-file DICOM I/O
-    (``pip install imageio[pydicom]``). Folder / series assembly is not yet
-    available on the pydicom plugin.
+    (``pip install imageio[pydicom]``). Reading a folder of DICOM files is
+    deprecated and will be removed without replacement.
 
 A format for reading DICOM images: a common format used to store
 medical image data, such as X-ray, CT and MRI.
@@ -51,8 +51,8 @@ from ..core import read_n_bytes
 warnings.warn(
     "The legacy `DICOM` plugin is deprecated and will be removed in a future "
     "ImageIO release. Prefer `plugin='pydicom'` for single-file DICOM "
-    "(install via `pip install imageio[pydicom]`). Folder / series assembly "
-    "is not yet supported by the pydicom plugin.",
+    "(install via `pip install imageio[pydicom]`). Reading a folder of DICOM "
+    "files is deprecated and will be removed without replacement.",
     DeprecationWarning,
     stacklevel=2,
 )
