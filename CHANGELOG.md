@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.37.4 (2026-07-20)
+
+### Bug
+
+- Set filename parameter of FileNotFoundError exception
+  ([#922](https://github.com/imageio/imageio/pull/922),
+  [`28c2401`](https://github.com/imageio/imageio/commit/28c2401839738d39e28e3d7e5b584c6fbe143a2a))
+
+### Doc
+
+- Fix typos in docstrings and comments ([#1193](https://github.com/imageio/imageio/pull/1193),
+  [`eae520f`](https://github.com/imageio/imageio/commit/eae520f8a7469dd681fbee77eeee3d3139d1721b))
+
+### Maint
+
+- Bump aiohttp from 3.13.3 to 3.13.4 ([#1178](https://github.com/imageio/imageio/pull/1178),
+  [`7853240`](https://github.com/imageio/imageio/commit/7853240312fdfa992aa8f9ec6814e282f27460c9))
+
+- Bump aiohttp from 3.13.4 to 3.14.1 ([#1191](https://github.com/imageio/imageio/pull/1191),
+  [`30c3559`](https://github.com/imageio/imageio/commit/30c35592dc8836a44e9733a214838fa1530adb07))
+
+- Bump black from 26.3.0 to 26.3.1 ([#1173](https://github.com/imageio/imageio/pull/1173),
+  [`a1b083f`](https://github.com/imageio/imageio/commit/a1b083f20d3ed293e9b8609e7ee9b7bd5b09150e))
+
+- Bump gdal from 3.12.2 to 3.13.1 ([#1192](https://github.com/imageio/imageio/pull/1192),
+  [`45fb694`](https://github.com/imageio/imageio/commit/45fb6942de4035fc379068e1785915267c2e746c))
+
+- Bump idna from 3.11 to 3.15 ([#1189](https://github.com/imageio/imageio/pull/1189),
+  [`35eefdf`](https://github.com/imageio/imageio/commit/35eefdfb2a1b78bab887d9e7b34f26d1173e78a2))
+
+- Bump pygments from 2.19.2 to 2.20.0 ([#1177](https://github.com/imageio/imageio/pull/1177),
+  [`ff0c95b`](https://github.com/imageio/imageio/commit/ff0c95bf07a9c50c14bf7ac62a95b465ff7b2ab8))
+
+- Bump requests from 2.32.5 to 2.33.0 ([#1176](https://github.com/imageio/imageio/pull/1176),
+  [`8f78220`](https://github.com/imageio/imageio/commit/8f78220f0e97ddcffbb9c6b0d2ba9612503b81d2))
+
+- Bump soupsieve from 2.8.3 to 2.8.4 ([#1195](https://github.com/imageio/imageio/pull/1195),
+  [`e032eea`](https://github.com/imageio/imageio/commit/e032eea65b93801aca1cacad668fcc0f6ffaa93d))
+
+- Bump urllib3 from 2.6.3 to 2.7.0 ([#1184](https://github.com/imageio/imageio/pull/1184),
+  [`5aef494`](https://github.com/imageio/imageio/commit/5aef4946ed991ee6f293c74391a582dadfd78640))
+
+- Set readme content-type in project metadata
+  ([#1165](https://github.com/imageio/imageio/pull/1165),
+  [`9929abb`](https://github.com/imageio/imageio/commit/9929abb19399080f0fe766f705823fe8d79dd980))
+
+### Test
+
+- Update CI to support new dependency versions
+  ([#1196](https://github.com/imageio/imageio/pull/1196),
+  [`dfdc909`](https://github.com/imageio/imageio/commit/dfdc909c225662784c7c9469232bbe46ea983501))
+
+
 ## v2.37.3 (2026-03-09)
 
 ### Bug

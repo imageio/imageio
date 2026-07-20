@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ImageIO"
-version = "2.37.3"
+version = "2.37.4"
 authors = [
     {name = "ImageIO contributors"}
 ]
