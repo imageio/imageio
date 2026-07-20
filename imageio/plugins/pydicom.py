@@ -9,8 +9,8 @@
 
 Backend Library: `pydicom <https://pydicom.github.io/pydicom/>`_
 
-This plugin reads and writes DICOM files using pydicom. It operates in 
-individual files, meaning while it supports multi-frame files natively, it does 
+This plugin reads and writes DICOM files using pydicom. It operates in
+individual files, meaning while it supports multi-frame files natively, it does
 **not** assemble data across files in a directory.
 
 
@@ -124,9 +124,9 @@ DICOM images. Supported palettes are either **dense** or **linear**:
 - A **linear** palette maps each pixel index via piecewise-linear
   interpolation between the provided ``colors`` at the provided ``indices``.
 
-Dense color maps use the ordinary LookupTableData tags, linear maps use 
-SegmentedLookupTableData tags. Please ensure your reader supports these. Optional 
-alpha is supported as a 4th LUT channel. Pixel frames must be **index** arrays 
+Dense color maps use the ordinary LookupTableData tags, linear maps use
+SegmentedLookupTableData tags. Please ensure your reader supports these. Optional
+alpha is supported as a 4th LUT channel. Pixel frames must be **index** arrays
 into the LUT (not already-colored RGB).
 
 When using a LUT, do **not** set ``BitsStored`` in ``instance_metadata``.
@@ -166,7 +166,7 @@ Pixel reconstruction
 --------------------
 
 By default ``read`` / ``iter`` / ``imread`` / ``imiter`` reconstruct the image.
-This means any LUT (lookup table), grayscale correction, or ROI (region of 
+This means any LUT (lookup table), grayscale correction, or ROI (region of
 interest) windowing is applied before the image is returned.
 
 Pass ``raw=True`` to skip that pipeline and get stored values
@@ -175,7 +175,7 @@ Pass ``raw=True`` to skip that pipeline and get stored values
 
 Notes
 -----
-Be aware that ``.write()`` on ``"<bytes>"`` needs to flush immediately so 
+Be aware that ``.write()`` on ``"<bytes>"`` needs to flush immediately so
 ``imwrite`` can return encoded bytes. This may cause surprising behavior when used
 inside an explicit ``imopen`` context.
 
@@ -195,6 +195,7 @@ except ImportError as exc:  # pragma: no cover
 from ..core.request import URI_BYTES, InitializationError, IOMode, Request
 from ..core.v3_plugin_api import ImageProperties, PluginV3
 from ..typing import ArrayLike
+
 
 def _as_python(value: Any) -> Any:
     if isinstance(value, pdcm.Dataset):
@@ -232,11 +233,7 @@ def _dict_to_dataset(data: Dict[str, Any]) -> pdcm.Dataset:
 def _set_dataset_value(ds: pdcm.Dataset, key: str, value: Any) -> None:
     if isinstance(value, dict):
         setattr(ds, key, _dict_to_dataset(value))
-    elif (
-        isinstance(value, list)
-        and value
-        and all(isinstance(v, dict) for v in value)
-    ):
+    elif isinstance(value, list) and value and all(isinstance(v, dict) for v in value):
         setattr(ds, key, pdcm.sequence.Sequence([_dict_to_dataset(v) for v in value]))
     else:
         setattr(ds, key, value)
@@ -292,9 +289,7 @@ class PydicomPlugin(PluginV3):
 
         if request.mode.io_mode == IOMode.read:
             try:
-                self._dataset = pdcm.dcmread(
-                    request.get_file(), **self._dcmread_kwargs
-                )
+                self._dataset = pdcm.dcmread(request.get_file(), **self._dcmread_kwargs)
             except pdcm.errors.InvalidDicomError as exc:
                 raise InitializationError(
                     "pydicom cannot read this file as DICOM."
@@ -442,15 +437,21 @@ class PydicomPlugin(PluginV3):
         elif not raw and getattr(self._dataset, "VOILUTSequence", None) is not None:
             bits = int(self._dataset.VOILUTSequence[0].LUTDescriptor[2])
             dtype = np.dtype(np.uint8 if bits <= 8 else np.uint16)
-        elif not raw and hasattr(self._dataset, "WindowCenter") and hasattr(
-            self._dataset, "WindowWidth"
+        elif (
+            not raw
+            and hasattr(self._dataset, "WindowCenter")
+            and hasattr(self._dataset, "WindowWidth")
         ):
             dtype = np.dtype(np.float64)
-        elif not raw and getattr(self._dataset, "ModalityLUTSequence", None) is not None:
+        elif (
+            not raw and getattr(self._dataset, "ModalityLUTSequence", None) is not None
+        ):
             bits = int(self._dataset.ModalityLUTSequence[0].LUTDescriptor[2])
             dtype = np.dtype(np.uint8 if bits <= 8 else np.uint16)
-        elif not raw and hasattr(self._dataset, "RescaleSlope") and hasattr(
-            self._dataset, "RescaleIntercept"
+        elif (
+            not raw
+            and hasattr(self._dataset, "RescaleSlope")
+            and hasattr(self._dataset, "RescaleIntercept")
         ):
             dtype = np.dtype(np.float64)
         elif is_signed is None and bits_allocated == 32:
@@ -483,9 +484,7 @@ class PydicomPlugin(PluginV3):
         if pixel_spacing is not None:
             row_sp = float(pixel_spacing[0])
             col_sp = float(pixel_spacing[1])
-        spacing_between_slices = getattr(
-            self._dataset, "SpacingBetweenSlices", None
-        )
+        spacing_between_slices = getattr(self._dataset, "SpacingBetweenSlices", None)
         if spacing_between_slices is not None:
             slice_sp = float(spacing_between_slices)
 
@@ -499,9 +498,7 @@ class PydicomPlugin(PluginV3):
                 if pixel_spacing is not None:
                     row_sp = float(pixel_spacing[0])
                     col_sp = float(pixel_spacing[1])
-                spacing_between_slices = getattr(
-                    measures, "SpacingBetweenSlices", None
-                )
+                spacing_between_slices = getattr(measures, "SpacingBetweenSlices", None)
                 if spacing_between_slices is not None:
                     slice_sp = float(spacing_between_slices)
 
@@ -627,9 +624,7 @@ class PydicomPlugin(PluginV3):
 
         # 3. Per-frame functional group macros for a concrete frame index
         if isinstance(index, int):
-            per_seq = getattr(
-                self._dataset, "PerFrameFunctionalGroupsSequence", None
-            )
+            per_seq = getattr(self._dataset, "PerFrameFunctionalGroupsSequence", None)
             if per_seq is not None:
                 meta.update(_dataset_to_dict(per_seq[index], omit_keys=omit_applied))
 
@@ -690,8 +685,7 @@ class PydicomPlugin(PluginV3):
 
     @property
     def instance_metadata(self) -> _TagMap:
-        """Instance-level (global) metadata of the file.
-        """
+        """Instance-level (global) metadata of the file."""
         return _TagMap(lambda: self._dataset)
 
     @instance_metadata.setter
@@ -711,7 +705,9 @@ class PydicomPlugin(PluginV3):
             if not hasattr(self._dataset, "SharedFunctionalGroupsSequence") or not len(
                 self._dataset.SharedFunctionalGroupsSequence
             ):
-                self._dataset.SharedFunctionalGroupsSequence = pdcm.sequence.Sequence([pdcm.Dataset()])
+                self._dataset.SharedFunctionalGroupsSequence = pdcm.sequence.Sequence(
+                    [pdcm.Dataset()]
+                )
             return self._dataset.SharedFunctionalGroupsSequence[0]
 
         return _TagMap(get_item)
@@ -781,9 +777,7 @@ class PydicomPlugin(PluginV3):
         self._frames.append(np.asarray(frame))
         self._frame_metadata.append(dict(metadata) if metadata else None)
 
-    def lut_dense(
-        self, colormap: ArrayLike, first_mapped: int = 0
-    ) -> None:
+    def lut_dense(self, colormap: ArrayLike, first_mapped: int = 0) -> None:
         """Set the given colormap as the image's LUT.
 
         Parameters
@@ -797,7 +791,7 @@ class PydicomPlugin(PluginV3):
         cmap = np.asarray(colormap, order="F")
         bits = 8 * cmap.dtype.itemsize
         n_entries = 0 if cmap.shape[0] == 65536 else cmap.shape[0]
-        
+
         for name in (
             "RedPaletteColorLookupTableDescriptor",
             "GreenPaletteColorLookupTableDescriptor",
@@ -814,7 +808,7 @@ class PydicomPlugin(PluginV3):
         ):
             if name in self._dataset:
                 delattr(self._dataset, name)
-        
+
         descriptor = [n_entries, first_mapped, bits]
         channels = ("Red", "Green", "Blue", "Alpha")[: cmap.shape[1]]
         for i, channel in enumerate(channels):
@@ -839,16 +833,16 @@ class PydicomPlugin(PluginV3):
         """Set a piecewise linear gradient as the image's LUT.
 
         Builds a gradient LUT using DICOM's segmented palette tags.
-        This allows more efficient storage of a gradient palette. The 
-        palette is defined by a sequence of knot points at different 
-        pixel intensities. 
+        This allows more efficient storage of a gradient palette. The
+        palette is defined by a sequence of knot points at different
+        pixel intensities.
 
         Parameters
         ----------
         colors : ArrayLike
             Knot colors as a 2D array of shape (K, 3) or (K, 4).
         indices : ArrayLike
-            0-based indicies of pixel intensities where each knot is 
+            0-based indicies of pixel intensities where each knot is
             located. Assumed to be strictly increasing.
         first_mapped : int
             Offset subtracted from stored pixel values before indexing
@@ -912,9 +906,9 @@ class PydicomPlugin(PluginV3):
             return
 
         is_planar = int(getattr(self._dataset, "PlanarConfiguration", 0)) == 1
-        has_palette = hasattr(self._dataset, "RedPaletteColorLookupTableData") or hasattr(
-            self._dataset, "SegmentedRedPaletteColorLookupTableData"
-        )
+        has_palette = hasattr(
+            self._dataset, "RedPaletteColorLookupTableData"
+        ) or hasattr(self._dataset, "SegmentedRedPaletteColorLookupTableData")
         arr = (
             self._frames[0]
             if len(self._frames) == 1
@@ -959,7 +953,9 @@ class PydicomPlugin(PluginV3):
                 raw += b"\x00"
             self._dataset.PixelData = raw
             self._dataset["PixelData"].VR = (
-                pdcm.valuerep.VR.OB if self._dataset.BitsAllocated <= 8 else pdcm.valuerep.VR.OW
+                pdcm.valuerep.VR.OB
+                if self._dataset.BitsAllocated <= 8
+                else pdcm.valuerep.VR.OW
             )
             if not hasattr(self._dataset, "file_meta"):
                 self._dataset.file_meta = pdcm.dataset.FileMetaDataset()
@@ -976,7 +972,9 @@ class PydicomPlugin(PluginV3):
         # write per-frame (local) metadata
         if any(m is not None for m in self._frame_metadata):
             items = [_dict_to_dataset(meta or {}) for meta in self._frame_metadata]
-            self._dataset.PerFrameFunctionalGroupsSequence = pdcm.sequence.Sequence(items)
+            self._dataset.PerFrameFunctionalGroupsSequence = pdcm.sequence.Sequence(
+                items
+            )
 
         # apply pixel compression
         try:

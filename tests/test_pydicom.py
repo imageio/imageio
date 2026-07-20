@@ -9,7 +9,6 @@ import imageio.v3 as iio
 from pydicom.pixels import apply_color_lut, apply_rescale, apply_voi_lut, pixel_array
 from pydicom.uid import ExplicitVRLittleEndian, RLELossless
 
-
 PLUGIN = "pydicom"
 
 
@@ -133,9 +132,7 @@ def test_properties_float_pixel_data(tmp_path):
 
 def test_properties_palette_shape(tmp_path):
     idx = np.array([[0, 1], [2, 3]], dtype=np.uint8)
-    cmap = np.array(
-        [[0, 0, 0], [255, 0, 0], [0, 255, 0], [0, 0, 255]], dtype=np.uint8
-    )
+    cmap = np.array([[0, 0, 0], [255, 0, 0], [0, 255, 0], [0, 0, 255]], dtype=np.uint8)
     path = tmp_path / "pal_props.dcm"
     with iio.imopen(path, "w", plugin=PLUGIN) as f:
         f.lut_dense(cmap)
@@ -245,8 +242,12 @@ def test_write_frame_and_fg(tmp_path):
         f.shared_frame_metadata = {
             "PixelMeasuresSequence": [{"PixelSpacing": [1.0, 1.0]}]
         }
-        f.write_frame(frame, metadata={"FrameContentSequence": [{"FrameAcquisitionNumber": 1}]})
-        f.write_frame(frame, metadata={"FrameContentSequence": [{"FrameAcquisitionNumber": 2}]})
+        f.write_frame(
+            frame, metadata={"FrameContentSequence": [{"FrameAcquisitionNumber": 1}]}
+        )
+        f.write_frame(
+            frame, metadata={"FrameContentSequence": [{"FrameAcquisitionNumber": 2}]}
+        )
     meta = iio.immeta(path, plugin=PLUGIN)
     assert meta.get("PatientName") in ("Anonymous", "Anonymous^")
     frame_meta = iio.immeta(path, index=1, plugin=PLUGIN)
@@ -256,9 +257,7 @@ def test_write_frame_and_fg(tmp_path):
 
 def test_lut_dense(tmp_path):
     idx = np.array([[0, 1], [2, 3]], dtype=np.uint8)
-    cmap = np.array(
-        [[0, 0, 0], [255, 0, 0], [0, 255, 0], [0, 0, 255]], dtype=np.uint8
-    )
+    cmap = np.array([[0, 0, 0], [255, 0, 0], [0, 255, 0], [0, 0, 255]], dtype=np.uint8)
     path = tmp_path / "pal_dense.dcm"
     with iio.imopen(path, "w", plugin=PLUGIN) as f:
         f.lut_dense(cmap)
@@ -296,8 +295,6 @@ def test_lut_helpers_replace(tmp_path):
     ds = pydicom.dcmread(str(path))
     assert hasattr(ds, "SegmentedRedPaletteColorLookupTableData")
     assert not hasattr(ds, "RedPaletteColorLookupTableData")
-
-
 
 
 def test_imwrite_uncompressed(tmp_path):
