@@ -5,6 +5,12 @@
 
 Backend Library: internal
 
+.. deprecated::
+    The legacy ``DICOM`` plugin is deprecated and will be removed in a future
+    ImageIO release. Prefer ``plugin='pydicom'`` for single-file DICOM I/O
+    (``pip install imageio[pydicom]``). Folder / series assembly is not yet
+    available on the pydicom plugin.
+
 A format for reading DICOM images: a common format used to store
 medical image data, such as X-ray, CT and MRI.
 
@@ -33,21 +39,23 @@ progress : {True, False, BaseProgressIndicator}
 
 """
 
-# todo: Use pydicom:
-# * Note: is not py3k ready yet
-# * Allow reading the full meta info
-# I think we can more or less replace the SimpleDicomReader with a
-# pydicom.Dataset For series, only ned to read the full info from one
-# file: speed still high
-# * Perhaps allow writing?
-
 import os
 import sys
 import logging
 import subprocess
+import warnings
 
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from ..core import read_n_bytes
+
+warnings.warn(
+    "The legacy `DICOM` plugin is deprecated and will be removed in a future "
+    "ImageIO release. Prefer `plugin='pydicom'` for single-file DICOM "
+    "(install via `pip install imageio[pydicom]`). Folder / series assembly "
+    "is not yet supported by the pydicom plugin.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 _dicom = None  # lazily loaded in load_lib()
 

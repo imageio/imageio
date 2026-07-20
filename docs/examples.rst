@@ -212,7 +212,8 @@ pass ``raw=True`` for stored pixel values:
     meta = iio.immeta("scan.dcm", plugin="pydicom")
     iio.imwrite("out.dcm", img, plugin="pydicom", metadata={"Modality": "OT"})
 
-Legacy folder / series assembly still uses ``plugin='DICOM'``:
+Legacy folder / series assembly still uses the deprecated ``plugin='DICOM'``
+until series support lands on pydicom:
 
 .. code-block:: python
 

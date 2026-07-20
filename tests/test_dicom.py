@@ -1,6 +1,7 @@
 """Test DICOM functionality."""
 
 from zipfile import ZipFile
+import warnings
 
 import numpy as np
 
@@ -9,8 +10,15 @@ import pytest
 import imageio.v2 as iio
 import imageio.v3 as iio3
 from imageio import core
-import imageio.plugins.dicom
 from conftest import deprecated_test
+
+pytestmark = pytest.mark.filterwarnings(
+    "ignore:The legacy `DICOM` plugin is deprecated:DeprecationWarning"
+)
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", DeprecationWarning)
+    import imageio.plugins.dicom
 
 
 @pytest.fixture(scope="module")
