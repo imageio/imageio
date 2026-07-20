@@ -84,6 +84,7 @@ support.
 
     imageio.plugins.bsdf
     imageio.plugins.dicom
+    imageio.plugins.pydicom
     imageio.plugins.feisem
     imageio.plugins.ffmpeg
     imageio.plugins.fits

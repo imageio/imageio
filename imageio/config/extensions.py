@@ -158,7 +158,7 @@ extension_list = [
     FileExtension(
         name="Computerized Tomography",
         extension=".ct",
-        priority=["DICOM"],
+        priority=["DICOM", "pydicom"],
     ),
     FileExtension(
         name="Windows Cursor Icons",
@@ -177,7 +177,7 @@ extension_list = [
     FileExtension(
         name="DICOM file format",
         extension=".dcm",
-        priority=["DICOM", "ITK"],
+        priority=["DICOM", "pydicom", "ITK"],
     ),
     FileExtension(
         extension=".dcr",
@@ -201,7 +201,7 @@ extension_list = [
     FileExtension(
         name="DICOM file format",
         extension=".dicom",
-        priority=["ITK"],
+        priority=["ITK", "pydicom"],
     ),
     FileExtension(
         extension=".dng",
@@ -302,7 +302,7 @@ extension_list = [
     FileExtension(
         name="Grassroots DICOM",
         extension=".gdcm",
-        priority=["ITK"],
+        priority=["ITK", "pydicom"],
     ),
     FileExtension(
         name="Graphics Interchange Format",
@@ -583,7 +583,7 @@ extension_list = [
     FileExtension(
         name="Magnetic resonance imaging",
         extension=".mri",
-        priority=["DICOM"],
+        priority=["DICOM", "pydicom"],
     ),
     FileExtension(
         extension=".mrw",
