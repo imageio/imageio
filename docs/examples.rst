@@ -199,17 +199,18 @@ Re-encode a (large) video
 Read medical data (DICOM)
 -------------------------
 
+Single-file instances with the pydicom plugin (``pip install imageio[pydicom]``).
+By default ``imread`` applies modality rescale / VOI windowing (or a palette LUT);
+pass ``raw=True`` for stored pixel values:
+
 .. code-block:: python
 
     import imageio.v3 as iio
-    dirname = 'path/to/dicom/files'
 
-    # Read multiple images of different shape
-    ims = [img for img in iio.imiter(dirname, plugin='DICOM')]
-    # Read as volume
-    vol = iio.imread(dirname, plugin='DICOM')
-    # Read multiple volumes of different shape
-    vols = [img for img in iio.imiter(dirname, plugin='DICOM')]
+    img = iio.imread("scan.dcm", plugin="pydicom")
+    stored = iio.imread("scan.dcm", plugin="pydicom", raw=True)
+    meta = iio.immeta("scan.dcm", plugin="pydicom")
+    iio.imwrite("out.dcm", img, plugin="pydicom", metadata={"Modality": "OT"})
 
 
 Volume data

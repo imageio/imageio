@@ -80,6 +80,7 @@ lytro = []
 numpy = []
 pillow-heif = ["pillow-heif"]
 pillow = []
+pydicom = ["pydicom"]
 simpleitk = []
 spe = []
 swf = []
@@ -115,6 +116,7 @@ all-plugins = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "rawpy",
     "tifffile",
 ]
@@ -135,6 +137,7 @@ full = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "pydata-sphinx-theme",
     "pytest",
     "pytest-cov",

@@ -837,7 +837,7 @@ wheels = [
 
 [[package]]
 name = "imageio"
-version = "2.37.3"
+version = "2.37.4"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -856,6 +856,7 @@ all-plugins = [
     { name = "numpy", version = "2.4.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pillow-heif" },
     { name = "psutil" },
+    { name = "pydicom" },
     { name = "rawpy" },
     { name = "tifffile", version = "2025.5.10", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "tifffile", version = "2026.3.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
@@ -904,6 +905,7 @@ full = [
     { name = "pillow-heif" },
     { name = "psutil" },
     { name = "pydata-sphinx-theme" },
+    { name = "pydicom" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "rawpy" },
@@ -927,6 +929,9 @@ pillow-heif = [
 ]
 pyav = [
     { name = "av" },
+]
+pydicom = [
+    { name = "pydicom" },
 ]
 rawpy = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -987,6 +992,9 @@ requires-dist = [
     { name = "psutil", marker = "extra == 'full'" },
     { name = "pydata-sphinx-theme", marker = "extra == 'docs'" },
     { name = "pydata-sphinx-theme", marker = "extra == 'full'" },
+    { name = "pydicom", marker = "extra == 'all-plugins'" },
+    { name = "pydicom", marker = "extra == 'full'" },
+    { name = "pydicom", marker = "extra == 'pydicom'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'full'" },
     { name = "pytest", marker = "extra == 'test'" },
@@ -1002,7 +1010,7 @@ requires-dist = [
     { name = "tifffile", marker = "extra == 'full'" },
     { name = "tifffile", marker = "extra == 'tifffile'" },
 ]
-provides-extras = ["bsdf", "dicom", "feisem", "ffmpeg", "freeimage", "lytro", "numpy", "pillow-heif", "pillow", "simpleitk", "spe", "swf", "tifffile", "pyav", "fits", "rawpy", "gdal", "itk", "linting", "test", "docs", "dev", "all-plugins", "all-plugins-pypy", "full"]
+provides-extras = ["bsdf", "dicom", "feisem", "ffmpeg", "freeimage", "lytro", "numpy", "pillow-heif", "pillow", "pydicom", "simpleitk", "spe", "swf", "tifffile", "pyav", "fits", "rawpy", "gdal", "itk", "linting", "test", "docs", "dev", "all-plugins", "all-plugins-pypy", "full"]
 
 [[package]]
 name = "imageio-ffmpeg"
@@ -1974,6 +1982,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/67/ea/3ab478cccacc2e8ef69892c42c44ae547bae089f356c4b47caf61730958d/pydata_sphinx_theme-0.15.4.tar.gz", hash = "sha256:7762ec0ac59df3acecf49fd2f889e1b4565dbce8b88b2e29ee06fdd90645a06d", size = 2400673, upload-time = "2024-06-25T19:28:45.041Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/d3/c622950d87a2ffd1654208733b5bd1c5645930014abed8f4c0d74863988b/pydata_sphinx_theme-0.15.4-py3-none-any.whl", hash = "sha256:2136ad0e9500d0949f96167e63f3e298620040aea8f9c74621959eda5d4cf8e6", size = 4640157, upload-time = "2024-06-25T19:28:42.383Z" },
+]
+
+[[package]]
+name = "pydicom"
+version = "3.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/de/52aaf905f1f0ae7aba85996e2592ea2c1fe49157f3cfbcd1871965bdb51d/pydicom-3.0.2.tar.gz", hash = "sha256:5942bfc2d72c6fa4b3b5b62c527f54b7f2355f21d6f5d296df6bb30188df6a4f", size = 2886792, upload-time = "2026-03-19T21:46:20.935Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/e0/60466c6d712dad2cf807df315e39863e91609ffd1064ecb835994460bbda/pydicom-3.0.2-py3-none-any.whl", hash = "sha256:abf971a5440f84dbaf42c4b6758e30e62480902584f8b270b9a5d146e278a07b", size = 2376822, upload-time = "2026-03-19T21:46:19.042Z" },
 ]
 
 [[package]]

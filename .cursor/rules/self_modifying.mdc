@@ -1,0 +1,57 @@
+---
+alwaysApply: true
+---
+
+# Agent Instructions
+
+Read this entire file before starting any task.
+
+## Self-Correcting Rules Engine
+
+This file contains a growing ruleset that improves over time. **At session start, read the entire "Learned Rules"
+section before doing anything.**
+
+### How it works
+
+1. When the user corrects you or you make a mistake, **immediately append a new rule** to the "Learned Rules"
+2. Rules are numbered sequentially and written as clear, imperative instructions.
+3. Format: `N. [CATEGORY] Never/Always do X - because Y.`
+4. Categories: `[STYLE]`, `[CODE]`, `[ARCH]`, `[TOOL]`, `[PROCESS]`, `[DATA]`, `[UX]`, `[OTHER]`
+5. Before starting any task, scan all rules below for relevant constraints.
+6. If two rules conflict, the higher-numbered (newer) rule wins.
+7. Never delete rules. If a rule becomes obsolete, append a new rule that superseeds it.
+
+### When to add a rule
+
+- User explicitly corrects your output ("no, do it this way")
+- User rejects a file, approach, or pattern
+- You hit a bug caused by a wrong assumption about this codebase
+- User states a preference ("always use X", "never do Y")
+
+### Rule format example
+
+```
+14. [CODE] Always use `uv` instead of `pip` - user preference, uv is installed globally.
+15. [STYLE] Never add emojis to commit messages - project convention.
+16. [ARCH] Plugins live in `imageio/plugins`, not `imageio/core` - existing codebase pattern.
+```
+
+---
+
+## Learned Rules
+
+<!-- New rules are appended below this line. Do not edit above this section. -->
+1. [CODE] Never silently normalize or "heal" user input (aliases, case folding, punctuation swaps) when an exact value is expected — fail with a clear error and let it bubble up; the user knows their intent better than we do.
+2. [STYLE] Always inline single-use module-level constants/tuples into their call site instead of naming them at module scope — keeps reading local and avoids indirection.
+3. [STYLE] Always inline single-use helper functions into their call site; prefer top-to-bottom readable code with step comments over factoring one-off helpers.
+4. [CODE] Never use `assert` in production/library code — only in tests; raise an explicit exception instead.
+5. [CODE] Avoid defensive try/except hedges that swallow or rewrite rare failures into fallbacks — let errors bubble; keep only intentional API boundaries (e.g. optional-dep ImportError, format probe → InitializationError).
+6. [STYLE] When documenting an if/else parameter, describe the first case with "If …", then the other case with "Otherwise, …" — not a second "If …".
+7. [STYLE] Prefer membership tests like `x in (a, b)` over `x is a or x is b` / `x == a or x == b` when checking multiple alternatives — faster to read.
+8. [STYLE] Always import third-party dependencies with a short 2–4 character alias (e.g. `import pydicom as pdcm`, `import numpy as np`) and call through that namespace — makes external vs local symbols obvious; do not `from dependency import func`.
+9. [STYLE] Never alias class attributes to short locals inside methods (e.g. `ds = self._dataset`) — use the full `self._…` name so data flow stays obvious; only introduce a short local if the user asks for that specific case.
+10. [STYLE] Name boolean flags `is_<something>` or `has_<something>` (e.g. `is_signed`, `has_palette`) — not bare adjectives like `signed`.
+11. [CODE] Do not add defensive validation of DICOM/structure that "should always be true" (e.g. `len(PixelSpacing) >= 2`, bounds checks before indexing). Optional tags may be probed with `getattr(..., None)`; once present, index/use values directly and let bad data raise to the caller — they know better than we do what to do next.
+12. [CODE] Prefer failing loudly over silent healing — no quiet coercions (`int(index)` when the API already requires `int`), no soft fallbacks that hide bad input/state. Loud failures are easier to debug and keep call sites honest.
+13. [STYLE] Prefer a single flat `if` / `elif` / `else` chain over nested conditionals when the branches are mutually exclusive — easier to scan top-to-bottom.
+14. [CODE] Do not pre-validate user inputs (shape/dtype/range checks that raise our own ValueError). Assume the caller knows what they are doing; unusual inputs may be intentional. Let failures surface at the natural point of use (indexing, encode, pydicom, etc.).
