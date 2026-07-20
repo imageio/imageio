@@ -215,7 +215,7 @@ def imopen(
         err_type = ValueError if legacy_mode else IOError
         err_msg = (
             "ImageIO does not support reading folders. "
-            "Pass a path to an individual file instead."
+            "Use a URI pointing to an individual file instead."
         )
         raise err_type(err_msg)
 
