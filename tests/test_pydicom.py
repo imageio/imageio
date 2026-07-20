@@ -5,9 +5,14 @@ import pytest
 
 pydicom = pytest.importorskip("pydicom")
 
-import imageio.v3 as iio
-from pydicom.pixels import apply_color_lut, apply_rescale, apply_voi_lut, pixel_array
-from pydicom.uid import ExplicitVRLittleEndian, RLELossless
+import imageio.v3 as iio  # noqa: E402
+from pydicom.pixels import (  # noqa: E402
+    apply_color_lut,
+    apply_rescale,
+    apply_voi_lut,
+    pixel_array,
+)
+from pydicom.uid import ExplicitVRLittleEndian, RLELossless  # noqa: E402
 
 PLUGIN = "pydicom"
 
