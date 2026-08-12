@@ -1,5 +1,4 @@
-from io import BytesIO
-from typing import Union, BinaryIO
+from typing import Union, IO
 from pathlib import Path
 
 try:
@@ -8,7 +7,7 @@ except ImportError:
     # numpy<1.20 fall back to using ndarray
     from numpy import ndarray as ArrayLike
 
-ImageResource = Union[str, bytes, BytesIO, Path, BinaryIO]
+ImageResource = Union[str, bytes, Path, IO[bytes]]
 
 
 __all__ = [
