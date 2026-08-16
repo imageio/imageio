@@ -52,6 +52,7 @@ from typing import (
     Union,
 )
 import warnings
+from xml.etree import ElementTree
 
 import numpy as np
 
@@ -489,6 +490,25 @@ class SpePlugin(PluginV3):
             self._dtype = Spec.dtypes[info["datatype"]]
             self._shape = (info["ydim"], info["xdim"])
             self._len = info["NumFrames"]
+            self._frame_size = self._shape[0] * self._shape[1] * self._dtype.itemsize
+            self._frame_stride = self._frame_size
+
+            if info["file_header_ver"] >= 3:
+                self._file.seek(info["xml_footer_offset"])
+                try:
+                    root = ElementTree.fromstring(self._file.read())
+                    strides = {
+                        int(element.attrib["stride"])
+                        for element in root.findall(
+                            ".//{*}DataBlock[@type='Frame'][@stride]"
+                        )
+                    }
+                    if len(strides) == 1:
+                        (frame_stride,) = strides
+                        if frame_stride >= self._frame_size:
+                            self._frame_stride = frame_stride
+                except (ElementTree.ParseError, ValueError):
+                    pass
 
             if check_filesize:
                 # Some software writes incorrect `NumFrames` metadata.
@@ -501,7 +521,7 @@ class SpePlugin(PluginV3):
                     self._file.seek(0, os.SEEK_END)
                     data_end = self._file.tell()
                 line = data_end - Spec.data_start
-                line //= self._shape[0] * self._shape[1] * self._dtype.itemsize
+                line //= self._frame_stride
                 if line != self._len:
                     warnings.warn(
                         f"The file header of {self.request.filename} claims there are "
@@ -529,7 +549,6 @@ class SpePlugin(PluginV3):
 
         if index is Ellipsis:
             read_offset = Spec.data_start
-            count = self._shape[0] * self._shape[1] * self._len
             out_shape = (self._len, *self._shape)
         elif index < 0:
             raise IndexError(f"Index `{index}` is smaller than 0.")
@@ -538,15 +557,29 @@ class SpePlugin(PluginV3):
                 f"Index `{index}` exceeds the number of frames stored in this file (`{self._len}`)."
             )
         else:
-            read_offset = (
-                Spec.data_start
-                + index * self._shape[0] * self._shape[1] * self._dtype.itemsize
-            )
+            read_offset = Spec.data_start + index * self._frame_stride
             count = self._shape[0] * self._shape[1]
             out_shape = self._shape
 
         self._file.seek(read_offset)
-        data = np.fromfile(self._file, dtype=self._dtype, count=count)
+        if index is Ellipsis and self._frame_stride != self._frame_size:
+            data = np.fromfile(
+                self._file,
+                dtype=np.dtype(
+                    [
+                        ("data", self._dtype, self._shape),
+                        ("metadata", "u1", self._frame_stride - self._frame_size),
+                    ]
+                ),
+                count=self._len,
+            )["data"]
+        else:
+            count = (
+                self._shape[0]
+                * self._shape[1]
+                * (self._len if index is Ellipsis else 1)
+            )
+            data = np.fromfile(self._file, dtype=self._dtype, count=count)
         return data.reshape(out_shape)
 
     def iter(self) -> Iterator[np.ndarray]:
