@@ -1,26 +1,27 @@
 #!/usr/bin/python3
-import os
 import sys
+import struct
+
 import atheris  # type: ignore
 
-import imageio
+try:
+    with atheris.instrument_imports():
+        import imageio.v3 as iio
+except Exception:
+    iio = None
 
 
 def TestOneInput(data):
-    with open("/tmp/img1.file", "wb+") as img1_f:
-        img1_f.write(data)
+    if iio is None or len(data) < 10:
+        return
     try:
-        imageio.imread("/tmp/img1.file")
-    except ValueError:
-        None
-    except RuntimeError:
-        None
-    os.remove("/tmp/img1.file")
+        iio.imread(data)
+    except (ValueError, RuntimeError, struct.error):
+        pass
 
 
 def main():
-    atheris.instrument_all()
-    atheris.Setup(sys.argv, TestOneInput)
+    atheris.Setup(sys.argv, TestOneInput, enable_python_coverage=True)
     atheris.Fuzz()
 
 
