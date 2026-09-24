@@ -77,6 +77,7 @@ feisem = []
 ffmpeg = ["imageio-ffmpeg", "psutil"]
 freeimage = ["fsspec[http]"]
 lytro = []
+nibabel = ["nibabel", "numpy>2"]
 numpy = []
 pillow-heif = ["pillow-heif"]
 pillow = []
@@ -112,6 +113,7 @@ all-plugins = [
     "astropy",
     "fsspec[http]",
     "imageio-ffmpeg",
+    "nibabel",
     "numpy>2",
     "pillow-heif",
     "psutil",
@@ -131,6 +133,7 @@ full = [
     "flake8",
     "fsspec[github,http]",
     "imageio-ffmpeg",
+    "nibabel",
     "numpydoc",
     "numpy>2",
     "pillow-heif",
