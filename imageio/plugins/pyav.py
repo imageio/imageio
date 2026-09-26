@@ -972,7 +972,10 @@ class PyAVPlugin(PluginV3):
             if av_frame is None:
                 return
 
-        if stream.frames == 0:
+        if not stream.codec_context.is_open:
+            # the size comes from the frame that reaches the encoder, a filter
+            # may have rescaled it. the first encode opens the codec, and after
+            # that av refuses to change the size
             stream.width = av_frame.width
             stream.height = av_frame.height
 
@@ -1231,7 +1234,7 @@ class PyAVPlugin(PluginV3):
         if self._video_filter is not None:
             # flush encoder
             for av_frame in self._video_filter:
-                if stream.frames == 0:
+                if not stream.codec_context.is_open:
                     stream.width = av_frame.width
                     stream.height = av_frame.height
                 for packet in stream.encode(av_frame):
