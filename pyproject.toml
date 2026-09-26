@@ -21,6 +21,7 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "pillow>=8.3.2",  # pinned to > 8.3.2 due to security vulnerability (GHSA-98vv-pw6r-q6q4)
+    "packaging",
 ]
 keywords = [
     "image", 

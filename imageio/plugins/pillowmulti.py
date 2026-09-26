@@ -3,6 +3,7 @@ PIL formats for multiple images.
 """
 
 import logging
+import packaging.version
 
 import numpy as np
 
@@ -38,7 +39,7 @@ class GIFFormat(PillowFormat):
         ):
             from PIL import __version__ as pillow_version
 
-            major, minor, patch = tuple(int(x) for x in pillow_version.split("."))
+            major, minor, patch = packaging.version.parse(pillow_version).release
             if major == 10 and minor >= 1:
                 raise ImportError(
                     f"Pillow v{pillow_version} is not supported by ImageIO's legacy "
