@@ -7,7 +7,7 @@ from pathlib import Path
 import imageio.v3 as iio
 import numpy as np
 import pytest
-from imageio.core.request import InitializationError, Request
+from imageio.core.request import InitializationError, Request, SeekableFileObject
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
 from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
@@ -770,3 +770,21 @@ def test_webp_remote():
     url = "https://github.com/python-pillow/Pillow/raw/main/Tests/images/hopper_orientation_2.webp"
     im = iio.imread(url, plugin="pillow")
     assert im.shape == (128, 128, 3)
+
+
+def test_pillow_readline_on_seekable_stream():
+    # this is a regression test for
+    # https://github.com/imageio/imageio/issues/1007
+    # Pillow's XPM (and IM) plugins call fp.readline(), which HTTP streams
+    # expose via SeekableFileObject.
+    xpm = (
+        b"/* XPM */\n"
+        b"static char * test_xpm[] = {\n"
+        b'"1 1 1 1",\n'
+        b'"a c #FF0000",\n'
+        b'"a"\n'
+        b"};\n"
+    )
+    img = iio.imread(SeekableFileObject(io.BytesIO(xpm)), plugin="pillow")
+    assert img.shape == (1, 1, 3)
+    assert np.array_equal(img[0, 0], [255, 0, 0])
