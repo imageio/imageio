@@ -493,6 +493,20 @@ def test_procedual_writing(test_images):
     assert actual.shape == (280, 720, 1280, 3)
 
 
+def test_multi_frame_libx264_write(tmp_path):
+    # libx264 buffers its first frames, so the muxer's frame count stayed at
+    # zero after the first write and the stream size was assigned a second
+    # time, which av 18.1 refuses once the encoder is open
+    frames = np.zeros((5, 64, 64, 3), dtype=np.uint8)
+    frames[:, 8:24, 8:24] = 255
+    out = tmp_path / "out.mp4"
+
+    iio.imwrite(out, frames, plugin="pyav", codec="libx264", fps=10)
+    actual = iio.imread(out, plugin="pyav")
+
+    assert actual.shape == frames.shape
+
+
 def test_procedual_writing_with_filter(test_images):
     buffer = io.BytesIO()
     with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
