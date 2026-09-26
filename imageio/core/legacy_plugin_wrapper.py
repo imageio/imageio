@@ -90,7 +90,7 @@ class LegacyPlugin(PluginV3):
     def legacy_get_reader(self, **kwargs):
         """legacy_get_reader(**kwargs)
 
-        a utility method to provide support vor the V2.9 API
+        a utility method to provide support for the V2.9 API
 
         Parameters
         ----------

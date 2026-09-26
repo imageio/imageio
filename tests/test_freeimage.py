@@ -4,44 +4,45 @@ import os
 import shutil
 import sys
 import platform
+import time
 import warnings
 
-import fsspec  # type: ignore
 import imageio.plugins
 import imageio.v3 as iio3
 import imageio.v2 as iio
 import numpy as np
 import pytest
 from imageio import core
-from imageio.core import IS_PYPY
+from imageio.core import IS_PYPY, get_platform
+from imageio.plugins._freeimage import FNAME_PER_PLATFORM, download
 from pytest import raises
 from conftest import deprecated_test
 
 
 @pytest.fixture(scope="module")
-def vendored_lib(request, tmp_path_factory):
+def vendored_lib(tmp_path_factory):
+    """Download FreeImage binaries via raw.githubusercontent.com (with retries)."""
+    plat = get_platform()
+    if not plat or plat not in FNAME_PER_PLATFORM:
+        pytest.skip("No FreeImage binary for this platform")
+
     lib_dir = tmp_path_factory.mktemp("freeimage_dir")
+    last_exc = None
+    for attempt in range(4):
+        try:
+            download(directory=str(lib_dir))
+            break
+        except Exception as exc:
+            last_exc = exc
+            time.sleep(0.5 * (2**attempt))
+    else:
+        pytest.skip(f"Could not download FreeImage binaries: {last_exc}")
 
-    if platform.system() == "Linux":
-        lib_extension = ".so"
-    elif platform.system() == "Darwin":
-        lib_extension = ".dylib"
-    elif platform.system() == "Windows":
-        lib_extension = ".dll"
+    freeimage_dir = lib_dir / "freeimage"
+    if not freeimage_dir.is_dir() or not any(freeimage_dir.iterdir()):
+        pytest.skip("FreeImage download did not produce expected files")
 
-    fs = fsspec.filesystem(
-        "github",
-        org="imageio",
-        repo="imageio-binaries",
-        username=request.config.getoption("--github-username"),
-        token=request.config.getoption("--github-token"),
-    )
-    fs.get(
-        [x for x in fs.ls("freeimage/") if x.endswith(lib_extension)],
-        lib_dir.as_posix(),
-    )
-
-    yield lib_dir
+    yield freeimage_dir
 
 
 # TODD: update fixture once we transition into v3
@@ -616,7 +617,7 @@ def test_multi_icon_ico(setup_library, tmp_path):
 
     im = get_ref_im(4, 0, 0)[:32, :32]
     ims = [np.repeat(np.repeat(im, i, 1), i, 0) for i in (1, 2)]  # SegF on win
-    ims = im, np.column_stack((im, im)), np.row_stack((im, im))  # error on win
+    ims = im, np.column_stack((im, im)), np.vstack((im, im))  # error on win
     iio.mimsave(fnamebase + "I2.ico", ims, format="ICO-FI")
     ims2 = iio.mimread(fnamebase + "I2.ico", format="ICO-FI")
     for im1, im2 in zip(ims, ims2):

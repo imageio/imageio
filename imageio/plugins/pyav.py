@@ -516,7 +516,7 @@ class PyAVPlugin(PluginV3):
             variable_fps = bool(self._container.format.flags & 0x400)
             constant_framerate = not variable_fps
 
-        # note: cheap for contigous incremental reads
+        # note: cheap for contiguous incremental reads
         self._seek(index, constant_framerate=constant_framerate)
         desired_frame = next(self._decoder)
         self._next_idx += 1
@@ -972,7 +972,10 @@ class PyAVPlugin(PluginV3):
             if av_frame is None:
                 return
 
-        if stream.frames == 0:
+        if not stream.codec_context.is_open:
+            # the size comes from the frame that reaches the encoder, a filter
+            # may have rescaled it. the first encode opens the codec, and after
+            # that av refuses to change the size
             stream.width = av_frame.width
             stream.height = av_frame.height
 
@@ -1150,7 +1153,7 @@ class PyAVPlugin(PluginV3):
             planes.append(np_plane)
 
         if len(planes) > 1:
-            # Note: the planes *should* exist inside a contigous memory block
+            # Note: the planes *should* exist inside a contiguous memory block
             # somewhere inside av.Frame however pyAV does not appear to expose this,
             # so we are forced to copy the planes individually instead of wrapping
             # them :(
@@ -1198,7 +1201,7 @@ class PyAVPlugin(PluginV3):
 
             index_pts = int(index * pts_delta)
 
-            # this only seeks to the closed (preceeding) keyframe
+            # this only seeks to the closest (preceding) keyframe
             self._container.seek(index_pts, stream=self._video_stream)
             self._decoder = self._container.decode(video=0)
 
@@ -1231,7 +1234,7 @@ class PyAVPlugin(PluginV3):
         if self._video_filter is not None:
             # flush encoder
             for av_frame in self._video_filter:
-                if stream.frames == 0:
+                if not stream.codec_context.is_open:
                     stream.width = av_frame.width
                     stream.height = av_frame.height
                 for packet in stream.encode(av_frame):
