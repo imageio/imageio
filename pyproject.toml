@@ -121,7 +121,7 @@ all-plugins = [
 all-plugins-pypy = [
     "fsspec[http]",
     "imageio-ffmpeg",
-    "pillow-heif",
+    # pillow-heif publishes no wheels for current PyPy and needs libheif to build.
     "psutil",
 ]
 full = [
