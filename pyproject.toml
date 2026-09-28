@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ImageIO"
-version = "2.37.4"
+version = "2.38.0"
 authors = [
     {name = "ImageIO contributors"}
 ]
@@ -80,6 +80,7 @@ lytro = []
 numpy = []
 pillow-heif = ["pillow-heif"]
 pillow = []
+pydicom = ["pydicom"]
 simpleitk = []
 spe = []
 swf = []
@@ -115,13 +116,14 @@ all-plugins = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "rawpy",
     "tifffile",
 ]
 all-plugins-pypy = [
     "fsspec[http]",
     "imageio-ffmpeg",
-    "pillow-heif",
+    # pillow-heif publishes no wheels for current PyPy and needs libheif to build.
     "psutil",
 ]
 full = [
@@ -135,6 +137,7 @@ full = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "pydata-sphinx-theme",
     "pytest",
     "pytest-cov",
