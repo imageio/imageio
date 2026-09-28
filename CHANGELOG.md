@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.38.0 (2026-09-28)
+
+### Bug
+
+- Implement SeekableFileObject.readline for Pillow HTTP streams (#1007)
+  ([#1209](https://github.com/imageio/imageio/pull/1209),
+  [`b6761b9`](https://github.com/imageio/imageio/commit/b6761b9bb95e74f33a7d10e4685ce0c264515a26))
+
+- Multi-frame writes through pyav fail with av 18.1.0
+  ([#1207](https://github.com/imageio/imageio/pull/1207),
+  [`bbcb9e3`](https://github.com/imageio/imageio/commit/bbcb9e3a2ef4cd84a37cdee877d26edd9c5a538e))
+
+- Solve "prefer_uint8=False upcast uint8 to int16"
+  ([#1186](https://github.com/imageio/imageio/pull/1186),
+  [`00cd1e3`](https://github.com/imageio/imageio/commit/00cd1e36e80f98d69a14e17f87baf2c86785693e))
+
+### Doc
+
+- Document the actual return value of immeta ([#1208](https://github.com/imageio/imageio/pull/1208),
+  [`28ce19c`](https://github.com/imageio/imageio/commit/28ce19c00a18706ce7afb788c946d870d6debb6d))
+
+### Feat
+
+- V3 Plugin for pydicom ([#1197](https://github.com/imageio/imageio/pull/1197),
+  [`f2853f4`](https://github.com/imageio/imageio/commit/f2853f4d2da28adf0356205802c866f1a8f48f85))
+
+### Maint
+
+- Bump soupsieve from 2.8.4 to 2.9 ([#1211](https://github.com/imageio/imageio/pull/1211),
+  [`6903046`](https://github.com/imageio/imageio/commit/6903046ed4d675d7a4f7f1bbff22bf089fed277c))
+
+### Test
+
+- Make FormatManager tests independent of imageio-ffmpeg (#1013)
+  ([#1210](https://github.com/imageio/imageio/pull/1210),
+  [`3b19327`](https://github.com/imageio/imageio/commit/3b193273fa6acc980c97254cf535faf3544d34f1))
+
+
 ## v2.37.4 (2026-07-20)
 
 ### Bug
