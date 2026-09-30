@@ -41,6 +41,30 @@ def test_read(test_images):
         iio.imread(fname, index=2)
 
 
+def test_read_v3_with_frame_metadata(tmp_path):
+    frame_stride = 12
+    frames = np.arange(8, dtype=np.uint16).reshape(2, 2, 2)
+    xml_offset = spe.Spec.data_start + len(frames) * frame_stride
+    header = bytearray(spe.Spec.data_start)
+    struct.pack_into("<h", header, 108, 3)
+    struct.pack_into("<H", header, 42, 2)
+    struct.pack_into("<H", header, 656, 2)
+    struct.pack_into("<Q", header, 678, xml_offset)
+    struct.pack_into("<i", header, 1446, len(frames))
+    struct.pack_into("<f", header, 1992, 3.0)
+
+    filename = tmp_path / "frame-metadata.spe"
+    with filename.open("wb") as file:
+        file.write(header)
+        for index, frame in enumerate(frames):
+            file.write(frame.tobytes())
+            file.write(struct.pack("<I", index))
+        file.write(b'<SpeFormat><DataBlock type="Frame" stride="12" /></SpeFormat>')
+
+    np.testing.assert_array_equal(iio.imread(filename, index=...), frames)
+    np.testing.assert_array_equal(iio.imread(filename, index=1), frames[1])
+
+
 def test_iter(test_images):
     for actual, desired in zip(
         iio.imiter(test_images / "test_000_.SPE"), (frame0, frame1)
