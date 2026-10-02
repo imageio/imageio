@@ -175,6 +175,7 @@ examples to better understand how to use them.
 
 """
 
+from copy import deepcopy
 from fractions import Fraction
 from math import ceil
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
@@ -328,6 +329,7 @@ class PyAVPlugin(PluginV3):
         self._container = None
         self._video_stream = None
         self._video_filter = None
+        self._video_filter_args = None
 
         if request.mode.io_mode == IOMode.read:
             self._next_idx = 0
@@ -964,8 +966,19 @@ class PyAVPlugin(PluginV3):
         stream = self._video_stream
         if stream.codec_context.time_base:
             av_frame.time_base = stream.codec_context.time_base
+        elif self._video_filter_args is not None:
+            # The output stream's time base used to be inherited by the filter
+            # graph when it was configured before the first frame was written.
+            # Keep that behavior when using the actual input frame as template.
+            av_frame.time_base = stream.time_base
         av_frame.pts = self.frames_written
         self.frames_written += 1
+
+        if self._video_filter is None and self._video_filter_args is not None:
+            filter_sequence, filter_graph = self._video_filter_args
+            self._video_filter = self._create_video_filter(
+                filter_sequence, filter_graph, template=av_frame
+            )
 
         if self._video_filter is not None:
             av_frame = self._video_filter.send(av_frame)
@@ -1016,7 +1029,29 @@ class PyAVPlugin(PluginV3):
 
         if filter_sequence is None and filter_graph is None:
             self._video_filter = None
+            self._video_filter_args = None
             return
+
+        if self.request.mode.io_mode == IOMode.write:
+            # The output stream has no input dimensions before the first frame
+            # is written. Build the graph lazily from that frame instead of
+            # PyAV's default output-stream dimensions.
+            self._video_filter = None
+            self._video_filter_args = deepcopy((filter_sequence, filter_graph))
+            return
+
+        self._video_filter = self._create_video_filter(
+            filter_sequence, filter_graph, template=self._video_stream
+        )
+
+    def _create_video_filter(
+        self,
+        filter_sequence: List[Tuple[str, Union[str, dict]]],
+        filter_graph: Tuple[dict, List],
+        *,
+        template: Any,
+    ):
+        """Create and return a primed filter pipeline for the given input."""
 
         if filter_sequence is None:
             filter_sequence = list()
@@ -1030,7 +1065,7 @@ class PyAVPlugin(PluginV3):
 
         graph = av.filter.Graph()
 
-        previous_node = graph.add_buffer(template=self._video_stream)
+        previous_node = graph.add_buffer(template=template)
         for filter_name, argument in filter_sequence:
             if isinstance(argument, str):
                 current_node = graph.add(filter_name, argument)
@@ -1086,8 +1121,9 @@ class PyAVPlugin(PluginV3):
                     # handle av<9.0
                     break
 
-        self._video_filter = video_filter()
-        self._video_filter.send(None)
+        filter_pipeline = video_filter()
+        filter_pipeline.send(None)
+        return filter_pipeline
 
     @property
     def container_metadata(self):
