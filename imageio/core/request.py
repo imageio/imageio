@@ -361,7 +361,7 @@ class Request(object):
                         self._uri_type = URI_ZIPPED
                         self._filename_zip = (
                             zip_path,
-                            self._filename[zip_i:].lstrip("/\\"),
+                            self._filename[zip_i:].lstrip("/\\").replace("\\", "/"),
                         )
                         break
 
