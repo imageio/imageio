@@ -299,6 +299,22 @@ def test_request_save_sources(test_images, tmp_path):
         assert res == bytes
 
 
+@pytest.mark.parametrize(
+    "member_path",
+    ["images/frame.png", "images\\frame.png", "images/sub\\frame.png"],
+)
+def test_zip_member_path_separators(tmp_path, member_path):
+    image = np.arange(12, dtype=np.uint8).reshape(2, 2, 3)
+    zip_path = tmp_path / "images.zip"
+    uri = f"{zip_path}/{member_path}"
+
+    iio.v3.imwrite(uri, image, extension=".png")
+
+    with ZipFile(zip_path) as archive:
+        assert archive.namelist() == [member_path.replace("\\", "/")]
+    np.testing.assert_array_equal(iio.v3.imread(uri), image)
+
+
 def test_request_seekable_file_object():
     SeekableFileObject = imageio.core.request.SeekableFileObject
     data = bytes([int(random.uniform(0, 255)) for i in range(100)])
