@@ -137,6 +137,9 @@ known_plugins["nibabel"] = PluginConfig(
     class_name="NibabelPlugin",
     module_name="imageio.plugins.nibabel",
 )
+known_plugins["pydicom"] = PluginConfig(
+    name="pydicom", class_name="PydicomPlugin", module_name="imageio.plugins.pydicom"
+)
 
 # Legacy plugins
 # ==============

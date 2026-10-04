@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ImageIO"
-version = "2.37.4"
+version = "2.38.0"
 authors = [
     {name = "ImageIO contributors"}
 ]
@@ -81,6 +81,7 @@ nibabel = ["nibabel", "numpy>2"]
 numpy = []
 pillow-heif = ["pillow-heif"]
 pillow = []
+pydicom = ["pydicom"]
 simpleitk = []
 spe = []
 swf = []
@@ -117,6 +118,7 @@ all-plugins = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "rawpy",
     "tifffile",
 ]
@@ -138,6 +140,7 @@ full = [
     "numpy>2",
     "pillow-heif",
     "psutil",
+    "pydicom",
     "pydata-sphinx-theme",
     "pytest",
     "pytest-cov",
