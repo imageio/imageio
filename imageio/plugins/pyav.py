@@ -829,6 +829,15 @@ class PyAVPlugin(PluginV3):
         if self._container is not None:
             self._container.close()
 
+        # Workaround: PyAV keeps a swscale worker pool on a private thread-local
+        # for the life of the thread. The pool survives container.close() and
+        # deadlocks a later fork inside gc.collect(). Dropping the reformatter
+        # runs its destructor, which joins the workers. Remove this once PyAV
+        # frees the pool itself.
+        thread_local = getattr(av.video.frame, "_thread_local", None)
+        if getattr(thread_local, "reformatter", None) is not None:
+            del thread_local.reformatter
+
         self.request.finish()
 
     def __enter__(self) -> "PyAVPlugin":
