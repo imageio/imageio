@@ -16,7 +16,9 @@ jobs:
       - name: Set up pypy
         uses: actions/setup-python@v5
         with:
-          python-version: "pypy-3.11"
+          # PyPy 8.0 (3.11.16) uses the pp80 ABI. Pillow 12.3.0 only publishes
+          # pp73 wheels, so stay on the last PyPy 7.3 release until Pillow 13.
+          python-version: "pypy-3.11-v7.3.23"
       - name: MacOS Numpy Fix
         if: runner.os == 'macOS'
         run: |
