@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.38.1 (2026-10-08)
+
+### Bug
+
+- Correct v2 format argument type hints ([#1206](https://github.com/imageio/imageio/pull/1206),
+  [`8e80054`](https://github.com/imageio/imageio/commit/8e800546200487abf3ca7aa1977ca67d488a5a00))
+
+- Drop Python 3.10, fix PyAV gc stall, temporarily pin pillow on pypy
+  ([`1c83326`](https://github.com/imageio/imageio/commit/1c83326f164809cbd6fd98a8fcd9f6d0ea93e0ea))
+
+### Maint
+
+- Bump multidict from 6.7.1 to 6.9.1 ([#1222](https://github.com/imageio/imageio/pull/1222),
+  [`9a30768`](https://github.com/imageio/imageio/commit/9a307680869171181a7ff9e7f5b41711bf0621c5))
+
+
 ## v2.38.0 (2026-09-28)
 
 ### Bug
