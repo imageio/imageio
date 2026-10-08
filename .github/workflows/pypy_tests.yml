@@ -16,7 +16,9 @@ jobs:
       - name: Set up pypy
         uses: actions/setup-python@v5
         with:
-          python-version: "pypy-3.11"
+          # PyPy 8.0 (pp80 ABI) has no Pillow wheels yet, and building Pillow
+          # from source fails without the jpeg headers; stay on PyPy 7.3.
+          python-version: "pypy3.11-v7.3.x"
       - name: MacOS Numpy Fix
         if: runner.os == 'macOS'
         run: |
