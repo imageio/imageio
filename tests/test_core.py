@@ -109,6 +109,18 @@ def test_fetching(tmp_path):
     assert "0 bytes" == core.fetching._sizeof_fmt(0)
 
 
+def test_urlopen_sets_user_agent(monkeypatch):
+    seen = {}
+
+    def fake_urlopen(req, *args, **kwargs):
+        seen["ua"] = req.get_header("User-agent")
+        return req
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+    core.util.urlopen("https://example.com/img.png")
+    assert seen["ua"] == "imageio"
+
+
 def test_findlib2():
     if not sys.platform.startswith("linux"):
         skip("test on linux only")
