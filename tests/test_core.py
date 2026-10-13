@@ -132,7 +132,6 @@ def test_findlib2():
     raises(OSError, core.load_lib, [], ["notalib"], [fi_dir])
 
 
-@pytest.mark.needs_internet
 @pytest.mark.parametrize("extension", [".PNG", ".PnG", ".png"])
 def test_explicit_extension_case(extension):
     expected = np.arange(36, dtype=np.uint8).reshape(3, 4, 3)
@@ -145,6 +144,7 @@ def test_explicit_extension_case(extension):
     request.finish()
 
 
+@pytest.mark.needs_internet
 def test_request(test_images, tmp_userdir):
     """Test request object"""
 
