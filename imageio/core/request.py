@@ -257,7 +257,7 @@ class Request(object):
                     "`extension` should be a file extension starting with a `.`,"
                     f" but is `{extension}`."
                 )
-            self._extension = extension
+            self._extension = extension.lower()
         elif self._filename is not None:
             if self._uri_type in (URI_FILENAME, URI_ZIPPED):
                 path = self._filename

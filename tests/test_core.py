@@ -132,6 +132,18 @@ def test_findlib2():
     raises(OSError, core.load_lib, [], ["notalib"], [fi_dir])
 
 
+@pytest.mark.parametrize("extension", [".PNG", ".PnG", ".png"])
+def test_explicit_extension_case(extension):
+    expected = np.arange(36, dtype=np.uint8).reshape(3, 4, 3)
+    encoded = iio.v3.imwrite("<bytes>", expected, extension=extension)
+    assert encoded.startswith(b"\x89PNG\r\n\x1a\n")
+    actual = iio.v3.imread(encoded, extension=extension)
+    assert np.array_equal(actual, expected)
+    request = Request("<bytes>", "w?", extension=extension)
+    assert request.extension == ".png"
+    request.finish()
+
+
 @pytest.mark.needs_internet
 def test_request(test_images, tmp_userdir):
     """Test request object"""
