@@ -235,9 +235,11 @@ class PillowPlugin(PluginV3):
         if self._image.format == "GIF":
             # Converting GIF P frames to RGB
             # https://github.com/python-pillow/Pillow/pull/6150
-            GifImagePlugin.LOADING_STRATEGY = (
-                GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
-            )
+            loading_strategy = getattr(GifImagePlugin, "LoadingStrategy", None)
+            if loading_strategy is not None:
+                GifImagePlugin.LOADING_STRATEGY = (
+                    loading_strategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
+                )
 
         if index is None:
             if self._image.format == "GIF":
