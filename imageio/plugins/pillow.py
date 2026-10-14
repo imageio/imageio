@@ -573,6 +573,8 @@ class PillowPlugin(PluginV3):
         Notes
         -----
         This does not decode pixel data and is fast for large images.
+        The dtype reflects the default read behavior, including the conversion
+        of 16-bit grayscale PNGs to uint16 on Pillow 10.0 and newer.
 
         """
 
@@ -592,6 +594,12 @@ class PillowPlugin(PluginV3):
         if self._image.mode == "P":
             # mode of palette images is determined by their palette
             mode = self._image.palette.mode
+        elif (
+            self._image.format == "PNG"
+            and self._image.mode == "I"
+            and pillow_version()[0] >= 10
+        ):
+            mode = "I;16" if sys.byteorder == "little" else "I;16B"
         else:
             mode = self._image.mode
 
