@@ -504,7 +504,8 @@ class PillowPlugin(PluginV3):
             If the ImageResource contains multiple ndimages, and index is an
             integer, select the index-th ndimage from among them and return its
             metadata. If index is an ellipsis (...), read and return global
-            metadata. If index is None, this plugin reads metadata from the
+            metadata from the initial frame, independently of earlier reads.
+            If index is None, this plugin reads metadata from the
             first image of the file (index=0) unless the image is a GIF or APNG,
             in which case global metadata is read (index=...).
         exclude_applied : bool
@@ -528,7 +529,9 @@ class PillowPlugin(PluginV3):
             else:
                 index = 0
 
-        if isinstance(index, int) and self._image.tell() != index:
+        if index is Ellipsis:
+            self._image.seek(0)
+        elif isinstance(index, int) and self._image.tell() != index:
             self._image.seek(index)
 
         metadata = self._image.info.copy()
