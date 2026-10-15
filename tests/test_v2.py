@@ -17,6 +17,18 @@ def test_reader(test_images):
         assert np.allclose(img2, img)
 
 
+def test_get_next_data(tmp_path):
+    frames = np.zeros((2, 5, 7, 3), dtype=np.uint8)
+    frames[0, ..., 0] = 255
+    frames[1, ..., 2] = 255
+    filename = tmp_path / "test.gif"
+    iio.mimwrite(filename, frames)
+
+    with iio.get_reader(filename) as file:
+        for frame in frames:
+            np.testing.assert_array_equal(file.get_next_data(), frame)
+
+
 def test_get_reader_format(test_images):
     with iio.get_reader(test_images / "chelsea.png") as file:
         with pytest.raises(TypeError):
