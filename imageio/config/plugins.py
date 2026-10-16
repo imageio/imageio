@@ -132,6 +132,11 @@ known_plugins["SPE"] = PluginConfig(
 known_plugins["rawpy"] = PluginConfig(
     name="rawpy", class_name="RawPyPlugin", module_name="imageio.plugins.rawpy"
 )
+known_plugins["nibabel"] = PluginConfig(
+    name="nibabel",
+    class_name="NibabelPlugin",
+    module_name="imageio.plugins.nibabel",
+)
 known_plugins["pydicom"] = PluginConfig(
     name="pydicom", class_name="PydicomPlugin", module_name="imageio.plugins.pydicom"
 )
