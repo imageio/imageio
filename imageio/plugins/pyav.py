@@ -175,6 +175,7 @@ examples to better understand how to use them.
 
 """
 
+import gc
 from fractions import Fraction
 from math import ceil
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
@@ -828,6 +829,21 @@ class PyAVPlugin(PluginV3):
 
         if self._container is not None:
             self._container.close()
+
+        # PyAV's Graph and its FilterContexts reference each other, so the graph
+        # stays alive until a cyclic collection. Its destructor joins the filter
+        # workers. Collect here so that join happens on this thread.
+        self._video_filter = None
+        gc.collect()
+
+        # Workaround: PyAV keeps a swscale worker pool on a private thread-local
+        # for the life of the thread. The pool survives container.close() and
+        # deadlocks a later fork inside gc.collect(). Dropping the reformatter
+        # runs its destructor, which joins the workers. Remove this once PyAV
+        # frees the pool itself.
+        thread_local = getattr(av.video.frame, "_thread_local", None)
+        if getattr(thread_local, "reformatter", None) is not None:
+            del thread_local.reformatter
 
         self.request.finish()
 
