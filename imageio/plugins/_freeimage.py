@@ -449,7 +449,8 @@ class Freeimage(object):
     def has_lib(self):
         try:
             self.lib
-        except Exception:
+        except Exception as error:
+            logger.debug("FreeImage library is unavailable: %s", error)
             return False
         return True
 
