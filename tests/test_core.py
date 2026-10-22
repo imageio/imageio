@@ -212,6 +212,22 @@ def test_request(test_images, tmp_userdir):
         assert R._uri_type == core.request.URI_FILENAME
 
 
+@pytest.mark.parametrize("uri", ["http://example.com/a.png", "ftp://example.com/a.png"])
+def test_request_remote_get_file(uri, monkeypatch):
+    opened = []
+
+    def fake_urlopen(url, timeout):
+        opened.append(url)
+        return BytesIO(b"remote image data")
+
+    monkeypatch.setattr(core.request, "urlopen", fake_urlopen)
+
+    R = Request(uri, "ri")
+    assert R.get_file().read() == b"remote image data"
+    assert opened == [uri]
+    R.finish()
+
+
 @pytest.mark.needs_internet
 def test_request_read_sources(test_images, tmp_userdir):
     # Make an image available in many ways
