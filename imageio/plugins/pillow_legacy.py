@@ -258,6 +258,8 @@ class PillowFormat(Format):
 
     def _can_read(self, request):
         Image = self._init_pillow()
+        if self.plugin_id == "EPS" and request.extension not in self.extensions:
+            return False  # Ghostscript only for explicit PostScript, see pillow.py
         if self.plugin_id in Image.OPEN:
             factory, accept = Image.OPEN[self.plugin_id]
             if accept:

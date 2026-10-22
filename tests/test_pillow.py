@@ -788,3 +788,32 @@ def test_pillow_readline_on_seekable_stream():
     img = iio.imread(SeekableFileObject(io.BytesIO(xpm)), plugin="pillow")
     assert img.shape == (1, 1, 3)
     assert np.array_equal(img[0, 0], [255, 0, 0])
+
+
+def test_eps_needs_explicit_extension(tmp_path, monkeypatch):
+    # Pillow rasterizes EPS via Ghostscript, so EPS content must not be
+    # picked up by content sniffing for a file that claims to be a PNG
+    from PIL import EpsImagePlugin
+
+    def ghostscript(*args, **kwargs):
+        raise AssertionError("Ghostscript was called")
+
+    monkeypatch.setattr(EpsImagePlugin, "Ghostscript", ghostscript)
+
+    eps = b"%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 1 1\nshowpage\n"
+    fake_png = tmp_path / "image.png"
+    fake_png.write_bytes(eps)
+
+    for uri, plugin in [
+        (fake_png, None),
+        (eps, None),
+        (fake_png, "pillow"),
+        (fake_png, "EPS-PIL"),
+    ]:
+        with pytest.raises(OSError):
+            iio.imread(uri, plugin=plugin)
+
+    # explicitly requested PostScript is still handled by Pillow's EPS plugin
+    plugin = PillowPlugin(Request(eps, "r", extension=".eps"))
+    assert plugin._image.format == "EPS"
+    plugin.close()
