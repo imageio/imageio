@@ -231,6 +231,29 @@ def test_write_planar_configuration(tmp_path):
     np.testing.assert_array_equal(back[..., 2], 3)
 
 
+@pytest.mark.parametrize("byteorder", ["<", ">"])
+@pytest.mark.parametrize("big_endian_syntax", [False, True])
+def test_write_planar_byte_order(tmp_path, byteorder, big_endian_syntax):
+    planar = np.arange(60, dtype=byteorder + "u2").reshape(3, 4, 5)
+    file_meta = pydicom.dataset.FileMetaDataset()
+    file_meta.TransferSyntaxUID = (
+        pydicom.uid.ExplicitVRBigEndian
+        if big_endian_syntax
+        else pydicom.uid.ExplicitVRLittleEndian
+    )
+    path = tmp_path / "planar-byte-order.dcm"
+    iio.imwrite(
+        path,
+        planar,
+        plugin=PLUGIN,
+        is_planar=True,
+        metadata={"file_meta": file_meta},
+    )
+    ds = pydicom.dcmread(path)
+    assert ds.file_meta.TransferSyntaxUID == file_meta.TransferSyntaxUID
+    np.testing.assert_array_equal(ds.pixel_array, np.moveaxis(planar, 0, -1))
+
+
 def test_shape_three_frames_not_planar(tmp_path):
     vol = np.arange(3 * 4 * 4, dtype=np.uint8).reshape(3, 4, 4)
     path = tmp_path / "three.dcm"
