@@ -337,5 +337,8 @@ class DicomFormat(Format):
                     return self._info
                 else:
                     return self.series[index].info
-            else:  # pragma: no cover
-                raise ValueError("DICOM plugin should know what to expect.")
+            elif len(self.series) > 1:
+                # Match the automatic series selection used when reading data.
+                return self.series[index].info
+            else:
+                return self._info

@@ -200,6 +200,22 @@ def test_v3_reading(test_images):
     assert np.allclose(actual, expected)
 
 
+@pytest.mark.parametrize(
+    "multiple_series,index", [(False, None), (False, 0), (True, 0), (True, 1)]
+)
+def test_v3_metadata(examples, multiple_series, index):
+    _, _, fname1, fname2 = examples
+    filename = fname2 if multiple_series else fname1
+    mode = "V" if multiple_series else "i"
+    reader = iio.get_reader(filename, "DICOM", mode=mode)
+    with reader:
+        expected = reader.get_meta_data(0 if index is None else index)
+
+    actual = iio3.immeta(filename, plugin="DICOM", index=index)
+
+    assert actual == expected
+
+
 def test_contiguous_dicom_series(test_images, tmp_path):
     # this is a regression test for
     # https://github.com/imageio/imageio/issues/1067
