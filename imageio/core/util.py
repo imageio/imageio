@@ -9,6 +9,7 @@ from collections import OrderedDict
 import numpy as np
 import os
 import re
+import stat
 import struct
 import sys
 import time
@@ -405,6 +406,31 @@ class StdoutProgressIndicator(BaseProgressIndicator):
         sys.stdout.flush()
 
 
+def _private_var_tmp_dir():
+    """Per-user fallback for appdata_dir() when there is no home directory.
+
+    /var/tmp is shared by all users, so a fixed name in it can be created by
+    someone else, who then controls the files imageio caches and loads from
+    there (e.g. the FreeImage library). Use a directory named after the uid
+    and refuse it unless it is ours and not writable by others.
+    """
+    if not hasattr(os, "getuid"):  # pragma: no cover
+        return "/var/tmp"
+    path = "/var/tmp/imageio-%i" % os.getuid()
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    st = os.lstat(path)
+    if (
+        not stat.S_ISDIR(st.st_mode)
+        or st.st_uid != os.getuid()
+        or st.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    ):
+        raise PermissionError(
+            f"Not using {path!r} as imageio's user directory: it is not a private "
+            "directory owned by the current user. Set IMAGEIO_USERDIR instead."
+        )
+    return path
+
+
 # From pyzolib/paths.py (https://bitbucket.org/pyzo/pyzolib/src/tip/paths.py)
 def appdata_dir(appname=None, roaming=False):
     """appdata_dir(appname=None, roaming=False)
@@ -420,8 +446,8 @@ def appdata_dir(appname=None, roaming=False):
     userDir = os.getenv("IMAGEIO_USERDIR", None)
     if userDir is None:
         userDir = os.path.expanduser("~")
-        if not os.path.isdir(userDir):  # pragma: no cover
-            userDir = "/var/tmp"  # issue #54
+        if not os.path.isdir(userDir):
+            userDir = _private_var_tmp_dir()  # issue #54
 
     # Get system app data dir
     path = None
