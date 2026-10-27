@@ -2424,7 +2424,14 @@ class TiffFile(object):
                                 return []
                             fname = uuid.attrib["FileName"]
                             try:
-                                tif = TiffFile(os.path.join(dirname, fname))
+                                # only open files next to (or below) this one
+                                if not dirname:
+                                    raise ValueError("no directory")
+                                root = os.path.realpath(dirname)
+                                path = os.path.realpath(os.path.join(root, fname))
+                                if os.path.commonpath([root, path]) != root:
+                                    raise ValueError("file outside of directory")
+                                tif = TiffFile(path)
                                 tif.pages.useframes = True
                                 tif.pages.keyframe = 0
                                 tif.pages.load()

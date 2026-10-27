@@ -367,3 +367,46 @@ def test_compression(tmp_path):
         # this should be tifffile.COMPRESSION.NONE
         # but that isn't supported by tifffile on python 3.7
         assert file.pages[0].compression == 1
+
+
+def test_bundled_ome_multifile_stays_in_directory(tmp_path):
+    # the bundled tifffile (used when tifffile is not installed) must not
+    # follow OME-XML FileName references outside the master file's directory
+    from imageio.plugins import _tifffile
+
+    def ome(fname):
+        return (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06" '
+            'UUID="urn:uuid:master"><Image ID="Image:0"><Pixels ID="Pixels:0" '
+            'DimensionOrder="XYCZT" Type="uint8" SizeX="4" SizeY="4" SizeC="1" '
+            'SizeZ="2" SizeT="1"><Channel ID="Channel:0:0" SamplesPerPixel="1"/>'
+            '<TiffData FirstZ="0" IFD="0" PlaneCount="1"/>'
+            '<TiffData FirstZ="1" IFD="0" PlaneCount="1">'
+            f'<UUID FileName="{fname}">urn:uuid:other</UUID></TiffData>'
+            "</Pixels></Image></OME>"
+        )
+
+    def read(uri):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            with _tifffile.TiffFile(uri) as tf:
+                return tf.asarray(series=0)
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    with _tifffile.TiffWriter(str(data_dir / "companion.tif")) as w:
+        w.save(np.full((4, 4), 7, np.uint8))
+    with _tifffile.TiffWriter(str(tmp_path / "secret.tif")) as w:
+        w.save(np.full((4, 4), 42, np.uint8))
+
+    master = data_dir / "master.tif"
+    with _tifffile.TiffWriter(str(master)) as w:
+        w.save(np.zeros((4, 4), np.uint8), description=ome("companion.tif"))
+    assert read(str(master))[1].max() == 7
+
+    for fname in ("../secret.tif", str(tmp_path / "secret.tif")):
+        with _tifffile.TiffWriter(str(master)) as w:
+            w.save(np.zeros((4, 4), np.uint8), description=ome(fname))
+        assert 42 not in read(str(master))
+        assert 42 not in read(io.BytesIO(master.read_bytes()))
