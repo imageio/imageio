@@ -638,3 +638,38 @@ def test_lagging_video_stream(test_images):
     if not output.poll(timeout=5):
         proc.kill()
         raise TimeoutError("Test Subprocess failed to respond in time.")
+
+
+def test_seek_near_end_with_decoder_delay(tmp_path):
+    # Regression test for:
+    # https://github.com/imageio/imageio/issues/1255
+    # Seeking near the end of a video while the decoder buffers frames (frame
+    # threading delay) returned the next frame or raised StopIteration, because
+    # _seek re-seeked the container but reused the old decoder generator, whose
+    # buffered frames leaked across the seek.
+    n_frames = 40
+    video_path = str(tmp_path / "ramp.mp4")
+
+    # every frame is a keyframe and a flat, distinct gray
+    with av.open(video_path, "w") as container:
+        stream = container.add_stream("libx264", rate=30)
+        stream.width = stream.height = 64
+        stream.pix_fmt = "yuv420p"
+        stream.options = {"g": "1", "preset": "ultrafast", "qp": "5"}
+        for i in range(n_frames):
+            image = np.full((64, 64, 3), 20 + 5 * i, dtype=np.uint8)
+            frame = av.VideoFrame.from_ndarray(image, format="rgb24")
+            container.mux(stream.encode(frame))
+        container.mux(stream.encode())
+
+    # force decoder frame-threading delay on any machine, regardless of cores
+    for i in range(n_frames):
+        image = iio.imread(
+            video_path,
+            plugin="pyav",
+            index=i,
+            thread_type="FRAME",
+            thread_count=4,
+        )
+        got = round((image.mean() - 20) / 5)
+        assert got == i, f"frame {i} returned {got}"

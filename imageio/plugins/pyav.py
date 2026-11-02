@@ -1229,6 +1229,10 @@ class PyAVPlugin(PluginV3):
             keyframe_index = keyframe_pts // pts_delta
 
             self._container.seek(index_pts, stream=self._video_stream)
+            # The decoder may hold delayed frames (frame threading, libdav1d)
+            # buffered from before the seek; start a fresh decoder so those
+            # stale frames are not yielded in place of the seek target.
+            self._decoder = self._container.decode(video=0)
             self._next_idx = keyframe_index
 
             frames_to_yield = index - keyframe_index
