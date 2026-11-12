@@ -423,16 +423,16 @@ class PyAVPlugin(PluginV3):
             value will be read from the container format.
         thread_count : int
             How many threads to use when decoding a frame. The default is 0,
-            which will set the number using ffmpeg's default, which is based on
-            the codec, number of available cores, threadding model, and other
-            considerations.
+            which lets ffmpeg choose before the first read and retains the
+            current setting after decoding has started.
         thread_type : str
             The threading model to be used. One of
 
             - `"SLICE"`: threads assemble parts of the current frame
             - `"FRAME"`: threads may assemble future frames
             - None (default): Uses ``"FRAME"`` if ``index=...`` and ffmpeg's
-              default otherwise.
+              default otherwise, or retains the current model after decoding
+              has started.
 
 
         Returns
@@ -447,6 +447,10 @@ class PyAVPlugin(PluginV3):
         if possible. In some cases, it can be faster to bulk-read the video (if
         it fits into memory) and to then access the returned ndarray randomly.
 
+        A full read (``index=...``) always starts at the beginning, including
+        after earlier reads on the same plugin. The returned frame count is
+        determined by decoding and may differ from the container metadata.
+
         The current implementation may cause problems for b-frames, i.e.,
         bidirectionaly predicted pictures. I lack test videos to write unit
         tests for this case.
@@ -457,26 +461,41 @@ class PyAVPlugin(PluginV3):
         """
 
         if index is ...:
+            if thread_type is None and not self._video_stream.codec_context.is_open:
+                thread_type = "FRAME"
             props = self.properties(format=format)
-            uses_filter = (
-                self._video_filter is not None
-                or filter_graph is not None
-                or filter_sequence is not None
-            )
+            has_filter = filter_graph is not None or filter_sequence is not None
 
             self._container.seek(0)
-            if not uses_filter and props.shape[0] != 0:
+            # Seeking does not reset an exhausted decoder generator or discard
+            # the frames it has buffered. A full read must start a new decode.
+            self._decoder = self._container.decode(video=0)
+            self._next_idx = 0
+            if not has_filter and props.shape[0] != 0:
                 frames = np.empty(props.shape, dtype=props.dtype)
-                for idx, frame in enumerate(
-                    self.iter(
-                        format=format,
-                        filter_sequence=filter_sequence,
-                        filter_graph=filter_graph,
-                        thread_count=thread_count,
-                        thread_type=thread_type or "FRAME",
-                    )
+                n_frames = 0
+                extra_frames = []
+                for frame in self.iter(
+                    format=format,
+                    filter_sequence=filter_sequence,
+                    filter_graph=filter_graph,
+                    thread_count=thread_count,
+                    thread_type=thread_type,
                 ):
-                    frames[idx] = frame
+                    # Container metadata is only a hint: the decoder may yield
+                    # fewer or more frames than the advertised frame count.
+                    if n_frames < len(frames):
+                        frames[n_frames] = frame
+                    else:
+                        extra_frames.append(frame)
+                    n_frames += 1
+
+                if extra_frames:
+                    frames = np.concatenate((frames, np.stack(extra_frames)))
+                elif n_frames < len(frames):
+                    # This array is private to the read: release unused storage
+                    # instead of returning a view of the oversized allocation.
+                    frames.resize((n_frames, *frames.shape[1:]), refcheck=False)
             else:
                 frames = np.stack(
                     [
@@ -486,30 +505,14 @@ class PyAVPlugin(PluginV3):
                             filter_sequence=filter_sequence,
                             filter_graph=filter_graph,
                             thread_count=thread_count,
-                            thread_type=thread_type or "FRAME",
+                            thread_type=thread_type,
                         )
                     ]
                 )
 
-            # reset stream container, because threading model can't change after
-            # first access
-            self._video_stream = self._container.streams.video[0]
-
             return frames
 
-        if thread_type is not None and not (
-            self._video_stream.thread_type == thread_type
-            or self._video_stream.thread_type.name == thread_type
-        ):
-            self._video_stream.thread_type = thread_type
-
-        if (
-            thread_count != 0
-            and thread_count != self._video_stream.codec_context.thread_count
-        ):
-            # in FFMPEG thread_count == 0 means use the default count, which we
-            # change to mean don't change the thread count.
-            self._video_stream.codec_context.thread_count = thread_count
+        self._configure_decoder(thread_count, thread_type)
 
         if constant_framerate is None:
             # "variable_fps" is now a flag (handle got removed). Full list at
@@ -560,14 +563,16 @@ class PyAVPlugin(PluginV3):
             plugin docs for details and examples.
         thread_count : int
             How many threads to use when decoding a frame. The default is 0,
-            which will set the number using ffmpeg's default, which is based on
-            the codec, number of available cores, threadding model, and other
-            considerations.
+            which lets ffmpeg choose before the first read and retains the
+            current setting after decoding has started.
         thread_type : str
             The threading model to be used. One of
 
             - `"SLICE"` (default): threads assemble parts of the current frame
             - `"FRAME"`: threads may assemble future frames (faster for bulk reading)
+
+            If not specified after decoding has started, retain the current
+            threading model.
 
 
         Yields
@@ -578,8 +583,7 @@ class PyAVPlugin(PluginV3):
 
         """
 
-        self._video_stream.thread_type = thread_type or "SLICE"
-        self._video_stream.codec_context.thread_count = thread_count
+        self._configure_decoder(thread_count, thread_type, default_thread_type="SLICE")
 
         self.set_video_filter(filter_sequence, filter_graph)
 
@@ -600,6 +604,23 @@ class PyAVPlugin(PluginV3):
         if self._video_filter is not None:
             for frame in self._video_filter:
                 yield self._unpack_frame(frame, format=format)
+
+    def _configure_decoder(self, thread_count, thread_type, default_thread_type=None):
+        """Set threading before decoding, preserving defaults on an open codec."""
+        context = self._video_stream.codec_context
+        if thread_type is None and not context.is_open:
+            thread_type = default_thread_type
+
+        if thread_type is not None and not (
+            context.thread_type == thread_type
+            or context.thread_type.name == thread_type
+        ):
+            context.thread_type = thread_type
+
+        # PyAV rejects assigning thread_count after the codec opens, even if
+        # the value is unchanged. Zero means retain the current/default count.
+        if thread_count != 0 and thread_count != context.thread_count:
+            context.thread_count = thread_count
 
     def write(
         self,
