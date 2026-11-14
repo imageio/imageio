@@ -19,6 +19,7 @@ from ..core import urlopen, get_remote_file
 
 from pathlib import Path
 from urllib.parse import urlparse
+from urllib.request import url2pathname
 from typing import Optional
 
 # URI types
@@ -309,7 +310,7 @@ class Request(object):
                 self._filename = uri
             elif uri.startswith("file://"):
                 self._uri_type = URI_FILENAME
-                self._filename = uri[7:]
+                self._filename = url2pathname(uri[7:])
             elif uri.startswith(SPECIAL_READ_URIS) and is_read_request:
                 self._uri_type = URI_BYTES
                 self._filename = uri
