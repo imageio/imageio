@@ -103,7 +103,7 @@ def test_png_16bit(test_images, tmp_path):
         tmp_path / "1.png",
         2 * im.astype(np.uint16),
         plugin="pillow",
-        mode="I;16",
+        mode="I",
     )
     iio.imwrite(tmp_path / "2.png", im, plugin="pillow", mode="L")
 

@@ -378,9 +378,13 @@ class PillowPlugin(PluginV3):
             The ndimage to write. If a list is given each element is expected to
             be an ndimage.
         mode : str
-            Specify the image's color format. If None (default), the mode is
-            inferred from the array's shape and dtype. Possible modes can be
-            found at:
+            Specify the image's color format. If ``I`` and the image is
+            written as PNG, the array is loaded with ``Image.fromarray`` and
+            converted to ``I;16`` or ``I;16B`` to match the array's
+            endianness. PNG stores at most 16 bits per channel. If None
+            (default), the mode is inferred from the array's shape and dtype.
+            Otherwise, the value is passed to ``Image.fromarray``. Possible
+            modes can be found at:
             https://pillow.readthedocs.io/en/stable/handbook/concepts.html#modes
         format : str
             Optional format override. If omitted, the format to use is
@@ -441,8 +445,20 @@ class PillowPlugin(PluginV3):
         if not is_batch:
             ndimage = ndimage[None, ...]
 
+        extension = self.request.extension or self.request.format_hint
+        output_format = format or Image.registered_extensions()[extension]
+
         for frame in ndimage:
-            if mode is None:
+            if mode == "I" and output_format == "PNG":
+                # fromarray stores the samples as mode "I". PNG cannot store
+                # that, so narrow to 16-bit using the array's endianness.
+                byteorder = frame.dtype.byteorder
+                if byteorder in ("=", "|"):
+                    byteorder = "<" if sys.byteorder == "little" else ">"
+                pil_frame = Image.fromarray(frame).convert(
+                    "I;16" if byteorder == "<" else "I;16B"
+                )
+            elif mode is None:
                 pil_frame = Image.fromarray(frame)
             else:
                 pil_frame = Image.fromarray(frame, mode=mode)
@@ -463,8 +479,7 @@ class PillowPlugin(PluginV3):
                 UserWarning,
             )
 
-        extension = self.request.extension or self.request.format_hint
-        self.save_args["format"] = format or Image.registered_extensions()[extension]
+        self.save_args["format"] = output_format
         self.save_args.update(kwargs)
 
         # when writing to `bytes` we flush instantly
