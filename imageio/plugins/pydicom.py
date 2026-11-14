@@ -948,7 +948,16 @@ class PydicomPlugin(PluginV3):
             self._dataset.BitsStored = bits_stored
             self._dataset.HighBit = bits_stored - 1
             self._dataset.PixelRepresentation = 0 if arr.dtype.kind == "u" else 1
-            raw = np.ascontiguousarray(arr).tobytes()
+            if not hasattr(self._dataset, "file_meta"):
+                self._dataset.file_meta = pdcm.dataset.FileMetaDataset()
+            tsyntax = getattr(self._dataset.file_meta, "TransferSyntaxUID", None)
+            if tsyntax is None or tsyntax.is_compressed:
+                tsyntax = pdcm.uid.ExplicitVRLittleEndian
+                self._dataset.file_meta.TransferSyntaxUID = tsyntax
+            byteorder = "<" if tsyntax.is_little_endian else ">"
+            raw = np.ascontiguousarray(
+                arr, dtype=arr.dtype.newbyteorder(byteorder)
+            ).tobytes()
             if len(raw) % 2 == 1:
                 raw += b"\x00"
             self._dataset.PixelData = raw
@@ -957,13 +966,6 @@ class PydicomPlugin(PluginV3):
                 if self._dataset.BitsAllocated <= 8
                 else pdcm.valuerep.VR.OW
             )
-            if not hasattr(self._dataset, "file_meta"):
-                self._dataset.file_meta = pdcm.dataset.FileMetaDataset()
-            tsyntax = getattr(self._dataset.file_meta, "TransferSyntaxUID", None)
-            if tsyntax is None or tsyntax.is_compressed:
-                self._dataset.file_meta.TransferSyntaxUID = (
-                    pdcm.uid.ExplicitVRLittleEndian
-                )
         else:
             self._dataset.set_pixel_data(
                 arr, photometric, bits_stored, generate_instance_uid=False
