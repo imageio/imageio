@@ -385,7 +385,7 @@ def test_properties(tmp_path, test_images):
     assert props.n_images is None
 
     props = iio.improps(filename, index=...)
-    assert props.shape == (1, 255, 255, 3)
+    assert props.shape == (1, 6, 255, 255, 3)
     assert props.n_images == 1
 
     props = iio.improps(filename, index=..., page=...)
@@ -395,6 +395,25 @@ def test_properties(tmp_path, test_images):
     # read file without resolution tags
     props = iio.improps(test_images / "multipage_rgb.tif")
     assert props.spacing is None
+
+
+def test_properties_multipage_series_matches_imread():
+    """Full-series properties must describe the series, not its first page."""
+    data = np.arange(3 * 5 * 7 * 3, dtype=np.uint8).reshape(3, 5, 7, 3)
+    buffer = io.BytesIO()
+    tifffile.imwrite(buffer, data, photometric="rgb", metadata=None)
+    raw = buffer.getvalue()
+
+    props = iio.improps(raw, plugin="tifffile", index=0)
+    assert props.shape == iio.imread(raw, plugin="tifffile", index=0).shape
+    assert props.dtype == data.dtype
+    assert props.n_images is None
+    assert props.is_batch is False
+
+    batch_props = iio.improps(raw, plugin="tifffile", index=...)
+    assert batch_props.shape == (1, *data.shape)
+    assert batch_props.n_images == 1
+    assert batch_props.is_batch is True
 
 
 def test_contigous_writing(tmp_path):

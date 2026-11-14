@@ -354,23 +354,36 @@ class TifffilePlugin(PluginV3):
 
         """
         index = index or 0
-        page_idx = 0 if page in (None, Ellipsis) else page
-
         if index is Ellipsis:
+            if page is None:
+                target_series = self._fh.series[0]
+                n_series = len(self._fh.series)
+                props = ImageProperties(
+                    shape=(n_series, *target_series.shape),
+                    dtype=target_series.dtype,
+                    n_images=n_series,
+                    is_batch=True,
+                    spacing=_get_resolution(target_series.pages[0]).get("resolution"),
+                )
+                return props
+
+            page_idx = 0 if page is Ellipsis else page
             target_page = self._fh.pages[page_idx]
         else:
-            target_page = self._fh.series[index].pages[page_idx]
+            target_series = self._fh.series[index]
+            if page is None:
+                props = ImageProperties(
+                    shape=target_series.shape,
+                    dtype=target_series.dtype,
+                    is_batch=False,
+                    spacing=_get_resolution(target_series.pages[0]).get("resolution"),
+                )
+                return props
 
-        if index is Ellipsis and page is None:
-            n_series = len(self._fh.series)
-            props = ImageProperties(
-                shape=(n_series, *target_page.shape),
-                dtype=target_page.dtype,
-                n_images=n_series,
-                is_batch=True,
-                spacing=_get_resolution(target_page).get("resolution"),
-            )
-        elif index is Ellipsis and page is Ellipsis:
+            page_idx = 0 if page is Ellipsis else page
+            target_page = target_series.pages[page_idx]
+
+        if index is Ellipsis and page is Ellipsis:
             n_pages = len(self._fh.pages)
             props = ImageProperties(
                 shape=(n_pages, *target_page.shape),
