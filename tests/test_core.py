@@ -353,6 +353,28 @@ def test_request_seekable_file_object():
         assert f.tell() == 150
 
 
+@pytest.mark.parametrize("operation", ["read", "seek", "readline"])
+def test_request_seekable_file_object_short_reads(operation):
+    class ShortReadBytesIO(BytesIO):
+        def read(self, size=-1):
+            return super().read(min(size, 2) if size >= 0 else size)
+
+    data = b"first\nsecond\nlast"
+    wrapped = imageio.core.request.SeekableFileObject(ShortReadBytesIO(data))
+    if operation == "read":
+        assert wrapped.read(8) == data[:8]
+        assert wrapped.read(3) == data[8:11]
+        assert wrapped.read() == data[11:]
+    elif operation == "seek":
+        assert wrapped.seek(8) == 8
+        assert wrapped.read(3) == data[8:11]
+    else:
+        assert wrapped.readline(12) == b"first\n"
+        assert wrapped.readline(12) == b"second\n"
+        assert wrapped.readline(12) == b"last"
+        assert wrapped.readline(12) == b""
+
+
 def test_request_seekable_file_object_readline():
     # regression for https://github.com/imageio/imageio/issues/1007
     # Pillow's IM/XPM plugins call readline() on HTTP streams wrapped here.
