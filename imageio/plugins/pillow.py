@@ -331,12 +331,13 @@ class PillowPlugin(PluginV3):
                 # pillow >= 10.1.0
                 image = image.convert(desired_mode)
 
+        image_mode = image.mode
         image = np.asarray(image)
 
         meta = self.metadata(index=self._image.tell(), exclude_applied=False)
         if rotate and "Orientation" in meta:
             transformation = _exif_orientation_transform(
-                meta["Orientation"], self._image.mode
+                meta["Orientation"], image_mode
             )
             image = transformation(image)
 
