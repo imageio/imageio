@@ -16,7 +16,8 @@ jobs:
       - name: Set up pypy
         uses: actions/setup-python@v5
         with:
-          python-version: "pypy-3.11"
+          # Pillow 13 publishes pp80 wheels, which match PyPy 8.
+          python-version: "pypy-3.11-v8.x"
       - name: MacOS Numpy Fix
         if: runner.os == 'macOS'
         run: |

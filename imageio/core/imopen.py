@@ -210,15 +210,12 @@ def imopen(
             raise err_type(err_msg)
 
     # error out for directories
-    # this is a bit hacky and should be cleaned once we decide
-    # how to gracefully handle DICOM
     if request._uri_type == URI_FILENAME and Path(request.raw_uri).is_dir():
         request.finish()
         err_type = ValueError if legacy_mode else IOError
         err_msg = (
-            "ImageIO does not generally support reading folders. "
-            "Limited support may be available via specific plugins. "
-            "Specify the plugin explicitly using the `plugin` kwarg, e.g. `plugin='DICOM'`"
+            "ImageIO does not support reading folders. "
+            "Use a URI pointing to an individual file instead."
         )
         raise err_type(err_msg)
 

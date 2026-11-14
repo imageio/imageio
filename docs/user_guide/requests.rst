@@ -77,6 +77,10 @@ the image to a compatible backend to do the reading itself. It works with any
 backend. If the backend supports file objects directly, this processes will
 happen purely in memory.
 
+HTTP responses are not seekable. ImageIO wraps them so backends that ``seek``
+or call ``readline`` (Pillow's XPM and IM plugins among them) can still read
+the stream.
+
 You can read from public web servers using a URL string ::
 
     img = iio.imread("https://my-domain.com/path/to/some/image.gif")

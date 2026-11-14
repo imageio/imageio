@@ -238,8 +238,10 @@ def immeta(
 
     Returns
     -------
-    image : ndimage
-        The ndimage located at the given URI.
+    metadata : dict
+        A dictionary of format- and plugin-specific metadata for the selected
+        ndimage (or the global metadata when ``index`` is an ellipsis). Keys are
+        metadata field names and values are the fields' contents.
 
     """
 

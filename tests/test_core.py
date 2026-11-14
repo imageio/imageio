@@ -353,6 +353,39 @@ def test_request_seekable_file_object():
         assert f.tell() == 150
 
 
+def test_request_seekable_file_object_readline():
+    # regression for https://github.com/imageio/imageio/issues/1007
+    # Pillow's IM/XPM plugins call readline() on HTTP streams wrapped here.
+    SeekableFileObject = imageio.core.request.SeekableFileObject
+    data = b"hello\nworld\nno-nl"
+
+    f1 = BytesIO(data)
+    f2 = SeekableFileObject(BytesIO(data))
+    assert f2.readline() == f1.readline() == b"hello\n"
+    assert f2.readline() == f1.readline() == b"world\n"
+    assert f2.readline() == f1.readline() == b"no-nl"
+    assert f2.readline() == f1.readline() == b""
+
+    f1 = BytesIO(data)
+    f2 = SeekableFileObject(BytesIO(data))
+    assert f2.readline(3) == f1.readline(3) == b"hel"
+    assert f2.readline() == f1.readline() == b"lo\n"
+
+    f1 = BytesIO(data)
+    f2 = SeekableFileObject(BytesIO(data))
+    f1.read(3)
+    f2.read(3)
+    assert f2.readline() == f1.readline() == b"lo\n"
+    f1.seek(0)
+    f2.seek(0)
+    assert f2.readline() == f1.readline() == b"hello\n"
+
+    assert SeekableFileObject(BytesIO(b"")).readline() == b""
+    f2 = SeekableFileObject(BytesIO(data))
+    assert f2.readline(0) == b""
+    assert f2.tell() == 0
+
+
 def test_request_file_no_seek():
     class File:
         def read(self, n):

@@ -663,6 +663,9 @@ class SeekableFileObject:
     """A readonly wrapper file object that add support for seeking, even if
     the wrapped file object does not. The allows us to stream from http and
     still use Pillow.
+
+    readline matches BytesIO: it returns bytes up to the next newline, EOF, or
+    size, using the same buffer as read/seek.
     """
 
     def __init__(self, f):
@@ -705,8 +708,35 @@ class SeekableFileObject:
 
         return res
 
-    def readline(self):
-        yield from self._file.readline()
+    def readline(self, size=-1):
+        if size is None:
+            size = -1
+        else:
+            size = int(size)
+            if size == 0:
+                return b""
+
+        if not self._have_all:
+            nl = self._buffer.find(b"\n", self._i)
+            unread = len(self._buffer) - self._i
+            if nl == -1 and (size < 0 or unread < size):
+                if size < 0:
+                    more = self.f.read()
+                    self._have_all = True
+                else:
+                    more = self.f.read(size - unread)
+                    if len(more) < size - unread:
+                        self._have_all = True
+                self._buffer += more
+
+        nl = self._buffer.find(b"\n", self._i)
+        if nl == -1:
+            n = len(self._buffer) - self._i
+        else:
+            n = nl + 1 - self._i
+        if size >= 0:
+            n = min(n, size)
+        return self.read(n)
 
     def tell(self):
         return self._i

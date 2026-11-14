@@ -17,53 +17,62 @@ def to_nbytes(arg: float = None, default=None) -> float: ...
 def help(name=None) -> None: ...
 def decypher_format_arg(format_name: Union[str, None]) -> Dict[str, str]: ...
 def get_reader(
-    uri: ImageResource, format: Format = None, mode: str = "?", **kwargs
+    uri: ImageResource, format: Union[str, None] = None, mode: str = "?", **kwargs
 ) -> Format.Reader: ...
 def get_writer(
-    uri: ImageResource, format: Format = None, mode: str = "?", **kwargs
+    uri: ImageResource, format: Union[str, None] = None, mode: str = "?", **kwargs
 ) -> Format.Writer: ...
-def imread(uri: ImageResource, format: Format = None, **kwargs) -> Array: ...
+def imread(uri: ImageResource, format: Union[str, None] = None, **kwargs) -> Array: ...
 @overload
 def imwrite(
-    uri: Literal["<bytes>"], im: ArrayLike, format: Format = None, **kwargs
+    uri: Literal["<bytes>"], im: ArrayLike, format: Union[str, None] = None, **kwargs
 ) -> bytes: ...
 @overload
 def imwrite(
-    uri: ImageResource, im: ArrayLike, format: Format = None, **kwargs
+    uri: ImageResource, im: ArrayLike, format: Union[str, None] = None, **kwargs
 ) -> None: ...
 def mimread(
-    uri: ImageResource, format: Format = None, memtest=MEMTEST_DEFAULT_MIM, **kwargs
+    uri: ImageResource,
+    format: Union[str, None] = None,
+    memtest=MEMTEST_DEFAULT_MIM,
+    **kwargs,
 ) -> List[Array]: ...
 @overload
 def mimwrite(
-    uri: Literal["<bytes>"], ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: Literal["<bytes>"],
+    ims: List[ArrayLike],
+    format: Union[str, None] = None,
+    **kwargs,
 ) -> bytes: ...
 @overload
 def mimwrite(
-    uri: ImageResource, ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: ImageResource, ims: List[ArrayLike], format: Union[str, None] = None, **kwargs
 ) -> None: ...
-def volread(uri: ImageResource, format: Format = None, **kwargs) -> Array: ...
+def volread(uri: ImageResource, format: Union[str, None] = None, **kwargs) -> Array: ...
 @overload
 def volwrite(
-    uri: Literal["<bytes>"], im: ArrayLike, format: Format = None, **kwargs
+    uri: Literal["<bytes>"], im: ArrayLike, format: Union[str, None] = None, **kwargs
 ) -> bytes: ...
 @overload
 def volwrite(
-    uri: ImageResource, im: ArrayLike, format: Format = None, **kwargs
+    uri: ImageResource, im: ArrayLike, format: Union[str, None] = None, **kwargs
 ) -> None: ...
 def mvolread(
     uri: ImageResource,
-    format: Format = None,
+    format: Union[str, None] = None,
     memtest: float = MEMTEST_DEFAULT_MVOL,
     **kwargs,
 ) -> List[Array]: ...
 @overload
 def mvolwrite(
-    uri: Literal["<bytes>"], ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: Literal["<bytes>"],
+    ims: List[ArrayLike],
+    format: Union[str, None] = None,
+    **kwargs,
 ) -> bytes: ...
 @overload
 def mvolwrite(
-    uri: ImageResource, ims: List[ArrayLike], format: Format = None, **kwargs
+    uri: ImageResource, ims: List[ArrayLike], format: Union[str, None] = None, **kwargs
 ) -> None: ...
 
 # aliases

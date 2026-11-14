@@ -166,6 +166,7 @@ when saving RGB images.
 """
 
 import logging
+import sys
 import threading
 
 import numpy as np
@@ -794,6 +795,9 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
         if arr.dtype.kind == "f":
             arr = image_as_uint(arr)
 
+        elif arr.dtype == np.uint8:
+            mode = mode_base = "L"
+
         elif prefer_uint8 and arr.max() < 256 and arr.min() >= 0:
             arr = arr.astype(np.uint8)
             mode = mode_base = "L"
@@ -818,6 +822,13 @@ def ndarray_to_pil(arr, format_str=None, prefer_uint8=True):
             image_shape = (arr.shape[1], arr.shape[0])
             im = Image.frombytes(mode, image_shape, array_buffer)
         return im
+    elif mode == "I;16":
+        # fromarray stores the samples as mode "I". PNG cannot store
+        # that, so narrow to 16-bit using the array's endianness.
+        byteorder = arr.dtype.byteorder
+        if byteorder in ("=", "|"):
+            byteorder = "<" if sys.byteorder == "little" else ">"
+        return Image.fromarray(arr).convert("I;16" if byteorder == "<" else "I;16B")
     else:
         return Image.fromarray(arr, mode)
 

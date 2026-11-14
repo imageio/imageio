@@ -441,8 +441,20 @@ class PillowPlugin(PluginV3):
         if not is_batch:
             ndimage = ndimage[None, ...]
 
+        extension = self.request.extension or self.request.format_hint
+        output_format = format or Image.registered_extensions()[extension]
+
         for frame in ndimage:
-            if mode is None:
+            if mode == "I" and output_format == "PNG":
+                # fromarray stores the samples as mode "I". PNG cannot store
+                # that, so narrow to 16-bit using the array's endianness.
+                byteorder = frame.dtype.byteorder
+                if byteorder in ("=", "|"):
+                    byteorder = "<" if sys.byteorder == "little" else ">"
+                pil_frame = Image.fromarray(frame).convert(
+                    "I;16" if byteorder == "<" else "I;16B"
+                )
+            elif mode is None:
                 pil_frame = Image.fromarray(frame)
             else:
                 pil_frame = Image.fromarray(frame, mode=mode)
@@ -463,8 +475,7 @@ class PillowPlugin(PluginV3):
                 UserWarning,
             )
 
-        extension = self.request.extension or self.request.format_hint
-        self.save_args["format"] = format or Image.registered_extensions()[extension]
+        self.save_args["format"] = output_format
         self.save_args.update(kwargs)
 
         # when writing to `bytes` we flush instantly

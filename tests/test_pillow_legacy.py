@@ -174,6 +174,15 @@ def test_png(test_images, tmp_path):
         im = imageio.imread(fnamebase + ".png", format="PNG-PIL")
         assert im.dtype == dtype
 
+    # issue #624 - prefer_uint8=False should not upcast uint8 to uint16
+    arr_uint8 = np.array([[0, 1, 2], [0, 255, 200]], dtype=np.uint8)
+    imageio.imwrite(fnamebase + ".png", arr_uint8, prefer_uint8=False, format="PNG-PIL")
+    im = imageio.imread(fnamebase + ".png", format="PNG-PIL")
+    assert im.dtype == np.uint8, "uint8 should remain uint8 with prefer_uint8=False"
+    np.testing.assert_array_equal(
+        im, arr_uint8, "uint8 data should not be scaled when prefer_uint8=False"
+    )
+
 
 @pytest.mark.needs_internet
 @deprecated_test

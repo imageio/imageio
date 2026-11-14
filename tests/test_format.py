@@ -347,25 +347,27 @@ def test_preferring_fi():
 
 @deprecated_test
 def test_preferring_arbitrary():
+    # Use always-available plugins (no optional extras) so this does not
+    # depend on imageio-ffmpeg being installed. See #1013.
     # Normally, these exotic formats are somewhere in the back
     imageio.formats.sort()
     names = [f.name for f in imageio.formats]
     assert "DICOM" not in names[:10]
-    assert "FFMPEG" not in names[:10]
+    assert "BSDF" not in names[:10]
     assert "NPZ" not in names[:10]
 
     # But we can move them forward
-    imageio.formats.sort("DICOM", "FFMPEG", "NPZ")
+    imageio.formats.sort("DICOM", "BSDF", "NPZ")
     names = [f.name for f in imageio.formats]
     assert names[0] == "DICOM"
-    assert names[1] == "FFMPEG"
+    assert names[1] == "BSDF"
     assert names[2] == "NPZ"
 
     # And back to normal ..
     imageio.formats.sort()
     names = [f.name for f in imageio.formats]
     assert "DICOM" not in names[:10]
-    assert "FFMPEG" not in names[:10]
+    assert "BSDF" not in names[:10]
     assert "NPZ" not in names[:10]
 
 
@@ -399,12 +401,17 @@ def missing_ffmpeg():
     old_ffmpeg = sys.modules.get("imageio_ffmpeg")
     old_plugin = sys.modules.get("imageio.plugins.ffmpeg")
     sys.modules["imageio_ffmpeg"] = None
-    sys.modules.pop("imageio.plugins.ffmpeg")
+    # The plugin is never imported when imageio-ffmpeg is absent (#1013).
+    sys.modules.pop("imageio.plugins.ffmpeg", None)
 
     yield
 
-    sys.modules["imageio_ffmpeg"] = old_ffmpeg
-    sys.modules["imageio.plugins.ffmpeg"] = old_plugin
+    sys.modules.pop("imageio_ffmpeg", None)
+    sys.modules.pop("imageio.plugins.ffmpeg", None)
+    if old_ffmpeg is not None:
+        sys.modules["imageio_ffmpeg"] = old_ffmpeg
+    if old_plugin is not None:
+        sys.modules["imageio.plugins.ffmpeg"] = old_plugin
 
 
 def test_missing_format(missing_ffmpeg):
