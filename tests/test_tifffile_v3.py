@@ -49,6 +49,18 @@ def test_basic_roundtrip(tmp_path):
     np.testing.assert_allclose(actual, expected)
 
 
+def test_ome_roundtrip(tmp_path):
+    filename = tmp_path / "test.tiff"
+    expected = np.ones((10, 10, 3), np.uint8) * 2
+
+    tifffile.imwrite(filename, expected, ome=True)
+    meta = iio.immeta(filename)
+    d = meta["ome"]
+
+    # akin to Tifffile.is_ome
+    assert d[:14] == "<?xml version=" and d[-6:] == "</OME>"
+
+
 def test_multiple_images_roundtrip(tmp_path):
     filename = tmp_path / "test.tiff"
     expected = np.ones((10, 10, 3), np.uint8) * 2
