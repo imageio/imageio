@@ -1,4 +1,5 @@
 from pathlib import Path
+import stat
 import warnings
 
 from ..config import known_plugins
@@ -83,6 +84,10 @@ def imopen(
     to read a ImageResource will - typically - still be based on the content of
     the resource.
 
+    When selecting a plugin automatically, empty regular files on the local
+    filesystem are rejected before initializing any plugins. This raises an
+    ``OSError`` (or ``ValueError`` in legacy mode).
+
 
     Examples
     --------
@@ -154,6 +159,22 @@ def imopen(
 
         request.finish()
         raise err_type(err_msg) from err_from
+
+    # Reject empty local files before trying any automatically selected plugins.
+    if request.mode.io_mode == IOMode.read and request._uri_type == URI_FILENAME:
+        try:
+            file_stat = Path(request.filename).stat()
+            if (
+                stat.S_ISREG(file_stat.st_mode)
+                and file_stat.st_size == 0
+                # Some files report zero size but still contain readable data.
+                and not request.firstbytes
+            ):
+                err_type = ValueError if legacy_mode else IOError
+                raise err_type(f"The input file `{source}` is empty.")
+        except Exception:
+            request.finish()
+            raise
 
     # fast-path based on format_hint
     if request.format_hint is not None:
