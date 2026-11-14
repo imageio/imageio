@@ -2,6 +2,7 @@
 
 import io
 import os
+import struct
 from pathlib import Path
 
 import imageio.v3 as iio
@@ -11,8 +12,33 @@ from imageio.core.request import InitializationError, Request, SeekableFileObjec
 from imageio.core.v3_plugin_api import PluginV3
 from imageio.plugins.pillow import PillowPlugin
 from PIL import Image, ImageSequence, ImageOps, __version__  # type: ignore
+from PIL.PngImagePlugin import PngInfo
 
 PILLOW_VERSION = tuple(int(x) for x in __version__.split("."))
+
+
+@pytest.mark.skipif(
+    PILLOW_VERSION < (10, 0), reason="16-bit PNG output requires Pillow 10"
+)
+@pytest.mark.parametrize("gamma", [1.0, 2.0, 0.5, 0.00001])
+def test_png_gamma_preserves_16bit_output(gamma):
+    pixels = np.array([[0, 1, 1024, 32768, 65535]], dtype=np.uint16)
+    metadata = PngInfo()
+    metadata.add(b"gAMA", struct.pack(">I", round(gamma * 100000)))
+    buffer = io.BytesIO()
+    Image.fromarray(pixels).save(buffer, format="PNG", pnginfo=metadata)
+
+    corrected = iio.imread(buffer.getvalue(), plugin="pillow", apply_gamma=True)
+
+    assert corrected.dtype == np.uint16
+    assert corrected[0, 0] == 0
+    assert corrected[0, -1] == 65535
+    if gamma == 1:
+        np.testing.assert_array_equal(corrected, pixels)
+    elif gamma > 1:
+        assert corrected[0, 3] < pixels[0, 3]
+    else:
+        assert corrected[0, 3] > pixels[0, 3]
 
 
 @pytest.mark.parametrize(
