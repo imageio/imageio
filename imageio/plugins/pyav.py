@@ -541,8 +541,6 @@ class PyAVPlugin(PluginV3):
 
         Parameters
         ----------
-        frame : np.ndarray
-            A numpy array containing loaded frame data.
         format : str
             Convert the data into the given format before returning it. If None,
             return the data in the encoded format if it can be expressed as a
