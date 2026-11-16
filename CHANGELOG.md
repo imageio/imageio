@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--next-version-placeholder-->
 
+## v2.38.2 (2026-11-16)
+
+### Bug
+
+- Read OME metadata in tifffile ([#998](https://github.com/imageio/imageio/pull/998),
+  [`58c91de`](https://github.com/imageio/imageio/commit/58c91de51be12cc5403d069d446dd85a9a595bf4))
+
+### Maint
+
+- Bump aiohttp from 3.14.3 to 3.14.4 ([#1241](https://github.com/imageio/imageio/pull/1241),
+  [`e27abbd`](https://github.com/imageio/imageio/commit/e27abbdb7a49a4ed14aa76a5b70f0d1b8e6dc496))
+
+- Bump black from 26.3.1 to 26.10.1 ([#1247](https://github.com/imageio/imageio/pull/1247),
+  [`abf998f`](https://github.com/imageio/imageio/commit/abf998f5246e3bfeef703501e5e531f6130f09a0))
+
+- Bump certifi from 2026.2.25 to 2026.10.18 ([#1254](https://github.com/imageio/imageio/pull/1254),
+  [`30e8559`](https://github.com/imageio/imageio/commit/30e8559a258ea68be944a25dc6377dc6b6fa8cd6))
+
+- Bump fsspec from 2026.2.0 to 2026.6.0 ([#1221](https://github.com/imageio/imageio/pull/1221),
+  [`9a4a191`](https://github.com/imageio/imageio/commit/9a4a191ac087da20fe38b509e9087a943784b57f))
+
+- Bump pillow from 12.3.0 to 13.0.0 ([#1248](https://github.com/imageio/imageio/pull/1248),
+  [`0d67bae`](https://github.com/imageio/imageio/commit/0d67baef9203192194f1f3f9bcaa58f3b282cb0a))
+
+- Bump soupsieve from 2.9 to 4.0 ([#1259](https://github.com/imageio/imageio/pull/1259),
+  [`8dd276f`](https://github.com/imageio/imageio/commit/8dd276f9aea95a9dbf6677a7fb2f209197e6a38a))
+
+- Bump urllib3 from 2.7.0 to 2.8.0 ([#1218](https://github.com/imageio/imageio/pull/1218),
+  [`803b9ef`](https://github.com/imageio/imageio/commit/803b9ef192e393174d885000842aa7b1199ad608))
+
+- Write 16-bit PNGs on Pillow 13 and test PyPy 8
+  ([#1260](https://github.com/imageio/imageio/pull/1260),
+  [`b69a11c`](https://github.com/imageio/imageio/commit/b69a11cb94907538cde986b5dd98344fa2bd8c2e))
+
+
 ## v2.38.1 (2026-10-08)
 
 ### Bug
