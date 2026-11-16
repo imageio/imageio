@@ -512,7 +512,7 @@ class Request(object):
                 self._file = self._zipfile.open(name, "r")
                 self._file = SeekableFileObject(self._file)
 
-        elif self._uri_type in [URI_HTTP or URI_FTP]:
+        elif self._uri_type in (URI_HTTP, URI_FTP):
             assert not want_to_write  # This should have been tested in init
             timeout = os.getenv("IMAGEIO_REQUEST_TIMEOUT")
             if timeout is None or not timeout.isdigit():
