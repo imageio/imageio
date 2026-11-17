@@ -638,3 +638,109 @@ def test_lagging_video_stream(test_images):
     if not output.poll(timeout=5):
         proc.kill()
         raise TimeoutError("Test Subprocess failed to respond in time.")
+
+
+@pytest.fixture(params=["mp4", "mkv"])
+def bulk_read_video(request, tmp_path):
+    # MP4 reports a frame count; Matroska generally leaves it unspecified.
+    extension = request.param
+    path = tmp_path / ("bulk." + extension)
+    with av.open(str(path), "w") as container:
+        codec = "mpeg4" if extension == "mp4" else "ffv1"
+        stream = container.add_stream(codec, rate=12)
+        stream.width = stream.height = 32
+        stream.pix_fmt = "yuv420p" if extension == "mp4" else "bgr0"
+        if extension == "mp4":
+            stream.codec_context.max_b_frames = 2
+
+        for index in range(12):
+            image = np.full((32, 32, 3), 16 * index, dtype=np.uint8)
+            image[index : index + 8, :, 0] = 255
+            frame = av.VideoFrame.from_ndarray(image, format="rgb24")
+            for packet in stream.encode(frame):
+                container.mux(packet)
+        for packet in stream.encode():
+            container.mux(packet)
+
+    # Decode independently so lossy encoding is not part of the assertion.
+    with av.open(str(path)) as container:
+        expected = np.stack(
+            [frame.to_ndarray(format="rgb24") for frame in container.decode(video=0)]
+        )
+    return path, expected
+
+
+def test_bulk_read_restarts_exhausted_decoder(bulk_read_video):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        for _ in range(2):
+            actual = reader.read(thread_count=2)
+            np.testing.assert_array_equal(actual, expected)
+            assert reader._next_idx == len(expected)
+
+
+def test_bulk_read_restarts_partial_decoder(bulk_read_video):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        frames = reader.iter(thread_type="FRAME", thread_count=2)
+        for frame in expected[:3]:
+            np.testing.assert_array_equal(next(frames), frame)
+        frames.close()
+
+        actual = reader.read(thread_count=2)
+        np.testing.assert_array_equal(actual, expected)
+        assert reader._next_idx == len(expected)
+
+        # A subsequent indexed read must still use the correct position.
+        np.testing.assert_array_equal(
+            reader.read(index=0, constant_framerate=False), expected[0]
+        )
+
+
+@pytest.mark.parametrize("reported_frames", [1, 10, 12, 14])
+def test_bulk_read_uses_decoded_frame_count(
+    bulk_read_video, monkeypatch, reported_frames
+):
+    from dataclasses import replace
+
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        properties = reader.properties()
+        monkeypatch.setattr(
+            reader,
+            "properties",
+            lambda **kwargs: replace(
+                properties,
+                shape=(reported_frames, *properties.shape[1:]),
+                n_images=reported_frames,
+            ),
+        )
+
+        actual = reader.read(thread_count=2)
+        np.testing.assert_array_equal(actual, expected)
+
+
+def test_bulk_read_restarts_filter(bulk_read_video):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        for _ in range(2):
+            actual = reader.read(filter_sequence=[("framestep", "2")], thread_count=2)
+            np.testing.assert_array_equal(actual, expected[::2])
+
+
+def test_bulk_read_after_indexed_default_threading(bulk_read_video):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        np.testing.assert_array_equal(reader.read(index=0), expected[0])
+        np.testing.assert_array_equal(reader.read(), expected)
+        np.testing.assert_array_equal(reader.read(), expected)
+
+
+@pytest.mark.parametrize("thread_type", ["SLICE", "FRAME"])
+def test_iter_preserves_open_decoder_threading(bulk_read_video, thread_type):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        first = reader.read(index=0, thread_type=thread_type, thread_count=2)
+        np.testing.assert_array_equal(first, expected[0])
+        np.testing.assert_array_equal(np.stack(list(reader.iter())), expected[1:])
+        np.testing.assert_array_equal(reader.read(), expected)
