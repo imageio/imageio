@@ -1,3 +1,8 @@
+from io import BytesIO
+
+from PIL import Image
+from PIL.PngImagePlugin import PngInfo
+
 import imageio as iio
 import pytest
 
@@ -51,3 +56,31 @@ def test_properties(test_images):
     assert p.shape == (150, 200, 4)
     assert p.n_images is None
     assert not p.is_batch
+
+
+@pytest.mark.parametrize("index", [None, 0, Ellipsis])
+@pytest.mark.parametrize("as_stream", [False, True])
+@pytest.mark.parametrize("plugin", ["PNG-PIL", "GIF-PIL"])
+def test_global_metadata(plugin, index, as_stream):
+    buffer = BytesIO()
+    image = Image.new("RGB", (3, 2), "red")
+    if plugin == "PNG-PIL":
+        info = PngInfo()
+        info.add_text("Description", "global metadata")
+        image.save(buffer, format="PNG", pnginfo=info)
+        expected = {"Description": "global metadata"}
+    else:
+        image.save(
+            buffer,
+            format="GIF",
+            save_all=True,
+            append_images=[Image.new("RGB", (3, 2), "blue")],
+            duration=[100, 300],
+            loop=2,
+        )
+        expected = {"loop": 2, "duration": 100}
+    data = buffer.getvalue()
+    uri = BytesIO(data) if as_stream else data
+    metadata = iio.v3.immeta(uri, plugin=plugin, index=index)
+    for name, value in expected.items():
+        assert metadata[name] == value

@@ -335,9 +335,9 @@ class LegacyPlugin(PluginV3):
 
         Parameters
         ----------
-        index : int
-            The index of the ndimage to read. If the index is out of bounds a
-            ``ValueError`` is raised. If ``None``, global metadata is returned.
+        index : {int, None, Ellipsis}
+            The index of the ndimage to read. An ellipsis (``...``) selects
+            global metadata. If ``None``, the plugin chooses its default.
         exclude_applied : bool
             This parameter exists for compatibility and has no effect. Legacy
             plugins always report all metadata they find.
@@ -353,6 +353,8 @@ class LegacyPlugin(PluginV3):
         if index is None:
             index = _legacy_default_index(self._format)
 
+        if index is Ellipsis:
+            index = None
         return self.legacy_get_reader().get_meta_data(index=index)
 
     def __del__(self) -> None:
