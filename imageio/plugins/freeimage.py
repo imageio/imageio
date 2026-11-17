@@ -14,6 +14,19 @@ Backend Library: `FreeImage <https://freeimage.sourceforge.io/>`_
 
         imageio.plugins.freeimage.download()
 
+    A downloaded library must be compatible with the architecture of the Python
+    process. On Apple Silicon, set ``IMAGEIO_FREEIMAGE_LIB`` to the path of a
+    compatible FreeImage library if the downloaded backend cannot be loaded.
+
+    To inspect library-loading failures, enable debug logging before opening an
+    image::
+
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
+
+    These diagnostics use the ``imageio.plugins._freeimage`` logger. Automatic
+    plugin selection can still use another backend when FreeImage is unavailable.
+
 Each Freeimage format has the ``flags`` keyword argument. See the `Freeimage
 documentation <https://freeimage.sourceforge.io/>`_ for more information.
 
