@@ -225,6 +225,37 @@ def test_exif_orientation(test_images, tmp_path):
     assert np.array_equal(im, im_pillow)
 
 
+@pytest.mark.parametrize("source_mode,mode", [("RGB", "L"), ("L", "RGB"), ("P", None)])
+@pytest.mark.parametrize("orientation", range(1, 9))
+@pytest.mark.parametrize("api", ["imread", "imiter"])
+def test_exif_orientation_after_mode_conversion(
+    tmp_path, source_mode, mode, orientation, api
+):
+    pixels = np.arange(3 * 5 * 3, dtype=np.uint8).reshape(3, 5, 3)
+    source = Image.fromarray(pixels)
+    if source_mode == "P":
+        source = source.quantize(colors=15)
+    else:
+        source = source.convert(source_mode)
+
+    exif = Image.Exif()
+    exif[274] = orientation
+    path = tmp_path / "oriented.png"
+    source.save(path, exif=exif)
+
+    with Image.open(path) as image:
+        expected = ImageOps.exif_transpose(image)
+        expected = expected.convert(mode or image.palette.mode)
+        expected = np.asarray(expected)
+
+    if api == "imread":
+        actual = iio.imread(path, plugin="pillow", mode=mode, rotate=True)
+    else:
+        actual = next(iio.imiter(path, plugin="pillow", mode=mode, rotate=True))
+
+    np.testing.assert_array_equal(actual, expected)
+
+
 @pytest.mark.parametrize("orientation", [0, 9])
 def test_exif_invalid_orientation(test_images, tmp_path, orientation):
     from PIL.Image import Exif  # type: ignore
