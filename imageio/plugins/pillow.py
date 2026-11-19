@@ -184,7 +184,7 @@ class PillowPlugin(PluginV3):
         apply_gamma : bool
             If True and the image contains metadata about gamma, apply gamma
             correction to the image.
-        writable_output : bool
+        writeable_output : bool
             If True, ensure that the image is writable before returning it to
             the user. This incurs a full copy of the pixel data if the data
             served by pillow is read-only. Consequently, setting this flag to
@@ -287,7 +287,7 @@ class PillowPlugin(PluginV3):
         apply_gamma : {bool}
             If ``True`` and the image contains metadata about gamma, apply gamma
             correction to the image.
-        writable_output : bool
+        writeable_output : bool
             If True, ensure that the image is writable before returning it to
             the user. This incurs a full copy of the pixel data if the data
             served by pillow is read-only. Consequently, setting this flag to
