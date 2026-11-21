@@ -728,6 +728,14 @@ def test_bulk_read_restarts_filter(bulk_read_video):
             np.testing.assert_array_equal(actual, expected[::2])
 
 
+def test_bulk_read_with_no_frames_after_filtering(bulk_read_video):
+    path, expected = bulk_read_video
+    with iio.imopen(path, "r", plugin="pyav") as reader:
+        actual = reader.read(filter_sequence=[("select", "0")], thread_count=2)
+        np.testing.assert_array_equal(actual, expected[:0])
+        np.testing.assert_array_equal(reader.read(), expected)
+
+
 def test_bulk_read_after_indexed_default_threading(bulk_read_video):
     path, expected = bulk_read_video
     with iio.imopen(path, "r", plugin="pyav") as reader:

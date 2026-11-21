@@ -450,6 +450,8 @@ class PyAVPlugin(PluginV3):
         A full read (``index=...``) always starts at the beginning, including
         after earlier reads on the same plugin. The returned frame count is
         determined by decoding and may differ from the container metadata.
+        If no frames are returned, the empty array uses the unfiltered frame
+        shape and requested pixel format.
 
         The current implementation may cause problems for b-frames, i.e.,
         bidirectionaly predicted pictures. I lack test videos to write unit
@@ -471,17 +473,18 @@ class PyAVPlugin(PluginV3):
             # the frames it has buffered. A full read must start a new decode.
             self._decoder = self._container.decode(video=0)
             self._next_idx = 0
+            decoded = self.iter(
+                format=format,
+                filter_sequence=filter_sequence,
+                filter_graph=filter_graph,
+                thread_count=thread_count,
+                thread_type=thread_type,
+            )
             if not has_filter and props.shape[0] != 0:
                 frames = np.empty(props.shape, dtype=props.dtype)
                 n_frames = 0
                 extra_frames = []
-                for frame in self.iter(
-                    format=format,
-                    filter_sequence=filter_sequence,
-                    filter_graph=filter_graph,
-                    thread_count=thread_count,
-                    thread_type=thread_type,
-                ):
+                for frame in decoded:
                     # Container metadata is only a hint: the decoder may yield
                     # fewer or more frames than the advertised frame count.
                     if n_frames < len(frames):
@@ -497,18 +500,10 @@ class PyAVPlugin(PluginV3):
                     # instead of returning a view of the oversized allocation.
                     frames.resize((n_frames, *frames.shape[1:]), refcheck=False)
             else:
-                frames = np.stack(
-                    [
-                        x
-                        for x in self.iter(
-                            format=format,
-                            filter_sequence=filter_sequence,
-                            filter_graph=filter_graph,
-                            thread_count=thread_count,
-                            thread_type=thread_type,
-                        )
-                    ]
-                )
+                decoded_frames = list(decoded)
+                if not decoded_frames:
+                    return np.empty((0, *props.shape[1:]), dtype=props.dtype)
+                frames = np.stack(decoded_frames)
 
             return frames
 
