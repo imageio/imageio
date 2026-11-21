@@ -78,3 +78,15 @@ def test_metadata(test_images):
     assert metadata["width"] == 869
     assert metadata["height"] == 593
     assert metadata["pixel_aspect"] == 1.0
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [{}, {"half_size": True, "output_bps": 16, "gamma": (1.0, 1.0)}],
+)
+def test_read_dng_without_explicit_plugin(test_images, kwargs):
+    im_path = test_images / "Blackmagic.dng"
+    actual = iio.imread(im_path, **kwargs)
+    with rawpy.imread(str(im_path)) as image:
+        expected = image.postprocess(**kwargs)
+    np.testing.assert_array_equal(actual, expected)

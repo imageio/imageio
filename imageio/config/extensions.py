@@ -205,7 +205,7 @@ extension_list = [
     ),
     FileExtension(
         extension=".dng",
-        priority=["RAW-FI"],
+        priority=["rawpy", "RAW-FI"],
     ),
     FileExtension(
         extension=".drf",

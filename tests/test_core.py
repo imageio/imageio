@@ -1084,3 +1084,27 @@ def test_standard_images():
 
     with pytest.raises(ValueError):
         iio.v3.imread("imageio:nonexistant_standard_image.png")
+
+
+@pytest.mark.parametrize("invalid_file", [".dng"], indirect=["invalid_file"])
+@pytest.mark.parametrize("rawpy_module", ["test_core", "not_installed_rawpy"])
+def test_dng_falls_back_to_freeimage(monkeypatch, invalid_file, rawpy_module):
+    monkeypatch.setitem(
+        iio.config.known_plugins,
+        "rawpy",
+        PluginConfig(
+            name="rawpy",
+            class_name="UselessDummyPlugin",
+            module_name=rawpy_module,
+        ),
+    )
+    monkeypatch.setitem(
+        iio.config.known_plugins,
+        "RAW-FI",
+        PluginConfig(
+            name="RAW-FI", class_name="EpicDummyPlugin", module_name="test_core"
+        ),
+    )
+
+    instance = iio.v3.imopen(invalid_file, "r")
+    assert isinstance(instance, EpicDummyPlugin)
