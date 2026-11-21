@@ -507,6 +507,49 @@ def test_multi_frame_libx264_write(tmp_path):
     assert actual.shape == frames.shape
 
 
+@pytest.mark.parametrize(
+    ("filter_sequence", "expected_shape"),
+    [
+        ([("hflip", "")], (2, 48, 64, 3)),
+        ([("scale", "iw*2:ih*2")], (2, 96, 128, 3)),
+    ],
+)
+def test_write_filter_uses_input_dimensions(tmp_path, filter_sequence, expected_shape):
+    frames = np.zeros((2, 48, 64, 3), dtype=np.uint8)
+    out = tmp_path / "filtered.mp4"
+
+    iio.imwrite(
+        out,
+        frames,
+        plugin="pyav",
+        codec="libx264",
+        filter_sequence=filter_sequence,
+    )
+    actual = iio.imread(out, plugin="pyav")
+
+    assert actual.shape == expected_shape
+
+
+def test_procedural_writer_filter_can_be_reset_after_first_frame(tmp_path):
+    frames = np.zeros((2, 48, 64, 3), dtype=np.uint8)
+    out = tmp_path / "filtered.mp4"
+
+    with iio.imopen(out, "w", plugin="pyav") as file:
+        file.init_video_stream("libx264", fps=12)
+        filter_sequence = [("hflip", "")]
+        file.set_video_filter(filter_sequence=filter_sequence)
+        filter_sequence[:] = [("scale", "iw*2:ih*2")]
+        file.write_frame(frames[0])
+        file.set_video_filter()
+        file.write_frame(frames[1])
+
+    actual = iio.imread(out, plugin="pyav")
+    metadata = iio.immeta(out, plugin="pyav")
+
+    assert actual.shape == frames.shape
+    assert metadata["fps"] == 12
+
+
 def test_procedual_writing_with_filter(test_images):
     buffer = io.BytesIO()
     with iio.imopen(buffer, "w", plugin="pyav", extension=".mp4") as file:
