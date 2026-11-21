@@ -518,7 +518,12 @@ extension_list = [
     FileExtension(
         name="FreeSurfer File Format",
         extension=".mgh",
-        priority=["ITK"],
+        priority=["ITK", "nibabel"],
+    ),
+    FileExtension(
+        name="FreeSurfer File Format (gzip)",
+        extension=".mgz",
+        priority=["nibabel"],
     ),
     FileExtension(
         name="ITK MetaImage",
@@ -608,12 +613,12 @@ extension_list = [
     ),
     FileExtension(
         extension=".nii",
-        priority=["ITK"],
+        priority=["ITK", "nibabel"],
     ),
     FileExtension(
         name="nii.gz",
         extension=".nii.gz",
-        priority=["ITK"],
+        priority=["ITK", "nibabel"],
     ),
     FileExtension(
         name="Numpy Array",
