@@ -3,6 +3,7 @@
 import io
 import os
 from pathlib import Path
+from types import SimpleNamespace
 
 import imageio.v3 as iio
 import numpy as np
@@ -370,6 +371,22 @@ def test_gif_indexed_read(test_images):
         pillow_im = file.read(index=idx, mode="RGB")
 
     assert np.allclose(pillow_im, numpy_im)
+
+
+def test_gif_read_without_loading_strategy_api(tmp_path, monkeypatch):
+    """GIF reading remains available with Pillow versions predating 9.1."""
+    first = Image.new("RGB", (2, 2), color=(255, 0, 0))
+    second = Image.new("RGB", (2, 2), color=(0, 255, 0))
+    gif_path = tmp_path / "animation.gif"
+    first.save(gif_path, save_all=True, append_images=[second])
+
+    monkeypatch.setattr("imageio.plugins.pillow.GifImagePlugin", SimpleNamespace())
+
+    frames = iio.imread(gif_path, plugin="pillow")
+
+    assert frames.shape == (2, 2, 2, 3)
+    assert np.all(frames[0] == [255, 0, 0])
+    assert np.all(frames[1] == [0, 255, 0])
 
 
 def test_unknown_image(tmp_path):
