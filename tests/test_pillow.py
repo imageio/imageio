@@ -665,6 +665,32 @@ def test_apng_metadata(tmp_path, test_images):
     assert metadata == metadata2
 
 
+@pytest.mark.parametrize("extension", [".gif", ".png"])
+@pytest.mark.parametrize("index", [None, Ellipsis])
+@pytest.mark.parametrize("exclude_applied", [True, False])
+def test_global_metadata_after_read(tmp_path, extension, index, exclude_applied):
+    path = tmp_path / ("animation" + extension)
+    Image.new("RGB", (3, 2), "red").save(
+        path,
+        save_all=True,
+        append_images=[Image.new("RGB", (3, 2), "blue")],
+        duration=[100, 300],
+        loop=2,
+    )
+
+    with iio.imopen(path, "r", plugin="pillow") as image_file:
+        expected = image_file.metadata(index=index, exclude_applied=exclude_applied)
+        image_file.read(index=1)
+        frame_metadata = image_file.metadata(index=1, exclude_applied=exclude_applied)
+        assert frame_metadata["duration"] == 300
+        actual = image_file.metadata(index=index, exclude_applied=exclude_applied)
+
+        assert actual.keys() == expected.keys()
+        for key in expected:
+            np.testing.assert_equal(actual[key], expected[key])
+        assert image_file.metadata(index=1)["duration"] == 300
+
+
 def test_write_format_warning(test_images):
     frames = iio.imread(test_images / "chelsea.png")
     bytes_image = iio.imwrite("<bytes>", frames, extension=".png", plugin="pillow")
