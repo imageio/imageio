@@ -102,11 +102,20 @@ class PillowPlugin(PluginV3):
         self.images_to_write = []
 
         if request.mode.io_mode == IOMode.read:
+            # Pillow's EPS plugin rasterizes via Ghostscript. Only let it
+            # claim the file if PostScript was explicitly requested, so that
+            # e.g. a ".png" with EPS content is not handed to Ghostscript.
+            formats = None
+            extension = request.extension or request.format_hint
+            if extension not in (".eps", ".ps"):
+                Image.init()
+                formats = [x for x in Image.ID if x != "EPS"]
+
             try:
                 # Check if it is generally possible to read the image.
                 # This will not read any data and merely try to find a
                 # compatible pillow plugin (ref: the pillow docs).
-                image = Image.open(request.get_file())
+                image = Image.open(request.get_file(), formats=formats)
             except UnidentifiedImageError:
                 if request._uri_type == URI_BYTES:
                     raise InitializationError(
