@@ -35,6 +35,14 @@ def load_lib():
 
 GDAL_FORMATS = (".tiff", " .tif", ".img", ".ecw", ".jpg", ".jpeg")
 
+# GDAL picks a driver from the file *content*, not its extension, so a file
+# with one of the extensions above can still be opened as e.g. a VRT dataset.
+# VRT (and other container drivers) can reference arbitrary local paths and
+# remote URLs (/vsicurl/), which turns reading an untrusted raster into local
+# file disclosure and SSRF. Restrict opening to the raster drivers that back
+# the extensions this plugin advertises.
+ALLOWED_DRIVERS = ["GTiff", "HFA", "ECW", "JPEG"]
+
 
 class GdalFormat(Format):
     """See :mod:`imageio.plugins.gdal`"""
@@ -54,7 +62,15 @@ class GdalFormat(Format):
         def _open(self):
             if not _gdal:
                 load_lib()
-            self._ds = _gdal.Open(self.request.get_local_filename())
+            self._ds = _gdal.OpenEx(
+                self.request.get_local_filename(),
+                allowed_drivers=ALLOWED_DRIVERS,
+            )
+            if self._ds is None:
+                raise RuntimeError(
+                    "GDAL could not open the file with any of the allowed "
+                    "drivers (%s)." % ", ".join(ALLOWED_DRIVERS)
+                )
 
         def _close(self):
             del self._ds
