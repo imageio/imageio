@@ -26,10 +26,13 @@ def urlopen(*args, **kwargs):
     frozen applications.
     """
     try:
-        from urllib.request import urlopen
+        from urllib.request import Request, urlopen as _urlopen
     except ImportError:
         raise RuntimeError("Could not import urlopen.")
-    return urlopen(*args, **kwargs)
+    # Some hosts (Cloudflare R2) reject urllib's default User-Agent.
+    if args and isinstance(args[0], str):
+        args = (Request(args[0], headers={"User-Agent": "imageio"}),) + args[1:]
+    return _urlopen(*args, **kwargs)
 
 
 def _precision_warn(p1, p2, extra=""):
