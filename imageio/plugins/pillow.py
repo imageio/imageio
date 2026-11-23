@@ -342,10 +342,11 @@ class PillowPlugin(PluginV3):
 
         if apply_gamma and "gamma" in meta:
             gamma = float(meta["gamma"])
-            scale = float(65536 if image.dtype == np.uint16 else 255)
+            output_dtype = np.uint16 if image.dtype == np.uint16 else np.uint8
+            scale = float(np.iinfo(output_dtype).max)
             gain = 1.0
             image = ((image / scale) ** gamma) * scale * gain + 0.4999
-            image = np.round(image).astype(np.uint8)
+            image = np.round(image).astype(output_dtype)
 
         if writeable_output and not image.flags["WRITEABLE"]:
             image = np.array(image)
