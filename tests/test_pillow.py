@@ -575,6 +575,55 @@ def test_quantized_gif(test_images, tmp_path):
         assert len(np.unique(quantized_frame)) <= len(np.unique(original_frame))
 
 
+@pytest.mark.parametrize("index", [None, 0, ...])
+@pytest.mark.parametrize(
+    "extension, dtype, pixels",
+    [
+        (".png", np.uint16, [[0, 32768], [65535, 1]]),
+        (".tiff", np.int32, [[-10000, 0], [32768, 100000]]),
+        (".png", np.uint8, [[[255, 0, 0], [0, 255, 0]]]),
+    ],
+    ids=["png16", "tiff32", "rgb8"],
+)
+def test_properties_match_default_read(tmp_path, extension, dtype, pixels, index):
+    image = np.asarray(pixels, dtype=dtype)
+    path = tmp_path / f"image{extension}"
+    Image.fromarray(image).save(path)
+
+    properties = iio.improps(path, plugin="pillow", index=index)
+    actual = iio.imread(path, plugin="pillow", index=index)
+
+    assert properties.dtype == actual.dtype
+    assert properties.shape == actual.shape
+    expected = image[None, ...] if index is ... else image
+    np.testing.assert_array_equal(actual, expected)
+
+
+@pytest.mark.parametrize("mode, dtype", [("I", np.int32), ("RGB", np.uint8)])
+def test_properties_preserve_png_mode_and_explicit_reads(
+    tmp_path, monkeypatch, mode, dtype
+):
+    path = tmp_path / "image.png"
+    Image.fromarray(np.asarray([[0, 32768], [65535, 1]], dtype=np.uint16)).save(path)
+
+    with iio.imopen(path, "r", plugin="pillow") as image_file:
+        original_mode = image_file._image.mode
+        with monkeypatch.context() as patch:
+            patch.setattr(
+                image_file._image,
+                "load",
+                lambda: pytest.fail("properties must not decode pixel data"),
+            )
+            image_file.properties()
+        assert image_file._image.mode == original_mode
+        actual = image_file.read(mode=mode)
+
+    with Image.open(path) as image:
+        expected = np.asarray(image.convert(mode))
+    assert actual.dtype == dtype
+    np.testing.assert_array_equal(actual, expected)
+
+
 def test_properties(image_files: Path):
     file: PluginV3
 
