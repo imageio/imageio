@@ -471,6 +471,27 @@ def test_util_get_platform():
     assert core.get_platform() in platforms
 
 
+def test_util_appdata_dir_without_home(monkeypatch):
+    if sys.platform.startswith("win"):
+        skip("posix only")
+
+    # Without a home dir, the fallback must be private to this user
+    monkeypatch.delenv("IMAGEIO_USERDIR", raising=False)
+    monkeypatch.setenv("HOME", "/nonexistent/imageio-home")
+    base = os.path.dirname(core.appdata_dir("imageio"))
+    assert base == "/var/tmp/imageio-%i" % os.getuid()
+    st = os.stat(base)
+    assert st.st_uid == os.getuid()
+    assert not st.st_mode & 0o022
+
+    # A fallback dir that others can write to is refused
+    os.chmod(base, 0o777)
+    try:
+        raises(PermissionError, core.appdata_dir, "imageio")
+    finally:
+        os.chmod(base, 0o700)
+
+
 def test_util_asarray():
     # Test asarray
     im1 = core.asarray([[1, 2, 3], [4, 5, 6]])
