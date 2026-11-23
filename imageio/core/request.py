@@ -694,7 +694,7 @@ class SeekableFileObject:
                 want_i = self._i + n
                 want_more = want_i - len(self._buffer)
                 if want_more > 0:
-                    more = self.f.read(want_more)
+                    more = read_n_bytes(self.f, want_more)
                     if len(more) < want_more:
                         self._have_all = True
             self._buffer += more
@@ -724,7 +724,7 @@ class SeekableFileObject:
                     more = self.f.read()
                     self._have_all = True
                 else:
-                    more = self.f.read(size - unread)
+                    more = read_n_bytes(self.f, size - unread)
                     if len(more) < size - unread:
                         self._have_all = True
                 self._buffer += more
