@@ -1,6 +1,10 @@
 """Test DICOM functionality."""
 
 from zipfile import ZipFile
+import os
+import shutil
+import sys
+import tempfile
 import warnings
 
 import numpy as np
@@ -210,3 +214,29 @@ def test_contiguous_dicom_series(test_images, tmp_path):
     dname = tmp_path / "modified_dicom_sample1"
     ims = iio.volread(dname, "DICOM")
     assert ims.shape == (25, 512, 512)
+
+
+def test_compressed_conversion_leaves_no_files(test_images, tmp_path, monkeypatch):
+    # The external converter must write to a private temp file that is
+    # removed after reading, not to `<input>.raw` next to the input.
+    converter = tmp_path / "converter.py"
+    converter.write_text(
+        "import shutil, sys\n"
+        f"shutil.copy({str(test_images / 'dicom_file01.dcm')!r}, sys.argv[-1])\n"
+    )
+    monkeypatch.setattr(
+        imageio.plugins.dicom,
+        "get_gdcmconv_exe",
+        lambda: [sys.executable, str(converter)],
+    )
+
+    src = tmp_path / "scan.dcm"
+    shutil.copy(test_images / "dicom_file90.dcm", src)  # JPEG 2000 transfer syntax
+    before = set(os.listdir(tempfile.gettempdir()))
+
+    im = iio.imread(src)
+
+    assert im.shape == (512, 512)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["converter.py", "scan.dcm"]
+    new_in_tmp = set(os.listdir(tempfile.gettempdir())) - before
+    assert not [n for n in new_in_tmp if n.endswith(".raw")]

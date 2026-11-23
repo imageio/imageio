@@ -43,7 +43,9 @@ import os
 import sys
 import logging
 import subprocess
+import tempfile
 import warnings
+from io import BytesIO
 
 from ..core import Format, BaseProgressIndicator, StdoutProgressIndicator
 from ..core import read_n_bytes
@@ -178,21 +180,28 @@ class DicomFormat(Format):
                         raise
                     else:
                         fname1 = self.request.get_local_filename()
-                        fname2 = fname1 + ".raw"
+                        # Let the converter write to a private temp file (not
+                        # next to the input) and remove it once we have read it.
+                        fd, fname2 = tempfile.mkstemp(".raw", "imageio_")
+                        os.close(fd)
                         try:
-                            subprocess.check_call(cmd + [fname1, fname2])
-                        except Exception:
-                            raise err
-                        d = os.path.dirname(fname1)
-                        if d not in self._compressed_warning_dirs:
-                            self._compressed_warning_dirs.add(d)
-                            logger.warning(
-                                "DICOM file contained compressed data. "
-                                + "Autoconverting with "
-                                + cmd[0]
-                                + " (this warning is shown once for each directory)"
-                            )
-                        dcm = _dicom.SimpleDicomReader(fname2)
+                            try:
+                                subprocess.check_call(cmd + [fname1, fname2])
+                            except Exception:
+                                raise err
+                            d = os.path.dirname(fname1)
+                            if d not in self._compressed_warning_dirs:
+                                self._compressed_warning_dirs.add(d)
+                                logger.warning(
+                                    "DICOM file contained compressed data. "
+                                    + "Autoconverting with "
+                                    + cmd[0]
+                                    + " (this warning is shown once for each directory)"
+                                )
+                            with open(fname2, "rb") as f:
+                                dcm = _dicom.SimpleDicomReader(BytesIO(f.read()))
+                        finally:
+                            os.remove(fname2)
 
                 self._info = dcm._info
                 self._data = dcm.get_numpy_array()
