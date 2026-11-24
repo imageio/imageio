@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use ImageIO in your work, please cite it using this metadata."
+title: ImageIO
+type: software
+authors:
+  - name: ImageIO contributors
+doi: 10.5281/zenodo.1488561
+license: BSD-2-Clause
+repository-code: "https://github.com/imageio/imageio"
