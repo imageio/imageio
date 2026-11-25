@@ -21,6 +21,9 @@ Probably the most important thing you'll ever need.
 
     im = iio.imread('imageio:chelsea.png')
     print(im.shape)  # (300, 451, 3)
+
+The height and width differ, so this image can reveal an accidental swap of
+the two axes in an image-processing pipeline.
     
 If the image is a GIF:
 
@@ -285,7 +288,7 @@ touching your file-system.
     import imageio.v3 as iio
 
     # load an example image
-    img = iio.imread('imageio:astronaut.png')
+    img = iio.imread('imageio:chelsea.png')
 
     # png-encoded bytes string
     png_encoded = iio.imwrite("<bytes>", img, extension=".png")
@@ -294,7 +297,7 @@ touching your file-system.
     jpg_encoded = iio.imwrite("<bytes>", img, extension=".jpeg")
 
     # RGBA bytes string
-    img = iio.imread('imageio:astronaut.png', mode="RGBA")
+    img = iio.imread('imageio:chelsea.png', mode="RGBA")
     png_encoded = iio.imwrite("<bytes>", img, extension=".png")
 
 Writing to BytesIO
@@ -308,7 +311,7 @@ Similar to writing to byte strings, you can also write to BytesIO directly.
     import io
 
     # load an example image
-    img = iio.imread('imageio:astronaut.png')
+    img = iio.imread('imageio:chelsea.png')
 
     # write as PNG
     output = io.BytesIO()
