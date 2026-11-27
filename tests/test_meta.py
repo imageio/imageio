@@ -100,3 +100,22 @@ def test_import_modules():
     # Test that modules that should not be imported are indeed not imported
     assert "imageio.freeze" not in modnames
     assert "imageio.testing" not in modnames
+
+
+def test_import_without_package_metadata():
+    """Importing imageio should succeed when package metadata is missing."""
+    imageio_dir = os.path.dirname(os.path.dirname(os.path.abspath(imageio.__file__)))
+    code = (
+        "import importlib.metadata\n"
+        "_orig_version = importlib.metadata.version\n"
+        "def _version(name):\n"
+        "    if name.lower() == 'imageio':\n"
+        "        raise importlib.metadata.PackageNotFoundError(name)\n"
+        "    return _orig_version(name)\n"
+        "importlib.metadata.version = _version\n"
+        "import imageio\n"
+        "import imageio.v3 as iio\n"
+        "assert imageio.__version__ == 'unknown'\n"
+        "assert hasattr(iio, 'imread')\n"
+    )
+    run_subprocess([sys.executable, "-c", code], cwd=imageio_dir)

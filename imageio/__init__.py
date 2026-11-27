@@ -16,9 +16,13 @@ Main website: https://imageio.readthedocs.io/
 
 # flake8: noqa
 
+from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as get_version
 
-__version__ = get_version("imageio")
+try:
+    __version__ = get_version("imageio")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 
 import warnings
